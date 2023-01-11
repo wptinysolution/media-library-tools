@@ -23,7 +23,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 *
 		 * @var string
 		 */
-		public $nonceId = '__rtsb_wpnonce';
+		public $nonceId = '__tttme_wpnonce';
 
 		/**
 		 * Nonce Text
@@ -102,7 +102,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * @return string
 		 */
 		public function get_template_path() {
-			return apply_filters( 'rtsb_template_path', 'shopbuilder/' );
+			return apply_filters( 'rtsb_template_path', 'media-edit/' );
 		}
 
 		/**
