@@ -53,9 +53,9 @@ class Dependencies {
 		}
 		$message = sprintf(
 		/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
-			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'shopbuilder' ),
-			'<strong>' . esc_html__( 'ShopBuilder', 'shopbuilder' ) . '</strong>',
-			'<strong>' . esc_html__( 'PHP', 'shopbuilder' ) . '</strong>',
+			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'media-edit' ),
+			'<strong>' . esc_html__( 'Media Edit', 'media-edit' ) . '</strong>',
+			'<strong>' . esc_html__( 'PHP', 'media-edit' ) . '</strong>',
 			self::MINIMUM_PHP_VERSION
 		);
 		printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
