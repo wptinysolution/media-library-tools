@@ -63,7 +63,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 
             // echo $this->plugin_path();
             // echo $this->get_assets_uri('style.css');
-             echo $this->get_template_path();
+            // echo $this->get_template_path();
 
             // echo '</br>';
             // echo TTTME_ABSPATH . '/languages/';
