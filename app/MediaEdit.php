@@ -56,6 +56,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 			$installation = Installation::instance();
 
 			// Register Plugin Active Hook.
+			register_activation_hook( TTTME_FILE, [ $installation, 'activate' ] );
 
 			// Register Plugin Deactivate Hook.
 			register_deactivation_hook( TTTME_FILE, [ $installation, 'deactivation' ] );
