@@ -2,13 +2,20 @@
 /**
  * Main initialization class.
  *
- * @package RadiusTheme\SB
+ * @package TheTinyTools\ME
  */
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
+
+use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\ME\Controllers\Admin\Installation;
+use TheTinyTools\ME\Controllers\Dependencies;
+use TheTinyTools\ME\Controllers\AssetsController;
+use TheTinyTools\ME\Controllers\Hooks\FilterHooks;
+use TheTinyTools\ME\Controllers\Hooks\ActionHooks;
 
 require_once __DIR__ . './../vendor/autoload.php';
 
@@ -25,18 +32,6 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 */
 		public $nonceId = '__tttme_wpnonce';
 
-		/**
-		 * Nonce Text
-		 *
-		 * @var string
-		 */
-		public $nonceText = 'rtsb_nonce';
-		/**
-		 * Post Type.
-		 *
-		 * @var string
-		 */
-		public $post_type;
 		/**
 		 * Post Type.
 		 *
@@ -61,27 +56,17 @@ if ( ! class_exists( MediaEdit::class ) ) {
 			$installation = Installation::instance();
 
 			// Register Plugin Active Hook.
-			register_activation_hook( RTSB_FILE, [ $installation, 'activate' ] );
 
 			// Register Plugin Deactivate Hook.
-			register_deactivation_hook( RTSB_FILE, [ $installation, 'deactivation' ] );
+			register_deactivation_hook( TTTME_FILE, [ $installation, 'deactivation' ] );
+
+            // echo $this->plugin_path();
+            // echo $this->get_assets_uri('style.css');
+             echo $this->get_template_path();
+
+            // echo '</br>';
+            // echo TTTME_ABSPATH . '/languages/';
 		}
-
-		/**
-		 * Constants
-		 *
-		 * @return void
-		 */
-		private function define_constants() {
-			if ( ! defined( 'RTSB_ABSPATH' ) ) {
-				define( 'RTSB_ABSPATH', dirname( RTSB_FILE ) . '/' );
-			}
-
-			if ( ! defined( 'RTSB_URL' ) ) {
-				define( 'RTSB_URL', plugins_url( '', RTSB_FILE ) );
-			}
-		}
-
 
 		/**
 		 * Assets url generate with given assets file
@@ -93,7 +78,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		public function get_assets_uri( $file ) {
 			$file = ltrim( $file, '/' );
 
-			return trailingslashit( RTSB_URL . '/assets' ) . $file;
+			return trailingslashit( TTTME_URL . '/assets' ) . $file;
 		}
 
 		/**
@@ -102,7 +87,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * @return string
 		 */
 		public function get_template_path() {
-			return apply_filters( 'rtsb_template_path', 'media-edit/' );
+			return apply_filters( 'tttme_template_path', 'media-edit/' );
 		}
 
 		/**
@@ -111,14 +96,14 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * @return string
 		 */
 		public function plugin_path() {
-			return untrailingslashit( plugin_dir_path( RTSB_FILE ) );
+			return untrailingslashit( plugin_dir_path( TTTME_FILE ) );
 		}
 
 		/**
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'shopbuilder', false, dirname( plugin_basename( RTSB_FILE ) ) . '/languages/' );
+			load_plugin_textdomain( 'media-edit', false, TTTME_ABSPATH . '/languages/' );
 		}
 
 		/**
@@ -131,10 +116,10 @@ if ( ! class_exists( MediaEdit::class ) ) {
 				return;
 			}
 
-			do_action( 'rtsb/before_loaded' );
+			do_action( 'tttme/before_loaded' );
 			// Plugins Setting Page.
 			add_filter(
-				'plugin_action_links_' . RTSB_FILE,
+				'plugin_action_links_' . TTTME_BASENAME,
 				[
 					Installation::instance(),
 					'plugins_setting_links',
@@ -143,19 +128,11 @@ if ( ! class_exists( MediaEdit::class ) ) {
 
 			// Include File.
 			AssetsController::instance();
-			SupportController::instance();
-			ModuleManager::instance();
-			AddToCart::instance();
-
-			BuilderController::instance();
 			FilterHooks::init_hooks();
 			ActionHooks::init_hooks();
 
-			if ( is_admin() ) {
-				AdminInit::instance();
-			}
 
-			do_action( 'rtsb/after_loaded' );
+			do_action( 'tttme/after_loaded' );
 		}
 
 		/**
@@ -164,7 +141,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			return function_exists( 'rtsbp' );
+			return function_exists( 'tttmep' );
 		}
 
 		/**
@@ -173,16 +150,16 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * @return string
 		 */
 		public function pro_version_link() {
-			return 'https://www.radiustheme.com/downloads/shopbuilder/';
+			return '#';
 		}
 	}
 
 	/**
-	 * @return ShopBuilder
+	 * @return MediaEdit
 	 */
-	function rtsb() {
-		return ShopBuilder::instance();
+	function tttme() {
+		return MediaEdit::instance();
 	}
 
-	rtsb();
+	tttme();
 }

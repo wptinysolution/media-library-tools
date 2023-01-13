@@ -2,12 +2,12 @@
 /**
  * Main Upgrade class.
  *
- * @package RadiusTheme\SB
+ * @package TheTinyTools\ME
  */
 
-namespace RadiusTheme\SB\Controllers\Admin\Notice;
+namespace TheTinyTools\ME\Controllers\Admin\Notice;
 
-use RadiusTheme\SB\Traits\SingletonTrait;
+use TheTinyTools\ME\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

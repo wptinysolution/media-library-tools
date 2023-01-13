@@ -1,15 +1,11 @@
 {
-  "name": "TheTinyTools/media-edit",
+  "name": "thetinytools/media-edit",
   "authors": [
     {
       "name": "TheTinyTools",
       "email": "admin@TheTinyTools.com"
     }
   ],
-  "require": {
-    "ext-json": "*",
-    "ext-mysql_xdevapi": "*"
-  },
   "autoload": {
     "psr-4": {
       "TheTinyTools\\ME\\": "app"

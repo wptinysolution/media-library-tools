@@ -21,7 +21,7 @@ trait SingletonTrait {
 	/**
 	 * @return self
 	 */
-	final public static function init() {
+	final public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}

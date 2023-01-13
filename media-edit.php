@@ -2,11 +2,11 @@
 /**
  * @wordpress-plugin
  * Plugin Name:       Media Edit
- * Plugin URI:
- * Description:       Media File edit
+ * Plugin URI:        https://wordpress.org/plugins/
+ * Description:       Media edit
  * Version:           0.0.1
  * Author:            TheTinyTools
- * Author URI:        #
+ * Author URI:        https://profiles.wordpress.org/tinysolution/
  * Text Domain:       media-edit
  * Domain Path:       /languages
  *
@@ -23,7 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 define( 'TTTME_VERSION', '0.0.1' );
 define( 'TTTME_FILE', __FILE__ );
-define( 'TTTME_ACTIVE_FILE_NAME', plugin_basename( __FILE__ ) );
+define( 'TTTME_BASENAME', plugin_basename( __FILE__ ) );
+define( 'TTTME_URL', plugins_url('', TTTME_FILE));
+define( 'TTTME_ABSPATH', dirname(TTTME_FILE) );
 
 /**
  * App Init.
