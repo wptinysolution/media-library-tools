@@ -1,9 +1,9 @@
 {
-	"name": "shopbuilder",
+	"name": "media-edit",
 	"version": "1.0.0",
 	"main": "index.js",
-	"repository": "git@github.com:radiustheme/shopbuilder.git",
-	"author": "Mahbubur Rahman <mahbubur001@gmail.com>",
+	"repository": "git@github.com:mamunur105/media-edit.git",
+	"author": "Mamunur Rashid <rmamunur105@gmail.com>",
 	"license": "MIT",
 	"scripts": {
 		"dev": "npm run development",

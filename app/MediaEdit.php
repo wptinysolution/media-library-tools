@@ -119,14 +119,6 @@ if ( ! class_exists( MediaEdit::class ) ) {
 			}
 
 			do_action( 'tttme/before_loaded' );
-			// Plugins Setting Page.
-			add_filter(
-				'plugin_action_links_' . TTTME_BASENAME,
-				[
-					Installation::instance(),
-					'plugins_setting_links',
-				]
-			);
 
 			// Include File.
             AssetsController::instance();

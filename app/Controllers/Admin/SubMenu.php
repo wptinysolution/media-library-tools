@@ -37,8 +37,8 @@ class SubMenu {
             esc_html__('Edit Media', 'media-edit'),
             esc_html__('Edit Media', 'media-edit'),
             'manage_options',
-            'submenu-upload',
-            array(&$this, 'submenu_page_callback')
+            'media-edit',
+            array(&$this, 'edit_media_page_callback')
         );
     }
 
@@ -46,8 +46,8 @@ class SubMenu {
      * Render submenu
      * @return void
      */
-    public function submenu_page_callback() {
-        echo '<div class="wrap"><div id="root"></div></div>';
+    public function edit_media_page_callback() {
+        echo '<div class="wrap"><div id="media_root"></div></div>';
     }
 
 }

@@ -205,4 +205,7 @@ class Fns {
         $installed_plugins_list = get_plugins();
         return isset( $installed_plugins_list[ $plugin_file_path ] );
     }
+
+
+
 }

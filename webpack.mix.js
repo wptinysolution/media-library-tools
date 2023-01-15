@@ -26,9 +26,6 @@ if (process.env.npm_config_package) {
 			"app",
 			"assets",
 			"languages",
-			"page-templates",
-			"sample-layout",
-			"templates",
 			"vendor",
 			"index.php",
 			"README.txt",
@@ -69,11 +66,11 @@ if (
 		fs.ensureDir(languages, function (err) {
 			if (err) return console.error(err); // if file or folder does not exist
 			wpPot({
-				package: "ShopBuilder - Woocommerce Builder for Elementor & Gutenberg",
+				package: "Media Edit",
 				bugReport: "",
 				src: "**/*.php",
-				domain: "shopbuilder",
-				destFile: "languages/shopbuilder.pot",
+				domain: "media-edit",
+				destFile: "languages/media-edit.pot",
 			});
 		});
 	}
@@ -83,46 +80,15 @@ if (
 	 */
 	mix
 		// Backend JS
-		.js('src/js/backend/editor.js', 'assets/js/backend/')
-		.js('src/js/backend/template-builder.js', 'assets/js/backend')
-		.js("src/js/backend/admin-settings.js", "assets/js/backend/")
-		.react()
-
-		// Frontend JS
-		.js("src/js/frontend/general-frontend.js", "assets/js/frontend/")
-		.js('src/js/frontend/builder-frontend.js', 'assets/js/frontend/')
-
-		// Modules JS
-		.js("src/js/frontend/modules/wishlist.js", "assets/modules/")
-		.js("src/js/frontend/modules/compare.js", "assets/modules/")
-		.js("src/js/frontend/modules/quick-view.js", "assets/modules/");
-
+		.js("src/js/admin-settings.js", "assets/js/backend/")
+		.react();
 	/**
 	 * CSS
 	 */
 	mix
-		// Frontend CSS
-		.sass('src/sass/frontend/global.scss', 'assets/css/frontend/')
-		.sass('src/sass/frontend/builder-frontend.scss', 'assets/css/frontend/')
-
-		
-		// Modules CSS
-		.sass('src/sass/frontend/modules.scss', 'assets/modules/')
-
 		// Backend CSS
-		.sass('src/sass/backend/admin-settings.scss', 'assets/css/backend/')
-		.sass('src/sass/backend/elementor-image-selector.scss', 'assets/css/backend/')
-		.sass('src/sass/backend/template-builder.scss', 'assets/css/backend/')
-		.sass('src/sass/backend/elementor-editor.scss', 'assets/css/backend/')
-		.sass('src/sass/backend/elementor-editor-style-fix.scss', 'assets/css/backend/')
-		.sass('src/sass/backend/admin-global.scss', 'assets/css/backend/');
+		.sass('src/scss/admin-settings.scss', 'assets/css/backend/');
 
-	// Frontend CSS
-	if (!mix.inProduction()) {
-		mix.sass("src/sass/frontend/general-frontend.scss", "assets/css/frontend/",).sourceMaps(true, 'source-map');
-	} else {
-		mix.sass("src/sass/frontend/general-frontend.scss", "assets/css/frontend/");
-	}
 }
 if (process.env.npm_config_zip) {
 	async function getVersion() {
