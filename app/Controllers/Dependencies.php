@@ -61,14 +61,5 @@ class Dependencies {
 		printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
 	}
 
-	/**
-	 * @param $plugin_file_path
-	 *
-	 * @return bool
-	 */
-	public function is_plugins_installed( $plugin_file_path = null ) {
-		$installed_plugins_list = get_plugins();
-		return isset( $installed_plugins_list[ $plugin_file_path ] );
-	}
 
 }

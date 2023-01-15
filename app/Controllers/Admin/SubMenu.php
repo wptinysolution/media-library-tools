@@ -1,0 +1,53 @@
+<?php
+
+namespace TheTinyTools\ME\Controllers\Admin;
+
+// Do not allow directly accessing this file.
+if ( ! defined( 'ABSPATH' ) ) {
+    exit( 'This script cannot be accessed directly.' );
+}
+
+use TheTinyTools\ME\Traits\SingletonTrait;
+
+/**
+ * Sub menu class
+ *
+ * @author Mostafa <mostafa.soufi@hotmail.com>
+ */
+class SubMenu {
+
+    use SingletonTrait;
+
+    /**
+     * Autoload method
+     * @return void
+     */
+    private function __construct() {
+
+        add_action( 'admin_menu', array(&$this, 'register_sub_menu') );
+    }
+
+    /**
+     * Register submenu
+     * @return void
+     */
+    public function register_sub_menu() {
+        add_submenu_page(
+            'upload.php',
+            esc_html__('Edit Media', 'media-edit'),
+            esc_html__('Edit Media', 'media-edit'),
+            'manage_options',
+            'submenu-upload',
+            array(&$this, 'submenu_page_callback')
+        );
+    }
+
+    /**
+     * Render submenu
+     * @return void
+     */
+    public function submenu_page_callback() {
+        echo '<div class="wrap"><div id="root"></div></div>';
+    }
+
+}

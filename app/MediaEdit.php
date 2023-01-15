@@ -16,6 +16,7 @@ use TheTinyTools\ME\Controllers\Dependencies;
 use TheTinyTools\ME\Controllers\AssetsController;
 use TheTinyTools\ME\Controllers\Hooks\FilterHooks;
 use TheTinyTools\ME\Controllers\Hooks\ActionHooks;
+use TheTinyTools\ME\Controllers\Admin\SubMenu;
 
 require_once __DIR__ . './../vendor/autoload.php';
 
@@ -128,7 +129,9 @@ if ( ! class_exists( MediaEdit::class ) ) {
 			);
 
 			// Include File.
-			AssetsController::instance();
+            AssetsController::instance();
+            SubMenu::instance();
+
 			FilterHooks::init_hooks();
 			ActionHooks::init_hooks();
 

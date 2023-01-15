@@ -196,5 +196,13 @@ class Fns {
 
 		return $allowed_html;
 	}
-
+    /**
+     * @param $plugin_file_path
+     *
+     * @return bool
+     */
+    public static function is_plugins_installed( $plugin_file_path = null ) {
+        $installed_plugins_list = get_plugins();
+        return isset( $installed_plugins_list[ $plugin_file_path ] );
+    }
 }

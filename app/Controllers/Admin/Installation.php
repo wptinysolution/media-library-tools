@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\ME\Helpers\Fns;
 
 class Installation {
 
@@ -28,8 +29,8 @@ class Installation {
      * @return array [array] plugin action link
      */
     public static function plugins_setting_links( $links ) {
-        $links['mediaedit_settings'] = '<a href="' . admin_url( 'admin.php?page=media-edit' ) . '">' . esc_html__( 'Settings', 'media-edit' ) . '</a>';
-        if( ! function_exists('tttmepro') ){
+        $links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=submenu-upload' ) . '">' . esc_html__( 'Start Edit Media', 'media-edit' ) . '</a>';
+        if( ! Fns::is_plugins_installed('media-edit-pro/media-edit-pro.php') ){
             $links['mediaedit_pro'] = sprintf( '<a href="#" target="_blank" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'media-edit' ) . '</a>' );
         }
         return $links;
