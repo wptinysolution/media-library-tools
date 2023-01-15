@@ -18,7 +18,7 @@
 		"cleanmap": "rm -rf assets/**/*.map",
 		"zip": "npm run package && npm run dev --zip",
 		"eslint": "eslint src/js/**/*.js",
-		"eslint:fix": "eslint src/js/editor.js --fix",
+		"eslint:fix": "eslint src/js/admin-settings.js --fix",
 		"stylelint": "stylelint src/sass/**/**/*.{css,scss}",
 		"stylelint:fix": "stylelint src/sass/**/**/*.{css,scss} --fix",
 		"prettier": "prettier src/js/**/*.js",

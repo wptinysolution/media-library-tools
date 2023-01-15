@@ -1,4 +1,6 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-const domContainer = document.querySelector('#media_root');
-const root = ReactDOM.createRoot(domContainer);
-root.render(e(LikeButton));
+const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
+root.render( <App /> );
