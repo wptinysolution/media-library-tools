@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TheTinyTools\ME\Traits\SingletonTrait;
-use TheTinyTools\ME\Controllers\Admin\Installation;
+use TheTinyTools\ME\Controllers\Installation;
 use TheTinyTools\ME\Controllers\Dependencies;
 use TheTinyTools\ME\Controllers\AssetsController;
 use TheTinyTools\ME\Controllers\Hooks\FilterHooks;

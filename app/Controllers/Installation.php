@@ -1,6 +1,6 @@
 <?php
 
-namespace TheTinyTools\ME\Controllers\Admin;
+namespace TheTinyTools\ME\Controllers;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
