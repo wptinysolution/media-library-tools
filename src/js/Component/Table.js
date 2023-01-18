@@ -15,7 +15,17 @@ export default function Table({ columns, data }) {
             <thead>
                  <tr>
                     {columns.map( ( column, i ) => (
-                        <th width={ column.Width } className={`manage-column`} key={i}>{ column.Header }</th>
+                        <th width={ column.Width } className={`manage-column`} key={i}>{
+                            'Id' !== column.Header || 'Image' !== column.Header ?
+                                <>
+                                    <div> { column.Header } </div>
+                                   <div>
+                                       <span>Edit</span>
+                                       <span>Bulk Edit </span>
+                                   </div>
+                                </>
+                                :  column.Header
+                        }</th>
                     ))}
                  </tr>
             </thead>
@@ -23,11 +33,11 @@ export default function Table({ columns, data }) {
                 { data.map( ( item, i ) => (
                     <tr key={i} >
                         <td width={`50px`}>  { item.id } </td>
-                        <td> <img width={`50`} src={item.source_url}/></td>
-                        <td> { item.title.rendered } </td>
-                        <td> { item.alt_text } </td>
-                        <td> { item.caption.rendered } </td>
-                        <td> { item.description.rendered } </td>
+                        <td dataid={item.id}><div className={`image`}>  <img width={`50`} src={item.source_url}/></div></td>
+                        <td dataid={item.id}><div className={`title`}>  { item.title.rendered }</div> </td>
+                        <td dataid={item.id}><div className={`alt-text`}>  { item.alt_text } </div></td>
+                        <td dataid={item.id}><div className={`caption`}> { item.caption.rendered }</div> </td>
+                        <td dataid={item.id}><div className={`description`}> { item.description.rendered }  { console.log( item ) }</div> </td>
                     </tr>
                 ))}
             </tbody>

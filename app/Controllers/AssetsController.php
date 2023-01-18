@@ -51,8 +51,8 @@ class AssetsController {
 	public function register_backend_assets() {
         $styles = [
             [
-                'handle' => 'rtsb-fonts',
-                'src'    => tttme()->get_assets_uri( 'fonts/rtsbfont.css' ),
+                'handle' => 'ttteme-settings',
+                'src'    => tttme()->get_assets_uri( 'css/backend/admin-settings.css' ),
             ]
         ];
 
@@ -84,8 +84,17 @@ class AssetsController {
 	 * @return void
 	 */
 	public function enqueue_backend_scripts( $hook ) {
-        error_log( $hook );
+        wp_enqueue_style( 'ttteme-settings' );
         wp_enqueue_script( 'ttteme-settings' );
+
+        wp_localize_script(
+            'ttteme-settings',
+            'tttemeParams',
+            [
+                'ajaxUrl'         => esc_url(  admin_url( 'admin-ajax.php' ) ),
+                tttme()->nonceId   => wp_create_nonce( tttme()->nonceId ),
+            ]
+        );
 	}
 
 
