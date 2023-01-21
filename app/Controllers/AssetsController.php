@@ -92,6 +92,7 @@ class AssetsController {
             'tttemeParams',
             [
                 'ajaxUrl'         => esc_url(  admin_url( 'admin-ajax.php' ) ),
+                'current_user'         => get_current_user_id(),
                 tttme()->nonceId   => wp_create_nonce( tttme()->nonceId ),
             ]
         );

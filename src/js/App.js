@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import Table from "./Component/Table";
 
@@ -43,7 +43,10 @@ function App() {
     // Using useEffect to call the API once mounted and set the data
     useEffect(() => {
         (async () => {
-            const result = await axios("http://mediaedit.local/wp-json/wp/v2/media");
+            const additonal_data = {
+                'current_user' : tttemeParams.current_user
+            }
+            const result = await axios.get("http://mediaedit.local/wp-json/TheTinyTools/ME/v1/media/", { params: { ...additonal_data } });
             setData(result.data);
         })();
     }, []);

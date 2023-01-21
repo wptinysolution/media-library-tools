@@ -17,6 +17,8 @@ use TheTinyTools\ME\Controllers\AssetsController;
 use TheTinyTools\ME\Controllers\Hooks\FilterHooks;
 use TheTinyTools\ME\Controllers\Hooks\ActionHooks;
 use TheTinyTools\ME\Controllers\Admin\SubMenu;
+use TheTinyTools\ME\Controllers\Admin\Ajax\MediaAjax;
+use TheTinyTools\ME\Controllers\Admin\Api;
 
 require_once __DIR__ . './../vendor/autoload.php';
 
@@ -126,7 +128,8 @@ if ( ! class_exists( MediaEdit::class ) ) {
 
 			FilterHooks::init_hooks();
 			ActionHooks::init_hooks();
-
+            MediaAjax::init();
+            Api::instance();
 
 			do_action( 'tttme/after_loaded' );
 		}

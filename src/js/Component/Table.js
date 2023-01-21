@@ -1,10 +1,21 @@
 // Table.js
 
 import React from "react";
-import { useTable } from "react-table";
+import {  useState, useRef } from "react";
 
 export default function Table({ columns, data }) {
     // Use the useTable Hook to send the columns and data to build the table
+    const [ titleEditing, setTitleEditing ] = useState(false);
+    const [ altEditing, setAltEditing ] = useState(false);
+    const [ captionEditing, setCaptionEditing ] = useState(false);
+    const [ descriptionEditing, setDescriptionEditing ] = useState(false);
+    const inputRef = useRef(null);
+    // This syntax ensures `this` is bound within handleClick.
+    const handleClick = ( editable ) => {
+        if( 'title' === editable ){
+            setTitleEditing( true ) ;
+        }
+    }
 
     /*
       Render the UI for your table
@@ -15,29 +26,46 @@ export default function Table({ columns, data }) {
             <thead>
                  <tr>
                     {columns.map( ( column, i ) => (
-                        <th width={ column.Width } className={`manage-column`} key={i}>{
-                            'Id' !== column.Header || 'Image' !== column.Header ?
+                        <th width={ column.Width } className={`manage-column`} key={i}>
+                            {
+                            'Id' === column.Header || 'Image' === column.Header ?
+                                column.Header
+                                :
                                 <>
-                                    <div> { column.Header } </div>
-                                   <div>
-                                       <span>Edit</span>
-                                       <span>Bulk Edit </span>
-                                   </div>
+                                    <div className={`heading-title`}>
+                                        { column.Header }
+                                        <span className={`on-hover`}> Sort </span>
+                                    </div>
+                                    <div className={`tttme-button-link`}>
+                                        <span onClick={ ( ) => handleClick( 'title' ) }>Make Editable</span>
+                                        <span>Bulk Edit </span>
+                                    </div>
                                 </>
-                                :  column.Header
-                        }</th>
+                            }
+                        </th>
                     ))}
                  </tr>
             </thead>
             <tbody id="the-list">
                 { data.map( ( item, i ) => (
                     <tr key={i} >
-                        <td width={`50px`}>  { item.id } </td>
-                        <td dataid={item.id}><div className={`image`}>  <img width={`50`} src={item.source_url}/></div></td>
-                        <td dataid={item.id}><div className={`title`}>  { item.title.rendered }</div> </td>
-                        <td dataid={item.id}><div className={`alt-text`}>  { item.alt_text } </div></td>
-                        <td dataid={item.id}><div className={`caption`}> { item.caption.rendered }</div> </td>
-                        <td dataid={item.id}><div className={`description`}> { item.description.rendered }  { console.log( item ) }</div> </td>
+                        <td width={`50px`}>  { item.ID } </td>
+                        <td dataid={item.ID}><div className={`image`}>  <img width={`50`} src={item.guid}/></div></td>
+                        <td dataid={item.ID}>
+                            <div className={`title`}  >
+                                    {titleEditing ? (
+                                        <textarea
+                                            ref={inputRef} // Set the Ref
+                                            value={ item.title }
+                                            // onChange={this.handleChange}
+                                        />
+                                    ) : item.title
+                                    }
+                            </div>
+                        </td>
+                        <td dataid={item.ID}><div className={`alt-text`} contentEditable={altEditing} >  { item.alt_text } </div></td>
+                        <td dataid={item.ID}><div className={`caption`} contentEditable={captionEditing} > { item.post_excerpt }</div> </td>
+                        <td dataid={item.ID}><div className={`description`} contentEditable={descriptionEditing} > { item.post_content } </div> </td>
                     </tr>
                 ))}
             </tbody>
