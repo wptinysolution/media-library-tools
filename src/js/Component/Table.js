@@ -13,7 +13,16 @@ export default function Table({ columns, data }) {
     // This syntax ensures `this` is bound within handleClick.
     const handleClick = ( editable ) => {
         if( 'title' === editable ){
-            setTitleEditing( true ) ;
+            setTitleEditing( ! titleEditing ) ;
+        }
+        if( 'alt' === editable ){
+            setAltEditing( ! altEditing ) ;
+        }
+        if( 'caption' === editable ){
+            setCaptionEditing( ! captionEditing ) ;
+        }
+        if( 'description' === editable ){
+            setDescriptionEditing( ! descriptionEditing ) ;
         }
     }
 
@@ -37,7 +46,7 @@ export default function Table({ columns, data }) {
                                         <span className={`on-hover`}> Sort </span>
                                     </div>
                                     <div className={`tttme-button-link`}>
-                                        <span onClick={ ( ) => handleClick( 'title' ) }>Make Editable</span>
+                                        <span onClick={ ( ) => handleClick( column.Header.toLowerCase() ) }>Make Editable</span>
                                         <span>Bulk Edit </span>
                                     </div>
                                 </>
@@ -56,16 +65,44 @@ export default function Table({ columns, data }) {
                                     {titleEditing ? (
                                         <textarea
                                             ref={inputRef} // Set the Ref
-                                            value={ item.title }
+                                            value={ item.post_title }
                                             // onChange={this.handleChange}
                                         />
-                                    ) : item.title
+                                    ) : item.post_title
                                     }
                             </div>
                         </td>
-                        <td dataid={item.ID}><div className={`alt-text`} contentEditable={altEditing} >  { item.alt_text } </div></td>
-                        <td dataid={item.ID}><div className={`caption`} contentEditable={captionEditing} > { item.post_excerpt }</div> </td>
-                        <td dataid={item.ID}><div className={`description`} contentEditable={descriptionEditing} > { item.post_content } </div> </td>
+                        <td dataid={item.ID}><div className={`alt-text`} >
+                            {altEditing ? (
+                                <textarea
+                                    ref={inputRef} // Set the Ref
+                                    value={ item.alt_text }
+                                    // onChange={this.handleChange}
+                                />
+                            ) : item.alt_text
+                            }
+                        </div></td>
+                        <td dataid={item.ID}><div className={`caption`} > { item.post_excerpt }
+
+                            {captionEditing ? (
+                                <textarea
+                                    ref={inputRef} // Set the Ref
+                                    value={ item.post_excerpt }
+                                    // onChange={this.handleChange}
+                                />
+                            ) : item.post_excerpt
+                            }
+                        </div> </td>
+                        <td dataid={item.ID}><div className={`description`} >
+                            {descriptionEditing ? (
+                                <textarea
+                                    ref={inputRef} // Set the Ref
+                                    value={ item.post_content }
+                                    // onChange={this.handleChange}
+                                />
+                            ) : item.post_content
+                            }
+                        </div> </td>
                     </tr>
                 ))}
             </tbody>

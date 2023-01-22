@@ -2,6 +2,7 @@
 
 namespace TheTinyTools\ME\Controllers\Admin;
 use TheTinyTools\ME\Traits\SingletonTrait;
+use WP_Error;
 
 class Api {
 
@@ -35,11 +36,14 @@ class Api {
     function get_media( $request_data ) {
 
         $parameters = $request_data->get_params();
+        if( empty( $parameters['current_user'] ) ){
+            return new WP_Error( 'no_author', 'Invalid author', array( 'status' => 404 ) );
+        }
         unset(
             $parameters['post_type'],
             $parameters['posts_per_page']
         );
-        // error_log( print_r($parameters, true)  );
+
         $query_images_args = array_merge(
             array(
                 'post_type'      => 'attachment',
@@ -48,16 +52,23 @@ class Api {
             $parameters
         );
 
-
          $posts = get_posts( $query_images_args );
-
-         // $posts = new \WP_Query( $query_images_args );
-        // error_log( print_r( $posts, true ));
+         $post_data = [];
 
         if ( empty( $posts ) ) {
-            return [];
+            return wp_json_encode( [] );
         }
-        return $posts;
+        foreach ( $posts as $p ){
+            $post_data[] = [
+                'ID' => $p->ID,
+                'guid' =>  $p->guid,
+                'post_title' => $p->post_title,
+                'post_excerpt' => $p->post_excerpt,
+                'post_content' => $p->post_content,
+                'alt_text' => get_post_meta( $p->ID, '_wp_attachment_image_alt', true)
+            ];
+        }
+        return wp_json_encode(  $post_data );
     }
 
 }

@@ -36,18 +36,19 @@ function App() {
                 Width: "150",
             },
         ];
-
     // data state to store the TV Maze API data. Its initial value is an empty array
     const [data, setData] = useState([]);
-
+    const [params, setParams] = useState('');
+    const apibaseUrl = `${tttemeParams.restApiUrl}/TheTinyTools/ME/v1/media/${params}`;
+    // console.log( apibaseUrl)
     // Using useEffect to call the API once mounted and set the data
     useEffect(() => {
         (async () => {
             const additonal_data = {
                 'current_user' : tttemeParams.current_user
             }
-            const result = await axios.get("http://mediaedit.local/wp-json/TheTinyTools/ME/v1/media/", { params: { ...additonal_data } });
-            setData(result.data);
+            const result = await axios.get(apibaseUrl, { params: { ...additonal_data } });
+            setData( JSON.parse( result.data ) );
         })();
     }, []);
 
