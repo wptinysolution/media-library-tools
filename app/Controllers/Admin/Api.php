@@ -34,11 +34,12 @@ class Api {
      * @param array $data Options for the function.
      * @return string|null Post title for the latest,  * or null if none.
      */
-    function get_media( $request_data ) {
+    function get_media( $request_data )
+    {
 
         $parameters = $request_data->get_params();
-        if( empty( $parameters['current_user'] ) ){
-            return new WP_Error( 'no_author', 'Invalid author', array( 'status' => 404 ) );
+        if (empty($parameters['current_user'])) {
+            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
         unset(
             $parameters['post_type'],
@@ -47,8 +48,9 @@ class Api {
 
         $query_images_args = array_merge(
             array(
-                'post_type'      => 'attachment',
-                'posts_per_page' => (int) get_user_option( 'upload_per_page', $parameters['current_user'] ),
+                'post_type' => 'attachment',
+                'post_status' => 'inherit',
+                'posts_per_page' => (int)get_user_option('upload_per_page', $parameters['current_user']),
             ),
             $parameters
         );
@@ -57,34 +59,31 @@ class Api {
             $parameters['current_user']
         );
 
-         $posts = get_posts( $query_images_args );
+        $posts = new WP_Query($query_images_args);
+        // error_log( print_r(  $posts , true), 3, __DIR__.'/data.log');
+        $post_data = [];
+        if ( $posts->have_posts() ) :
+            while ( $posts->have_posts() ) :  $posts->the_post();
+                $post_data[] = [
+                    'ID' => get_the_ID(),
+                    'guid' =>  wp_get_attachment_url(get_the_ID(),'thumbnail'),
+                    'post_title' => get_the_title(),
+                    'post_excerpt' => get_the_excerpt(),
+                    'post_content' => get_the_content(),
+                    'alt_text' => get_post_meta( get_the_ID(), '_wp_attachment_image_alt', true)
+                ];
+            endwhile;
+        endif;
+        // error_log( print_r($posts->query_vars['paged'], true) );
+        wp_reset_postdata();
+        $query_data = [
+            'posts' => $post_data,
+            'total_post' => absint( $posts->found_posts ),
+            'max_pages' => absint( $posts->max_num_pages ),
+            'current_page' => absint( $posts->query_vars['paged'] ) + 1,
+        ];
 
-         $post_data = [];
-
-        if ( empty( $posts ) ) {
-            return wp_json_encode( [] );
-        }
-        /*
-        $args = array(
-            'post_type'      => 'attachment',
-            'post_status' => 'any',
-            'posts_per_page' => (int) get_user_option( 'upload_per_page', $parameters['current_user'] ),
-        );
-        $query = new WP_Query( $args  );
-        */
-        // error_log( print_r( $query, true ));
-        //  error_log( print_r( $query_images_args, true ));
-        foreach ( $posts as $p ){
-            $post_data[] = [
-                'ID' => $p->ID,
-                'guid' =>  $p->guid,
-                'post_title' => $p->post_title,
-                'post_excerpt' => $p->post_excerpt,
-                'post_content' => $p->post_content,
-                'alt_text' => get_post_meta( $p->ID, '_wp_attachment_image_alt', true)
-            ];
-        }
-        return wp_json_encode(  $post_data );
+        return wp_json_encode(  $query_data );
     }
 
 }

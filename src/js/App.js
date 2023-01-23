@@ -37,7 +37,7 @@ function App() {
             },
         ];
     // data state to store the TV Maze API data. Its initial value is an empty array
-    const [data, setData] = useState([]);
+    const [data, setData] = useState(null );
     const [params, setParams] = useState('');
     const apibaseUrl = `${tttemeParams.restApiUrl}/TheTinyTools/ME/v1/media/${params}`;
     // console.log( apibaseUrl)
@@ -48,13 +48,14 @@ function App() {
                 'current_user' : tttemeParams.current_user
             }
             const result = await axios.get(apibaseUrl, { params: { ...additonal_data } });
-            setData( JSON.parse( result.data ) );
+            let data = JSON.parse( result.data );
+            setData( data );
         })();
-    }, []);
+    }, [params]);
 
     return (
         <div className="tttme-App">
-            <Table columns={columns} data={data} />
+            { data && <Table columns={columns} data={data} /> }
         </div>
     );
 }

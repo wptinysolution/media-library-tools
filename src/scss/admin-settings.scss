@@ -56,5 +56,27 @@
       }
     }
   }
+  .post-pagination{
+    display: flex;
+    flex-wrap:wrap;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    span,
+    a{
+      border: 1px solid;
+      display: inline-flex;
+      padding: 5px 10px;
+      transition: 0.3s all;
+      &:hover{
+        color: #fff;
+        background: $primary-color-hover;
+      }
+    }
+    span{
+      color: #fff;
+      background: $primary-color-hover;
+    }
+  }
 }
 
