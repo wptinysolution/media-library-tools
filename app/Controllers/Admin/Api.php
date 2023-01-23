@@ -3,6 +3,7 @@
 namespace TheTinyTools\ME\Controllers\Admin;
 use TheTinyTools\ME\Traits\SingletonTrait;
 use WP_Error;
+use WP_Query;
 
 class Api {
 
@@ -52,12 +53,27 @@ class Api {
             $parameters
         );
 
+        unset(
+            $parameters['current_user']
+        );
+
          $posts = get_posts( $query_images_args );
+
          $post_data = [];
 
         if ( empty( $posts ) ) {
             return wp_json_encode( [] );
         }
+        /*
+        $args = array(
+            'post_type'      => 'attachment',
+            'post_status' => 'any',
+            'posts_per_page' => (int) get_user_option( 'upload_per_page', $parameters['current_user'] ),
+        );
+        $query = new WP_Query( $args  );
+        */
+        // error_log( print_r( $query, true ));
+        //  error_log( print_r( $query_images_args, true ));
         foreach ( $posts as $p ){
             $post_data[] = [
                 'ID' => $p->ID,
