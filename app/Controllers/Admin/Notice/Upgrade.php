@@ -91,7 +91,7 @@ class Upgrade {
 					<?php
 					printf(
 						'%s%s.',
-						esc_html__( 'Heads up, Please backup before upgrade to version ', 'media-edit' ),
+						esc_html__( 'Heads up, Please backup before upgrade to version ', 'wp-media' ),
 						esc_html( $new_version )
 					);
 					?>

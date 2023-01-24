@@ -22,11 +22,11 @@ use TheTinyTools\ME\Controllers\Admin\Api;
 
 require_once __DIR__ . './../vendor/autoload.php';
 
-if ( ! class_exists( MediaEdit::class ) ) {
+if ( ! class_exists( WpMedia::class ) ) {
 	/**
 	 * Main initialization class.
 	 */
-	final class MediaEdit {
+	final class WpMedia {
 
 		/**
 		 * Nonce id
@@ -107,7 +107,7 @@ if ( ! class_exists( MediaEdit::class ) ) {
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'media-edit', false, TTTME_ABSPATH . '/languages/' );
+			load_plugin_textdomain( 'wp-media', false, TTTME_ABSPATH . '/languages/' );
 		}
 
 		/**
@@ -154,10 +154,10 @@ if ( ! class_exists( MediaEdit::class ) ) {
 	}
 
 	/**
-	 * @return MediaEdit
+	 * @return WpMedia
 	 */
 	function tttme() {
-		return MediaEdit::instance();
+		return WpMedia::instance();
 	}
 
 	tttme();

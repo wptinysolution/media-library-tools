@@ -26,3 +26,11 @@ export const columns = [
         Width: "150",
     },
 ];
+
+export const defaultPosts = {
+    posts : [],
+    total_post: 0,
+    max_pages: 0,
+    current_pag: 0
+}
+

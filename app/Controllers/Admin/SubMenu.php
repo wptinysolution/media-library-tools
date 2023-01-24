@@ -34,11 +34,11 @@ class SubMenu {
     public function register_sub_menu() {
         add_submenu_page(
             'upload.php',
-            esc_html__('Edit Media', 'media-edit'),
-            esc_html__('Edit Media', 'media-edit'),
+            esc_html__('WP Media', 'wp-media'),
+            esc_html__('WP Media', 'wp-media'),
             'manage_options',
-            'media-edit',
-            array(&$this, 'edit_media_page_callback')
+            'wp-media',
+            array(&$this, 'wp_media_page_callback')
         );
     }
 
@@ -46,7 +46,7 @@ class SubMenu {
      * Render submenu
      * @return void
      */
-    public function edit_media_page_callback() {
+    public function wp_media_page_callback() {
         echo '<div class="wrap"><div id="media_root"></div></div>';
     }
 

@@ -1,13 +1,13 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       Media Edit
+ * Plugin Name:       WP Media
  * Plugin URI:        https://wordpress.org/plugins/
  * Description:       Media edit
  * Version:           0.0.1
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
- * Text Domain:       media-edit
+ * Text Domain:       wp-media
  * Domain Path:       /languages
  *
  * @package TheTinyTools\ME
@@ -30,4 +30,4 @@ define( 'TTTME_ABSPATH', dirname(TTTME_FILE) );
 /**
  * App Init.
  */
-require_once 'app/MediaEdit.php';
+require_once 'app/WpMedia.php';

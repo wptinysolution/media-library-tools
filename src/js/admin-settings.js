@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import SystemContext from './SystemContext';
-import { columns } from './Utils/ContextData';
+import { columns, defaultPosts } from './Utils/ContextData';
 
 const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 /*
@@ -11,11 +11,7 @@ const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 */
 
 root.render(
-    <SystemContext.Provider value={
-        {
-            columns
-        }
-    }>
+    <SystemContext.Provider value={ { columns, defaultPosts } }>
         <App />
     </SystemContext.Provider>
 );
