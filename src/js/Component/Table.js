@@ -3,7 +3,7 @@
 import React, {useContext, useEffect} from "react";
 import {  useState, useRef } from "react";
 import SystemContext from '../SystemContext';
-import {getData} from "../Utils/Url";
+import {getData} from "../Utils/Data";
 
 export default function Table() {
 
