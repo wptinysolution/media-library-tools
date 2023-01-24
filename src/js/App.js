@@ -1,56 +1,23 @@
 
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import Table from "./Component/Table";
+import SystemContext from './SystemContext';
+import {get_data} from "./Utils/Url";
 
 function App() {
-    /*
-      - Columns is a simple array right now, but it will contain some logic later on. It is recommended by react-table to memoize the columns data
-      - Here in this example, we have grouped our columns into two headers. react-table is flexible enough to create grouped table headers
-    */
-    const columns = [
-            {
-                Header: "Id",
-                Width: "20px",
-            },
-            {
-                Header: "Image",
-                Width: "50px",
-            },
-            {
-                Header: "Title",
-                Width: "150",
-            },
-
-            {
-                Header: "Alt",
-                Width: "150",
-            },
-            {
-                Header: "Caption",
-                Width: "150",
-            },
-            {
-                Header: "Description",
-                Width: "150",
-            },
-        ];
+    const  { columns }  = useContext( SystemContext );
     // data state to store the TV Maze API data. Its initial value is an empty array
-    const [data, setData] = useState(null );
+    const [data, setData] = useState();
     const [params, setParams] = useState('');
-    const apibaseUrl = `${tttemeParams.restApiUrl}/TheTinyTools/ME/v1/media/${params}`;
-    // console.log( apibaseUrl)
-    // Using useEffect to call the API once mounted and set the data
+    const getData = async () => {
+        const response = await get_data( params )
+        setData( response );
+    }
+
     useEffect(() => {
-        (async () => {
-            const additonal_data = {
-                'current_user' : tttemeParams.current_user
-            }
-            const result = await axios.get(apibaseUrl, { params: { ...additonal_data } });
-            let data = JSON.parse( result.data );
-            setData( data );
-        })();
+        getData()
     }, [params]);
 
     return (
