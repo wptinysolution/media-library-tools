@@ -7,7 +7,6 @@ const additonal_data = {
 export const getData = async ( url ) => {
     const result = await axios.get(apibaseUrl + url, { params: { ...additonal_data } });
     let data = JSON.parse( result.data );
-    // console.log( data )
     return data ;
 }
 

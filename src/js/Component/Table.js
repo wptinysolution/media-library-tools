@@ -9,10 +9,10 @@ export default function Table() {
 
     const  { columns, defaultPosts }  = useContext( SystemContext );
 
-    const [formData , setFormData ] = useState( {} );
-
     // data state to store the TV Maze API data. Its initial value is an empty array
     const [data, setData] = useState( defaultPosts );
+
+    const [formData, setFormData] = useState( data.posts );
 
     const [params, setParams] = useState('');
 
@@ -31,6 +31,8 @@ export default function Table() {
     const getTheData = async () => {
         const response = await getData( params )
         setData( response );
+        // setFormData( response.posts );
+
     }
 
     useEffect(() => {
@@ -66,14 +68,16 @@ export default function Table() {
         return content;
     };
 
+
     const handleChange = ( event ) => {
-        const changeData = {
-            ...DefaultFormData,
-            [event.target.name] : [ ]
+        const currentItem = parseInt( event.target.getAttribute('current') );
+        const currentData = {
+            ...posts[currentItem],
+            [event.target.name] : event.target.value
         }
-        setFormData( changeData );
+        console.log( currentData )
     }
-    console.log( formData );
+
     return (
         <>
             { posts &&
@@ -111,9 +115,10 @@ export default function Table() {
                                         {titleEditing ? (
                                             <textarea
                                                 dataid={item.ID}
-                                                name={`title`}
+                                                current={i}
+                                                name={`post_title`}
                                                 ref={inputRef} // Set the Ref
-                                                value={ `Data` }
+                                                value={ formData.title }
                                                 onChange={handleChange}
                                             />
                                         ) : item.post_title
@@ -125,9 +130,10 @@ export default function Table() {
                                         {altEditing ? (
                                             <textarea
                                                 dataid={item.ID}
+                                                current={i}
                                                 name={`alt_text`}
                                                 ref={inputRef} // Set the Ref
-                                                value={ `alt-text` }
+                                                value={ formData.alt_text }
                                                 onChange={handleChange}
                                             />
                                         ) : item.alt_text
@@ -139,9 +145,10 @@ export default function Table() {
                                         {captionEditing ? (
                                             <textarea
                                                 dataid={item.ID}
-                                                name={`caption`}
+                                                current={i}
+                                                name={`post_excerpt`}
                                                 ref={inputRef} // Set the Ref
-                                                value={ `caption` }
+                                                value={ formData.post_excerpt }
                                                 onChange={handleChange}
                                             />
                                         ) : item.post_excerpt
@@ -153,9 +160,10 @@ export default function Table() {
                                         {descriptionEditing ? (
                                             <textarea
                                                 dataid={item.ID}
-                                                name={`description`}
+                                                current={i}
+                                                name={`post_content`}
                                                 ref={inputRef} // Set the Ref
-                                                value={ `description` }
+                                                value={ item.post_content }
                                                 onChange={handleChange}
                                             />
                                         ) : item.post_content
