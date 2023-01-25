@@ -7,12 +7,12 @@ import {getData} from "../Utils/Data";
 
 export default function Table() {
 
-    const  { columns, defaultPosts, DefaultFormData }  = useContext( SystemContext );
+    const  { columns, defaultPosts }  = useContext( SystemContext );
 
     const [formData , setFormData ] = useState( {} );
 
     // data state to store the TV Maze API data. Its initial value is an empty array
-    const [data, setData] = useState( defaultPosts  );
+    const [data, setData] = useState( defaultPosts );
 
     const [params, setParams] = useState('');
 

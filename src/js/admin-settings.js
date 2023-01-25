@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './Component/App';
 import SystemContext from './SystemContext';
 import { columns, defaultPosts } from './Utils/ContextData';
 

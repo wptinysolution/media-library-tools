@@ -3,7 +3,7 @@
  * @wordpress-plugin
  * Plugin Name:       WP Media
  * Plugin URI:        https://wordpress.org/plugins/
- * Description:       Media edit
+ * Description:       WP Media
  * Version:           0.0.1
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
