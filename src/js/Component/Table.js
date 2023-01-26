@@ -35,7 +35,8 @@ export default function Table() {
 
     useEffect(() => {
         getTheData( )
-    }, [isUpdated]);
+        console.log( ' hello' );
+    }, [isUpdated]  );
 
 
     const { posts, total_post, max_pages, current_page } = data;
@@ -97,7 +98,7 @@ export default function Table() {
     }
     const handleFocusout = async ( event ) => {
         const response = await upDateSingleData( currentEdited );
-        setIsUpdated( 200 === parseInt( response.status ) );
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
 
     return (
