@@ -54,16 +54,16 @@ class Api {
         if ( ! empty( $parameters['post_title'] ) ) {
             $submit['post_title'] = $parameters['post_title'];
         }
-        if ( ! empty( $parameters['post_excerpt'] ) ) {
+        if ( isset( $parameters['post_excerpt'] ) ) {
             $submit['post_excerpt'] = $parameters['post_excerpt'];
         }
-        if ( ! empty( $parameters['post_content'] ) ) {
+        if ( isset( $parameters['post_content'] ) ) {
             $submit['post_content'] = $parameters['post_content'];
         }
-        if ( ! empty( $parameters['alt_text'] ) ) {
+        if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', $parameters['alt_text'] );
         }
-        if( !empty( $submit ) ){
+        if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
             // Update the post into the database
             $result['updated'] = wp_update_post( $submit );
