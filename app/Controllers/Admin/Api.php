@@ -26,18 +26,61 @@ class Api {
             'methods' => 'GET',
             'callback' => [ $this, 'get_media'],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/update', array(
+            'methods' => 'POST',
+            'callback' => [ $this, 'update_media'],
+        ) );
     }
-
     /**
      * Grab latest post title by an author!
      *
      * @param array $data Options for the function.
      * @return string|null Post title for the latest,  * or null if none.
      */
-    function get_media( $request_data )
+    public function update_media( $request_data )
     {
+        $parameters = $request_data->get_params();
+        $result = [
+            'updated' => false
+        ] ;
+        $submit = [];
+        if (empty($parameters['current_user'])) {
+            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
+        }
+        if (empty($parameters['ID'])) {
+            return $result;
+        }
+
+        if ( ! empty( $parameters['post_title'] ) ) {
+            $submit['post_title'] = $parameters['post_title'];
+        }
+        if ( ! empty( $parameters['post_excerpt'] ) ) {
+            $submit['post_excerpt'] = $parameters['post_excerpt'];
+        }
+        if ( ! empty( $parameters['post_content'] ) ) {
+            $submit['post_content'] = $parameters['post_content'];
+        }
+        if ( ! empty( $parameters['alt_text'] ) ) {
+            $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', $parameters['alt_text'] );
+        }
+        if( !empty( $submit ) ){
+            $submit['ID'] = $parameters['ID'];
+            // Update the post into the database
+            $result['updated'] = wp_update_post( $submit );
+        }
+
+        return $result;
+    }
+    /**
+     * Grab latest post title by an author!
+     *
+     * @param array $data Options for the function.
+     * @return string|null Post title for the latest,  * or null if none.
+     */
+    public function get_media( $request_data ) {
 
         $parameters = $request_data->get_params();
+
         if (empty($parameters['current_user'])) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
