@@ -72,7 +72,6 @@ export default function Table() {
         }
         setFormEdited( formEditing );
 
-
     }
 
     const getAnimalsContent = () => {
@@ -98,7 +97,7 @@ export default function Table() {
     }
     const handleFocusout = async ( event ) => {
         const response = await upDateSingleData( currentEdited );
-        200 === parseInt( response.status ) ? setIsUpdated( true ) : '';
+        setIsUpdated( 200 === parseInt( response.status ) );
     }
 
     return (

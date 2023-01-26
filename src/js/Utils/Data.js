@@ -6,13 +6,9 @@ const additonal_data = {
 }
 export const getData = async ( url = '' ) => {
     const result = await axios.get(apibaseUrl + url, { params: { ...additonal_data } });
-    let data = JSON.parse( result.data );
-    return data ;
+    return JSON.parse( result.data );
 }
 
 export const upDateSingleData = async ( dta ) => {
-    const result = await axios.post(`${apibaseUrl}update`, { ...additonal_data, ...dta });
-    console.log( result );
-    return result;
-
+    return await axios.post(`${apibaseUrl}update`, { ...additonal_data, ...dta });
 }
