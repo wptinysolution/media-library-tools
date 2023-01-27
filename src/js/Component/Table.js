@@ -35,7 +35,6 @@ export default function Table() {
 
     useEffect(() => {
         getTheData( )
-        console.log( ' hello' );
     }, [isUpdated]  );
 
 
@@ -75,7 +74,7 @@ export default function Table() {
 
     }
 
-    const getAnimalsContent = () => {
+    const getPaginationContent = () => {
         let content = [];
         for (let i = 1; i < max_pages; i++) {
             if( current_page === i ){
@@ -208,7 +207,7 @@ export default function Table() {
                             <td></td>
                             <td colSpan={`2`}>
                                 <div className={`post-pagination`}>
-                                   Page {  getAnimalsContent() }
+                                   Page {  getPaginationContent() }
                                 </div>
                             </td>
                         </tr>

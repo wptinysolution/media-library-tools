@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const apibaseUrl = `${tttemeParams.restApiUrl}/TheTinyTools/ME/v1/media/`;
+const apibaseUrl = `${tttemeParams.restApiUrl}/TheTinyTools/ME/v1/media`;
 const additonal_data = {
     'current_user' : tttemeParams.current_user
 }
@@ -10,5 +10,5 @@ export const getData = async ( url = '' ) => {
 }
 
 export const upDateSingleData = async ( dta ) => {
-    return await axios.post(`${apibaseUrl}update`, { ...additonal_data, ...dta });
+    return await axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...dta });
 }
