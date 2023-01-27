@@ -16,14 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Fns class
  */
 class Fns {
+
 	/**
 	 *  Verify nonce.
 	 *
 	 * @return bool
 	 */
-	public static function verify_nonce() {
-		$nonce     = isset( $_REQUEST[ rtsb()->nonceId ] ) ? $_REQUEST[ rtsb()->nonceId ] : null;
-		$nonceText = rtsb()->nonceText;
+	public static function verify_nonce( $nonceId = null , $nonceText = null ) {
+        $nonceId = !$nonceId ? rtsb()->nonceId : $nonceId ;
+		$nonce     = isset( $_REQUEST[ $nonceId ] ) ? $_REQUEST[ $nonceId ] : null;
+		$nonceText = !$nonceId ? rtsb()->nonceId : $nonceId ;
+        //error_log( print_r(  $nonce , true ) . "\n\n" , 3, __DIR__ . '/log.txt' );
 		if ( wp_verify_nonce( $nonce, $nonceText ) ) {
 			return true;
 		}

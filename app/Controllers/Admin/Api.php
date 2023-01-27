@@ -1,6 +1,7 @@
 <?php
 
 namespace TheTinyTools\ME\Controllers\Admin;
+use TheTinyTools\ME\Helpers\Fns;
 use TheTinyTools\ME\Traits\SingletonTrait;
 use WP_Error;
 use WP_Query;
@@ -44,7 +45,7 @@ class Api {
             'updated' => false
         ] ;
         $submit = [];
-        if (empty($parameters['current_user'])) {
+        if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
         if (empty($parameters['ID'])) {
@@ -80,6 +81,12 @@ class Api {
     public function get_media( $request_data ) {
 
         $parameters = $request_data->get_params();
+//        || ! Fns::verify_nonce()
+        // error_log( print_r( $_REQUEST[ rtsb()->nonceId ] , true ) . "\n\n" , 3, __DIR__ . '/log.txt' );
+        if (empty($parameters['current_user'])  ) {
+            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
+        }
+
 
         if (empty($parameters['current_user'])) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
