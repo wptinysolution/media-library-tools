@@ -10,6 +10,7 @@ export default function Table() {
     const  { columns, defaultPosts }  = useContext( SystemContext );
 
     // data state to store the TV Maze API data. Its initial value is an empty array
+
     const [data, setData] = useState( defaultPosts );
 
     const [formData, setFormData] = useState( data.posts );
@@ -23,6 +24,13 @@ export default function Table() {
         altEditing : false,
         captionEditing : false,
         descriptionEditing : false,
+    });
+
+    const [ colsText, setColsText ] = useState({
+        title : 'Locked Edit',
+        alt : 'Locked Edit',
+        caption : 'Locked Edit',
+        description : 'Locked Edit',
     });
 
     const inputRef = useRef(null);
@@ -42,36 +50,54 @@ export default function Table() {
 
     const handleClick = ( editable ) => {
         let formEditing = {};
+        let colsTextEditing = {};
         switch ( editable ) {
             case 'title':
                 formEditing = {
                     ...formEdited,
                     titleEditing : ! formEdited.titleEditing
-                }  ;
+                }
+                colsTextEditing = {
+                    ...colsText,
+                    title : formEditing.titleEditing ? 'Unlocked Edit' : 'Locked Edit',
+                }
                 break;
             case 'alt':
                 formEditing = {
                     ...formEdited,
-                    altEditing :  ! formEdited.altEditing
-                } ;
+                    altEditing : ! formEdited.altEditing
+                }
+                colsTextEditing = {
+                    ...colsText,
+                    alt : formEditing.altEditing ? 'Unlocked Edit' : 'Locked Edit',
+                }
                 break;
             case 'caption':
                 formEditing = {
                     ...formEdited,
                     captionEditing : ! formEdited.captionEditing
-                };
+                }
+                colsTextEditing = {
+                    ...colsText,
+                    caption : formEditing.captionEditing ? 'Unlocked Edit' : 'Locked Edit',
+                }
                 break;
             case 'description':
                 formEditing = {
                     ...formEdited,
                     descriptionEditing : ! formEdited.descriptionEditing
-                };
+                }
+                colsTextEditing = {
+                    ...colsText,
+                    description : formEditing.descriptionEditing ? 'Unlocked Edit' : 'Locked Edit',
+                }
                 break;
             default:
-                formEditing = { ...formEdited };
+                formEditing = { ...formEdited }
+                colsTextEditing = { ...colsText }
         }
         setFormEdited( formEditing );
-
+        setColsText( colsTextEditing );
     }
 
     const getPaginationContent = () => {
@@ -91,14 +117,16 @@ export default function Table() {
         const currentItem = parseInt( event.target.getAttribute('current') );
         const currentData = {
             ID: posts[currentItem].ID,
-            [event.target.name] : event.target.value
+            [event.target.name] : event.target.value.trim()
         }
         setCurrentEdited( currentData );
+        
     }
     const handleFocusout = async ( event ) => {
         const response = await upDateSingleData( currentEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
+
 
     return (
         <>
@@ -117,7 +145,9 @@ export default function Table() {
                                                     <span className={`on-hover`}> Sort </span>
                                                 </div>
                                                 <div className={`tttme-button-link`}>
-                                                    <span onClick={ ( ) => handleClick( column.Header.toLowerCase() ) }>Make Editable</span>
+                                                    <span onClick={ () => handleClick( column.Header.toLowerCase() ) }>
+                                                        { colsText[column.Header.toLowerCase()] }
+                                                    </span>
                                                     <span>Bulk Edit </span>
                                                 </div>
                                             </>
@@ -134,13 +164,14 @@ export default function Table() {
                                     <td dataid={item.ID}><div className={`image`}>  <img width={`50`} src={item.guid}/></div></td>
                                     <td dataid={item.ID}>
                                         <div className={`title`}  >
+                                            {/*{ console.log( formData[i] ) }*/}
                                             { formEdited.titleEditing ? (
                                                 <textarea
                                                     dataid={item.ID}
                                                     current={i}
                                                     name={`post_title`}
                                                     ref={inputRef} // Set the Ref
-                                                    value={ formData.title }
+                                                    value={ formData[i].post_title }
                                                     onChange={handleChange}
                                                     onBlur={handleFocusout}
                                                 />
@@ -150,7 +181,7 @@ export default function Table() {
                                     </td>
                                     <td dataid={item.ID}>
                                         <div className={`alt-text`} >
-                                            {formEdited.altEditing ? (
+                                            { formEdited.altEditing ? (
                                                 <textarea
                                                     dataid={item.ID}
                                                     current={i}

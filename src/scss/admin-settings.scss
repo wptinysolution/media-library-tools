@@ -16,9 +16,13 @@
     span{
       color: $primary-color;
       cursor: pointer;
-      padding: 5px;
+      padding: 7px 0px;
       border: 1px solid;
       line-height: 1.1;
+      font-size: 12px;
+      width: 90px;
+      text-align: center;
+      box-sizing: border-box;
       &:hover{
         color: $primary-color-hover;
       }
