@@ -33,7 +33,7 @@ if ( ! class_exists( WpMedia::class ) ) {
 		 *
 		 * @var string
 		 */
-		public $nonceId = '__tttme_wpnonce';
+		public $nonceId = 'tttme_wpnonce';
 
 		/**
 		 * Post Type.

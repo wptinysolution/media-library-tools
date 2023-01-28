@@ -22,12 +22,13 @@ class Fns {
 	 *
 	 * @return bool
 	 */
-	public static function verify_nonce( $nonceId = null , $nonceText = null ) {
-        $nonceId = !$nonceId ? rtsb()->nonceId : $nonceId ;
-		$nonce     = isset( $_REQUEST[ $nonceId ] ) ? $_REQUEST[ $nonceId ] : null;
-		$nonceText = !$nonceId ? rtsb()->nonceId : $nonceId ;
-        //error_log( print_r(  $nonce , true ) . "\n\n" , 3, __DIR__ . '/log.txt' );
-		if ( wp_verify_nonce( $nonce, $nonceText ) ) {
+
+	public static function verify_nonce( $nonce_value = false ) {
+        if( ! $nonce_value ) {
+            $nonce_value     = isset( $_REQUEST[ tttme()->nonceId ] ) ? $_REQUEST[ tttme()->nonceId ] : null;
+        }
+        // error_log( print_r($nonce_value . ' == ' .  tttme()->nonceId, true) . "\n======\n", 3 , __DIR__.'/nonce-2.txt');
+		if ( wp_verify_nonce( $nonce_value, tttme()->nonceId ) ) {
 			return true;
 		}
 		return false;
