@@ -9,11 +9,7 @@ export default function Table() {
 
     const  { columns, defaultPosts }  = useContext( SystemContext );
 
-    // data state to store the TV Maze API data. Its initial value is an empty array
-
     const [data, setData] = useState( defaultPosts );
-
-    const [formData, setFormData] = useState( data.posts );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -38,7 +34,6 @@ export default function Table() {
     const getTheData = async () => {
         const response = await getData()
         setData( response );
-        setFormData( response.posts );
     }
 
     useEffect(() => {
@@ -119,59 +114,64 @@ export default function Table() {
             ID: posts[currentItem].ID,
             [event.target.name] : event.target.value.trim()
         }
+        posts[currentItem][event.target.name] = event.target.value;
         setCurrentEdited( currentData );
-        
+
     }
     const handleFocusout = async ( event ) => {
         const response = await upDateSingleData( currentEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
 
+    const the_header = ( position = '' ) => (
+            <tr>
+                {columns.map( ( column, i ) => (
+                    <th width={ column.Width } className={`manage-column`} key={i}>
+                        {
+                        'Id' === column.Header || 'Image' === column.Header ?
+                            column.Header
+                            :
+                            <>
+                                <div className={`heading-title`}>
+                                    { column.Header }
+                                    <span className={`on-hover`}> Sort </span>
+                                </div>
+                                { 'header' === position &&
+                                    <div className={`tttme-button-link`}>
+                                        <span onClick={ () => handleClick( column.Header.toLowerCase() ) }>
+                                             { colsText[column.Header.toLowerCase()] }
+                                        </span>
+                                        <span>Bulk Edit </span>
+                                    </div>
+                                }
+                            </>
+                        }
+                    </th>
+                ))}
+            </tr>
+    )
+
 
     return (
         <>
                 <table className={`wp-list-table widefat fixed striped table-view-list media`}>
                     <thead>
-                        <tr>
-                            {columns.map( ( column, i ) => (
-                                <th width={ column.Width } className={`manage-column`} key={i}>
-                                    {
-                                        'Id' === column.Header || 'Image' === column.Header ?
-                                            column.Header
-                                            :
-                                            <>
-                                                <div className={`heading-title`}>
-                                                    { column.Header }
-                                                    <span className={`on-hover`}> Sort </span>
-                                                </div>
-                                                <div className={`tttme-button-link`}>
-                                                    <span onClick={ () => handleClick( column.Header.toLowerCase() ) }>
-                                                        { colsText[column.Header.toLowerCase()] }
-                                                    </span>
-                                                    <span>Bulk Edit </span>
-                                                </div>
-                                            </>
-                                    }
-                                </th>
-                            ))}
-                        </tr>
+                        { the_header('header') }
                     </thead>
-                    { posts &&
-                        <tbody id="the-list">
-                            { posts.map( ( item, i ) => (
+                    <tbody id="the-list">
+                        { posts && posts.map( ( item, i ) => (
                                 <tr key={i} >
                                     <td width={`50px`}>  { item.ID } </td>
                                     <td dataid={item.ID}><div className={`image`}>  <img width={`50`} src={item.guid}/></div></td>
                                     <td dataid={item.ID}>
                                         <div className={`title`}  >
-                                            {/*{ console.log( formData[i] ) }*/}
                                             { formEdited.titleEditing ? (
                                                 <textarea
                                                     dataid={item.ID}
                                                     current={i}
                                                     name={`post_title`}
                                                     ref={inputRef} // Set the Ref
-                                                    value={ formData[i].post_title }
+                                                    value={ item.post_title }
                                                     onChange={handleChange}
                                                     onBlur={handleFocusout}
                                                 />
@@ -187,7 +187,7 @@ export default function Table() {
                                                     current={i}
                                                     name={`alt_text`}
                                                     ref={inputRef} // Set the Ref
-                                                    value={ formData.alt_text }
+                                                    value={ item.alt_text }
                                                     onChange={handleChange}
                                                     onBlur={handleFocusout}
                                                 />
@@ -203,7 +203,7 @@ export default function Table() {
                                                     current={i}
                                                     name={`post_excerpt`}
                                                     ref={inputRef} // Set the Ref
-                                                    value={ formData.post_excerpt }
+                                                    value={ item.post_excerpt }
                                                     onChange={handleChange}
                                                     onBlur={handleFocusout}
                                                 />
@@ -219,7 +219,7 @@ export default function Table() {
                                                     current={i}
                                                     name={`post_content`}
                                                     ref={inputRef} // Set the Ref
-                                                    value={ formData.post_content }
+                                                    value={ item.post_content }
                                                     onChange={handleChange}
                                                     onBlur={handleFocusout}
                                                 />
@@ -228,26 +228,17 @@ export default function Table() {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
-                        </tbody>
-
-                    }
-
+                            ))
+                        }
+                    </tbody>
                     <tfoot>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td colSpan={`2`}>
-                            <div className={`post-pagination`}>
-                                Page {  getPaginationContent() }
-                            </div>
-                        </td>
-                    </tr>
+                        { the_header() }
                     </tfoot>
 
                 </table>
+                <div className={`post-pagination`}>
+                    Page {  getPaginationContent() }
+                </div>
         </>
     );
 }

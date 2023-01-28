@@ -61,11 +61,21 @@
     }
   }
   .post-pagination{
-    display: flex;
-    flex-wrap:wrap;
+    display: inline-flex;
+    flex-wrap: wrap;
     gap: 10px;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    margin-left: 160px;
+    background: #fff;
+    padding: 20px;
+    z-index: 9;
+    border-top: 1px solid #ddd;
     span,
     a{
       border: 1px solid;
