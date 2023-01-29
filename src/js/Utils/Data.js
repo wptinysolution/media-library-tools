@@ -3,6 +3,7 @@
  */
 
 import Axios from 'axios';
+import { notification, Button } from 'antd';
 
 const apibaseUrl = `${tttemeParams.restApiUrl}TheTinyTools/ME/v1/media`;
 
@@ -15,7 +16,22 @@ export const getMedia = async ( url = '' ) => {
 }
 
 export const upDateSingleMedia = async ( dta ) => {
-    return await Axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...dta });
+    const response = await Axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...dta });
+    // for info - blue box
+    if( 200 === response.status && response.data.updated ){
+        notification.success({
+            message: response.data.message,
+            placement: 'bottomRight',
+        });
+    }
+    if( ! response.data.updated ){
+        notification.error({
+            message: response.data.message,
+            placement: 'bottomRight',
+        });
+    }
+
+    return response;
 }
 
 export const bulkUpdateMedia = async ( dta ) => {
