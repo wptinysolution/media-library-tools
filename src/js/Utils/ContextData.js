@@ -14,10 +14,21 @@ export const columns = [
         render:  ( text, record ) =>  <img width={`80`} src={text} />
     },
     {
-        title: "Title",
+        title: <>
+            <div className={`heading-title`}>
+                Title
+                <span className={`on-hover`}> Sort </span>
+            </div>
+            <div className={`tttme-button-link`}>
+                <span>  Make Editable </span>
+                <span>Bulk Edit </span>
+            </div>
+        </>,
+
         key: 'Title',
         dataIndex: 'post_title',
         editable: true,
+
     },
 
     {
