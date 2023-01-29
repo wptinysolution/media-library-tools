@@ -138,6 +138,7 @@ class Api {
         if ( $posts->have_posts() ) :
             while ( $posts->have_posts() ) :  $posts->the_post();
                 $post_data[] = [
+                    'key' => get_the_ID(),
                     'ID' => get_the_ID(),
                     'guid' =>  wp_get_attachment_url(get_the_ID(),'thumbnail'),
                     'post_title' => get_the_title(),

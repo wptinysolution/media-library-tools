@@ -1,29 +1,42 @@
 
 export const columns = [
     {
-        Header: "Id",
-        Width: "20px",
+        title: "Id",
+        key: 'Id',
+        dataIndex: 'ID',
+        width: '50px',
     },
     {
-        Header: "Image",
-        Width: "50px",
+        title: "Image",
+        key: 'Image',
+        dataIndex: 'guid',
+        width: '50px',
+        render:  ( text, record ) =>  <img width={`80`} src={text} />
     },
     {
-        Header: "Title",
-        Width: "150",
+        title: "Title",
+        key: 'Title',
+        dataIndex: 'post_title',
+        editable: true,
     },
 
     {
-        Header: "Alt",
-        Width: "150",
+        title: "Alt",
+        key: 'Alt',
+        dataIndex: 'alt_text',
+        editable: true,
     },
     {
-        Header: "Caption",
-        Width: "150",
+        title: "Caption",
+        key: 'Caption',
+        dataIndex: 'post_excerpt',
+        editable: true,
     },
     {
-        Header: "Description",
-        Width: "150",
+        title: "Description",
+        key: 'Description',
+        dataIndex: 'post_content',
+        editable: true,
     },
 ];
 

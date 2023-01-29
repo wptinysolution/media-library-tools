@@ -1,11 +1,11 @@
 
 import React from "react";
-import Table from "./Table";
+import DataTable from "./Datatable";
 
 function App() {
     return (
         <div className="tttme-App">
-             <Table />
+             <DataTable />
         </div>
     );
 }
