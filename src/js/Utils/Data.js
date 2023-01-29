@@ -3,13 +3,14 @@
  */
 
 import Axios from 'axios';
-import { notification, Button } from 'antd';
+import { notification } from 'antd';
 
 const apibaseUrl = `${tttemeParams.restApiUrl}TheTinyTools/ME/v1/media`;
 
 const additonal_data = {
     'current_user' : tttemeParams.current_user,
 }
+
 export const getMedia = async ( url = '' ) => {
     const result = await Axios.get( `${apibaseUrl}${url}`, { params: { ...additonal_data } } );
     return JSON.parse( result.data );

@@ -2,7 +2,7 @@
 
 import React, {useContext, useEffect} from "react";
 import {  useState, useRef } from "react";
-
+import { Pagination } from 'antd';
 import SystemContext from '../SystemContext';
 import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
 
@@ -47,7 +47,7 @@ export default function Table() {
     }, [isUpdated]  );
 
 
-    const { posts, total_post, max_pages, current_page } = data;
+    const { posts, total_post, max_pages, current_page, posts_per_page } = data;
 
     const handleClick = ( event,editable ) => {
         let formEditing = {};
@@ -107,8 +107,6 @@ export default function Table() {
         event.currentTarget.classList.toggle('btn-active');
     }
 
-
-
     const getPaginationContent = () => {
         let content = [];
         for (let i = 1; i < max_pages; i++) {
@@ -120,7 +118,6 @@ export default function Table() {
         }
         return content;
     };
-
 
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
@@ -166,92 +163,105 @@ export default function Table() {
     )
 
     return (
-        <>
-                <table className={`wp-list-table widefat fixed striped table-view-list media`}>
-                    <thead>
-                        { the_header('header') }
-                    </thead>
-                    <tbody id="the-list">
-                        { posts && posts.map( ( item, i ) => (
-                                <tr key={i} >
-                                    <td width={`50px`}>  { item.ID } </td>
-                                    <td dataid={item.ID}><div className={`image`}>  <img width={`50`} src={item.guid}/></div></td>
-                                    <td dataid={item.ID}>
-                                        <div className={`title`}  >
-                                            { formEdited.titleEditing ? (
-                                                <textarea
-                                                    dataid={item.ID}
-                                                    current={i}
-                                                    name={`post_title`}
-                                                    ref={inputRef} // Set the Ref
-                                                    value={ item.post_title }
-                                                    onChange={handleChange}
-                                                    onBlur={handleFocusout}
-                                                />
-                                            ) : item.post_title
-                                            }
-                                        </div>
-                                    </td>
-                                    <td dataid={item.ID}>
-                                        <div className={`alt-text`} >
-                                            { formEdited.altEditing ? (
-                                                <textarea
-                                                    dataid={item.ID}
-                                                    current={i}
-                                                    name={`alt_text`}
-                                                    ref={inputRef} // Set the Ref
-                                                    value={ item.alt_text }
-                                                    onChange={handleChange}
-                                                    onBlur={handleFocusout}
-                                                />
-                                            ) : item.alt_text
-                                            }
-                                        </div>
-                                    </td>
-                                    <td dataid={item.ID}>
-                                        <div className={`caption`} >
-                                            { formEdited.captionEditing ? (
-                                                <textarea
-                                                    dataid={item.ID}
-                                                    current={i}
-                                                    name={`post_excerpt`}
-                                                    ref={inputRef} // Set the Ref
-                                                    value={ item.post_excerpt }
-                                                    onChange={handleChange}
-                                                    onBlur={handleFocusout}
-                                                />
-                                            ) : item.post_excerpt
-                                            }
-                                        </div>
-                                    </td>
-                                    <td dataid={item.ID}>
-                                        <div className={`description`} >
-                                            { formEdited.descriptionEditing ? (
-                                                <textarea
-                                                    dataid={item.ID}
-                                                    current={i}
-                                                    name={`post_content`}
-                                                    ref={inputRef} // Set the Ref
-                                                    value={ item.post_content }
-                                                    onChange={handleChange}
-                                                    onBlur={handleFocusout}
-                                                />
-                                            ) : item.post_content
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                    <tfoot>
-                        { the_header() }
-                    </tfoot>
+            <>
+                { posts &&
+                    <>
+                    <table className={`wp-list-table widefat fixed striped table-view-list media`}>
+                        <thead>
+                            { the_header('header') }
+                        </thead>
+                        <tbody id="the-list">
+                            { posts.map( ( item, i ) => (
+                                    <tr key={i} >
+                                        <td width={`50px`}>  { item.ID } </td>
+                                        <td dataid={item.ID}><div className={`image`}>  <img width={`50`} src={item.guid}/></div></td>
+                                        <td dataid={item.ID}>
+                                            <div className={`title`}  >
+                                                { formEdited.titleEditing ? (
+                                                    <textarea
+                                                        dataid={item.ID}
+                                                        current={i}
+                                                        name={`post_title`}
+                                                        ref={inputRef} // Set the Ref
+                                                        value={ item.post_title }
+                                                        onChange={handleChange}
+                                                        onBlur={handleFocusout}
+                                                    />
+                                                ) : item.post_title
+                                                }
+                                            </div>
+                                        </td>
+                                        <td dataid={item.ID}>
+                                            <div className={`alt-text`} >
+                                                { formEdited.altEditing ? (
+                                                    <textarea
+                                                        dataid={item.ID}
+                                                        current={i}
+                                                        name={`alt_text`}
+                                                        ref={inputRef} // Set the Ref
+                                                        value={ item.alt_text }
+                                                        onChange={handleChange}
+                                                        onBlur={handleFocusout}
+                                                    />
+                                                ) : item.alt_text
+                                                }
+                                            </div>
+                                        </td>
+                                        <td dataid={item.ID}>
+                                            <div className={`caption`} >
+                                                { formEdited.captionEditing ? (
+                                                    <textarea
+                                                        dataid={item.ID}
+                                                        current={i}
+                                                        name={`post_excerpt`}
+                                                        ref={inputRef} // Set the Ref
+                                                        value={ item.post_excerpt }
+                                                        onChange={handleChange}
+                                                        onBlur={handleFocusout}
+                                                    />
+                                                ) : item.post_excerpt
+                                                }
+                                            </div>
+                                        </td>
+                                        <td dataid={item.ID}>
+                                            <div className={`description`} >
+                                                { formEdited.descriptionEditing ? (
+                                                    <textarea
+                                                        dataid={item.ID}
+                                                        current={i}
+                                                        name={`post_content`}
+                                                        ref={inputRef} // Set the Ref
+                                                        value={ item.post_content }
+                                                        onChange={handleChange}
+                                                        onBlur={handleFocusout}
+                                                    />
+                                                ) : item.post_content
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                        <tfoot>
+                            { the_header() }
+                        </tfoot>
 
-                </table>
-                <div className={`post-pagination`}>
-                    Page {  getPaginationContent() }
-                </div>
-        </>
+                    </table>
+                    <div className={`post-pagination`}>
+                       {
+                            posts_per_page &&
+                            <Pagination
+                                showTitle={true}
+                                showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                                defaultPageSize={posts_per_page}
+                                total={total_post}
+                                current={current_page}
+                            />
+                        }
+                    </div>
+                    </>
+                }
+            </>
     );
 }

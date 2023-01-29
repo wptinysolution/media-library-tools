@@ -85,18 +85,18 @@
     border-top: 1px solid #ddd;
     span,
     a{
-      border: 1px solid;
-      display: inline-flex;
-      padding: 5px 10px;
-      transition: 0.3s all;
-      &:hover{
-        color: #fff;
-        background: $primary-color-hover;
-      }
+      //border: 1px solid;
+      //display: inline-flex;
+      //padding: 5px 10px;
+      //transition: 0.3s all;
+      //&:hover{
+      //  color: #fff;
+      //  background: $primary-color-hover;
+      //}
     }
     span{
-      color: #fff;
-      background: $primary-color-hover;
+      //color: #fff;
+      //background: $primary-color-hover;
     }
   }
 }

@@ -118,12 +118,12 @@ class Api {
             $parameters['post_type'],
             $parameters['posts_per_page']
         );
-
+        $per_page = (int)get_user_option('upload_per_page', $parameters['current_user']);
         $query_images_args = array_merge(
             array(
                 'post_type' => 'attachment',
                 'post_status' => 'inherit',
-                'posts_per_page' => (int)get_user_option('upload_per_page', $parameters['current_user']),
+                'posts_per_page' => $per_page,
             ),
             $parameters
         );
@@ -151,6 +151,7 @@ class Api {
         wp_reset_postdata();
         $query_data = [
             'posts' => $post_data,
+            'posts_per_page' => absint( $per_page ),
             'total_post' => absint( $posts->found_posts ),
             'max_pages' => absint( $posts->max_num_pages ),
             'current_page' => absint( $posts->query_vars['paged'] ) + 1,

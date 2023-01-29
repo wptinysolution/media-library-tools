@@ -31,6 +31,7 @@ export const defaultPosts = {
     posts : [],
     total_post: 0,
     max_pages: 0,
-    current_pag: 0
+    current_pag: 0,
+    posts_per_page: 0,
 }
 
