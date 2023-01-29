@@ -3,7 +3,7 @@
 import React, {useContext, useEffect} from "react";
 import {  useState, useRef } from "react";
 import SystemContext from '../SystemContext';
-import {getData, upDateSingleData} from "../Utils/Data";
+import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
 
 export default function Table() {
 
@@ -22,7 +22,7 @@ export default function Table() {
         descriptionEditing : false,
     });
     const locakedText = 'Locked Edit';
-    const ullocakedText = 'Unlocked Edit';
+    const unlocakedText = 'Unlocked Edit';
     const [ colsText, setColsText ] = useState({
         title : locakedText,
         alt : locakedText,
@@ -32,13 +32,17 @@ export default function Table() {
 
     const inputRef = useRef(null);
 
-    const getTheData = async () => {
-        const response = await getData()
+    const bulkUpdate = async () => {
+        const response = await bulkUpdateMedia()
+
+    }
+    const getTheMedia = async () => {
+        const response = await getMedia()
         setData( response );
     }
 
     useEffect(() => {
-        getTheData( )
+        getTheMedia( )
     }, [isUpdated]  );
 
 
@@ -55,7 +59,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    title : formEditing.titleEditing ? ullocakedText : locakedText,
+                    title : formEditing.titleEditing ? unlocakedText : locakedText,
                 }
                 break;
             case 'alt':
@@ -65,7 +69,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    alt : formEditing.altEditing ? ullocakedText : locakedText,
+                    alt : formEditing.altEditing ? unlocakedText : locakedText,
                 }
                 break;
             case 'caption':
@@ -75,7 +79,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    caption : formEditing.captionEditing ? ullocakedText : locakedText,
+                    caption : formEditing.captionEditing ? unlocakedText : locakedText,
                 }
                 break;
             case 'description':
@@ -85,7 +89,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    description : formEditing.descriptionEditing ? ullocakedText : locakedText,
+                    description : formEditing.descriptionEditing ? unlocakedText : locakedText,
                 }
                 break;
             default:
@@ -94,10 +98,15 @@ export default function Table() {
         }
         setFormEdited( formEditing );
         setColsText( colsTextEditing );
+        event.currentTarget.classList.toggle('btn-active');
+    }
+
+    const handleBulkClick = ( event ) => {
 
         event.currentTarget.classList.toggle('btn-active');
-
     }
+
+
 
     const getPaginationContent = () => {
         let content = [];
@@ -123,7 +132,7 @@ export default function Table() {
 
     }
     const handleFocusout = async ( event ) => {
-        const response = await upDateSingleData( currentEdited );
+        const response = await upDateSingleMedia( currentEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
 
@@ -145,7 +154,7 @@ export default function Table() {
                                         <span onClick={ ( event) => handleClick( event, column.Header.toLowerCase() ) }>
                                              { colsText[column.Header.toLowerCase()] }
                                         </span>
-                                        <span>Bulk Edit </span>
+                                        <span onClick={ ( event ) => handleBulkClick( event ) }>Bulk Edit </span>
                                     </div>
                                 }
                             </>
@@ -154,7 +163,6 @@ export default function Table() {
                 ))}
             </tr>
     )
-
 
     return (
         <>

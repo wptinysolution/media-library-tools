@@ -31,6 +31,24 @@ class Api {
             'methods' => 'POST',
             'callback' => [ $this, 'update_media'],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/bulk/update', array(
+            'methods' => 'POST',
+            'callback' => [ $this, 'bulk_update_media'],
+        ) );
+    }
+    /**
+     * Grab latest post title by an author!
+     *
+     * @param array $data Options for the function.
+     * @return string|null Post title for the latest,  * or null if none.
+     */
+    public function bulk_update_media( $request_data )
+    {
+        $parameters = $request_data->get_params();
+        $result = [
+            'updated' => false
+        ] ;
+        return $result;
     }
     /**
      * Grab latest post title by an author!
