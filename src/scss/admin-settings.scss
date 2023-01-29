@@ -27,6 +27,13 @@
         color: $primary-color-hover;
       }
     }
+    .btn-active {
+      background: var(--wp-admin-theme-color-darker-10);
+      color: #FFF;
+      &:hover{
+        color: #FFF;
+      }
+    }
   }
   .heading-title{
     display: flex;

@@ -21,12 +21,13 @@ export default function Table() {
         captionEditing : false,
         descriptionEditing : false,
     });
-
+    const locakedText = 'Locked Edit';
+    const ullocakedText = 'Unlocked Edit';
     const [ colsText, setColsText ] = useState({
-        title : 'Locked Edit',
-        alt : 'Locked Edit',
-        caption : 'Locked Edit',
-        description : 'Locked Edit',
+        title : locakedText,
+        alt : locakedText,
+        caption : locakedText,
+        description : locakedText,
     });
 
     const inputRef = useRef(null);
@@ -43,7 +44,7 @@ export default function Table() {
 
     const { posts, total_post, max_pages, current_page } = data;
 
-    const handleClick = ( editable ) => {
+    const handleClick = ( event,editable ) => {
         let formEditing = {};
         let colsTextEditing = {};
         switch ( editable ) {
@@ -54,7 +55,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    title : formEditing.titleEditing ? 'Unlocked Edit' : 'Locked Edit',
+                    title : formEditing.titleEditing ? ullocakedText : locakedText,
                 }
                 break;
             case 'alt':
@@ -64,7 +65,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    alt : formEditing.altEditing ? 'Unlocked Edit' : 'Locked Edit',
+                    alt : formEditing.altEditing ? ullocakedText : locakedText,
                 }
                 break;
             case 'caption':
@@ -74,7 +75,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    caption : formEditing.captionEditing ? 'Unlocked Edit' : 'Locked Edit',
+                    caption : formEditing.captionEditing ? ullocakedText : locakedText,
                 }
                 break;
             case 'description':
@@ -84,7 +85,7 @@ export default function Table() {
                 }
                 colsTextEditing = {
                     ...colsText,
-                    description : formEditing.descriptionEditing ? 'Unlocked Edit' : 'Locked Edit',
+                    description : formEditing.descriptionEditing ? ullocakedText : locakedText,
                 }
                 break;
             default:
@@ -93,6 +94,9 @@ export default function Table() {
         }
         setFormEdited( formEditing );
         setColsText( colsTextEditing );
+
+        event.currentTarget.classList.toggle('btn-active');
+
     }
 
     const getPaginationContent = () => {
@@ -138,7 +142,7 @@ export default function Table() {
                                 </div>
                                 { 'header' === position &&
                                     <div className={`tttme-button-link`}>
-                                        <span onClick={ () => handleClick( column.Header.toLowerCase() ) }>
+                                        <span onClick={ ( event) => handleClick( event, column.Header.toLowerCase() ) }>
                                              { colsText[column.Header.toLowerCase()] }
                                         </span>
                                         <span>Bulk Edit </span>
