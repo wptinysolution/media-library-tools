@@ -1,50 +1,44 @@
-
+import EditButton from '../Component/EditButton';
 export const columns = [
     {
-        title: "Id",
+        title: <EditButton text={'Id'} hasButton={false}/>,
         key: 'Id',
         dataIndex: 'ID',
-        width: '50px',
+        width: '100px',
+        align: 'top',
     },
     {
-        title: "Image",
+        title: <EditButton text={'Image'} text={'Image'} hasButton={false}/>,
         key: 'Image',
         dataIndex: 'guid',
-        width: '50px',
-        render:  ( text, record ) =>  <img width={`80`} src={text} />
+        width: '100px',
+        align: 'top',
+        render:  ( text, record ) =>  <img width={`80`} src={text}  />
     },
     {
-        title: <>
-            <div className={`heading-title`}>
-                Title
-                <span className={`on-hover`}> Sort </span>
-            </div>
-            <div className={`tttme-button-link`}>
-                <span>  Make Editable </span>
-                <span>Bulk Edit </span>
-            </div>
-        </>,
-
+        title: <EditButton text={'Title'} hasButton={true}/>,
         key: 'Title',
         dataIndex: 'post_title',
+        align: 'top',
         editable: true,
 
     },
 
     {
-        title: "Alt",
+        title: <EditButton text={'Alt'} hasButton={true}/>,
         key: 'Alt',
         dataIndex: 'alt_text',
+        align: 'top',
         editable: true,
     },
     {
-        title: "Caption",
+        title: <EditButton text={'Caption'} hasButton={true}/>,
         key: 'Caption',
         dataIndex: 'post_excerpt',
         editable: true,
     },
     {
-        title: "Description",
+        title: <EditButton text={'Description'} hasButton={true}/>,
         key: 'Description',
         dataIndex: 'post_content',
         editable: true,
