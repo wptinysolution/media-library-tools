@@ -16,6 +16,7 @@ const defaultPosts = {
     current_pag: 0,
     posts_per_page: 0,
 }
+
 const locakedText = 'Locked Edit';
 const unlocakedText = 'Unlocked Edit';
 
@@ -63,7 +64,6 @@ export default function DataTable() {
         const ids = posts.map( x => x['ID']);
         event.currentTarget.classList.toggle('btn-active');
         setIsModalOpen(true);
-        // bulkdata,
         setBulkdata({
             ...bulkdata,
             ids,
@@ -96,7 +96,6 @@ export default function DataTable() {
     const handleOk = () => {
         bulkUpdate( bulkdata );
         modalClose();
-        // setIsUpdated( ! isUpdated )
     };
 
 
@@ -104,7 +103,6 @@ export default function DataTable() {
         getTheMedia( )
     }, [isUpdated]  );
 
-    // event.currentTarget.classList.toggle('btn-active');
     useEffect(() => {
         if( ! isModalOpen ) {
             const allWithClass = Array.from(
