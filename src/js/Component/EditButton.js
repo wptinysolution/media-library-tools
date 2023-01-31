@@ -13,7 +13,7 @@ function EditButton( { text, hasButton, prevdata } ) {
                     <span onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) }>
                          { colsText[text.toLowerCase()] }
                     </span>
-                    <span onClick={ ( event ) => handleBulkClick( event ) }>Bulk Edit </span>
+                    <span onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) }>Bulk Edit </span>
                 </div>
             }
         </>

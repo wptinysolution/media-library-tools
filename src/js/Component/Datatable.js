@@ -2,8 +2,8 @@
 
 import React, {useState, useEffect} from "react";
 
-import { Pagination, Table, Input, Form, InputNumber, Popconfirm } from 'antd';
-import SystemContext from '../SystemContext';
+import { Pagination, Table, Input, Modal } from 'antd';
+
 import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
 import EditButton from "./EditButton";
 
@@ -16,6 +16,8 @@ const defaultPosts = {
     current_pag: 0,
     posts_per_page: 0,
 }
+const locakedText = 'Locked Edit';
+const unlocakedText = 'Unlocked Edit';
 
 export default function DataTable() {
 
@@ -25,23 +27,15 @@ export default function DataTable() {
 
     const [currentEdited, setCurrentEdited] = useState(false );
 
-    const bulkUpdate = async () => {
-        const response = await bulkUpdateMedia()
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    }
-    const getTheMedia = async () => {
-        const response = await getMedia()
-        setData( response );
-    }
-
-    useEffect(() => {
-        getTheMedia( )
-    }, [isUpdated]  );
+    const [bulkdata, setBulkdata] = useState({
+        ids: [],
+        type: '',
+        data: '',
+    });
 
     const { posts, total_post, max_pages, current_page, posts_per_page } = data;
-
-    const locakedText = 'Locked Edit';
-    const unlocakedText = 'Unlocked Edit';
 
     const [ formEdited, setFormEdited ] = useState({
         titleEditing : false,
@@ -57,7 +51,69 @@ export default function DataTable() {
         description : locakedText,
     });
 
-    const ColumnHandleClick = ( event,editable ) => {
+    const modalClose = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleBulkClick = ( event, type ) => {
+        const ids = posts.map( x => x['ID']);
+        event.currentTarget.classList.toggle('btn-active');
+        setIsModalOpen(true);
+        // bulkdata,
+        setBulkdata({
+            ...bulkdata,
+            ids,
+            type
+        });
+    }
+
+
+    const handleCancel = () => {
+        modalClose();
+    };
+
+    const getTheMedia = async () => {
+        const response = await getMedia()
+        setData( response );
+    }
+
+    const bulkUpdate = async () => {
+        const response = await bulkUpdateMedia( bulkdata )
+        200 === parseInt( response.status ) && response.data.updated && setIsUpdated( ! isUpdated );
+    }
+
+    const balkChange = ( event ) => {
+        setBulkdata({
+            ...bulkdata,
+            data : event.target.value
+        });
+    };
+
+    const handleOk = () => {
+        bulkUpdate( bulkdata );
+        modalClose();
+        // setIsUpdated( ! isUpdated )
+    };
+
+
+    useEffect(() => {
+        getTheMedia( )
+    }, [isUpdated]  );
+
+    // event.currentTarget.classList.toggle('btn-active');
+    useEffect(() => {
+        if( ! isModalOpen ) {
+            const allWithClass = Array.from(
+                document.querySelectorAll('.btn-active')
+            );
+            for (const element of allWithClass) {
+                element.classList.remove('btn-active');
+            }
+        }
+    }, [isModalOpen]);
+
+
+    const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
         let colsTextEditing = {};
         switch ( editable ) {
@@ -109,9 +165,7 @@ export default function DataTable() {
         setColsText( colsTextEditing );
         event.currentTarget.classList.toggle('btn-active');
     }
-    const handleBulkClick = ( event ) => {
-        event.currentTarget.classList.toggle('btn-active');
-    }
+
 
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
@@ -131,8 +185,6 @@ export default function DataTable() {
         const response = await upDateSingleMedia( currentEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
-
-
 
     const columns = [
         {
@@ -207,6 +259,9 @@ export default function DataTable() {
                             />
                        }
                     </div>
+                    <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                        <TextArea onChange={balkChange} name={`modal_content`} placeholder={`Field Shouldn't leave empty`} />
+                    </Modal>
                     </>
                 }
             </>

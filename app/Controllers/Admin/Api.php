@@ -44,11 +44,51 @@ class Api {
      */
     public function bulk_update_media( $request_data )
     {
+
         $parameters = $request_data->get_params();
-        $result = [
-            'updated' => false
+
+        if (empty($parameters['current_user'])  ) {
+            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
+        }
+
+        $ids = $parameters['ids'];
+        $type = $parameters['type'];
+        $data = $parameters['data'];
+
+        if( is_array( $ids ) && ! empty( $ids ) && ! empty( $type ) && ! empty( $data ) ){
+            $column = '';
+            switch ( $type ){
+                case 'title':
+                    $column = 'post_title';
+                    break;
+                case 'caption':
+                    $column = 'post_excerpt';
+                    break;
+                case 'description':
+                    $column = 'post_content';
+                    break;
+                case 'alt':
+                    $column = 'post_alt';
+                    break;
+            }
+
+            $result = [];
+            foreach (  $ids as $id ) {
+                $submit = [];
+                if( 'post_alt' !== $column ){
+                    $submit['ID'] = $id;
+                    $submit[$column] = $data;
+                    // Update the post into the database
+                    $result['updated'][] = wp_update_post( $submit );
+                } else if ( 'post_alt' === $column ) {
+                    $result['updated'][] =  update_post_meta( $id , '_wp_attachment_image_alt', $data );
+                }
+            }
+        }
+
+        return [
+            'updated' => boolval( count( $result['updated'] ) )
         ] ;
-        return $result;
     }
     /**
      * Grab latest post title by an author!
@@ -104,12 +144,10 @@ class Api {
     public function get_media( $request_data ) {
 
         $parameters = $request_data->get_params();
-//        || ! Fns::verify_nonce()
-        // error_log( print_r( $_REQUEST[ rtsb()->nonceId ] , true ) . "\n\n" , 3, __DIR__ . '/log.txt' );
+
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
-
 
         if (empty($parameters['current_user'])) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
@@ -148,7 +186,6 @@ class Api {
                 ];
             endwhile;
         endif;
-        // error_log( print_r($posts->query_vars['paged'], true) );
         wp_reset_postdata();
         $query_data = [
             'posts' => $post_data,
