@@ -146,7 +146,7 @@ export default function DataTable() {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Image'} hasButton={false}/>,
             key: 'Image',
             dataIndex: 'guid',
-            width: '100px',
+            width: '150px',
             align: 'top',
             render:  ( text, record ) =>  <img width={`80`} src={text}  />
         },
@@ -155,6 +155,7 @@ export default function DataTable() {
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
+            width: '250px',
             render: ( text, record, i ) => <> { formEdited.titleEditing ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
@@ -162,18 +163,21 @@ export default function DataTable() {
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
+            width: '300px',
             render: ( text, record, i ) => <> { formEdited.altEditing ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Caption'} hasButton={true}/>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
+            width: '300px',
             render: ( text, record, i ) => <> { formEdited.captionEditing ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Description'} hasButton={true}/>,
             key: 'Description',
             dataIndex: 'post_content',
+            width: '350px',
             render: ( text, record, i ) => <> { formEdited.descriptionEditing ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
     ];
