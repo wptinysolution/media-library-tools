@@ -52,6 +52,10 @@ export default function DataTable() {
     });
 
     const modalClose = () => {
+        setBulkdata({
+            ...bulkdata,
+            data: ''
+        });
         setIsModalOpen(false);
     };
 
@@ -260,7 +264,7 @@ export default function DataTable() {
                        }
                     </div>
                     <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                        <TextArea onChange={balkChange} name={`modal_content`} placeholder={`Field Shouldn't leave empty`} />
+                        <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
                     </Modal>
                     </>
                 }
