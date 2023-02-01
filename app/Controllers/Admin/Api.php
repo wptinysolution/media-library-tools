@@ -54,7 +54,7 @@ class Api {
         $ids = $parameters['ids'];
         $type = $parameters['type'];
         $data = $parameters['data'];
-
+        $result = [];
         if( is_array( $ids ) && ! empty( $ids ) && ! empty( $type ) && ! empty( $data ) ){
             $column = '';
             switch ( $type ){
@@ -70,9 +70,9 @@ class Api {
                 case 'alt':
                     $column = 'post_alt';
                     break;
+                default:
             }
 
-            $result = [];
             foreach (  $ids as $id ) {
                 $submit = [];
                 if( 'post_alt' !== $column ){
@@ -87,7 +87,7 @@ class Api {
         }
 
         return [
-            'updated' => boolval( count( $result['updated'] ) )
+            'updated' => ! empty(  $result['updated'] ),
         ] ;
     }
     /**
