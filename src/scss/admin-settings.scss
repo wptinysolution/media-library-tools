@@ -92,3 +92,7 @@
     margin-left: 36px;
   }
 }
+
+.ant-modal-title:first-letter {
+  text-transform: capitalize;
+}

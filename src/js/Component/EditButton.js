@@ -10,7 +10,7 @@ function EditButton( { text, hasButton, prevdata } ) {
             </div>
             { hasButton &&
                 <div className={`tttme-button-link`}>
-                    <span onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) }>
+                    <span className={ 'Unlocked Edit' === colsText[text.toLowerCase()] ? 'btn-active' : '' } onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) }>
                          { colsText[text.toLowerCase()] }
                     </span>
                     <span onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) }>Bulk Edit </span>

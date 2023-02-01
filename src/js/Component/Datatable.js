@@ -19,6 +19,19 @@ const defaultPosts = {
 
 const locakedText = 'Locked Edit';
 const unlocakedText = 'Unlocked Edit';
+const defaultColText = {
+    title : locakedText,
+    alt : locakedText,
+    caption : locakedText ,
+    description : locakedText,
+}
+
+const defaultEditingStatus = {
+    titleEditing : false,
+    altEditing : false,
+    captionEditing : false,
+    descriptionEditing : false,
+}
 
 export default function DataTable() {
 
@@ -38,37 +51,25 @@ export default function DataTable() {
 
     const { posts, total_post, max_pages, current_page, posts_per_page } = data;
 
-    const [ formEdited, setFormEdited ] = useState({
-        titleEditing : false,
-        altEditing : false,
-        captionEditing : false,
-        descriptionEditing : false,
-    });
+    const [ formEdited, setFormEdited ] = useState(defaultEditingStatus );
 
-    const [ colsText, setColsText ] = useState({
-        title : locakedText,
-        alt : locakedText,
-        caption : locakedText,
-        description : locakedText,
-    });
+    const [ colsText, setColsText ] = useState(defaultColText);
 
     const modalClose = () => {
-        setBulkdata({
-            ...bulkdata,
-            data: ''
-        });
         setIsModalOpen(false);
     };
 
     const handleBulkClick = ( event, type ) => {
         const ids = posts.map( x => x['ID']);
-        event.currentTarget.classList.toggle('btn-active');
         setIsModalOpen(true);
         setBulkdata({
             ...bulkdata,
             ids,
-            type
+            type,
+            data: '',
         });
+        setFormEdited( defaultEditingStatus );
+        setColsText( defaultColText );
     }
 
 
@@ -103,69 +104,48 @@ export default function DataTable() {
         getTheMedia( )
     }, [isUpdated]  );
 
-    useEffect(() => {
-        if( ! isModalOpen ) {
-            const allWithClass = Array.from(
-                document.querySelectorAll('.btn-active')
-            );
-            for (const element of allWithClass) {
-                element.classList.remove('btn-active');
-            }
-        }
-    }, [isModalOpen]);
-
-
     const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
-        let colsTextEditing = {};
         switch ( editable ) {
             case 'title':
                 formEditing = {
                     ...formEdited,
                     titleEditing : ! formEdited.titleEditing
                 }
-                colsTextEditing = {
-                    ...colsText,
-                    title : formEditing.titleEditing ? unlocakedText : locakedText,
-                }
+
                 break;
             case 'alt':
                 formEditing = {
                     ...formEdited,
                     altEditing : ! formEdited.altEditing
                 }
-                colsTextEditing = {
-                    ...colsText,
-                    alt : formEditing.altEditing ? unlocakedText : locakedText,
-                }
+
                 break;
             case 'caption':
                 formEditing = {
                     ...formEdited,
                     captionEditing : ! formEdited.captionEditing
                 }
-                colsTextEditing = {
-                    ...colsText,
-                    caption : formEditing.captionEditing ? unlocakedText : locakedText,
-                }
+
                 break;
             case 'description':
                 formEditing = {
                     ...formEdited,
                     descriptionEditing : ! formEdited.descriptionEditing
                 }
-                colsTextEditing = {
-                    ...colsText,
-                    description : formEditing.descriptionEditing ? unlocakedText : locakedText,
-                }
                 break;
             default:
                 formEditing = { ...formEdited }
-                colsTextEditing = { ...colsText }
         }
         setFormEdited( formEditing );
-        setColsText( colsTextEditing );
-        event.currentTarget.classList.toggle('btn-active');
+        setColsText( {
+            ...colsText,
+            title : ! formEditing.titleEditing ? locakedText : unlocakedText,
+            alt : ! formEditing.altEditing ? locakedText : unlocakedText,
+            caption : ! formEditing.captionEditing ? locakedText : unlocakedText,
+            description : ! formEditing.descriptionEditing ? locakedText : unlocakedText,
+        } );
+
     }
 
 
@@ -205,7 +185,7 @@ export default function DataTable() {
             render:  ( text, record ) =>  <img width={`80`} src={text}  />
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Title'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick  }} text={'Title'} hasButton={true}/>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
@@ -261,7 +241,7 @@ export default function DataTable() {
                             />
                        }
                     </div>
-                    <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                    <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
                         <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
                     </Modal>
                     </>
