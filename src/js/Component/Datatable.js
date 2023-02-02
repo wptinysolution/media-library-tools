@@ -32,7 +32,11 @@ const defaultEditingStatus = {
     captionEditing : false,
     descriptionEditing : false,
 }
-
+const defaitBulkData = {
+    ids: [],
+    type: '',
+    data: '',
+}
 export default function DataTable() {
 
     const [data, setData] = useState( defaultPosts );
@@ -43,11 +47,7 @@ export default function DataTable() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [bulkdata, setBulkdata] = useState({
-        ids: [],
-        type: '',
-        data: '',
-    });
+    const [bulkdata, setBulkdata] = useState(defaitBulkData );
 
     const { posts, total_post, max_pages, current_page, posts_per_page } = data;
 
@@ -57,6 +57,7 @@ export default function DataTable() {
 
     const modalClose = () => {
         setIsModalOpen(false);
+        setBulkdata( defaultColText );
     };
 
     const handleBulkClick = ( event, type ) => {
@@ -170,14 +171,14 @@ export default function DataTable() {
 
     const columns = [
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Id'} hasButton={false}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Id'} hasButton={false}/>,
             key: 'Id',
             dataIndex: 'ID',
             width: '100px',
             align: 'top',
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Image'} hasButton={false}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Image'} hasButton={false}/>,
             key: 'Image',
             dataIndex: 'guid',
             width: '150px',
@@ -185,7 +186,7 @@ export default function DataTable() {
             render:  ( text, record ) =>  <img width={`80`} src={text}  />
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick  }} text={'Title'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata  }} text={'Title'} hasButton={true}/>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
@@ -193,7 +194,7 @@ export default function DataTable() {
             render: ( text, record, i ) => <> { formEdited.titleEditing ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Alt'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Alt'} hasButton={true}/>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
@@ -201,14 +202,14 @@ export default function DataTable() {
             render: ( text, record, i ) => <> { formEdited.altEditing ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Caption'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Caption'} hasButton={true}/>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
             width: '300px',
             render: ( text, record, i ) => <> { formEdited.captionEditing ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick }} text={'Description'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Description'} hasButton={true}/>,
             key: 'Description',
             dataIndex: 'post_content',
             width: '350px',
