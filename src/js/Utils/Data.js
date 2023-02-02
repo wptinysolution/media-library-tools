@@ -11,8 +11,8 @@ const additonal_data = {
     'current_user' : tttemeParams.current_user,
 }
 
-export const getMedia = async ( url = '' ) => {
-    const result = await Axios.get( `${apibaseUrl}${url}`, { params: { ...additonal_data } } );
+export const getMedia = async ( url = '', prams = {} ) => {
+    const result = await Axios.get( `${apibaseUrl}${url}`, { params: { ...additonal_data, ...prams } } );
     return JSON.parse( result.data );
 }
 

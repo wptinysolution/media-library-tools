@@ -2,7 +2,6 @@ import React from "react";
 
 function EditButton( { text, hasButton, prevdata } ) {
     const { ColumnHandleClick, colsText, handleBulkClick, bulkdata } = prevdata;
-    console.log( bulkdata )
     return (
         <>
             <div className={`heading-title`}>
@@ -14,7 +13,7 @@ function EditButton( { text, hasButton, prevdata } ) {
                     <span className={ 'Unlocked Edit' === colsText[text.toLowerCase()] ? 'btn-active' : '' } onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) }>
                          { colsText[text.toLowerCase()] }
                     </span>
-                    <span className={ bulkdata.type === text.toLowerCase() ? 'btn-active' : '' }onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) }>Bulk Edit </span>
+                    <span className={ bulkdata.type === text.toLowerCase() ? 'btn-active' : '' } onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) }>Bulk Edit </span>
                 </div>
             }
         </>

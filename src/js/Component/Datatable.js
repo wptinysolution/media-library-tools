@@ -1,6 +1,6 @@
 // Table.js
 
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect } from "react";
 
 import { Pagination, Table, Input, Modal } from 'antd';
 
@@ -38,6 +38,7 @@ const defaitBulkData = {
     data: '',
 }
 export default function DataTable() {
+    // paged
 
     const [data, setData] = useState( defaultPosts );
 
@@ -49,11 +50,13 @@ export default function DataTable() {
 
     const [bulkdata, setBulkdata] = useState(defaitBulkData );
 
-    const { posts, total_post, max_pages, current_page, posts_per_page } = data;
+    const { posts, total_post, posts_per_page } = data;
 
     const [ formEdited, setFormEdited ] = useState(defaultEditingStatus );
 
     const [ colsText, setColsText ] = useState(defaultColText);
+
+    const [ paged, setPaged ] = useState( 1 );
 
     const modalClose = () => {
         setIsModalOpen(false);
@@ -73,13 +76,15 @@ export default function DataTable() {
         setColsText( defaultColText );
     }
 
-
     const handleCancel = () => {
         modalClose();
     };
 
     const getTheMedia = async () => {
-        const response = await getMedia()
+        const params = {
+            paged :  paged ? paged : 1
+        };
+        const response = await getMedia('', params );
         setData( response );
     }
 
@@ -102,8 +107,8 @@ export default function DataTable() {
 
 
     useEffect(() => {
-        getTheMedia( )
-    }, [isUpdated]  );
+        getTheMedia()
+    }, [isUpdated, paged]  );
 
     const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
@@ -149,7 +154,6 @@ export default function DataTable() {
 
     }
 
-
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
         const currentData = {
@@ -167,6 +171,10 @@ export default function DataTable() {
     const handleFocusout = async ( event ) => {
         const response = await upDateSingleMedia( currentEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+    }
+
+    const handlePagination = ( current ) => {
+        setPaged( current );
     }
 
     const columns = [
@@ -231,15 +239,17 @@ export default function DataTable() {
                         }}
                     />
                     <div className={`post-pagination`}>
-                       {
-                            posts_per_page &&
+                        {
+                            posts_per_page && paged &&
                             <Pagination
                                 showTitle={true}
                                 showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
                                 defaultPageSize={posts_per_page}
                                 total={total_post}
-                                current={current_page}
+                                current={paged}
+                                onChange={ ( current ) => handlePagination( current ) }
                             />
+
                        }
                     </div>
                     <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
