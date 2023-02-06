@@ -32,11 +32,17 @@ const defaultEditingStatus = {
     captionEditing : false,
     descriptionEditing : false,
 }
-const defaitBulkData = {
+const defaultBulkData = {
     ids: [],
     type: '',
     data: '',
 }
+
+const defaultSort = {
+    orderby: '',
+    order: 'DESC',
+}
+
 export default function DataTable() {
     // paged
 
@@ -48,7 +54,7 @@ export default function DataTable() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [bulkdata, setBulkdata] = useState(defaitBulkData );
+    const [bulkdata, setBulkdata] = useState(defaultBulkData );
 
     const { posts, total_post, posts_per_page } = data;
 
@@ -57,6 +63,9 @@ export default function DataTable() {
     const [ colsText, setColsText ] = useState(defaultColText);
 
     const [ paged, setPaged ] = useState( 1 );
+
+    const [ sort, setSort ] = useState( defaultSort );
+
 
     const modalClose = () => {
         setIsModalOpen(false);
@@ -84,6 +93,10 @@ export default function DataTable() {
         const params = {
             paged :  paged ? paged : 1
         };
+        if( sort.order && sort.orderby ){
+            params.order = sort.order;
+            params.orderby = sort.orderby ;
+        }
         const response = await getMedia('', params );
         setData( response );
     }
@@ -105,10 +118,18 @@ export default function DataTable() {
         modalClose();
     };
 
+    const handleSortClick = ( event, getType ) => {
+        setSort( (prevState) => ( {
+            orderby: getType,
+            order: 'DESC' === prevState.order ? 'ASC' : 'DESC',
+        })  );
+    };
+
+
 
     useEffect(() => {
         getTheMedia()
-    }, [isUpdated, paged]  );
+    }, [isUpdated, paged, sort]  );
 
     const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
@@ -179,22 +200,22 @@ export default function DataTable() {
 
     const columns = [
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Id'} hasButton={false}/>,
-            key: 'Id',
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Id'} hasButton={false}/>,
+            key: 'ID',
             dataIndex: 'ID',
             width: '100px',
             align: 'top',
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Image'} hasButton={false}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Image'} hasButton={false}/>,
             key: 'Image',
             dataIndex: 'guid',
             width: '150px',
             align: 'top',
-            render:  ( text, record ) =>  <img width={`80`} src={text}  />
+            render:  ( text, record ) =>  <img width={`80`} src={text}  />,
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata  }} text={'Title'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata  }} text={'Title'} hasButton={true}/>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
@@ -202,7 +223,7 @@ export default function DataTable() {
             render: ( text, record, i ) => <> { formEdited.titleEditing ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Alt'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Alt'} hasButton={true}/>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
@@ -210,14 +231,14 @@ export default function DataTable() {
             render: ( text, record, i ) => <> { formEdited.altEditing ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Caption'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Caption'} hasButton={true}/>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
             width: '300px',
             render: ( text, record, i ) => <> { formEdited.captionEditing ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, bulkdata }} text={'Description'} hasButton={true}/>,
+            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Description'} hasButton={true}/>,
             key: 'Description',
             dataIndex: 'post_content',
             width: '350px',
@@ -231,6 +252,7 @@ export default function DataTable() {
                 { posts &&
                     <>
                     <Table
+                        rowKey={() => Math.random()}
                         pagination={false}
                         columns={columns}
                         dataSource={posts}

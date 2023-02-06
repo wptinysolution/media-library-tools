@@ -145,6 +145,8 @@ class Api {
 
         $parameters = $request_data->get_params();
 
+        // error_log( print_r( $parameters, true) . "\n\n" , 3 , __DIR__.'/log.text');
+
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
@@ -160,24 +162,49 @@ class Api {
                 'post_type' => 'attachment',
                 'post_status' => 'inherit',
                 'posts_per_page' => $per_page,
-                'order' => 'DESC',
-                'orderby ' => 'title',
+                'orderby' => 'title',
+                'order'   => 'ASC',
             ),
             $parameters
         );
 
+        if( 'alt' === $query_images_args['orderby'] ){
+            $query_images_args['meta_key'] =  '_wp_attachment_image_alt';
+            $query_images_args['orderby'] =  'meta_value';
+        }
+
+        if( 'description' === $query_images_args['orderby'] ){
+            $query_images_args['orderby'] =  'post_content';
+        }
+        if( 'caption' === $query_images_args['orderby'] ){
+            $query_images_args['orderby'] =  'post_excerpt';
+        }
+
         unset(
-            $parameters['current_user']
+            $query_images_args['current_user']
         );
 
-        $the_wuery = new WP_Query($query_images_args);
+
+        $the_query = new WP_Query($query_images_args);
+        $posts = [];
+        if ( $the_query->have_posts() ) {
+            while ( $the_query->have_posts() ) { $the_query->the_post();
+                $data['ID'] = get_the_ID();
+                $data['post_title'] = get_the_title();
+                $data['post_excerpt'] = get_the_excerpt();
+                $data['alt_text'] = get_post_meta(get_the_ID(), '_wp_attachment_image_alt', true );
+                $data['post_content'] = get_the_content();
+                $data['guid'] = wp_get_attachment_thumb_url( get_the_ID() );
+                $posts[] = $data ;
+            }
+        }
         wp_reset_postdata();
         $query_data = [
-            'posts' => $the_wuery->posts,
+            'posts' => $posts,
             'posts_per_page' => absint( $per_page ),
-            'total_post' => absint( $the_wuery->found_posts ),
-            'max_pages' => absint( $the_wuery->max_num_pages ),
-            'current_page' => absint( $the_wuery->query_vars['paged'] ) + 1,
+            'total_post' => absint( $the_query->found_posts ),
+            'max_pages' => absint( $the_query->max_num_pages ),
+            'current_page' => absint( $the_query->query_vars['paged'] ) + 1,
         ];
         return wp_json_encode(  $query_data );
     }

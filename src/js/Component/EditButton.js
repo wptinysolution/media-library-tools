@@ -1,12 +1,12 @@
 import React from "react";
 
 function EditButton( { text, hasButton, prevdata } ) {
-    const { ColumnHandleClick, colsText, handleBulkClick, bulkdata } = prevdata;
+    const { ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata } = prevdata;
     return (
         <>
             <div className={`heading-title`}>
                 { text }
-                <span className={`on-hover`}> Sort </span>
+                <span className={`on-hover`} sort-type={`${text.toLowerCase()}`} onClick={ ( event ) => handleSortClick( event, text.toLowerCase() ) }> Sort </span>
             </div>
             { hasButton &&
                 <div className={`tttme-button-link`}>
