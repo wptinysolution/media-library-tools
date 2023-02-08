@@ -162,8 +162,8 @@ class Api {
                 'post_type' => 'attachment',
                 'post_status' => 'inherit',
                 'posts_per_page' => $per_page,
-                'orderby' => 'title',
-                'order'   => 'ASC',
+                'orderby' => 'menu_order title',
+                'order'   => 'DESC',
             ),
             $parameters
         );

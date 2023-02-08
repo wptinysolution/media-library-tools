@@ -252,7 +252,7 @@ export default function DataTable() {
                 { posts &&
                     <>
                     <Table
-                        rowKey={() => Math.random()}
+                        rowKey={ ( a ) =>  a.ID  }
                         pagination={false}
                         columns={columns}
                         dataSource={posts}
