@@ -145,8 +145,6 @@ class Api {
 
         $parameters = $request_data->get_params();
 
-        // error_log( print_r( $parameters, true) . "\n\n" , 3 , __DIR__.'/log.text');
-
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
@@ -184,17 +182,18 @@ class Api {
             $query_images_args['current_user']
         );
 
-
         $the_query = new WP_Query($query_images_args);
         $posts = [];
         if ( $the_query->have_posts() ) {
-            while ( $the_query->have_posts() ) { $the_query->the_post();
-                $data['ID'] = get_the_ID();
-                $data['post_title'] = get_the_title();
-                $data['post_excerpt'] = get_the_excerpt();
-                $data['alt_text'] = get_post_meta(get_the_ID(), '_wp_attachment_image_alt', true );
-                $data['post_content'] = get_the_content();
-                $data['guid'] = wp_get_attachment_thumb_url( get_the_ID() );
+            // Ignore While loop. Becouse some Data are not showing currently.
+            foreach ( $the_query->posts as $post) {
+                $post_id = $post->ID ;
+                $data['ID'] = $post_id ;
+                $data['post_title'] = $post->post_title ;
+                $data['post_excerpt'] = $post->post_excerpt ;
+                $data['alt_text'] = get_post_meta( $post_id , '_wp_attachment_image_alt', true );
+                $data['post_content'] = $post->post_content ;
+                $data['guid'] = $post->guid;
                 $posts[] = $data ;
             }
         }
