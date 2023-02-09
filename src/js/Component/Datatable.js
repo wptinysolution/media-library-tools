@@ -2,7 +2,7 @@
 
 import React, {useState, useEffect } from "react";
 
-import { Pagination, Table, Input, Modal } from 'antd';
+import { Pagination, Table, Input, Modal, Checkbox } from 'antd';
 
 import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
 import EditButton from "./EditButton";
@@ -65,6 +65,8 @@ export default function DataTable() {
     const [ paged, setPaged ] = useState( 1 );
 
     const [ sort, setSort ] = useState( defaultSort );
+
+    const [ checkedData, setCheckedData ] = useState( [] );
 
 
     const modalClose = () => {
@@ -198,13 +200,30 @@ export default function DataTable() {
         setPaged( current );
     }
 
+    const onCheckboxChange = (event) => {
+        const value = event.target.value ;
+        const data = event.target.checked ? [
+                ...checkedData,
+                value
+            ] : checkedData.filter(item => item !== value );
+            setCheckedData( data );
+    };
+
     const columns = [
+        {
+            title: <Checkbox name="balk_check" />,
+            key: 'ID',
+            dataIndex: 'ID',
+            width: '100px',
+            align: 'center',
+            render:  ( id, record ) => <Checkbox checked={ -1 !== checkedData.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+        },
         {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Id'} hasButton={false}/>,
             key: 'ID',
             dataIndex: 'ID',
             width: '100px',
-            align: 'top',
+            align: 'center'
         },
         {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Image'} hasButton={false}/>,
@@ -249,6 +268,7 @@ export default function DataTable() {
 
     return (
             <>
+                { console.log( checkedData ) }
                 { posts &&
                     <>
                     <Table
