@@ -209,9 +209,14 @@ export default function DataTable() {
             setCheckedData( data );
     };
 
+    const onBulkCheck = (event) => {
+        const data = event.target.checked ? posts.map( item => item.ID ) : [];
+        setCheckedData( data );
+    };
+
     const columns = [
         {
-            title: <Checkbox name="balk_check" />,
+            title: <Checkbox onChange={onBulkCheck}/>,
             key: 'ID',
             dataIndex: 'ID',
             width: '100px',
@@ -268,7 +273,7 @@ export default function DataTable() {
 
     return (
             <>
-                { console.log( checkedData ) }
+                { console.log(checkedData) }
                 { posts &&
                     <>
                     <Table
