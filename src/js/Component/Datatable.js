@@ -158,8 +158,6 @@ export default function DataTable() {
         })  );
     };
 
-
-
     useEffect(() => {
         getTheMedia()
     }, [isUpdated, paged, sort]  );

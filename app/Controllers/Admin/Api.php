@@ -112,19 +112,19 @@ class Api {
         }
 
         if ( ! empty( $parameters['post_title'] ) ) {
-            $submit['post_title'] = $parameters['post_title'];
+            $submit['post_title'] = trim( $parameters['post_title'] );
             $result['message'] = 'The Title has been saved.';
         }
         if ( isset( $parameters['post_excerpt'] ) ) {
-            $submit['post_excerpt'] = $parameters['post_excerpt'];
+            $submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
             $result['message'] = 'The Caption has been saved.';
         }
         if ( isset( $parameters['post_content'] ) ) {
-            $submit['post_content'] = $parameters['post_content'];
+            $submit['post_content'] = trim( $parameters['post_content'] );
             $result['message'] = 'The Content has been saved.';
         }
         if ( isset( $parameters['alt_text'] ) ) {
-            $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', $parameters['alt_text'] );
+            $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
             $result['message'] = 'The Text has been saved.';
         }
         if( ! empty( $submit ) ){
@@ -142,77 +142,60 @@ class Api {
      * @return string|null Post title for the latest,  * or null if none.
      */
     public function get_media( $request_data ) {
-
+        global $wpdb;
         $parameters = $request_data->get_params();
 
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
 
-        unset(
-            $parameters['post_type'],
-            $parameters['posts_per_page']
+        $limit = (int)get_user_option('upload_per_page', $parameters['current_user']);
+
+        $orderby  = 'menu_order';
+        $order  = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
+        $paged  = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
+        if( ! empty( $parameters['orderby'] ) ){
+
+        }
+        switch ( $parameters['orderby'] ){
+            case 'id':
+                $orderby =  'ID';
+                break;
+            case 'title':
+                $orderby =  'post_title';
+                break;
+            case 'description':
+                $orderby =  'post_content';
+                break;
+            case 'caption':
+                $orderby =  'post_excerpt';
+                break;
+        }
+
+
+        $total = $wpdb->get_var("SELECT COUNT(id) FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment'");
+
+        $num_of_pages = ceil( $total / $limit );
+
+        $offset = ( $paged - 1 ) * $limit;
+        $orderby_sql       = sanitize_sql_orderby( "{$orderby} {$order}" );
+        $query =  $wpdb->prepare(
+            "SELECT * FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment' ORDER BY $orderby_sql LIMIT %d,%d",
+            $offset,
+            $limit
         );
 
-        $per_page = (int)get_user_option('upload_per_page', $parameters['current_user']);
-        $query_images_args = array_merge(
-            array(
-                'post_type' => 'attachment',
-                'post_status' => 'inherit',
-                'posts_per_page' => $per_page,
-                'orderby' => 'menu_order title',
-                'order'   => 'DESC',
-            ),
-            $parameters
-        );
+        $posts = $wpdb->get_results($query);
 
-        if( 'alt' === $query_images_args['orderby'] ){
-            $query_images_args['meta_key'] =  '_wp_attachment_image_alt';
-            $query_images_args['orderby'] =  'meta_value';
-        }
+//        error_log( print_r(  $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+//        error_log( print_r(  $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+////        error_log( print_r(  $posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
-        if( 'description' === $query_images_args['orderby'] ){
-            $query_images_args['orderby'] =  'post_content';
-        }
-        if( 'caption' === $query_images_args['orderby'] ){
-            $query_images_args['orderby'] =  'post_excerpt';
-        }
-
-        unset(
-            $query_images_args['current_user']
-        );
-
-
-
-//        global $wpdb;
-//        $postsee = $wpdb->get_results ("SELECT * FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment' ORDER BY {$query_images_args['orderby']} {$query_images_args['order']}");
-//
-//        error_log( print_r($postsee, true) . "\n\n", 3, __DIR__.'/logg.txt');
-
-
-
-        $the_query = new WP_Query($query_images_args);
-        $posts = [];
-        if ( $the_query->have_posts() ) {
-            // Ignore While loop. Becouse some Data are not showing currently.
-            foreach ( $the_query->posts as $post) {
-                $post_id = $post->ID ;
-                $data['ID'] = $post_id ;
-                $data['post_title'] = $post->post_title ;
-                $data['post_excerpt'] = $post->post_excerpt ;
-                $data['alt_text'] = get_post_meta( $post_id , '_wp_attachment_image_alt', true );
-                $data['post_content'] = $post->post_content ;
-                $data['guid'] = $post->guid;
-                $posts[] = $data ;
-            }
-        }
-        wp_reset_postdata();
         $query_data = [
             'posts' => $posts,
-            'posts_per_page' => absint( $per_page ),
-            'total_post' => absint( $the_query->found_posts ),
-            'max_pages' => absint( $the_query->max_num_pages ),
-            'current_page' => absint( $the_query->query_vars['paged'] ) + 1,
+            'posts_per_page' => absint( $limit ),
+            'total_post' => absint( $total ),
+            'max_pages' => absint( $num_of_pages ),
         ];
         return wp_json_encode(  $query_data );
     }
