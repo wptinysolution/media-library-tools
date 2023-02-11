@@ -155,21 +155,22 @@ class Api {
         $order  = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
         $paged  = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
         if( ! empty( $parameters['orderby'] ) ){
-
-        }
-        switch ( $parameters['orderby'] ){
-            case 'id':
-                $orderby =  'ID';
-                break;
-            case 'title':
-                $orderby =  'post_title';
-                break;
-            case 'description':
-                $orderby =  'post_content';
-                break;
-            case 'caption':
-                $orderby =  'post_excerpt';
-                break;
+            switch ( $parameters['orderby'] ){
+                case 'id':
+                    $orderby =  'p.ID';
+                    break;
+                case 'title':
+                    $orderby =  'p.post_title';
+                    break;
+                case 'description':
+                    $orderby =  'p.post_content';
+                    break;
+                case 'caption':
+                    $orderby =  'p.post_excerpt';
+                    break;
+                default:
+                    $orderby  = 'menu_order';
+            }
         }
 
 
@@ -179,17 +180,22 @@ class Api {
 
         $offset = ( $paged - 1 ) * $limit;
         $orderby_sql       = sanitize_sql_orderby( "{$orderby} {$order}" );
+
         $query =  $wpdb->prepare(
-            "SELECT * FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment' ORDER BY $orderby_sql LIMIT %d,%d",
+            "SELECT p.*, pm.meta_value as alt_text FROM $wpdb->posts as p 
+                    LEFT JOIN $wpdb->postmeta AS pm 
+                    ON pm.post_id = p.ID 
+                    WHERE pm.meta_key = '_wp_attachment_image_alt'
+                    AND p.post_status = 'inherit' AND  p.post_type = 'attachment' ORDER BY $orderby_sql LIMIT %d,%d",
             $offset,
             $limit
         );
 
         $posts = $wpdb->get_results($query);
 
-//        error_log( print_r(  $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
-//        error_log( print_r(  $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
-////        error_log( print_r(  $posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        //error_log( print_r(  $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        // error_log( print_r(  $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        //error_log( print_r(  $posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $query_data = [
             'posts' => $posts,
