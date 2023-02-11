@@ -7,7 +7,7 @@
  * Version:           0.0.1
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
- * Text Domain:       wp-media
+ * Text Domain:       ttt-wp-media
  * Domain Path:       /languages
  *
  * @package TheTinyTools\ME

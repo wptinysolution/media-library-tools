@@ -101,7 +101,7 @@ class Api {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
-            'message' => 'Update Failed'
+            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
         $submit = [];
         if (empty($parameters['current_user'])  ) {
@@ -113,25 +113,25 @@ class Api {
 
         if ( ! empty( $parameters['post_title'] ) ) {
             $submit['post_title'] = trim( $parameters['post_title'] );
-            $result['message'] = 'The Title has been saved.';
+            $result['message'] = esc_html__('The Title has been saved.', 'ttt-wp-media');
         }
         if ( isset( $parameters['post_excerpt'] ) ) {
             $submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
-            $result['message'] = 'The Caption has been saved.';
+            $result['message'] = esc_html__('The Caption has been saved.', 'ttt-wp-media');
         }
         if ( isset( $parameters['post_content'] ) ) {
             $submit['post_content'] = trim( $parameters['post_content'] );
-            $result['message'] = 'The Content has been saved.';
+            $result['message'] = esc_html__('The Content has been saved.', 'ttt-wp-media');
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = 'The Text has been saved.';
+            $result['message'] = esc_html__('The Text has been saved.', 'ttt-wp-media');
         }
         if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
-            // Update the post into the database
             $result['updated'] = wp_update_post( $submit );
         }
+        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
 
         return $result;
     }
