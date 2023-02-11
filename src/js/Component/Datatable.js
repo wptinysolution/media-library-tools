@@ -2,9 +2,12 @@
 
 import React, {useState, useEffect } from "react";
 
-import { Pagination, Table, Input, Modal, Checkbox } from 'antd';
+import { Pagination, Table, Input, Modal, Checkbox, Select, Layout, Button, Space } from 'antd';
+
+const { Header, Content, Footer,  } = Layout;
 
 import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
+
 import EditButton from "./EditButton";
 
 const { TextArea } = Input;
@@ -18,7 +21,9 @@ const defaultPosts = {
 }
 
 const locakedText = 'Locked Edit';
+
 const unlocakedText = 'Unlocked Edit';
+
 const defaultColText = {
     title : locakedText,
     alt : locakedText,
@@ -32,6 +37,7 @@ const defaultEditingStatus = {
     captionEditing : false,
     descriptionEditing : false,
 }
+
 const defaultBulkData = {
     ids: [],
     type: '',
@@ -272,12 +278,55 @@ export default function DataTable() {
 
 
     return (
-            <>
-                { console.log(checkedData) }
+        <Layout className="layout">
+
+            <Header>
+                <Space wrap>
+                    <Select
+                        showSearch
+                        style={{
+                            width: 200,
+                        }}
+                        placeholder="Search to Select"
+                        optionFilterProp="children"
+                        filterOption={(input, option) => (option?.label ?? '').includes(input)}
+                        filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
+                        options={[
+                            {
+                                value: '1',
+                                label: 'Not Identified',
+                            },
+                            {
+                                value: '2',
+                                label: 'Closed',
+                            },
+                            {
+                                value: '3',
+                                label: 'Communicated',
+                            },
+                            {
+                                value: '4',
+                                label: 'Identified',
+                            },
+                            {
+                                value: '5',
+                                label: 'Resolved',
+                            },
+                            {
+                                value: '6',
+                                label: 'Cancelled',
+                            },
+                        ]}
+                    />
+                    <Button  type="primary"  >  Submit </Button>
+                </Space>
+            </Header>
+            <Content>
                 { posts &&
-                    <>
                     <Table
-                        rowKey={ ( a ) =>  a.ID  }
+                        rowKey={ ( item ) =>  item.ID  }
                         pagination={false}
                         columns={columns}
                         dataSource={posts}
@@ -285,25 +334,29 @@ export default function DataTable() {
                             x: 1300,
                         }}
                     />
-                    <div className={`post-pagination`}>
-                        {
-                            posts_per_page && paged &&
-                            <Pagination
-                                showTitle={true}
-                                showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                                defaultPageSize={posts_per_page}
-                                total={total_post}
-                                current={paged}
-                                onChange={ ( current ) => handlePagination( current ) }
-                            />
-
-                       }
-                    </div>
-                    <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                        <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
-                    </Modal>
-                    </>
                 }
-            </>
+
+            </Content>
+
+            <Footer  style={{ textAlign: 'center', }}  >
+                {
+                    posts_per_page && paged &&
+                    <Pagination
+                        showTitle={true}
+                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                        defaultPageSize={posts_per_page}
+                        total={total_post}
+                        current={paged}
+                        onChange={ ( current ) => handlePagination( current ) }
+                    />
+
+                }
+            </Footer>
+
+            <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
+            </Modal>
+
+        </Layout>
     );
 }
