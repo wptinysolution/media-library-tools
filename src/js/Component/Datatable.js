@@ -2,15 +2,40 @@
 
 import React, {useState, useEffect } from "react";
 
-import { Pagination, Table, Input, Modal, Checkbox, Select, Layout, Button, Space } from 'antd';
+import {
+    Pagination,
+    Table,
+    Input,
+    Modal,
+    Checkbox,
+    Select,
+    Layout,
+    Button,
+    Space
+} from 'antd';
 
-const { Header, Content, Footer,  } = Layout;
+const {
+    Header,
+    Content,
+    Footer
+} = Layout;
 
-import {bulkUpdateMedia, getMedia, upDateSingleMedia} from "../Utils/Data";
+import {
+    bulkUpdateMedia,
+    getMedia,
+    upDateSingleMedia
+} from "../Utils/Data";
 
 import EditButton from "./EditButton";
 
 const { TextArea } = Input;
+
+const headerStyle = {
+    height: 64,
+    paddingInline: 10,
+    lineHeight: '64px',
+    backgroundColor: '#fff',
+};
 
 const defaultPosts = {
     posts : [],
@@ -234,7 +259,7 @@ export default function DataTable() {
             key: 'ID',
             dataIndex: 'ID',
             width: '100px',
-            align: 'center'
+            align: 'top'
         },
         {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Image'} hasButton={false}/>,
@@ -280,12 +305,13 @@ export default function DataTable() {
     return (
         <Layout className="layout">
 
-            <Header>
+            <Header style={ headerStyle }>
                 <Space wrap>
                     <Select
                         showSearch
                         style={{
-                            width: 200,
+                            width: 150,
+
                         }}
                         placeholder="Search to Select"
                         optionFilterProp="children"
@@ -293,6 +319,7 @@ export default function DataTable() {
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                         }
+                        size={`large`}
                         options={[
                             {
                                 value: '1',
@@ -302,25 +329,13 @@ export default function DataTable() {
                                 value: '2',
                                 label: 'Closed',
                             },
-                            {
-                                value: '3',
-                                label: 'Communicated',
-                            },
-                            {
-                                value: '4',
-                                label: 'Identified',
-                            },
-                            {
-                                value: '5',
-                                label: 'Resolved',
-                            },
-                            {
-                                value: '6',
-                                label: 'Cancelled',
-                            },
+
                         ]}
                     />
-                    <Button  type="primary"  >  Submit </Button>
+                    <Button
+                        type="primary"
+                        size="large"
+                    >  Submit </Button>
                 </Space>
             </Header>
             <Content>
@@ -338,7 +353,7 @@ export default function DataTable() {
 
             </Content>
 
-            <Footer  style={{ textAlign: 'center', }}  >
+            <Footer  style={{ textAlign: 'right' }}  >
                 {
                     posts_per_page && paged &&
                     <Pagination

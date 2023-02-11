@@ -182,6 +182,15 @@ class Api {
             $query_images_args['current_user']
         );
 
+
+
+//        global $wpdb;
+//        $postsee = $wpdb->get_results ("SELECT * FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment' ORDER BY {$query_images_args['orderby']} {$query_images_args['order']}");
+//
+//        error_log( print_r($postsee, true) . "\n\n", 3, __DIR__.'/logg.txt');
+
+
+
         $the_query = new WP_Query($query_images_args);
         $posts = [];
         if ( $the_query->have_posts() ) {
