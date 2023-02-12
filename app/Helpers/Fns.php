@@ -210,6 +210,26 @@ class Fns {
         return isset( $installed_plugins_list[ $plugin_file_path ] );
     }
 
+    /**
+     * @param $plugin_file_path
+     *
+     * @return int count
+     */
+    public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default' ) {
+        global $wpdb;
+        $count_key = 'post_count_'.$post_type . '_' . $post_status;
+        $count = wp_cache_get( $count_key, $group );
+        if ( false === $count ) {
+            $count = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(id) FROM $wpdb->posts WHERE post_type = '%s' AND post_status = '%s';",
+                    $post_type,
+                    $post_status
+                ));
 
+            wp_cache_set( $count_key, $count, $group );
+        }
+        return $count;
+    }
 
 }

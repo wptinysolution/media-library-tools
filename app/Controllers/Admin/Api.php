@@ -1,6 +1,7 @@
 <?php
 
 namespace TheTinyTools\ME\Controllers\Admin;
+
 use TheTinyTools\ME\Helpers\Fns;
 use TheTinyTools\ME\Traits\SingletonTrait;
 use WP_Error;
@@ -157,16 +158,16 @@ class Api {
         if( ! empty( $parameters['orderby'] ) ){
             switch ( $parameters['orderby'] ){
                 case 'id':
-                    $orderby =  'p.ID';
+                    $orderby =  'ID';
                     break;
                 case 'title':
-                    $orderby =  'p.post_title';
+                    $orderby =  'post_title';
                     break;
                 case 'description':
-                    $orderby =  'p.post_content';
+                    $orderby =  'post_content';
                     break;
                 case 'caption':
-                    $orderby =  'p.post_excerpt';
+                    $orderby =  'post_excerpt';
                     break;
                 default:
                     $orderby  = 'menu_order';
@@ -174,12 +175,13 @@ class Api {
         }
 
 
-        $total = $wpdb->get_var("SELECT COUNT(id) FROM $wpdb->posts WHERE post_status = 'inherit' AND  post_type = 'attachment'");
+        $total = Fns::get_post_count('attachment', 'inherit', 'attachment-query' );
 
         $num_of_pages = ceil( $total / $limit );
 
         $offset = ( $paged - 1 ) * $limit;
-        $orderby_sql       = sanitize_sql_orderby( "{$orderby} {$order}" );
+
+        $orderby_sql       = sanitize_sql_orderby( "$orderby $order" );
 
         $query =  $wpdb->prepare(
             "SELECT p.*, pm.meta_value as alt_text FROM $wpdb->posts as p 
