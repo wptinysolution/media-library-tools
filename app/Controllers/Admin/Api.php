@@ -174,7 +174,6 @@ class Api {
             }
         }
 
-
         $total = Fns::get_post_count('attachment', 'inherit', 'attachment-query' );
 
         $num_of_pages = ceil( $total / $limit );
@@ -184,23 +183,29 @@ class Api {
         $orderby_sql       = sanitize_sql_orderby( "$orderby $order" );
 
         $query =  $wpdb->prepare(
-            "SELECT p.*, pm.meta_value as alt_text FROM $wpdb->posts as p 
+            "SELECT p.*, pm.meta_value as alt_text 
+                    FROM $wpdb->posts as p 
                     LEFT JOIN $wpdb->postmeta AS pm 
                     ON pm.post_id = p.ID 
                     WHERE pm.meta_key = '_wp_attachment_image_alt'
-                    AND p.post_status = 'inherit' AND  p.post_type = 'attachment' ORDER BY $orderby_sql LIMIT %d,%d",
+                    AND p.post_status = 'inherit' AND  p.post_type = 'attachment' 
+                    ORDER BY $orderby_sql LIMIT %d,%d",
             $offset,
             $limit
         );
 
-        $posts = $wpdb->get_results($query);
+        $_posts = wp_cache_get( md5( $query ), 'attachment' );
+        if ( false === $_posts ) {
+            $_posts = $wpdb->get_results( $query );
+            wp_cache_set( md5( $query ), $_posts,'attachment' );
+        }
 
-        //error_log( print_r(  $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
-        // error_log( print_r(  $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
-        //error_log( print_r(  $posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        // $count = wp_cache_get( $count_key, $group );
+        // error_log( print_r( md5( $query ), true) . "\n\n", 3, __DIR__.'/logg.txt');
+        // $posts = $wpdb->get_results($query);
 
         $query_data = [
-            'posts' => $posts,
+            'posts' => $_posts,
             'posts_per_page' => absint( $limit ),
             'total_post' => absint( $total ),
             'max_pages' => absint( $num_of_pages ),
