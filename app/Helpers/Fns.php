@@ -225,8 +225,8 @@ class Fns {
                     "SELECT COUNT(id) FROM $wpdb->posts WHERE post_type = '%s' AND post_status = '%s';",
                     $post_type,
                     $post_status
-                ));
-
+                )
+            );
             wp_cache_set( $count_key, $count, $group );
         }
         return $count;

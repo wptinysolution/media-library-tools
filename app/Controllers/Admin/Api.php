@@ -169,6 +169,9 @@ class Api {
                 case 'caption':
                     $orderby =  'post_excerpt';
                     break;
+                case 'alt':
+                    $orderby =  'alt_text';
+                    break;
                 default:
                     $orderby  = 'menu_order';
             }
@@ -194,14 +197,14 @@ class Api {
             $limit
         );
 
-        $_posts = wp_cache_get( md5( $query ), 'attachment' );
+        $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {
             $_posts = $wpdb->get_results( $query );
-            wp_cache_set( md5( $query ), $_posts,'attachment' );
+            wp_cache_set( md5( $query ), $_posts,'attachment-query' );
         }
 
         // $count = wp_cache_get( $count_key, $group );
-        // error_log( print_r( md5( $query ), true) . "\n\n", 3, __DIR__.'/logg.txt');
+        error_log( print_r( $parameters['orderby'], true) . "\n\n", 3, __DIR__.'/logg.txt');
         // $posts = $wpdb->get_results($query);
 
         $query_data = [
