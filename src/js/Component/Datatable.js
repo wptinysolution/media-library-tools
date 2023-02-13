@@ -11,8 +11,11 @@ import {
     Select,
     Layout,
     Button,
-    Space
+    Space,
+    Typography
 } from 'antd';
+
+const { Title } = Typography;
 
 const {
     Header,
@@ -21,8 +24,9 @@ const {
 } = Layout;
 
 import {
+    bulkMediaToTrash,
     bulkUpdateMedia,
-    getMedia,
+    getMedia, submitBulkMediaAction, SubmitBulkMediaAction,
     upDateSingleMedia
 } from "../Utils/Data";
 
@@ -69,6 +73,18 @@ const defaultBulkData = {
     data: '',
 }
 
+const defaultBulkSubmitData = {
+    ids: [],
+    type: '',
+    data : {
+        post_title : '',
+        alt_text : '',
+        caption : '',
+        post_description : '',
+    }
+}
+
+
 const defaultSort = {
     orderby: '',
     order: 'DESC',
@@ -85,7 +101,12 @@ export default function DataTable() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+
+
     const [bulkdata, setBulkdata] = useState(defaultBulkData );
+
+    const [bulkSubmitdata, setbulkSubmitdata] = useState( defaultBulkSubmitData );
 
     const { posts, total_post, posts_per_page } = data;
 
@@ -96,6 +117,8 @@ export default function DataTable() {
     const [ paged, setPaged ] = useState( 1 );
 
     const [ sort, setSort ] = useState( defaultSort );
+
+    const [ bulkChecked, setBulkChecked ] = useState( false );
 
     const [ checkedData, setCheckedData ] = useState( [] );
 
@@ -138,6 +161,16 @@ export default function DataTable() {
         const response = await bulkUpdateMedia( bulkdata )
         200 === parseInt( response.status ) && response.data.updated && setIsUpdated( ! isUpdated );
     }
+
+    const submitBulkMedia = async ( params ) => {
+        const response = await submitBulkMediaAction( params );
+        if( 200 === parseInt( response.status ) && response.data.updated ){
+             setCheckedData( [] );
+            setBulkChecked( false );
+             setIsUpdated( ! isUpdated );
+        }
+    }
+
 
     const balkChange = ( event ) => {
         setBulkdata({
@@ -227,6 +260,8 @@ export default function DataTable() {
 
     const handlePagination = ( current ) => {
         setPaged( current );
+        setCheckedData( [] );
+        setBulkChecked( false );
     }
 
     const onCheckboxChange = (event) => {
@@ -241,11 +276,50 @@ export default function DataTable() {
     const onBulkCheck = (event) => {
         const data = event.target.checked ? posts.map( item => item.ID ) : [];
         setCheckedData( data );
+        setBulkChecked( ! ! data.length );
     };
+
+    const handleBulkSubmit = (event) => {
+        const params = {
+            ...bulkSubmitdata,
+            ids :  checkedData ? checkedData : []
+        };
+        switch( bulkSubmitdata.type ){
+            case 'trash':
+            case 'update':
+            case 'delete':
+                submitBulkMedia( params );
+                break;
+            case 'edit':
+                setIsBulkModalOpen( true );
+                break;
+            default:
+        }
+
+    };
+
+    const handleBulkModalOk = (event) => {
+        setIsBulkModalOpen( false );
+    };
+
+    const handleBulkModalCancel = (event) => {
+        setIsBulkModalOpen( false );
+    };
+
+    const handleChangeBulkType = (value) => {
+        const data = 'edit' === value ? bulkSubmitdata.data : defaultBulkSubmitData.data;
+        setbulkSubmitdata( {
+            ...bulkSubmitdata,
+            type: value,
+            data
+        })
+
+    };
+
 
     const columns = [
         {
-            title: <Checkbox onChange={onBulkCheck}/>,
+            title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
             key: 'ID',
             dataIndex: 'ID',
             width: '100px',
@@ -301,31 +375,32 @@ export default function DataTable() {
 
 
     return (
-        <Layout className="layout">
 
+        <Layout className="layout">
+            {/*{ console.log( bulkSubmitdata ) }*/}
             <Header style={ headerStyle }>
                 <Space wrap>
                     <Select
-                        showSearch
                         style={{
-                            width: 150,
-
+                            width: 160,
+                            paddingInline: 0,
                         }}
-                        placeholder="Search to Select"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => (option?.label ?? '').includes(input)}
-                        filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                        }
+                        allowClear
+                        placeholder="Bulk actions"
+                        onChange={  handleChangeBulkType }
                         size={`large`}
                         options={[
                             {
-                                value: '1',
-                                label: 'Not Identified',
+                                value: 'edit',
+                                label: 'Edit',
                             },
                             {
-                                value: '2',
-                                label: 'Closed',
+                                value: 'trash',
+                                label: 'Move to Trash',
+                            },
+                            {
+                                value: 'delete',
+                                label: 'Delete Permanently ',
                             },
 
                         ]}
@@ -333,6 +408,7 @@ export default function DataTable() {
                     <Button
                         type="primary"
                         size="large"
+                        onClick = { handleBulkSubmit }
                     >  Submit </Button>
                 </Space>
             </Header>
@@ -368,6 +444,17 @@ export default function DataTable() {
 
             <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
                 <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
+            </Modal>
+
+            <Modal title={`Bulk Edit`} open={isBulkModalOpen} onOk={handleBulkModalOk} onCancel={handleBulkModalCancel}>
+                <Title level={5}> Title </Title>
+                <TextArea onChange={balkChange} name={`modal_title`} value={bulkSubmitdata.data.post_title} placeholder={`Title`} />
+                <Title level={5}> Alt Text </Title>
+                <TextArea onChange={balkChange} name={`modal_alt_text`} value={bulkSubmitdata.data.alt_text} placeholder={`Alt text`} />
+                <Title level={5}> Caption </Title>
+                <TextArea onChange={balkChange} name={`modal_caption`} value={bulkSubmitdata.data.caption} placeholder={`Caption`} />
+                <Title level={5}> Description </Title>
+                <TextArea onChange={balkChange} name={`modal_description`} value={bulkSubmitdata.data.post_description} placeholder={`Description`} />
             </Modal>
 
         </Layout>

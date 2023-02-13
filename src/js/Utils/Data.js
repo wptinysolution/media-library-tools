@@ -38,3 +38,7 @@ export const upDateSingleMedia = async ( dta ) => {
 export const bulkUpdateMedia = async ( dta ) => {
     return await Axios.post(`${apibaseUrl}/bulk/update`, { ...additonal_data, ...dta });
 }
+
+export const submitBulkMediaAction = async ( dta ) => {
+    return await Axios.post(`${apibaseUrl}/bulk/trash`, { ...additonal_data, ...dta });
+}

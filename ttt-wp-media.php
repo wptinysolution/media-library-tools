@@ -4,7 +4,7 @@
  * Plugin Name:       WP Media
  * Plugin URI:        https://wordpress.org/plugins/
  * Description:       WP Media
- * Version:           0.0.1
+ * Version:           0.0.2
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
  * Text Domain:       ttt-wp-media

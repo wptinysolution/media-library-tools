@@ -36,6 +36,10 @@ class Api {
             'methods' => 'POST',
             'callback' => [ $this, 'bulk_update_media'],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/bulk/trash', array(
+            'methods' => 'POST',
+            'callback' => [ $this, 'media_submit_bulk_action'],
+        ) );
     }
     /**
      * Grab latest post title by an author!
@@ -43,8 +47,7 @@ class Api {
      * @param array $data Options for the function.
      * @return string|null Post title for the latest,  * or null if none.
      */
-    public function bulk_update_media( $request_data )
-    {
+    public function bulk_update_media( $request_data ) {
 
         $parameters = $request_data->get_params();
 
@@ -203,10 +206,6 @@ class Api {
             wp_cache_set( md5( $query ), $_posts,'attachment-query' );
         }
 
-        // $count = wp_cache_get( $count_key, $group );
-        error_log( print_r( $parameters['orderby'], true) . "\n\n", 3, __DIR__.'/logg.txt');
-        // $posts = $wpdb->get_results($query);
-
         $query_data = [
             'posts' => $_posts,
             'posts_per_page' => absint( $limit ),
@@ -214,6 +213,55 @@ class Api {
             'max_pages' => absint( $num_of_pages ),
         ];
         return wp_json_encode(  $query_data );
+    }
+
+    /**
+     * Grab latest post title by an author!
+     *
+     * @param array $data Options for the function.
+     * @return string|null Post title for the latest,  * or null if none.
+     */
+    public function media_submit_bulk_action( $request_data ) {
+        global $wpdb;
+        $parameters = $request_data->get_params();
+        $result = [
+            'updated' => false,
+            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+        ] ;
+
+        $submit = [];
+        if (empty($parameters['current_user'])  ) {
+            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
+        }
+        if ( ! empty($parameters['type']) ) {
+            $ids = $parameters['ids'];
+            switch ( $parameters['type'] ){
+                case 'trash':
+                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                        'trash',
+                        ...$ids
+                    );
+                    $updated = wp_cache_get( md5( $query ), 'attachment-query' );
+                    if ( false === $updated ) {
+                        $updated = $wpdb->query( $query );
+                        wp_cache_set( md5( $query ), $updated,'attachment-query' );
+                    }
+                    $result['updated'] = (bool) $updated;
+                    break;
+                case 'delete':
+                    error_log( print_r( 'delete', true) . "\n\n", 3, __DIR__.'/logg.txt');
+                    break;
+                case 'update':
+                    error_log( print_r( 'update', true) . "\n\n", 3, __DIR__.'/logg.txt');
+                    break;
+                default:
+                    error_log( print_r( $parameters, true) . "\n\n", 3, __DIR__.'/logg.txt');
+            }
+        }
+
+        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+
+        return $result;
     }
 
 }
