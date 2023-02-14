@@ -186,16 +186,24 @@ class Api {
 
         $offset = ( $paged - 1 ) * $limit;
 
-        $orderby_sql       = sanitize_sql_orderby( "$orderby $order" );
-
+        $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
+        $meta_value_sql = "(
+            SELECT meta_value
+            FROM $wpdb->postmeta AS pmt
+            WHERE pmt.post_id = p.ID AND pmt.meta_key = '_wp_attachment_image_alt'
+            LIMIT 1
+            )";
+        if( 'alt_text' ==  $orderby ){
+            $order_by_sql       = "$meta_value_sql $order" ;
+        }
         $query =  $wpdb->prepare(
-            "SELECT p.*, pm.meta_value as alt_text 
-                    FROM $wpdb->posts as p 
-                    LEFT JOIN $wpdb->postmeta AS pm 
-                    ON pm.post_id = p.ID 
-                    WHERE pm.meta_key = '_wp_attachment_image_alt'
-                    AND p.post_status = 'inherit' AND  p.post_type = 'attachment' 
-                    ORDER BY $orderby_sql LIMIT %d,%d",
+            "SELECT p.*, $meta_value_sql AS alt_text
+                FROM $wpdb->posts AS p
+                LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID
+                WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'
+                GROUP BY p.ID
+                ORDER BY $order_by_sql 
+                LIMIT %d,%d",
             $offset,
             $limit
         );
@@ -205,6 +213,8 @@ class Api {
             $_posts = $wpdb->get_results( $query );
             wp_cache_set( md5( $query ), $_posts,'attachment-query' );
         }
+        // error_log( print_r( $query, true));
+        //  error_log( print_r( $_posts, true));
 
         $query_data = [
             'posts' => $_posts,
