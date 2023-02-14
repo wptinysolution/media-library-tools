@@ -125,7 +125,7 @@ class Api {
         }
         if ( isset( $parameters['post_content'] ) ) {
             $submit['post_content'] = trim( $parameters['post_content'] );
-            $result['message'] = esc_html__('The Content has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('Content has been saved.', 'ttt-wp-media');
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
@@ -187,23 +187,29 @@ class Api {
         $offset = ( $paged - 1 ) * $limit;
 
         $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
-        $meta_value_sql = "(
-            SELECT meta_value
-            FROM $wpdb->postmeta AS pmt
-            WHERE pmt.post_id = p.ID AND pmt.meta_key = '_wp_attachment_image_alt'
-            LIMIT 1
-            )";
-        if( 'alt_text' ==  $orderby ){
-            $order_by_sql       = "$meta_value_sql $order" ;
-        }
+        /*
+         * You can modify the query to include another value from the postmeta table by adding another
+         * LEFT JOIN and selecting the additional meta_value in the SELECT statement. Here's an example
+         * of how to join another meta_key with the existing query:
+         Example:
+             SELECT p.*,
+                IFNULL(pm.meta_value, '') AS alt_text,
+                IFNULL(pm2.meta_value, '') AS other_meta_value
+            FROM wp_posts AS p
+            LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
+            LEFT JOIN wp_postmeta AS pm2 ON pm2.post_id = p.ID AND pm2.meta_key = 'other_meta_key'
+            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'
+            ORDER BY alt_text {$order}
+            LIMIT %d, %d
+        */
+
         $query =  $wpdb->prepare(
-            "SELECT p.*, $meta_value_sql AS alt_text
-                FROM $wpdb->posts AS p
-                LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID
-                WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'
-                GROUP BY p.ID
-                ORDER BY $order_by_sql 
-                LIMIT %d,%d",
+            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
+            FROM $wpdb->posts AS p
+            LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
+            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'
+            ORDER BY $order_by_sql
+            LIMIT %d, %d",
             $offset,
             $limit
         );
@@ -213,8 +219,9 @@ class Api {
             $_posts = $wpdb->get_results( $query );
             wp_cache_set( md5( $query ), $_posts,'attachment-query' );
         }
-        // error_log( print_r( $query, true));
-        //  error_log( print_r( $_posts, true));
+
+      // error_log( print_r( $query, true));
+      // error_log( print_r( $_posts, true));
 
         $query_data = [
             'posts' => $_posts,

@@ -165,9 +165,9 @@ export default function DataTable() {
     const submitBulkMedia = async ( params ) => {
         const response = await submitBulkMediaAction( params );
         if( 200 === parseInt( response.status ) && response.data.updated ){
-             setCheckedData( [] );
+            setCheckedData( [] );
             setBulkChecked( false );
-             setIsUpdated( ! isUpdated );
+            setIsUpdated( ! isUpdated );
         }
     }
 
@@ -187,7 +187,7 @@ export default function DataTable() {
     const handleSortClick = ( event, getType ) => {
         setSort( (prevState) => ( {
             orderby: getType,
-            order: 'DESC' === prevState.order ? 'ASC' : 'DESC',
+            order: getType === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         })  );
     };
 
@@ -270,7 +270,13 @@ export default function DataTable() {
                 ...checkedData,
                 value
             ] : checkedData.filter(item => item !== value );
-            setCheckedData( data );
+
+        const Checked_count = Object.keys(data).length;
+        const post_count = Object.keys(posts).length;
+
+        setCheckedData( data );
+        setBulkChecked( Checked_count === post_count );
+
     };
 
     const onBulkCheck = (event) => {
