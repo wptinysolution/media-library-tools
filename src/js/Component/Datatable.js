@@ -24,10 +24,10 @@ const {
 } = Layout;
 
 import {
-    bulkMediaToTrash,
+    getMedia,
     bulkUpdateMedia,
-    getMedia, submitBulkMediaAction, SubmitBulkMediaAction,
-    upDateSingleMedia
+    upDateSingleMedia,
+    submitBulkMediaAction
 } from "../Utils/Data";
 
 import EditButton from "./EditButton";
@@ -84,11 +84,16 @@ const defaultBulkSubmitData = {
     }
 }
 
-
 const defaultSort = {
     orderby: '',
     order: 'DESC',
 }
+
+const selectStyle = {
+    width: 160,
+    paddingInline: 0,
+}
+
 
 export default function DataTable() {
     // paged
@@ -102,7 +107,6 @@ export default function DataTable() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-
 
     const [bulkdata, setBulkdata] = useState(defaultBulkData );
 
@@ -121,7 +125,6 @@ export default function DataTable() {
     const [ bulkChecked, setBulkChecked ] = useState( false );
 
     const [ checkedData, setCheckedData ] = useState( [] );
-
 
     const modalClose = () => {
         setIsModalOpen(false);
@@ -170,7 +173,6 @@ export default function DataTable() {
             setIsUpdated( ! isUpdated );
         }
     }
-
 
     const balkChange = ( event ) => {
         setBulkdata({
@@ -322,7 +324,6 @@ export default function DataTable() {
 
     };
 
-
     const columns = [
         {
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
@@ -379,21 +380,16 @@ export default function DataTable() {
         },
     ];
 
-
     return (
 
         <Layout className="layout">
-            {/*{ console.log( bulkSubmitdata ) }*/}
             <Header style={ headerStyle }>
                 <Space wrap>
                     <Select
-                        style={{
-                            width: 160,
-                            paddingInline: 0,
-                        }}
+                        style={selectStyle}
                         allowClear
                         placeholder="Bulk actions"
-                        onChange={  handleChangeBulkType }
+                        onChange={ handleChangeBulkType }
                         size={`large`}
                         options={[
                             {
@@ -415,7 +411,66 @@ export default function DataTable() {
                         type="primary"
                         size="large"
                         onClick = { handleBulkSubmit }
-                    >  Submit </Button>
+                    >  Apply </Button>
+                    <Select
+                        defaultValue={`0`}
+                        style={selectStyle}
+                        onChange={ () => console.log( `Status` ) }
+                        size={`large`}
+                        options={[
+                            {
+                                value: '0',
+                                label: 'All',
+                            },
+                            {
+                                value: 'trash',
+                                label: 'Trash',
+                            },
+
+                        ]}
+                    />
+                    <Select
+                        defaultValue={`0`}
+                        style={selectStyle}
+                        onChange={ () => console.log( `Date Change` ) }
+                        size={`large`}
+                        options={[
+                            {
+                                value: '0',
+                                label: 'All dates',
+                            },
+                            {
+                                value: '2023-01',
+                                label: 'January 2023 ',
+                            },
+                            {
+                                value: '2023-02',
+                                label: 'February 2023 ',
+                            },
+
+                        ]}
+                    />
+                    <Select
+                        defaultValue={`all`}
+                        style={selectStyle}
+                        onChange={ () => console.log( 'Hello' ) }
+                        size={`large`}
+                        options={[
+                            {
+                                value: 'all',
+                                label: 'All Categories',
+                            },
+                            {
+                                value: 'uncategorized',
+                                label: 'Uncategorized',
+                            },
+                        ]}
+                    />
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick = { () => console.log( 'Filter' ) }
+                    >  Filter </Button>
                 </Space>
             </Header>
             <Content>

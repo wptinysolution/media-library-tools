@@ -16,8 +16,8 @@ export const getMedia = async ( url = '', prams = {} ) => {
     return JSON.parse( result.data );
 }
 
-export const upDateSingleMedia = async ( dta ) => {
-    const response = await Axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...dta });
+export const upDateSingleMedia = async ( prams ) => {
+    const response = await Axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...prams });
     // for info - blue box
     if( 200 === response.status && response.data.updated ){
         notification.success({
@@ -35,10 +35,10 @@ export const upDateSingleMedia = async ( dta ) => {
     return response;
 }
 
-export const bulkUpdateMedia = async ( dta ) => {
-    return await Axios.post(`${apibaseUrl}/bulk/update`, { ...additonal_data, ...dta });
+export const bulkUpdateMedia = async ( prams ) => {
+    return await Axios.post(`${apibaseUrl}/bulk/update`, { ...additonal_data, ...prams });
 }
 
-export const submitBulkMediaAction = async ( dta ) => {
-    return await Axios.post(`${apibaseUrl}/bulk/trash`, { ...additonal_data, ...dta });
+export const submitBulkMediaAction = async ( prams ) => {
+    return await Axios.post(`${apibaseUrl}/bulk/trash`, { ...additonal_data, ...prams });
 }
