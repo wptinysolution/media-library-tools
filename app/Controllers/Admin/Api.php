@@ -154,6 +154,7 @@ class Api {
         }
 
         $limit = (int)get_user_option('upload_per_page', $parameters['current_user']);
+        $limit =  ! $limit ? 20 : $limit;
 
         $orderby  = 'menu_order';
         $order  = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
