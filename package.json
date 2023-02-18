@@ -19,6 +19,7 @@
 		"zip": "npm run package && npm run dev --zip"
 	},
 	"dependencies": {
+		"@ant-design/icons": "^5.0.1",
 		"antd": "^5.1.6",
 		"axios": "^1.2.2",
 		"lodash": "^4.17.21",

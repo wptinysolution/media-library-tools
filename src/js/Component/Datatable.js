@@ -12,8 +12,11 @@ import {
     Layout,
     Button,
     Space,
-    Typography
+    Typography,
+    Spin
 } from 'antd';
+
+import { LoadingOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -44,9 +47,18 @@ const headerStyle = {
 const defaultPosts = {
     posts : [],
     total_post: 0,
-    max_pages: 0,
-    current_pag: 0,
-    posts_per_page: 0,
+    paged: 1,
+    posts_per_page: 1,
+}
+
+const defaultPostsQuery = {
+    status: 'inherit',
+    date: '',
+    categories: '',
+    filtering : false,
+    paged: 1,
+    orderby: 'menu_order',
+    order: 'DESC',
 }
 
 const locakedText = 'Locked Edit';
@@ -84,10 +96,6 @@ const defaultBulkSubmitData = {
     }
 }
 
-const defaultSort = {
-    orderby: '',
-    order: 'DESC',
-}
 
 const selectStyle = {
     width: 160,
@@ -99,6 +107,8 @@ export default function DataTable() {
     // paged
 
     const [data, setData] = useState( defaultPosts );
+
+    const [postQuery, setPostQuery] = useState( defaultPostsQuery );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -117,10 +127,6 @@ export default function DataTable() {
     const [ formEdited, setFormEdited ] = useState(defaultEditingStatus );
 
     const [ colsText, setColsText ] = useState(defaultColText);
-
-    const [ paged, setPaged ] = useState( 1 );
-
-    const [ sort, setSort ] = useState( defaultSort );
 
     const [ bulkChecked, setBulkChecked ] = useState( false );
 
@@ -149,15 +155,11 @@ export default function DataTable() {
     };
 
     const getTheMedia = async () => {
-        const params = {
-            paged :  paged ? paged : 1
-        };
-        if( sort.order && sort.orderby ){
-            params.order = sort.order;
-            params.orderby = sort.orderby ;
-        }
-        const response = await getMedia('', params );
+        const response = await getMedia('', {
+            ...postQuery
+        } );
         setData( response );
+
     }
 
     const bulkUpdate = async () => {
@@ -187,15 +189,16 @@ export default function DataTable() {
     };
 
     const handleSortClick = ( event, getType ) => {
-        setSort( (prevState) => ( {
+        setPostQuery( ( prevState) => ({
+            ...postQuery,
             orderby: getType,
             order: getType === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
-        })  );
+        } ));
     };
 
     useEffect(() => {
         getTheMedia()
-    }, [isUpdated, paged, sort]  );
+    }, [isUpdated]  );
 
     const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
@@ -205,21 +208,18 @@ export default function DataTable() {
                     ...formEdited,
                     titleEditing : ! formEdited.titleEditing
                 }
-
                 break;
             case 'alt':
                 formEditing = {
                     ...formEdited,
                     altEditing : ! formEdited.altEditing
                 }
-
                 break;
             case 'caption':
                 formEditing = {
                     ...formEdited,
                     captionEditing : ! formEdited.captionEditing
                 }
-
                 break;
             case 'description':
                 formEditing = {
@@ -261,9 +261,13 @@ export default function DataTable() {
     }
 
     const handlePagination = ( current ) => {
-        setPaged( current );
-        setCheckedData( [] );
-        setBulkChecked( false );
+        setCheckedData([]);
+        setBulkChecked(false);
+        setPostQuery({
+            ...postQuery,
+            paged: current
+        })
+        setIsUpdated( ! isUpdated );
     }
 
     const onCheckboxChange = (event) => {
@@ -303,7 +307,6 @@ export default function DataTable() {
                 break;
             default:
         }
-
     };
 
     const handleBulkModalOk = (event) => {
@@ -323,6 +326,18 @@ export default function DataTable() {
         })
 
     };
+
+    const handleFilterData = () => {
+        setbulkSubmitdata( {
+            ...defaultBulkSubmitData
+        })
+        setPostQuery({
+            ...postQuery,
+            filtering : true,
+            paged: 1
+        })
+        setIsUpdated( ! isUpdated );
+    }
 
     const columns = [
         {
@@ -353,7 +368,7 @@ export default function DataTable() {
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
-            width: '250px',
+            width: '300px',
             render: ( text, record, i ) => <> { formEdited.titleEditing ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
@@ -380,103 +395,129 @@ export default function DataTable() {
         },
     ];
 
+    const bulkOprions = [
+        {
+            value: '',
+            label: 'Bulk actions',
+        },
+        {
+            value: 'edit',
+            label: 'Edit',
+        },
+        {
+            value: 'trash',
+            label: 'Move to Trash',
+        },
+        {
+            value: 'delete',
+            label: 'Delete Permanently ',
+        },
+    ];
+
+    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
     return (
+        <>
+        { Object.keys(posts).length ?
+            <Layout className="layout">
+                { console.log( postQuery ) }
+                {/*{ console.log( posts ) }*/}
+                <Header style={headerStyle}>
+                    <Space wrap>
+                        <Select
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={handleChangeBulkType}
+                            size={`large`}
+                            options={
+                                postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions]
+                            }
+                        />
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={handleBulkSubmit}
+                        > Apply </Button>
+                        <Select
+                            allowClear
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={ (value) =>
+                                setPostQuery({
+                                    ...postQuery,
+                                    status: value,
+                                })
+                            }
+                            size={`large`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: 'All',
+                                },
+                                {
+                                    value: 'trash',
+                                    label: 'Trash',
+                                },
 
-        <Layout className="layout">
-            <Header style={ headerStyle }>
-                <Space wrap>
-                    <Select
-                        style={selectStyle}
-                        allowClear
-                        placeholder="Bulk actions"
-                        onChange={ handleChangeBulkType }
-                        size={`large`}
-                        options={[
-                            {
-                                value: 'edit',
-                                label: 'Edit',
-                            },
-                            {
-                                value: 'trash',
-                                label: 'Move to Trash',
-                            },
-                            {
-                                value: 'delete',
-                                label: 'Delete Permanently ',
-                            },
+                            ]}
+                        />
+                        <Select
+                            allowClear
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={ (value) => setPostQuery({
+                                    ...postQuery,
+                                    date: value,
+                                })
+                            }
+                            size={`large`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: 'All dates',
+                                },
+                                {
+                                    value: '2023-01',
+                                    label: 'January 2023 ',
+                                },
+                                {
+                                    value: '2023-02',
+                                    label: 'February 2023 ',
+                                },
 
-                        ]}
-                    />
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick = { handleBulkSubmit }
-                    >  Apply </Button>
-                    <Select
-                        defaultValue={`0`}
-                        style={selectStyle}
-                        onChange={ () => console.log( `Status` ) }
-                        size={`large`}
-                        options={[
-                            {
-                                value: '0',
-                                label: 'All',
-                            },
-                            {
-                                value: 'trash',
-                                label: 'Trash',
-                            },
-
-                        ]}
-                    />
-                    <Select
-                        defaultValue={`0`}
-                        style={selectStyle}
-                        onChange={ () => console.log( `Date Change` ) }
-                        size={`large`}
-                        options={[
-                            {
-                                value: '0',
-                                label: 'All dates',
-                            },
-                            {
-                                value: '2023-01',
-                                label: 'January 2023 ',
-                            },
-                            {
-                                value: '2023-02',
-                                label: 'February 2023 ',
-                            },
-
-                        ]}
-                    />
-                    <Select
-                        defaultValue={`all`}
-                        style={selectStyle}
-                        onChange={ () => console.log( 'Hello' ) }
-                        size={`large`}
-                        options={[
-                            {
-                                value: 'all',
-                                label: 'All Categories',
-                            },
-                            {
-                                value: 'uncategorized',
-                                label: 'Uncategorized',
-                            },
-                        ]}
-                    />
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick = { () => console.log( 'Filter' ) }
-                    >  Filter </Button>
-                </Space>
-            </Header>
-            <Content>
-                { posts &&
+                            ]}
+                        />
+                        <Select
+                            allowClear
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={ (value) => setPostQuery({
+                                    ...postQuery,
+                                    categories: value,
+                                })
+                            }
+                            size={`large`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: 'All Categories',
+                                },
+                                {
+                                    value: 'uncategorized',
+                                    label: 'Uncategorized',
+                                },
+                            ]}
+                        />
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={handleFilterData}
+                        > Filter </Button>
+                    </Space>
+                </Header>
+                <Content>
                     <Table
-                        rowKey={ ( item ) =>  item.ID  }
+                        rowKey={(item) => item.ID}
                         pagination={false}
                         columns={columns}
                         dataSource={posts}
@@ -484,40 +525,42 @@ export default function DataTable() {
                             x: 1300,
                         }}
                     />
-                }
+                </Content>
 
-            </Content>
-
-            <Footer  style={{ textAlign: 'right' }}  >
-                {
-                    posts_per_page && paged &&
+                <Footer style={{textAlign: 'right'}}>
                     <Pagination
                         showTitle={true}
                         showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
                         defaultPageSize={posts_per_page}
                         total={total_post}
-                        current={paged}
-                        onChange={ ( current ) => handlePagination( current ) }
+                        current={postQuery.paged}
+                        onChange={(current) => handlePagination(current)}
                     />
+                </Footer>
 
-                }
-            </Footer>
+                <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+                    <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data}
+                              placeholder={`Field Shouldn't leave empty`}/>
+                </Modal>
 
-            <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data} placeholder={`Field Shouldn't leave empty`} />
-            </Modal>
-
-            <Modal title={`Bulk Edit`} open={isBulkModalOpen} onOk={handleBulkModalOk} onCancel={handleBulkModalCancel}>
-                <Title level={5}> Title </Title>
-                <TextArea onChange={balkChange} name={`modal_title`} value={bulkSubmitdata.data.post_title} placeholder={`Title`} />
-                <Title level={5}> Alt Text </Title>
-                <TextArea onChange={balkChange} name={`modal_alt_text`} value={bulkSubmitdata.data.alt_text} placeholder={`Alt text`} />
-                <Title level={5}> Caption </Title>
-                <TextArea onChange={balkChange} name={`modal_caption`} value={bulkSubmitdata.data.caption} placeholder={`Caption`} />
-                <Title level={5}> Description </Title>
-                <TextArea onChange={balkChange} name={`modal_description`} value={bulkSubmitdata.data.post_description} placeholder={`Description`} />
-            </Modal>
-
-        </Layout>
+                <Modal title={`Bulk Edit`} open={isBulkModalOpen} onOk={handleBulkModalOk} onCancel={handleBulkModalCancel}>
+                    <Title level={5}> Title </Title>
+                    <TextArea onChange={balkChange} name={`modal_title`} value={bulkSubmitdata.data.post_title}
+                              placeholder={`Title`}/>
+                    <Title level={5}> Alt Text </Title>
+                    <TextArea onChange={balkChange} name={`modal_alt_text`} value={bulkSubmitdata.data.alt_text}
+                              placeholder={`Alt text`}/>
+                    <Title level={5}> Caption </Title>
+                    <TextArea onChange={balkChange} name={`modal_caption`} value={bulkSubmitdata.data.caption}
+                              placeholder={`Caption`}/>
+                    <Title level={5}> Description </Title>
+                    <TextArea onChange={balkChange} name={`modal_description`} value={bulkSubmitdata.data.post_description}
+                              placeholder={`Description`}/>
+                </Modal>
+            </Layout>
+            : <Layout className="spain-icon"  style={{height:"80vh" ,justifyContent: 'center'}} > <Spin indicator={antIcon} /> </Layout>
+        }
+        </>
     );
 }
+

@@ -5,13 +5,14 @@ namespace TheTinyTools\ME\Controllers\Admin;
 use TheTinyTools\ME\Helpers\Fns;
 use TheTinyTools\ME\Traits\SingletonTrait;
 use WP_Error;
-use WP_Query;
 
 class Api {
 
+    /**
+     * Singleton
+     */
     use SingletonTrait;
 
-    public $schema ;
     /**
      * Autoload method
      * @return void
@@ -149,6 +150,8 @@ class Api {
         global $wpdb;
         $parameters = $request_data->get_params();
 
+        error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
@@ -182,8 +185,6 @@ class Api {
         }
 
         $total = Fns::get_post_count('attachment', 'inherit', 'attachment-query' );
-
-        $num_of_pages = ceil( $total / $limit );
 
         $offset = ( $paged - 1 ) * $limit;
 
@@ -221,14 +222,10 @@ class Api {
             wp_cache_set( md5( $query ), $_posts,'attachment-query' );
         }
 
-      // error_log( print_r( $query, true));
-      // error_log( print_r( $_posts, true));
-
         $query_data = [
             'posts' => $_posts,
             'posts_per_page' => absint( $limit ),
             'total_post' => absint( $total ),
-            'max_pages' => absint( $num_of_pages ),
         ];
         return wp_json_encode(  $query_data );
     }
