@@ -10,7 +10,6 @@ import DataTable from "./Datatable";
 function App() {
     return (
         <div className="tttme-App">
-
              <DataTable />
         </div>
     );

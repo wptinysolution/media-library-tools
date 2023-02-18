@@ -96,12 +96,10 @@ const defaultBulkSubmitData = {
     }
 }
 
-
 const selectStyle = {
     width: 160,
     paddingInline: 0,
 }
-
 
 export default function DataTable() {
     // paged
@@ -122,7 +120,7 @@ export default function DataTable() {
 
     const [bulkSubmitdata, setbulkSubmitdata] = useState( defaultBulkSubmitData );
 
-    const { posts, total_post, posts_per_page } = data;
+    const { posts, total_post, posts_per_page, paged } = data;
 
     const [ formEdited, setFormEdited ] = useState(defaultEditingStatus );
 
@@ -159,7 +157,6 @@ export default function DataTable() {
             ...postQuery
         } );
         setData( response );
-
     }
 
     const bulkUpdate = async () => {
@@ -194,6 +191,7 @@ export default function DataTable() {
             orderby: getType,
             order: getType === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         } ));
+        setIsUpdated( ! isUpdated );
     };
 
     useEffect(() => {
@@ -420,8 +418,10 @@ export default function DataTable() {
         <>
         { Object.keys(posts).length ?
             <Layout className="layout">
+                {/*{ console.log( data ) }*/}
                 { console.log( postQuery ) }
                 {/*{ console.log( posts ) }*/}
+
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
@@ -533,29 +533,61 @@ export default function DataTable() {
                         showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
                         defaultPageSize={posts_per_page}
                         total={total_post}
-                        current={postQuery.paged}
+                        showSizeChanger={false}
+                        showQuickJumper={true}
+                        current={paged}
                         onChange={(current) => handlePagination(current)}
                     />
                 </Footer>
 
-                <Modal title={`${bulkdata.type} - Bulk Edit`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                    <TextArea onChange={balkChange} name={`modal_content`} value={bulkdata.data}
-                              placeholder={`Field Shouldn't leave empty`}/>
+                <Modal
+                    title={`${bulkdata.type} - Bulk Edit`}
+                    open={isModalOpen}
+                    onOk={handleOk}
+                    onCancel={handleCancel}
+                >
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_content`}
+                        value={bulkdata.data}
+                        placeholder={`Field Shouldn't leave empty`}
+                    />
                 </Modal>
 
-                <Modal title={`Bulk Edit`} open={isBulkModalOpen} onOk={handleBulkModalOk} onCancel={handleBulkModalCancel}>
+                <Modal
+                    title={`Bulk Edit`}
+                    open={isBulkModalOpen}
+                    onOk={handleBulkModalOk}
+                    onCancel={handleBulkModalCancel}
+                >
                     <Title level={5}> Title </Title>
-                    <TextArea onChange={balkChange} name={`modal_title`} value={bulkSubmitdata.data.post_title}
-                              placeholder={`Title`}/>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_title`}
+                        value={bulkSubmitdata.data.post_title}
+                        placeholder={`Title`}
+                    />
                     <Title level={5}> Alt Text </Title>
-                    <TextArea onChange={balkChange} name={`modal_alt_text`} value={bulkSubmitdata.data.alt_text}
-                              placeholder={`Alt text`}/>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_alt_text`}
+                        value={bulkSubmitdata.data.alt_text}
+                        placeholder={`Alt text`}
+                    />
                     <Title level={5}> Caption </Title>
-                    <TextArea onChange={balkChange} name={`modal_caption`} value={bulkSubmitdata.data.caption}
-                              placeholder={`Caption`}/>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_caption`}
+                        value={bulkSubmitdata.data.caption}
+                        placeholder={`Caption`}
+                    />
                     <Title level={5}> Description </Title>
-                    <TextArea onChange={balkChange} name={`modal_description`} value={bulkSubmitdata.data.post_description}
-                              placeholder={`Description`}/>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_description`}
+                        value={bulkSubmitdata.data.post_description}
+                        placeholder={`Description`}
+                    />
                 </Modal>
             </Layout>
             : <Layout className="spain-icon"  style={{height:"80vh" ,justifyContent: 'center'}} > <Spin indicator={antIcon} /> </Layout>
