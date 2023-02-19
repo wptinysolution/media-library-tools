@@ -530,22 +530,24 @@ export default function DataTable() {
                         scroll={{
                             x: 1300,
                         }}
+
                     />
                 }
             </Content>
 
             <Footer style={{textAlign: 'right'}}>
-                { console.log(total_post) }
-                <Pagination
-                    showTitle={true}
-                    showSizeChanger={false}
-                    showQuickJumper={true}
-                    showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                    defaultPageSize={posts_per_page}
-                    total={total_post}
-                    current={paged}
-                    onChange={(current) => handlePagination(current)}
-                />
+                { ! isloading &&
+                    <Pagination
+                        showTitle={true}
+                        showSizeChanger={false}
+                        showQuickJumper={true}
+                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                        total={total_post}
+                        pageSize={posts_per_page}
+                        current={paged}
+                        onChange={(current) => handlePagination(current)}
+                    />
+                }
             </Footer>
 
             <Modal
