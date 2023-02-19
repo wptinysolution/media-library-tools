@@ -215,6 +215,7 @@ class Fns {
      *
      * @return int count
      */
+
     public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default' ) {
         global $wpdb;
         $count_key = 'post_count_'.$post_type . '_' . $post_status;
@@ -231,5 +232,6 @@ class Fns {
         }
         return $count;
     }
+
 
 }

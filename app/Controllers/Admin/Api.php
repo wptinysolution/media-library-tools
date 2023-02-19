@@ -150,7 +150,7 @@ class Api {
         global $wpdb;
         $parameters = $request_data->get_params();
 
-         error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         // error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
@@ -168,6 +168,7 @@ class Api {
 
         $order  = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
         $paged  = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
+
         if( ! empty( $parameters['orderby'] ) ){
             switch ( $parameters['orderby'] ){
                 case 'id':
@@ -210,20 +211,24 @@ class Api {
             ORDER BY alt_text {$order}
             LIMIT %d, %d
         */
+        $date_query  = ! empty( $parameters['date'] ) ? "AND DATE_FORMAT(p.post_date, '%2\$s') = '%3\$s'" : null;
 
         $query =  $wpdb->prepare(
             "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
             FROM $wpdb->posts AS p
             LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            WHERE p.post_status = %s AND p.post_type = 'attachment'
+            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' 
+            $date_query
             ORDER BY $order_by_sql
-            LIMIT %d, %d",
+            LIMIT %4\$d, %5\$d",
             $status,
+            '%Y-%m',
+            $parameters['date'],
             $offset,
             $limit
         );
 
-         // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {
@@ -234,9 +239,11 @@ class Api {
         $query_data = [
             'posts' => $_posts,
             'posts_per_page' => absint( $limit ),
-            'total_post' => absint( $total ),
+            'total_post' => $total,
             'paged' => absint( $paged ),
         ];
+       // error_log( print_r( $query_data , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
         return wp_json_encode(  $query_data );
     }
 
