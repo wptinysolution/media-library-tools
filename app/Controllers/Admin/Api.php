@@ -259,7 +259,6 @@ class Api {
             'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
 
-        $submit = [];
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
         }
@@ -280,7 +279,16 @@ class Api {
                     $result['updated'] = (bool) $updated;
                     break;
                 case 'delete':
-                    error_log( print_r( 'delete', true) . "\n\n", 3, __DIR__.'/logg.txt');
+                    $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                        ...$ids
+                    );
+
+                    $delete = wp_cache_get( md5( $query ), 'attachment-query' );
+                    if ( false === $delete ) {
+                        $delete = $wpdb->query( $query );
+                        wp_cache_set( md5( $query ), $delete,'attachment-query' );
+                    }
+                    $result['updated'] = (bool) $delete;
                     break;
                 case 'update':
                     error_log( print_r( 'update', true) . "\n\n", 3, __DIR__.'/logg.txt');
