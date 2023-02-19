@@ -439,7 +439,6 @@ export default function DataTable() {
 
     useEffect(() => {
         getDateList();
-        console.log( dateList );
     }, []  );
     useEffect(() => {
         getTheMedia();
@@ -496,9 +495,7 @@ export default function DataTable() {
                             })
                         }
                         size={`large`}
-                        options={ [
-                            ...dateList
-                        ] }
+                        options={ dateList }
                     />
                     <Select
                         defaultValue={``}
