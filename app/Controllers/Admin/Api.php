@@ -41,7 +41,41 @@ class Api {
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/getdates', array(
+            'methods' => 'POST',
+            'callback' => [ $this, 'get_dates'],
+        ) );
     }
+
+    /**
+     * Grab latest post title by an author!
+     *
+     * @param array $data Options for the function.
+     * @return string|null Post title for the latest,  * or null if none.
+     */
+    public function get_dates( $request_data ) {
+        global $wpdb;
+        $date_query =  $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment');
+        $get_date = wp_cache_get( md5( $date_query ), 'attachment-query' );
+        if ( false === $get_date ) {
+            $get_date = $wpdb->get_col( $date_query );
+            wp_cache_set( md5( $date_query ), $get_date,'attachment-query' );
+        }
+        $dates[] = [
+            'value' => '',
+            'label' => 'All dates',
+        ];
+        if ( $get_date ) {
+            foreach ( $get_date as $date ) {
+                $dates[] = [
+                    'value' => $date,
+                    'label' => date('F Y', strtotime( $date ) ),
+                ];
+            }
+        }
+        return wp_json_encode( $dates );
+    }
+
     /**
      * Grab latest post title by an author!
      *
@@ -267,7 +301,7 @@ class Api {
             switch ( $parameters['type'] ){
                 case 'trash':
                 case 'inherit':
-                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
                         $parameters['type'],
                         ...$ids
                     );
@@ -279,7 +313,7 @@ class Api {
                     $result['updated'] = (bool) $updated;
                     break;
                 case 'delete':
-                    $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                    $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
                         ...$ids
                     );
 
@@ -304,3 +338,7 @@ class Api {
     }
 
 }
+
+
+
+

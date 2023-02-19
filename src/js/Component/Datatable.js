@@ -27,6 +27,7 @@ const {
 } = Layout;
 
 import {
+    getDates,
     getMedia,
     bulkUpdateMedia,
     upDateSingleMedia,
@@ -137,6 +138,7 @@ export default function DataTable() {
 
     const [ filtering, setFiltering ] = useState( defaultPostsFilter );
 
+    const [ dateList, setDateList ] = useState( [] );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -160,7 +162,7 @@ export default function DataTable() {
 
     const [ checkedData, setCheckedData ] = useState( [] );
 
-    const [ isloading, setLsloading ] = useState( [] );
+    const [ isloading, setIsloading ] = useState( [] );
 
 
     const modalClose = () => {
@@ -185,8 +187,14 @@ export default function DataTable() {
         modalClose();
     };
 
+    const getDateList = async () => {
+        const response = await getDates();
+        const preparedData =  JSON.parse( response.data );
+        setDateList( preparedData );
+    }
+
     const getTheMedia = async () => {
-        setLsloading( true );
+        setIsloading( true );
         const response = await getMedia('', {
             ...postQuery
         } );
@@ -227,11 +235,6 @@ export default function DataTable() {
         } ));
         setIsUpdated( ! isUpdated );
     };
-
-    useEffect(() => {
-        getTheMedia();
-        setLsloading( false )
-    }, [isUpdated]  );
 
     const ColumnHandleClick = ( event, editable ) => {
         let formEditing = {};
@@ -432,8 +435,16 @@ export default function DataTable() {
         },
     ];
 
-
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
+    useEffect(() => {
+        getDateList();
+        console.log( dateList );
+    }, []  );
+    useEffect(() => {
+        getTheMedia();
+        setIsloading( false )
+    }, [isUpdated]  );
 
     return (
 
@@ -485,21 +496,9 @@ export default function DataTable() {
                             })
                         }
                         size={`large`}
-                        options={[
-                            {
-                                value: '',
-                                label: 'All dates',
-                            },
-                            {
-                                value: '2023-01',
-                                label: 'January 2023 ',
-                            },
-                            {
-                                value: '2023-02',
-                                label: 'February 2023 ',
-                            },
-
-                        ]}
+                        options={ [
+                            ...dateList
+                        ] }
                     />
                     <Select
                         defaultValue={``}
@@ -565,7 +564,7 @@ export default function DataTable() {
                 open={isModalOpen}
                 onOk={handleOk}
                 onCancel={handleCancel}
-            >
+                >
                 <TextArea
                     onChange={balkChange}
                     name={`modal_content`}

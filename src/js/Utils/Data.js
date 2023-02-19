@@ -42,3 +42,7 @@ export const bulkUpdateMedia = async ( prams ) => {
 export const submitBulkMediaAction = async ( prams ) => {
     return await Axios.post(`${apibaseUrl}/bulk/trash`, { ...additonal_data, ...prams });
 }
+
+export const getDates = async ( ) => {
+    return await Axios.post(`${apibaseUrl}/getdates`, { ...additonal_data });
+}
