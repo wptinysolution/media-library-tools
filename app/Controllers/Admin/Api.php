@@ -158,6 +158,7 @@ class Api {
 
         $limit = (int)get_user_option('upload_per_page', $parameters['current_user']);
         $limit =  ! $limit ? 20 : $limit;
+        // error_log( print_r( $limit , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $orderby  = 'menu_order';
         $status  = 'inherit';
@@ -189,7 +190,7 @@ class Api {
             }
         }
 
-        $total = Fns::get_post_count('attachment', 'inherit', 'attachment-query' );
+        $total = Fns::get_post_count('attachment', $status, 'attachment-query' );
 
         $offset = ( $paged - 1 ) * $limit;
 
@@ -222,7 +223,7 @@ class Api {
             $limit
         );
 
-        // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {
