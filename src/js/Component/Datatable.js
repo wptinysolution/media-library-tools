@@ -105,6 +105,29 @@ const selectStyle = {
     paddingInline: 0,
 }
 
+const bulkOprions = [
+    {
+        value: '',
+        label: 'Bulk actions',
+    },
+    {
+        value: 'edit',
+        label: 'Edit',
+    },
+    {
+        value: 'trash',
+        label: 'Move to Trash',
+    },
+    {
+        value: 'inherit',
+        label: 'Restore',
+    },
+    {
+        value: 'delete',
+        label: 'Delete Permanently ',
+    },
+];
+
 export default function DataTable() {
     // paged
 
@@ -308,6 +331,7 @@ export default function DataTable() {
         };
         switch( bulkSubmitdata.type ){
             case 'trash':
+            case 'inherit':
             case 'update':
             case 'delete':
                 submitBulkMedia( params );
@@ -338,6 +362,8 @@ export default function DataTable() {
     };
 
     const handleFilterData = () => {
+        setCheckedData([]);
+        setBulkChecked( false );
         setbulkSubmitdata( {
             ...defaultBulkSubmitData
         })
@@ -406,28 +432,6 @@ export default function DataTable() {
         },
     ];
 
-    const bulkOprions = [
-        {
-            value: '',
-            label: 'Bulk actions',
-        },
-        {
-            value: 'edit',
-            label: 'Edit',
-        },
-        {
-            value: 'trash',
-            label: 'Move to Trash',
-        },
-        {
-            value: 'inherit',
-            label: 'Restore',
-        },
-        {
-            value: 'delete',
-            label: 'Delete Permanently ',
-        },
-    ];
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 

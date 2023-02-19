@@ -267,8 +267,9 @@ class Api {
             $ids = $parameters['ids'];
             switch ( $parameters['type'] ){
                 case 'trash':
+                case 'inherit':
                     $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                        'trash',
+                        $parameters['type'],
                         ...$ids
                     );
                     $updated = wp_cache_get( md5( $query ), 'attachment-query' );
