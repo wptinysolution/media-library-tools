@@ -420,6 +420,10 @@ export default function DataTable() {
             label: 'Move to Trash',
         },
         {
+            value: 'inherit',
+            label: 'Restore',
+        },
+        {
             value: 'delete',
             label: 'Delete Permanently ',
         },
@@ -430,10 +434,6 @@ export default function DataTable() {
     return (
 
         <Layout className="layout">
-            {/*{ console.log( data ) }*/}
-            {/*{ console.log( postQuery ) }*/}
-            { console.log( postQuery ) }
-
             <Header style={headerStyle}>
                 <Space wrap>
                     <Select
@@ -442,7 +442,7 @@ export default function DataTable() {
                         onChange={handleChangeBulkType}
                         size={`large`}
                         options={
-                            postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions]
+                            postQuery.filtering && 'trash' == postQuery.status ? [ ...bulkOprions.filter(item => 'trash' !== item.value) ] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
                         }
                     />
                     <Button
@@ -451,7 +451,6 @@ export default function DataTable() {
                         onClick={handleBulkSubmit}
                     > Apply </Button>
                     <Select
-                        allowClear
                         defaultValue={``}
                         style={selectStyle}
                         onChange={ (value) =>
@@ -474,7 +473,6 @@ export default function DataTable() {
                         ]}
                     />
                     <Select
-                        allowClear
                         defaultValue={``}
                         style={selectStyle}
                         onChange={ (value) => setFiltering({
@@ -500,7 +498,6 @@ export default function DataTable() {
                         ]}
                     />
                     <Select
-                        allowClear
                         defaultValue={``}
                         style={selectStyle}
                         onChange={ (value) => setFiltering({

@@ -211,19 +211,20 @@ class Fns {
     }
 
     /**
-     * @param $plugin_file_path
-     *
-     * @return int count
+     * @param $post_type
+     * @param $post_status
+     * @param $group
+     * @param $additional_query
+     * @return false|mixed|string|null
      */
-
-    public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default' ) {
+    public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default', $additional_query = null ) {
         global $wpdb;
         $count_key = 'post_count_'.$post_type . '_' . $post_status;
         $count = wp_cache_get( $count_key, $group );
         if ( false === $count ) {
             $count = $wpdb->get_var(
                 $wpdb->prepare(
-                    "SELECT COUNT(id) FROM $wpdb->posts WHERE post_type = '%s' AND post_status = '%s';",
+                    "SELECT COUNT(id) FROM $wpdb->posts AS p WHERE post_type = '%1\$s' AND post_status = '%2\$s'  $additional_query ",
                     $post_type,
                     $post_status
                 )

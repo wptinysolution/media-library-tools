@@ -191,7 +191,6 @@ class Api {
             }
         }
 
-        $total = Fns::get_post_count('attachment', $status, 'attachment-query' );
 
         $offset = ( $paged - 1 ) * $limit;
 
@@ -211,19 +210,18 @@ class Api {
             ORDER BY alt_text {$order}
             LIMIT %d, %d
         */
-        $date_query  = ! empty( $parameters['date'] ) ? "AND DATE_FORMAT(p.post_date, '%2\$s') = '%3\$s'" : null;
+        $additional_query  = ! empty( $parameters['date'] ) ? $wpdb->prepare(  "AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
+
+        $total = Fns::get_post_count('attachment', $status, 'attachment-query', $additional_query  );
 
         $query =  $wpdb->prepare(
             "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
             FROM $wpdb->posts AS p
             LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' 
-            $date_query
+            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query
             ORDER BY $order_by_sql
-            LIMIT %4\$d, %5\$d",
+            LIMIT %2\$d, %3\$d",
             $status,
-            '%Y-%m',
-            $parameters['date'],
             $offset,
             $limit
         );
