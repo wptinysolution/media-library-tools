@@ -150,7 +150,7 @@ class Api {
         global $wpdb;
         $parameters = $request_data->get_params();
 
-        // error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         if (empty($parameters['current_user'])  ) {
             return new WP_Error('no_author', 'Invalid author', array('status' => 404));
@@ -223,7 +223,7 @@ class Api {
             $limit
         );
 
-         error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {

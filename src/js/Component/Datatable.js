@@ -53,12 +53,16 @@ const defaultPosts = {
 
 const defaultPostsQuery = {
     status: 'inherit',
-    date: '',
-    categories: '',
     filtering : false,
     paged: 1,
     orderby: 'menu_order',
     order: 'DESC',
+}
+
+const defaultPostsFilter = {
+    date: '',
+    categories: '',
+    filtering : false,
 }
 
 const locakedText = 'Locked Edit';
@@ -108,6 +112,9 @@ export default function DataTable() {
 
     const [postQuery, setPostQuery] = useState( defaultPostsQuery );
 
+    const [ filtering, setFiltering ] = useState( defaultPostsFilter );
+
+
     const [isUpdated, setIsUpdated] = useState(false );
 
     const [currentEdited, setCurrentEdited] = useState(false );
@@ -131,6 +138,7 @@ export default function DataTable() {
     const [ checkedData, setCheckedData ] = useState( [] );
 
     const [ isloading, setLsloading ] = useState( [] );
+
 
     const modalClose = () => {
         setIsModalOpen(false);
@@ -335,6 +343,7 @@ export default function DataTable() {
         })
         setPostQuery({
             ...postQuery,
+            ...filtering,
             filtering : true,
             paged: 1
         })
@@ -423,7 +432,7 @@ export default function DataTable() {
         <Layout className="layout">
             {/*{ console.log( data ) }*/}
             {/*{ console.log( postQuery ) }*/}
-            { console.log( data ) }
+            { console.log( postQuery ) }
 
             <Header style={headerStyle}>
                 <Space wrap>
@@ -446,8 +455,8 @@ export default function DataTable() {
                         defaultValue={``}
                         style={selectStyle}
                         onChange={ (value) =>
-                            setPostQuery({
-                                ...postQuery,
+                            setFiltering({
+                                ...filtering,
                                 status: value,
                             })
                         }
@@ -468,8 +477,8 @@ export default function DataTable() {
                         allowClear
                         defaultValue={``}
                         style={selectStyle}
-                        onChange={ (value) => setPostQuery({
-                                ...postQuery,
+                        onChange={ (value) => setFiltering({
+                                ...filtering,
                                 date: value,
                             })
                         }
@@ -494,8 +503,8 @@ export default function DataTable() {
                         allowClear
                         defaultValue={``}
                         style={selectStyle}
-                        onChange={ (value) => setPostQuery({
-                                ...postQuery,
+                        onChange={ (value) => setFiltering({
+                                ...filtering,
                                 categories: value,
                             })
                         }
