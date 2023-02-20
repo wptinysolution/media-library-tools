@@ -193,7 +193,6 @@ export default function DataTable() {
     }
 
     const getTheMedia = async () => {
-        setIsloading( true );
         const response = await getMedia('', {
             ...postQuery
         } );
@@ -227,6 +226,7 @@ export default function DataTable() {
     };
 
     const handleSortClick = ( event, getType ) => {
+        setIsloading( true )
         setPostQuery( ( prevState) => ({
             ...postQuery,
             orderby: getType,
@@ -297,6 +297,7 @@ export default function DataTable() {
     }
 
     const handlePagination = ( current ) => {
+        setIsloading( true )
         setCheckedData([]);
         setBulkChecked(false);
         setPostQuery({
@@ -365,6 +366,7 @@ export default function DataTable() {
     };
 
     const handleFilterData = () => {
+        setIsloading( true )
         setCheckedData([]);
         setBulkChecked( false );
         setbulkSubmitdata( {
