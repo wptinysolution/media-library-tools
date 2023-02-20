@@ -386,7 +386,7 @@ export default function DataTable() {
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '100px',
+            width: '90px',
             align: 'center',
             render:  ( id, record ) => <Checkbox checked={ -1 !== checkedData.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
@@ -394,7 +394,7 @@ export default function DataTable() {
             title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Id'} hasButton={false}/>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '100px',
+            width: '90px',
             align: 'top'
         },
         {
@@ -447,7 +447,7 @@ export default function DataTable() {
         getTheMedia();
         setTimeout(() => {
             setIsloading( false )
-        }, 100 );
+        }, 200 );
     }, [isUpdated]  );
 
     return (
@@ -529,7 +529,7 @@ export default function DataTable() {
                     </Space>
                 </Header>
                     { isLoading || ! total_post > 0 ?
-                        <Layout className="spain-icon" style={{height: "80vh", justifyContent: 'center'}}> <Spin indicator={antIcon}/></Layout>
+                        <Layout className="spain-icon" style={{height: "90vh", justifyContent: 'center'}}> <Spin indicator={antIcon}/></Layout>
                         : <>
                             <Content>
                                 <Table

@@ -19,10 +19,12 @@ function EditButton( { text, hasButton, prevdata } ) {
                 </Space>
             </Title>
             { hasButton &&
-                <Space wrap>
-                    <Button type="primary" onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) } ghost={ 'Unlocked Edit' != colsText[text.toLowerCase()] }>  { colsText[text.toLowerCase()] } </Button>
-                    <Button type="primary" onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) } ghost={ bulkdata.type != text.toLowerCase() } > Bulk Edit </Button>
-                </Space>
+                <Title style={{marginTop:'0'}}>
+                    <Space wrap>
+                        <Button type="primary" onClick={ ( event) => ColumnHandleClick( event, text.toLowerCase() ) } ghost={ 'Unlocked Edit' != colsText[text.toLowerCase()] }>  { colsText[text.toLowerCase()] } </Button>
+                        <Button type="primary" onClick={ ( event ) => handleBulkClick( event, text.toLowerCase() ) } ghost={ bulkdata.type != text.toLowerCase() } > Bulk Edit </Button>
+                    </Space>
+                </Title>
             }
         </>
     );
