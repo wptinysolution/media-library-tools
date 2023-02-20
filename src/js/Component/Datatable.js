@@ -542,7 +542,6 @@ export default function DataTable() {
             </Content>
 
             <Footer style={{textAlign: 'right'}}>
-                { console.log( total_post ) }
                 { ! isloading && total_post > 0 ?
                     <Pagination
                         showTitle={true}

@@ -1,8 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './Component/App';
-import SystemContext from './SystemContext';
-import { columns, defaultPosts } from './Utils/ContextData';
 
 const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 /*
@@ -10,8 +8,4 @@ const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
   - Here in this example, we have grouped our columns into two headers. react-table is flexible enough to create grouped table headers
 */
 
-root.render(
-    <SystemContext.Provider value={ { columns, defaultPosts } }>
-        <App />
-    </SystemContext.Provider>
-);
+root.render( <App /> );
