@@ -7,17 +7,31 @@ import { notification } from 'antd';
 
 const apibaseUrl = `${tttemeParams.restApiUrl}TheTinyTools/ME/v1/media`;
 
+/*
+ * Create a Api object with Axios and
+ * configure it for the WordPRess Rest Api.
+ *
+ * The 'mynamespace' object is injected into the page
+ * using the WordPress wp_localize_script function.
+ */
+const Api = Axios.create({
+    baseURL: apibaseUrl,
+    headers: {
+        'X-WP-Nonce': tttemeParams.rest_nonce
+    }
+});
+
 const additonal_data = {
     'current_user' : tttemeParams.current_user,
 }
 
 export const getMedia = async ( url = '', prams = {} ) => {
-    const result = await Axios.get( `${apibaseUrl}${url}`, { params: { ...additonal_data, ...prams } } );
+    const result = await Api.get( `${url}`, { params: { ...additonal_data, ...prams } } );
     return JSON.parse( result.data );
 }
 
 export const upDateSingleMedia = async ( prams ) => {
-    const response = await Axios.post(`${apibaseUrl}/update`, { ...additonal_data, ...prams });
+    const response = await Api.post(`/update`, { ...additonal_data, ...prams });
     // for info - blue box
     if( 200 === response.status && response.data.updated ){
         notification.success({
@@ -36,13 +50,13 @@ export const upDateSingleMedia = async ( prams ) => {
 }
 
 export const bulkUpdateMedia = async ( prams ) => {
-    return await Axios.post(`${apibaseUrl}/bulk/update`, { ...additonal_data, ...prams });
+    return await Api.post(`/bulk/update`, { ...additonal_data, ...prams });
 }
 
 export const submitBulkMediaAction = async ( prams ) => {
-    return await Axios.post(`${apibaseUrl}/bulk/trash`, { ...additonal_data, ...prams });
+    return await Api.post(`/bulk/trash`, { ...additonal_data, ...prams });
 }
 
-export const getDates = async ( ) => {
-    return await Axios.post(`${apibaseUrl}/getdates`, { ...additonal_data });
+export const getDates = async () => {
+    return await Api.get(`/filter/getdates`);
 }

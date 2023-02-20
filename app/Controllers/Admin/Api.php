@@ -14,8 +14,7 @@ class Api {
     use SingletonTrait;
 
     /**
-     * Autoload method
-     * @return void
+     * Construct
      */
     private function __construct() {
         $this->namespace     = 'TheTinyTools/ME/v1';
@@ -23,11 +22,15 @@ class Api {
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
     }
 
-    // Register our routes.
+    /**
+     * Register our routes.
+     * @return void
+     */
     public function register_routes() {
         register_rest_route( $this->namespace, $this->resource_name, array(
             'methods' => 'GET',
             'callback' => [ $this, 'get_media'],
+            //'permission_callback' => [ $this, 'login_permission_callback' ] , //'__return_true'
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/update', array(
             'methods' => 'POST',
@@ -41,19 +44,26 @@ class Api {
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
         ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/getdates', array(
-            'methods' => 'POST',
+        register_rest_route( $this->namespace, $this->resource_name . '/filter/getdates', array(
+            'methods' => 'GET',
             'callback' => [ $this, 'get_dates'],
         ) );
     }
 
     /**
-     * Grab latest post title by an author!
-     *
-     * @param array $data Options for the function.
-     * @return string|null Post title for the latest,  * or null if none.
+     * @return true
      */
-    public function get_dates( $request_data ) {
+    public function login_permission_callback() {
+        // get_current_user_id();
+         error_log( current_user_can( 'manage_options' ) );
+        // error_log( get_current_user_id() );
+
+        return true;
+    }
+    /**
+     * @return false|string
+     */
+    public function get_dates() {
         global $wpdb;
         $date_query =  $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment');
         $get_date = wp_cache_get( md5( $date_query ), 'attachment-query' );
@@ -77,18 +87,12 @@ class Api {
     }
 
     /**
-     * Grab latest post title by an author!
-     *
-     * @param array $data Options for the function.
-     * @return string|null Post title for the latest,  * or null if none.
+     * @param $request_data
+     * @return bool[]|WP_Error
      */
     public function bulk_update_media( $request_data ) {
 
         $parameters = $request_data->get_params();
-
-        if (empty($parameters['current_user'])  ) {
-            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
-        }
 
         $ids = $parameters['ids'];
         $type = $parameters['type'];
@@ -129,11 +133,10 @@ class Api {
             'updated' => ! empty(  $result['updated'] ),
         ] ;
     }
+
     /**
-     * Grab latest post title by an author!
-     *
-     * @param array $data Options for the function.
-     * @return string|null Post title for the latest,  * or null if none.
+     * @param $request_data
+     * @return array|WP_Error
      */
     public function update_media( $request_data )
     {
@@ -143,9 +146,7 @@ class Api {
             'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
         $submit = [];
-        if (empty($parameters['current_user'])  ) {
-            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
-        }
+
         if (empty($parameters['ID'])) {
             return $result;
         }
@@ -174,23 +175,16 @@ class Api {
 
         return $result;
     }
+
     /**
-     * Grab latest post title by an author!
-     *
-     * @param array $data Options for the function.
-     * @return string|null Post title for the latest,  * or null if none.
+     * @param $request_data
+     * @return false|string|WP_Error
      */
     public function get_media( $request_data ) {
         global $wpdb;
         $parameters = $request_data->get_params();
 
-         // error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
-        if (empty($parameters['current_user'])  ) {
-            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
-        }
-
-        $limit = (int)get_user_option('upload_per_page', $parameters['current_user']);
+        $limit = (int)get_user_option('upload_per_page', get_current_user_id());
         $limit =  ! $limit ? 20 : $limit;
         // error_log( print_r( $limit , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
@@ -279,11 +273,9 @@ class Api {
         return wp_json_encode(  $query_data );
     }
 
-    /**
-     * Grab latest post title by an author!
-     *
-     * @param array $data Options for the function.
-     * @return string|null Post title for the latest,  * or null if none.
+    /***
+     * @param $request_data
+     * @return array|WP_Error
      */
     public function media_submit_bulk_action( $request_data ) {
         global $wpdb;
@@ -293,9 +285,6 @@ class Api {
             'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
 
-        if (empty($parameters['current_user'])  ) {
-            return new WP_Error('no_author', 'Invalid author', array('status' => 404));
-        }
         if ( ! empty($parameters['type']) ) {
             $ids = $parameters['ids'];
             switch ( $parameters['type'] ){
