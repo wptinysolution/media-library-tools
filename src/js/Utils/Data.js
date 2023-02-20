@@ -10,9 +10,6 @@ const apibaseUrl = `${tttemeParams.restApiUrl}TheTinyTools/ME/v1/media`;
 /*
  * Create a Api object with Axios and
  * configure it for the WordPRess Rest Api.
- *
- * The 'mynamespace' object is injected into the page
- * using the WordPress wp_localize_script function.
  */
 const Api = Axios.create({
     baseURL: apibaseUrl,
@@ -21,40 +18,40 @@ const Api = Axios.create({
     }
 });
 
-const additonal_data = {
-    'current_user' : tttemeParams.current_user,
+export const notifications = ( isTrue, text ) => {
+    const message = {
+        message: text, //response.data.message,
+        placement: 'bottomRight',
+    }
+    if( isTrue ){
+        notification.success( message );
+    } else {
+        notification.error(message );
+    }
 }
 
 export const getMedia = async ( url = '', prams = {} ) => {
-    const result = await Api.get( `${url}`, { params: { ...additonal_data, ...prams } } );
+    const result = await Api.get( `${url}`, { params: prams } );
     return JSON.parse( result.data );
 }
 
 export const upDateSingleMedia = async ( prams ) => {
-    const response = await Api.post(`/update`, { ...additonal_data, ...prams });
+    const response = await Api.post(`/update`, prams );
     // for info - blue box
-    if( 200 === response.status && response.data.updated ){
-        notification.success({
-            message: response.data.message,
-            placement: 'bottomRight',
-        });
-    }
-    if( ! response.data.updated ){
-        notification.error({
-            message: response.data.message,
-            placement: 'bottomRight',
-        });
-    }
-
+    notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }
 
 export const bulkUpdateMedia = async ( prams ) => {
-    return await Api.post(`/bulk/update`, { ...additonal_data, ...prams });
+    const response = await Api.post(`/bulk/update`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
 }
 
 export const submitBulkMediaAction = async ( prams ) => {
-    return await Api.post(`/bulk/trash`, { ...additonal_data, ...prams });
+    const response = await Api.post(`/bulk/trash`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
 }
 
 export const getDates = async () => {

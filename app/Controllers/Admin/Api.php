@@ -30,23 +30,27 @@ class Api {
         register_rest_route( $this->namespace, $this->resource_name, array(
             'methods' => 'GET',
             'callback' => [ $this, 'get_media'],
-            //'permission_callback' => [ $this, 'login_permission_callback' ] , //'__return_true'
+            'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/update', array(
             'methods' => 'POST',
             'callback' => [ $this, 'update_media'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/bulk/update', array(
             'methods' => 'POST',
             'callback' => [ $this, 'bulk_update_media'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/bulk/trash', array(
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/filter/getdates', array(
             'methods' => 'GET',
             'callback' => [ $this, 'get_dates'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
     }
 
@@ -54,16 +58,13 @@ class Api {
      * @return true
      */
     public function login_permission_callback() {
-        // get_current_user_id();
-         error_log( current_user_can( 'manage_options' ) );
-        // error_log( get_current_user_id() );
-
-        return true;
+        return current_user_can( 'manage_options' );
     }
     /**
      * @return false|string
      */
     public function get_dates() {
+
         global $wpdb;
         $date_query =  $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment');
         $get_date = wp_cache_get( md5( $date_query ), 'attachment-query' );
@@ -128,9 +129,9 @@ class Api {
                 }
             }
         }
-
         return [
             'updated' => ! empty(  $result['updated'] ),
+            'message' => ! empty(  $result['updated'] ) ? esc_html__('Updated.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
     }
 
@@ -186,7 +187,7 @@ class Api {
 
         $limit = (int)get_user_option('upload_per_page', get_current_user_id());
         $limit =  ! $limit ? 20 : $limit;
-        // error_log( print_r( $limit , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         // error_log( print_r( $limit , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $orderby  = 'menu_order';
         $status  = 'inherit';
@@ -254,7 +255,7 @@ class Api {
             $limit
         );
 
-        // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+         // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {
@@ -300,6 +301,7 @@ class Api {
                         wp_cache_set( md5( $query ), $updated,'attachment-query' );
                     }
                     $result['updated'] = (bool) $updated;
+                    $result['message'] = $updated ? esc_html__('Done. Be happy.', 'ttt-wp-media') : esc_html__('Failed. Please try to fix', 'ttt-wp-media');
                     break;
                 case 'delete':
                     $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
@@ -312,6 +314,7 @@ class Api {
                         wp_cache_set( md5( $query ), $delete,'attachment-query' );
                     }
                     $result['updated'] = (bool) $delete;
+                    $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
                     break;
                 case 'update':
                     error_log( print_r( 'update', true) . "\n\n", 3, __DIR__.'/logg.txt');
@@ -320,8 +323,6 @@ class Api {
                     error_log( print_r( $parameters, true) . "\n\n", 3, __DIR__.'/logg.txt');
             }
         }
-
-        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
 
         return $result;
     }
