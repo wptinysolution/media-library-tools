@@ -542,7 +542,8 @@ export default function DataTable() {
             </Content>
 
             <Footer style={{textAlign: 'right'}}>
-                { ! isloading &&
+                { console.log( total_post ) }
+                { ! isloading && total_post > 0 ?
                     <Pagination
                         showTitle={true}
                         showSizeChanger={false}
@@ -553,6 +554,7 @@ export default function DataTable() {
                         current={paged}
                         onChange={(current) => handlePagination(current)}
                     />
+                    : null
                 }
             </Footer>
 
