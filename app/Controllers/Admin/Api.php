@@ -37,12 +37,14 @@ class Api {
             'callback' => [ $this, 'update_media'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
+        /*
         register_rest_route( $this->namespace, $this->resource_name . '/bulk/update', array(
             'methods' => 'POST',
             'callback' => [ $this, 'bulk_update_media'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/bulk/trash', array(
+        */
+        register_rest_route( $this->namespace, $this->resource_name . '/bulk/submit', array(
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
@@ -91,6 +93,7 @@ class Api {
      * @param $request_data
      * @return bool[]|WP_Error
      */
+    /*
     public function bulk_update_media( $request_data ) {
 
         $parameters = $request_data->get_params();
@@ -134,7 +137,7 @@ class Api {
             'message' => ! empty(  $result['updated'] ) ? esc_html__('Updated.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
     }
-
+    */
     /**
      * @param $request_data
      * @return array|WP_Error
@@ -316,7 +319,7 @@ class Api {
                     $result['updated'] = (bool) $delete;
                     $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
                     break;
-                case 'update':
+                case 'modalupdate':
                     error_log( print_r( 'update', true) . "\n\n", 3, __DIR__.'/logg.txt');
                     break;
                 default:

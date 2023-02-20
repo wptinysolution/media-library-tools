@@ -41,15 +41,15 @@ export const upDateSingleMedia = async ( prams ) => {
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }
-
+/*
 export const bulkUpdateMedia = async ( prams ) => {
     const response = await Api.post(`/bulk/update`, prams );
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }
-
+*/
 export const submitBulkMediaAction = async ( prams ) => {
-    const response = await Api.post(`/bulk/trash`, prams );
+    const response = await Api.post(`/bulk/submit`, prams );
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }

@@ -29,12 +29,11 @@ const {
 import {
     getDates,
     getMedia,
-    bulkUpdateMedia,
     upDateSingleMedia,
     submitBulkMediaAction
 } from "../Utils/Data";
 
-import EditButton from "./EditButton";
+import {value} from "lodash/seq";
 
 const { TextArea } = Input;
 
@@ -64,30 +63,6 @@ const defaultPostsFilter = {
     date: '',
     categories: '',
     filtering : false,
-}
-
-const locakedText = 'Locked Edit';
-
-const unlocakedText = 'Unlocked Edit';
-
-const defaultColText = {
-    title : locakedText,
-    alt : locakedText,
-    caption : locakedText ,
-    description : locakedText,
-}
-
-const defaultEditingStatus = {
-    titleEditing : false,
-    altEditing : false,
-    captionEditing : false,
-    descriptionEditing : false,
-}
-
-const defaultBulkData = {
-    ids: [],
-    type: '',
-    data: '',
 }
 
 const defaultBulkSubmitData = {
@@ -144,19 +119,13 @@ export default function DataTable() {
 
     const [currentEdited, setCurrentEdited] = useState(false );
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-
-    const [bulkdata, setBulkdata] = useState(defaultBulkData );
 
     const [bulkSubmitdata, setbulkSubmitdata] = useState( defaultBulkSubmitData );
 
     const { posts, total_post, posts_per_page, paged } = data;
 
-    const [ formEdited, setFormEdited ] = useState(defaultEditingStatus );
-
-    const [ colsText, setColsText ] = useState(defaultColText);
+    const [ formEdited, setFormEdited ] = useState( false );
 
     const [ bulkChecked, setBulkChecked ] = useState( false );
 
@@ -164,27 +133,6 @@ export default function DataTable() {
 
     const [ isLoading, setIsloading ] = useState( true );
 
-    const modalClose = () => {
-        setIsModalOpen(false);
-        setBulkdata( defaultColText );
-    };
-
-    const handleBulkClick = ( event, type ) => {
-        const ids = posts.map( x => x['ID']);
-        setIsModalOpen(true);
-        setBulkdata({
-            ...bulkdata,
-            ids,
-            type,
-            data: '',
-        });
-        setFormEdited( defaultEditingStatus );
-        setColsText( defaultColText );
-    }
-
-    const handleCancel = () => {
-        modalClose();
-    };
 
     const getDateList = async () => {
         const response = await getDates();
@@ -199,11 +147,6 @@ export default function DataTable() {
         setData( response );
     }
 
-    const bulkUpdate = async () => {
-        const response = await bulkUpdateMedia( bulkdata )
-        200 === parseInt( response.status ) && response.data.updated && setIsUpdated( ! isUpdated );
-    }
-
     const submitBulkMedia = async ( params ) => {
         const response = await submitBulkMediaAction( params );
         if( 200 === parseInt( response.status ) && response.data.updated ){
@@ -213,68 +156,19 @@ export default function DataTable() {
         }
     }
 
-    const balkChange = ( event ) => {
-        setBulkdata({
-            ...bulkdata,
-            data : event.target.value
-        });
-    };
-
-    const handleOk = () => {
-        bulkUpdate( bulkdata );
-        modalClose();
-    };
-
-    const handleSortClick = ( event, getType ) => {
+    const handleSortClick = ( orderby ) => {
         setIsloading( true )
         setPostQuery( ( prevState) => ({
             ...postQuery,
-            orderby: getType,
+            orderby,
             paged: 1,
-            order: getType === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
+            order: orderby === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         } ));
         setIsUpdated( ! isUpdated );
     };
 
-    const ColumnHandleClick = ( event, editable ) => {
-        let formEditing = {};
-        switch ( editable ) {
-            case 'title':
-                formEditing = {
-                    ...formEdited,
-                    titleEditing : ! formEdited.titleEditing
-                }
-                break;
-            case 'alt':
-                formEditing = {
-                    ...formEdited,
-                    altEditing : ! formEdited.altEditing
-                }
-                break;
-            case 'caption':
-                formEditing = {
-                    ...formEdited,
-                    captionEditing : ! formEdited.captionEditing
-                }
-                break;
-            case 'description':
-                formEditing = {
-                    ...formEdited,
-                    descriptionEditing : ! formEdited.descriptionEditing
-                }
-                break;
-            default:
-                formEditing = { ...formEdited }
-        }
-        setFormEdited( formEditing );
-        setColsText( {
-            ...colsText,
-            title : ! formEditing.titleEditing ? locakedText : unlocakedText,
-            alt : ! formEditing.altEditing ? locakedText : unlocakedText,
-            caption : ! formEditing.captionEditing ? locakedText : unlocakedText,
-            description : ! formEditing.descriptionEditing ? locakedText : unlocakedText,
-        } );
-
+    const ColumnHandleClick = () => {
+        setFormEdited( ! formEdited );
     }
 
     const handleChange = ( event ) => {
@@ -328,6 +222,17 @@ export default function DataTable() {
         setBulkChecked( ! ! data.length );
     };
 
+    const balkModalDataChange = ( event ) => {
+        const data = {
+            ...bulkSubmitdata.data,
+            [event.target.name] : event.target.value
+        }
+        setbulkSubmitdata( {
+            ...bulkSubmitdata,
+            data
+        })
+    };
+
     const handleBulkSubmit = (event) => {
         const params = {
             ...bulkSubmitdata,
@@ -342,6 +247,9 @@ export default function DataTable() {
                 break;
             case 'edit':
                 setIsBulkModalOpen( true );
+                setbulkSubmitdata({
+                    ...params,
+                })
                 break;
             default:
         }
@@ -386,54 +294,54 @@ export default function DataTable() {
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '90px',
+            width: '50px',
             align: 'center',
             render:  ( id, record ) => <Checkbox checked={ -1 !== checkedData.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Id'} hasButton={false}/>,
+            title: <Space wrap> { `ID` } <Button size={`small`} sort-by={`id`} onClick={ () => handleSortClick( 'id' )}> {`Sort`} </Button> </Space>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '90px',
+            width: '105px',
             align: 'top'
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Image'} hasButton={false}/>,
+            title: 'File',
             key: 'Image',
             dataIndex: 'guid',
-            width: '150px',
+            width: '130px',
             align: 'top',
             render:  ( text, record ) =>  <img width={`80`} src={text}  />,
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata  }} text={'Title'} hasButton={true}/>,
+            title: <Space wrap> { `Title` } <Button size={`small`} onClick={ () => handleSortClick( 'title' )} > Sort </Button> </Space>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited.titleEditing ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Alt'} hasButton={true}/>,
+            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ () => handleSortClick( 'alt' )}> Sort </Button> </Space>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited.altEditing ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Caption'} hasButton={true}/>,
+            title: <Space wrap> { `Caption` } <Button size={`small`} onClick={   () => handleSortClick( 'caption' ) }> Sort </Button> </Space>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited.captionEditing ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <EditButton prevdata={{ ColumnHandleClick, colsText, handleBulkClick, handleSortClick, bulkdata }} text={'Description'} hasButton={true}/>,
+            title: <Space wrap> { `Description` } <Button size={`small`} onClick={  () => handleSortClick( 'description' ) }> Sort </Button> </Space>,
             key: 'Description',
             dataIndex: 'post_content',
             width: '350px',
-            render: ( text, record, i ) => <> { formEdited.descriptionEditing ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
     ];
 
@@ -455,10 +363,10 @@ export default function DataTable() {
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
+                            size="large"
                             defaultValue={``}
                             style={selectStyle}
                             onChange={handleChangeBulkType}
-                            size={`large`}
                             options={
                                 postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
                             }
@@ -469,6 +377,7 @@ export default function DataTable() {
                             onClick={handleBulkSubmit}
                         > Apply </Button>
                         <Select
+                            size="large"
                             defaultValue={``}
                             style={selectStyle}
                             onChange={(value) =>
@@ -477,7 +386,6 @@ export default function DataTable() {
                                     status: value,
                                 })
                             }
-                            size={`large`}
                             options={[
                                 {
                                     value: '',
@@ -491,6 +399,7 @@ export default function DataTable() {
                             ]}
                         />
                         <Select
+                            size="large"
                             defaultValue={``}
                             style={selectStyle}
                             onChange={(value) => setFiltering({
@@ -498,10 +407,10 @@ export default function DataTable() {
                                 date: value,
                             })
                             }
-                            size={`large`}
                             options={dateList}
                         />
                         <Select
+                            size="large"
                             defaultValue={``}
                             style={selectStyle}
                             onChange={(value) => setFiltering({
@@ -509,7 +418,6 @@ export default function DataTable() {
                                 categories: value,
                             })
                             }
-                            size={`large`}
                             options={[
                                 {
                                     value: '',
@@ -526,50 +434,42 @@ export default function DataTable() {
                             size="large"
                             onClick={handleFilterData}
                         > Filter </Button>
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={ () => ColumnHandleClick() }
+                            ghost={ ! formEdited }>  { formEdited ? 'Unlocked Edit' : 'Locked Edit'  }
+                        </Button>
                     </Space>
                 </Header>
-                    { isLoading || ! total_post > 0 ?
-                        <Layout className="spain-icon" style={{height: "90vh", justifyContent: 'center'}}> <Spin indicator={antIcon}/></Layout>
-                        : <>
-                            <Content>
-                                <Table
-                                    rowKey={(item) => item.ID}
-                                    pagination={false}
-                                    columns={columns}
-                                    dataSource={posts}
-                                    scroll={{
-                                        x: 1300,
-                                    }}
-                                />
-                            </Content>
-                            <Footer style={{textAlign: 'right'}}>
-                                <Pagination
-                                    showTitle={true}
-                                    showSizeChanger={false}
-                                    showQuickJumper={true}
-                                    showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                                    total={total_post}
-                                    pageSize={posts_per_page}
-                                    current={paged}
-                                    onChange={(current) => handlePagination(current)}
-                                />
-                            </Footer>
-                        </>
-                    }
-
-                <Modal
-                    title={`${bulkdata.type} - Bulk Edit`}
-                    open={isModalOpen}
-                    onOk={handleOk}
-                    onCancel={handleCancel}
-                >
-                    <TextArea
-                        onChange={balkChange}
-                        name={`modal_content`}
-                        value={bulkdata.data}
-                        placeholder={`Field Shouldn't leave empty`}
-                    />
-                </Modal>
+                { isLoading || ! total_post > 0 ?
+                    <Layout className="spain-icon" style={{height: "90vh", justifyContent: 'center'}}> <Spin indicator={antIcon}/></Layout>
+                    : <>
+                        <Content>
+                            <Table
+                                rowKey={(item) => item.ID}
+                                pagination={false}
+                                columns={columns}
+                                dataSource={posts}
+                                scroll={{
+                                    x: 1300,
+                                }}
+                            />
+                        </Content>
+                        <Footer style={{textAlign: 'right'}}>
+                            <Pagination
+                                showTitle={true}
+                                showSizeChanger={false}
+                                showQuickJumper={true}
+                                showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                                total={total_post}
+                                pageSize={posts_per_page}
+                                current={paged}
+                                onChange={(current) => handlePagination(current)}
+                            />
+                        </Footer>
+                    </>
+                }
 
                 <Modal
                     title={`Bulk Edit`}
@@ -577,34 +477,38 @@ export default function DataTable() {
                     onOk={handleBulkModalOk}
                     onCancel={handleBulkModalCancel}
                 >
-                    <Title level={5}> Title </Title>
-                    <TextArea
-                        onChange={balkChange}
-                        name={`modal_title`}
-                        value={bulkSubmitdata.data.post_title}
-                        placeholder={`Title`}
-                    />
-                    <Title level={5}> Alt Text </Title>
-                    <TextArea
-                        onChange={balkChange}
-                        name={`modal_alt_text`}
-                        value={bulkSubmitdata.data.alt_text}
-                        placeholder={`Alt text`}
-                    />
-                    <Title level={5}> Caption </Title>
-                    <TextArea
-                        onChange={balkChange}
-                        name={`modal_caption`}
-                        value={bulkSubmitdata.data.caption}
-                        placeholder={`Caption`}
-                    />
-                    <Title level={5}> Description </Title>
-                    <TextArea
-                        onChange={balkChange}
-                        name={`modal_description`}
-                        value={bulkSubmitdata.data.post_description}
-                        placeholder={`Description`}
-                    />
+                    {/*bulkEditModalData, setBulkEditModalData*/}
+                    {/*{ console.log( bulkSubmitdata ) }*/}
+                    <Content>
+                        <Title style={{marginTop:'30px'}} level={5}> Title </Title>
+                        <TextArea
+                            onChange={ balkModalDataChange }
+                            name={`post_title`}
+                            value={bulkSubmitdata.data.post_title}
+                            placeholder={`Title`}
+                        />
+                        <Title style={{marginTop:'10px'}} level={5}> Alt Text </Title>
+                        <TextArea
+                            onChange={balkModalDataChange}
+                            name={`alt_text`}
+                            value={bulkSubmitdata.data.alt_text}
+                            placeholder={`Alt text`}
+                        />
+                        <Title style={{marginTop:'10px'}} level={5}> Caption </Title>
+                        <TextArea
+                            onChange={balkModalDataChange}
+                            name={`caption`}
+                            value={bulkSubmitdata.data.caption}
+                            placeholder={`Caption`}
+                        />
+                        <Title style={{marginTop:'10px'}} level={5}> Description </Title>
+                        <TextArea
+                            onChange={balkModalDataChange}
+                            name={`post_description`}
+                            value={bulkSubmitdata.data.post_description}
+                            placeholder={`Description`}
+                        />
+                    </Content>
                 </Modal>
             </Layout>
     );
