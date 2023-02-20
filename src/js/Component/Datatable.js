@@ -162,8 +162,7 @@ export default function DataTable() {
 
     const [ checkedData, setCheckedData ] = useState( [] );
 
-    const [ isloading, setIsloading ] = useState( [] );
-
+    const [ isLoading, setIsloading ] = useState( true );
 
     const modalClose = () => {
         setIsModalOpen(false);
@@ -231,6 +230,7 @@ export default function DataTable() {
         setPostQuery( ( prevState) => ({
             ...postQuery,
             orderby: getType,
+            paged: 1,
             order: getType === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         } ));
         setIsUpdated( ! isUpdated );
@@ -440,174 +440,171 @@ export default function DataTable() {
     useEffect(() => {
         getDateList();
     }, []  );
+
     useEffect(() => {
         getTheMedia();
-        setIsloading( false )
+        setTimeout(() => {
+            setIsloading( false )
+        }, 100 );
     }, [isUpdated]  );
 
     return (
+            <Layout className="layout">
+                <Header style={headerStyle}>
+                    <Space wrap>
+                        <Select
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={handleChangeBulkType}
+                            size={`large`}
+                            options={
+                                postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
+                            }
+                        />
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={handleBulkSubmit}
+                        > Apply </Button>
+                        <Select
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={(value) =>
+                                setFiltering({
+                                    ...filtering,
+                                    status: value,
+                                })
+                            }
+                            size={`large`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: 'All',
+                                },
+                                {
+                                    value: 'trash',
+                                    label: 'Trash',
+                                },
 
-        <Layout className="layout">
-            <Header style={headerStyle}>
-                <Space wrap>
-                    <Select
-                        defaultValue={``}
-                        style={selectStyle}
-                        onChange={handleChangeBulkType}
-                        size={`large`}
-                        options={
-                            postQuery.filtering && 'trash' == postQuery.status ? [ ...bulkOprions.filter(item => 'trash' !== item.value) ] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
-                        }
-                    />
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick={handleBulkSubmit}
-                    > Apply </Button>
-                    <Select
-                        defaultValue={``}
-                        style={selectStyle}
-                        onChange={ (value) =>
-                            setFiltering({
-                                ...filtering,
-                                status: value,
-                            })
-                        }
-                        size={`large`}
-                        options={[
-                            {
-                                value: '',
-                                label: 'All',
-                            },
-                            {
-                                value: 'trash',
-                                label: 'Trash',
-                            },
-
-                        ]}
-                    />
-                    <Select
-                        defaultValue={``}
-                        style={selectStyle}
-                        onChange={ (value) => setFiltering({
+                            ]}
+                        />
+                        <Select
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={(value) => setFiltering({
                                 ...filtering,
                                 date: value,
                             })
-                        }
-                        size={`large`}
-                        options={ dateList }
-                    />
-                    <Select
-                        defaultValue={``}
-                        style={selectStyle}
-                        onChange={ (value) => setFiltering({
+                            }
+                            size={`large`}
+                            options={dateList}
+                        />
+                        <Select
+                            defaultValue={``}
+                            style={selectStyle}
+                            onChange={(value) => setFiltering({
                                 ...filtering,
                                 categories: value,
                             })
-                        }
-                        size={`large`}
-                        options={[
-                            {
-                                value: '',
-                                label: 'All Categories',
-                            },
-                            {
-                                value: 'uncategorized',
-                                label: 'Uncategorized',
-                            },
-                        ]}
-                    />
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick={handleFilterData}
-                    > Filter </Button>
-                </Space>
-            </Header>
-            <Content>
-                { isloading ?
-                    <Layout className="spain-icon"  style={{height:"80vh" ,justifyContent: 'center'}} > <Spin indicator={antIcon} /> </Layout>
-                    :
-                    <Table
-                        rowKey={(item) => item.ID}
-                        pagination={false}
-                        columns={columns}
-                        dataSource={posts}
-                        scroll={{
-                            x: 1300,
-                        }}
+                            }
+                            size={`large`}
+                            options={[
+                                {
+                                    value: '',
+                                    label: 'All Categories',
+                                },
+                                {
+                                    value: 'uncategorized',
+                                    label: 'Uncategorized',
+                                },
+                            ]}
+                        />
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={handleFilterData}
+                        > Filter </Button>
+                    </Space>
+                </Header>
+                    { isLoading || ! total_post > 0 ?
+                        <Layout className="spain-icon" style={{height: "80vh", justifyContent: 'center'}}> <Spin indicator={antIcon}/></Layout>
+                        : <>
+                            <Content>
+                                <Table
+                                    rowKey={(item) => item.ID}
+                                    pagination={false}
+                                    columns={columns}
+                                    dataSource={posts}
+                                    scroll={{
+                                        x: 1300,
+                                    }}
+                                />
+                            </Content>
+                            <Footer style={{textAlign: 'right'}}>
+                                <Pagination
+                                    showTitle={true}
+                                    showSizeChanger={false}
+                                    showQuickJumper={true}
+                                    showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                                    total={total_post}
+                                    pageSize={posts_per_page}
+                                    current={paged}
+                                    onChange={(current) => handlePagination(current)}
+                                />
+                            </Footer>
+                        </>
+                    }
 
-                    />
-                }
-            </Content>
-
-            <Footer style={{textAlign: 'right'}}>
-                { ! isloading && total_post > 0 ?
-                    <Pagination
-                        showTitle={true}
-                        showSizeChanger={false}
-                        showQuickJumper={true}
-                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                        total={total_post}
-                        pageSize={posts_per_page}
-                        current={paged}
-                        onChange={(current) => handlePagination(current)}
-                    />
-                    : null
-                }
-            </Footer>
-
-            <Modal
-                title={`${bulkdata.type} - Bulk Edit`}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={handleCancel}
+                <Modal
+                    title={`${bulkdata.type} - Bulk Edit`}
+                    open={isModalOpen}
+                    onOk={handleOk}
+                    onCancel={handleCancel}
                 >
-                <TextArea
-                    onChange={balkChange}
-                    name={`modal_content`}
-                    value={bulkdata.data}
-                    placeholder={`Field Shouldn't leave empty`}
-                />
-            </Modal>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_content`}
+                        value={bulkdata.data}
+                        placeholder={`Field Shouldn't leave empty`}
+                    />
+                </Modal>
 
-            <Modal
-                title={`Bulk Edit`}
-                open={isBulkModalOpen}
-                onOk={handleBulkModalOk}
-                onCancel={handleBulkModalCancel}
-            >
-                <Title level={5}> Title </Title>
-                <TextArea
-                    onChange={balkChange}
-                    name={`modal_title`}
-                    value={bulkSubmitdata.data.post_title}
-                    placeholder={`Title`}
-                />
-                <Title level={5}> Alt Text </Title>
-                <TextArea
-                    onChange={balkChange}
-                    name={`modal_alt_text`}
-                    value={bulkSubmitdata.data.alt_text}
-                    placeholder={`Alt text`}
-                />
-                <Title level={5}> Caption </Title>
-                <TextArea
-                    onChange={balkChange}
-                    name={`modal_caption`}
-                    value={bulkSubmitdata.data.caption}
-                    placeholder={`Caption`}
-                />
-                <Title level={5}> Description </Title>
-                <TextArea
-                    onChange={balkChange}
-                    name={`modal_description`}
-                    value={bulkSubmitdata.data.post_description}
-                    placeholder={`Description`}
-                />
-            </Modal>
-        </Layout>
-
+                <Modal
+                    title={`Bulk Edit`}
+                    open={isBulkModalOpen}
+                    onOk={handleBulkModalOk}
+                    onCancel={handleBulkModalCancel}
+                >
+                    <Title level={5}> Title </Title>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_title`}
+                        value={bulkSubmitdata.data.post_title}
+                        placeholder={`Title`}
+                    />
+                    <Title level={5}> Alt Text </Title>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_alt_text`}
+                        value={bulkSubmitdata.data.alt_text}
+                        placeholder={`Alt text`}
+                    />
+                    <Title level={5}> Caption </Title>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_caption`}
+                        value={bulkSubmitdata.data.caption}
+                        placeholder={`Caption`}
+                    />
+                    <Title level={5}> Description </Title>
+                    <TextArea
+                        onChange={balkChange}
+                        name={`modal_description`}
+                        value={bulkSubmitdata.data.post_description}
+                        placeholder={`Description`}
+                    />
+                </Modal>
+            </Layout>
     );
 }
 
