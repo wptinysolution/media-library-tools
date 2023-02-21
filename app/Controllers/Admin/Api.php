@@ -34,16 +34,10 @@ class Api {
         ) );
         register_rest_route( $this->namespace, $this->resource_name . '/update', array(
             'methods' => 'POST',
-            'callback' => [ $this, 'update_media'],
+            'callback' => [ $this, 'update_single_media'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
-        /*
-        register_rest_route( $this->namespace, $this->resource_name . '/bulk/update', array(
-            'methods' => 'POST',
-            'callback' => [ $this, 'bulk_update_media'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        */
+
         register_rest_route( $this->namespace, $this->resource_name . '/bulk/submit', array(
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
@@ -91,59 +85,9 @@ class Api {
 
     /**
      * @param $request_data
-     * @return bool[]|WP_Error
-     */
-    /*
-    public function bulk_update_media( $request_data ) {
-
-        $parameters = $request_data->get_params();
-
-        $ids = $parameters['ids'];
-        $type = $parameters['type'];
-        $data = $parameters['data'];
-        $result = [];
-        if( is_array( $ids ) && ! empty( $ids ) && ! empty( $type ) && ! empty( $data ) ){
-            $column = '';
-            switch ( $type ){
-                case 'title':
-                    $column = 'post_title';
-                    break;
-                case 'caption':
-                    $column = 'post_excerpt';
-                    break;
-                case 'description':
-                    $column = 'post_content';
-                    break;
-                case 'alt':
-                    $column = 'post_alt';
-                    break;
-                default:
-            }
-
-            foreach (  $ids as $id ) {
-                $submit = [];
-                if( 'post_alt' !== $column ){
-                    $submit['ID'] = $id;
-                    $submit[$column] = $data;
-                    // Update the post into the database
-                    $result['updated'][] = wp_update_post( $submit );
-                } else if ( 'post_alt' === $column ) {
-                    $result['updated'][] =  update_post_meta( $id , '_wp_attachment_image_alt', $data );
-                }
-            }
-        }
-        return [
-            'updated' => ! empty(  $result['updated'] ),
-            'message' => ! empty(  $result['updated'] ) ? esc_html__('Updated.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
-        ] ;
-    }
-    */
-    /**
-     * @param $request_data
      * @return array|WP_Error
      */
-    public function update_media( $request_data )
-    {
+    public function update_single_media( $request_data ) {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
@@ -319,11 +263,48 @@ class Api {
                     $result['updated'] = (bool) $delete;
                     $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
                     break;
-                case 'modalupdate':
-                    error_log( print_r( 'update', true) . "\n\n", 3, __DIR__.'/logg.txt');
+                case 'bulkedit':
+
+                    $data = $parameters['data'];
+                    $categories = $parameters['post_categories'];
+                    $set_data = '';
+                    if( ! empty( $data['post_title'] ) ){
+                        $set_data .= "post_title= '{$data['post_title']}', " ;
+                    }
+                    if( ! empty( $data['caption'] ) ){
+                        $set_data .= "post_excerpt='{$data['caption']}', ";
+                    }
+                    if( ! empty( $data['post_description'] ) ){
+                        $set_data .= "post_content ='{$data['post_description']}', ";
+                    }
+                    $set_data = rtrim( $set_data,", ");
+                    if( ! empty( $set_data ) ){
+                        $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                            ...$ids
+                        );
+                        $update = wp_cache_get( md5( $query ), 'attachment-query' );
+                        if ( false === $update ) {
+                            $update = $wpdb->query( $query );
+                            wp_cache_set( md5( $query ), $update,'attachment-query' );
+                        }
+                        $result['updated'] = (bool) $update;
+                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+                    }
+
+
+                    if( ! empty( $data['alt_text'] ) ){
+                        $update = false;
+                        foreach ( $ids as $id) {
+                            $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $data['alt_text'] ) );
+                        }
+                        $result['updated'] = (bool) $update;
+                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+                    }
+
+
                     break;
                 default:
-                    error_log( print_r( $parameters, true) . "\n\n", 3, __DIR__.'/logg.txt');
+                    error_log( print_r( 'default', true) . "\n\n", 3, __DIR__.'/logg.txt');
             }
         }
 

@@ -1,5 +1,3 @@
-// Table.js
-
 import React, {useState, useEffect } from "react";
 
 import {
@@ -13,7 +11,8 @@ import {
     Button,
     Space,
     Typography,
-    Spin
+    Spin,
+    Divider
 } from 'antd';
 
 import { LoadingOutlined } from '@ant-design/icons';
@@ -73,7 +72,8 @@ const defaultBulkSubmitData = {
         alt_text : '',
         caption : '',
         post_description : '',
-    }
+    },
+    post_categories : [],
 }
 
 const selectStyle = {
@@ -87,8 +87,8 @@ const bulkOprions = [
         label: 'Bulk actions',
     },
     {
-        value: 'edit',
-        label: 'Edit',
+        value: 'bulkedit',
+        label: 'Bulk Edit',
     },
     {
         value: 'trash',
@@ -111,13 +111,13 @@ export default function DataTable() {
 
     const [postQuery, setPostQuery] = useState( defaultPostsQuery );
 
-    const [ filtering, setFiltering ] = useState( defaultPostsFilter );
+    const [filtering, setFiltering] = useState( defaultPostsFilter );
 
-    const [ dateList, setDateList ] = useState( [] );
+    const [dateList, setDateList] = useState( [] );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
-    const [currentEdited, setCurrentEdited] = useState(false );
+    const [currentItemEdited, setCurrentItemEdited] = useState(false );
 
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
@@ -125,14 +125,13 @@ export default function DataTable() {
 
     const { posts, total_post, posts_per_page, paged } = data;
 
-    const [ formEdited, setFormEdited ] = useState( false );
+    const [formEdited, setFormEdited] = useState( false );
 
-    const [ bulkChecked, setBulkChecked ] = useState( false );
+    const [bulkChecked, setBulkChecked] = useState( false );
 
-    const [ checkedData, setCheckedData ] = useState( [] );
+    const [checkedData, setCheckedData] = useState( [] );
 
-    const [ isLoading, setIsloading ] = useState( true );
-
+    const [isLoading, setIsloading] = useState( true );
 
     const getDateList = async () => {
         const response = await getDates();
@@ -148,6 +147,7 @@ export default function DataTable() {
     }
 
     const submitBulkMedia = async ( params ) => {
+        // console.log( params )
         const response = await submitBulkMediaAction( params );
         if( 200 === parseInt( response.status ) && response.data.updated ){
             setCheckedData( [] );
@@ -167,7 +167,7 @@ export default function DataTable() {
         setIsUpdated( ! isUpdated );
     };
 
-    const ColumnHandleClick = () => {
+    const handleColumnEditMode = () => {
         setFormEdited( ! formEdited );
     }
 
@@ -178,7 +178,7 @@ export default function DataTable() {
             [event.target.name] : event.target.value.trim()
         }
         posts[currentItem][event.target.name] = event.target.value;
-        setCurrentEdited( currentData );
+        setCurrentItemEdited( currentData );
         setData( {
             ...data,
             posts
@@ -186,7 +186,7 @@ export default function DataTable() {
     }
 
     const handleFocusout = async ( event ) => {
-        const response = await upDateSingleMedia( currentEdited );
+        const response = await upDateSingleMedia( currentItemEdited );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
 
@@ -245,7 +245,7 @@ export default function DataTable() {
             case 'delete':
                 submitBulkMedia( params );
                 break;
-            case 'edit':
+            case 'bulkedit':
                 setIsBulkModalOpen( true );
                 setbulkSubmitdata({
                     ...params,
@@ -256,15 +256,25 @@ export default function DataTable() {
     };
 
     const handleBulkModalOk = (event) => {
+        submitBulkMedia( bulkSubmitdata );
         setIsBulkModalOpen( false );
+        setbulkSubmitdata( {
+            ...defaultBulkSubmitData,
+            type: 'bulkedit'
+        } )
+
     };
 
     const handleBulkModalCancel = (event) => {
         setIsBulkModalOpen( false );
+        setbulkSubmitdata( {
+            ...defaultBulkSubmitData,
+            type: 'bulkedit'
+        } )
     };
 
     const handleChangeBulkType = (value) => {
-        const data = 'edit' === value ? bulkSubmitdata.data : defaultBulkSubmitData.data;
+        const data = 'bulkedit' === value ? bulkSubmitdata.data : defaultBulkSubmitData.data;
         setbulkSubmitdata( {
             ...bulkSubmitdata,
             type: value,
@@ -360,6 +370,7 @@ export default function DataTable() {
 
     return (
             <Layout className="layout">
+
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
@@ -402,11 +413,10 @@ export default function DataTable() {
                             size="large"
                             defaultValue={``}
                             style={selectStyle}
-                            onChange={(value) => setFiltering({
+                            onChange={ (value) => setFiltering({
                                 ...filtering,
                                 date: value,
-                            })
-                            }
+                            }) }
                             options={dateList}
                         />
                         <Select
@@ -435,10 +445,13 @@ export default function DataTable() {
                             onClick={handleFilterData}
                         > Filter </Button>
                         <Button
+                            style={{
+                                width: '180px'
+                            }}
                             type="primary"
                             size="large"
-                            onClick={ () => ColumnHandleClick() }
-                            ghost={ ! formEdited }>  { formEdited ? 'Unlocked Edit' : 'Locked Edit'  }
+                            onClick={ () => handleColumnEditMode() }
+                            ghost={ ! formEdited }>  { formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                         </Button>
                     </Space>
                 </Header>
@@ -476,11 +489,10 @@ export default function DataTable() {
                     open={isBulkModalOpen}
                     onOk={handleBulkModalOk}
                     onCancel={handleBulkModalCancel}
-                >
-                    {/*bulkEditModalData, setBulkEditModalData*/}
-                    {/*{ console.log( bulkSubmitdata ) }*/}
+                    >
+                    <Divider />
                     <Content>
-                        <Title style={{marginTop:'30px'}} level={5}> Title </Title>
+                        <Title style={{marginTop:'0px'}} level={5}> Title </Title>
                         <TextArea
                             onChange={ balkModalDataChange }
                             name={`post_title`}
@@ -508,7 +520,32 @@ export default function DataTable() {
                             value={bulkSubmitdata.data.post_description}
                             placeholder={`Description`}
                         />
+                        <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
+                        <Select
+                            onChange={ (value) => setbulkSubmitdata({
+                                ...bulkSubmitdata,
+                                'post_categories': value
+                            }) }
+                            size="large"
+                            mode="multiple"
+                            style={{
+                                width: '100%',
+                            }}
+                            showArrow
+                            options={[
+                                {
+                                    value: '10',
+                                    label: 'Uncategorized',
+                                },
+                                {
+                                    value: '11',
+                                    label: 'Categorized',
+                                },
+                            ]}
+                        />
+
                     </Content>
+                    <Divider />
                 </Modal>
             </Layout>
     );
