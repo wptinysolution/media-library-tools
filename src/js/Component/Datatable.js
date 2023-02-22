@@ -157,13 +157,17 @@ export default function DataTable() {
     }
 
     const handleSortClick = ( orderby ) => {
-        setIsloading( true )
+        setIsloading( true );
+        setFormEdited( false );
+        setBulkChecked( false );
+        setCheckedData( [] );
         setPostQuery( ( prevState) => ({
             ...postQuery,
             orderby,
             paged: 1,
             order: orderby === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         } ));
+
         setIsUpdated( ! isUpdated );
     };
 
@@ -370,7 +374,6 @@ export default function DataTable() {
 
     return (
             <Layout className="layout">
-
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
