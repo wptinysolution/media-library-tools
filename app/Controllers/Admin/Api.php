@@ -48,6 +48,36 @@ class Api {
             'callback' => [ $this, 'get_dates'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/getterms', array(
+            'methods' => 'GET',
+            'callback' => [ $this, 'get_terms'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
+        ) );
+    }
+
+    /**
+     * @return false|string
+     */
+    public function get_terms() {
+        $terms = get_terms( array(
+            'taxonomy' => 'tttme_category',
+            'hide_empty' => false,
+        ) );
+        $terms_array = [
+            [
+                'value' => '',
+                'label' => 'All Categories',
+            ]
+        ] ;
+        if ( ! is_wp_error( $terms ) && $terms ) {
+            foreach ( $terms as $term) {
+                $terms_array[] = [
+                    'value' => $term->term_id,
+                    'label' => $term->name,
+                ];
+            }
+        }
+        return wp_json_encode( $terms_array );
     }
 
     /**

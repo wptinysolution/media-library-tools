@@ -51,3 +51,7 @@ export const submitBulkMediaAction = async ( prams ) => {
 export const getDates = async () => {
     return await Api.get(`/filter/getdates`);
 }
+
+export const getTerms = async () => {
+    return await Api.get(`/getterms`);
+}

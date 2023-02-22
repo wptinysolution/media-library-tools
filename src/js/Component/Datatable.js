@@ -26,6 +26,7 @@ const {
 } = Layout;
 
 import {
+    getTerms,
     getDates,
     getMedia,
     upDateSingleMedia,
@@ -115,6 +116,8 @@ export default function DataTable() {
 
     const [dateList, setDateList] = useState( [] );
 
+    const [termsList, setTermsList] = useState( [] );
+
     const [isUpdated, setIsUpdated] = useState(false );
 
     const [currentItemEdited, setCurrentItemEdited] = useState(false );
@@ -137,6 +140,12 @@ export default function DataTable() {
         const response = await getDates();
         const preparedData =  JSON.parse( response.data );
         setDateList( preparedData );
+    }
+
+    const getTermsList = async () => {
+        const response = await getTerms();
+        const preparedData =  JSON.parse( response.data );
+        setTermsList( preparedData );
     }
 
     const getTheMedia = async () => {
@@ -363,6 +372,7 @@ export default function DataTable() {
 
     useEffect(() => {
         getDateList();
+        getTermsList();
     }, []  );
 
     useEffect(() => {
@@ -374,6 +384,7 @@ export default function DataTable() {
 
     return (
             <Layout className="layout">
+                {/*{ console.log( termsList ) }*/}
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
@@ -431,16 +442,7 @@ export default function DataTable() {
                                 categories: value,
                             })
                             }
-                            options={[
-                                {
-                                    value: '',
-                                    label: 'All Categories',
-                                },
-                                {
-                                    value: 'uncategorized',
-                                    label: 'Uncategorized',
-                                },
-                            ]}
+                            options={termsList}
                         />
                         <Button
                             type="primary"
@@ -535,16 +537,7 @@ export default function DataTable() {
                                 width: '100%',
                             }}
                             showArrow
-                            options={[
-                                {
-                                    value: '10',
-                                    label: 'Uncategorized',
-                                },
-                                {
-                                    value: '11',
-                                    label: 'Categorized',
-                                },
-                            ]}
+                            options={termsList}
                         />
 
                     </Content>
