@@ -2,8 +2,6 @@
 
 namespace TheTinyTools\ME\Controllers;
 
-
-use TheTinyTools\ME\Helpers\Fns;
 use TheTinyTools\ME\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
@@ -11,9 +9,14 @@ if (!defined('ABSPATH')) {
     exit('This script cannot be accessed directly.');
 }
 
+/**
+ * AssetsController
+ */
 class AssetsController
 {
-
+    /**
+     * Singleton
+     */
     use SingletonTrait;
 
     /**
@@ -75,9 +78,8 @@ class AssetsController
         foreach ($scripts as $script) {
             wp_register_script($script['handle'], $script['src'], $script['deps'], $this->version, $script['footer']);
         }
-        // error_log( print_r( get_current_screen() , true), 3, __DIR__.'/logs.txt');
         $current_screen =  get_current_screen() ;
-        if ( isset( $current_screen->id ) && 'media_page_wp-media' === $current_screen->id ){
+        if ( isset( $current_screen->id ) && 'media_page_tttme-wp-media' === $current_screen->id ){
             wp_enqueue_style('ttteme-settings');
             wp_enqueue_script('ttteme-settings');
 

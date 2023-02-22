@@ -9,6 +9,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
+require_once __DIR__ . './../vendor/autoload.php';
 
 use TheTinyTools\ME\Traits\SingletonTrait;
 use TheTinyTools\ME\Controllers\Installation;
@@ -17,16 +18,15 @@ use TheTinyTools\ME\Controllers\AssetsController;
 use TheTinyTools\ME\Controllers\Hooks\FilterHooks;
 use TheTinyTools\ME\Controllers\Hooks\ActionHooks;
 use TheTinyTools\ME\Controllers\Admin\SubMenu;
-use TheTinyTools\ME\Controllers\Admin\Ajax\MediaAjax;
 use TheTinyTools\ME\Controllers\Admin\Api;
+use TheTinyTools\ME\Controllers\Admin\RegisterPostAndTax;
 
-require_once __DIR__ . './../vendor/autoload.php';
 
-if ( ! class_exists( WpMedia::class ) ) {
+if ( ! class_exists( TTTMEWpMedia::class ) ) {
 	/**
 	 * Main initialization class.
 	 */
-	final class WpMedia {
+	final class TTTMEWpMedia {
 
 		/**
 		 * Nonce id
@@ -64,13 +64,7 @@ if ( ! class_exists( WpMedia::class ) ) {
 			// Register Plugin Deactivate Hook.
 			register_deactivation_hook( TTTME_FILE, [ $installation, 'deactivation' ] );
 
-            // echo $this->plugin_path();
-            // echo $this->get_assets_uri('style.css');
-            // echo $this->get_template_path();
-
-            // echo '</br>';
-            // echo TTTME_ABSPATH . '/languages/';
-		}
+        }
 
 		/**
 		 * Assets url generate with given assets file
@@ -107,7 +101,7 @@ if ( ! class_exists( WpMedia::class ) ) {
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'wp-media', false, TTTME_ABSPATH . '/languages/' );
+			load_plugin_textdomain( 'tttme-wp-media', false, TTTME_ABSPATH . '/languages/' );
 		}
 
 		/**
@@ -125,10 +119,9 @@ if ( ! class_exists( WpMedia::class ) ) {
 			// Include File.
             AssetsController::instance();
             SubMenu::instance();
-
-			FilterHooks::init_hooks();
+            RegisterPostAndTax::instance();
+            FilterHooks::init_hooks();
 			ActionHooks::init_hooks();
-            MediaAjax::init();
             Api::instance();
 
 			do_action( 'tttme/after_loaded' );
@@ -157,7 +150,7 @@ if ( ! class_exists( WpMedia::class ) ) {
 	 * @return WpMedia
 	 */
 	function tttme() {
-		return WpMedia::instance();
+		return TTTMEWpMedia::instance();
 	}
 
 	tttme();

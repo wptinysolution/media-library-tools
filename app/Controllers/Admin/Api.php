@@ -91,7 +91,7 @@ class Api {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+            'message' => esc_html__('Update failed. Please try to fix', 'tttme-wp-media')
         ] ;
         $submit = [];
 
@@ -101,25 +101,25 @@ class Api {
 
         if ( ! empty( $parameters['post_title'] ) ) {
             $submit['post_title'] = trim( $parameters['post_title'] );
-            $result['message'] = esc_html__('The Title has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Title has been saved.', 'tttme-wp-media');
         }
         if ( isset( $parameters['post_excerpt'] ) ) {
             $submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
-            $result['message'] = esc_html__('The Caption has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Caption has been saved.', 'tttme-wp-media');
         }
         if ( isset( $parameters['post_content'] ) ) {
             $submit['post_content'] = trim( $parameters['post_content'] );
-            $result['message'] = esc_html__('Content has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('Content has been saved.', 'tttme-wp-media');
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = esc_html__('The Text has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Text has been saved.', 'tttme-wp-media');
         }
         if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
             $result['updated'] = wp_update_post( $submit );
         }
-        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
 
         return $result;
     }
@@ -230,7 +230,7 @@ class Api {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+            'message' => esc_html__('Update failed. Please try to fix', 'tttme-wp-media')
         ] ;
 
         if ( ! empty($parameters['type']) ) {
@@ -248,7 +248,7 @@ class Api {
                         wp_cache_set( md5( $query ), $updated,'attachment-query' );
                     }
                     $result['updated'] = (bool) $updated;
-                    $result['message'] = $updated ? esc_html__('Done. Be happy.', 'ttt-wp-media') : esc_html__('Failed. Please try to fix', 'ttt-wp-media');
+                    $result['message'] = $updated ? esc_html__('Done. Be happy.', 'tttme-wp-media') : esc_html__('Failed. Please try to fix', 'tttme-wp-media');
                     break;
                 case 'delete':
                     $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
@@ -261,7 +261,7 @@ class Api {
                         wp_cache_set( md5( $query ), $delete,'attachment-query' );
                     }
                     $result['updated'] = (bool) $delete;
-                    $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
+                    $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'tttme-wp-media') : esc_html__('Deleted failed. Please try to fix', 'tttme-wp-media');
                     break;
                 case 'bulkedit':
 
@@ -288,7 +288,7 @@ class Api {
                             wp_cache_set( md5( $query ), $update,'attachment-query' );
                         }
                         $result['updated'] = (bool) $update;
-                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tttme-wp-media') : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
                     }
 
 
@@ -298,7 +298,7 @@ class Api {
                             $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $data['alt_text'] ) );
                         }
                         $result['updated'] = (bool) $update;
-                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tttme-wp-media') : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
                     }
 
 

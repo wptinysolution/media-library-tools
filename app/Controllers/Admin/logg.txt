@@ -1,2 +1,0 @@
-UPDATE wp_posts SET post_title= 'CC Google said the error.	', post_excerpt='CC Google said the error.	', post_content ='CC Google said the error.	' WHERE post_type = 'attachment' AND ID IN (68,72,73,74,75)
-

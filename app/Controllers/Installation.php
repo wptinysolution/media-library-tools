@@ -11,7 +11,9 @@ use TheTinyTools\ME\Traits\SingletonTrait;
 use TheTinyTools\ME\Helpers\Fns;
 
 class Installation {
-
+    /**
+     * Singleton
+     */
     use SingletonTrait;
 
     private function __construct() {

@@ -15,7 +15,9 @@ use TheTinyTools\ME\Traits\SingletonTrait;
  * @author Mostafa <mostafa.soufi@hotmail.com>
  */
 class SubMenu {
-
+    /**
+     * Singleton
+     */
     use SingletonTrait;
 
     /**
@@ -23,8 +25,7 @@ class SubMenu {
      * @return void
      */
     private function __construct() {
-
-        add_action( 'admin_menu', array(&$this, 'register_sub_menu') );
+        add_action( 'admin_menu', array( $this, 'register_sub_menu') );
     }
 
     /**
@@ -34,10 +35,10 @@ class SubMenu {
     public function register_sub_menu() {
         add_submenu_page(
             'upload.php',
-            esc_html__('WP Media', 'wp-media'),
-            esc_html__('WP Media', 'wp-media'),
+            esc_html__('WP Media', 'tttme-wp-media'),
+            esc_html__('WP Media', 'tttme-wp-media'),
             'manage_options',
-            'wp-media',
+            'tttme-wp-media',
             array(&$this, 'wp_media_page_callback')
         );
     }
