@@ -262,7 +262,8 @@ export default function DataTable() {
                 setIsBulkModalOpen( true );
                 setbulkSubmitdata({
                     ...params,
-                })
+                });
+
                 break;
             default:
         }
@@ -273,7 +274,8 @@ export default function DataTable() {
         setIsBulkModalOpen( false );
         setbulkSubmitdata( {
             ...defaultBulkSubmitData,
-            type: 'bulkedit'
+            type: 'bulkedit',
+            'post_categories': []
         } )
 
     };
@@ -282,7 +284,8 @@ export default function DataTable() {
         setIsBulkModalOpen( false );
         setbulkSubmitdata( {
             ...defaultBulkSubmitData,
-            type: 'bulkedit'
+            type: 'bulkedit',
+            'post_categories': []
         } )
     };
 
@@ -385,6 +388,7 @@ export default function DataTable() {
     return (
             <Layout className="layout">
                 {/*{ console.log( termsList ) }*/}
+                {/*{ console.log( bulkSubmitdata ) }*/}
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select
@@ -434,8 +438,9 @@ export default function DataTable() {
                             options={dateList}
                         />
                         <Select
+                            allowClear = {true}
                             size="large"
-                            defaultValue={``}
+                            placeholder={'Categories'}
                             style={selectStyle}
                             onChange={(value) => setFiltering({
                                 ...filtering,
@@ -526,11 +531,14 @@ export default function DataTable() {
                             placeholder={`Description`}
                         />
                         <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
+                        { console.log( bulkSubmitdata ) }
                         <Select
                             onChange={ (value) => setbulkSubmitdata({
                                 ...bulkSubmitdata,
                                 'post_categories': value
                             }) }
+                            allowClear = {true}
+                            placeholder={'Categories'}
                             size="large"
                             mode="multiple"
                             style={{

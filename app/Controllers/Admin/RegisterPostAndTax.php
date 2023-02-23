@@ -37,7 +37,7 @@ class RegisterPostAndTax {
             'hierarchical' => true
         );
 
-        register_taxonomy( 'tttme_category', 'attachment', $args );
+        register_taxonomy( tttme()->category, 'attachment', $args );
 
         do_action('tttme_after_register_taxonomy');
     }

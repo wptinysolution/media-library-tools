@@ -41,6 +41,12 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 * @var string
 		 */
 		public $current_theme;
+        /**
+         * Post Type.
+         *
+         * @var string
+         */
+        public $category = 'tttme_category';
 		/**
 		 * Singleton
 		 */

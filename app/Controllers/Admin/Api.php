@@ -63,12 +63,7 @@ class Api {
             'taxonomy' => 'tttme_category',
             'hide_empty' => false,
         ) );
-        $terms_array = [
-            [
-                'value' => '',
-                'label' => 'All Categories',
-            ]
-        ] ;
+        $terms_array = [] ;
         if ( ! is_wp_error( $terms ) && $terms ) {
             foreach ( $terms as $term) {
                 $terms_array[] = [
@@ -204,11 +199,13 @@ class Api {
         $join_query = ! empty( $parameters['categories'] ) ? " JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " : null;
 
         $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  "AND tt.taxonomy = 'tttme_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
+
         $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  "AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
 
         $join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
 
         $total = Fns::get_post_count('attachment', $status, 'attachment-query',$join_query, $additional_query  );
+
         /*
             SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
             FROM wp_posts AS p
@@ -219,6 +216,7 @@ class Api {
             ORDER BY menu_order DESC
             LIMIT 0, 4
         */
+
         $query =  $wpdb->prepare(
             "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
             FROM $wpdb->posts AS p            
@@ -307,6 +305,7 @@ class Api {
                     }
                     $set_data = rtrim( $set_data,", ");
                     if( ! empty( $set_data ) ){
+                        // UPDATE wp_posts SET post_title= 'The string values for the column-value', post_excerpt='The string values for the column-value', post_content ='The string values for the column-value' WHERE post_type = 'attachment' AND ID IN (72,73,74,75)
                         $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
                             ...$ids
                         );
@@ -315,24 +314,25 @@ class Api {
                             $update = $wpdb->query( $query );
                             wp_cache_set( md5( $query ), $update,'attachment-query' );
                         }
-                        $result['updated'] = (bool) $update;
-                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tttme-wp-media') : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
+
                     }
-
-
-                    if( ! empty( $data['alt_text'] ) ){
-                        $update = false;
-                        foreach ( $ids as $id) {
-                            $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $data['alt_text'] ) );
+                   // error_log( print_r( $categories  , true) . "\n\n", 3, __DIR__.'/logg.txt');
+                    $update = false;
+                    $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
+                    foreach ( $ids as $id) {
+                        if( $alt ){
+                            $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $alt ) );
                         }
-                        $result['updated'] = (bool) $update;
-                        $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tttme-wp-media') : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
+                        if( ! empty( $categories ) ){
+                            $update = wp_set_object_terms( $id, $categories, tttme()->category );
+                        }
                     }
-
+                    $result['updated'] = (bool) $update;
+                    $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tttme-wp-media') : esc_html__('Update failed. Please try to fix', 'tttme-wp-media');
 
                     break;
                 default:
-                    error_log( print_r( 'default', true) . "\n\n", 3, __DIR__.'/logg.txt');
+                   // error_log( print_r( 'default', true) . "\n\n", 3, __DIR__.'/logg.txt');
             }
         }
 
