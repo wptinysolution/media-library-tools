@@ -1,4 +1,4 @@
-import React, {useState, useEffect } from "react";
+import React, {useState, useEffect, useRef } from "react";
 
 import {
     Pagination,
@@ -107,6 +107,11 @@ const bulkOprions = [
 
 export default function DataTable() {
     // paged
+    const inputRef = useRef(null);
+
+    const sharedProps = {
+        ref: inputRef,
+    };
 
     const [data, setData] = useState( defaultPosts );
 
@@ -469,6 +474,26 @@ export default function DataTable() {
                             onClick={ () => handleColumnEditMode() }
                             ghost={ ! formEdited }>  { formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                         </Button>
+                        <Button
+                            type="text"
+                            size="large"
+                            onClick={() => {
+                                inputRef.current.focus({
+                                    cursor: 'start',
+                                });
+                            }}
+                        >
+                            Posts Per page
+                        </Button>
+                        <Input
+                            {...sharedProps}
+                            type="primary"
+                            size="large"
+                            style={{
+                                width: '50px'
+                            }}
+                            placeholder="10"
+                        />
                     </Space>
                 </Header>
                 { isLoading || ! total_post > 0 ?
