@@ -164,7 +164,6 @@ class Api {
 
         $limit = (int)get_user_option('upload_per_page', get_current_user_id());
         $limit =  ! $limit ? 20 : $limit;
-         // error_log( print_r( $limit , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $orderby  = 'menu_order';
         $status  = 'inherit';
@@ -201,29 +200,29 @@ class Api {
         $offset = ( $paged - 1 ) * $limit;
 
         $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
+
+        $join_query = ! empty( $parameters['categories'] ) ? " JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " : null;
+
+        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  "AND tt.taxonomy = 'tttme_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
+        $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  "AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
+
+        $join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
+
+        $total = Fns::get_post_count('attachment', $status, 'attachment-query',$join_query, $additional_query  );
         /*
-         * You can modify the query to include another value from the postmeta table by adding another
-         * LEFT JOIN and selecting the additional meta_value in the SELECT statement. Here's an example
-         * of how to join another meta_key with the existing query:
-         Example:
-             SELECT p.*,
-                IFNULL(pm.meta_value, '') AS alt_text,
-                IFNULL(pm2.meta_value, '') AS other_meta_value
+            SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
             FROM wp_posts AS p
+            JOIN wp_term_relationships AS tr ON p.ID = tr.object_id
+            JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
             LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            LEFT JOIN wp_postmeta AS pm2 ON pm2.post_id = p.ID AND pm2.meta_key = 'other_meta_key'
-            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'
-            ORDER BY alt_text {$order}
-            LIMIT %d, %d
+            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment' AND tt.taxonomy = 'tttme_category' AND tt.term_id = 5
+            ORDER BY menu_order DESC
+            LIMIT 0, 4
         */
-        $additional_query  = ! empty( $parameters['date'] ) ? $wpdb->prepare(  "AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
-
-        $total = Fns::get_post_count('attachment', $status, 'attachment-query', $additional_query  );
-
         $query =  $wpdb->prepare(
             "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
-            FROM $wpdb->posts AS p
-            LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
+            FROM $wpdb->posts AS p            
+            $join_query
             WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query
             ORDER BY $order_by_sql
             LIMIT %2\$d, %3\$d",
@@ -232,7 +231,7 @@ class Api {
             $limit
         );
 
-         // error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
+        //error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {
@@ -246,7 +245,6 @@ class Api {
             'total_post' => $total,
             'paged' => absint( $paged ),
         ];
-       // error_log( print_r( $query_data , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         return wp_json_encode(  $query_data );
     }
