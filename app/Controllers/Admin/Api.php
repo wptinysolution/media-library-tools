@@ -198,9 +198,9 @@ class Api {
 
         $join_query = ! empty( $parameters['categories'] ) ? " JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " : null;
 
-        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  "AND tt.taxonomy = 'tttme_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
+        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  " AND tt.taxonomy = 'tttme_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
 
-        $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  "AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
+        $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  " AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
 
         $join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
 
@@ -243,6 +243,7 @@ class Api {
             'total_post' => $total,
             'paged' => absint( $paged ),
         ];
+        // error_log( print_r( $query_data , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         return wp_json_encode(  $query_data );
     }

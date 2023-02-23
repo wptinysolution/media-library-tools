@@ -159,8 +159,9 @@ export default function DataTable() {
         // console.log( params )
         const response = await submitBulkMediaAction( params );
         if( 200 === parseInt( response.status ) && response.data.updated ){
-            setCheckedData( [] );
+            setFormEdited( false );
             setBulkChecked( false );
+            setCheckedData( [] );
             setIsUpdated( ! isUpdated );
         }
     }
@@ -205,8 +206,9 @@ export default function DataTable() {
 
     const handlePagination = ( current ) => {
         setIsloading( true )
-        setCheckedData([]);
-        setBulkChecked(false);
+        setFormEdited( false );
+        setBulkChecked( false );
+        setCheckedData( [] );
         setPostQuery({
             ...postQuery,
             paged: current
@@ -257,6 +259,9 @@ export default function DataTable() {
             case 'update':
             case 'delete':
                 submitBulkMedia( params );
+                // setFormEdited( false );
+                // setBulkChecked( false );
+                // setCheckedData( [] );
                 break;
             case 'bulkedit':
                 setIsBulkModalOpen( true );
@@ -267,6 +272,7 @@ export default function DataTable() {
                 break;
             default:
         }
+
     };
 
     const handleBulkModalOk = (event) => {
@@ -301,8 +307,10 @@ export default function DataTable() {
 
     const handleFilterData = () => {
         setIsloading( true )
-        setCheckedData([]);
+        setFormEdited( false );
         setBulkChecked( false );
+        setCheckedData( [] );
+
         setbulkSubmitdata( {
             ...defaultBulkSubmitData
         })
@@ -406,8 +414,9 @@ export default function DataTable() {
                             onClick={handleBulkSubmit}
                         > Apply </Button>
                         <Select
+                            allowClear = {true}
+                            placeholder={'Status'}
                             size="large"
-                            defaultValue={``}
                             style={selectStyle}
                             onChange={(value) =>
                                 setFiltering({
@@ -417,10 +426,6 @@ export default function DataTable() {
                             }
                             options={[
                                 {
-                                    value: '',
-                                    label: 'All',
-                                },
-                                {
                                     value: 'trash',
                                     label: 'Trash',
                                 },
@@ -429,7 +434,8 @@ export default function DataTable() {
                         />
                         <Select
                             size="large"
-                            defaultValue={``}
+                            allowClear = {true}
+                            placeholder={'Date'}
                             style={selectStyle}
                             onChange={ (value) => setFiltering({
                                 ...filtering,
