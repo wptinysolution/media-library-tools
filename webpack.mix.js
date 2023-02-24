@@ -66,11 +66,11 @@ if (
 		fs.ensureDir(languages, function (err) {
 			if (err) return console.error(err); // if file or folder does not exist
 			wpPot({
-				package: "Media Edit",
+				package: "WP Media Tools",
 				bugReport: "",
 				src: "**/*.php",
-				domain: "media-edit",
-				destFile: "languages/media-edit.pot",
+				domain: "ttt-wp-media",
+				destFile: `languages/${package_slug}.pot`,
 			});
 		});
 	}
