@@ -53,6 +53,52 @@ class Api {
             'callback' => [ $this, 'get_terms'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/getoptions', array(
+            'methods' => 'GET',
+            'callback' => [ $this, 'get_options'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
+        ) );
+        register_rest_route( $this->namespace, $this->resource_name . '/updateoptins', array(
+            'methods' => 'POST',
+            'callback' => [ $this, 'update_option'],
+            'permission_callback' => [ $this, 'login_permission_callback' ],
+        ) );
+    }
+    /**
+     * @return false|string
+     */
+    public function update_option( $request_data ) {
+
+        $result = [
+            'updated' => false,
+            'message' => esc_html__('Update failed. Please try to fix', 'tttme-wp-media')
+        ] ;
+
+        $parameters = $request_data->get_params();
+
+        $limit = (int)get_user_option('upload_per_page', get_current_user_id());
+
+        $tttme_media = get_option( 'tttme_settings' , [] );
+
+        $tttme_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : $limit ;
+
+        $options = update_option( 'tttme_settings', $tttme_media );
+
+        $result['updated'] = boolval( $options );
+
+        $result['message'] = ! $options ? $result['message'] : esc_html__('Updated. Be happy', 'tttme-wp-media');
+
+        //error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
+        return $result;
+    }
+
+    /**
+     * @return false|string
+     */
+    public function get_options() {
+        $options = get_option( 'tttme_settings' );
+        return wp_json_encode($options );
     }
 
     /**
@@ -158,7 +204,8 @@ class Api {
         $parameters = $request_data->get_params();
 
         $limit = (int)get_user_option('upload_per_page', get_current_user_id());
-        $limit =  ! $limit ? 20 : $limit;
+        $options = get_option( 'tttme_settings' );
+        $limit =  ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : $limit;
 
         $orderby  = 'menu_order';
         $status  = 'inherit';

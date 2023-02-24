@@ -48,6 +48,13 @@ export const submitBulkMediaAction = async ( prams ) => {
     return response;
 }
 
+export const updateOptins = async (  prams ) => {
+    const response = await Api.post(`/updateoptins`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}
+
+
 export const getDates = async () => {
     return await Api.get(`/filter/getdates`);
 }
@@ -55,3 +62,8 @@ export const getDates = async () => {
 export const getTerms = async () => {
     return await Api.get(`/getterms`);
 }
+
+export const getOptions = async () => {
+    return await Api.get(`/getoptions`);
+}
+

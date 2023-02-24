@@ -4,7 +4,7 @@
  * Plugin Name:       WP Media
  * Plugin URI:        https://wordpress.org/plugins/
  * Description:       WP Media
- * Version:           0.0.2
+ * Version:           0.0.10
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
  * Text Domain:       tttme-wp-media
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define media edit Constant.
  */
-define( 'TTTME_VERSION', '0.0.1' );
+define( 'TTTME_VERSION', '0.0.10' );
 define( 'TTTME_FILE', __FILE__ );
 define( 'TTTME_BASENAME', plugin_basename( __FILE__ ) );
 define( 'TTTME_URL', plugins_url('', TTTME_FILE));

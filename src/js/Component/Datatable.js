@@ -29,7 +29,9 @@ import {
     getTerms,
     getDates,
     getMedia,
+    getOptions,
     upDateSingleMedia,
+    updateOptins,
     submitBulkMediaAction
 } from "../Utils/Data";
 
@@ -123,6 +125,8 @@ export default function DataTable() {
 
     const [termsList, setTermsList] = useState( [] );
 
+    const [optionsData, setOptionsData] = useState( [] );
+
     const [isUpdated, setIsUpdated] = useState(false );
 
     const [currentItemEdited, setCurrentItemEdited] = useState(false );
@@ -158,6 +162,17 @@ export default function DataTable() {
             ...postQuery
         } );
         setData( response );
+    }
+
+    const getTheOptins = async () => {
+        const response = await getOptions();
+        const preparedData =  JSON.parse( response.data );
+        setOptionsData( preparedData );
+    }
+
+    const handleUpdateOption = async ( event ) => {
+        const response = await updateOptins( optionsData );
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }
 
     const submitBulkMedia = async ( params ) => {
@@ -389,6 +404,7 @@ export default function DataTable() {
     useEffect(() => {
         getDateList();
         getTermsList();
+        getTheOptins();
     }, []  );
 
     useEffect(() => {
@@ -483,7 +499,7 @@ export default function DataTable() {
                                 });
                             }}
                         >
-                            Posts Per page
+                            Items Per page
                         </Button>
                         <Input
                             {...sharedProps}
@@ -493,6 +509,12 @@ export default function DataTable() {
                                 width: '50px'
                             }}
                             placeholder="10"
+                            onBlur={ handleUpdateOption }
+                            onChange={ ( event ) => setOptionsData({
+                                ...optionsData,
+                                'media_per_page' : event.target.value,
+                            }) }
+                            value={optionsData.media_per_page}
                         />
                     </Space>
                 </Header>
@@ -562,7 +584,7 @@ export default function DataTable() {
                             placeholder={`Description`}
                         />
                         <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
-                        { console.log( bulkSubmitdata ) }
+                        {/*{ console.log( bulkSubmitdata ) }*/}
                         <Select
                             onChange={ (value) => setbulkSubmitdata({
                                 ...bulkSubmitdata,
