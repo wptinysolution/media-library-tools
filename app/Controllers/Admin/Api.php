@@ -37,7 +37,6 @@ class Api {
             'callback' => [ $this, 'update_single_media'],
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
-
         register_rest_route( $this->namespace, $this->resource_name . '/bulk/submit', array(
             'methods' => 'POST',
             'callback' => [ $this, 'media_submit_bulk_action'],
@@ -64,6 +63,7 @@ class Api {
             'permission_callback' => [ $this, 'login_permission_callback' ],
         ) );
     }
+
     /**
      * @return false|string
      */
@@ -127,6 +127,7 @@ class Api {
     public function login_permission_callback() {
         return current_user_can( 'manage_options' );
     }
+
     /**
      * @return false|string
      */
@@ -306,7 +307,6 @@ class Api {
             'updated' => false,
             'message' => esc_html__('Update failed. Please try to fix', 'tttme-wp-media')
         ] ;
-
         if ( ! empty($parameters['type']) ) {
             $ids = $parameters['ids'];
             switch ( $parameters['type'] ){
@@ -383,7 +383,6 @@ class Api {
                    // error_log( print_r( 'default', true) . "\n\n", 3, __DIR__.'/logg.txt');
             }
         }
-
         return $result;
     }
 

@@ -36,14 +36,12 @@ class AssetsController
     /**
      * Class Constructor
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->version = (defined('WP_DEBUG') && WP_DEBUG) ? time() : TTTME_VERSION;
         /**
          * Admin scripts.
          */
         add_action('admin_enqueue_scripts', [$this, 'backend_assets'], 1);
-
     }
 
 
@@ -53,17 +51,6 @@ class AssetsController
      * @return void
      */
     public function backend_assets( $hook ) {
-        $styles = [
-            [
-                'handle' => 'ttteme-settings',
-                'src' => tttme()->get_assets_uri('css/backend/admin-settings.css'),
-            ]
-        ];
-
-        // Register public styles.
-        foreach ($styles as $style) {
-            wp_register_style($style['handle'], $style['src'], '', $this->version);
-        }
 
         $scripts = [
             [
@@ -78,8 +65,11 @@ class AssetsController
         foreach ($scripts as $script) {
             wp_register_script($script['handle'], $script['src'], $script['deps'], $this->version, $script['footer']);
         }
+
         $current_screen =  get_current_screen() ;
+
         if ( isset( $current_screen->id ) && 'media_page_tttme-wp-media' === $current_screen->id ){
+
             wp_enqueue_style('ttteme-settings');
             wp_enqueue_script('ttteme-settings');
 
@@ -93,9 +83,8 @@ class AssetsController
                     tttme()->nonceId => wp_create_nonce(tttme()->nonceId),
                 ]
             );
+
         }
-
-
 
     }
 

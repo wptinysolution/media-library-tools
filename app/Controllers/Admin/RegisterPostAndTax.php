@@ -42,12 +42,4 @@ class RegisterPostAndTax {
         do_action('tttme_after_register_taxonomy');
     }
 
-
-    /**
-     * Flush rewrite rules.
-     */
-    public function flush_rewrite_rules() {
-        flush_rewrite_rules();
-    }
-
 }

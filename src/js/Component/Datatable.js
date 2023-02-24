@@ -248,7 +248,6 @@ export default function DataTable() {
 
         setCheckedData( changeData );
         setBulkChecked( Checked_count === post_count );
-
     };
 
     const onBulkCheck = (event) => {
@@ -292,7 +291,6 @@ export default function DataTable() {
                 break;
             default:
         }
-
     };
 
     const handleBulkModalOk = (event) => {
@@ -303,7 +301,6 @@ export default function DataTable() {
             type: 'bulkedit',
             'post_categories': []
         } )
-
     };
 
     const handleBulkModalCancel = (event) => {
@@ -416,8 +413,9 @@ export default function DataTable() {
 
     return (
             <Layout className="layout">
+                {/*{ console.log( data ) }*/}
                 {/*{ console.log( termsList ) }*/}
-                {/*{ console.log( bulkSubmitdata ) }*/}
+                {/*{ console.log( optionsData ) }*/}
                 <Header style={headerStyle}>
                     <Space wrap>
                         <Select

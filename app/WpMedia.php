@@ -58,15 +58,11 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		private function __construct() {
 
 			$this->current_theme = wp_get_theme()->get( 'TextDomain' );
-
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
-
 			$installation = Installation::instance();
-
 			// Register Plugin Active Hook.
 			register_activation_hook( TTTME_FILE, [ $installation, 'activate' ] );
-
 			// Register Plugin Deactivate Hook.
 			register_deactivation_hook( TTTME_FILE, [ $installation, 'deactivation' ] );
 
@@ -81,7 +77,6 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 */
 		public function get_assets_uri( $file ) {
 			$file = ltrim( $file, '/' );
-
 			return trailingslashit( TTTME_URL . '/assets' ) . $file;
 		}
 

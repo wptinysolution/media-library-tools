@@ -54,7 +54,6 @@ export const updateOptins = async (  prams ) => {
     return response;
 }
 
-
 export const getDates = async () => {
     return await Api.get(`/filter/getdates`);
 }
