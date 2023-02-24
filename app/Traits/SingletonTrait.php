@@ -3,7 +3,7 @@
  *
  */
 
-namespace TheTinyTools\ME\Traits;
+namespace TheTinyTools\WM\Traits;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -38,7 +38,7 @@ trait SingletonTrait {
 
 	// Prevent serialization of the instance
 	public function __sleep() {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'tttme-wp-media' ), '1.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'ttt-wp-media' ), '1.0' );
 		die();
 	}
 
@@ -47,7 +47,7 @@ trait SingletonTrait {
 	 * Prevent unserializing.
 	 */
 	final public function __wakeup() {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'tttme-wp-media' ), '1.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'ttt-wp-media' ), '1.0' );
 		die();
 	}
 }

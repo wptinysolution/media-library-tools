@@ -1,5 +1,5 @@
 {
-  "name": "thetinytools/media-edit",
+  "name": "thetinytools/ttt-wp-media",
   "authors": [
     {
       "name": "TheTinyTools",
@@ -8,7 +8,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "TheTinyTools\\ME\\": "app"
+      "TheTinyTools\\WM\\": "app"
     }
   },
   "description": ""

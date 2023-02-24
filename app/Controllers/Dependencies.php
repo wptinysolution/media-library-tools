@@ -1,8 +1,8 @@
 <?php
 
-namespace TheTinyTools\ME\Controllers;
+namespace TheTinyTools\WM\Controllers;
 
-use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\WM\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -58,7 +58,7 @@ class Dependencies {
 		/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
 			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'wp-media' ),
 			'<strong>' . esc_html__( 'Media Edit', 'wp-media' ) . '</strong>',
-			'<strong>' . esc_html__( 'PHP', 'tttme-wp-media' ) . '</strong>',
+			'<strong>' . esc_html__( 'PHP', 'ttt-wp-media' ) . '</strong>',
 			self::MINIMUM_PHP_VERSION
 		);
 		printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );

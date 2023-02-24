@@ -2,12 +2,12 @@
 /**
  * Main FilterHooks class.
  *
- * @package TheTinyTools\ME
+ * @package TheTinyTools\WM
  */
 
-namespace TheTinyTools\ME\Controllers\Hooks;
+namespace TheTinyTools\WM\Controllers\Hooks;
 
-use TheTinyTools\ME\Helpers\Fns;
+use TheTinyTools\WM\Helpers\Fns;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -22,7 +22,7 @@ class FilterHooks {
 	 */
 	public static function init_hooks() {
         // Plugins Setting Page.
-        add_filter( 'plugin_action_links_' . TTTME_BASENAME,  [ __CLASS__, 'plugins_setting_links', ] );
+        add_filter( 'plugin_action_links_' . TTTWM_BASENAME,  [ __CLASS__, 'plugins_setting_links', ] );
     }
 
     /**
@@ -31,7 +31,7 @@ class FilterHooks {
      * @return array [array] plugin action link
      */
     public static function plugins_setting_links( $links ) {
-        $links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tttme-wp-media' ) . '">' . esc_html__( 'Start Edit Media', 'wp-media' ) . '</a>';
+        $links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=ttt-wp-media' ) . '">' . esc_html__( 'Start Edit Media', 'ttt-wp-media' ) . '</a>';
         /*
          * TODO:: Next Version
          *

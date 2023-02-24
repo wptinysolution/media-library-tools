@@ -2,10 +2,10 @@
 /**
  * Main ActionHooks class.
  *
- * @package TheTinyTools\ME
+ * @package TheTinyTools\WM
  */
 
-namespace TheTinyTools\ME\Controllers\Hooks;
+namespace TheTinyTools\WM\Controllers\Hooks;
 
 defined( 'ABSPATH' ) || exit();
 

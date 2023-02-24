@@ -1,14 +1,14 @@
 <?php
 
-namespace TheTinyTools\ME\Controllers;
+namespace TheTinyTools\WM\Controllers;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
     exit( 'This script cannot be accessed directly.' );
 }
 
-use TheTinyTools\ME\Traits\SingletonTrait;
-use TheTinyTools\ME\Helpers\Fns;
+use TheTinyTools\WM\Traits\SingletonTrait;
+use TheTinyTools\WM\Helpers\Fns;
 
 class Installation {
     /**

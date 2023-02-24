@@ -1,13 +1,13 @@
 <?php
 
-namespace TheTinyTools\ME\Controllers\Admin;
+namespace TheTinyTools\WM\Controllers\Admin;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
     exit( 'This script cannot be accessed directly.' );
 }
 
-use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\WM\Traits\SingletonTrait;
 
 /**
  * Sub menu class
@@ -35,10 +35,10 @@ class SubMenu {
     public function register_sub_menu() {
         add_submenu_page(
             'upload.php',
-            esc_html__('WP Media', 'tttme-wp-media'),
-            esc_html__('WP Media', 'tttme-wp-media'),
+            esc_html__('WP Media', 'ttt-wp-media'),
+            esc_html__('WP Media', 'ttt-wp-media'),
             'manage_options',
-            'tttme-wp-media',
+            'ttt-wp-media',
             array(&$this, 'wp_media_page_callback')
         );
     }

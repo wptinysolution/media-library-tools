@@ -2,7 +2,7 @@
 /**
  * Main initialization class.
  *
- * @package TheTinyTools\ME
+ * @package TheTinyTools\WM
  */
 
 // Do not allow directly accessing this file.
@@ -11,29 +11,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 require_once __DIR__ . './../vendor/autoload.php';
 
-use TheTinyTools\ME\Traits\SingletonTrait;
-use TheTinyTools\ME\Controllers\Installation;
-use TheTinyTools\ME\Controllers\Dependencies;
-use TheTinyTools\ME\Controllers\AssetsController;
-use TheTinyTools\ME\Controllers\Hooks\FilterHooks;
-use TheTinyTools\ME\Controllers\Hooks\ActionHooks;
-use TheTinyTools\ME\Controllers\Admin\SubMenu;
-use TheTinyTools\ME\Controllers\Admin\Api;
-use TheTinyTools\ME\Controllers\Admin\RegisterPostAndTax;
+use TheTinyTools\WM\Traits\SingletonTrait;
+use TheTinyTools\WM\Controllers\Installation;
+use TheTinyTools\WM\Controllers\Dependencies;
+use TheTinyTools\WM\Controllers\AssetsController;
+use TheTinyTools\WM\Controllers\Hooks\FilterHooks;
+use TheTinyTools\WM\Controllers\Hooks\ActionHooks;
+use TheTinyTools\WM\Controllers\Admin\SubMenu;
+use TheTinyTools\WM\Controllers\Admin\Api;
+use TheTinyTools\WM\Controllers\Admin\RegisterPostAndTax;
 
 
-if ( ! class_exists( TTTMEWpMedia::class ) ) {
+if ( ! class_exists( TTTWpMedia::class ) ) {
 	/**
 	 * Main initialization class.
 	 */
-	final class TTTMEWpMedia {
+	final class TTTWpMedia {
 
 		/**
 		 * Nonce id
 		 *
 		 * @var string
 		 */
-		public $nonceId = 'tttme_wpnonce';
+		public $nonceId = 'tttwp_wpnonce';
 
 		/**
 		 * Post Type.
@@ -46,7 +46,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
          *
          * @var string
          */
-        public $category = 'tttme_category';
+        public $category = 'tttwp_category';
 		/**
 		 * Singleton
 		 */
@@ -62,9 +62,9 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
 			$installation = Installation::instance();
 			// Register Plugin Active Hook.
-			register_activation_hook( TTTME_FILE, [ $installation, 'activate' ] );
+			register_activation_hook( TTTWM_FILE, [ $installation, 'activate' ] );
 			// Register Plugin Deactivate Hook.
-			register_deactivation_hook( TTTME_FILE, [ $installation, 'deactivation' ] );
+			register_deactivation_hook( TTTWM_FILE, [ $installation, 'deactivation' ] );
 
         }
 
@@ -77,7 +77,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 */
 		public function get_assets_uri( $file ) {
 			$file = ltrim( $file, '/' );
-			return trailingslashit( TTTME_URL . '/assets' ) . $file;
+			return trailingslashit( TTTWM_URL . '/assets' ) . $file;
 		}
 
 		/**
@@ -86,7 +86,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 * @return string
 		 */
 		public function get_template_path() {
-			return apply_filters( 'tttme_template_path', 'media-edit/' );
+			return apply_filters( 'tttwp_template_path', 'templates/' );
 		}
 
 		/**
@@ -95,14 +95,14 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 * @return string
 		 */
 		public function plugin_path() {
-			return untrailingslashit( plugin_dir_path( TTTME_FILE ) );
+			return untrailingslashit( plugin_dir_path( TTTWM_FILE ) );
 		}
 
 		/**
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'tttme-wp-media', false, TTTME_ABSPATH . '/languages/' );
+			load_plugin_textdomain( 'ttt-wp-media', false, TTTWM_ABSPATH . '/languages/' );
 		}
 
 		/**
@@ -115,7 +115,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 				return;
 			}
 
-			do_action( 'tttme/before_loaded' );
+			do_action( 'tttwp/before_loaded' );
 
 			// Include File.
             AssetsController::instance();
@@ -125,7 +125,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 			ActionHooks::init_hooks();
             Api::instance();
 
-			do_action( 'tttme/after_loaded' );
+			do_action( 'tttwp/after_loaded' );
 		}
 
 		/**
@@ -134,7 +134,7 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			return function_exists( 'tttmep' );
+			return function_exists( 'tttwpp' );
 		}
 
 		/**
@@ -150,9 +150,9 @@ if ( ! class_exists( TTTMEWpMedia::class ) ) {
 	/**
 	 * @return WpMedia
 	 */
-	function tttme() {
-		return TTTMEWpMedia::instance();
+	function tttwm() {
+		return TTTWpMedia::instance();
 	}
 
-	tttme();
+	tttwm();
 }

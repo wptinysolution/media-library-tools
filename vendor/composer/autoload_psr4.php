@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'TheTinyTools\\ME\\' => array($baseDir . '/app'),
+    'TheTinyTools\\WM\\' => array($baseDir . '/app'),
 );

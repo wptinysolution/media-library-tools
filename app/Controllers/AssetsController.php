@@ -1,8 +1,8 @@
 <?php
 
-namespace TheTinyTools\ME\Controllers;
+namespace TheTinyTools\WM\Controllers;
 
-use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\WM\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
 if (!defined('ABSPATH')) {
@@ -37,7 +37,7 @@ class AssetsController
      * Class Constructor
      */
     public function __construct() {
-        $this->version = (defined('WP_DEBUG') && WP_DEBUG) ? time() : TTTME_VERSION;
+        $this->version = (defined('WP_DEBUG') && WP_DEBUG) ? time() : TTTWM_VERSION;
         /**
          * Admin scripts.
          */
@@ -55,7 +55,7 @@ class AssetsController
         $scripts = [
             [
                 'handle' => 'ttteme-settings',
-                'src' => tttme()->get_assets_uri('js/backend/admin-settings.js'),
+                'src' => tttwm()->get_assets_uri('js/backend/admin-settings.js'),
                 'deps' => [],
                 'footer' => true,
             ]
@@ -68,7 +68,7 @@ class AssetsController
 
         $current_screen =  get_current_screen() ;
 
-        if ( isset( $current_screen->id ) && 'media_page_tttme-wp-media' === $current_screen->id ){
+        if ( isset( $current_screen->id ) && 'media_page_ttt-wp-media' === $current_screen->id ){
 
             wp_enqueue_style('ttteme-settings');
             wp_enqueue_script('ttteme-settings');
@@ -80,7 +80,7 @@ class AssetsController
                     'ajaxUrl' => esc_url(admin_url('admin-ajax.php')),
                     'restApiUrl' => esc_url_raw(rest_url()), // site_url(rest_get_url_prefix()),
                     'rest_nonce' => wp_create_nonce( 'wp_rest' ),
-                    tttme()->nonceId => wp_create_nonce(tttme()->nonceId),
+                    tttwm()->nonceId => wp_create_nonce(tttwm()->nonceId),
                 ]
             );
 

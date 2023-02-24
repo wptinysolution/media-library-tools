@@ -2,9 +2,9 @@
 /**
  * Post Type and Taxonomy
  */
-namespace TheTinyTools\ME\Controllers\Admin;
+namespace TheTinyTools\WM\Controllers\Admin;
 
-use TheTinyTools\ME\Traits\SingletonTrait;
+use TheTinyTools\WM\Traits\SingletonTrait;
 
 /**
  * Register Post and Taxonomy class
@@ -27,19 +27,19 @@ class RegisterPostAndTax {
         if ( ! is_blog_installed() || ! post_type_exists( 'attachment' ) ) {
             return;
         }
-        do_action('tttme_register_taxonomy');
+        do_action('tttwp_register_taxonomy');
 
         $args = array(
             'label'        => esc_html__( 'Category', 'ttt-wp-media' ),
             'public'       => true,
-            'rewrite'      => array( 'slug' => 'tttme-category' ),
+            'rewrite'      => array( 'slug' => 'tttwp-category' ),
             'update_count_callback' => '_update_generic_term_count',
             'hierarchical' => true
         );
 
-        register_taxonomy( tttme()->category, 'attachment', $args );
+        register_taxonomy( tttwm()->category, 'attachment', $args );
 
-        do_action('tttme_after_register_taxonomy');
+        do_action('tttwp_after_register_taxonomy');
     }
 
 }

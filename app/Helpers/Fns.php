@@ -2,10 +2,10 @@
 /**
  * Fns Helpers class
  *
- * @package  TheTinyTools\ME
+ * @package  TheTinyTools\WM
  */
 
-namespace TheTinyTools\ME\Helpers;
+namespace TheTinyTools\WM\Helpers;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
