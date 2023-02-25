@@ -85,6 +85,8 @@ class Api {
 
         $limit = absint( get_user_option('upload_per_page', get_current_user_id()) );
 
+        $limit =  $limit ?  $limit : 20 ;
+
         $tttwp_media = get_option( 'tttwp_settings' , [] );
 
         $tttwp_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? absint( $parameters['media_per_page'] ) : $limit ;
@@ -105,7 +107,7 @@ class Api {
      */
     public function get_options() {
         $options = get_option( 'tttwp_settings' );
-        return wp_json_encode($options );
+        return wp_json_encode($options);
     }
 
     /**

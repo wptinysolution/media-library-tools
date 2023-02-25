@@ -506,7 +506,6 @@ export default function DataTable() {
                             style={{
                                 width: '50px'
                             }}
-                            placeholder="10"
                             onBlur={ handleUpdateOption }
                             onChange={ ( event ) => setOptionsData({
                                 ...optionsData,
