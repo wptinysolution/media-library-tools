@@ -47,7 +47,9 @@ class Review {
 
 		$remind_time = get_option( 'tttwm_remind_me' );
 
-        $remind_due  = strtotime( '+350 seconds', $remind_time );
+        // $remind_due  = strtotime( '+600 seconds', $remind_time );
+        $remind_due  = strtotime( '+15 days', $remind_time );
+
 
         if ( ! $now >= $past_date || $now <= $remind_due ) {
              return;
