@@ -46,8 +46,10 @@ Overall, neglecting to optimize image metadata can lead to missed opportunities 
 
 == 🏆 FAQ ==
 
-= How can I do move the images to trash? =
+= How Enable Edit Mode for single items? =
+* By clicking "Enable Edit Mode" Button edit mode will enable.
 
+= How can I do move the images to trash? =
 * Go to Media > WP Media Tools.
 * At first select those images by clicking the checkbox that you want to trash. You can select all image by one click.
 * Select the "Bulk actions" Select box and find the  "Move to Trash" menu.
