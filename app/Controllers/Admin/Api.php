@@ -205,6 +205,7 @@ class Api {
         $parameters = $request_data->get_params();
 
         $limit = (int)get_user_option('upload_per_page', get_current_user_id());
+        $limit = $limit ? $limit : 20;
         $options = get_option( 'tttwp_settings' );
         $limit =  ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : $limit;
 
