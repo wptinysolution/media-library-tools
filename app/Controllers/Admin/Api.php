@@ -65,6 +65,13 @@ class Api {
     }
 
     /**
+     * @return true
+     */
+    public function login_permission_callback() {
+        return current_user_can( 'manage_options' );
+    }
+
+    /**
      * @return false|string
      */
     public function update_option( $request_data ) {
@@ -76,11 +83,11 @@ class Api {
 
         $parameters = $request_data->get_params();
 
-        $limit = (int)get_user_option('upload_per_page', get_current_user_id());
+        $limit = absint( get_user_option('upload_per_page', get_current_user_id()) );
 
         $tttwp_media = get_option( 'tttwp_settings' , [] );
 
-        $tttwp_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : $limit ;
+        $tttwp_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? absint( $parameters['media_per_page'] ) : $limit ;
 
         $options = update_option( 'tttwp_settings', $tttwp_media );
 
@@ -119,13 +126,6 @@ class Api {
             }
         }
         return wp_json_encode( $terms_array );
-    }
-
-    /**
-     * @return true
-     */
-    public function login_permission_callback() {
-        return current_user_can( 'manage_options' );
     }
 
     /**
