@@ -7,23 +7,18 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit( 'This script cannot be accessed directly.' );
 }
 
-use TheTinyTools\WM\Traits\SingletonTrait;
-use TheTinyTools\WM\Helpers\Fns;
-
 class Installation {
     /**
-     * Singleton
+     * @return void
      */
-    use SingletonTrait;
-
-    private function __construct() {
+    public static function activate() {
+        $get_activation_time = strtotime( 'now' );
+        add_option( 'tttwm_plugin_activation_time', $get_activation_time );
     }
 
-    public function activate() {
-    }
-
-    public function deactivation() {
-    }
-
+    /**
+     * @return void
+     */
+    public static function deactivation() { }
 
 }

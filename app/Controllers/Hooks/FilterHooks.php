@@ -22,7 +22,107 @@ class FilterHooks {
 	 */
 	public static function init_hooks() {
         // Plugins Setting Page.
-        add_filter( 'plugin_action_links_' . TTTWM_BASENAME,  [ __CLASS__, 'plugins_setting_links', ] );
+        add_filter( 'plugin_action_links_' . TTTWM_BASENAME,  [ __CLASS__, 'plugins_setting_links' ] );
+        add_filter( 'manage_media_columns', [ __CLASS__, 'media_custom_column' ] );
+        add_filter( 'manage_upload_sortable_columns', [ __CLASS__,  'media_sortable_columns' ] );
+        add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
+        add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
+    }
+
+    /**
+     * Sortable column function.
+     *
+     * @param array $vars query var.
+     * @return array
+     */
+    public static function media_sort_by_alt( $vars ) {
+        if ( isset( $vars['orderby'] ) ) {
+            if ( 'alt' === $vars['orderby'] ) {
+                $vars = array_merge(
+                    $vars,
+                    array(
+                        'orderby'    => 'meta_value',
+                        'meta_query' => array(
+                            'relation' => 'OR',
+                            array(
+                                'key'     => '_wp_attachment_image_alt',
+                                'compare' => 'NOT EXISTS',
+                                'value'   => '',
+                            ),
+                            array(
+                                'key'     => '_wp_attachment_image_alt',
+                                'compare' => 'EXISTS',
+                            ),
+                        ),
+                    )
+                );
+            }
+        }
+        return $vars;
+    }
+    /**
+     * Add new column to media table
+     *
+     * @param array $columns customize column.
+     * @return array
+     */
+    public static function media_custom_column( $columns ) {
+        $author   = isset( $columns['author'] ) ? $columns['author'] : '';
+        $date     = isset( $columns['date'] ) ? $columns['date'] : '';
+        $comments = isset( $columns['comments'] ) ? $columns['comments'] : '';
+        $parent   = isset( $columns['parent'] ) ? $columns['parent'] : '';
+        unset( $columns['author'] );
+        unset( $columns['date'] );
+        unset( $columns['comments'] );
+        unset( $columns['parent'] );
+        $columns['alt']         = __( 'Alt', 'media-library-helper' );
+        $columns['caption']     = __( 'Caption', 'media-library-helper' );
+        $columns['description'] = __( 'Description', 'media-library-helper' );
+        $columns['parent']      = $parent;
+        $columns['author']      = $author;
+        $columns['comments']    = $comments;
+        $columns['date']        = $date;
+        return $columns;
+    }
+    /**
+     * SHortable column.
+     *
+     * @param string $columns shortable column.
+     * @return array
+     */
+    public static function media_sortable_columns( $columns ) {
+        $columns['alt']         = 'alt';
+        $columns['caption']     = 'caption';
+        $columns['description'] = 'description';
+        return $columns;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param array  $pieces query.
+     * @param object $query post query.
+     * @return array
+     */
+    public static function media_sortable_columns_query( $pieces, $query ) {
+        global $wpdb;
+        if ( $query->is_main_query() ) {
+            $orderby = $query->get( 'orderby' );
+            if ( $orderby ) {
+                $order = strtoupper( $query->get( 'order' ) );
+                if ( in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+                    switch ( $orderby ) {
+                        case 'caption':
+                            $pieces['orderby'] = " $wpdb->posts.post_excerpt $order ";
+                            break;
+                        case 'description':
+                            $pieces['orderby'] = " $wpdb->posts.post_content $order ";
+                            break;
+                    }
+                }
+            }
+        }
+        return $pieces;
     }
 
     /**

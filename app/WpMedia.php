@@ -20,7 +20,7 @@ use TheTinyTools\WM\Controllers\Hooks\ActionHooks;
 use TheTinyTools\WM\Controllers\Admin\SubMenu;
 use TheTinyTools\WM\Controllers\Admin\Api;
 use TheTinyTools\WM\Controllers\Admin\RegisterPostAndTax;
-
+use TheTinyTools\WM\Controllers\Admin\Review;
 
 if ( ! class_exists( TTTWpMedia::class ) ) {
 	/**
@@ -58,13 +58,15 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		private function __construct() {
 
 			$this->current_theme = wp_get_theme()->get( 'TextDomain' );
+
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
-			$installation = Installation::instance();
 			// Register Plugin Active Hook.
-			register_activation_hook( TTTWM_FILE, [ $installation, 'activate' ] );
+			register_activation_hook( TTTWM_FILE, [ Installation::class, 'activate' ] );
 			// Register Plugin Deactivate Hook.
-			register_deactivation_hook( TTTWM_FILE, [ $installation, 'deactivation' ] );
+			register_deactivation_hook( TTTWM_FILE, [ Installation::class, 'deactivation' ] );
+
+
 
         }
 
@@ -117,6 +119,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 
 			do_action( 'tttwp/before_loaded' );
 
+            Review::instance();
 			// Include File.
             AssetsController::instance();
             SubMenu::instance();
