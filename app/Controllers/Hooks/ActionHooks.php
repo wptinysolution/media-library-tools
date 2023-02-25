@@ -22,9 +22,13 @@ class ActionHooks {
 	 */
 	public static function init_hooks() {
         add_action( 'manage_media_custom_column', [ __CLASS__, 'display_column_value' ], 10, 2 );
-
 	}
 
+    /**
+     * @param $column
+     * @param $post_id
+     * @return void
+     */
     public static function display_column_value( $column, $post_id ) {
         $image = Fns::wp_get_attachment( $post_id );
         switch ( $column ) {
@@ -39,7 +43,6 @@ class ActionHooks {
                 break;
             default:
                 break;
-
         }
     }
 

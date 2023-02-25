@@ -12,8 +12,11 @@ class Installation {
      * @return void
      */
     public static function activate() {
-        $get_activation_time = strtotime( 'now' );
-        add_option( 'tttwm_plugin_activation_time', $get_activation_time );
+        if ( ! get_option( 'tttwm_plugin_version' ) ) {
+            $get_activation_time = strtotime( 'now' );
+            update_option('tttwm_plugin_version', TTTWM_VERSION);
+            update_option('tttwm_plugin_activation_time', $get_activation_time);
+        }
     }
 
     /**
