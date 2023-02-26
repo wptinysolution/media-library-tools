@@ -27,6 +27,52 @@ class FilterHooks {
         add_filter( 'manage_upload_sortable_columns', [ __CLASS__,  'media_sortable_columns' ] );
         add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
+
+        add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
+
+    }
+    /**
+     * Check template screen
+     *
+     * @return boolean
+     */
+    public static function is_attachment_screen() {
+        global $pagenow, $typenow;
+        return 'upload.php' === $pagenow && 'attachment' === $typenow;
+    }
+    /**
+     * @param $actions
+     * @return mixed
+     */
+    public static function filter_post_row_actions( $actions, $post ) {
+
+        $att_title = _draft_or_post_title();
+        if ( ! self::is_attachment_screen() ) {
+            return $actions;
+        }
+        /*
+        unset(
+            $actions['delete']
+        );
+        */
+        $actions['trash'] = sprintf(
+            '<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+            wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
+            /* translators: %s: Attachment title. */
+            esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+            _x( 'Trash', 'verb' )
+        );
+        $delete_ays        =  " onclick='return showNotice.warn();'" ;
+        $actions['delete'] = sprintf(
+            '<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
+            wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
+            $delete_ays,
+            /* translators: %s: Attachment title. */
+            esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
+            __( 'Delete Permanently' )
+        );
+
+        return $actions;
     }
 
     /**

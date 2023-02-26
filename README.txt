@@ -1,4 +1,4 @@
-=== WP Media Tools - Bulk edit image ===
+=== Media Tools - Bulk edit ===
 Contributors: tinysolution
 Tags: Tags: Image to Trash, Image Title, Image Name, Alt tag, Image caption, Bulk edit, Media Library, Image SEO
 Requires at least: 5.5
@@ -21,10 +21,14 @@ Save time and improve your website's search engine rankings by streamlining the 
 
 == 🏆 Improve your website's SEO score ==
 Image metadata, including information such as title, description, and ALT text, can be extremely valuable for SEO.
-Properly optimizing image metadata can help search engines understand the content and context of images on a website, leading to improved search engine rankings and visibility. By including relevant keywords in the image metadata, it's more likely that images will appear in relevant search queries, driving traffic to the website.
+Properly optimizing image metadata can help search engines understand the content and context of images on a website,
+leading to improved search engine rankings and visibility. By including relevant keywords in the image metadata,
+it's more likely that images will appear in relevant search queries, driving traffic to the website.
 
-Additionally, optimized image metadata can improve website accessibility, particularly for visually impaired users who rely on screen readers to access website content.
-Overall, neglecting to optimize image metadata can lead to missed opportunities for improved SEO, reduced website traffic, and decreased user engagement.
+Additionally, optimized image metadata can improve website accessibility,
+particularly for visually impaired users who rely on screen readers to access website content.
+Overall, neglecting to optimize image metadata can lead to missed opportunities for improved SEO,
+reduced website traffic, and decreased user engagement.
 
 == 🏆 FEATURES ==
 
@@ -44,7 +48,7 @@ Overall, neglecting to optimize image metadata can lead to missed opportunities 
 * Install The plugin "WP Media Tools - Bulk edit image"\
 * Go to Media > WP Media Tools And Start editing From here.
 
-== 🏆 FAQ ==
+== Frequently Asked Questions ==
 
 = How Enable Edit Mode for single items? =
 * By clicking "Enable Edit Mode" Button edit mode will enable.
@@ -61,3 +65,13 @@ then chose "Bulk Edit" form "Bulk actions" Menu. The assign one or multiple imag
 
 = How can search by categories? =
 * There has the fields near the Filter button. You can find the categories box there.
+
+== Screenshots ==
+1. Admin page
+
+== Changelog ==
+
+= 1.0.0 (  February 26, 2023 ) =
+* Initial Plugin.
+
+
