@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
-import {TheContext} from "../Utils/TheContext";
+import {TheContext} from "../../Utils/TheContext";
 
 const {  Content } = Layout;
 
@@ -59,7 +59,6 @@ function BulkModal() {
                     placeholder={`Description`}
                 />
                 <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
-                {/*{ console.log( bulkSubmitdata ) }*/}
                 <Select
                     onChange={ (value) => setbulkSubmitdata({
                         ...bulkSubmitdata,

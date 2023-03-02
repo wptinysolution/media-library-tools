@@ -1,26 +1,16 @@
-import React, {useState, useEffect, useRef , useContext } from "react";
+import React, { useContext } from "react";
 
-import { TheContext } from '../Utils/TheContext';
+import { TheContext } from '../../Utils/TheContext';
 
-import { columns } from '../Utils/UtilData';
-
-const { TextArea } = Input;
+import { columns } from '../../Utils/UtilData';
 
 import {LoadingOutlined} from "@ant-design/icons";
 
 import {
     Pagination,
     Table,
-    Input,
-    Modal,
-    Checkbox,
-    Select,
     Layout,
-    Button,
-    Space,
-    Typography,
-    Spin,
-    Divider
+    Spin
 } from 'antd';
 
 const {
@@ -47,12 +37,11 @@ export default function DataTable() {
         handleSortClick,
         handlePagination,
         onCheckboxChange,
-        formEdited,
+        formEdited
+
     } = useContext( TheContext );
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
-
 
     return (
             <Layout className="layout">
@@ -64,15 +53,7 @@ export default function DataTable() {
                             <Table
                                 rowKey={(item) => item.ID}
                                 pagination={false}
-                                columns={columns(  bulkChecked,
-                                    onBulkCheck,
-                                    checkedData,
-                                    onCheckboxChange,
-                                    handleSortClick,
-                                    formEdited,
-                                    handleFocusout,
-                                    handleChange
-                                )}
+                                columns={ columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange ) }
                                 dataSource={posts}
                                 scroll={{
                                     x: 1300,

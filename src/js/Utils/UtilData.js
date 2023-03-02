@@ -1,4 +1,6 @@
-import {Button, Checkbox, Space} from "antd";
+import {Button, Checkbox, Space, Input } from "antd";
+
+const { TextArea } = Input;
 
 export const headerStyle = {
     height: 64,

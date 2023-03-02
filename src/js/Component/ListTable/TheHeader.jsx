@@ -7,8 +7,9 @@ import {
     headerStyle,
     selectStyle,
     bulkOprions
-} from '../Utils/UtilData'
-import {TheContext} from "../Utils/TheContext";
+} from '../../Utils/UtilData'
+
+import {TheContext} from "../../Utils/TheContext";
 
 const { Header } = Layout;
 
