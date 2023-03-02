@@ -300,10 +300,8 @@ function ProcessTableData() {
             setFiltering,
             setbulkSubmitdata
         } }>
-            <div className="tttme-App">
-                 <DataTable />
-                 <BulkModal />
-            </div>
+             <DataTable />
+             <BulkModal />
         </TheContext.Provider>
     );
 }
