@@ -7,20 +7,18 @@ import { TheContext } from '../Utils/TheContext';
 
 import ProcessTableData from "./ListTable/ProcessTableData";
 
+import MainHeader from "./MainHeader";
+
 import {
     getTerms,
     getDates,
     getOptions,
 } from "../Utils/Data";
 
-const headerStyle = {
-    height: 64,
-    paddingInline: 0,
-    lineHeight: '64px',
-    backgroundColor: '#fff',
-};
-
-const { Header } = Layout;
+const {
+    Header,
+    Content
+} = Layout;
 
 function App() {
 
@@ -29,6 +27,8 @@ function App() {
     const [termsList, setTermsList] = useState( [] );
 
     const [optionsData, setOptionsData] = useState( [] );
+
+    const [ selectedMenu, setSelectedMenu] = useState( 'mediatbale' );
 
     const getDateList = async () => {
         const response = await getDates();
@@ -55,34 +55,20 @@ function App() {
     }, []  );
 
     return (
-        <TheContext.Provider value={ { dateList, termsList, optionsData } }>
+        <TheContext.Provider value={ {
+            dateList,
+            termsList,
+            optionsData,
+            setOptionsData,
+            setSelectedMenu
+        } }>
             <Layout className="tttme-App">
-                <Header className="header" style={headerStyle}>
-                    <Menu
-                        theme="dark"
-                        mode="horizontal"
-                        defaultSelectedKeys={['listTbale']}
-                        items={[
-                            {
-                                key: 'listTbale',
-                                label: 'List Tbale',
-                            },
-
-                            {
-                                key: 'settings',
-                                label: 'Settings',
-                            },
-                        ]}
-                        onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
-                            console.log( key );
-                        } }
-                    />
-                </Header>
+                <MainHeader/>
                 <Content>
-                    <ProcessTableData/>
+                    { 'mediatbale' === selectedMenu && <ProcessTableData/> }
+                    { 'settings' === selectedMenu && `Hello` }
                 </Content>
             </Layout>
-
         </TheContext.Provider>
 
     );

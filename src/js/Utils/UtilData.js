@@ -70,7 +70,6 @@ export const bulkOprions = [
     },
 ];
 
-
 export function columns(
     bulkChecked,
     onBulkCheck,

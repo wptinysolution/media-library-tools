@@ -1,5 +1,5 @@
 
-import React, {useState, useEffect } from "react";
+import React, {useState, useEffect, useContext} from "react";
 
 import { TheContext } from '../../Utils/TheContext';
 
@@ -24,21 +24,19 @@ import {
     defaultPostsQuery
 } from '../../Utils/UtilData'
 
-// import {value} from "lodash/seq";
-
 function ProcessTableData() {
+    const {
+        dateList,
+        termsList,
+        optionsData,
+        setOptionsData
+    } = useContext( TheContext );
 
     const [data, setData] = useState( defaultPosts );
 
     const [postQuery, setPostQuery] = useState( defaultPostsQuery );
 
     const [filtering, setFiltering] = useState( defaultPostsFilter );
-
-    const [dateList, setDateList] = useState( [] );
-
-    const [termsList, setTermsList] = useState( [] );
-
-    const [optionsData, setOptionsData] = useState( [] );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -58,29 +56,11 @@ function ProcessTableData() {
 
     const [isLoading, setIsloading] = useState( true );
 
-    const getDateList = async () => {
-        const response = await getDates();
-        const preparedData =  JSON.parse( response.data );
-        setDateList( preparedData );
-    }
-
-    const getTermsList = async () => {
-        const response = await getTerms();
-        const preparedData =  JSON.parse( response.data );
-        setTermsList( preparedData );
-    }
-
     const getTheMedia = async () => {
         const response = await getMedia('', {
             ...postQuery
         } );
         setData( response );
-    }
-
-    const getTheOptins = async () => {
-        const response = await getOptions();
-        const preparedData =  JSON.parse( response.data );
-        setOptionsData( preparedData );
     }
 
     const handleUpdateOption = async ( event ) => {
@@ -249,13 +229,13 @@ function ProcessTableData() {
         })
         setIsUpdated( ! isUpdated );
     }
-
+    /*
     useEffect(() => {
         getDateList();
         getTermsList();
         getTheOptins();
     }, []  );
-
+    */
     useEffect(() => {
         getTheMedia();
         setTimeout(() => {
