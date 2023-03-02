@@ -1,21 +1,62 @@
 
-import React from "react";
+import React, {useState, useEffect } from "react";
 
 import { Pagination, Table, Input, Modal, Checkbox, Select, Layout, Menu, Button, Space } from 'antd';
 
-const { Header, Footer, Sider, Content } = Layout;
+import { TheContext } from '../Utils/TheContext';
 
-import DataTable from "./Datatable";
+import ProcessTableData from "./ListTable/ProcessTableData";
+
+import {
+    getTerms,
+    getDates,
+    getOptions,
+} from "../Utils/Data";
+
 const headerStyle = {
     height: 64,
     paddingInline: 0,
     lineHeight: '64px',
     backgroundColor: '#fff',
 };
+
+const { Header } = Layout;
+
 function App() {
+
+    const [dateList, setDateList] = useState( [] );
+
+    const [termsList, setTermsList] = useState( [] );
+
+    const [optionsData, setOptionsData] = useState( [] );
+
+    const getDateList = async () => {
+        const response = await getDates();
+        const preparedData =  JSON.parse( response.data );
+        setDateList( preparedData );
+    }
+
+    const getTermsList = async () => {
+        const response = await getTerms();
+        const preparedData =  JSON.parse( response.data );
+        setTermsList( preparedData );
+    }
+
+    const getTheOptins = async () => {
+        const response = await getOptions();
+        const preparedData =  JSON.parse( response.data );
+        setOptionsData( preparedData );
+    }
+
+    useEffect(() => {
+        getDateList();
+        getTermsList();
+        getTheOptins();
+    }, []  );
+
     return (
-        <div className="tttme-App">
-            <Layout className="layout">
+        <TheContext.Provider value={ { dateList, termsList, optionsData } }>
+            <Layout className="tttme-App">
                 <Header className="header" style={headerStyle}>
                     <Menu
                         theme="dark"
@@ -38,10 +79,12 @@ function App() {
                     />
                 </Header>
                 <Content>
-                    <DataTable />
+                    <ProcessTableData/>
                 </Content>
             </Layout>
-        </div>
+
+        </TheContext.Provider>
+
     );
 }
 export default App

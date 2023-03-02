@@ -75,19 +75,34 @@ if (
 		});
 	}
 
-	/**
-	 * JS
-	 */
-	mix
-		// Backend JS
-		.js("src/js/admin-settings.js", "assets/js/backend/")
-		.react();
-	/**
-	 * CSS
-	 */
-	mix
-		// Backend CSS
-		.sass('src/scss/admin-settings.scss', 'assets/css/backend/');
+	// Frontend CSS
+	if (!mix.inProduction()) {
+		/**
+		 * JS
+		 */
+		mix
+			// Backend JS
+			.js("src/js/admin-settings.js", "assets/js/backend/")
+			.react()
+			// Backend CSS
+			.sass('src/scss/admin-settings.scss', 'assets/css/backend/').sourceMaps(true, 'source-map');
+	} else {
+		/**
+		 * JS
+		 */
+		mix
+			// Backend JS
+			.js("src/js/admin-settings.js", "assets/js/backend/")
+			.react();
+		/**
+		 * CSS
+		 */
+		mix
+			// Backend CSS
+			.sass('src/scss/admin-settings.scss', 'assets/css/backend/');
+	}
+
+
 
 }
 if (process.env.npm_config_zip) {
