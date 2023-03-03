@@ -1,24 +1,22 @@
 
 import React, {useState, useEffect } from "react";
 
-import { Pagination, Table, Input, Modal, Checkbox, Select, Layout, Menu, Button, Space } from 'antd';
-
-import { TheContext } from '../Utils/TheContext';
-
-import ProcessTableData from "./ListTable/ProcessTableData";
+import { Layout } from 'antd';
 
 import MainHeader from "./MainHeader";
+
+import { TheAppContext } from '../Utils/TheContext';
+
+import ProcessTableData from "./ListTable/ProcessTableData";
 
 import {
     getTerms,
     getDates,
     getOptions,
+    updateOptins,
 } from "../Utils/Data";
 
-const {
-    Header,
-    Content
-} = Layout;
+const { Content } = Layout;
 
 function App() {
 
@@ -29,6 +27,8 @@ function App() {
     const [optionsData, setOptionsData] = useState( [] );
 
     const [ selectedMenu, setSelectedMenu] = useState( 'mediatbale' );
+
+    const [isUpdated, setIsUpdated] = useState(false );
 
     const getDateList = async () => {
         const response = await getDates();
@@ -48,6 +48,11 @@ function App() {
         setOptionsData( preparedData );
     }
 
+    const handleUpdateOption = async ( event ) => {
+        const response = await updateOptins( optionsData );
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+    }
+
     useEffect(() => {
         getDateList();
         getTermsList();
@@ -55,12 +60,15 @@ function App() {
     }, []  );
 
     return (
-        <TheContext.Provider value={ {
+        <TheAppContext.Provider value={ {
             dateList,
             termsList,
             optionsData,
             setOptionsData,
-            setSelectedMenu
+            setSelectedMenu,
+            handleUpdateOption,
+            isUpdated,
+            setIsUpdated
         } }>
             <Layout className="tttme-App">
                 <MainHeader/>
@@ -69,8 +77,8 @@ function App() {
                     { 'settings' === selectedMenu && `Hello` }
                 </Content>
             </Layout>
-        </TheContext.Provider>
-
+        </TheAppContext.Provider>
     );
 }
+
 export default App

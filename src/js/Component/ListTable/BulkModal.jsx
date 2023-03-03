@@ -2,8 +2,8 @@ import React, { useContext } from "react";
 
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
-import {TheContext} from "../../Utils/TheContext";
-
+// import {TheContext} from "../../Utils/TheContext";
+import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
 const {  Content } = Layout;
 
 const { Title } = Typography;
@@ -11,15 +11,15 @@ const { Title } = Typography;
 const { TextArea } = Input;
 
 function BulkModal() {
+    const { termsList } = useContext( TheAppContext );
     const {
-        termsList,
         bulkSubmitdata,
         isBulkModalOpen,
         handleBulkModalOk,
         balkModalDataChange,
         handleBulkModalCancel,
         setbulkSubmitdata
-    } = useContext( TheContext );
+    } = useContext( TheMediaTableContext );
 
     return (
         <Modal

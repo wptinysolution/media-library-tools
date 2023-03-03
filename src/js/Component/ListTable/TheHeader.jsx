@@ -9,7 +9,7 @@ import {
     bulkOprions
 } from '../../Utils/UtilData'
 
-import {TheContext} from "../../Utils/TheContext";
+import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
 
 const { Header } = Layout;
 
@@ -17,19 +17,20 @@ function TheHeader() {
     const {
         dateList,
         termsList,
+        optionsData,
+        setOptionsData,
+        handleUpdateOption
+    } = useContext( TheAppContext );
+    const {
         postQuery,
         formEdited,
-        optionsData,
         setFiltering,
         filtering,
-        setOptionsData,
         handleFilterData,
         handleBulkSubmit,
-        handleUpdateOption,
         handleChangeBulkType,
         handleColumnEditMode,
-    } = useContext( TheContext );
-
+    } = useContext( TheMediaTableContext );
     // paged
     const inputRef = useRef(null);
 
@@ -129,10 +130,14 @@ function TheHeader() {
                         width: '50px'
                     }}
                     onBlur={ handleUpdateOption }
-                    onChange={ ( event ) => setOptionsData({
-                        ...optionsData,
-                        'media_per_page' : event.target.value,
-                    }) }
+
+                    onChange={
+                        (event) => setOptionsData({
+                            ...optionsData,
+                            media_per_page : event.target.value,
+                        })
+                    }
+
                     value={optionsData.media_per_page}
                 />
             </Space>
