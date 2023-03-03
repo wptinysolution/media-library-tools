@@ -3,7 +3,7 @@ import React, {useState, useEffect, useContext} from "react";
 
 import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
 
-import DataTable from "./Datatable";
+import Datatable from "./Datatable";
 
 import BulkModal from "./BulkModal";
 
@@ -256,7 +256,7 @@ function ProcessTableData() {
             setFiltering,
             setbulkSubmitdata
         } }>
-             <DataTable />
+             <Datatable />
              <BulkModal />
         </TheMediaTableContext.Provider>
     );

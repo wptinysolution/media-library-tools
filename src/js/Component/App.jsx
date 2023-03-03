@@ -3,8 +3,6 @@ import React, {useState, useEffect } from "react";
 
 import { Layout } from 'antd';
 
-import MainHeader from "./MainHeader";
-
 import { TheAppContext } from '../Utils/TheContext';
 
 import ProcessTableData from "./ListTable/ProcessTableData";
@@ -16,7 +14,11 @@ import {
     updateOptins,
 } from "../Utils/Data";
 
-const { Content } = Layout;
+const { Sider, Content } = Layout;
+
+import MainHeader from "./MainHeader";
+import Settings from "./Settings";
+
 
 function App() {
 
@@ -26,7 +28,7 @@ function App() {
 
     const [optionsData, setOptionsData] = useState( [] );
 
-    const [ selectedMenu, setSelectedMenu] = useState( 'mediatable' );
+    const [ selectedMenu, setSelectedMenu] = useState( 'settings' );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -71,12 +73,27 @@ function App() {
             selectedMenu,
             setSelectedMenu
         } }>
-            <Layout className="tttme-App">
-                <MainHeader/>
-                <Content>
+            <Layout className="tttme-App" style={{
+                padding: '10px',
+                background: '#fff',
+                borderRadius: '5px',
+                boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
+                height: 'calc( 100vh - 60px )',
+            }}>
+                <Sider style={{
+                    borderRadius: '5px',
+                }}>
+                    <MainHeader/>
+                </Sider>
+                <Layout className="layout" style={{
+                    padding: '10px',
+                    overflowY: 'auto'
+                }} >
+
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
-                    { 'settings' === selectedMenu && `Hello` }
-                </Content>
+                    { 'settings' === selectedMenu && <Settings/> }
+
+                </Layout>
             </Layout>
         </TheAppContext.Provider>
     );

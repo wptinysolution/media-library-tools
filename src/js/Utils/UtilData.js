@@ -85,7 +85,7 @@ export function columns(
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '50px',
+            width: '80px',
             align: 'center',
             render:  ( id, record ) => <Checkbox checked={ -1 !== checkedData.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
@@ -93,7 +93,7 @@ export function columns(
             title: <Space wrap> { `ID` } <Button size={`small`} sort-by={`id`} onClick={ () => handleSortClick( 'id' )}> {`Sort`} </Button> </Space>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '105px',
+            width: '150px',
             align: 'top'
         },
         {

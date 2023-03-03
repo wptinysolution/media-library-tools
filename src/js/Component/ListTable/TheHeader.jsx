@@ -129,14 +129,12 @@ function TheHeader() {
                         width: '50px'
                     }}
                     onBlur={ handleUpdateOption }
-
                     onChange={
                         (event) => setOptionsData({
                             ...optionsData,
                             media_per_page : event.target.value,
                         })
                     }
-
                     value={optionsData.media_per_page}
                 />
             </Space>

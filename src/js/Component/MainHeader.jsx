@@ -2,38 +2,52 @@ import React, { useContext } from "react";
 
 import { Menu, Layout } from 'antd';
 
+import { SettingOutlined, UnorderedListOutlined } from '@ant-design/icons';
+
 import {TheAppContext, TheMediaTableContext} from "../Utils/TheContext";
 
 const { Header } = Layout;
+
 
 function MainHeader() {
     const {
         setSelectedMenu
     } = useContext( TheAppContext );
 
+    const menuItemStyle = {
+        borderRadius: 0,
+        paddingInline: '10px',
+    }
+
     return (
 
         <Header className="header" style={{
             paddingInline: 0,
         }}>
+            <div className="logo" style={{
+                height: '40px',
+                margin: '10px',
+                background: 'rgba(255, 255, 255, 0.2)'
+            }}/>
             <Menu
-                theme="dark"
-                mode="horizontal"
-                defaultSelectedKeys={['mediatable']}
                 style={{
-                    fontSize: '18px',
-                    color: '#fff',
-                    fontWeight: 600,
+                    borderRadius: '0px',
                 }}
+                theme="dark"
+                mode="inline"
+                defaultSelectedKeys={['settings']}
                 items={[
                     {
                         key: 'mediatable',
                         label: 'Media Table',
+                        icon: <UnorderedListOutlined />,
+                        style: menuItemStyle,
                     },
-
                     {
                         key: 'settings',
-                        label: 'Settings',
+                        label: 'Media Settings',
+                        icon: <SettingOutlined />,
+                        style: menuItemStyle
                     },
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
