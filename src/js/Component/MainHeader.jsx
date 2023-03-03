@@ -2,14 +2,14 @@ import React, { useContext } from "react";
 
 import { Menu, Layout } from 'antd';
 
-import {TheContext} from "../Utils/TheContext";
+import {TheAppContext, TheMediaTableContext} from "../Utils/TheContext";
 
 const { Header } = Layout;
 
 function MainHeader() {
     const {
         setSelectedMenu
-    } = useContext( TheContext );
+    } = useContext( TheAppContext );
 
     return (
 
@@ -19,7 +19,7 @@ function MainHeader() {
             <Menu
                 theme="dark"
                 mode="horizontal"
-                defaultSelectedKeys={['mediatbale']}
+                defaultSelectedKeys={['mediatable']}
                 style={{
                     fontSize: '18px',
                     color: '#fff',
@@ -27,7 +27,7 @@ function MainHeader() {
                 }}
                 items={[
                     {
-                        key: 'mediatbale',
+                        key: 'mediatable',
                         label: 'Media Table',
                     },
 

@@ -26,7 +26,7 @@ function App() {
 
     const [optionsData, setOptionsData] = useState( [] );
 
-    const [ selectedMenu, setSelectedMenu] = useState( 'mediatbale' );
+    const [ selectedMenu, setSelectedMenu] = useState( 'mediatable' );
 
     const [isUpdated, setIsUpdated] = useState(false );
 
@@ -65,15 +65,16 @@ function App() {
             termsList,
             optionsData,
             setOptionsData,
-            setSelectedMenu,
             handleUpdateOption,
             isUpdated,
-            setIsUpdated
+            setIsUpdated,
+            selectedMenu,
+            setSelectedMenu
         } }>
             <Layout className="tttme-App">
                 <MainHeader/>
                 <Content>
-                    { 'mediatbale' === selectedMenu && <ProcessTableData/> }
+                    { 'mediatable' === selectedMenu && <ProcessTableData/> }
                     { 'settings' === selectedMenu && `Hello` }
                 </Content>
             </Layout>
