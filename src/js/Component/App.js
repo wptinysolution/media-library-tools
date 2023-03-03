@@ -1,17 +1,16 @@
 
 import React, {useState, useEffect } from "react";
 
-import { TheContext } from '../Utils/TheContext';
+import { TheAppContext } from '../Utils/TheContext';
 
 import ProcessTableData from "./ListTable/ProcessTableData";
-
 
 import {
     getTerms,
     getDates,
     getOptions,
+    updateOptins,
 } from "../Utils/Data";
-
 
 function App() {
 
@@ -20,6 +19,8 @@ function App() {
     const [termsList, setTermsList] = useState( [] );
 
     const [optionsData, setOptionsData] = useState( [] );
+
+    const [isUpdated, setIsUpdated] = useState(false );
 
     const getDateList = async () => {
         const response = await getDates();
@@ -39,6 +40,11 @@ function App() {
         setOptionsData( preparedData );
     }
 
+    const handleUpdateOption = async ( event ) => {
+        const response = await updateOptins( optionsData );
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+    }
+
     useEffect(() => {
         getDateList();
         getTermsList();
@@ -46,11 +52,19 @@ function App() {
     }, []  );
 
     return (
-        <TheContext.Provider value={ { dateList, termsList, optionsData } }>
+        <TheAppContext.Provider value={ {
+            dateList,
+            termsList,
+            optionsData,
+            setOptionsData,
+            handleUpdateOption,
+            isUpdated,
+            setIsUpdated
+        } }>
             <div className="tttme-App">
                  <ProcessTableData/>
             </div>
-        </TheContext.Provider>
+        </TheAppContext.Provider>
     );
 }
 export default App
