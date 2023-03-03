@@ -169,7 +169,7 @@ class Api {
         ] ;
         $submit = [];
 
-        if (empty($parameters['ID'])) {
+        if ( empty( $parameters['ID'] ) ) {
             return $result;
         }
 
@@ -310,82 +310,83 @@ class Api {
             'updated' => false,
             'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
         ] ;
-        if ( ! empty($parameters['type']) ) {
-            $ids = $parameters['ids'];
-            switch ( $parameters['type'] ){
-                case 'trash':
-                case 'inherit':
-                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                        $parameters['type'],
-                        ...$ids
-                    );
-                    $updated = wp_cache_get( md5( $query ), 'attachment-query' );
-                    if ( false === $updated ) {
-                        $updated = $wpdb->query( $query );
-                        wp_cache_set( md5( $query ), $updated,'attachment-query' );
-                    }
-                    $result['updated'] = (bool) $updated;
-                    $result['message'] = $updated ? esc_html__('Done. Be happy.', 'ttt-wp-media') : esc_html__('Failed. Please try to fix', 'ttt-wp-media');
-                    break;
-                case 'delete':
-                    $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                        ...$ids
-                    );
-
-                    $delete = wp_cache_get( md5( $query ), 'attachment-query' );
-                    if ( false === $delete ) {
-                        $delete = $wpdb->query( $query );
-                        wp_cache_set( md5( $query ), $delete,'attachment-query' );
-                    }
-                    $result['updated'] = (bool) $delete;
-                    $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
-                    break;
-                case 'bulkedit':
-
-                    $data = $parameters['data'];
-                    $categories = $parameters['post_categories'];
-                    $set_data = '';
-                    if( ! empty( $data['post_title'] ) ){
-                        $set_data .= "post_title= '{$data['post_title']}', " ;
-                    }
-                    if( ! empty( $data['caption'] ) ){
-                        $set_data .= "post_excerpt='{$data['caption']}', ";
-                    }
-                    if( ! empty( $data['post_description'] ) ){
-                        $set_data .= "post_content ='{$data['post_description']}', ";
-                    }
-                    $set_data = rtrim( $set_data,", ");
-                    if( ! empty( $set_data ) ){
-                        // UPDATE wp_posts SET post_title= 'The string values for the column-value', post_excerpt='The string values for the column-value', post_content ='The string values for the column-value' WHERE post_type = 'attachment' AND ID IN (72,73,74,75)
-                        $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                            ...$ids
-                        );
-                        $update = wp_cache_get( md5( $query ), 'attachment-query' );
-                        if ( false === $update ) {
-                            $update = $wpdb->query( $query );
-                            wp_cache_set( md5( $query ), $update,'attachment-query' );
-                        }
-
-                    }
-                   // error_log( print_r( $categories  , true) . "\n\n", 3, __DIR__.'/logg.txt');
-                    $update = false;
-                    $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
-                    foreach ( $ids as $id) {
-                        if( $alt ){
-                            $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $alt ) );
-                        }
-                        if( ! empty( $categories ) ){
-                            $update = wp_set_object_terms( $id, $categories, tttwm()->category );
-                        }
-                    }
-                    $result['updated'] = (bool) $update;
-                    $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
-
-                    break;
-                default:
-                   // error_log( print_r( 'default', true) . "\n\n", 3, __DIR__.'/logg.txt');
-            }
+        if (  empty($parameters['type']) || empty($parameters['ids']) ) {
+            return $result;
         }
+
+        $ids = $parameters['ids'];
+        switch ( $parameters['type'] ){
+            case 'trash':
+            case 'inherit':
+                $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                    $parameters['type'],
+                    ...$ids
+                );
+                $updated = wp_cache_get( md5( $query ), 'attachment-query' );
+                if ( false === $updated ) {
+                    $updated = $wpdb->query( $query );
+                    wp_cache_set( md5( $query ), $updated,'attachment-query' );
+                }
+                $result['updated'] = (bool) $updated;
+                $result['message'] = $updated ? esc_html__('Done. Be happy.', 'ttt-wp-media') : esc_html__('Failed. Please try to fix', 'ttt-wp-media');
+                break;
+            case 'delete':
+                $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                    ...$ids
+                );
+
+                $delete = wp_cache_get( md5( $query ), 'attachment-query' );
+                if ( false === $delete ) {
+                    $delete = $wpdb->query( $query );
+                    wp_cache_set( md5( $query ), $delete,'attachment-query' );
+                }
+                $result['updated'] = (bool) $delete;
+                $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
+                break;
+            case 'bulkedit':
+
+                $data = $parameters['data'];
+                $categories = $parameters['post_categories'];
+                $set_data = '';
+                if( ! empty( $data['post_title'] ) ){
+                    $set_data .= "post_title= '{$data['post_title']}', " ;
+                }
+                if( ! empty( $data['caption'] ) ){
+                    $set_data .= "post_excerpt='{$data['caption']}', ";
+                }
+                if( ! empty( $data['post_description'] ) ){
+                    $set_data .= "post_content ='{$data['post_description']}', ";
+                }
+                $set_data = rtrim( $set_data,", ");
+                if( ! empty( $set_data ) ){
+                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
+                        ...$ids
+                    );
+                    $update = wp_cache_get( md5( $query ), 'attachment-query' );
+                    if ( false === $update ) {
+                        $update = $wpdb->query( $query );
+                        wp_cache_set( md5( $query ), $update,'attachment-query' );
+                    }
+                }
+
+                $update = false;
+                $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
+                foreach ( $ids as $id) {
+                    if( $alt ){
+                        $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $alt ) );
+                    }
+                    if( ! empty( $categories ) ){
+                        $update = wp_set_object_terms( $id, $categories, tttwm()->category );
+                    }
+                }
+                $result['updated'] = (bool) $update;
+                $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+
+                break;
+            default:
+
+        }
+
         return $result;
     }
 
