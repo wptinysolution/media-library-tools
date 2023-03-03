@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { TheContext } from '../../Utils/TheContext';
+import { TheMediaTableContext } from '../../Utils/TheContext';
 
 import { columns } from '../../Utils/UtilData';
 
@@ -39,7 +39,7 @@ export default function DataTable() {
         onCheckboxChange,
         formEdited
 
-    } = useContext( TheContext );
+    } = useContext( TheMediaTableContext );
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 

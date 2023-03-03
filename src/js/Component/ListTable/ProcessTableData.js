@@ -1,19 +1,15 @@
 
-import React, {useState, useEffect } from "react";
+import React, {useState, useEffect, useContext} from "react";
 
-import { TheContext } from '../../Utils/TheContext';
+import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
 
 import DataTable from "./Datatable";
 
 import BulkModal from "./BulkModal";
 
 import {
-    getTerms,
-    getDates,
     getMedia,
-    getOptions,
     upDateSingleMedia,
-    updateOptins,
     submitBulkMediaAction
 } from "../../Utils/Data";
 
@@ -24,23 +20,17 @@ import {
     defaultPostsQuery
 } from '../../Utils/UtilData'
 
-// import {value} from "lodash/seq";
-
 function ProcessTableData() {
+    const {
+        isUpdated,
+        setIsUpdated
+    } = useContext( TheAppContext );
 
     const [data, setData] = useState( defaultPosts );
 
     const [postQuery, setPostQuery] = useState( defaultPostsQuery );
 
     const [filtering, setFiltering] = useState( defaultPostsFilter );
-
-    const [dateList, setDateList] = useState( [] );
-
-    const [termsList, setTermsList] = useState( [] );
-
-    const [optionsData, setOptionsData] = useState( [] );
-
-    const [isUpdated, setIsUpdated] = useState(false );
 
     const [currentItemEdited, setCurrentItemEdited] = useState(false );
 
@@ -58,17 +48,6 @@ function ProcessTableData() {
 
     const [isLoading, setIsloading] = useState( true );
 
-    const getDateList = async () => {
-        const response = await getDates();
-        const preparedData =  JSON.parse( response.data );
-        setDateList( preparedData );
-    }
-
-    const getTermsList = async () => {
-        const response = await getTerms();
-        const preparedData =  JSON.parse( response.data );
-        setTermsList( preparedData );
-    }
 
     const getTheMedia = async () => {
         const response = await getMedia('', {
@@ -77,19 +56,8 @@ function ProcessTableData() {
         setData( response );
     }
 
-    const getTheOptins = async () => {
-        const response = await getOptions();
-        const preparedData =  JSON.parse( response.data );
-        setOptionsData( preparedData );
-    }
-
-    const handleUpdateOption = async ( event ) => {
-        const response = await updateOptins( optionsData );
-        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
-    }
 
     const submitBulkMedia = async ( params ) => {
-        // console.log( params )
         const response = await submitBulkMediaAction( params );
         if( 200 === parseInt( response.status ) && response.data.updated ){
             setFormEdited( false );
@@ -251,12 +219,6 @@ function ProcessTableData() {
     }
 
     useEffect(() => {
-        getDateList();
-        getTermsList();
-        getTheOptins();
-    }, []  );
-
-    useEffect(() => {
         getTheMedia();
         setTimeout(() => {
             setIsloading( false )
@@ -264,10 +226,7 @@ function ProcessTableData() {
     }, [isUpdated]  );
 
     return (
-        <TheContext.Provider value={ {
-            dateList,
-            termsList,
-            optionsData,
+        <TheMediaTableContext.Provider value={ {
             setData,
             isLoading,
             postQuery,
@@ -276,7 +235,6 @@ function ProcessTableData() {
             bulkSubmitdata,
             handleFilterData,
             handleBulkSubmit,
-            handleUpdateOption,
             handleChangeBulkType,
             isBulkModalOpen,
             handleBulkModalOk,
@@ -295,7 +253,6 @@ function ProcessTableData() {
             handleColumnEditMode,
             handleChange,
             handleFocusout,
-            setOptionsData,
             filtering,
             setFiltering,
             setbulkSubmitdata
@@ -304,7 +261,7 @@ function ProcessTableData() {
                  <DataTable />
                  <BulkModal />
             </div>
-        </TheContext.Provider>
+        </TheMediaTableContext.Provider>
     );
 }
 
