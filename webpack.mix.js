@@ -69,7 +69,7 @@ if (
 				package: "WP Media Tools",
 				bugReport: "",
 				src: "**/*.php",
-				domain: "ttt-wp-media",
+				domain: "tsmlt-media-tools",
 				destFile: `languages/${package_slug}.pot`,
 			});
 		});
