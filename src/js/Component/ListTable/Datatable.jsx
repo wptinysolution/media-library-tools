@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { TheMediaTableContext } from '../../Utils/TheContext';
+import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
 
 import { columns } from '../../Utils/UtilData';
 
@@ -22,6 +22,10 @@ const {
 import TheHeader from "./TheHeader";
 
 export default function Datatable() {
+    const {
+        optionsData,
+        selectedMenu
+    } = useContext( TheAppContext );
 
     const {
         posts,
@@ -43,6 +47,18 @@ export default function Datatable() {
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
+    const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange );
+    const tablecolumn = thecolumn.filter( ( currentValue) => {
+        if( ! optionsData.media_table_column || 'CheckboxID' === currentValue.key ){
+            return true;
+        }
+        // if( 'settings' === selectedMenu ){
+        //     return true;
+        // }
+        return optionsData.media_table_column.includes( `${currentValue.key}` );
+    } );
+
+    // optionsData
     return (
             <Layout className="layout">
                 <TheHeader/>
@@ -58,7 +74,7 @@ export default function Datatable() {
                         <Table
                             rowKey={(item) => item.ID}
                             pagination={false}
-                            columns={ columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange ) }
+                            columns={ tablecolumn }
                             dataSource={posts}
                             scroll={{
                                 x: 1300,

@@ -56,9 +56,12 @@ function App() {
     }
 
     useEffect(() => {
+        getTheOptins();
+    }, [isUpdated, selectedMenu ] );
+
+    useEffect(() => {
         getDateList();
         getTermsList();
-        getTheOptins();
     }, []  );
 
     return (
@@ -78,7 +81,7 @@ function App() {
                 background: '#fff',
                 borderRadius: '5px',
                 boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
-                height: 'calc( 100vh - 60px )',
+                height: 'calc( 100vh - 110px )',
             }}>
                 <Sider style={{
                     borderRadius: '5px',
@@ -89,10 +92,8 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
-                    { 'settings' === selectedMenu && <Settings/> }
-
+                    { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
                 </Layout>
             </Layout>
         </TheAppContext.Provider>

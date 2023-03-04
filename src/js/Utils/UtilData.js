@@ -70,6 +70,33 @@ export const bulkOprions = [
     },
 ];
 
+export const columnList = [
+    {
+        title: 'ID',
+        key: 'ID',
+    },
+    {
+        title: 'File',
+        key: 'Image',
+    },
+    {
+        title: `Title`,
+        key: 'Title',
+    },
+    {
+        title: `Alt`,
+        key: 'Alt',
+    },
+    {
+        title: `Caption`,
+        key: 'Caption',
+    },
+    {
+        title: `Description`,
+        key: 'Description',
+    },
+];
+
 export function columns(
     bulkChecked,
     onBulkCheck,
@@ -83,7 +110,7 @@ export function columns(
     return [
         {
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
-            key: 'ID',
+            key: 'CheckboxID',
             dataIndex: 'ID',
             width: '80px',
             align: 'center',
@@ -136,4 +163,6 @@ export function columns(
         },
     ];
 }
+
+
 
