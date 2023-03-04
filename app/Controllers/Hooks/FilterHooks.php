@@ -182,7 +182,7 @@ class FilterHooks {
          * TODO:: Next Version
          *
          */
-        if( ! Fns::is_plugins_installed('media-edit-pro/media-edit-pro.php') ){
+        if( ! Fns::is_plugins_installed('media-library-tools-pro/media-library-tools-pro.php') ){
             // $links['tsmlt_pro'] = sprintf( '<a href="#" target="_blank" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'wp-media' ) . '</a>' );
         }
         return $links;
