@@ -65,34 +65,34 @@ class Review {
      *
      * @return void
      */
-	public static function tttwm_spare_me() {
+    public static function tttwm_spare_me() {
 
-		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'tttwm_notice_nonce' ) ) {
-			return;
-		}
+        if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'tttwm_notice_nonce' ) ) {
+            return;
+        }
 
-		if ( isset( $_GET['tttwm_spare_me'] ) && ! empty( $_GET['tttwm_spare_me'] ) ) {
-			$spare_me = $_GET['tttwm_spare_me'];
-			if ( 1 == $spare_me ) {
-				update_option( 'tttwm_spare_me', '1' );
-			}
-		}
+        if ( isset( $_GET['tttwm_spare_me'] ) && ! empty( $_GET['tttwm_spare_me'] ) ) {
+            $spare_me = absint( $_GET['tttwm_spare_me'] );
+            if ( 1 == $spare_me ) {
+                update_option( 'tttwm_spare_me', '1' );
+            }
+        }
 
-		if ( isset( $_GET['tttwm_remind_me'] ) && ! empty( $_GET['tttwm_remind_me'] ) ) {
-			$remind_me = $_GET['tttwm_remind_me'];
-			if ( 1 == $remind_me ) {
-				$get_activation_time = strtotime( 'now' );
-				update_option( 'tttwm_remind_me', $get_activation_time );
-			}
-		}
+        if ( isset( $_GET['tttwm_remind_me'] ) && ! empty( $_GET['tttwm_remind_me'] ) ) {
+            $remind_me = absint( $_GET['tttwm_remind_me'] );
+            if ( 1 == $remind_me ) {
+                $get_activation_time = strtotime( 'now' );
+                update_option( 'tttwm_remind_me', $get_activation_time );
+            }
+        }
 
-		if ( isset( $_GET['tttwm_rated'] ) && ! empty( $_GET['tttwm_rated'] ) ) {
-			$tttwm_rated = $_GET['tttwm_rated'];
-			if ( 1 == $tttwm_rated ) {
-				update_option( 'tttwm_rated', 'yes' );
-			}
-		}
-	}
+        if ( isset( $_GET['tttwm_rated'] ) && ! empty( $_GET['tttwm_rated'] ) ) {
+            $tttwm_rated = absint(  $_GET['tttwm_rated'] );
+            if ( 1 == $tttwm_rated ) {
+                update_option( 'tttwm_rated', 'yes' );
+            }
+        }
+    }
 
 	protected static function tttwm_current_admin_url() {
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
