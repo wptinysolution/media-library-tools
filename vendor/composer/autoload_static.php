@@ -9,12 +9,12 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
     public static $prefixLengthsPsr4 = array (
         'T' => 
         array (
-            'TheTinyTools\\WM\\' => 16,
+            'TinySolutions\\mlt\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'TheTinyTools\\WM\\' => 
+        'TinySolutions\\mlt\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
@@ -22,6 +22,17 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/../..' . '/app/Controllers/Admin/Api.php',
+        'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => __DIR__ . '/../..' . '/app/Controllers/Admin/RegisterPostAndTax.php',
+        'TinySolutions\\mlt\\Controllers\\Admin\\Review' => __DIR__ . '/../..' . '/app/Controllers/Admin/Review.php',
+        'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/../..' . '/app/Controllers/Admin/SubMenu.php',
+        'TinySolutions\\mlt\\Controllers\\AssetsController' => __DIR__ . '/../..' . '/app/Controllers/AssetsController.php',
+        'TinySolutions\\mlt\\Controllers\\Dependencies' => __DIR__ . '/../..' . '/app/Controllers/Dependencies.php',
+        'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/ActionHooks.php',
+        'TinySolutions\\mlt\\Controllers\\Hooks\\FilterHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/FilterHooks.php',
+        'TinySolutions\\mlt\\Controllers\\Installation' => __DIR__ . '/../..' . '/app/Controllers/Installation.php',
+        'TinySolutions\\mlt\\Helpers\\Fns' => __DIR__ . '/../..' . '/app/Helpers/Fns.php',
+        'TinySolutions\\mlt\\Traits\\SingletonTrait' => __DIR__ . '/../..' . '/app/Traits/SingletonTrait.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

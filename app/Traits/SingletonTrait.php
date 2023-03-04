@@ -3,7 +3,7 @@
  *
  */
 
-namespace TheTinyTools\WM\Traits;
+namespace TinySolutions\mlt\Traits;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -2,9 +2,9 @@
 /**
  * Post Type and Taxonomy
  */
-namespace TheTinyTools\WM\Controllers\Admin;
+namespace TinySolutions\mlt\Controllers\Admin;
 
-use TheTinyTools\WM\Traits\SingletonTrait;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
  * Register Post and Taxonomy class

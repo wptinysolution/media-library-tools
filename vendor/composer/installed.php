@@ -6,19 +6,19 @@
     'aliases' => 
     array (
     ),
-    'reference' => '312746b47c67cff8f487193c8d712caf8b818567',
-    'name' => 'thetinytools/tsmlt-media-tools',
+    'reference' => 'f72688ffabaa8a452e8801757a1da68b01b21f4d',
+    'name' => 'thetinytools/media-library-tools',
   ),
   'versions' => 
   array (
-    'thetinytools/tsmlt-media-tools' => 
+    'thetinytools/media-library-tools' => 
     array (
       'pretty_version' => 'dev-master',
       'version' => 'dev-master',
       'aliases' => 
       array (
       ),
-      'reference' => '312746b47c67cff8f487193c8d712caf8b818567',
+      'reference' => 'f72688ffabaa8a452e8801757a1da68b01b21f4d',
     ),
   ),
 );

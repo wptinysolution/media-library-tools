@@ -1,13 +1,13 @@
 <?php
 
-namespace TheTinyTools\WM\Controllers\Admin;
+namespace TinySolutions\mlt\Controllers\Admin;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
     exit( 'This script cannot be accessed directly.' );
 }
 
-use TheTinyTools\WM\Traits\SingletonTrait;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
  * Sub menu class

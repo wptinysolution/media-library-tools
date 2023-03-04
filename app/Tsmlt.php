@@ -2,7 +2,7 @@
 /**
  * Main initialization class.
  *
- * @package TheTinyTools\WM
+ * @package TinySolutions\mlt
  */
 
 // Do not allow directly accessing this file.
@@ -11,22 +11,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 require_once __DIR__ . './../vendor/autoload.php';
 
-use TheTinyTools\WM\Traits\SingletonTrait;
-use TheTinyTools\WM\Controllers\Installation;
-use TheTinyTools\WM\Controllers\Dependencies;
-use TheTinyTools\WM\Controllers\AssetsController;
-use TheTinyTools\WM\Controllers\Hooks\FilterHooks;
-use TheTinyTools\WM\Controllers\Hooks\ActionHooks;
-use TheTinyTools\WM\Controllers\Admin\SubMenu;
-use TheTinyTools\WM\Controllers\Admin\Api;
-use TheTinyTools\WM\Controllers\Admin\RegisterPostAndTax;
-use TheTinyTools\WM\Controllers\Admin\Review;
+use TinySolutions\mlt\Traits\SingletonTrait;
+use TinySolutions\mlt\Controllers\Installation;
+use TinySolutions\mlt\Controllers\Dependencies;
+use TinySolutions\mlt\Controllers\AssetsController;
+use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
+use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
+use TinySolutions\mlt\Controllers\Admin\SubMenu;
+use TinySolutions\mlt\Controllers\Admin\Api;
+use TinySolutions\mlt\Controllers\Admin\RegisterPostAndTax;
+use TinySolutions\mlt\Controllers\Admin\Review;
 
-if ( ! class_exists( TTTWpMedia::class ) ) {
+if ( ! class_exists( Tsmlt::class ) ) {
 	/**
 	 * Main initialization class.
 	 */
-	final class TTTWpMedia {
+	final class Tsmlt {
 
 		/**
 		 * Nonce id
@@ -151,10 +151,10 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 	}
 
 	/**
-	 * @return WpMedia
+	 * @return Tsmlt
 	 */
 	function tsmlt() {
-		return TTTWpMedia::instance();
+		return Tsmlt::instance();
 	}
 
 	tsmlt();

@@ -1,14 +1,14 @@
 {
-  "name": "thetinytools/ttt-wp-media",
+  "name": "tinysolutions/media-library-tools",
   "authors": [
     {
-      "name": "TheTinyTools",
-      "email": "admin@TheTinyTools.com"
+      "name": "TinySolutions",
+      "email": "wptinysolution@gmail.com"
     }
   ],
   "autoload": {
     "psr-4": {
-      "TheTinyTools\\WM\\": "app"
+      "TinySolutions\\mlt\\": "app"
     }
   },
   "description": ""

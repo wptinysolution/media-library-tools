@@ -1,8 +1,8 @@
 <?php
 
-namespace TheTinyTools\WM\Controllers\Admin;
+namespace TinySolutions\mlt\Controllers\Admin;
 
-use TheTinyTools\WM\Traits\SingletonTrait;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
  * Review class

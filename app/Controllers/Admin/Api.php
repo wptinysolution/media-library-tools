@@ -1,9 +1,9 @@
 <?php
 
-namespace TheTinyTools\WM\Controllers\Admin;
+namespace TinySolutions\mlt\Controllers\Admin;
 
-use TheTinyTools\WM\Helpers\Fns;
-use TheTinyTools\WM\Traits\SingletonTrait;
+use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
 class Api {
@@ -17,7 +17,7 @@ class Api {
      * Construct
      */
     private function __construct() {
-        $this->namespace     = 'TheTinyTools/WM/v1';
+        $this->namespace     = 'TinySolutions/mlt/v1';
         $this->resource_name = '/media';
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
     }
