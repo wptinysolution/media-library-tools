@@ -11,7 +11,7 @@
  * Text Domain:       tsmlt-media-tools
  * Domain Path:       /languages
  *
- * @package TheTinyTools\WM
+ * @package TinySolutions\WM
  */
 
 // Do not allow directly accessing this file.
@@ -31,4 +31,4 @@ define( 'TSMLT_ABSPATH', dirname(TSMLT_FILE) );
 /**
  * App Init.
  */
-require_once 'app/WpMedia.php';
+require_once 'app/Tsmlt.php';

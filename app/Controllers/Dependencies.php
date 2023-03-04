@@ -1,8 +1,8 @@
 <?php
 
-namespace TheTinyTools\WM\Controllers;
+namespace TinySolutions\mlt\Controllers;
 
-use TheTinyTools\WM\Traits\SingletonTrait;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

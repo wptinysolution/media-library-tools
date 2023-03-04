@@ -1,6 +1,6 @@
 <?php
 
-namespace TheTinyTools\WM\Controllers;
+namespace TinySolutions\mlt\Controllers;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -2,12 +2,12 @@
 /**
  * Main FilterHooks class.
  *
- * @package TheTinyTools\WM
+ * @package TinySolutions\WM
  */
 
-namespace TheTinyTools\WM\Controllers\Hooks;
+namespace TinySolutions\mlt\Controllers\Hooks;
 
-use TheTinyTools\WM\Helpers\Fns;
+use TinySolutions\mlt\Helpers\Fns;
 
 defined( 'ABSPATH' ) || exit();
 
