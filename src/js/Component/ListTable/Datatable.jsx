@@ -52,9 +52,6 @@ export default function Datatable() {
         if( ! optionsData.media_table_column || 'CheckboxID' === currentValue.key ){
             return true;
         }
-        // if( 'settings' === selectedMenu ){
-        //     return true;
-        // }
         return optionsData.media_table_column.includes( `${currentValue.key}` );
     } );
 
