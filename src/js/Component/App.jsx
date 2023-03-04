@@ -28,7 +28,7 @@ function App() {
 
     const [optionsData, setOptionsData] = useState( [] );
 
-    const [ selectedMenu, setSelectedMenu] = useState( 'settings' );
+    const [ selectedMenu, setSelectedMenu] = useState( 'mediatable' );
 
     const [isUpdated, setIsUpdated] = useState(false );
 

@@ -11,6 +11,7 @@ const { Header } = Layout;
 
 function MainHeader() {
     const {
+        selectedMenu,
         setSelectedMenu
     } = useContext( TheAppContext );
 
@@ -35,7 +36,7 @@ function MainHeader() {
                 }}
                 theme="dark"
                 mode="inline"
-                defaultSelectedKeys={['settings']}
+                defaultSelectedKeys={[selectedMenu]}
                 items={[
                     {
                         key: 'mediatable',
