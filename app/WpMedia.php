@@ -33,7 +33,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		 *
 		 * @var string
 		 */
-		public $nonceId = 'tttwp_wpnonce';
+		public $nonceId = 'tsmlt_wpnonce';
 
 		/**
 		 * Post Type.
@@ -46,7 +46,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
          *
          * @var string
          */
-        public $category = 'tttwp_category';
+        public $category = 'tsmlt_category';
 		/**
 		 * Singleton
 		 */
@@ -62,9 +62,9 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
 			// Register Plugin Active Hook.
-			register_activation_hook( TTTWM_FILE, [ Installation::class, 'activate' ] );
+			register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
 			// Register Plugin Deactivate Hook.
-			register_deactivation_hook( TTTWM_FILE, [ Installation::class, 'deactivation' ] );
+			register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
 
 
 
@@ -79,7 +79,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		 */
 		public function get_assets_uri( $file ) {
 			$file = ltrim( $file, '/' );
-			return trailingslashit( TTTWM_URL . '/assets' ) . $file;
+			return trailingslashit( TSMLT_URL . '/assets' ) . $file;
 		}
 
 		/**
@@ -88,7 +88,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		 * @return string
 		 */
 		public function get_template_path() {
-			return apply_filters( 'tttwp_template_path', 'templates/' );
+			return apply_filters( 'tsmlt_template_path', 'templates/' );
 		}
 
 		/**
@@ -97,14 +97,14 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		 * @return string
 		 */
 		public function plugin_path() {
-			return untrailingslashit( plugin_dir_path( TTTWM_FILE ) );
+			return untrailingslashit( plugin_dir_path( TSMLT_FILE ) );
 		}
 
 		/**
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'ttt-wp-media', false, TTTWM_ABSPATH . '/languages/' );
+			load_plugin_textdomain( 'tsmlt-media-tools', false, TSMLT_ABSPATH . '/languages/' );
 		}
 
 		/**
@@ -117,7 +117,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 				return;
 			}
 
-			do_action( 'tttwp/before_loaded' );
+			do_action( 'tsmlt/before_loaded' );
 
             Review::instance();
 			// Include File.
@@ -128,7 +128,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 			ActionHooks::init_hooks();
             Api::instance();
 
-			do_action( 'tttwp/after_loaded' );
+			do_action( 'tsmlt/after_loaded' );
 		}
 
 		/**
@@ -137,7 +137,7 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			return function_exists( 'tttwpp' );
+			return function_exists( 'tsmltp' );
 		}
 
 		/**
@@ -153,9 +153,9 @@ if ( ! class_exists( TTTWpMedia::class ) ) {
 	/**
 	 * @return WpMedia
 	 */
-	function tttwm() {
+	function tsmlt() {
 		return TTTWpMedia::instance();
 	}
 
-	tttwm();
+	tsmlt();
 }

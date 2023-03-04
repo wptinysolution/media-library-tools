@@ -8,7 +8,7 @@
  * Version:           1.0.0
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
- * Text Domain:       ttt-wp-media
+ * Text Domain:       tsmlt-media-tools
  * Domain Path:       /languages
  *
  * @package TheTinyTools\WM
@@ -22,11 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define media edit Constant.
  */
-define( 'TTTWM_VERSION', '1.0.0' );
-define( 'TTTWM_FILE', __FILE__ );
-define( 'TTTWM_BASENAME', plugin_basename( __FILE__ ) );
-define( 'TTTWM_URL', plugins_url('', TTTWM_FILE));
-define( 'TTTWM_ABSPATH', dirname(TTTWM_FILE) );
+define( 'TSMLT_VERSION', '1.0.0' );
+define( 'TSMLT_FILE', __FILE__ );
+define( 'TSMLT_BASENAME', plugin_basename( __FILE__ ) );
+define( 'TSMLT_URL', plugins_url('', TSMLT_FILE));
+define( 'TSMLT_ABSPATH', dirname(TSMLT_FILE) );
 
 /**
  * App Init.

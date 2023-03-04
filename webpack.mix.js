@@ -9,7 +9,7 @@ const min = mix.inProduction() ? ".min" : "";
 
 const package_path = path.resolve(__dirname);
 const package_slug = path.basename(path.resolve(package_path));
-const temDirectory = package_path + "/tmp";
+const temDirectory = package_path + "/dist";
 
 mix.options({
 	terser: {

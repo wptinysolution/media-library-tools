@@ -27,19 +27,19 @@ class RegisterPostAndTax {
         if ( ! is_blog_installed() || ! post_type_exists( 'attachment' ) ) {
             return;
         }
-        do_action('tttwp_register_taxonomy');
+        do_action('tsmlt_register_taxonomy');
 
         $args = array(
-            'label'        => esc_html__( 'Category', 'ttt-wp-media' ),
+            'label'        => esc_html__( 'Category', 'tsmlt-media-tools' ),
             'public'       => true,
-            'rewrite'      => array( 'slug' => 'tttwp-category' ),
+            'rewrite'      => array( 'slug' => 'tsmlt-category' ),
             'update_count_callback' => '_update_generic_term_count',
             'hierarchical' => true
         );
 
-        register_taxonomy( tttwm()->category, 'attachment', $args );
+        register_taxonomy( tsmlt()->category, 'attachment', $args );
 
-        do_action('tttwp_after_register_taxonomy');
+        do_action('tsmlt_after_register_taxonomy');
     }
 
 }

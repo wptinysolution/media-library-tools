@@ -35,10 +35,10 @@ class SubMenu {
     public function register_sub_menu() {
         add_submenu_page(
             'upload.php',
-            esc_html__('Media Tools', 'ttt-wp-media'),
-            esc_html__('Media Tools', 'ttt-wp-media'),
+            esc_html__('Media Tools', 'tsmlt-media-tools'),
+            esc_html__('Media Tools', 'tsmlt-media-tools'),
             'manage_options',
-            'ttt-wp-media',
+            'tsmlt-media-tools',
             array(&$this, 'wp_media_page_callback')
         );
     }
