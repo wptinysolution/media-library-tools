@@ -9,7 +9,7 @@ const min = mix.inProduction() ? ".min" : "";
 
 const package_path = path.resolve(__dirname);
 const package_slug = path.basename(path.resolve(package_path));
-const temDirectory = package_path + "/tmp";
+const temDirectory = package_path + "/dist";
 
 mix.options({
 	terser: {
@@ -69,7 +69,7 @@ if (
 				package: "WP Media Tools",
 				bugReport: "",
 				src: "**/*.php",
-				domain: "ttt-wp-media",
+				domain: "tsmlt-media-tools",
 				destFile: `languages/${package_slug}.pot`,
 			});
 		});

@@ -78,7 +78,7 @@ class Api {
 
         $result = [
             'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
         ] ;
 
         $parameters = $request_data->get_params();
@@ -87,15 +87,15 @@ class Api {
 
         $limit =  $limit ?  $limit : 20 ;
 
-        $tttwp_media = get_option( 'tttwp_settings' , [] );
+        $tsmlt_media = get_option( 'tsmlt_settings' , [] );
 
-        $tttwp_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? absint( $parameters['media_per_page'] ) : $limit ;
+        $tsmlt_media['media_per_page'] = ! empty( $parameters['media_per_page'] ) ? absint( $parameters['media_per_page'] ) : $limit ;
 
-        $options = update_option( 'tttwp_settings', $tttwp_media );
+        $options = update_option( 'tsmlt_settings', $tsmlt_media );
 
         $result['updated'] = boolval( $options );
 
-        $result['message'] = ! $options ? $result['message'] : esc_html__('Updated. Be happy', 'ttt-wp-media');
+        $result['message'] = ! $options ? $result['message'] : esc_html__('Updated. Be happy', 'tsmlt-media-tools');
 
         //error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
@@ -106,7 +106,7 @@ class Api {
      * @return false|string
      */
     public function get_options() {
-        $options = get_option( 'tttwp_settings' );
+        $options = get_option( 'tsmlt_settings' );
         return wp_json_encode($options);
     }
 
@@ -115,7 +115,7 @@ class Api {
      */
     public function get_terms() {
         $terms = get_terms( array(
-            'taxonomy' => 'tttwp_category',
+            'taxonomy' => 'tsmlt_category',
             'hide_empty' => false,
         ) );
         $terms_array = [] ;
@@ -165,7 +165,7 @@ class Api {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
         ] ;
         $submit = [];
 
@@ -175,25 +175,25 @@ class Api {
 
         if ( ! empty( $parameters['post_title'] ) ) {
             $submit['post_title'] = trim( $parameters['post_title'] );
-            $result['message'] = esc_html__('The Title has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Title has been saved.', 'tsmlt-media-tools');
         }
         if ( isset( $parameters['post_excerpt'] ) ) {
             $submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
-            $result['message'] = esc_html__('The Caption has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Caption has been saved.', 'tsmlt-media-tools');
         }
         if ( isset( $parameters['post_content'] ) ) {
             $submit['post_content'] = trim( $parameters['post_content'] );
-            $result['message'] = esc_html__('Content has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('Content has been saved.', 'tsmlt-media-tools');
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = esc_html__('The Text has been saved.', 'ttt-wp-media');
+            $result['message'] = esc_html__('The Text has been saved.', 'tsmlt-media-tools');
         }
         if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
             $result['updated'] = wp_update_post( $submit );
         }
-        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools');
 
         return $result;
     }
@@ -208,7 +208,7 @@ class Api {
 
         $limit = get_user_option('upload_per_page', get_current_user_id());
         $limit = ! empty( $limit ) ? absint( $limit ) : 20;
-        $options = get_option( 'tttwp_settings' );
+        $options = get_option( 'tsmlt_settings' );
         $limit = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : $limit );
 
         $orderby  = 'menu_order';
@@ -249,7 +249,7 @@ class Api {
 
         $join_query = ! empty( $parameters['categories'] ) ? " JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " : null;
 
-        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  " AND tt.taxonomy = 'tttwp_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
+        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  " AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
 
         $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  " AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
 
@@ -263,7 +263,7 @@ class Api {
             JOIN wp_term_relationships AS tr ON p.ID = tr.object_id
             JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
             LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment' AND tt.taxonomy = 'tttwp_category' AND tt.term_id = 5
+            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment' AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 5
             ORDER BY menu_order DESC
             LIMIT 0, 4
         */
@@ -308,7 +308,7 @@ class Api {
         $parameters = $request_data->get_params();
         $result = [
             'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'ttt-wp-media')
+            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
         ] ;
         if (  empty($parameters['type']) || empty($parameters['ids']) ) {
             return $result;
@@ -328,7 +328,7 @@ class Api {
                     wp_cache_set( md5( $query ), $updated,'attachment-query' );
                 }
                 $result['updated'] = (bool) $updated;
-                $result['message'] = $updated ? esc_html__('Done. Be happy.', 'ttt-wp-media') : esc_html__('Failed. Please try to fix', 'ttt-wp-media');
+                $result['message'] = $updated ? esc_html__('Done. Be happy.', 'tsmlt-media-tools') : esc_html__('Failed. Please try to fix', 'tsmlt-media-tools');
                 break;
             case 'delete':
                 $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
@@ -341,7 +341,7 @@ class Api {
                     wp_cache_set( md5( $query ), $delete,'attachment-query' );
                 }
                 $result['updated'] = (bool) $delete;
-                $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'ttt-wp-media') : esc_html__('Deleted failed. Please try to fix', 'ttt-wp-media');
+                $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'tsmlt-media-tools') : esc_html__('Deleted failed. Please try to fix', 'tsmlt-media-tools');
                 break;
             case 'bulkedit':
 
@@ -376,11 +376,11 @@ class Api {
                         $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $alt ) );
                     }
                     if( ! empty( $categories ) ){
-                        $update = wp_set_object_terms( $id, $categories, tttwm()->category );
+                        $update = wp_set_object_terms( $id, $categories, tsmlt()->category );
                     }
                 }
                 $result['updated'] = (bool) $update;
-                $result['message'] = $update ? esc_html__('Updated. Be happy.', 'ttt-wp-media') : esc_html__('Update failed. Please try to fix', 'ttt-wp-media');
+                $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tsmlt-media-tools') : esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools');
 
                 break;
             default:

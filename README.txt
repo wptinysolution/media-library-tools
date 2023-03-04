@@ -1,4 +1,4 @@
-=== Media Library Tools - WordPress Media Manager ===
+=== Media Library Tools ===
 Contributors: tinysolution
 Tags: Tags: Image to Trash, Image Title, Image Name, Alt tag, Image caption, Bulk edit, Media Library, Image SEO
 Requires at least: 5.5

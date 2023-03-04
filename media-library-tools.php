@@ -1,14 +1,14 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       Media Library Tools - Wp Media Manager
+ * Plugin Name:       Media Library Tools - WordPress Media Manager
  * Plugin URI:        https://wordpress.org/plugins/
  * Description:       Having proper image metadata is essential for better search engine visibility and accessibility. With our plugin, you can quickly update and optimize all of your image meta data, without having to visit each individual image page.
  Our plugin is user-friendly and saves you time by allowing you to easily find and edit image meta data directly from your media library. Don't let the task of image meta data management overwhelm you - download our plugin today and start optimizing your website's SEO score with just a few clicks.
  * Version:           1.0.0
  * Author:            TheTinyTools
  * Author URI:        https://profiles.wordpress.org/tinysolution/
- * Text Domain:       ttt-wp-media
+ * Text Domain:       tsmlt-media-tools
  * Domain Path:       /languages
  *
  * @package TheTinyTools\WM
@@ -22,11 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define media edit Constant.
  */
-define( 'TTTWM_VERSION', '1.0.0' );
-define( 'TTTWM_FILE', __FILE__ );
-define( 'TTTWM_BASENAME', plugin_basename( __FILE__ ) );
-define( 'TTTWM_URL', plugins_url('', TTTWM_FILE));
-define( 'TTTWM_ABSPATH', dirname(TTTWM_FILE) );
+define( 'TSMLT_VERSION', '1.0.0' );
+define( 'TSMLT_FILE', __FILE__ );
+define( 'TSMLT_BASENAME', plugin_basename( __FILE__ ) );
+define( 'TSMLT_URL', plugins_url('', TSMLT_FILE));
+define( 'TSMLT_ABSPATH', dirname(TSMLT_FILE) );
 
 /**
  * App Init.

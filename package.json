@@ -14,8 +14,8 @@
 		"prod": "npm run production && npm run cleanmap",
 		"production": "mix --production",
 		"package": "npm run clean && npm run dev && npm run prod && npm run dev --package",
-		"clean": "rm -rf tmp/*",
-		"cleanmap": "rm -rf assets/**/*.map",
+		"clean": "rm -rf dist/*",
+		"cleanmap": "rm -rf assets/**/**/*.map",
 		"zip": "npm run package && npm run dev --zip"
 	},
 	"dependencies": {
