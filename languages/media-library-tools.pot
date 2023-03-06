@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-03-05 17:38+0000\n"
+"POT-Creation-Date: 2023-03-06 16:09+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:81, ../app/Controllers/Admin/Api.php:180, ../app/Controllers/Admin/Api.php:208, ../app/Controllers/Admin/Api.php:323, ../app/Controllers/Admin/Api.php:395
+#: ../app/Controllers/Admin/Api.php:81, ../app/Controllers/Admin/Api.php:181, ../app/Controllers/Admin/Api.php:209, ../app/Controllers/Admin/Api.php:324, ../app/Controllers/Admin/Api.php:396
 msgid "Update failed. Please try to fix"
 msgstr ""
 
@@ -30,39 +30,39 @@ msgstr ""
 msgid "Updated. Be happy"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:190
+#: ../app/Controllers/Admin/Api.php:191
 msgid "The Title has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:194
+#: ../app/Controllers/Admin/Api.php:195
 msgid "The Caption has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:198
+#: ../app/Controllers/Admin/Api.php:199
 msgid "Content has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:202
+#: ../app/Controllers/Admin/Api.php:203
 msgid "The Text has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:343
+#: ../app/Controllers/Admin/Api.php:344
 msgid "Done. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:343
+#: ../app/Controllers/Admin/Api.php:344
 msgid "Failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:356
+#: ../app/Controllers/Admin/Api.php:357
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:356
+#: ../app/Controllers/Admin/Api.php:357
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:395
+#: ../app/Controllers/Admin/Api.php:396
 msgid "Updated. Be happy."
 msgstr ""
 
