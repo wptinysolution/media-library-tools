@@ -66,8 +66,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			// Register Plugin Deactivate Hook.
 			register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
 
-
-
         }
 
 		/**

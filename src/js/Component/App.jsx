@@ -64,6 +64,8 @@ function App() {
         getTermsList();
     }, []  );
 
+    console.log( tsmltParams.settings );
+
     return (
         <TheAppContext.Provider value={ {
             dateList,
