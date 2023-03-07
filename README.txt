@@ -1,6 +1,6 @@
 === Media Library Tools ===
 Contributors: tinysolution
-Tags: Tags: Image to Trash, Image Title, Image Name, Alt tag, Image caption, Bulk edit, Media Library, Image SEO
+Tags: Image to Trash, Image Title, Image Name, Alt tag, Image caption, Bulk edit, Media Library, Image SEO
 Requires at least: 5.5
 Tested up to: 6.1
 Stable tag: 1.0.0
