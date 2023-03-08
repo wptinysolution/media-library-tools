@@ -369,6 +369,7 @@ class Api {
                 if( ! empty( $data['post_description'] ) ){
                     $set_data .= "post_content ='{$data['post_description']}', ";
                 }
+                $update = false;
                 $set_data = rtrim( $set_data,", ");
                 if( ! empty( $set_data ) ){
                     $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
@@ -381,7 +382,6 @@ class Api {
                     }
                 }
 
-                $update = false;
                 $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
                 foreach ( $ids as $id) {
                     if( $alt ){
