@@ -199,7 +199,7 @@ class Api {
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = esc_html__('The Text has been saved.', 'tsmlt-media-tools');
+            $result['message'] = esc_html__('Saved.', 'tsmlt-media-tools');
         }
         if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
