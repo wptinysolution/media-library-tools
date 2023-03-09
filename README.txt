@@ -1,9 +1,9 @@
-=== Media Library Tools ===
+=== Media Library Tools - WordPress Media Image Content Editing tools===
 Contributors: tinysolution
-Tags: Tags: Image to Trash, Image Title, Image Name, Alt tag, Image caption, Bulk edit, Media Library, Image SEO
+Tags: Image title, image Name, alt tag, Caption, Description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
 Tested up to: 6.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -18,6 +18,9 @@ Are you struggling to keep up with updating the image Title, Alt tags, Captions,
 Our plugin simplifies image metadata editing, allowing you to quickly update titles, ALT text, captions, and descriptions for individual or bulk images in your WordPress media library.
 Access helpful sorting and filtering tools to easily identify which images require attention. With one-click editing, optimizing your images for SEO has never been easier.
 Save time and improve your website's search engine rankings by streamlining the image metadata editing process with our plugin.
+
+[youtube https://www.youtube.com/watch?v=Yj1rTVZRZ8k]
+
 
 == 🏆 Improve your website's SEO score ==
 Image metadata, including information such as title, description, and ALT text, can be extremely valuable for SEO.
@@ -45,8 +48,8 @@ reduced website traffic, and decreased user engagement.
 
 == 🏆 Start Working ==
 
-* Install The plugin "WP Media Tools - Bulk edit image"\
-* Go to Media > WP Media Tools And Start editing From here.
+* Install The plugin "Media Library Tools - WordPress Media Manager"
+* Go to Media > Media Tools -> Start editing From here.
 
 == Frequently Asked Questions ==
 
@@ -54,12 +57,12 @@ reduced website traffic, and decreased user engagement.
 * By clicking "Enable Edit Mode" Button edit mode will enable.
 
 = How can I do move the images to trash? =
-* Go to Media > WP Media Tools.
+* Go to Media > Media Tools.
 * At first select those images by clicking the checkbox that you want to trash. You can select all image by one click.
 * Select the "Bulk actions" Select box and find the  "Move to Trash" menu.
 
 = How can I make image categories? =
-* Go to Media > WP Media Tools.
+* Go to Media > Media Tools.
 * At first select those images by clicking the checkbox that you want to add category. You can select all image by one click.
 then chose "Bulk Edit" form "Bulk actions" Menu. The assign one or multiple image.
 
@@ -67,11 +70,19 @@ then chose "Bulk Edit" form "Bulk actions" Menu. The assign one or multiple imag
 * There has the fields near the Filter button. You can find the categories box there.
 
 == Screenshots ==
-1. Admin page
+
+01. Media Table
+02. Media Table Edit mode
+03. Media Settings
+04. Media Library
+05. Bulk Action
+
 
 == Changelog ==
+= 1.0.1 ( MARCH 08, 2023 ) =
+* Fixed: Text fixed.
 
-= 1.0.0 (  February 26, 2023 ) =
+1.0.0 ( MARCH 07, 2023 )
 * Initial Plugin.
 
 

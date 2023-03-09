@@ -199,7 +199,7 @@ class Api {
         }
         if ( isset( $parameters['alt_text'] ) ) {
             $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = esc_html__('The Text has been saved.', 'tsmlt-media-tools');
+            $result['message'] = esc_html__('Saved.', 'tsmlt-media-tools');
         }
         if( ! empty( $submit ) ){
             $submit['ID'] = $parameters['ID'];
@@ -369,6 +369,7 @@ class Api {
                 if( ! empty( $data['post_description'] ) ){
                     $set_data .= "post_content ='{$data['post_description']}', ";
                 }
+                $update = false;
                 $set_data = rtrim( $set_data,", ");
                 if( ! empty( $set_data ) ){
                     $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
@@ -381,7 +382,6 @@ class Api {
                     }
                 }
 
-                $update = false;
                 $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
                 foreach ( $ids as $id) {
                     if( $alt ){
