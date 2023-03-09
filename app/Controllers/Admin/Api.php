@@ -259,7 +259,11 @@ class Api {
 
         $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
 
-        $join_query = ! empty( $parameters['categories'] ) ? " JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " : null;
+        $cat_join = ! empty( $parameters['categories'] ) ? "JOIN": "LEFT JOIN";
+
+        $join_query =  "$cat_join $wpdb->term_relationships AS tr ON p.ID = tr.object_id $cat_join $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " ;
+
+        $join_query .= " LEFT JOIN $wpdb->terms AS t ON tt.term_id = t.term_id ";
 
         $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  " AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
 
@@ -267,32 +271,30 @@ class Api {
 
         $join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
 
-        $total = Fns::get_post_count('attachment', $status, 'attachment-query',$join_query, $additional_query  );
+        $total = Fns::get_post_count('attachment', $status, 'attachment-query', $join_query, $additional_query  );
 
         /*
-            SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
+            SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
             FROM wp_posts AS p
-            JOIN wp_term_relationships AS tr ON p.ID = tr.object_id
-            JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-            LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment' AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 5
+            JOIN wp_term_relationships AS tr ON p.ID = tr.object_id JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id  LEFT JOIN wp_terms AS t ON tt.term_id = t.term_id  LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
+            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'  AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 26 AND DATE_FORMAT(p.post_date, '{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}Y-{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}m') = '2023-03'
+            GROUP BY p.ID
             ORDER BY menu_order DESC
-            LIMIT 0, 4
+            LIMIT 0, 5
         */
 
         $query =  $wpdb->prepare(
-            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text
+            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
             FROM $wpdb->posts AS p            
             $join_query
-            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query
+            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query 
+            GROUP BY p.ID
             ORDER BY $order_by_sql
             LIMIT %2\$d, %3\$d",
             $status,
             $offset,
             $limit
         );
-
-        //error_log( print_r( $query , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
         $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
         if ( false === $_posts ) {

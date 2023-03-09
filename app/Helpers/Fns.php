@@ -41,7 +41,7 @@ class Fns {
         if ( false === $count ) {
             $count = $wpdb->get_var(
                 $wpdb->prepare(
-                    "SELECT COUNT(id) FROM $wpdb->posts AS p  
+                    "SELECT COUNT(DISTINCT id) FROM $wpdb->posts AS p  
                     $join 
                     WHERE post_type = '%1\$s' AND post_status = '%2\$s'  
                     $additional_query ",
