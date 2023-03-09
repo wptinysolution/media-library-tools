@@ -258,10 +258,8 @@ class Api {
         $offset = ( $paged - 1 ) * $limit;
 
         $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
-
-        $cat_join = ! empty( $parameters['categories'] ) ? "JOIN": "LEFT JOIN";
-
-        $join_query =  "$cat_join $wpdb->term_relationships AS tr ON p.ID = tr.object_id $cat_join $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " ;
+        
+        $join_query =  "LEFT JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id LEFT JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " ;
 
         $join_query .= " LEFT JOIN $wpdb->terms AS t ON tt.term_id = t.term_id ";
 
@@ -284,7 +282,7 @@ class Api {
         */
 
         $query =  $wpdb->prepare(
-            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
+            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, JSON_ARRAYAGG(JSON_OBJECT('id', t.term_id, 'name', t.name)) AS categories
             FROM $wpdb->posts AS p            
             $join_query
             WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query 
