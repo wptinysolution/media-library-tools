@@ -95,6 +95,10 @@ export const columnList = [
         title: `Description`,
         key: 'Description',
     },
+    {
+        title: `Category`,
+        key: 'Category',
+    },
 ];
 
 export function columns(
@@ -160,6 +164,13 @@ export function columns(
             dataIndex: 'post_content',
             width: '350px',
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+        },
+        {
+            title: <Space wrap> { `Category` } </Space>,
+            key: 'Category',
+            dataIndex: 'categories',
+            width: '250px',
+           // render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
     ];
 }
