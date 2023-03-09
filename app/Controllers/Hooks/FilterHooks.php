@@ -27,7 +27,6 @@ class FilterHooks {
         add_filter( 'manage_upload_sortable_columns', [ __CLASS__,  'media_sortable_columns' ] );
         add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
-
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 
     }
@@ -50,11 +49,7 @@ class FilterHooks {
         if ( ! self::is_attachment_screen() ) {
             return $actions;
         }
-        /*
-        unset(
-            $actions['delete']
-        );
-        */
+
         $actions['trash'] = sprintf(
             '<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
             wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
@@ -124,6 +119,7 @@ class FilterHooks {
         $columns['alt']         = __( 'Alt', 'media-library-helper' );
         $columns['caption']     = __( 'Caption', 'media-library-helper' );
         $columns['description'] = __( 'Description', 'media-library-helper' );
+        $columns['category']    = __( 'Category', 'media-library-helper' );
         $columns['parent']      = $parent;
         $columns['author']      = $author;
         $columns['comments']    = $comments;
@@ -164,6 +160,7 @@ class FilterHooks {
                         case 'description':
                             $pieces['orderby'] = " $wpdb->posts.post_content $order ";
                             break;
+
                     }
                 }
             }

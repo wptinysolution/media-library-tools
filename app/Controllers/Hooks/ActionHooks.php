@@ -41,6 +41,32 @@ class ActionHooks {
             case 'description':
                 echo esc_html( $image['description'] );
                 break;
+            case 'category':
+                $taxonomy_object = get_taxonomy( tsmlt()->category );
+
+                if ( $terms = get_the_terms( $post_id, tsmlt()->category ) ) {
+                    $out = array();
+                    foreach ( $terms as $t ) {
+                        $posts_in_term_qv = array();
+                        $posts_in_term_qv['post_type'] = get_post_type($post_id);
+
+                        if ( $taxonomy_object->query_var ) {
+                            $posts_in_term_qv[ $taxonomy_object->query_var ] = $t->slug;
+                        } else {
+                            $posts_in_term_qv['taxonomy'] = tsmlt()->category;
+                            $posts_in_term_qv['term'] = $t->slug;
+                        }
+
+                        $out[] = sprintf( '<a href="%s">%s</a>',
+                            esc_url( add_query_arg( $posts_in_term_qv, 'upload.php' ) ),
+                            esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, tsmlt()->category, 'display' ) )
+                        );
+                    }
+
+                    /* translators: used between list items, there is a space after the comma */
+                    echo join( __( ', ' ), $out );
+                };
+                break;
             default:
                 break;
         }

@@ -1,4 +1,4 @@
-=== Media Library Tools - WordPress Media Image Content Editing tools===
+=== Media Library Tools - Media File Renamer Image Content Editing tools===
 Contributors: tinysolution
 Tags: Image title, image Name, alt tag, Caption, Description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
@@ -8,14 +8,14 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Improve your website's SEO score and user experience make ease on WordPress.
+Media File Rename add alt text Improve your website's SEO score and user experience make ease on WordPress.
 Our plugin offers one-click editing for proper Titles, ALT tags, captions, and descriptions, all directly from your media library.
 
 == 🏆 Description ==
 
 Are you struggling to keep up with updating the image Title, Alt tags, Captions, and descriptions in your media library?
 
-Our plugin simplifies image metadata editing, allowing you to quickly update titles, ALT text, captions, and descriptions for individual or bulk images in your WordPress media library.
+Media Library Tools simplifies image metadata editing, allowing you to quickly update titles, ALT text, captions, and descriptions for individual or bulk images in your WordPress media library.
 Access helpful sorting and filtering tools to easily identify which images require attention. With one-click editing, optimizing your images for SEO has never been easier.
 Save time and improve your website's search engine rankings by streamlining the image metadata editing process with our plugin.
 
@@ -37,7 +37,7 @@ reduced website traffic, and decreased user engagement.
 
 * Make The Image Categories.
 * Search Image by the category.
-* Bulk edit Title, ALT text, Caption, Description, And Category .
+* Media File Rename, Bulk edit Title, ALT text, Caption, Description, And Category .
 * Edit the Title, ALT text, Caption, and Description of your images individually,
 * Find out Blank ALT tag, caption and description by data sorting the image.
 * Improve SEO score by assigning the proper image metadata.
