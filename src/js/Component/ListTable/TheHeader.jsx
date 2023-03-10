@@ -96,11 +96,7 @@ function TheHeader() {
                     }
                     options={termsList}
                 />
-                <Button
-                    type="primary"
-                    size="large"
-                    onClick={handleFilterData}
-                > Filter </Button>
+
                 <Button
                     style={{
                         width: '180px'

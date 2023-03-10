@@ -41,13 +41,17 @@ export default function Datatable() {
         handleSortClick,
         handlePagination,
         onCheckboxChange,
-        formEdited
+        formEdited,
+        filtering,
+        setFiltering,
+        handleFilterData
 
     } = useContext( TheMediaTableContext );
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
-    const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange );
+    const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange, filtering,
+        setFiltering, handleFilterData );
     const tablecolumn = thecolumn.filter( ( currentValue) => {
         if( ! optionsData.media_table_column || 'CheckboxID' === currentValue.key ){
             return true;

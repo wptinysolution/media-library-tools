@@ -1,3 +1,5 @@
+import React, { useEffect } from "react";
+
 import {Button, Checkbox, Space, Input } from "antd";
 
 const { TextArea } = Input;
@@ -95,6 +97,10 @@ export const columnList = [
         title: `Description`,
         key: 'Description',
     },
+    {
+        title: `Category`,
+        key: 'Category',
+    },
 ];
 
 export function columns(
@@ -105,8 +111,15 @@ export function columns(
     handleSortClick,
     formEdited,
     handleFocusout,
-    handleChange
+    handleChange,
+    filtering,
+    setFiltering,
+    handleFilterData,
 ){
+    useEffect(() => {
+        handleFilterData();
+    }, [filtering]);
+
     return [
         {
             title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
@@ -160,6 +173,23 @@ export function columns(
             dataIndex: 'post_content',
             width: '350px',
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+        },
+        {
+            title: <Space wrap> { `Category` } </Space>,
+            key: 'Category',
+            dataIndex: 'categories',
+            width: '250px',
+           render: ( text, record, i ) => {
+               const items = JSON.parse(record.categories)
+
+               return  items.map( item => item.id && <Button key={Math.random().toString(36).substr(2, 9)} size={`small`} onClick={  () => {
+                   setFiltering({
+                       ...filtering,
+                       categories: item.id,
+                   })
+                   console.log( item )
+               } }> {  item.name } </Button>  )
+           }
         },
     ];
 }
