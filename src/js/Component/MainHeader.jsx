@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 
 import { Menu, Layout } from 'antd';
 
-import { SettingOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
 
 import {TheAppContext, TheMediaTableContext} from "../Utils/TheContext";
 
@@ -42,6 +42,12 @@ function MainHeader() {
                         key: 'mediatable',
                         label: 'Media Table',
                         icon: <UnorderedListOutlined />,
+                        style: menuItemStyle,
+                    },
+                    {
+                        key: 'mediarename',
+                        label: 'Media Rename',
+                        icon: <EditOutlined />,
                         style: menuItemStyle,
                     },
                     {
