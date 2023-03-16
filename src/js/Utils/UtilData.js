@@ -196,3 +196,31 @@ export function columns(
 
 
 
+export function renamerColumns(){
+
+    return [
+        {
+            title: <Space wrap> { `ID` } </Space>,
+            key: 'ID',
+            dataIndex: 'ID',
+            width: '150px',
+            align: 'top'
+        },
+        {
+            title: 'File',
+            key: 'Image',
+            dataIndex: 'guid',
+            width: '130px',
+            align: 'top',
+        },
+        {
+            title: <Space wrap> { `Title` } </Space>,
+            key: 'Title',
+            dataIndex: 'post_title',
+            align: 'top',
+            width: '300px',
+        }
+    ];
+}
+
+

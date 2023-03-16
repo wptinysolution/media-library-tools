@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 
 import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
 
-import { columns } from '../../Utils/UtilData';
+import {columns, renamerColumns} from '../../Utils/UtilData';
 
 import {LoadingOutlined} from "@ant-design/icons";
 
@@ -72,6 +72,7 @@ export default function Datatable() {
                     }}> <Spin indicator={antIcon}/></Content>
                     :
                     <Content>
+                        { console.log(tablecolumn)}
                         <Table
                             rowKey={(item) => item.ID}
                             pagination={false}

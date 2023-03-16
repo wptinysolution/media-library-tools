@@ -6,6 +6,9 @@ import { Layout } from 'antd';
 import { TheAppContext } from '../Utils/TheContext';
 
 import ProcessTableData from "./ListTable/ProcessTableData";
+import RenamerTableData from "./Renamer/RenamerTableData";
+import ProcessRenamerTableData from "./Renamer/ProcessRenamerTableData";
+
 
 import {
     getTerms,
@@ -63,9 +66,7 @@ function App() {
         getDateList();
         getTermsList();
     }, []  );
-
-    console.log( tsmltParams.settings );
-
+    
     return (
         <TheAppContext.Provider value={ {
             dateList,
@@ -95,6 +96,7 @@ function App() {
                     overflowY: 'auto'
                 }} >
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
+                    { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
                     { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
                 </Layout>
             </Layout>
