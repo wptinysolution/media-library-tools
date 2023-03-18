@@ -72,7 +72,7 @@ export default function Datatable() {
                     }}> <Spin indicator={antIcon}/></Content>
                     :
                     <Content>
-                        { console.log(tablecolumn)}
+
                         <Table
                             rowKey={(item) => item.ID}
                             pagination={false}
@@ -80,6 +80,7 @@ export default function Datatable() {
                             dataSource={posts}
                             scroll={{
                                 x: 1300,
+                                y: 900,
                             }}
                         />
                         <Pagination

@@ -8,399 +8,442 @@ use WP_Error;
 
 class Api {
 
-    /**
-     * Singleton
-     */
-    use SingletonTrait;
+	/**
+	 * Singleton
+	 */
+	use SingletonTrait;
 
-    /**
-     * Construct
-     */
-    private function __construct() {
-        $this->namespace     = 'TinySolutions/mlt/v1';
-        $this->resource_name = '/media';
-        add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-    }
+	/**
+	 * Construct
+	 */
+	private function __construct() {
+		$this->namespace     = 'TinySolutions/mlt/v1';
+		$this->resource_name = '/media';
+		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
+	}
 
-    /**
-     * Register our routes.
-     * @return void
-     */
-    public function register_routes() {
-        register_rest_route( $this->namespace, $this->resource_name, array(
-            'methods' => 'GET',
-            'callback' => [ $this, 'get_media'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/update', array(
-            'methods' => 'POST',
-            'callback' => [ $this, 'update_single_media'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/bulk/submit', array(
-            'methods' => 'POST',
-            'callback' => [ $this, 'media_submit_bulk_action'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/filter/getdates', array(
-            'methods' => 'GET',
-            'callback' => [ $this, 'get_dates'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/getterms', array(
-            'methods' => 'GET',
-            'callback' => [ $this, 'get_terms'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/getoptions', array(
-            'methods' => 'GET',
-            'callback' => [ $this, 'get_options'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-        register_rest_route( $this->namespace, $this->resource_name . '/updateoptins', array(
-            'methods' => 'POST',
-            'callback' => [ $this, 'update_option'],
-            'permission_callback' => [ $this, 'login_permission_callback' ],
-        ) );
-    }
+	/**
+	 * Register our routes.
+	 * @return void
+	 */
+	public function register_routes() {
+		register_rest_route( $this->namespace, $this->resource_name, array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_media' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/update', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'update_single_media' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/bulk/submit', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'media_submit_bulk_action' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/filter/getdates', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_dates' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/getterms', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_terms' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/getoptions', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_options' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/updateoptins', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'update_option' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+	}
 
-    /**
-     * @return true
-     */
-    public function login_permission_callback() {
-        return current_user_can( 'manage_options' );
-    }
+	/**
+	 * @return true
+	 */
+	public function login_permission_callback() {
+		return current_user_can( 'manage_options' );
+	}
 
-    /**
-     * @return false|string
-     */
-    public function update_option( $request_data ) {
+	/**
+	 * @return false|string
+	 */
+	public function update_option( $request_data ) {
 
-        $result = [
-            'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
-        ] ;
+		$result = [
+			'updated' => false,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
 
-        $parameters = $request_data->get_params();
+		$parameters = $request_data->get_params();
 
-        // error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+		// error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
-        $limit = absint( get_user_option('upload_per_page', get_current_user_id()) );
+		$limit = absint( get_user_option( 'upload_per_page', get_current_user_id() ) );
 
-        $limit =  $limit ?  $limit : 20 ;
+		$limit = $limit ? $limit : 20;
 
-        $tsmlt_media = get_option( 'tsmlt_settings' , [] );
+		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
-        $media_per_page = ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : $limit ;
+		$media_per_page = ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : $limit;
 
-        if( ! empty( $parameters['media_per_page'] ) ){
-            $tsmlt_media['media_per_page'] =  absint( $media_per_page ) ;
-        }
+		if ( ! empty( $parameters['media_per_page'] ) ) {
+			$tsmlt_media['media_per_page'] = absint( $media_per_page );
+		}
 
-        if( ! empty( $parameters['media_table_column'] ) ){
-            // $tsmlt_media['media_table_column'] =  [ 'Title',  rand() ];//$parameters['media_table_column'] ;
-              $tsmlt_media['media_table_column'] = $parameters['media_table_column'] ;
-        }
-
-
-        $options = update_option( 'tsmlt_settings', $tsmlt_media );
-
-        $result['updated'] = boolval( $options );
-
-        $result['message'] = ! $options ? $result['message'] : esc_html__('Updated. Be happy', 'tsmlt-media-tools');
-
-        //error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
-        return $result;
-    }
-
-    /**
-     * @return false|string
-     */
-    public function get_options() {
-        $options = get_option( 'tsmlt_settings' );
-        return wp_json_encode($options);
-    }
-
-    /**
-     * @return false|string
-     */
-    public function get_terms() {
-        $terms = get_terms( array(
-            'taxonomy' => 'tsmlt_category',
-            'hide_empty' => false,
-        ) );
-        $terms_array = [] ;
-        if ( ! is_wp_error( $terms ) && $terms ) {
-            foreach ( $terms as $term) {
-                $terms_array[] = [
-                    'value' => $term->term_id,
-                    'label' => $term->name,
-                ];
-            }
-        }
-        return wp_json_encode( $terms_array );
-    }
-
-    /**
-     * @return false|string
-     */
-    public function get_dates() {
-
-        global $wpdb;
-        $date_query =  $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment');
-        $get_date = wp_cache_get( md5( $date_query ), 'attachment-query' );
-        if ( false === $get_date ) {
-            $get_date = $wpdb->get_col( $date_query );
-            wp_cache_set( md5( $date_query ), $get_date,'attachment-query' );
-        }
-        $dates[] = [
-            'value' => '',
-            'label' => 'All dates',
-        ];
-        if ( $get_date ) {
-            foreach ( $get_date as $date ) {
-                $dates[] = [
-                    'value' => $date,
-                    'label' => date('F Y', strtotime( $date ) ),
-                ];
-            }
-        }
-        return wp_json_encode( $dates );
-    }
-
-    /**
-     * @param $request_data
-     * @return array|WP_Error
-     */
-    public function update_single_media( $request_data ) {
-        $parameters = $request_data->get_params();
-        $result = [
-            'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
-        ] ;
-        $submit = [];
-
-        if ( empty( $parameters['ID'] ) ) {
-            return $result;
-        }
-
-        if ( ! empty( $parameters['post_title'] ) ) {
-            $submit['post_title'] = trim( $parameters['post_title'] );
-            $result['message'] = esc_html__('The Title has been saved.', 'tsmlt-media-tools');
-        }
-        if ( isset( $parameters['post_excerpt'] ) ) {
-            $submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
-            $result['message'] = esc_html__('The Caption has been saved.', 'tsmlt-media-tools');
-        }
-        if ( isset( $parameters['post_content'] ) ) {
-            $submit['post_content'] = trim( $parameters['post_content'] );
-            $result['message'] = esc_html__('Content has been saved.', 'tsmlt-media-tools');
-        }
-        if ( isset( $parameters['alt_text'] ) ) {
-            $result['updated'] =  update_post_meta( $parameters['ID'] , '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-            $result['message'] = esc_html__('Saved.', 'tsmlt-media-tools');
-        }
-        if( ! empty( $submit ) ){
-            $submit['ID'] = $parameters['ID'];
-            $result['updated'] = wp_update_post( $submit );
-        }
-        $result['message'] = $result['updated'] ? $result['message'] : esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools');
-
-        return $result;
-    }
-
-    /**
-     * @param $request_data
-     * @return false|string|WP_Error
-     */
-    public function get_media( $request_data ) {
-        global $wpdb;
-        $parameters = $request_data->get_params();
-
-        $limit = get_user_option('upload_per_page', get_current_user_id());
-        $limit = ! empty( $limit ) ? absint( $limit ) : 20;
-        $options = get_option( 'tsmlt_settings' );
-        $limit = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : $limit );
-
-        $orderby  = 'menu_order';
-        $status  = 'inherit';
-        if( ! empty( $parameters['filtering'] ) && boolval( $parameters['filtering'] ) ){
-            $status  = ! empty( $parameters['status'] ) ? $parameters['status'] : $status;
-        }
-
-        $order  = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
-        $paged  = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
-
-        if( ! empty( $parameters['orderby'] ) ){
-            switch ( $parameters['orderby'] ){
-                case 'id':
-                    $orderby =  'ID';
-                    break;
-                case 'title':
-                    $orderby =  'post_title';
-                    break;
-                case 'description':
-                    $orderby =  'post_content';
-                    break;
-                case 'caption':
-                    $orderby =  'post_excerpt';
-                    break;
-                case 'alt':
-                    $orderby =  'alt_text';
-                    break;
-                default:
-                    $orderby  = 'menu_order';
-            }
-        }
+		if ( ! empty( $parameters['media_table_column'] ) ) {
+			// $tsmlt_media['media_table_column'] =  [ 'Title',  rand() ];//$parameters['media_table_column'] ;
+			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
+		}
 
 
-        $offset = ( $paged - 1 ) * $limit;
+		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
-        $order_by_sql       = sanitize_sql_orderby( "$orderby $order" );
-        
-        $join_query =  "LEFT JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id LEFT JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id " ;
+		$result['updated'] = boolval( $options );
 
-        $join_query .= " LEFT JOIN $wpdb->terms AS t ON tt.term_id = t.term_id ";
+		$result['message'] = ! $options ? $result['message'] : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
 
-        $additional_query  = ! empty( $parameters['categories'] ) ? $wpdb->prepare(  " AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = %1\$d",  $parameters['categories'] ) : null;
+		//error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
-        $additional_query  .= ! empty( $parameters['date'] ) ? $wpdb->prepare(  " AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
+		return $result;
+	}
 
-        $join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
+	/**
+	 * @return false|string
+	 */
+	public function get_options() {
+		$options = get_option( 'tsmlt_settings' );
 
-        $total = Fns::get_post_count('attachment', $status, 'attachment-query', $join_query, $additional_query  );
+		return wp_json_encode( $options );
+	}
 
-        /*
-            SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
-            FROM wp_posts AS p
-            JOIN wp_term_relationships AS tr ON p.ID = tr.object_id JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id  LEFT JOIN wp_terms AS t ON tt.term_id = t.term_id  LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-            WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'  AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 26 AND DATE_FORMAT(p.post_date, '{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}Y-{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}m') = '2023-03'
-            GROUP BY p.ID
-            ORDER BY menu_order DESC
-            LIMIT 0, 5
-        */
+	/**
+	 * @return false|string
+	 */
+	public function get_terms() {
+		$terms       = get_terms( array(
+			'taxonomy'   => 'tsmlt_category',
+			'hide_empty' => false,
+		) );
+		$terms_array = [];
+		if ( ! is_wp_error( $terms ) && $terms ) {
+			foreach ( $terms as $term ) {
+				$terms_array[] = [
+					'value' => $term->term_id,
+					'label' => $term->name,
+				];
+			}
+		}
 
-        $query =  $wpdb->prepare(
-            "SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, JSON_ARRAYAGG(JSON_OBJECT('id', t.term_id, 'name', t.name)) AS categories
+		return wp_json_encode( $terms_array );
+	}
+
+	/**
+	 * @return false|string
+	 */
+	public function get_dates() {
+
+		global $wpdb;
+		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
+		$get_date   = wp_cache_get( md5( $date_query ), 'attachment-query' );
+		if ( false === $get_date ) {
+			$get_date = $wpdb->get_col( $date_query );
+			wp_cache_set( md5( $date_query ), $get_date, 'attachment-query' );
+		}
+		$dates[] = [
+			'value' => '',
+			'label' => 'All dates',
+		];
+		if ( $get_date ) {
+			foreach ( $get_date as $date ) {
+				$dates[] = [
+					'value' => $date,
+					'label' => date( 'F Y', strtotime( $date ) ),
+				];
+			}
+		}
+
+		return wp_json_encode( $dates );
+	}
+
+	/**
+	 * @param $request_data
+	 *
+	 * @return array|WP_Error
+	 */
+	public function update_single_media( $request_data ) {
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => false,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+		$submit     = [];
+
+		if ( empty( $parameters['ID'] ) ) {
+			return $result;
+		}
+
+		if ( ! empty( $parameters['post_title'] ) ) {
+			$submit['post_title'] = trim( $parameters['post_title'] );
+			$result['message']    = esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' );
+		}
+		if ( isset( $parameters['post_excerpt'] ) ) {
+			$submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
+			$result['message']      = esc_html__( 'The Caption has been saved.', 'tsmlt-media-tools' );
+		}
+		if ( isset( $parameters['post_content'] ) ) {
+			$submit['post_content'] = trim( $parameters['post_content'] );
+			$result['message']      = esc_html__( 'Content has been saved.', 'tsmlt-media-tools' );
+		}
+		if ( isset( $parameters['alt_text'] ) ) {
+			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
+			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+		}
+
+		//error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
+		if ( ! empty( $parameters['thefile'] ) ) {
+			//$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
+			//error_log( print_r( $parameters['thefile']['filebasename'] , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
+			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+		}
+
+		if ( ! empty( $submit ) ) {
+			$submit['ID']      = $parameters['ID'];
+			$result['updated'] = wp_update_post( $submit );
+		}
+		$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+
+		return $result;
+	}
+
+	/**
+	 * @param $request_data
+	 *
+	 * @return false|string|WP_Error
+	 */
+	public function get_media( $request_data ) {
+		global $wpdb;
+		$parameters = $request_data->get_params();
+
+		$limit   = get_user_option( 'upload_per_page', get_current_user_id() );
+		$limit   = ! empty( $limit ) ? absint( $limit ) : 20;
+		$options = get_option( 'tsmlt_settings' );
+		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : $limit );
+
+		$orderby = 'menu_order';
+		$status  = 'inherit';
+		if ( ! empty( $parameters['filtering'] ) && boolval( $parameters['filtering'] ) ) {
+			$status = ! empty( $parameters['status'] ) ? $parameters['status'] : $status;
+		}
+
+		$order = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
+		$paged = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
+
+		if ( ! empty( $parameters['orderby'] ) ) {
+			switch ( $parameters['orderby'] ) {
+				case 'id':
+					$orderby = 'ID';
+					break;
+				case 'title':
+					$orderby = 'post_title';
+					break;
+				case 'description':
+					$orderby = 'post_content';
+					break;
+				case 'caption':
+					$orderby = 'post_excerpt';
+					break;
+				case 'alt':
+					$orderby = 'alt_text';
+					break;
+				default:
+					$orderby = 'menu_order';
+			}
+		}
+
+
+		$offset = ( $paged - 1 ) * $limit;
+
+		$order_by_sql = sanitize_sql_orderby( "$orderby $order" );
+
+		$join_query = "LEFT JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id LEFT JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id ";
+
+		$join_query .= " LEFT JOIN $wpdb->terms AS t ON tt.term_id = t.term_id ";
+
+		$additional_query = ! empty( $parameters['categories'] ) ? $wpdb->prepare( " AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = %1\$d", $parameters['categories'] ) : null;
+
+		$additional_query .= ! empty( $parameters['date'] ) ? $wpdb->prepare( " AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
+
+		$join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
+
+		$join_query .= " LEFT JOIN $wpdb->postmeta AS pmetadata ON pmetadata.post_id = p.ID AND pmetadata.meta_key = '_wp_attachment_metadata'";
+
+		$total = Fns::get_post_count( 'attachment', $status, 'attachment-query', $join_query, $additional_query );
+
+		/*
+			SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
+			FROM wp_posts AS p
+			JOIN wp_term_relationships AS tr ON p.ID = tr.object_id JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id  LEFT JOIN wp_terms AS t ON tt.term_id = t.term_id  LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
+			WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'  AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 26 AND DATE_FORMAT(p.post_date, '{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}Y-{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}m') = '2023-03'
+			GROUP BY p.ID
+			ORDER BY menu_order DESC
+			LIMIT 0, 5
+		*/
+
+		$query = $wpdb->prepare(
+			"SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text , pmetadata.meta_value AS metadata, JSON_ARRAYAGG(JSON_OBJECT('id', t.term_id, 'name', t.name)) AS categories
             FROM $wpdb->posts AS p            
             $join_query
             WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query 
             GROUP BY p.ID
             ORDER BY $order_by_sql
             LIMIT %2\$d, %3\$d",
-            $status,
-            $offset,
-            $limit
-        );
+			$status,
+			$offset,
+			$limit
+		);
+		// _wp_attachment_metadata
+		$_posts = wp_cache_get( md5( $query ), 'attachment-query' );
+		if ( false === $_posts ) {
+			$_posts = $wpdb->get_results( $query );
+			wp_cache_set( md5( $query ), $_posts, 'attachment-query' );
+		}
 
-        $_posts = wp_cache_get( md5( $query ), 'attachment-query' );
-        if ( false === $_posts ) {
-            $_posts = $wpdb->get_results( $query );
-            wp_cache_set( md5( $query ), $_posts,'attachment-query' );
-        }
+		//error_log( print_r( $_posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
-        $query_data = [
-            'posts' => $_posts,
-            'posts_per_page' => absint( $limit ),
-            'total_post' => $total,
-            'paged' => absint( $paged ),
-        ];
-        // error_log( print_r( $query_data , true) . "\n\n", 3, __DIR__.'/logg.txt');
+		$get_posts = [];
+		foreach ( $_posts as $post ) {
+			$thefile  = [];
+			$metadata = unserialize( $post->metadata );
 
-        return wp_json_encode(  $query_data );
-    }
+			$thefile['mainfilename']  = basename( $metadata['file'] );
+			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
+			$thefile['filebasename']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
 
-    /***
-     * @param $request_data
-     * @return array|WP_Error
-     */
-    public function media_submit_bulk_action( $request_data ) {
-        global $wpdb;
-        $parameters = $request_data->get_params();
-        $result = [
-            'updated' => false,
-            'message' => esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools')
-        ] ;
-        if (  empty($parameters['type']) || empty($parameters['ids']) ) {
-            return $result;
-        }
+			$get_posts[] = [
+				'ID'           => $post->ID,
+				'post_title'   => $post->post_title,
+				'post_excerpt' => $post->post_excerpt,
+				'post_content' => $post->post_content,
+				'post_name'    => $post->post_name,
+				'guid'         => $post->guid,
+				'alt_text'     => $post->alt_text,
+				'categories'   => $post->categories,
+				'metadata'     => $metadata,
+				'thefile'      => $thefile,
+			];
+		}
+		$query_data = [
+			'posts'          => $get_posts,
+			'posts_per_page' => absint( $limit ),
+			'total_post'     => $total,
+			'paged'          => absint( $paged ),
+		];
 
-        $ids = $parameters['ids'];
-        switch ( $parameters['type'] ){
-            case 'trash':
-            case 'inherit':
-                $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                    $parameters['type'],
-                    ...$ids
-                );
-                $updated = wp_cache_get( md5( $query ), 'attachment-query' );
-                if ( false === $updated ) {
-                    $updated = $wpdb->query( $query );
-                    wp_cache_set( md5( $query ), $updated,'attachment-query' );
-                }
-                $result['updated'] = (bool) $updated;
-                $result['message'] = $updated ? esc_html__('Done. Be happy.', 'tsmlt-media-tools') : esc_html__('Failed. Please try to fix', 'tsmlt-media-tools');
-                break;
-            case 'delete':
-                $query =  $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                    ...$ids
-                );
+		 //error_log( print_r( $get_posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
-                $delete = wp_cache_get( md5( $query ), 'attachment-query' );
-                if ( false === $delete ) {
-                    $delete = $wpdb->query( $query );
-                    wp_cache_set( md5( $query ), $delete,'attachment-query' );
-                }
-                $result['updated'] = (bool) $delete;
-                $result['message'] = $delete ? esc_html__('Deleted. Be happy.', 'tsmlt-media-tools') : esc_html__('Deleted failed. Please try to fix', 'tsmlt-media-tools');
-                break;
-            case 'bulkedit':
+		return wp_json_encode( $query_data );
+	}
 
-                $data = $parameters['data'];
-                $categories = $parameters['post_categories'];
-                $set_data = '';
-                if( ! empty( $data['post_title'] ) ){
-                    $set_data .= "post_title= '{$data['post_title']}', " ;
-                }
-                if( ! empty( $data['caption'] ) ){
-                    $set_data .= "post_excerpt='{$data['caption']}', ";
-                }
-                if( ! empty( $data['post_description'] ) ){
-                    $set_data .= "post_content ='{$data['post_description']}', ";
-                }
-                $update = false;
-                $set_data = rtrim( $set_data,", ");
-                if( ! empty( $set_data ) ){
-                    $query =  $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (".implode(',', array_fill(0, count($ids), '%d')).")",
-                        ...$ids
-                    );
-                    $update = wp_cache_get( md5( $query ), 'attachment-query' );
-                    if ( false === $update ) {
-                        $update = $wpdb->query( $query );
-                        wp_cache_set( md5( $query ), $update,'attachment-query' );
-                    }
-                }
+	/***
+	 * @param $request_data
+	 *
+	 * @return array|WP_Error
+	 */
+	public function media_submit_bulk_action( $request_data ) {
+		global $wpdb;
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => false,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+		if ( empty( $parameters['type'] ) || empty( $parameters['ids'] ) ) {
+			return $result;
+		}
 
-                $alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
-                foreach ( $ids as $id) {
-                    if( $alt ){
-                        $update = update_post_meta( $id , '_wp_attachment_image_alt', trim( $alt ) );
-                    }
-                    if( ! empty( $categories ) ){
-                        $update = wp_set_object_terms( $id, $categories, tsmlt()->category );
-                    }
-                }
-                $result['updated'] = (bool) $update;
-                $result['message'] = $update ? esc_html__('Updated. Be happy.', 'tsmlt-media-tools') : esc_html__('Update failed. Please try to fix', 'tsmlt-media-tools');
+		$ids = $parameters['ids'];
+		switch ( $parameters['type'] ) {
+			case 'trash':
+			case 'inherit':
+				$query   = $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ")",
+					$parameters['type'],
+					...$ids
+				);
+				$updated = wp_cache_get( md5( $query ), 'attachment-query' );
+				if ( false === $updated ) {
+					$updated = $wpdb->query( $query );
+					wp_cache_set( md5( $query ), $updated, 'attachment-query' );
+				}
+				$result['updated'] = (bool) $updated;
+				$result['message'] = $updated ? esc_html__( 'Done. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Failed. Please try to fix', 'tsmlt-media-tools' );
+				break;
+			case 'delete':
+				$query = $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ")",
+					...$ids
+				);
 
-                break;
-            default:
+				$delete = wp_cache_get( md5( $query ), 'attachment-query' );
+				if ( false === $delete ) {
+					$delete = $wpdb->query( $query );
+					wp_cache_set( md5( $query ), $delete, 'attachment-query' );
+				}
+				$result['updated'] = (bool) $delete;
+				$result['message'] = $delete ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
+				break;
+			case 'bulkedit':
 
-        }
+				$data       = $parameters['data'];
+				$categories = $parameters['post_categories'];
+				$set_data   = '';
+				if ( ! empty( $data['post_title'] ) ) {
+					$set_data .= "post_title= '{$data['post_title']}', ";
+				}
+				if ( ! empty( $data['caption'] ) ) {
+					$set_data .= "post_excerpt='{$data['caption']}', ";
+				}
+				if ( ! empty( $data['post_description'] ) ) {
+					$set_data .= "post_content ='{$data['post_description']}', ";
+				}
+				$update   = false;
+				$set_data = rtrim( $set_data, ", " );
+				if ( ! empty( $set_data ) ) {
+					$query  = $wpdb->prepare( "UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ")",
+						...$ids
+					);
+					$update = wp_cache_get( md5( $query ), 'attachment-query' );
+					if ( false === $update ) {
+						$update = $wpdb->query( $query );
+						wp_cache_set( md5( $query ), $update, 'attachment-query' );
+					}
+				}
 
-        return $result;
-    }
+				$alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
+				foreach ( $ids as $id ) {
+					if ( $alt ) {
+						$update = update_post_meta( $id, '_wp_attachment_image_alt', trim( $alt ) );
+					}
+					if ( ! empty( $categories ) ) {
+						$update = wp_set_object_terms( $id, $categories, tsmlt()->category );
+					}
+				}
+				$result['updated'] = (bool) $update;
+				$result['message'] = $update ? esc_html__( 'Updated. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+
+				break;
+			default:
+
+		}
+
+		return $result;
+	}
 
 }
 

@@ -45,12 +45,6 @@ function MainHeader() {
                         style: menuItemStyle,
                     },
                     {
-                        key: 'mediarename',
-                        label: 'Media Rename',
-                        icon: <EditOutlined />,
-                        style: menuItemStyle,
-                    },
-                    {
                         key: 'settings',
                         label: 'Media Settings',
                         icon: <SettingOutlined />,

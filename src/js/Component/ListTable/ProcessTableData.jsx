@@ -87,16 +87,31 @@ function ProcessTableData() {
 
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
-        const currentData = {
+        let currentData = {
             ID: posts[currentItem].ID,
-            [event.target.name] : event.target.value.trim()
         }
-        posts[currentItem][event.target.name] = event.target.value;
+        if( 'filebasename' ===  event.target.name ){
+            currentData = {
+                ...currentData,
+                thefile : {
+                    ...posts[currentItem].thefile,
+                    filebasename: event.target.value
+                }
+            }
+            posts[currentItem].thefile.filebasename = event.target.value;
+        } else {
+            currentData = {
+                ...currentData,
+                [event.target.name] : event.target.value.trim()
+            }
+            posts[currentItem][event.target.name] = event.target.value;
+        }
         setCurrentItemEdited( currentData );
         setData( {
             ...data,
             posts
         } );
+
     }
 
     const handleFocusout = async ( event ) => {

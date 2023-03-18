@@ -140,9 +140,9 @@ export function columns(
             title: 'File',
             key: 'Image',
             dataIndex: 'guid',
-            width: '130px',
+            width: '400px',
             align: 'top',
-            render:  ( text, record ) =>  <img width={`80`} src={text}  />,
+            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> { formEdited ? <Space size={[0, 0]}> <Input name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onChange={handleChange} onBlur={handleFocusout} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`} </Space> : record.thefile.mainfilename } </Space>,
         },
         {
             title: <Space wrap> { `Title` } <Button size={`small`} onClick={ () => handleSortClick( 'title' )} > Sort </Button> </Space>,
@@ -181,46 +181,14 @@ export function columns(
             width: '250px',
            render: ( text, record, i ) => {
                const items = JSON.parse(record.categories)
-
                return  items.map( item => item.id && <Button key={Math.random().toString(36).substr(2, 9)} size={`small`} onClick={  () => {
                    setFiltering({
                        ...filtering,
                        categories: item.id,
                    })
-                   console.log( item )
                } }> {  item.name } </Button>  )
            }
         },
     ];
 }
-
-
-
-export function renamerColumns(){
-
-    return [
-        {
-            title: <Space wrap> { `ID` } </Space>,
-            key: 'ID',
-            dataIndex: 'ID',
-            width: '150px',
-            align: 'top'
-        },
-        {
-            title: 'File',
-            key: 'Image',
-            dataIndex: 'guid',
-            width: '130px',
-            align: 'top',
-        },
-        {
-            title: <Space wrap> { `Title` } </Space>,
-            key: 'Title',
-            dataIndex: 'post_title',
-            align: 'top',
-            width: '300px',
-        }
-    ];
-}
-
 
