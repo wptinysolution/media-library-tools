@@ -69,4 +69,71 @@ class Fns {
             'title'       => $attachment->post_title,
         );
     }
+
+	/**
+	 * Image attachment details
+	 *
+	 * @param init $attachment_id image id.
+	 * @return array
+	 */
+	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
+		$updated = false;
+
+		$new_file_name = sanitize_file_name( $new_file_name );
+
+		if( empty( $new_file_name ) || ! $attachment_id ){
+			return $updated;
+		}
+
+		// Get the current file path and name
+		$file_path = get_attached_file($attachment_id);
+
+		if( ! file_exists( $file_path ) ){
+			return $updated;
+		}
+
+		// Get the current metadata for the media file
+		$metadata = wp_get_attachment_metadata($attachment_id);
+
+		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
+
+		$filebasename  = basename( $metadata['file'], '.'. $fileextension );
+
+		$path_being_saved_to = dirname( $file_path );
+
+		$unique_filename = $path_being_saved_to .'/'. wp_unique_filename( $path_being_saved_to, $new_file_name );
+
+		 // error_log( print_r( $unique_filename , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
+
+		// Rename the file on the server
+		$renamed = rename($file_path, $unique_filename);
+
+		$new_file_name = basename( $unique_filename );
+
+		$new_filebasename  = basename( $new_file_name, '.'. $fileextension );
+		// If the file was successfully renamed, update the metadata for each size
+
+		if ($renamed) {
+			// Update the metadata with the new file name
+			$metadata['file'] = $unique_filename;
+			// Loop through each size and rename the file
+			foreach ($metadata['sizes'] as $size => $fileinfo ) {
+				$old_file_path = dirname($file_path) . '/' . $fileinfo['file'];
+				if( ! file_exists( $old_file_path ) ){
+					continue;
+				}
+				$new_file_path = dirname($file_path) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file']);
+
+				$renamed_size = rename($old_file_path, $new_file_path);
+				if ($renamed_size) {
+					$metadata['sizes'][$size]['file'] = str_replace($filebasename, $new_filebasename, $fileinfo['file']);
+				}
+			}
+			update_attached_file( $attachment_id, str_replace( basename( $file_path ) , $new_file_name, $file_path) );
+			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
+
+			wp_update_attachment_metadata($attachment_id, $metadata);
+		}
+		return $renamed;
+	}
 }

@@ -206,13 +206,12 @@ class Api {
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 
-		//error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
-		if ( ! empty( $parameters['thefile'] ) ) {
-			//$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-			//error_log( print_r( $parameters['thefile']['filebasename'] , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
-			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+		if ( isset( $parameters['thefile']['newname'] ) ) {
+			 $new_file_name =  $parameters['thefile']['newname'].'.'. $parameters['thefile']['fileextension'];
+			if( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ){
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			}
 		}
 
 		if ( ! empty( $submit ) ) {
@@ -317,16 +316,17 @@ class Api {
 			wp_cache_set( md5( $query ), $_posts, 'attachment-query' );
 		}
 
-		//error_log( print_r( $_posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
 		$get_posts = [];
 		foreach ( $_posts as $post ) {
 			$thefile  = [];
 			$metadata = unserialize( $post->metadata );
 
+			$thefile['mainfilepath']  = dirname( wp_get_original_image_path( $post->ID ) );
 			$thefile['mainfilename']  = basename( $metadata['file'] );
 			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 			$thefile['filebasename']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
+
+			//error_log( print_r( $thefile , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
 			$get_posts[] = [
 				'ID'           => $post->ID,
@@ -347,8 +347,6 @@ class Api {
 			'total_post'     => $total,
 			'paged'          => absint( $paged ),
 		];
-
-		 //error_log( print_r( $get_posts , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
 		return wp_json_encode( $query_data );
 	}

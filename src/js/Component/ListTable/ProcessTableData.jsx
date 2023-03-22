@@ -95,7 +95,7 @@ function ProcessTableData() {
                 ...currentData,
                 thefile : {
                     ...posts[currentItem].thefile,
-                    filebasename: event.target.value
+                    newname: event.target.value
                 }
             }
             posts[currentItem].thefile.filebasename = event.target.value;
