@@ -133,7 +133,26 @@ class Fns {
 			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
 
 			wp_update_attachment_metadata($attachment_id, $metadata);
+			$updated = self::permalink_to_post_guid( $attachment_id );
 		}
 		return $renamed;
 	}
+
+	/**
+	 * @param $post_id
+	 *
+	 * @return bool|int|\mysqli_result|resource|null
+	 */
+	public static function permalink_to_post_guid( $post_id ){
+		global $wpdb;
+		$guid =  wp_get_attachment_url( $post_id );
+		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID'=>$post_id ] );
+		clean_post_cache( $post_id );
+		return $updated;
+
+	}
+
+
+
+
 }
