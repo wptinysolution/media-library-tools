@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 
-import {Button, Checkbox, Space, Input } from "antd";
-
+import {Button, Checkbox, Space, Input, Layout } from "antd";
 const { TextArea } = Input;
 
 export const headerStyle = {
@@ -140,9 +139,9 @@ export function columns(
             title: 'File',
             key: 'Image',
             dataIndex: 'guid',
-            width: '400px',
+            width: '100px',
             align: 'top',
-            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> { formEdited ? <Space size={[0, 0]}> <Input name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onChange={handleChange} onBlur={handleFocusout} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`} </Space> : record.thefile.mainfilename } </Space>,
+            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> </Space>,
         },
         {
             title: <Space wrap> { `Title` } <Button size={`small`} onClick={ () => handleSortClick( 'title' )} > Sort </Button> </Space>,
@@ -192,3 +191,44 @@ export function columns(
     ];
 }
 
+
+export function renamerColumns(
+    formEdited
+){
+    return [
+        {
+            title: <Space wrap> { `ID` } </Space>,
+            key: 'ID',
+            dataIndex: 'ID',
+            width: '150px',
+            align: 'top'
+        },
+        {
+            title: 'File',
+            key: 'Image',
+            dataIndex: 'guid',
+            width: '130px',
+            align: 'top',
+            render:  ( text, record, i ) => <img width={`80`} src={text} /> ,
+        },
+        {
+            title: `File Name`,
+            key: 'Image',
+            dataIndex: 'guid',
+            width: '400px',
+            align: 'top',
+            render:  ( text, record, i ) =>  <>  { formEdited ?  <Layout style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                background: 'transparent'
+            }}><Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout>  : record.thefile.mainfilename } </>,
+        },
+        {
+            title: <Space wrap> { `Title` } </Space>,
+            key: 'Title',
+            dataIndex: 'post_title',
+            align: 'top',
+        }
+    ];
+}

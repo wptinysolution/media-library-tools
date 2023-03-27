@@ -149,7 +149,6 @@ class Fns {
 		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID'=>$post_id ] );
 		clean_post_cache( $post_id );
 		return $updated;
-
 	}
 
 

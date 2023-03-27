@@ -7,6 +7,8 @@ import { TheAppContext } from '../Utils/TheContext';
 
 import ProcessTableData from "./ListTable/ProcessTableData";
 
+import ProcessRenamerTableData from "./Renamer/ProcessRenamerTableData";
+
 import {
     getTerms,
     getDates,
@@ -93,6 +95,7 @@ function App() {
                     overflowY: 'auto'
                 }} >
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
+                    { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
                     { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
                 </Layout>
             </Layout>
