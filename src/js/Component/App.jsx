@@ -53,6 +53,7 @@ function App() {
     }
 
     const handleUpdateOption = async ( event ) => {
+        console.log( optionsData )
         const response = await updateOptins( optionsData );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
     }

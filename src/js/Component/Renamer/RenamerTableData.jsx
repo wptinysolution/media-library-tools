@@ -20,17 +20,30 @@ import {
 import RenamerMainHeader from "./RenamerMainHeader";
 
 function RenamerTableData() {
+
     const {
-        posts
+        optionsData,
+        setOptionsData,
+        handleUpdateOption,
+        isUpdated,
+        setIsUpdated
+    } = useContext( TheAppContext );
+
+    const {
+        posts,
+        formEdited,
+        handleFocusout,
+        handleChange
     } = useContext( TheMediaTableContext );
 
-    const formEdited = true;
+
     const RenameTableColumns = renamerColumns(
-        formEdited
+        formEdited,
+        handleFocusout,
+        handleChange
     );
 
     return (
-        <TheMediaTableContext.Provider value={ { formEdited } }>
             <Layout className="layout">
                 <RenamerMainHeader/>
                 <Content>
@@ -45,8 +58,6 @@ function RenamerTableData() {
                     />
                 </Content>
             </Layout>
-
-        </TheMediaTableContext.Provider>
     );
 }
 

@@ -90,22 +90,13 @@ function ProcessTableData() {
         let currentData = {
             ID: posts[currentItem].ID,
         }
-        if( 'filebasename' ===  event.target.name ){
-            currentData = {
-                ...currentData,
-                thefile : {
-                    ...posts[currentItem].thefile,
-                    newname: event.target.value
-                }
-            }
-            posts[currentItem].thefile.filebasename = event.target.value;
-        } else {
-            currentData = {
-                ...currentData,
-                [event.target.name] : event.target.value.trim()
-            }
-            posts[currentItem][event.target.name] = event.target.value;
+
+        currentData = {
+            ...currentData,
+            [event.target.name] : event.target.value.trim()
         }
+        posts[currentItem][event.target.name] = event.target.value;
+
         setCurrentItemEdited( currentData );
         setData( {
             ...data,

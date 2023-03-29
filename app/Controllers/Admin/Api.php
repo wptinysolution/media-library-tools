@@ -384,17 +384,13 @@ class Api {
 				$result['message'] = $updated ? esc_html__( 'Done. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Failed. Please try to fix', 'tsmlt-media-tools' );
 				break;
 			case 'delete':
-				$query = $wpdb->prepare( "DELETE FROM $wpdb->posts WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ")",
-					...$ids
-				);
-
-				$delete = wp_cache_get( md5( $query ), 'attachment-query' );
-				if ( false === $delete ) {
-					$delete = $wpdb->query( $query );
-					wp_cache_set( md5( $query ), $delete, 'attachment-query' );
+				$delete = [];
+				foreach ( $ids as $id ) {
+					$delete[] = wp_delete_attachment($id, true);
 				}
-				$result['updated'] = (bool) $delete;
-				$result['message'] = $delete ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
+
+				$result['updated'] = count( $delete ) === count( $ids );
+				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
 				break;
 			case 'bulkedit':
 

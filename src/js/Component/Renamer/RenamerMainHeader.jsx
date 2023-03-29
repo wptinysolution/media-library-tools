@@ -1,6 +1,6 @@
-import React, { useContext } from "react";
+import React, {useContext, useRef} from "react";
 
-import {Menu, Layout, Button, Space} from 'antd';
+import {Menu, Layout, Button, Space, Input} from 'antd';
 
 import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
 
@@ -11,7 +11,25 @@ const { Header } = Layout;
 
 
 function RenamerMainHeader() {
-    const formEdited = false;
+
+    const {
+        optionsData,
+        setOptionsData,
+        handleUpdateOption
+    } = useContext( TheAppContext );
+
+    const {
+        formEdited,
+        handleColumnEditMode,
+    } = useContext( TheMediaTableContext );
+
+    // paged
+    const inputRef = useRef(null);
+
+    const sharedProps = {
+        ref: inputRef,
+    };
+
     return (
         <Header style={headerStyle}>
             <Space wrap>
@@ -21,8 +39,37 @@ function RenamerMainHeader() {
                     }}
                     type="primary"
                     size="large"
+                    onClick={ () => handleColumnEditMode() }
                     ghost={ ! formEdited }>  { formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                 </Button>
+                <Button
+                    type="text"
+                    size="large"
+                    onClick={() => {
+                        inputRef.current.focus({
+                            cursor: 'start',
+                        });
+                    }}
+                >
+                    Items Per page
+                </Button>
+                <Input
+                    {...sharedProps}
+                    type="primary"
+                    size="large"
+                    style={{
+                        width: '50px'
+                    }}
+                    onBlur={ handleUpdateOption }
+                    onChange={
+                        (event) => setOptionsData({
+                            ...optionsData,
+                            media_per_page: event.target.value,
+                        })
+                    }
+                    value={optionsData.media_per_page}
+                />
+
             </Space>
         </Header>
     );

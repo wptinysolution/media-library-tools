@@ -192,9 +192,7 @@ export function columns(
 }
 
 
-export function renamerColumns(
-    formEdited
-){
+export function renamerColumns( formEdited, handleFocusout, handleChange ){
     return [
         {
             title: <Space wrap> { `ID` } </Space>,
@@ -217,12 +215,15 @@ export function renamerColumns(
             dataIndex: 'guid',
             width: '400px',
             align: 'top',
-            render:  ( text, record, i ) =>  <>  { formEdited ?  <Layout style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                background: 'transparent'
-            }}><Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout>  : record.thefile.mainfilename } </>,
+            render:  ( text, record, i ) =>  <>
+                { formEdited ?  <Layout style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    background: 'transparent'
+                }}> <Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout>  : record.thefile.mainfilename }
+
+            </>,
         },
         {
             title: <Space wrap> { `Title` } </Space>,

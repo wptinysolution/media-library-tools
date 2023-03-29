@@ -7,7 +7,8 @@ import RenamerTableData from "./RenamerTableData";
 
 
 import {
-    getMedia
+    getMedia,
+    upDateSingleMedia
 } from "../../Utils/Data";
 
 import {
@@ -29,7 +30,9 @@ function ProcessRenamerTableData() {
 
     const { posts, total_post, posts_per_page, paged } = data;
 
-    // console.log( posts );
+    const [formEdited, setFormEdited] = useState( false );
+
+    const [currentItemEdited, setCurrentItemEdited] = useState(false );
 
     const getTheMedia = async () => {
         const response = await getMedia('', {
@@ -38,13 +41,52 @@ function ProcessRenamerTableData() {
         setData( response );
     }
 
+    const handleColumnEditMode = () => {
+        setFormEdited( ! formEdited );
+    }
+
+    const handleChange = ( event ) => {
+        const currentItem = parseInt( event.target.getAttribute('current') );
+        let currentData = {
+            ID: posts[currentItem].ID,
+        }
+        if( 'filebasename' ===  event.target.name ){
+            currentData = {
+                ...currentData,
+                thefile : {
+                    ...posts[currentItem].thefile,
+                    newname: event.target.value
+                }
+            }
+            posts[currentItem].thefile.filebasename = event.target.value;
+            setCurrentItemEdited( currentData );
+            setData( {
+                ...data,
+                posts
+            } );
+        }
+
+    }
+
+    const handleFocusout = async ( event ) => {
+        const response = await upDateSingleMedia( currentItemEdited );
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+    }
+
 
     useEffect(() => {
         getTheMedia();
     }, [isUpdated]  );
 
     return (
-        <TheMediaTableContext.Provider value={ { posts } }>
+        <TheMediaTableContext.Provider value={ {
+            posts,
+            formEdited,
+            setFormEdited,
+            handleColumnEditMode,
+            handleFocusout,
+            handleChange
+        } }>
              <RenamerTableData/>
         </TheMediaTableContext.Provider>
     );
