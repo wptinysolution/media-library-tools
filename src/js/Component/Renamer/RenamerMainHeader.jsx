@@ -1,8 +1,11 @@
 import React, {useContext, useRef} from "react";
 
-import {Menu, Layout, Button, Space, Input} from 'antd';
+import {Typography, Layout, Button, Space, Input} from 'antd';
 
 import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
+
+const { Text, Title } = Typography;
+
 
 import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
 import {headerStyle} from "../../Utils/UtilData";
@@ -31,7 +34,8 @@ function RenamerMainHeader() {
     };
 
     return (
-        <Header style={headerStyle}>
+        <Header style={{...headerStyle, height: 'inherit'}}>
+
             <Space wrap>
                 <Button
                     style={{
@@ -69,7 +73,10 @@ function RenamerMainHeader() {
                     }
                     value={optionsData.media_per_page}
                 />
-
+                <Title level={5} style={{
+                    margin:'0 15px',
+                    color: 'red'
+                }}>Renamer note: Please Backup First before edit "File Name"</Title>
             </Space>
         </Header>
     );

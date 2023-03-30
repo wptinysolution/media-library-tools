@@ -6,10 +6,10 @@ import {
     Divider,
     Form,
     Layout,
-    Typography, Button
+    Typography, Button, Input
 } from 'antd';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const {
     Content
 } = Layout;
@@ -53,6 +53,8 @@ function Settings() {
     const [indeterminate, setIndeterminate] = useState( ! isCheckedDiff );
     const [checkAll, setCheckAll] = useState( isCheckedDiff );
 
+    // const [ defaulrAlt, setDefaulrAlt ] = useState( false );
+
     useEffect(() => {
         setCheckedList( defaultCheckedList );
     }, [optionsData] );
@@ -79,6 +81,15 @@ function Settings() {
         })
     };
 
+    const defaultAltText = (e) => {
+        // setDefaulrAlt(e.target.value)
+        setOptionsData({
+            ...optionsData,
+            default_alt_text: e.target.value,
+        })
+        // defaulrAlt,
+
+    }
     return (
         <Form
             labelCol={{
@@ -98,7 +109,7 @@ function Settings() {
             }}
         >
             <Content >
-                <Form.Item label={<Title level={5} style={{ margin:0 }}> Media Table Column </Title>} style={{
+                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} style={{
                         marginBottom:'10px',
                         padding: '15px',
                         background: 'rgb(255 255 255 / 35%)',
@@ -111,6 +122,30 @@ function Settings() {
                     <Divider />
                     <CheckboxGroup options={columns} value={checkedList} onChange={onChange} />
                 </Form.Item>
+                <Divider />
+                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>}>
+                    <Checkbox onChange={defaultAltText} name={`default_alt_text`} value={`image_name_to_alt`} checked={ 'image_name_to_alt' === optionsData.default_alt_text }> Image name use As default alt text </Checkbox>
+                    <Checkbox onChange={defaultAltText} name={`default_alt_text`} value={`custom_text_to_alt`} checked={ 'custom_text_to_alt' === optionsData.default_alt_text } > Custom Alt text </Checkbox>
+                    { 'custom_text_to_alt' === optionsData.default_alt_text &&
+                        <>
+                            <Divider />
+                            <Input
+                                type="primary"
+                                size="large"
+                                onChange={
+                                    (event) => setOptionsData({
+                                        ...optionsData,
+                                        media_default_alt: event.target.value,
+                                    })
+                                }
+                                value={optionsData.media_default_alt}
+                            />
+                            <Text type="secondary"> Alt Text Will add automatically when upload image</Text>
+                        </>
+                    }
+
+                </Form.Item>
+
             </Content>
             <Button
                 type="primary"
@@ -121,6 +156,7 @@ function Settings() {
                 }}
                 onClick={ handleUpdateOption}
             > Save Settings </Button>
+            {/*{ console.log( optionsData ) }*/}
         </Form>
 
     );

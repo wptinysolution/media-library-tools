@@ -97,6 +97,7 @@ function App() {
                 }} >
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
                     { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
+                    {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
                 </Layout>
             </Layout>

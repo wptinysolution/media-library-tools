@@ -198,7 +198,7 @@ export function renamerColumns( formEdited, handleFocusout, handleChange ){
             title: <Space wrap> { `ID` } </Space>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '150px',
+            width: '50px',
             align: 'top'
         },
         {

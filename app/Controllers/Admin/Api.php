@@ -78,7 +78,7 @@ class Api {
 
 		$result = [
 			'updated' => false,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'tsmlt-media-tools' )
 		];
 
 		$parameters = $request_data->get_params();
@@ -102,12 +102,19 @@ class Api {
 			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
 		}
 
+		if ( ! empty( $parameters['default_alt_text'] ) ) {
+			$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'];
+		}
+
+		if ( ! empty( $parameters['media_default_alt'] ) ) {
+			$tsmlt_media['media_default_alt'] = $parameters['media_default_alt'];
+		}
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
 		$result['updated'] = boolval( $options );
 
-		$result['message'] = ! $options ? $result['message'] : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
+		$result['message'] = ! $options ? $result['message'] . esc_html__( 'Please try to fix', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
 
 		//error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
