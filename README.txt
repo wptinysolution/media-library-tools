@@ -1,4 +1,4 @@
-=== Media Library Tools - Media File Renamer Image Content Editing tools===
+=== Media Library Tools - Media File Name Rename Image title, image Name, alt tag, Caption, Description Editing tools ===
 Contributors: tinysolution
 Tags: Image title, image Name, alt tag, Caption, Description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
@@ -8,10 +8,21 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Media File Rename add alt text Improve your website's SEO score and user experience make ease on WordPress.
+Properly naming your media files can improve the organization, user experience, accessibility, and search engine optimization of your website.
 Our plugin offers one-click editing for proper Titles, ALT tags, captions, and descriptions, all directly from your media library.
 
 == 🏆 Description ==
+
+Properly naming your media files is important for several reasons:
+
+Organization: Naming your media files in a descriptive and consistent manner helps keep your website organized. When you have multiple files with similar names or no names at all, it can be difficult to find the file you need. A proper file name can make it easier to locate and manage your media files.
+
+User Experience: When users visit your website, they expect to find content quickly and easily. A descriptive media file name can provide context and help users understand what they're looking at before even clicking on the file.
+
+Accessibility: Properly named media files can make your website more accessible to users who rely on assistive technologies like screen readers. Descriptive file names can be read aloud by these technologies, making it easier for visually impaired users to understand the content of your website.
+
+SEO: Search engines like Google use file names to help understand the content of your website. Descriptive file names can help improve your website's search engine optimization (SEO) by providing context and relevance to the file content.
+
 
 Are you struggling to keep up with updating the image Title, Alt tags, Captions, and descriptions in your media library?
 

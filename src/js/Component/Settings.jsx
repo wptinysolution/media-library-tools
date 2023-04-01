@@ -82,13 +82,10 @@ function Settings() {
     };
 
     const defaultAltText = (e) => {
-        // setDefaulrAlt(e.target.value)
         setOptionsData({
             ...optionsData,
-            default_alt_text: e.target.value,
+            default_alt_text: optionsData.default_alt_text !== e.target.value ? e.target.value : '',
         })
-        // defaulrAlt,
-
     }
     return (
         <Form
@@ -108,14 +105,13 @@ function Settings() {
                 height: '100%'
             }}
         >
-            <Content >
-                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} style={{
-                        marginBottom:'10px',
-                        padding: '15px',
-                        background: 'rgb(255 255 255 / 35%)',
-                        borderRadius: '5px',
-                        boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-                    }}>
+            <Content style={{
+                padding: '15px',
+                background: 'rgb(255 255 255 / 35%)',
+                borderRadius: '5px',
+                boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
+            }}>
+                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
                     <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
                         Check all
                     </Checkbox>
@@ -123,9 +119,30 @@ function Settings() {
                     <CheckboxGroup options={columns} value={checkedList} onChange={onChange} />
                 </Form.Item>
                 <Divider />
-                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>}>
-                    <Checkbox onChange={defaultAltText} name={`default_alt_text`} value={`image_name_to_alt`} checked={ 'image_name_to_alt' === optionsData.default_alt_text }> Image name use As default alt text </Checkbox>
-                    <Checkbox onChange={defaultAltText} name={`default_alt_text`} value={`custom_text_to_alt`} checked={ 'custom_text_to_alt' === optionsData.default_alt_text } > Custom Alt text </Checkbox>
+                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>} >
+
+                    <Checkbox
+                        onChange={defaultAltText}
+                        name={`default_alt_text`}
+                        value={`none`}
+                        checked={ 'none' === optionsData.default_alt_text }>
+                        None
+                    </Checkbox>
+
+                    <Checkbox
+                        onChange={defaultAltText}
+                        name={`default_alt_text`}
+                        value={`image_name_to_alt`}
+                        checked={ 'image_name_to_alt' === optionsData.default_alt_text }>
+                        Image name use As alt text
+                    </Checkbox>
+                    <Checkbox
+                        onChange={defaultAltText}
+                        name={`default_alt_text`}
+                        value={`custom_text_to_alt`}
+                        checked={ 'custom_text_to_alt' === optionsData.default_alt_text } >
+                        Custom text
+                    </Checkbox>
                     { 'custom_text_to_alt' === optionsData.default_alt_text &&
                         <>
                             <Divider />
@@ -140,7 +157,11 @@ function Settings() {
                                 }
                                 value={optionsData.media_default_alt}
                             />
-                            <Text type="secondary"> Alt Text Will add automatically when upload Media file</Text>
+                            <Text
+                                type="secondary"
+                            >
+                                Alt Text Will add automatically when upload Media file
+                            </Text>
                         </>
                     }
 
@@ -156,7 +177,6 @@ function Settings() {
                 }}
                 onClick={ handleUpdateOption}
             > Save Settings </Button>
-            {/*{ console.log( optionsData ) }*/}
         </Form>
 
     );
