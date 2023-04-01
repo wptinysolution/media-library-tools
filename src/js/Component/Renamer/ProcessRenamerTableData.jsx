@@ -69,8 +69,12 @@ function ProcessRenamerTableData() {
     }
 
     const handleFocusout = async ( event ) => {
-        const response = await upDateSingleMedia( currentItemEdited );
-        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+        let edited =  currentItemEdited.thefile.originalname.localeCompare( event.target.value );
+        if( edited ){
+            const response = await upDateSingleMedia( currentItemEdited );
+            200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+            currentItemEdited.thefile.originalname = event.target.value;
+        }
     }
 
 

@@ -332,6 +332,7 @@ class Api {
 			$thefile['mainfilename']  = basename( $metadata['file'] );
 			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 			$thefile['filebasename']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
+			$thefile['originalname']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
 
 			//error_log( print_r( $thefile , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
