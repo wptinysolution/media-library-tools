@@ -76,7 +76,7 @@ function RenamerMainHeader() {
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
-                }}>Renamer note: Please Backup First before edit "File Name"</Title>
+                }}> Renamer note: Please take a Backup First before edit "File Name"</Title>
             </Space>
         </Header>
     );
