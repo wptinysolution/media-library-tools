@@ -51,6 +51,12 @@ function MainHeader() {
                         style: menuItemStyle,
                     },
                     {
+                        key: 'rubbishfile',
+                        label: 'Rubbish file',
+                        icon: <EditOutlined />,
+                        style: menuItemStyle,
+                    },
+                    {
                         key: 'settings',
                         label: 'Media Settings',
                         icon: <SettingOutlined />,

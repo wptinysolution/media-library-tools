@@ -97,7 +97,7 @@ function App() {
                 }} >
                     { 'mediatable' === selectedMenu && <ProcessTableData/> }
                     { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
-                    {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
+                    { 'rubbishfile' === selectedMenu && `Rabbis File` }
                     { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
                 </Layout>
             </Layout>
