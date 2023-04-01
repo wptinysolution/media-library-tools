@@ -77,7 +77,6 @@ function ProcessRenamerTableData() {
         }
     }
 
-
     useEffect(() => {
         getTheMedia();
     }, [isUpdated]  );

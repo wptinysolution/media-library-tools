@@ -17,63 +17,69 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Fns {
 
-    /**
-     * @param $plugin_file_path
-     *
-     * @return bool
-     */
-    public static function is_plugins_installed( $plugin_file_path = null ) {
-        $installed_plugins_list = get_plugins();
-        return isset( $installed_plugins_list[ $plugin_file_path ] );
-    }
+	/**
+	 * @param $plugin_file_path
+	 *
+	 * @return bool
+	 */
+	public static function is_plugins_installed( $plugin_file_path = null ) {
+		$installed_plugins_list = get_plugins();
 
-    /**
-     * @param $post_type
-     * @param $post_status
-     * @param $group
-     * @param $additional_query
-     * @return false|mixed|string|null
-     */
-    public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default', $join = null, $additional_query = null ) {
-        global $wpdb;
-        $count_key = 'post_count_'.$post_type . '_' . $post_status;
-        $count = wp_cache_get( $count_key, $group );
-        if ( false === $count ) {
-            $count = $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT COUNT(DISTINCT id) FROM $wpdb->posts AS p  
+		return isset( $installed_plugins_list[ $plugin_file_path ] );
+	}
+
+	/**
+	 * @param $post_type
+	 * @param $post_status
+	 * @param $group
+	 * @param $additional_query
+	 *
+	 * @return false|mixed|string|null
+	 */
+	public static function get_post_count( $post_type, $post_status = 'publish', $group = 'default', $join = null, $additional_query = null ) {
+		global $wpdb;
+		$count_key = 'post_count_' . $post_type . '_' . $post_status;
+		$count     = wp_cache_get( $count_key, $group );
+		if ( false === $count ) {
+			$count = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(DISTINCT id) FROM $wpdb->posts AS p  
                     $join 
                     WHERE post_type = '%1\$s' AND post_status = '%2\$s'  
                     $additional_query ",
-                    $post_type,
-                    $post_status
-                )
-            );
-            wp_cache_set( $count_key, $count, $group );
-        }
-        return $count;
-    }
+					$post_type,
+					$post_status
+				)
+			);
+			wp_cache_set( $count_key, $count, $group );
+		}
 
-    /**
-     * Image attachment details
-     *
-     * @param init $attachment_id image id.
-     * @return array
-     */
-    public static function wp_get_attachment( $attachment_id ) {
-        $attachment = get_post( $attachment_id );
-        return array(
-            'alt'         => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
-            'caption'     => $attachment->post_excerpt,
-            'description' => $attachment->post_content,
-            'title'       => $attachment->post_title,
-        );
-    }
+		return $count;
+	}
 
 	/**
 	 * Image attachment details
 	 *
 	 * @param init $attachment_id image id.
+	 *
+	 * @return array
+	 */
+	public static function wp_get_attachment( $attachment_id ) {
+		$attachment = get_post( $attachment_id );
+
+		return array(
+			'alt'         => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+			'caption'     => $attachment->post_excerpt,
+			'description' => $attachment->post_content,
+			'title'       => $attachment->post_title,
+		);
+	}
+
+	/**
+	 * Image attachment details
+	 *
+	 * @param init $attachment_id image id.
+	 *
 	 * @return array
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
@@ -81,60 +87,65 @@ class Fns {
 
 		$new_file_name = sanitize_file_name( $new_file_name );
 
-		if( empty( $new_file_name ) || ! $attachment_id ){
+		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
 
 		// Get the current file path and name
-		$file_path = get_attached_file($attachment_id);
+		$file_path = get_attached_file( $attachment_id );
 
-		if( ! file_exists( $file_path ) ){
+		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
 
 		// Get the current metadata for the media file
-		$metadata = wp_get_attachment_metadata($attachment_id);
+		$metadata = wp_get_attachment_metadata( $attachment_id );
 
 		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 
-		$filebasename  = basename( $metadata['file'], '.'. $fileextension );
+		$filebasename = basename( $metadata['file'], '.' . $fileextension );
+
+		if ( $filebasename == basename( $new_file_name, '.' . $fileextension ) ) {
+			return $updated;
+		}
 
 		$path_being_saved_to = dirname( $file_path );
 
-		$unique_filename = $path_being_saved_to .'/'. wp_unique_filename( $path_being_saved_to, $new_file_name );
+		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
-		 // error_log( print_r( $unique_filename , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
+		// error_log( print_r( $unique_filename , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
 
 		// Rename the file on the server
-		$renamed = rename($file_path, $unique_filename);
+		$renamed = rename( $file_path, $unique_filename );
 
 		$new_file_name = basename( $unique_filename );
 
-		$new_filebasename  = basename( $new_file_name, '.'. $fileextension );
+		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
 		// If the file was successfully renamed, update the metadata for each size
 
-		if ($renamed) {
+		if ( $renamed ) {
 			// Update the metadata with the new file name
 			$metadata['file'] = $unique_filename;
 			// Loop through each size and rename the file
-			foreach ($metadata['sizes'] as $size => $fileinfo ) {
-				$old_file_path = dirname($file_path) . '/' . $fileinfo['file'];
-				if( ! file_exists( $old_file_path ) ){
+			foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+				$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+				if ( ! file_exists( $old_file_path ) ) {
 					continue;
 				}
-				$new_file_path = dirname($file_path) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file']);
+				$new_file_path = dirname( $file_path ) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
 
-				$renamed_size = rename($old_file_path, $new_file_path);
-				if ($renamed_size) {
-					$metadata['sizes'][$size]['file'] = str_replace($filebasename, $new_filebasename, $fileinfo['file']);
+				$renamed_size = rename( $old_file_path, $new_file_path );
+				if ( $renamed_size ) {
+					$metadata['sizes'][ $size ]['file'] = str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
 				}
 			}
-			update_attached_file( $attachment_id, str_replace( basename( $file_path ) , $new_file_name, $file_path) );
+			update_attached_file( $attachment_id, str_replace( basename( $file_path ), $new_file_name, $file_path ) );
 			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
 
-			wp_update_attachment_metadata($attachment_id, $metadata);
+			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$updated = self::permalink_to_post_guid( $attachment_id );
 		}
+
 		return $renamed;
 	}
 
@@ -143,15 +154,14 @@ class Fns {
 	 *
 	 * @return bool|int|\mysqli_result|resource|null
 	 */
-	public static function permalink_to_post_guid( $post_id ){
+	public static function permalink_to_post_guid( $post_id ) {
 		global $wpdb;
-		$guid =  wp_get_attachment_url( $post_id );
-		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID'=>$post_id ] );
+		$guid    = wp_get_attachment_url( $post_id );
+		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID' => $post_id ] );
 		clean_post_cache( $post_id );
+
 		return $updated;
 	}
-
-
 
 
 }

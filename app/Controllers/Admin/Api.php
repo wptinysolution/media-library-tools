@@ -200,22 +200,25 @@ class Api {
 			$submit['post_title'] = trim( $parameters['post_title'] );
 			$result['message']    = esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' );
 		}
+
 		if ( isset( $parameters['post_excerpt'] ) ) {
 			$submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
 			$result['message']      = esc_html__( 'The Caption has been saved.', 'tsmlt-media-tools' );
 		}
+
 		if ( isset( $parameters['post_content'] ) ) {
 			$submit['post_content'] = trim( $parameters['post_content'] );
 			$result['message']      = esc_html__( 'Content has been saved.', 'tsmlt-media-tools' );
 		}
+
 		if ( isset( $parameters['alt_text'] ) ) {
 			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 
 		if ( isset( $parameters['thefile']['newname'] ) ) {
-			 $new_file_name =  $parameters['thefile']['newname'].'.'. $parameters['thefile']['fileextension'];
-			if( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ){
+			$new_file_name = $parameters['thefile']['newname'] . '.' . $parameters['thefile']['fileextension'];
+			if ( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 			}
@@ -331,8 +334,8 @@ class Api {
 			$thefile['mainfilepath']  = dirname( wp_get_original_image_path( $post->ID ) );
 			$thefile['mainfilename']  = basename( $metadata['file'] );
 			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-			$thefile['filebasename']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
-			$thefile['originalname']  = basename( $metadata['file'], '.'. $thefile['fileextension'] );
+			$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+			$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
 
 			//error_log( print_r( $thefile , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
@@ -394,7 +397,7 @@ class Api {
 			case 'delete':
 				$delete = [];
 				foreach ( $ids as $id ) {
-					$delete[] = wp_delete_attachment($id, true);
+					$delete[] = wp_delete_attachment( $id, true );
 				}
 
 				$result['updated'] = count( $delete ) === count( $ids );
