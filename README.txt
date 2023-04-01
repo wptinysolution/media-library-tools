@@ -1,6 +1,6 @@
-=== Media Library Tools - Media File Name Rename Image title, image Name, alt tag, Caption, Description Editing tools ===
+=== Media Library Tools - Media File Rename Image title, image Name, alt tag, Caption, Description Editing tools ===
 Contributors: tinysolution
-Tags: Image title, image Name, alt tag, Caption, Description, bulk edit, media Library, image trash, image SEO
+Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
 Tested up to: 6.1
 Stable tag: 1.0.1
@@ -15,13 +15,13 @@ Our plugin offers one-click editing for proper Titles, ALT tags, captions, and d
 
 Properly naming your media files is important for several reasons:
 
-Organization: Naming your media files in a descriptive and consistent manner helps keep your website organized. When you have multiple files with similar names or no names at all, it can be difficult to find the file you need. A proper file name can make it easier to locate and manage your media files.
+**Organization:** Naming your media files in a descriptive and consistent manner helps keep your website organized. When you have multiple files with similar names or no names at all, it can be difficult to find the file you need. A proper file name can make it easier to locate and manage your media files.
 
-User Experience: When users visit your website, they expect to find content quickly and easily. A descriptive media file name can provide context and help users understand what they're looking at before even clicking on the file.
+**User Experience:** When users visit your website, they expect to find content quickly and easily. A descriptive media file name can provide context and help users understand what they're looking at before even clicking on the file.
 
-Accessibility: Properly named media files can make your website more accessible to users who rely on assistive technologies like screen readers. Descriptive file names can be read aloud by these technologies, making it easier for visually impaired users to understand the content of your website.
+**Accessibility:** Properly named media files can make your website more accessible to users who rely on assistive technologies like screen readers. Descriptive file names can be read aloud by these technologies, making it easier for visually impaired users to understand the content of your website.
 
-SEO: Search engines like Google use file names to help understand the content of your website. Descriptive file names can help improve your website's search engine optimization (SEO) by providing context and relevance to the file content.
+**SEO:** Search engines like Google use file names to help understand the content of your website. Descriptive file names can help improve your website's search engine optimization (SEO) by providing context and relevance to the file content.
 
 
 Are you struggling to keep up with updating the image Title, Alt tags, Captions, and descriptions in your media library?
@@ -46,6 +46,7 @@ reduced website traffic, and decreased user engagement.
 
 == 🏆 FEATURES ==
 
+* Rename Media file name.
 * Make The Image Categories.
 * Search Image by the category.
 * Media File Rename, Bulk edit Title, ALT text, Caption, Description, And Category .
