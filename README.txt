@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Proper Titles, ALT tags, captions, and descriptions of your media files can improve the organization, user experience, accessibility, and search engine optimization of your website. Our plugin offers one-click editing for proper Titles, ALT tags, captions, and descriptions, all directly from your media library.
+Proper Naming of media file Titles, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == 🏆 Description ==
 
