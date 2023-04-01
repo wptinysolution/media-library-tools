@@ -2,7 +2,7 @@
 Contributors: tinysolution
 Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
-Tested up to: 6.1
+Tested up to: 6.2
 Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv3
