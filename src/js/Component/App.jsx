@@ -30,7 +30,7 @@ function App() {
 
     const [optionsData, setOptionsData] = useState( [] );
 
-    const [ selectedMenu, setSelectedMenu] = useState( 'mediatable' );
+    const [ selectedMenu, setSelectedMenu] = useState( localStorage.getItem("current_menu") || 'mediatable' );
 
     const [isUpdated, setIsUpdated] = useState(false );
 

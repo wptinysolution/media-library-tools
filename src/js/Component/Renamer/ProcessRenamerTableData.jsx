@@ -13,8 +13,6 @@ import {
 
 import {
     defaultPosts,
-    defaultPostsFilter,
-    defaultBulkSubmitData,
     defaultPostsQuery
 } from '../../Utils/UtilData'
 
@@ -26,7 +24,7 @@ function ProcessRenamerTableData() {
 
     const [data, setData] = useState( defaultPosts );
 
-    const [postQuery, setPostQuery] = useState( defaultPostsQuery );
+    const [postQuery, setPostQuery] = useState( { ...defaultPostsQuery, orderby: 'id' } );
 
     const { posts, total_post, posts_per_page, paged } = data;
 
@@ -37,9 +35,8 @@ function ProcessRenamerTableData() {
     const [isLoading, setIsloading] = useState( true );
 
     const getTheMedia = async () => {
-        const response = await getMedia('', {
-            ...postQuery
-        } );
+        console.log( postQuery )
+        const response = await getMedia('', postQuery);
         setData( response );
         setTimeout(() => {
             setIsloading( false )
@@ -74,7 +71,7 @@ function ProcessRenamerTableData() {
     }
 
     const handleFocusout = async ( event ) => {
-        let edited =  currentItemEdited.thefile.originalname.localeCompare( event.target.value );
+        let edited =  currentItemEdited.thefile.originalname && currentItemEdited.thefile.originalname.localeCompare( event.target.value );
         if( edited ){
             const response = await upDateSingleMedia( currentItemEdited );
             200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
