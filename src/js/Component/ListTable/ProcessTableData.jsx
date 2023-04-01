@@ -48,7 +48,6 @@ function ProcessTableData() {
 
     const [isLoading, setIsloading] = useState( true );
 
-
     const getTheMedia = async () => {
         const response = await getMedia('', {
             ...postQuery

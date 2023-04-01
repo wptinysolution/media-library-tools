@@ -34,11 +34,16 @@ function ProcessRenamerTableData() {
 
     const [currentItemEdited, setCurrentItemEdited] = useState(false );
 
+    const [isLoading, setIsloading] = useState( true );
+
     const getTheMedia = async () => {
         const response = await getMedia('', {
             ...postQuery
         } );
         setData( response );
+        setTimeout(() => {
+            setIsloading( false )
+        }, 200 );
     }
 
     const handleColumnEditMode = () => {
@@ -77,6 +82,16 @@ function ProcessRenamerTableData() {
         }
     }
 
+    const handlePagination = ( current ) => {
+        setIsloading( true )
+        setFormEdited( false );
+        setPostQuery({
+            ...postQuery,
+            paged: current
+        })
+        setIsUpdated( ! isUpdated );
+    }
+
     useEffect(() => {
         getTheMedia();
     }, [isUpdated]  );
@@ -88,7 +103,12 @@ function ProcessRenamerTableData() {
             setFormEdited,
             handleColumnEditMode,
             handleFocusout,
-            handleChange
+            handleChange,
+            paged,
+            isLoading,
+            total_post,
+            posts_per_page,
+            handlePagination,
         } }>
              <RenamerTableData/>
         </TheMediaTableContext.Provider>

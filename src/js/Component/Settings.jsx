@@ -140,7 +140,7 @@ function Settings() {
                                 }
                                 value={optionsData.media_default_alt}
                             />
-                            <Text type="secondary"> Alt Text Will add automatically when upload image</Text>
+                            <Text type="secondary"> Alt Text Will add automatically when upload Media file</Text>
                         </>
                     }
 
