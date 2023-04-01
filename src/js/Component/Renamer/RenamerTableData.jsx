@@ -1,34 +1,23 @@
 
-import React, {useState, useEffect, useContext} from "react";
+import React, {useContext} from "react";
 
-import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
+import { TheMediaTableContext } from '../../Utils/TheContext';
 
 import {LoadingOutlined} from "@ant-design/icons";
 
 import {Layout, Pagination, Spin, Space, Table} from "antd";
 
 const {
-    Header,
     Content,
-    Footer
 } = Layout;
 
 import {
-    headerStyle,
     renamerColumns
 } from '../../Utils/UtilData'
 
 import RenamerMainHeader from "./RenamerMainHeader";
 
 function RenamerTableData() {
-
-    const {
-        optionsData,
-        setOptionsData,
-        handleUpdateOption,
-        isUpdated,
-        setIsUpdated
-    } = useContext( TheAppContext );
 
     const {
         posts,
@@ -50,7 +39,6 @@ function RenamerTableData() {
     );
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
 
     return (
             <Layout className="layout">

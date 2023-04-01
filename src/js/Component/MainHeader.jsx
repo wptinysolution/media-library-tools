@@ -65,6 +65,7 @@ function MainHeader() {
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                     setSelectedMenu( key );
+                    localStorage.setItem( "current_menu", key );
                 } }
             />
         </Header>
