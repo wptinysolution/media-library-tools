@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
 Tested up to: 6.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,6 +31,10 @@ Access helpful sorting and filtering tools to easily identify which images requi
 Save time and improve your website's search engine rankings by streamlining the image metadata editing process with our plugin.
 
 [youtube https://www.youtube.com/watch?v=Yj1rTVZRZ8k]
+
+== 🏆 File Rename ==
+
+[youtube https://www.youtube.com/watch?v=wwDqxVL0CU0]
 
 
 == 🏆 Improve your website's SEO score ==
@@ -88,9 +92,17 @@ then chose "Bulk Edit" form "Bulk actions" Menu. The assign one or multiple imag
 03. Media Settings
 04. Media Library
 05. Bulk Action
+06. Media File Rename Edit Mode
+06. Media File Rename Non Edit mode
 
 
 == Changelog ==
+
+= 1.0.2 ( April 01, 2023 ) =
+* Fixed: File Delete issue fixed.
+* Added: Media File Renamar
+* Added: Default alt text.
+
 = 1.0.1 ( MARCH 08, 2023 ) =
 * Fixed: Text fixed.
 
