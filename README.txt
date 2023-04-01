@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Proper Naming of media file Titles, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+Proper Naming of media file, Titles, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == 🏆 Description ==
 
