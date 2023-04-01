@@ -1,4 +1,4 @@
-=== Media Library Tools - Media File Rename Image title, image Name, alt tag, Caption, Description Editing tools ===
+=== Media Library Tools - Media File Rename And Bulk Edit Image Title, Name, Alt Tag, Caption, Description Editing tools ===
 Contributors: tinysolution
 Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Proper Naming of media file, Titles, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == 🏆 Description ==
 
