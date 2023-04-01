@@ -22,8 +22,27 @@ class ActionHooks {
 	 */
 	public static function init_hooks() {
         add_action( 'manage_media_custom_column', [ __CLASS__, 'display_column_value' ], 10, 2 );
+		add_action( 'add_attachment', [ __CLASS__, 'add_image_info_to' ]  );
 	}
 
+	/***
+	 * @param $mimes
+	 *
+	 * @return mixed
+	 */
+	public static function add_image_info_to( $post_id ) {
+		$options = Fns::get_options();
+		$alt_text = get_the_title( $post_id ) ;
+		if( empty( $options['default_alt_text'] ) ){
+			return;
+		}
+		if( 'image_name_to_alt' === $options['default_alt_text'] ){
+			update_post_meta( $post_id, '_wp_attachment_image_alt', $alt_text );
+		} elseif ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ){
+			update_post_meta( $post_id, '_wp_attachment_image_alt', $options['media_default_alt'] );
+		}
+
+	}
     /**
      * @param $column
      * @param $post_id

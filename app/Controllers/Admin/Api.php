@@ -125,9 +125,7 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_options() {
-		$options = get_option( 'tsmlt_settings' );
-
-		return wp_json_encode( $options );
+		return wp_json_encode( Fns::get_options() );
 	}
 
 	/**

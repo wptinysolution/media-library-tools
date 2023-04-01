@@ -163,5 +163,12 @@ class Fns {
 		return $updated;
 	}
 
+	/**
+	 * @return false|string
+	 */
+	public static function get_options() {
+		return get_option( 'tsmlt_settings' );
+	}
+
 
 }
