@@ -5,6 +5,11 @@ import { Layout } from 'antd';
 
 import { TheAppContext } from '../Utils/TheContext';
 
+import {
+    UPDATE_DATA_OPTIONS,
+    UPDATE_SINGLE_MEDIA
+} from '../Utils/actionType';
+
 import ProcessTableData from "./ListTable/ProcessTableData";
 
 import ProcessRenamerTableData from "./Renamer/ProcessRenamerTableData";
@@ -20,15 +25,18 @@ const { Sider, Content } = Layout;
 
 import MainHeader from "./MainHeader";
 import Settings from "./Settings";
+import {useStateValue} from "../Utils/StateProvider";
+import * as Type from "../Utils/actionType";
+import * as Types from "../Utils/actionType";
 
 
 function App() {
 
+    const [stateValue, dispatch] = useStateValue();
+
     const [dateList, setDateList] = useState( [] );
 
     const [termsList, setTermsList] = useState( [] );
-
-    const [optionsData, setOptionsData] = useState( [] );
 
     const [ selectedMenu, setSelectedMenu] = useState( localStorage.getItem("current_menu") || 'mediatable' );
 
@@ -49,18 +57,32 @@ function App() {
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData =  JSON.parse( response.data );
-        setOptionsData( preparedData );
+        dispatch({
+            type: Type.UPDATE_DATA_OPTIONS,
+            saveType: Types.UPDATE_DATA_OPTIONS,
+            options : preparedData
+        });
     }
 
     const handleUpdateOption = async ( event ) => {
-        console.log( optionsData )
-        const response = await updateOptins( optionsData );
-        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+       const response = await updateOptins( stateValue.options );
+        if( 200 === parseInt( response.status ) ){
+            getTheOptins();
+        }
+    }
+
+    const handleSave = () => {
+        switch ( stateValue.saveType ) {
+            case UPDATE_DATA_OPTIONS:
+                    handleUpdateOption();
+                break;
+            default:
+        }
     }
 
     useEffect(() => {
         getTheOptins();
-    }, [isUpdated, selectedMenu ] );
+    }, [] );
 
     useEffect(() => {
         getDateList();
@@ -71,13 +93,11 @@ function App() {
         <TheAppContext.Provider value={ {
             dateList,
             termsList,
-            optionsData,
-            setOptionsData,
-            handleUpdateOption,
             isUpdated,
             setIsUpdated,
             selectedMenu,
-            setSelectedMenu
+            setSelectedMenu,
+            handleSave
         } }>
             <Layout className="tttme-App" style={{
                 padding: '10px',
@@ -95,10 +115,10 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    { 'mediatable' === selectedMenu && <ProcessTableData/> }
-                    { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
+                    {/*{ 'mediatable' === selectedMenu && <ProcessTableData/> }*/}
+                    {/*{ 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
-                    { 'settings' === selectedMenu && Object.keys(optionsData).length ? <Settings/> : null }
+                    { 'settings' === selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
                 </Layout>
             </Layout>
         </TheAppContext.Provider>

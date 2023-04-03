@@ -35,7 +35,6 @@ function ProcessRenamerTableData() {
     const [isLoading, setIsloading] = useState( true );
 
     const getTheMedia = async () => {
-        console.log( postQuery )
         const response = await getMedia('', postQuery);
         setData( response );
         setTimeout(() => {

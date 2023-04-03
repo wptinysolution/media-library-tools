@@ -1,5 +1,10 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
-import {TheAppContext, TheMediaTableContext} from "../Utils/TheContext";
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { TheAppContext, TheMediaTableContext } from "../Utils/TheContext";
+
+import * as Types from '../Utils/actionType';
+
+import { useStateValue } from '../Utils/StateProvider';
+
 
 import {
     Checkbox,
@@ -18,7 +23,6 @@ import {
     columnList
 } from '../Utils/UtilData'
 
-
 const CheckboxGroup = Checkbox.Group;
 
 const columns = columnList.map( ( currentValue) => {
@@ -34,18 +38,20 @@ const plainOptions = columnList.map( ( currentValue) => {
 } );
 
 
+
 function Settings() {
+
+   const [stateValue, dispatch] = useStateValue();
+
     const {
-        optionsData,
-        setOptionsData,
-        handleUpdateOption
+        handleSave
     } = useContext( TheAppContext );
 
     const defaultCheckedList = plainOptions.filter( ( currentValue) => {
-        if( ! optionsData.media_table_column ){
+        if( ! stateValue.options.media_table_column ){
             return true;
         }
-        return optionsData.media_table_column.includes( `${currentValue}` );
+        return stateValue.options.media_table_column.includes( `${currentValue}` );
     } );
 
     const isCheckedDiff = Object.keys(defaultCheckedList).length === Object.keys(plainOptions).length;
@@ -57,17 +63,19 @@ function Settings() {
 
     useEffect(() => {
         setCheckedList( defaultCheckedList );
-    }, [optionsData] );
+    }, [stateValue.options] );
 
-    const onChange = (list) => {
+    const onChangeColumnList = (list) => {
         setCheckedList(list);
         setIndeterminate(!!list.length && list.length < plainOptions.length);
         setCheckAll(list.length === plainOptions.length);
-        setOptionsData((prevState) => {
-            return {
-                ...prevState,
+        dispatch({
+            type: Types.UPDATE_DATA_OPTIONS,
+            saveType: Types.UPDATE_DATA_OPTIONS,
+            options : {
+                ...stateValue.options,
                 media_table_column: list,
-            };
+            }
         });
     };
 
@@ -75,17 +83,26 @@ function Settings() {
         setCheckedList(e.target.checked ? plainOptions : []);
         setIndeterminate(false);
         setCheckAll(e.target.checked);
-        setOptionsData({
-            ...optionsData,
-            media_table_column: e.target.checked ? plainOptions : [],
-        })
+        dispatch({
+            type: Types.UPDATE_DATA_OPTIONS,
+            saveType: Types.UPDATE_DATA_OPTIONS,
+            options : {
+                ...stateValue.options,
+                media_table_column: e.target.checked ? plainOptions : [],
+            }
+        });
+
     };
 
     const defaultAltText = (e) => {
-        setOptionsData({
-            ...optionsData,
-            default_alt_text: optionsData.default_alt_text !== e.target.value ? e.target.value : '',
-        })
+        dispatch({
+            type: Types.UPDATE_DATA_OPTIONS,
+            saveType: Types.UPDATE_DATA_OPTIONS,
+            options : {
+                ...stateValue.options,
+                default_alt_text: stateValue.options.default_alt_text !== e.target.value ? e.target.value : '',
+            }
+        });
     }
     return (
         <Form
@@ -116,7 +133,7 @@ function Settings() {
                         Check all
                     </Checkbox>
                     <Divider />
-                    <CheckboxGroup options={columns} value={checkedList} onChange={onChange} />
+                    <CheckboxGroup options={columns} value={checkedList} onChange={onChangeColumnList} />
                 </Form.Item>
                 <Divider />
                 <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>} >
@@ -125,7 +142,7 @@ function Settings() {
                         onChange={defaultAltText}
                         name={`default_alt_text`}
                         value={`none`}
-                        checked={ 'none' === optionsData.default_alt_text }>
+                        checked={ 'none' === stateValue.options.default_alt_text }>
                         None
                     </Checkbox>
 
@@ -133,29 +150,33 @@ function Settings() {
                         onChange={defaultAltText}
                         name={`default_alt_text`}
                         value={`image_name_to_alt`}
-                        checked={ 'image_name_to_alt' === optionsData.default_alt_text }>
+                        checked={ 'image_name_to_alt' === stateValue.options.default_alt_text }>
                         Image name use As alt text
                     </Checkbox>
                     <Checkbox
                         onChange={defaultAltText}
                         name={`default_alt_text`}
                         value={`custom_text_to_alt`}
-                        checked={ 'custom_text_to_alt' === optionsData.default_alt_text } >
+                        checked={ 'custom_text_to_alt' === stateValue.options.default_alt_text } >
                         Custom text
                     </Checkbox>
-                    { 'custom_text_to_alt' === optionsData.default_alt_text &&
+                    { 'custom_text_to_alt' === stateValue.options.default_alt_text &&
                         <>
                             <Divider />
                             <Input
                                 type="primary"
                                 size="large"
                                 onChange={
-                                    (event) => setOptionsData({
-                                        ...optionsData,
-                                        media_default_alt: event.target.value,
+                                    (event) => dispatch({
+                                        type: Types.UPDATE_DATA_OPTIONS,
+                                        saveType: Types.UPDATE_DATA_OPTIONS,
+                                        options : {
+                                            ...stateValue.options,
+                                            media_default_alt: event.target.value,
+                                        }
                                     })
                                 }
-                                value={optionsData.media_default_alt}
+                                value={stateValue.options.media_default_alt}
                             />
                             <Text
                                 type="secondary"
@@ -175,7 +196,7 @@ function Settings() {
                     position: 'absolute',
                     bottom: '10px'
                 }}
-                onClick={ handleUpdateOption}
+                onClick={ () => handleSave() }
             > Save Settings </Button>
         </Form>
 
