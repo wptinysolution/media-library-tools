@@ -16,58 +16,36 @@ import {
     defaultPostsQuery
 } from '../../Utils/UtilData'
 
+import {useStateValue} from "../../Utils/StateProvider";
+
+import * as Types from "../../Utils/actionType";
+
 function ProcessRenamerTableData() {
     const {
         isUpdated,
         setIsUpdated
     } = useContext( TheAppContext );
 
-    const [data, setData] = useState( defaultPosts );
+    const [stateValue, dispatch] = useStateValue();
 
     const [postQuery, setPostQuery] = useState( { ...defaultPostsQuery, orderby: 'id' } );
 
-    const { posts, total_post, posts_per_page, paged } = data;
-
-    const [formEdited, setFormEdited] = useState( false );
-
-    const [currentItemEdited, setCurrentItemEdited] = useState(false );
-
-    const [isLoading, setIsloading] = useState( true );
+    const { posts, total_post, posts_per_page, paged } = stateValue.mediaData;
 
     const getTheMedia = async () => {
         const response = await getMedia('', postQuery);
-        setData( response );
-        setTimeout(() => {
-            setIsloading( false )
-        }, 200 );
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            isLoading: false,
+            mediaData: response,
+        })
     }
 
+    /*
     const handleColumnEditMode = () => {
         setFormEdited( ! formEdited );
     }
-
-    const handleChange = ( event ) => {
-        const currentItem = parseInt( event.target.getAttribute('current') );
-        let currentData = {
-            ID: posts[currentItem].ID,
-        }
-        if( 'filebasename' ===  event.target.name ){
-            currentData = {
-                ...currentData,
-                thefile : {
-                    ...posts[currentItem].thefile,
-                    newname: event.target.value
-                }
-            }
-            posts[currentItem].thefile.filebasename = event.target.value;
-            setCurrentItemEdited( currentData );
-            setData( {
-                ...data,
-                posts
-            } );
-        }
-
-    }
+    */
 
     const handleFocusout = async ( event ) => {
         let edited =  currentItemEdited.thefile.originalname && currentItemEdited.thefile.originalname.localeCompare( event.target.value );
@@ -79,8 +57,13 @@ function ProcessRenamerTableData() {
     }
 
     const handlePagination = ( current ) => {
-        setIsloading( true )
-        setFormEdited( false );
+        //setIsloading( true )
+        dispatch({
+            ...stateValue,
+            type: Types.GET_MEDIA_LIST,
+            isLoading: false,
+        })
+
         setPostQuery({
             ...postQuery,
             paged: current
@@ -91,19 +74,10 @@ function ProcessRenamerTableData() {
     useEffect(() => {
         getTheMedia();
     }, [isUpdated]  );
-
+    console.log( stateValue )
     return (
         <TheMediaTableContext.Provider value={ {
-            posts,
-            formEdited,
-            setFormEdited,
-            handleColumnEditMode,
             handleFocusout,
-            handleChange,
-            paged,
-            isLoading,
-            total_post,
-            posts_per_page,
             handlePagination,
         } }>
              <RenamerTableData/>

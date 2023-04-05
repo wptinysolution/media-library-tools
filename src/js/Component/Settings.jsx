@@ -97,7 +97,6 @@ function Settings() {
     const defaultAltText = (e) => {
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
-            saveType: Types.UPDATE_DATA_OPTIONS,
             options : {
                 ...stateValue.options,
                 default_alt_text: stateValue.options.default_alt_text !== e.target.value ? e.target.value : '',
@@ -129,9 +128,7 @@ function Settings() {
                 boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
             }}>
                 <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
-                    <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
-                        Check all
-                    </Checkbox>
+                    <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>Check all </Checkbox>
                     <Divider />
                     <CheckboxGroup options={columns} value={checkedList} onChange={onChangeColumnList} />
                 </Form.Item>
@@ -196,8 +193,9 @@ function Settings() {
                     position: 'absolute',
                     bottom: '10px'
                 }}
-                onClick={ () => handleSave() }
-            > Save Settings </Button>
+                onClick={ () => handleSave() } >
+                Save Settings
+            </Button>
         </Form>
 
     );

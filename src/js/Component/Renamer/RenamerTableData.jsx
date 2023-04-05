@@ -1,7 +1,7 @@
 
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 
-import { TheMediaTableContext } from '../../Utils/TheContext';
+import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
 
 import {LoadingOutlined} from "@ant-design/icons";
 
@@ -17,33 +17,59 @@ import {
 
 import RenamerMainHeader from "./RenamerMainHeader";
 
+import {useStateValue} from "../../Utils/StateProvider";
+
+import * as Types from "../../Utils/actionType";
+
 function RenamerTableData() {
 
-    const {
-        posts,
-        formEdited,
-        handleFocusout,
-        handleChange,
-        paged,
-        isLoading,
-        total_post,
-        posts_per_page,
-        handlePagination,
-    } = useContext( TheMediaTableContext );
+    const { handlePagination } = useContext( TheMediaTableContext );
+
+    const [formEdited, setFormEdited] = useState( false );
+
+    const [currentItemEdited, setCurrentItemEdited] = useState(false );
+
+    const [stateValue, dispatch] = useStateValue();
+
+    const { handleSave } = useContext( TheAppContext );
+
+    //console.log( stateValue )
+
+
+    const handleChange = ( event ) => {
+        const currentItem = parseInt( event.target.getAttribute('current') );
+        
+        if( 'filebasename' ===  event.target.name ){
+
+            stateValue.mediaData.posts[currentItem].thefile.filebasename = event.target.value;
+            // setCurrentItemEdited( currentData );
+            dispatch({
+                type: Types.UPDATE_RENAMER_MEDIA,
+                saveType: Types.UPDATE_RENAMER_MEDIA,
+                rename : {
+                    ...stateValue.rename,
+                    ID: stateValue.mediaData.posts[currentItem].ID,
+                    newname: event.target.value
+                }
+            });
+            
+        }
+
+    }
 
 
     const RenameTableColumns = renamerColumns(
-        formEdited,
-        handleFocusout,
+        stateValue.rename.formEdited,
+        handleSave,
         handleChange
     );
-
+    // console.log( stateValue )
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
     return (
             <Layout className="layout">
                 <RenamerMainHeader/>
-                { isLoading || ! total_post > 0 ?
+                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?
                     <Content className="spain-icon" style={{
                         height: "90vh",
                         display: 'flex',
@@ -56,7 +82,7 @@ function RenamerTableData() {
                             rowKey={(item) => item.ID}
                             pagination={false}
                             columns={ RenameTableColumns }
-                            dataSource={ posts }
+                            dataSource={ stateValue.mediaData.posts }
                             scroll={{
                                 x: 1300,
                             }}
@@ -70,9 +96,9 @@ function RenamerTableData() {
                             showSizeChanger={false}
                             showQuickJumper={true}
                             showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                            total={total_post}
-                            pageSize={posts_per_page}
-                            current={paged}
+                            total={stateValue.mediaData.total_post}
+                            pageSize={stateValue.mediaData.posts_per_page}
+                            current={stateValue.mediaData.paged}
                             onChange={(current) => handlePagination(current)}
                         />
                     </Content>

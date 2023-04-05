@@ -9,23 +9,23 @@ const { Text, Title } = Typography;
 
 import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
 import {headerStyle} from "../../Utils/UtilData";
+import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
 
 
 function RenamerMainHeader() {
 
-    const {
-        optionsData,
-        setOptionsData,
-        handleUpdateOption
-    } = useContext( TheAppContext );
+    const [stateValue, dispatch] = useStateValue();
 
-    const {
-        formEdited,
-        handleColumnEditMode,
-    } = useContext( TheMediaTableContext );
+    const { handleSave } = useContext( TheAppContext );
 
+    // const {
+    //     formEdited,
+    // } = useContext( TheMediaTableContext );
+    //
+    //console.log( stateValue )
     // paged
     const inputRef = useRef(null);
 
@@ -43,8 +43,16 @@ function RenamerMainHeader() {
                     }}
                     type="primary"
                     size="large"
-                    onClick={ () => handleColumnEditMode() }
-                    ghost={ ! formEdited }>  { formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
+                    onClick={
+                        () => dispatch({
+                            type: Types.UPDATE_RENAMER_MEDIA,
+                            rename:{
+                                ...stateValue.rename,
+                                formEdited : ! stateValue.rename.formEdited,
+                            }
+                        })
+                    }
+                    ghost={ ! stateValue.rename.formEdited }>  { stateValue.rename.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                 </Button>
                 <Button
                     type="text"
@@ -64,14 +72,18 @@ function RenamerMainHeader() {
                     style={{
                         width: '50px'
                     }}
-                    onBlur={ handleUpdateOption }
+                    onBlur={ handleSave }
                     onChange={
-                        (event) => setOptionsData({
-                            ...optionsData,
-                            media_per_page: event.target.value,
+                        (event) => dispatch({
+                            type: Types.UPDATE_DATA_OPTIONS,
+                            saveType: Types.UPDATE_DATA_OPTIONS,
+                            options : {
+                                ...stateValue.options,
+                                media_per_page: event.target.value,
+                            }
                         })
                     }
-                    value={optionsData.media_per_page}
+                    value={stateValue.options.media_per_page}
                 />
                 <Title level={5} style={{
                     margin:'0 15px',

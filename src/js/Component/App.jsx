@@ -59,7 +59,6 @@ function App() {
         const preparedData =  JSON.parse( response.data );
         dispatch({
             type: Type.UPDATE_DATA_OPTIONS,
-            saveType: Types.UPDATE_DATA_OPTIONS,
             options : preparedData
         });
     }
@@ -116,7 +115,7 @@ function App() {
                     overflowY: 'auto'
                 }} >
                     {/*{ 'mediatable' === selectedMenu && <ProcessTableData/> }*/}
-                    {/*{ 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }*/}
+                    { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
                 </Layout>
