@@ -20,12 +20,17 @@ const {
 
 
 import TheHeader from "./TheHeader";
+import {useStateValue} from "../../Utils/StateProvider";
 
 export default function Datatable() {
+
+    const [stateValue, dispatch] = useStateValue();
+
     const {
         optionsData,
         selectedMenu
     } = useContext( TheAppContext );
+
 
     const {
         posts,
@@ -48,15 +53,16 @@ export default function Datatable() {
 
     } = useContext( TheMediaTableContext );
 
+
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
     const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange, filtering,
         setFiltering, handleFilterData );
     const tablecolumn = thecolumn.filter( ( currentValue) => {
-        if( ! optionsData.media_table_column || 'CheckboxID' === currentValue.key ){
+        if( ! stateValue.options.media_table_column || 'CheckboxID' === currentValue.key ){
             return true;
         }
-        return optionsData.media_table_column.includes( `${currentValue.key}` );
+        return stateValue.options.media_table_column.includes( `${currentValue.key}` );
     } );
 
     // optionsData

@@ -82,6 +82,7 @@ function App() {
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_DATA_OPTIONS:
+                    console.log( stateValue.options )
                     handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
@@ -126,7 +127,7 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    {/*{ 'mediatable' === selectedMenu && <ProcessTableData/> }*/}
+                    { 'mediatable' === selectedMenu && <ProcessTableData/> }
                     { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }

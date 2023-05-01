@@ -25,10 +25,6 @@ function RenamerTableData() {
 
     const { handlePagination } = useContext( TheMediaTableContext );
 
-    const [formEdited, setFormEdited] = useState( false );
-
-    const [currentItemEdited, setCurrentItemEdited] = useState(false );
-
     const [stateValue, dispatch] = useStateValue();
 
     const { handleSave } = useContext( TheAppContext );

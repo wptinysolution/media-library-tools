@@ -9,17 +9,24 @@ import {
     selectStyle,
     bulkOprions
 } from '../../Utils/UtilData'
+import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
 
 function TheHeader() {
+
+    const [stateValue, dispatch] = useStateValue();
+
     const {
         dateList,
         termsList,
         optionsData,
         setOptionsData,
-        handleUpdateOption
+        handleSave
     } = useContext( TheAppContext );
+
+
     const {
         postQuery,
         formEdited,
@@ -36,6 +43,8 @@ function TheHeader() {
     const sharedProps = {
         ref: inputRef,
     };
+
+    //console.log( stateValue )
 
     return (
         <Header style={headerStyle}>
@@ -124,14 +133,18 @@ function TheHeader() {
                     style={{
                         width: '50px'
                     }}
-                    onBlur={ handleUpdateOption }
+                    onBlur={ handleSave }
                     onChange={
-                        (event) => setOptionsData({
-                            ...optionsData,
-                            media_per_page : event.target.value,
+                        (event) => dispatch({
+                            type: Types.UPDATE_DATA_OPTIONS,
+                            saveType: Types.UPDATE_DATA_OPTIONS,
+                            options : {
+                                ...stateValue.options,
+                                media_per_page: event.target.value,
+                            }
                         })
                     }
-                    value={optionsData.media_per_page}
+                    value={stateValue.options.media_per_page}
                 />
             </Space>
         </Header>
