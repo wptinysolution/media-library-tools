@@ -18,7 +18,7 @@ import {
     getTerms,
     getDates,
     getOptions,
-    updateOptins,
+    updateOptins, upDateSingleMedia,
 } from "../Utils/Data";
 
 const { Sider, Content } = Layout;
@@ -65,15 +65,27 @@ function App() {
 
     const handleUpdateOption = async ( event ) => {
        const response = await updateOptins( stateValue.options );
-        if( 200 === parseInt( response.status ) ){
-            getTheOptins();
+        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+    }
+
+    const handleRenameFocusout = async ( ) => {
+        const  currentItemEdited = stateValue.rename;
+        //console.log( stateValue )
+        let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
+        if( edited ){
+            console.log( currentItemEdited )
+            const response = await upDateSingleMedia( currentItemEdited );
+            200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
         }
     }
 
     const handleSave = () => {
         switch ( stateValue.saveType ) {
-            case UPDATE_DATA_OPTIONS:
+            case Types.UPDATE_DATA_OPTIONS:
                     handleUpdateOption();
+                break;
+            case Types.UPDATE_RENAMER_MEDIA:
+                    handleRenameFocusout();
                 break;
             default:
         }
@@ -81,7 +93,7 @@ function App() {
 
     useEffect(() => {
         getTheOptins();
-    }, [] );
+    }, [ isUpdated ] );
 
     useEffect(() => {
         getDateList();

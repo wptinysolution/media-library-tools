@@ -214,8 +214,8 @@ class Api {
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 
-		if ( isset( $parameters['thefile']['newname'] ) ) {
-			$new_file_name = $parameters['thefile']['newname'] . '.' . $parameters['thefile']['fileextension'];
+		if ( isset( $parameters['newname'] ) ) {
+			$new_file_name = $parameters['newname'] . '.' . $parameters['postsdata']['fileextension'];
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );

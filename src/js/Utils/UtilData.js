@@ -221,7 +221,7 @@ export function renamerColumns( formEdited, handleFocusout, handleChange ){
                     flexDirection: 'row',
                     alignItems: 'center',
                     background: 'transparent'
-                }}> <Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout>  : record.thefile.mainfilename }
+                }}> <Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout> : record.thefile.mainfilename }
 
             </>,
         },

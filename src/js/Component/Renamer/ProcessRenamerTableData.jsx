@@ -47,14 +47,6 @@ function ProcessRenamerTableData() {
     }
     */
 
-    const handleFocusout = async ( event ) => {
-        let edited =  currentItemEdited.thefile.originalname && currentItemEdited.thefile.originalname.localeCompare( event.target.value );
-        if( edited ){
-            const response = await upDateSingleMedia( currentItemEdited );
-            200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
-            currentItemEdited.thefile.originalname = event.target.value;
-        }
-    }
 
     const handlePagination = ( current ) => {
         //setIsloading( true )
@@ -74,10 +66,9 @@ function ProcessRenamerTableData() {
     useEffect(() => {
         getTheMedia();
     }, [isUpdated]  );
-    console.log( stateValue )
+    // console.log( stateValue )
     return (
         <TheMediaTableContext.Provider value={ {
-            handleFocusout,
             handlePagination,
         } }>
              <RenamerTableData/>

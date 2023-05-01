@@ -33,21 +33,21 @@ function RenamerTableData() {
 
     const { handleSave } = useContext( TheAppContext );
 
-    //console.log( stateValue )
-
-
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
-        
+
         if( 'filebasename' ===  event.target.name ){
 
+            const pnlname = stateValue.mediaData.posts[currentItem].thefile;
+
             stateValue.mediaData.posts[currentItem].thefile.filebasename = event.target.value;
-            // setCurrentItemEdited( currentData );
+
             dispatch({
                 type: Types.UPDATE_RENAMER_MEDIA,
                 saveType: Types.UPDATE_RENAMER_MEDIA,
                 rename : {
                     ...stateValue.rename,
+                    postsdata: pnlname,
                     ID: stateValue.mediaData.posts[currentItem].ID,
                     newname: event.target.value
                 }
