@@ -30,8 +30,6 @@ function ProcessRenamerTableData() {
 
     const [postQuery, setPostQuery] = useState( { ...defaultPostsQuery, orderby: 'id' } );
 
-    const { posts, total_post, posts_per_page, paged } = stateValue.mediaData;
-
     const getTheMedia = async () => {
         const response = await getMedia('', postQuery);
         dispatch({
@@ -41,21 +39,13 @@ function ProcessRenamerTableData() {
         })
     }
 
-    /*
-    const handleColumnEditMode = () => {
-        setFormEdited( ! formEdited );
-    }
-    */
-
 
     const handlePagination = ( current ) => {
-        //setIsloading( true )
         dispatch({
             ...stateValue,
             type: Types.GET_MEDIA_LIST,
             isLoading: false,
         })
-
         setPostQuery({
             ...postQuery,
             paged: current

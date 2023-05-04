@@ -2,12 +2,13 @@
 import {
 	UPDATE_DATA_OPTIONS,
 	UPDATE_SINGLE_MEDIA,
-	UPDATE_RENAMER_MEDIA, GET_MEDIA_LIST
+	UPDATE_RENAMER_MEDIA, GET_MEDIA_LIST, GENERAL_DATA
 } from './actionType';
 import * as Types from "./actionType";
 
 export const initialState = {
 	saveType : null,
+	selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
 	mediaData: {
 		isLoading: true,
 		posts : [],
@@ -50,6 +51,12 @@ const reducer = (state, action) => {
 				...state,
 				mediaData : action.mediaData,
 			};
+		case GENERAL_DATA:
+			return {
+				...state,
+				selectedMenu : action.selectedMenu,
+			};
+
 		default:
 			return state;
 	}

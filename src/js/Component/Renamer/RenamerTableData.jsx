@@ -27,38 +27,7 @@ function RenamerTableData() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const { handleSave } = useContext( TheAppContext );
-
-    const handleChange = ( event ) => {
-        const currentItem = parseInt( event.target.getAttribute('current') );
-
-        if( 'filebasename' ===  event.target.name ){
-
-            const pnlname = stateValue.mediaData.posts[currentItem].thefile;
-
-            stateValue.mediaData.posts[currentItem].thefile.filebasename = event.target.value;
-
-            dispatch({
-                type: Types.UPDATE_RENAMER_MEDIA,
-                saveType: Types.UPDATE_RENAMER_MEDIA,
-                rename : {
-                    ...stateValue.rename,
-                    postsdata: pnlname,
-                    ID: stateValue.mediaData.posts[currentItem].ID,
-                    newname: event.target.value
-                }
-            });
-            
-        }
-
-    }
-
-
-    const RenameTableColumns = renamerColumns(
-        stateValue.rename.formEdited,
-        handleSave,
-        handleChange
-    );
+    const RenameTableColumns = renamerColumns();
     // console.log( stateValue )
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 

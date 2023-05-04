@@ -5,18 +5,11 @@ import { Layout } from 'antd';
 
 import { TheAppContext } from '../Utils/TheContext';
 
-import {
-    UPDATE_DATA_OPTIONS,
-    UPDATE_SINGLE_MEDIA
-} from '../Utils/actionType';
-
 import ProcessTableData from "./ListTable/ProcessTableData";
 
 import ProcessRenamerTableData from "./Renamer/ProcessRenamerTableData";
 
 import {
-    getTerms,
-    getDates,
     getOptions,
     updateOptins, upDateSingleMedia,
 } from "../Utils/Data";
@@ -26,7 +19,7 @@ const { Sider, Content } = Layout;
 import MainHeader from "./MainHeader";
 import Settings from "./Settings";
 import {useStateValue} from "../Utils/StateProvider";
-import * as Type from "../Utils/actionType";
+
 import * as Types from "../Utils/actionType";
 
 
@@ -34,31 +27,15 @@ function App() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [dateList, setDateList] = useState( [] );
-
-    const [termsList, setTermsList] = useState( [] );
-
-    const [ selectedMenu, setSelectedMenu] = useState( localStorage.getItem("current_menu") || 'mediatable' );
+    //const [ selectedMenu, setSelectedMenu] = useState(  );
 
     const [isUpdated, setIsUpdated] = useState(false );
-
-    const getDateList = async () => {
-        const response = await getDates();
-        const preparedData =  JSON.parse( response.data );
-        setDateList( preparedData );
-    }
-
-    const getTermsList = async () => {
-        const response = await getTerms();
-        const preparedData =  JSON.parse( response.data );
-        setTermsList( preparedData );
-    }
 
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData =  JSON.parse( response.data );
         dispatch({
-            type: Type.UPDATE_DATA_OPTIONS,
+            type: Types.UPDATE_DATA_OPTIONS,
             options : preparedData
         });
     }
@@ -73,7 +50,6 @@ function App() {
         //console.log( stateValue )
         let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
         if( edited ){
-            console.log( currentItemEdited )
             const response = await upDateSingleMedia( currentItemEdited );
             200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
         }
@@ -82,7 +58,6 @@ function App() {
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_DATA_OPTIONS:
-                    console.log( stateValue.options )
                     handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
@@ -93,23 +68,18 @@ function App() {
     }
 
     useEffect(() => {
+        handleSave();
+    }, [ stateValue.saveType ] );
+
+    useEffect(() => {
         getTheOptins();
     }, [ isUpdated ] );
 
-    useEffect(() => {
-        getDateList();
-        getTermsList();
-    }, []  );
-    
+
     return (
         <TheAppContext.Provider value={ {
-            dateList,
-            termsList,
             isUpdated,
-            setIsUpdated,
-            selectedMenu,
-            setSelectedMenu,
-            handleSave
+            setIsUpdated
         } }>
             <Layout className="tttme-App" style={{
                 padding: '10px',
@@ -127,10 +97,10 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    { 'mediatable' === selectedMenu && <ProcessTableData/> }
-                    { 'mediarename' === selectedMenu && <ProcessRenamerTableData/> }
+                    { 'mediatable' === stateValue.selectedMenu && <ProcessTableData/> }
+                    { 'mediarename' === stateValue.selectedMenu && <ProcessRenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
-                    { 'settings' === selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
+                    { 'settings' === stateValue.selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
                 </Layout>
             </Layout>
         </TheAppContext.Provider>

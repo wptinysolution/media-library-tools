@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 
 import {Button, Checkbox, Space, Input, Layout } from "antd";
+import {useStateValue} from "./StateProvider";
+import * as Types from "./actionType";
 const { TextArea } = Input;
 
 export const headerStyle = {
@@ -192,7 +194,8 @@ export function columns(
 }
 
 
-export function renamerColumns( formEdited, handleFocusout, handleChange ){
+export function renamerColumns(){
+    const [stateValue, dispatch] = useStateValue();
     return [
         {
             title: <Space wrap> { `ID` } </Space>,
@@ -216,13 +219,46 @@ export function renamerColumns( formEdited, handleFocusout, handleChange ){
             width: '400px',
             align: 'top',
             render:  ( text, record, i ) =>  <>
-                { formEdited ?  <Layout style={{
+                { stateValue.rename.formEdited ?  <Layout style={{
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
                     background: 'transparent'
-                }}> <Input size="large" name={`filebasename`} placeholder={`The name Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ record.thefile.filebasename } /> {`.${record.thefile.fileextension}`}</Layout> : record.thefile.mainfilename }
-
+                }}>
+                    <Input
+                        size="large"
+                        name={`filebasename`}
+                        placeholder={`The name Shouldn't leave empty`}
+                        current={i}
+                        onBlur={
+                            () => dispatch({
+                                ...stateValue,
+                                type: Types.UPDATE_RENAMER_MEDIA,
+                                saveType: Types.UPDATE_RENAMER_MEDIA
+                            })
+                        }
+                        onChange={
+                            ( event ) => {
+                                const currentItem = parseInt( event.target.getAttribute('current') );
+                                if( 'filebasename' ===  event.target.name ){
+                                    const pnlname = stateValue.mediaData.posts[currentItem].thefile;
+                                    stateValue.mediaData.posts[currentItem].thefile.filebasename = event.target.value;
+                                    dispatch({
+                                        type: Types.UPDATE_RENAMER_MEDIA,
+                                        rename : {
+                                            ...stateValue.rename,
+                                            postsdata: pnlname,
+                                            ID: stateValue.mediaData.posts[currentItem].ID,
+                                            newname: event.target.value
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        value={ record.thefile.filebasename }
+                    />
+                    {`.${record.thefile.fileextension}`}
+                </Layout> : record.thefile.mainfilename }
             </>,
         },
         {

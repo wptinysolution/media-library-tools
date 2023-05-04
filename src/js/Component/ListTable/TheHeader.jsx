@@ -1,4 +1,4 @@
-import React, {useContext, useRef} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 
 import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
 
@@ -11,6 +11,7 @@ import {
 } from '../../Utils/UtilData'
 import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
+import {getDates, getTerms} from "../../Utils/Data";
 
 const { Header } = Layout;
 
@@ -18,25 +19,41 @@ function TheHeader() {
 
     const [stateValue, dispatch] = useStateValue();
 
+    const [dateList, setDateList] = useState( [] );
+
+    const [termsList, setTermsList] = useState( [] );
+
     const {
-        dateList,
-        termsList,
-        optionsData,
-        setOptionsData,
         handleSave
     } = useContext( TheAppContext );
-
 
     const {
         postQuery,
         formEdited,
         setFiltering,
         filtering,
-        handleFilterData,
         handleBulkSubmit,
         handleChangeBulkType,
         handleColumnEditMode,
     } = useContext( TheMediaTableContext );
+
+    const getDateList = async () => {
+        const response = await getDates();
+        const preparedData =  JSON.parse( response.data );
+        setDateList( preparedData );
+    }
+
+    const getTermsList = async () => {
+        const response = await getTerms();
+        const preparedData =  JSON.parse( response.data );
+        setTermsList( preparedData );
+    }
+
+    useEffect(() => {
+        getDateList();
+        getTermsList();
+    }, []  );
+
     // paged
     const inputRef = useRef(null);
 
@@ -133,11 +150,14 @@ function TheHeader() {
                     style={{
                         width: '50px'
                     }}
-                    onBlur={ handleSave }
+                    onBlur={ (event) => dispatch({
+                        ...stateValue,
+                        type: Types.UPDATE_DATA_OPTIONS,
+                        saveType: Types.UPDATE_DATA_OPTIONS,
+                    }) }
                     onChange={
                         (event) => dispatch({
                             type: Types.UPDATE_DATA_OPTIONS,
-                            saveType: Types.UPDATE_DATA_OPTIONS,
                             options : {
                                 ...stateValue.options,
                                 media_per_page: event.target.value,

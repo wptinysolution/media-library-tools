@@ -4,16 +4,16 @@ import { Menu, Layout } from 'antd';
 
 import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
 
-import {TheAppContext, TheMediaTableContext} from "../Utils/TheContext";
+import {useStateValue} from "../Utils/StateProvider";
+import * as Types from "../Utils/actionType";
+
 
 const { Header } = Layout;
 
 
 function MainHeader() {
-    const {
-        selectedMenu,
-        setSelectedMenu
-    } = useContext( TheAppContext );
+
+    const [stateValue, dispatch] = useStateValue();
 
     const menuItemStyle = {
         borderRadius: 0,
@@ -36,7 +36,7 @@ function MainHeader() {
                 }}
                 theme="dark"
                 mode="inline"
-                defaultSelectedKeys={[selectedMenu]}
+                defaultSelectedKeys={[stateValue.selectedMenu]}
                 items={[
                     {
                         key: 'mediatable',
@@ -58,7 +58,10 @@ function MainHeader() {
                     },
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
-                    setSelectedMenu( key );
+                    dispatch({
+                        type: Types.GENERAL_DATA,
+                        selectedMenu : key
+                    });
                     localStorage.setItem( "current_menu", key );
                 } }
             />

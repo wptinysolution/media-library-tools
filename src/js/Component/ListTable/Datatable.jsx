@@ -27,12 +27,6 @@ export default function Datatable() {
     const [stateValue, dispatch] = useStateValue();
 
     const {
-        optionsData,
-        selectedMenu
-    } = useContext( TheAppContext );
-
-
-    const {
         posts,
         paged,
         isLoading,

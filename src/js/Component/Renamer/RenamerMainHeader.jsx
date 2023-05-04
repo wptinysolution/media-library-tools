@@ -2,12 +2,9 @@ import React, {useContext, useRef} from "react";
 
 import {Typography, Layout, Button, Space, Input} from 'antd';
 
-import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
-
 const { Text, Title } = Typography;
 
 
-import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
 import {headerStyle} from "../../Utils/UtilData";
 import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
@@ -19,13 +16,6 @@ function RenamerMainHeader() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const { handleSave } = useContext( TheAppContext );
-
-    // const {
-    //     formEdited,
-    // } = useContext( TheMediaTableContext );
-    //
-    //console.log( stateValue )
     // paged
     const inputRef = useRef(null);
 
@@ -72,11 +62,14 @@ function RenamerMainHeader() {
                     style={{
                         width: '50px'
                     }}
-                    onBlur={ handleSave }
+                    onBlur={ (event) => dispatch({
+                        ...stateValue,
+                        type: Types.UPDATE_DATA_OPTIONS,
+                        saveType: Types.UPDATE_DATA_OPTIONS,
+                    }) }
                     onChange={
                         (event) => dispatch({
                             type: Types.UPDATE_DATA_OPTIONS,
-                            saveType: Types.UPDATE_DATA_OPTIONS,
                             options : {
                                 ...stateValue.options,
                                 media_per_page: event.target.value,
