@@ -27,8 +27,6 @@ function App() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    //const [ selectedMenu, setSelectedMenu] = useState(  );
-
     const [isUpdated, setIsUpdated] = useState(false );
 
     const getTheOptins = async () => {
@@ -36,7 +34,10 @@ function App() {
         const preparedData =  JSON.parse( response.data );
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
-            options : preparedData
+            options: {
+                ...preparedData,
+                isLoading: false,
+            }
         });
     }
 

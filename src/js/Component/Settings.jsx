@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { TheAppContext, TheMediaTableContext } from "../Utils/TheContext";
+import {LoadingOutlined} from "@ant-design/icons";
 
 import * as Types from '../Utils/actionType';
 
@@ -11,7 +12,7 @@ import {
     Divider,
     Form,
     Layout,
-    Typography, Button, Input
+    Typography, Button, Input, Spin
 } from 'antd';
 
 const { Title, Text } = Typography;
@@ -43,10 +44,6 @@ function Settings() {
 
    const [stateValue, dispatch] = useStateValue();
 
-    const {
-        handleSave
-    } = useContext( TheAppContext );
-
     const defaultCheckedList = plainOptions.filter( ( currentValue) => {
         if( ! stateValue.options.media_table_column ){
             return true;
@@ -56,13 +53,12 @@ function Settings() {
 
     const isCheckedDiff = Object.keys(defaultCheckedList).length === Object.keys(plainOptions).length;
     const [checkedList, setCheckedList] = useState( defaultCheckedList );
-    const [indeterminate, setIndeterminate] = useState( ! isCheckedDiff );
+    const [indeterminate, setIndeterminate] = useState( isCheckedDiff );
     const [checkAll, setCheckAll] = useState( isCheckedDiff );
-
-    // const [ defaulrAlt, setDefaulrAlt ] = useState( false );
 
     useEffect(() => {
         setCheckedList( defaultCheckedList );
+        setCheckAll(defaultCheckedList.length === plainOptions.length);
     }, [stateValue.options] );
 
     const onChangeColumnList = (list) => {
@@ -71,7 +67,6 @@ function Settings() {
         setCheckAll(list.length === plainOptions.length);
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
-            saveType: Types.UPDATE_DATA_OPTIONS,
             options : {
                 ...stateValue.options,
                 media_table_column: list,
@@ -85,7 +80,6 @@ function Settings() {
         setCheckAll(e.target.checked);
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
-            saveType: Types.UPDATE_DATA_OPTIONS,
             options : {
                 ...stateValue.options,
                 media_table_column: e.target.checked ? plainOptions : [],
@@ -103,6 +97,8 @@ function Settings() {
             }
         });
     }
+    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
     return (
         <Form
             labelCol={{
@@ -121,6 +117,14 @@ function Settings() {
                 height: '100%'
             }}
         >
+            { stateValue.options.isLoading ?
+                <Content className="spain-icon" style={{
+                    height: "90vh",
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}> <Spin indicator={antIcon}/></Content>
+                :
             <Content style={{
                 padding: '15px',
                 background: 'rgb(255 255 255 / 35%)',
@@ -166,7 +170,6 @@ function Settings() {
                                 onChange={
                                     (event) => dispatch({
                                         type: Types.UPDATE_DATA_OPTIONS,
-                                        saveType: Types.UPDATE_DATA_OPTIONS,
                                         options : {
                                             ...stateValue.options,
                                             media_default_alt: event.target.value,
@@ -186,6 +189,7 @@ function Settings() {
                 </Form.Item>
 
             </Content>
+            }
             <Button
                 type="primary"
                 size="large"
@@ -193,7 +197,11 @@ function Settings() {
                     position: 'absolute',
                     bottom: '10px'
                 }}
-                onClick={ () => handleSave() } >
+                onClick={ () => dispatch({
+                    ...stateValue,
+                    type: Types.UPDATE_DATA_OPTIONS,
+                    saveType: Types.UPDATE_DATA_OPTIONS,
+                }) } >
                 Save Settings
             </Button>
         </Form>
