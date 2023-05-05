@@ -1,47 +1,52 @@
 
-import React, {useContext, useState} from "react";
+import React, { useContext } from "react";
 
-import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
+import { TheAppContext } from '../../Utils/TheContext';
 
-import {LoadingOutlined} from "@ant-design/icons";
+import { Layout, Pagination, Table } from "antd";
 
-import {Layout, Pagination, Spin, Space, Table} from "antd";
-
-const {
-    Content,
-} = Layout;
-
-import {
-    renamerColumns
-} from '../../Utils/UtilData'
+import { renamerColumns } from '../../Utils/UtilData'
 
 import RenamerMainHeader from "./RenamerMainHeader";
 
-import {useStateValue} from "../../Utils/StateProvider";
+import { useStateValue } from "../../Utils/StateProvider";
+
+import Loader from "../../Utils/Loader";
 
 import * as Types from "../../Utils/actionType";
 
-function RenamerTableData() {
+const { Content } = Layout;
 
-    const { handlePagination } = useContext( TheMediaTableContext );
+function RenamerTableData() {
+    const {
+        isUpdated,
+        setIsUpdated
+    } = useContext( TheAppContext );
 
     const [stateValue, dispatch] = useStateValue();
 
     const RenameTableColumns = renamerColumns();
-    // console.log( stateValue )
-    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
+    const handlePagination = ( current ) => {
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                isLoading: true,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    paged : current
+                }
+            },
+        })
+
+        setIsUpdated( ! isUpdated );
+    }
 
     return (
             <Layout className="layout">
                 <RenamerMainHeader/>
-                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?
-                    <Content className="spain-icon" style={{
-                        height: "90vh",
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}> <Spin indicator={antIcon}/></Content>
-                    :
+                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/> :
                     <Content>
                         <Table
                             rowKey={(item) => item.ID}

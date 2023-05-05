@@ -2,11 +2,17 @@
 
 import * as Types from "./actionType";
 
+import { defaultPostsQuery } from './UtilData'
+
 export const initialState = {
 	saveType : null,
 	selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
 	mediaData: {
 		isLoading: true,
+		postQuery: {
+			...defaultPostsQuery,
+			orderby: 'mediarename' == localStorage.getItem("current_menu") ? 'id' : defaultPostsQuery.orderby
+		},
 		posts : [],
 		total_post: 0,
 		paged: 1,
@@ -21,6 +27,7 @@ export const initialState = {
 	rename:{
 		formEdited : false,
 	}
+
 
 };
 

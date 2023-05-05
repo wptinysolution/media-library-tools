@@ -5,23 +5,26 @@ import { Layout } from 'antd';
 
 import { TheAppContext } from '../Utils/TheContext';
 
-import ProcessTableData from "./ListTable/ProcessTableData";
-
-import ProcessRenamerTableData from "./Renamer/ProcessRenamerTableData";
-
 import {
+    getMedia,
     getOptions,
-    updateOptins, upDateSingleMedia,
+    updateOptins,
+    upDateSingleMedia,
 } from "../Utils/Data";
 
-const { Sider, Content } = Layout;
+const { Sider } = Layout;
 
 import MainHeader from "./MainHeader";
+
 import Settings from "./Settings";
+
 import {useStateValue} from "../Utils/StateProvider";
 
 import * as Types from "../Utils/actionType";
 
+import ProcessTableData from "./ListTable/ProcessTableData";
+
+import RenamerTableData from "./Renamer/RenamerTableData";
 
 function App() {
 
@@ -32,7 +35,7 @@ function App() {
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData =  JSON.parse( response.data );
-        dispatch({
+        await dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options: {
                 ...preparedData,
@@ -41,6 +44,19 @@ function App() {
         });
     }
 
+    const getTheMedia = async () => {
+        const response = await getMedia('', stateValue.mediaData.postQuery );
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                isLoading: false,
+                ...response
+            },
+        })
+    }
+
+
     const handleUpdateOption = async ( event ) => {
        const response = await updateOptins( stateValue.options );
         200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
@@ -48,7 +64,6 @@ function App() {
 
     const handleRenameFocusout = async ( ) => {
         const  currentItemEdited = stateValue.rename;
-        //console.log( stateValue )
         let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
         if( edited ){
             const response = await upDateSingleMedia( currentItemEdited );
@@ -74,6 +89,7 @@ function App() {
 
     useEffect(() => {
         getTheOptins();
+        getTheMedia();
     }, [ isUpdated ] );
 
 
@@ -99,7 +115,7 @@ function App() {
                     overflowY: 'auto'
                 }} >
                     { 'mediatable' === stateValue.selectedMenu && <ProcessTableData/> }
-                    { 'mediarename' === stateValue.selectedMenu && <ProcessRenamerTableData/> }
+                    { 'mediarename' === stateValue.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === stateValue.selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
                 </Layout>

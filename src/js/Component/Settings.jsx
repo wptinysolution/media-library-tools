@@ -1,28 +1,27 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { TheAppContext, TheMediaTableContext } from "../Utils/TheContext";
-import {LoadingOutlined} from "@ant-design/icons";
+import React, { useEffect, useRef, useState } from 'react';
 
 import * as Types from '../Utils/actionType';
 
 import { useStateValue } from '../Utils/StateProvider';
 
+import Loader from '../Utils/Loader';
 
 import {
-    Checkbox,
-    Divider,
     Form,
+    Spin,
+    Input,
     Layout,
-    Typography, Button, Input, Spin
+    Button,
+    Divider,
+    Checkbox,
+    Typography
 } from 'antd';
 
 const { Title, Text } = Typography;
-const {
-    Content
-} = Layout;
 
-import {
-    columnList
-} from '../Utils/UtilData'
+const { Content } = Layout;
+
+import { columnList } from '../Utils/UtilData'
 
 const CheckboxGroup = Checkbox.Group;
 
@@ -39,7 +38,6 @@ const plainOptions = columnList.map( ( currentValue) => {
 } );
 
 
-
 function Settings() {
 
    const [stateValue, dispatch] = useStateValue();
@@ -52,19 +50,31 @@ function Settings() {
     } );
 
     const isCheckedDiff = Object.keys(defaultCheckedList).length === Object.keys(plainOptions).length;
+
     const [checkedList, setCheckedList] = useState( defaultCheckedList );
-    const [indeterminate, setIndeterminate] = useState( isCheckedDiff );
+
+    const [indeterminate, setIndeterminate] = useState( ! isCheckedDiff );
+
     const [checkAll, setCheckAll] = useState( isCheckedDiff );
 
     useEffect(() => {
+
         setCheckedList( defaultCheckedList );
-        setCheckAll(defaultCheckedList.length === plainOptions.length);
-    }, [stateValue.options] );
+
+        setIndeterminate(! defaultCheckedList.length === plainOptions.length );
+
+        setCheckAll( defaultCheckedList.length === plainOptions.length );
+
+    }, [stateValue.options.media_table_column] );
 
     const onChangeColumnList = (list) => {
+
         setCheckedList(list);
+
         setIndeterminate(!!list.length && list.length < plainOptions.length);
+
         setCheckAll(list.length === plainOptions.length);
+
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options : {
@@ -72,12 +82,17 @@ function Settings() {
                 media_table_column: list,
             }
         });
+
     };
 
     const onCheckAllChange = (e) => {
+
         setCheckedList(e.target.checked ? plainOptions : []);
+
         setIndeterminate(false);
+
         setCheckAll(e.target.checked);
+
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options : {
@@ -89,6 +104,7 @@ function Settings() {
     };
 
     const defaultAltText = (e) => {
+
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options : {
@@ -96,8 +112,8 @@ function Settings() {
                 default_alt_text: stateValue.options.default_alt_text !== e.target.value ? e.target.value : '',
             }
         });
+
     }
-    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
     return (
         <Form
@@ -117,78 +133,72 @@ function Settings() {
                 height: '100%'
             }}
         >
-            { stateValue.options.isLoading ?
-                <Content className="spain-icon" style={{
-                    height: "90vh",
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}> <Spin indicator={antIcon}/></Content>
-                :
-            <Content style={{
-                padding: '15px',
-                background: 'rgb(255 255 255 / 35%)',
-                borderRadius: '5px',
-                boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-            }}>
-                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
-                    <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>Check all </Checkbox>
+
+            { stateValue.options.isLoading ? <Loader/> :
+                <Content style={{
+                    padding: '15px',
+                    background: 'rgb(255 255 255 / 35%)',
+                    borderRadius: '5px',
+                    boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
+                }}>
+                    <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
+                        <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>Check all </Checkbox>
+                        <Divider />
+                        <CheckboxGroup options={columns} value={checkedList} onChange={onChangeColumnList} />
+                    </Form.Item>
                     <Divider />
-                    <CheckboxGroup options={columns} value={checkedList} onChange={onChangeColumnList} />
-                </Form.Item>
-                <Divider />
-                <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>} >
+                    <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>} >
 
-                    <Checkbox
-                        onChange={defaultAltText}
-                        name={`default_alt_text`}
-                        value={`none`}
-                        checked={ 'none' === stateValue.options.default_alt_text }>
-                        None
-                    </Checkbox>
+                        <Checkbox
+                            onChange={defaultAltText}
+                            name={`default_alt_text`}
+                            value={`none`}
+                            checked={ 'none' === stateValue.options.default_alt_text }>
+                            None
+                        </Checkbox>
 
-                    <Checkbox
-                        onChange={defaultAltText}
-                        name={`default_alt_text`}
-                        value={`image_name_to_alt`}
-                        checked={ 'image_name_to_alt' === stateValue.options.default_alt_text }>
-                        Image name use As alt text
-                    </Checkbox>
-                    <Checkbox
-                        onChange={defaultAltText}
-                        name={`default_alt_text`}
-                        value={`custom_text_to_alt`}
-                        checked={ 'custom_text_to_alt' === stateValue.options.default_alt_text } >
-                        Custom text
-                    </Checkbox>
-                    { 'custom_text_to_alt' === stateValue.options.default_alt_text &&
-                        <>
-                            <Divider />
-                            <Input
-                                type="primary"
-                                size="large"
-                                onChange={
-                                    (event) => dispatch({
-                                        type: Types.UPDATE_DATA_OPTIONS,
-                                        options : {
-                                            ...stateValue.options,
-                                            media_default_alt: event.target.value,
-                                        }
-                                    })
-                                }
-                                value={stateValue.options.media_default_alt}
-                            />
-                            <Text
-                                type="secondary"
-                            >
-                                Alt Text Will add automatically when upload Media file
-                            </Text>
-                        </>
-                    }
+                        <Checkbox
+                            onChange={defaultAltText}
+                            name={`default_alt_text`}
+                            value={`image_name_to_alt`}
+                            checked={ 'image_name_to_alt' === stateValue.options.default_alt_text }>
+                            Image name use As alt text
+                        </Checkbox>
+                        <Checkbox
+                            onChange={defaultAltText}
+                            name={`default_alt_text`}
+                            value={`custom_text_to_alt`}
+                            checked={ 'custom_text_to_alt' === stateValue.options.default_alt_text } >
+                            Custom text
+                        </Checkbox>
+                        { 'custom_text_to_alt' === stateValue.options.default_alt_text &&
+                            <>
+                                <Divider />
+                                <Input
+                                    type="primary"
+                                    size="large"
+                                    onChange={
+                                        (event) => dispatch({
+                                            type: Types.UPDATE_DATA_OPTIONS,
+                                            options : {
+                                                ...stateValue.options,
+                                                media_default_alt: event.target.value,
+                                            }
+                                        })
+                                    }
+                                    value={stateValue.options.media_default_alt}
+                                />
+                                <Text
+                                    type="secondary"
+                                >
+                                    Alt Text Will add automatically when upload Media file
+                                </Text>
+                            </>
+                        }
 
-                </Form.Item>
+                    </Form.Item>
 
-            </Content>
+                </Content>
             }
             <Button
                 type="primary"

@@ -1,22 +1,21 @@
-import React, {useContext, useRef} from "react";
+import React, { useRef} from "react";
 
-import {Typography, Layout, Button, Space, Input} from 'antd';
+import { Typography, Layout, Button, Space, Input } from 'antd';
 
-const { Text, Title } = Typography;
+import { headerStyle } from "../../Utils/UtilData";
 
+import { useStateValue } from "../../Utils/StateProvider";
 
-import {headerStyle} from "../../Utils/UtilData";
-import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
 
+const { Title } = Typography;
 
 function RenamerMainHeader() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    // paged
     const inputRef = useRef(null);
 
     const sharedProps = {
@@ -47,11 +46,13 @@ function RenamerMainHeader() {
                 <Button
                     type="text"
                     size="large"
-                    onClick={() => {
-                        inputRef.current.focus({
-                            cursor: 'start',
-                        });
-                    }}
+                    onClick={
+                        () => {
+                            inputRef.current.focus({
+                                cursor: 'start',
+                            });
+                        }
+                    }
                 >
                     Items Per page
                 </Button>
