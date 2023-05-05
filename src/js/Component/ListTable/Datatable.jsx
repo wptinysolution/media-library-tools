@@ -2,9 +2,9 @@ import React, { useContext } from "react";
 
 import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
 
-import {columns, renamerColumns} from '../../Utils/UtilData';
+import { columns } from '../../Utils/UtilData';
 
-import {LoadingOutlined} from "@ant-design/icons";
+import Loader from "../../Utils/Loader";
 
 import {
     Pagination,
@@ -48,8 +48,6 @@ export default function Datatable() {
     } = useContext( TheMediaTableContext );
 
 
-    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
     const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange, filtering,
         setFiltering, handleFilterData );
     const tablecolumn = thecolumn.filter( ( currentValue) => {
@@ -63,14 +61,7 @@ export default function Datatable() {
     return (
             <Layout className="layout">
                 <TheHeader/>
-                { isLoading || ! total_post > 0 ?
-                    <Content className="spain-icon" style={{
-                        height: "90vh",
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}> <Spin indicator={antIcon}/></Content>
-                    :
+                { isLoading || ! total_post > 0 ?  <Loader/>  :
                     <Content>
 
                         <Table

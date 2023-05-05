@@ -24,10 +24,6 @@ function TheHeader() {
     const [termsList, setTermsList] = useState( [] );
 
     const {
-        handleSave
-    } = useContext( TheAppContext );
-
-    const {
         postQuery,
         formEdited,
         setFiltering,
