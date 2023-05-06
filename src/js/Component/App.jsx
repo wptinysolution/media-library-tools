@@ -1,9 +1,7 @@
 
-import React, {useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { Layout } from 'antd';
-
-import { TheAppContext } from '../Utils/TheContext';
 
 import {
     getMedia,
@@ -30,8 +28,6 @@ function App() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [isUpdated, setIsUpdated] = useState(false );
-
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData =  await JSON.parse( response.data );
@@ -42,6 +38,7 @@ function App() {
                 isLoading: false,
             }
         });
+        console.log( 'getTheOptins' );
     }
 
     const getTheMedia = async () => {
@@ -50,24 +47,38 @@ function App() {
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
-                isLoading: false,
-                ...response
+                ...response,
+                isLoading: false
             },
-        })
+        });
+        console.log( 'getTheMedia' );
     }
 
-
-    const handleUpdateOption = async ( event ) => {
+    const handleUpdateOption = async () => {
        const response = await updateOptins( stateValue.options );
-        200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+       if( 200 === parseInt( response.status ) ){
+           await getTheOptins();
+           await dispatch({
+               type: Types.GET_MEDIA_LIST,
+               mediaData: {
+                   ...stateValue.mediaData,
+                   postQuery: {
+                       ...stateValue.mediaData.postQuery,
+                       media_per_page: stateValue.options.media_per_page,
+                   },
+               },
+           });
+       }
     }
 
-    const handleRenameFocusout = async ( ) => {
+    const handleRenameFocusout = async () => {
         const  currentItemEdited = stateValue.rename;
         let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
         if( edited ){
             const response = await upDateSingleMedia( currentItemEdited );
-            200 === parseInt( response.status ) && setIsUpdated( ! isUpdated );
+            if( 200 === parseInt( response.status ) ) {
+                await getTheMedia()
+            }
         }
     }
 
@@ -87,17 +98,16 @@ function App() {
         handleSave();
     }, [ stateValue.saveType ] );
 
+
+    useEffect(() => {
+        getTheMedia();
+    }, [ stateValue.mediaData.postQuery ] );
+
     useEffect(() => {
         getTheOptins();
-        getTheMedia();
-    }, [ isUpdated ] );
-
+    }, [] );
 
     return (
-        <TheAppContext.Provider value={ {
-            isUpdated,
-            setIsUpdated
-        } }>
             <Layout className="tttme-App" style={{
                 padding: '10px',
                 background: '#fff',
@@ -114,13 +124,12 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    { 'mediatable' === stateValue.selectedMenu ? <ProcessTableData/> : null }
+                    {/*{ 'mediatable' === stateValue.selectedMenu ? <ProcessTableData/> : null }*/}
                     { 'mediarename' === stateValue.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === stateValue.selectedMenu  ? <Settings/> : null }
                 </Layout>
             </Layout>
-        </TheAppContext.Provider>
     );
 }
 

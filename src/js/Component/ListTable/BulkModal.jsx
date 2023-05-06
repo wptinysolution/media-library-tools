@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
-// import {TheContext} from "../../Utils/TheContext";
 import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
 const {  Content } = Layout;
 

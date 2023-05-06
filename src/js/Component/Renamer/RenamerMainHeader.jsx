@@ -14,7 +14,7 @@ const { Title } = Typography;
 
 function RenamerMainHeader() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const [ stateValue, dispatch ] = useStateValue();
 
     const inputRef = useRef(null);
 
@@ -64,12 +64,14 @@ function RenamerMainHeader() {
                         width: '50px'
                     }}
                     onBlur={ (event) => dispatch({
-                        ...stateValue,
-                        type: Types.UPDATE_DATA_OPTIONS,
-                        saveType: Types.UPDATE_DATA_OPTIONS,
-                    }) }
+                            ...stateValue,
+                            type: Types.UPDATE_DATA_OPTIONS,
+                            saveType: Types.UPDATE_DATA_OPTIONS,
+                        })
+                    }
                     onChange={
                         (event) => dispatch({
+                            ...stateValue,
                             type: Types.UPDATE_DATA_OPTIONS,
                             options : {
                                 ...stateValue.options,

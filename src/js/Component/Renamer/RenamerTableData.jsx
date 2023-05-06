@@ -1,7 +1,5 @@
 
-import React, { useContext } from "react";
-
-import { TheAppContext } from '../../Utils/TheContext';
+import React from "react";
 
 import { Layout, Pagination, Table } from "antd";
 
@@ -18,12 +16,8 @@ import * as Types from "../../Utils/actionType";
 const { Content } = Layout;
 
 function RenamerTableData() {
-    const {
-        isUpdated,
-        setIsUpdated
-    } = useContext( TheAppContext );
 
-    const [stateValue, dispatch] = useStateValue();
+    const [ stateValue, dispatch ] = useStateValue();
 
     const RenameTableColumns = renamerColumns();
 
@@ -32,15 +26,13 @@ function RenamerTableData() {
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
-                isLoading: true,
                 postQuery : {
                     ...stateValue.mediaData.postQuery,
-                    paged : current
+                    paged : current,
+                    orderby: 'id'
                 }
             },
         })
-
-        setIsUpdated( ! isUpdated );
     }
 
     return (

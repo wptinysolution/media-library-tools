@@ -2,17 +2,19 @@
 
 import * as Types from "./actionType";
 
-import { defaultPostsQuery } from './UtilData'
-
 export const initialState = {
 	saveType : null,
 	selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
 	mediaData: {
-		isLoading: true,
 		postQuery: {
-			...defaultPostsQuery,
-			orderby: 'mediarename' == localStorage.getItem("current_menu") ? 'id' : defaultPostsQuery.orderby
+			status: 'inherit',
+			filtering : false,
+			paged: 1,
+			order: 'DESC',
+			media_per_page: 1,
+			orderby: 'mediarename' == localStorage.getItem("current_menu") ? 'id' : 'menu_order'
 		},
+		isLoading: true,
 		posts : [],
 		total_post: 0,
 		paged: 1,
