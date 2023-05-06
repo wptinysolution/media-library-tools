@@ -34,7 +34,7 @@ function App() {
 
     const getTheOptins = async () => {
         const response = await getOptions();
-        const preparedData =  JSON.parse( response.data );
+        const preparedData =  await JSON.parse( response.data );
         await dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options: {
@@ -114,10 +114,10 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    { 'mediatable' === stateValue.selectedMenu && <ProcessTableData/> }
+                    { 'mediatable' === stateValue.selectedMenu ? <ProcessTableData/> : null }
                     { 'mediarename' === stateValue.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
-                    { 'settings' === stateValue.selectedMenu && Object.keys(stateValue.options).length ? <Settings/> : null }
+                    { 'settings' === stateValue.selectedMenu  ? <Settings/> : null }
                 </Layout>
             </Layout>
         </TheAppContext.Provider>

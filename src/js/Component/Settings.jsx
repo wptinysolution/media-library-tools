@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 import * as Types from '../Utils/actionType';
 
@@ -8,7 +8,6 @@ import Loader from '../Utils/Loader';
 
 import {
     Form,
-    Spin,
     Input,
     Layout,
     Button,
@@ -26,11 +25,10 @@ import { columnList } from '../Utils/UtilData'
 const CheckboxGroup = Checkbox.Group;
 
 const columns = columnList.map( ( currentValue) => {
-    let data = {
+    return {
         label: currentValue.title,
         value: currentValue.key
     }
-    return data;
 } );
 
 const plainOptions = columnList.map( ( currentValue) => {
@@ -42,38 +40,9 @@ function Settings() {
 
    const [stateValue, dispatch] = useStateValue();
 
-    const defaultCheckedList = plainOptions.filter( ( currentValue) => {
-        if( ! stateValue.options.media_table_column ){
-            return true;
-        }
-        return stateValue.options.media_table_column.includes( `${currentValue}` );
-    } );
-
-    const isCheckedDiff = Object.keys(defaultCheckedList).length === Object.keys(plainOptions).length;
-
-    const [checkedList, setCheckedList] = useState( defaultCheckedList );
-
-    const [indeterminate, setIndeterminate] = useState( ! isCheckedDiff );
-
-    const [checkAll, setCheckAll] = useState( isCheckedDiff );
-
-    useEffect(() => {
-
-        setCheckedList( defaultCheckedList );
-
-        setIndeterminate(! defaultCheckedList.length === plainOptions.length );
-
-        setCheckAll( defaultCheckedList.length === plainOptions.length );
-
-    }, [stateValue.options.media_table_column] );
+    const isCheckedDiff = Object.keys( plainOptions ).length === Object.keys( stateValue.options.media_table_column ).length;
 
     const onChangeColumnList = (list) => {
-
-        setCheckedList(list);
-
-        setIndeterminate(!!list.length && list.length < plainOptions.length);
-
-        setCheckAll(list.length === plainOptions.length);
 
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
@@ -86,13 +55,6 @@ function Settings() {
     };
 
     const onCheckAllChange = (e) => {
-
-        setCheckedList(e.target.checked ? plainOptions : []);
-
-        setIndeterminate(false);
-
-        setCheckAll(e.target.checked);
-
         dispatch({
             type: Types.UPDATE_DATA_OPTIONS,
             options : {
@@ -142,9 +104,9 @@ function Settings() {
                     boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                 }}>
                     <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
-                        <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>Check all </Checkbox>
+                        <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllChange} checked={isCheckedDiff}>Check all </Checkbox>
                         <Divider />
-                        <CheckboxGroup options={columns} value={checkedList} onChange={onChangeColumnList} />
+                        <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
                     </Form.Item>
                     <Divider />
                     <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Image Default Alt Text </Title>} >

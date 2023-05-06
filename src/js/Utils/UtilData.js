@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 
 import {Button, Checkbox, Space, Input, Layout } from "antd";
+
 import {useStateValue} from "./StateProvider";
+
 import * as Types from "./actionType";
+
 const { TextArea } = Input;
 
 export const headerStyle = {
@@ -12,19 +15,19 @@ export const headerStyle = {
     backgroundColor: '#fff',
 };
 
-export const  selectStyle = {
+export const selectStyle = {
     width: 160,
     paddingInline: 0,
 }
 
-export const  defaultPosts = {
+export const defaultPosts = {
     posts : [],
     total_post: 0,
     paged: 1,
     posts_per_page: 1,
 }
 
-export const  defaultPostsQuery = {
+export const defaultPostsQuery = {
     status: 'inherit',
     filtering : false,
     paged: 1,
@@ -32,13 +35,13 @@ export const  defaultPostsQuery = {
     order: 'DESC',
 }
 
-export const  defaultPostsFilter = {
+export const defaultPostsFilter = {
     date: '',
     categories: '',
     filtering : false,
 }
 
-export const  defaultBulkSubmitData = {
+export const defaultBulkSubmitData = {
     ids: [],
     type: '',
     data : {
