@@ -4,7 +4,6 @@ import * as Types from "./actionType";
 
 export const initialState = {
 	saveType : null,
-	selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
 	mediaData: {
 		postQuery: {
 			status: 'inherit',
@@ -21,16 +20,19 @@ export const initialState = {
 		posts_per_page: 1,
 	},
 	single: {},
+	rename:{
+		formEdited : false,
+	},
 	options: {
 		isLoading: true,
 		default_alt_text: "none",
 		media_table_column : [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ]
 	},
-	rename:{
-		formEdited : false,
+	generalData:{
+		selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
+		dateList:{},
+		termsList:{},
 	}
-
-
 };
 
 const reducer = (state, action) => {
@@ -60,7 +62,7 @@ const reducer = (state, action) => {
 		case Types.GENERAL_DATA:
 			return {
 				...state,
-				selectedMenu : action.selectedMenu,
+				generalData : action.generalData,
 			};
 
 		default:

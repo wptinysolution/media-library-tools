@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
 import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
+import {useStateValue} from "../../Utils/StateProvider";
 const {  Content } = Layout;
 
 const { Title } = Typography;
@@ -10,7 +11,9 @@ const { Title } = Typography;
 const { TextArea } = Input;
 
 function BulkModal() {
-    const { termsList } = useContext( TheAppContext );
+
+    const [stateValue, dispatch] = useStateValue();
+
     const {
         bulkSubmitdata,
         isBulkModalOpen,
@@ -71,7 +74,7 @@ function BulkModal() {
                         width: '100%',
                     }}
                     showArrow
-                    options={termsList}
+                    options={stateValue.termsList}
                 />
 
             </Content>

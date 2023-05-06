@@ -20,11 +20,14 @@ import {
     defaultPostsQuery
 } from '../../Utils/UtilData'
 
+import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "../../Utils/actionType";
+
 function ProcessTableData() {
-    const {
-        isUpdated,
-        setIsUpdated
-    } = useContext( TheAppContext );
+
+    const [ stateValue, dispatch ] = useStateValue();
+
+    console.log( stateValue )
 
     const [data, setData] = useState( defaultPosts );
 
@@ -38,7 +41,7 @@ function ProcessTableData() {
 
     const [bulkSubmitdata, setbulkSubmitdata] = useState( defaultBulkSubmitData );
 
-    const { posts, total_post, posts_per_page, paged } = data;
+    const { posts, total_post, posts_per_page, paged } = stateValue.mediaData;
 
     const [formEdited, setFormEdited] = useState( false );
 
@@ -48,12 +51,28 @@ function ProcessTableData() {
 
     const [isLoading, setIsloading] = useState( true );
 
-    const getTheMedia = async () => {
-        const response = await getMedia('', {
-            ...postQuery
-        } );
-        setData( response );
+    const getDateList = async () => {
+        const response = await getDates();
+        const preparedData =  JSON.parse( response.data );
+        setDateList( preparedData );
     }
+
+    const termsList = async () => {
+        const response = await getTerms();
+        const preparedData =  await JSON.parse( response.data );
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    paged : current,
+                    orderby: 'id'
+                }
+            },
+        })
+    }
+
 
     const submitBulkMedia = async ( params ) => {
         const response = await submitBulkMediaAction( params );
@@ -61,7 +80,7 @@ function ProcessTableData() {
             setFormEdited( false );
             setBulkChecked( false );
             setCheckedData( [] );
-            setIsUpdated( ! isUpdated );
+            // setIsUpdated( ! isUpdated );
         }
     }
 
@@ -77,7 +96,7 @@ function ProcessTableData() {
             order: orderby === prevState.orderby && 'DESC' === prevState.order ? 'ASC' : 'DESC',
         } ));
 
-        setIsUpdated( ! isUpdated );
+        // setIsUpdated( ! isUpdated );
     };
 
     const handleColumnEditMode = () => {
@@ -97,10 +116,10 @@ function ProcessTableData() {
         posts[currentItem][event.target.name] = event.target.value;
 
         setCurrentItemEdited( currentData );
-        setData( {
-            ...data,
-            posts
-        } );
+        // setData( {
+        //     ...data,
+        //     posts
+        // } );
 
     }
 
@@ -222,16 +241,9 @@ function ProcessTableData() {
         setIsUpdated( ! isUpdated );
     }
 
-    useEffect(() => {
-        getTheMedia();
-        setTimeout(() => {
-            setIsloading( false )
-        }, 200 );
-    }, [isUpdated]  );
 
     return (
         <TheMediaTableContext.Provider value={ {
-            setData,
             isLoading,
             postQuery,
             formEdited,

@@ -124,10 +124,10 @@ function App() {
                     padding: '10px',
                     overflowY: 'auto'
                 }} >
-                    {/*{ 'mediatable' === stateValue.selectedMenu ? <ProcessTableData/> : null }*/}
-                    { 'mediarename' === stateValue.selectedMenu && <RenamerTableData/> }
+                    { 'mediatable' === stateValue.generalData.selectedMenu && <ProcessTableData/> }
+                    { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
-                    { 'settings' === stateValue.selectedMenu  ? <Settings/> : null }
+                    { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }
                 </Layout>
             </Layout>
     );

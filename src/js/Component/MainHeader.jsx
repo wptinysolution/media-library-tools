@@ -36,7 +36,7 @@ function MainHeader() {
                 }}
                 theme="dark"
                 mode="inline"
-                defaultSelectedKeys={[stateValue.selectedMenu]}
+                defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
                 items={[
                     {
                         key: 'mediatable',
@@ -60,7 +60,10 @@ function MainHeader() {
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                     dispatch({
                         type: Types.GENERAL_DATA,
-                        selectedMenu : key
+                        generalData:{
+                            ...stateValue.generalData,
+                            selectedMenu : key
+                        }
                     });
                     localStorage.setItem( "current_menu", key );
                 } }

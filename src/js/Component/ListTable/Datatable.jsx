@@ -61,35 +61,35 @@ export default function Datatable() {
     return (
             <Layout className="layout">
                 <TheHeader/>
-                { isLoading || ! total_post > 0 ?  <Loader/>  :
-                    <Content>
-
-                        <Table
-                            rowKey={(item) => item.ID}
-                            pagination={false}
-                            columns={ tablecolumn }
-                            dataSource={posts}
-                            scroll={{
-                                x: 1300,
-                                y: 900,
-                            }}
-                        />
-                        <Pagination
-                            style={{
-                                padding: '30px',
-                                textAlign: 'right'
-                            }}
-                            showTitle={true}
-                            showSizeChanger={false}
-                            showQuickJumper={true}
-                            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                            total={total_post}
-                            pageSize={posts_per_page}
-                            current={paged}
-                            onChange={(current) => handlePagination(current)}
-                        />
-                    </Content>
-                }
+                {/*{ isLoading || ! total_post > 0 ?  <Loader/>  :*/}
+                {/*    <Content>*/}
+                
+                {/*        <Table*/}
+                {/*            rowKey={(item) => item.ID}*/}
+                {/*            pagination={false}*/}
+                {/*            columns={ tablecolumn }*/}
+                {/*            dataSource={posts}*/}
+                {/*            scroll={{*/}
+                {/*                x: 1300,*/}
+                {/*                y: 900,*/}
+                {/*            }}*/}
+                {/*        />*/}
+                {/*        <Pagination*/}
+                {/*            style={{*/}
+                {/*                padding: '30px',*/}
+                {/*                textAlign: 'right'*/}
+                {/*            }}*/}
+                {/*            showTitle={true}*/}
+                {/*            showSizeChanger={false}*/}
+                {/*            showQuickJumper={true}*/}
+                {/*            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}*/}
+                {/*            total={total_post}*/}
+                {/*            pageSize={posts_per_page}*/}
+                {/*            current={paged}*/}
+                {/*            onChange={(current) => handlePagination(current)}*/}
+                {/*        />*/}
+                {/*    </Content>*/}
+                {/*}*/}
             </Layout>
     );
 }
