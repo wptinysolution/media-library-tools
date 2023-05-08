@@ -4,6 +4,8 @@ import React, { useEffect } from "react";
 import { Layout } from 'antd';
 
 import {
+    getTerms,
+    getDates,
     getMedia,
     getOptions,
     updateOptins,
@@ -54,6 +56,23 @@ function App() {
         console.log( 'getTheMedia' );
     }
 
+    const getDateAndTermsList = async () => {
+        const responseDate = await getDates();
+        const preparedDate =  await JSON.parse( responseDate.data );
+        const responseTerms = await getTerms();
+        const preparedTerms =  await JSON.parse( responseTerms.data );
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                dateList : preparedDate,
+                termsList : preparedTerms,
+                isLoading : false,
+            },
+        })
+        console.log( 'getDateTermsList' );
+    }
+
     const handleUpdateOption = async () => {
        const response = await updateOptins( stateValue.options );
        if( 200 === parseInt( response.status ) ){
@@ -85,6 +104,7 @@ function App() {
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_DATA_OPTIONS:
+                console.log( stateValue.options )
                     handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
@@ -105,6 +125,7 @@ function App() {
 
     useEffect(() => {
         getTheOptins();
+        getDateAndTermsList();
     }, [] );
 
     return (
@@ -115,15 +136,10 @@ function App() {
                 boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
                 height: 'calc( 100vh - 110px )',
             }}>
-                <Sider style={{
-                    borderRadius: '5px',
-                }}>
+                <Sider style={{ borderRadius: '5px' }}>
                     <MainHeader/>
                 </Sider>
-                <Layout className="layout" style={{
-                    padding: '10px',
-                    overflowY: 'auto'
-                }} >
+                <Layout className="layout" style={{ padding: '10px', overflowY: 'auto' }} >
                     { 'mediatable' === stateValue.generalData.selectedMenu && <ProcessTableData/> }
                     { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}

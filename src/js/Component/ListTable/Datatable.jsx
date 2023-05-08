@@ -21,35 +21,49 @@ const {
 
 import TheHeader from "./TheHeader";
 import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "../../Utils/actionType";
 
 export default function Datatable() {
 
     const [stateValue, dispatch] = useStateValue();
+    //
+    // const {
+    //     posts,
+    //     paged,
+    //     isLoading,
+    //     total_post,
+    //     bulkChecked,
+    //     onBulkCheck,
+    //     checkedData,
+    //     handleChange,
+    //     handleFocusout,
+    //     posts_per_page,
+    //     handleSortClick,
+    //     handlePagination,
+    //     onCheckboxChange,
+    //     formEdited,
+    //     filtering,
+    //     setFiltering,
+    //     handleFilterData
+    //
+    // } = useContext( TheMediaTableContext );
 
-    const {
-        posts,
-        paged,
-        isLoading,
-        total_post,
-        bulkChecked,
-        onBulkCheck,
-        checkedData,
-        handleChange,
-        handleFocusout,
-        posts_per_page,
-        handleSortClick,
-        handlePagination,
-        onCheckboxChange,
-        formEdited,
-        filtering,
-        setFiltering,
-        handleFilterData
-
-    } = useContext( TheMediaTableContext );
+    const handlePagination = ( current ) => {
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    paged : current,
+                }
+            },
+        })
+    }
 
 
-    const thecolumn = columns( bulkChecked, onBulkCheck, checkedData, onCheckboxChange, handleSortClick, formEdited, handleFocusout, handleChange, filtering,
-        setFiltering, handleFilterData );
+
+    const thecolumn = columns();
     const tablecolumn = thecolumn.filter( ( currentValue) => {
         if( ! stateValue.options.media_table_column || 'CheckboxID' === currentValue.key ){
             return true;
@@ -60,36 +74,38 @@ export default function Datatable() {
     // optionsData
     return (
             <Layout className="layout">
-                <TheHeader/>
-                {/*{ isLoading || ! total_post > 0 ?  <Loader/>  :*/}
-                {/*    <Content>*/}
+
+                { ! stateValue.generalData.isLoading ? <TheHeader/> :  <Loader/> }
+                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/>  :
+                    <Content>
                 
-                {/*        <Table*/}
-                {/*            rowKey={(item) => item.ID}*/}
-                {/*            pagination={false}*/}
-                {/*            columns={ tablecolumn }*/}
-                {/*            dataSource={posts}*/}
-                {/*            scroll={{*/}
-                {/*                x: 1300,*/}
-                {/*                y: 900,*/}
-                {/*            }}*/}
-                {/*        />*/}
-                {/*        <Pagination*/}
-                {/*            style={{*/}
-                {/*                padding: '30px',*/}
-                {/*                textAlign: 'right'*/}
-                {/*            }}*/}
-                {/*            showTitle={true}*/}
-                {/*            showSizeChanger={false}*/}
-                {/*            showQuickJumper={true}*/}
-                {/*            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}*/}
-                {/*            total={total_post}*/}
-                {/*            pageSize={posts_per_page}*/}
-                {/*            current={paged}*/}
-                {/*            onChange={(current) => handlePagination(current)}*/}
-                {/*        />*/}
-                {/*    </Content>*/}
-                {/*}*/}
+                        <Table
+                            rowKey={(item) => item.ID}
+                            pagination={false}
+                            columns={ tablecolumn }
+                            dataSource={ stateValue.mediaData.posts }
+                            scroll={{
+                                x: 1300,
+                                y: 900,
+                            }}
+                        />
+                        <Pagination
+                            style={{
+                                padding: '30px',
+                                textAlign: 'right'
+                            }}
+                            showTitle={true}
+                            showSizeChanger={false}
+                            showQuickJumper={true}
+                            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                            total={ stateValue.mediaData.total_post }
+                            pageSize={ stateValue.mediaData.posts_per_page }
+                            current={ stateValue.mediaData.paged }
+                            onChange={(current) => handlePagination(current)}
+
+                        />
+                    </Content>
+                }
             </Layout>
     );
 }

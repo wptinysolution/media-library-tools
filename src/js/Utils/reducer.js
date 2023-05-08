@@ -1,6 +1,7 @@
 /* global rtsbParams */
 
 import * as Types from "./actionType";
+import {defaultBulkSubmitData} from "./UtilData";
 
 export const initialState = {
 	saveType : null,
@@ -19,7 +20,10 @@ export const initialState = {
 		paged: 1,
 		posts_per_page: 1,
 	},
-	single: {},
+	singleMedia: {
+		formEdited: false
+	},
+	bulkSubmitData: {},
 	rename:{
 		formEdited : false,
 	},
@@ -29,6 +33,7 @@ export const initialState = {
 		media_table_column : [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ]
 	},
 	generalData:{
+		isLoading: true,
 		selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
 		dateList:{},
 		termsList:{},
@@ -40,7 +45,7 @@ const reducer = (state, action) => {
 		case Types.UPDATE_SINGLE_MEDIA:
 			return {
 				...state,
-				single: action.single,
+				singleMedia: action.singleMedia,
 			};
 		case Types.UPDATE_DATA_OPTIONS:
 			return {

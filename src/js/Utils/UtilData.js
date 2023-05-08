@@ -107,7 +107,7 @@ export const columnList = [
     },
 ];
 
-export function columns(
+/*export function columns(
     bulkChecked,
     onBulkCheck,
     checkedData,
@@ -120,13 +120,32 @@ export function columns(
     setFiltering,
     handleFilterData,
 ){
-    useEffect(() => {
-        handleFilterData();
-    }, [filtering]);
 
+}*/
+export function columns(){
+
+    const [stateValue, dispatch] = useStateValue();
+
+    // const onCheckboxChange = (event) => {
+    //     const value = event.target.value ;
+    //     const changeData = event.target.checked ? [
+    //         ...checkedData,
+    //         value
+    //     ] : checkedData.filter(item => item !== value );
+    //
+    //     const Checked_count = Object.keys(changeData).length;
+    //     const post_count = Object.keys(posts).length;
+    //
+    //     setCheckedData( changeData );
+    //     setBulkChecked( Checked_count === post_count );
+    // };
+    // useEffect(() => {
+    //     handleFilterData();
+    // }, [filtering]);
+    /*
     return [
         {
-            title: <Checkbox checked={ bulkChecked } onChange={onBulkCheck}/>,
+            title: <Checkbox />,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '80px',
@@ -192,6 +211,69 @@ export function columns(
                    })
                } }> {  item.name } </Button>  )
            }
+        },
+    ];
+    */
+
+    return [
+        {
+            title: <Checkbox />,
+            key: 'CheckboxID',
+            dataIndex: 'ID',
+            width: '80px',
+            align: 'center',
+        },
+        {
+            title: <Space wrap> { `ID` } <Button size={`small`} sort-by={`id`} > {`Sort`} </Button> </Space>,
+            key: 'ID',
+            dataIndex: 'ID',
+            width: '150px',
+            align: 'top'
+        },
+        {
+            title: 'File',
+            key: 'Image',
+            dataIndex: 'guid',
+            width: '100px',
+            align: 'top',
+            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> </Space>,
+        },
+        {
+            title: <Space wrap> { `Title` } <Button size={`small`} > Sort </Button> </Space>,
+            key: 'Title',
+            dataIndex: 'post_title',
+            align: 'top',
+            width: '300px',
+        },
+        {
+            title: <Space wrap> { `Alt` } <Button size={`small`}> Sort </Button> </Space>,
+            key: 'Alt',
+            dataIndex: 'alt_text',
+            align: 'top',
+            width: '300px',
+
+        },
+        {
+            title: <Space wrap> { `Caption` } <Button size={`small`} > Sort </Button> </Space>,
+            key: 'Caption',
+            dataIndex: 'post_excerpt',
+            width: '300px',
+        },
+        {
+            title: <Space wrap> { `Description` } <Button size={`small`} > Sort </Button> </Space>,
+            key: 'Description',
+            dataIndex: 'post_content',
+            width: '350px',
+        },
+        {
+            title: <Space wrap> { `Category` } </Space>,
+            key: 'Category',
+            dataIndex: 'categories',
+            width: '250px',
+            render: ( text, record, i ) => {
+                const items = JSON.parse(record.categories)
+                return  items.map( item => item.id && <Button key={Math.random().toString(36).substr(2, 9)} size={`small`} > {  item.name } </Button>  )
+            }
         },
     ];
 }

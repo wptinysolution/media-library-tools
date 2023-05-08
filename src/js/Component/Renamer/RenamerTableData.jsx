@@ -58,10 +58,10 @@ function RenamerTableData() {
                             showSizeChanger={false}
                             showQuickJumper={true}
                             showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                            total={stateValue.mediaData.total_post}
-                            pageSize={stateValue.mediaData.posts_per_page}
-                            current={stateValue.mediaData.paged}
-                            onChange={(current) => handlePagination(current)}
+                            total={ stateValue.mediaData.total_post }
+                            pageSize={ stateValue.mediaData.posts_per_page }
+                            current={ stateValue.mediaData.paged }
+                            onChange={ ( current ) => handlePagination( current ) }
                         />
                     </Content>
                 }
