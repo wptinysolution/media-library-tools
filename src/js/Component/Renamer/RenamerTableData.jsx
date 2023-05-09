@@ -29,7 +29,8 @@ function RenamerTableData() {
                 postQuery : {
                     ...stateValue.mediaData.postQuery,
                     paged : current,
-                    orderby: 'id'
+                    orderby: 'id',
+                    order: 'DESC'
                 }
             },
         })

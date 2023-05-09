@@ -12,7 +12,7 @@ export const initialState = {
 			paged: 1,
 			order: 'DESC',
 			media_per_page: 1,
-			orderby: 'mediarename' == localStorage.getItem("current_menu") ? 'id' : 'menu_order'
+			orderby: 'id'
 		},
 		isLoading: true,
 		posts : [],

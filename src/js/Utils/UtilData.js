@@ -222,9 +222,23 @@ export function columns(){
             dataIndex: 'ID',
             width: '80px',
             align: 'center',
+            render:  ( id, record ) => <Checkbox name="item_id" checked={ 1 } value={id}  />
         },
         {
-            title: <Space wrap> { `ID` } <Button size={`small`} sort-by={`id`} > {`Sort`} </Button> </Space>,
+            title: <Space wrap> { `ID` } <Button size={`small`} onClick={ ( event ) =>
+                dispatch({
+                    type: Types.GET_MEDIA_LIST,
+                    mediaData: {
+                        ...stateValue.mediaData,
+                        postQuery : {
+                            ...stateValue.mediaData.postQuery,
+                            order: 'id' === stateValue.mediaData.postQuery.orderby && 'DESC' === stateValue.mediaData.postQuery.order ? 'ASC' : 'DESC',
+                            orderby: 'id',
+                            paged: 1,
+                        }
+                    },
+                })
+            }> {`Sort`} </Button> </Space>,
             key: 'ID',
             dataIndex: 'ID',
             width: '150px',
@@ -236,17 +250,50 @@ export function columns(){
             dataIndex: 'guid',
             width: '100px',
             align: 'top',
-            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> </Space>,
+            render: ( text, record, i ) => <Space>
+                { 'image/jpeg' === record.post_mime_type && <img width={`80`} src={text} /> }
+                { 'audio/mpeg' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}/images/media/audio.png`} /> }
+                { 'video/mp4' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/video.png`} /> }
+                { 'application/zip' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/archive.png`} /> }
+                { 'application/pdf' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/document.png`} /> }
+                { 'text/plain' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/text.png`} /> }
+            </Space>,
         },
         {
-            title: <Space wrap> { `Title` } <Button size={`small`} > Sort </Button> </Space>,
+            title: <Space wrap> { `Title` } <Button size={`small`} onClick={ ( event ) =>
+                dispatch({
+                    type: Types.GET_MEDIA_LIST,
+                    mediaData: {
+                        ...stateValue.mediaData,
+                        postQuery : {
+                            ...stateValue.mediaData.postQuery,
+                            order: 'title' === stateValue.mediaData.postQuery.orderby && 'DESC' === stateValue.mediaData.postQuery.order ? 'ASC' : 'DESC',
+                            orderby: 'title',
+                            paged: 1,
+                        }
+                    },
+                })
+            }> Sort </Button> </Space>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
             width: '300px',
         },
         {
-            title: <Space wrap> { `Alt` } <Button size={`small`}> Sort </Button> </Space>,
+            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) =>
+                dispatch({
+                    type: Types.GET_MEDIA_LIST,
+                    mediaData: {
+                        ...stateValue.mediaData,
+                        postQuery : {
+                            ...stateValue.mediaData.postQuery,
+                            order: 'alt' === stateValue.mediaData.postQuery.orderby && 'DESC' === stateValue.mediaData.postQuery.order ? 'ASC' : 'DESC',
+                            orderby: 'alt',
+                            paged: 1,
+                        }
+                    },
+                })
+            }> Sort </Button> </Space>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
@@ -254,13 +301,39 @@ export function columns(){
 
         },
         {
-            title: <Space wrap> { `Caption` } <Button size={`small`} > Sort </Button> </Space>,
+            title: <Space wrap> { `Caption` } <Button size={`small`} onClick={ ( event ) =>
+                dispatch({
+                    type: Types.GET_MEDIA_LIST,
+                    mediaData: {
+                        ...stateValue.mediaData,
+                        postQuery : {
+                            ...stateValue.mediaData.postQuery,
+                            order: 'caption' === stateValue.mediaData.postQuery.orderby && 'DESC' === stateValue.mediaData.postQuery.order ? 'ASC' : 'DESC',
+                            orderby: 'caption',
+                            paged: 1,
+                        }
+                    },
+                })
+            }> Sort </Button> </Space>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
             width: '300px',
         },
         {
-            title: <Space wrap> { `Description` } <Button size={`small`} > Sort </Button> </Space>,
+            title: <Space wrap> { `Description` } <Button size={`small`} onClick={ ( event ) =>
+                dispatch({
+                    type: Types.GET_MEDIA_LIST,
+                    mediaData: {
+                        ...stateValue.mediaData,
+                        postQuery : {
+                            ...stateValue.mediaData.postQuery,
+                            order: 'description' === stateValue.mediaData.postQuery.orderby && 'DESC' === stateValue.mediaData.postQuery.order ? 'ASC' : 'DESC',
+                            orderby: 'description',
+                            paged: 1,
+                        }
+                    },
+                })
+            }> Sort </Button> </Space>,
             key: 'Description',
             dataIndex: 'post_content',
             width: '350px',
@@ -295,7 +368,14 @@ export function renamerColumns(){
             dataIndex: 'guid',
             width: '130px',
             align: 'top',
-            render:  ( text, record, i ) => <img width={`80`} src={text} /> ,
+            render:  ( text, record, i ) => <Space>
+                { 'image/jpeg' === record.post_mime_type && <img width={`80`} src={text} /> }
+                { 'audio/mpeg' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}/images/media/audio.png`} /> }
+                { 'video/mp4' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/video.png`} /> }
+                { 'application/zip' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/archive.png`} /> }
+                { 'application/pdf' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/document.png`} /> }
+                { 'text/plain' === record.post_mime_type && <img width={`50`} src={`${tsmltParams.includesUrl}images/media/text.png`} /> }
+            </Space>,
         },
         {
             title: `File Name`,

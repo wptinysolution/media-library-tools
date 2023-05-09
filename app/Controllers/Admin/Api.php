@@ -326,28 +326,35 @@ class Api {
 
 		$get_posts = [];
 		foreach ( $_posts as $post ) {
-			$thefile  = [];
-			$metadata = unserialize( $post->metadata );
-
-			$thefile['mainfilepath']  = dirname( wp_get_original_image_path( $post->ID ) );
+			$thefile                  = [];
+			$metadata                 = unserialize( $post->metadata );
+			$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
 			$thefile['mainfilename']  = basename( $metadata['file'] );
 			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 			$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
 			$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
 
-			//error_log( print_r( $thefile , true) . "\n\n", 3, __DIR__.'/logg.txt');
+
+			if ( empty( $thefile['mainfilename'] ) ) {
+				$attac                    = get_attached_file( $post->ID );
+				$thefile['mainfilename']  = basename( $attac );
+				$thefile['fileextension'] = pathinfo( $attac, PATHINFO_EXTENSION );
+				$thefile['filebasename']  = basename( $attac, '.' . $thefile['fileextension'] );
+				$thefile['originalname']  = basename( $attac, '.' . $thefile['fileextension'] );
+			}
 
 			$get_posts[] = [
-				'ID'           => $post->ID,
-				'post_title'   => $post->post_title,
-				'post_excerpt' => $post->post_excerpt,
-				'post_content' => $post->post_content,
-				'post_name'    => $post->post_name,
-				'guid'         => $post->guid,
-				'alt_text'     => $post->alt_text,
-				'categories'   => $post->categories,
-				'metadata'     => $metadata,
-				'thefile'      => $thefile,
+				'ID'             => $post->ID,
+				'post_title'     => $post->post_title,
+				'post_excerpt'   => $post->post_excerpt,
+				'post_content'   => $post->post_content,
+				'post_name'      => $post->post_name,
+				'guid'           => $post->guid,
+				'alt_text'       => $post->alt_text,
+				'categories'     => $post->categories,
+				'metadata'       => $metadata,
+				'thefile'        => $thefile,
+				'post_mime_type' => $post->post_mime_type
 			];
 		}
 		$query_data = [
@@ -402,7 +409,6 @@ class Api {
 				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
 				break;
 			case 'bulkedit':
-
 				$data       = $parameters['data'];
 				$categories = $parameters['post_categories'];
 				$set_data   = '';
@@ -442,7 +448,6 @@ class Api {
 
 				break;
 			default:
-
 		}
 
 		return $result;

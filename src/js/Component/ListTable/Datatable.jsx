@@ -55,12 +55,11 @@ export default function Datatable() {
                 ...stateValue.mediaData,
                 postQuery : {
                     ...stateValue.mediaData.postQuery,
-                    paged : current,
+                    paged : current
                 }
             },
         })
     }
-
 
 
     const thecolumn = columns();
@@ -74,9 +73,9 @@ export default function Datatable() {
     // optionsData
     return (
             <Layout className="layout">
-
-                { ! stateValue.generalData.isLoading ? <TheHeader/> :  <Loader/> }
-                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/>  :
+                { stateValue.generalData.isLoading || stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/>  :
+                    <>
+                    <TheHeader/>
                     <Content>
                 
                         <Table
@@ -105,6 +104,7 @@ export default function Datatable() {
 
                         />
                     </Content>
+                    </>
                 }
             </Layout>
     );

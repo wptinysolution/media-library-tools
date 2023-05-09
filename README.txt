@@ -1,4 +1,4 @@
-=== Media Library Tools - Media File Rename And Bulk Edit Image Title, Name, Alt Tag, Caption, Description Editing tools ===
+=== Media File And Image Rename And Bulk Edit Title, Name, Alt Tag, Caption, Description - Media Library Tools ===
 Contributors: tinysolution
 Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
