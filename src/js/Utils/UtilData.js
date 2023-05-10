@@ -243,7 +243,7 @@ export function columns(){
             title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'ID',
-            width: '80px',
+            width: '100px',
             align: 'center',
             render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
@@ -382,7 +382,7 @@ export function renamerColumns(){
             title: <Space wrap> { `ID` } </Space>,
             key: 'ID',
             dataIndex: 'ID',
-            width: '50px',
+            width: '100px',
             align: 'top'
         },
         {

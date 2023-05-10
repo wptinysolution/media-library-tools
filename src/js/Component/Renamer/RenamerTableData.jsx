@@ -48,6 +48,7 @@ function RenamerTableData() {
                             dataSource={ stateValue.mediaData.posts }
                             scroll={{
                                 x: 1300,
+                                y: 900,
                             }}
                         />
                         <Pagination
