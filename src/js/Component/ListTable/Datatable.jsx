@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 
 import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
 
-import { columns } from '../../Utils/UtilData';
+import {columns, defaultBulkSubmitData} from '../../Utils/UtilData';
 
 import Loader from "../../Utils/Loader";
 
@@ -58,7 +58,11 @@ export default function Datatable() {
                     paged : current
                 }
             },
-        })
+        });
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: defaultBulkSubmitData,
+        });
     }
 
 

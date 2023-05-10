@@ -65,14 +65,14 @@ function RenamerMainHeader() {
                     }}
                     onBlur={ (event) => dispatch({
                             ...stateValue,
-                            type: Types.UPDATE_DATA_OPTIONS,
-                            saveType: Types.UPDATE_DATA_OPTIONS,
+                            type: Types.UPDATE_OPTIONS,
+                            saveType: Types.UPDATE_OPTIONS,
                         })
                     }
                     onChange={
                         (event) => dispatch({
                             ...stateValue,
-                            type: Types.UPDATE_DATA_OPTIONS,
+                            type: Types.UPDATE_OPTIONS,
                             options : {
                                 ...stateValue.options,
                                 media_per_page: event.target.value,

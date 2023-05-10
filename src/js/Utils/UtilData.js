@@ -5,6 +5,7 @@ import {Button, Checkbox, Space, Input, Layout } from "antd";
 import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
+import {BULK_SUBMIT} from "./actionType";
 
 const { TextArea } = Input;
 
@@ -35,13 +36,8 @@ export const defaultPostsQuery = {
     order: 'DESC',
 }
 
-export const defaultPostsFilter = {
-    date: '',
-    categories: '',
-    filtering : false,
-}
-
 export const defaultBulkSubmitData = {
+    bulkChecked : false,
     ids: [],
     type: '',
     data : {
@@ -51,6 +47,12 @@ export const defaultBulkSubmitData = {
         post_description : '',
     },
     post_categories : [],
+}
+
+export const defaultPostsFilter = {
+    date: '',
+    categories: '',
+    filtering : false,
 }
 
 export const bulkOprions = [
@@ -126,19 +128,39 @@ export function columns(){
 
     const [stateValue, dispatch] = useStateValue();
 
-    // const onCheckboxChange = (event) => {
-    //     const value = event.target.value ;
-    //     const changeData = event.target.checked ? [
-    //         ...checkedData,
-    //         value
-    //     ] : checkedData.filter(item => item !== value );
-    //
-    //     const Checked_count = Object.keys(changeData).length;
-    //     const post_count = Object.keys(posts).length;
-    //
-    //     setCheckedData( changeData );
-    //     setBulkChecked( Checked_count === post_count );
-    // };
+    const onCheckboxChange = (event) => {
+        const value = event.target.value ;
+        const changeData = event.target.checked ? [
+            ...stateValue.bulkSubmitData.ids,
+            value
+        ] : stateValue.bulkSubmitData.ids.filter( item => item !== value );
+
+        const checkedCount = Object.keys( changeData ).length;
+        const postCount = Object.keys( stateValue.mediaData.posts ).length;
+
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                bulkChecked : checkedCount && checkedCount === postCount,
+                ids: changeData
+            },
+        });
+
+    };
+
+    const onBulkCheck = (event) => {
+        const postsId = event.target.checked ? stateValue.mediaData.posts.map( item => item.ID ) : [];
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                bulkChecked : ! ! postsId.length,
+                ids: postsId
+            },
+        });
+    };
+
     // useEffect(() => {
     //     handleFilterData();
     // }, [filtering]);
@@ -214,15 +236,16 @@ export function columns(){
         },
     ];
     */
-
+    console.log( stateValue.bulkSubmitData )
     return [
+
         {
-            title: <Checkbox />,
+            title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '80px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox name="item_id" checked={ 1 } value={id}  />
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
         {
             title: <Space wrap> { `ID` } <Button size={`small`} onClick={ ( event ) =>

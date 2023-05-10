@@ -34,7 +34,7 @@ function App() {
         const response = await getOptions();
         const preparedData =  await JSON.parse( response.data );
         await dispatch({
-            type: Types.UPDATE_DATA_OPTIONS,
+            type: Types.UPDATE_OPTIONS,
             options: {
                 ...preparedData,
                 isLoading: false,
@@ -103,7 +103,7 @@ function App() {
 
     const handleSave = () => {
         switch ( stateValue.saveType ) {
-            case Types.UPDATE_DATA_OPTIONS:
+            case Types.UPDATE_OPTIONS:
                 console.log( stateValue.options )
                     handleUpdateOption();
                 break;

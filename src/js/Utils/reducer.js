@@ -1,6 +1,8 @@
 /* global rtsbParams */
 
 import * as Types from "./actionType";
+// import {defaultBulkSubmitData} from "./UtilData";
+import {BULK_SUBMIT} from "./actionType";
 import {defaultBulkSubmitData} from "./UtilData";
 
 export const initialState = {
@@ -23,7 +25,7 @@ export const initialState = {
 	singleMedia: {
 		formEdited: false
 	},
-	bulkSubmitData: {},
+	bulkSubmitData: defaultBulkSubmitData,
 	rename:{
 		formEdited : false,
 	},
@@ -34,7 +36,7 @@ export const initialState = {
 	},
 	generalData:{
 		isLoading: true,
-		selectedMenu : localStorage.getItem("current_menu") || 'mediatable',
+		selectedMenu : localStorage.getItem("current_menu") || 'mediarename',
 		dateList:{},
 		termsList:{},
 	}
@@ -42,12 +44,17 @@ export const initialState = {
 
 const reducer = (state, action) => {
 	switch (action.type) {
+		case Types.BULK_SUBMIT:
+			return {
+				...state,
+				bulkSubmitData: action.bulkSubmitData,
+			};
 		case Types.UPDATE_SINGLE_MEDIA:
 			return {
 				...state,
 				singleMedia: action.singleMedia,
 			};
-		case Types.UPDATE_DATA_OPTIONS:
+		case Types.UPDATE_OPTIONS:
 			return {
 				...state,
 				saveType: action.saveType,
@@ -76,3 +83,4 @@ const reducer = (state, action) => {
 };
 
 export default reducer;
+

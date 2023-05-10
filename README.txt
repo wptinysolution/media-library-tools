@@ -23,7 +23,7 @@ Properly naming your media files is important for several reasons:
 **SEO:** Search engines like Google use file names to help understand the content of your website. Descriptive file names can help improve your website's search engine optimization (SEO) by providing context and relevance to the file content.
 
 
-Are you struggling to keep up with updating the image Title, Alt tags, Captions, and descriptions in your media library?
+Maybe you struggling With the Proper Naming of media files, image Titles, Alt tags, Captions, and descriptions in your media library.
 
 Media Library Tools simplifies image metadata editing, allowing you to quickly update titles, ALT text, captions, and descriptions for individual or bulk images in your WordPress media library.
 Access helpful sorting and filtering tools to easily identify which images require attention. With one-click editing, optimizing your images for SEO has never been easier.

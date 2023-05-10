@@ -1,7 +1,5 @@
 import React from 'react';
 
-import * as Types from '../Utils/actionType';
-
 import { useStateValue } from '../Utils/StateProvider';
 
 import Loader from '../Utils/Loader';
@@ -21,6 +19,8 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 import { columnList } from '../Utils/UtilData'
+
+import * as Types from "../Utils/actionType";
 
 const CheckboxGroup = Checkbox.Group;
 
@@ -45,7 +45,7 @@ function Settings() {
     const onChangeColumnList = (list) => {
 
         dispatch({
-            type: Types.UPDATE_DATA_OPTIONS,
+            type: Types.UPDATE_OPTIONS,
             options : {
                 ...stateValue.options,
                 media_table_column: list,
@@ -56,7 +56,7 @@ function Settings() {
 
     const onCheckAllChange = (e) => {
         dispatch({
-            type: Types.UPDATE_DATA_OPTIONS,
+            type: Types.UPDATE_OPTIONS,
             options : {
                 ...stateValue.options,
                 media_table_column: e.target.checked ? plainOptions : [],
@@ -68,7 +68,7 @@ function Settings() {
     const defaultAltText = (e) => {
 
         dispatch({
-            type: Types.UPDATE_DATA_OPTIONS,
+            type: Types.UPDATE_OPTIONS,
             options : {
                 ...stateValue.options,
                 default_alt_text: stateValue.options.default_alt_text !== e.target.value ? e.target.value : '',
@@ -141,7 +141,7 @@ function Settings() {
                                     size="large"
                                     onChange={
                                         (event) => dispatch({
-                                            type: Types.UPDATE_DATA_OPTIONS,
+                                            type: Types.UPDATE_OPTIONS,
                                             options : {
                                                 ...stateValue.options,
                                                 media_default_alt: event.target.value,
@@ -171,8 +171,8 @@ function Settings() {
                 }}
                 onClick={ () => dispatch({
                     ...stateValue,
-                    type: Types.UPDATE_DATA_OPTIONS,
-                    saveType: Types.UPDATE_DATA_OPTIONS,
+                    type: Types.UPDATE_OPTIONS,
+                    saveType: Types.UPDATE_OPTIONS,
                 }) } >
                 Save Settings
             </Button>
