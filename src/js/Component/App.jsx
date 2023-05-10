@@ -25,6 +25,7 @@ import * as Types from "../Utils/actionType";
 import ProcessTableData from "./ListTable/ProcessTableData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
+import Datatable from "./ListTable/Datatable";
 
 function App() {
 
@@ -140,7 +141,7 @@ function App() {
                     <MainHeader/>
                 </Sider>
                 <Layout className="layout" style={{ padding: '10px', overflowY: 'auto' }} >
-                    { 'mediatable' === stateValue.generalData.selectedMenu && <ProcessTableData/> }
+                    { 'mediatable' === stateValue.generalData.selectedMenu && <Datatable /> }
                     { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
                     {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
                     { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }

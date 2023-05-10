@@ -22,6 +22,7 @@ const {
 import TheHeader from "./TheHeader";
 import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
+import BulkModal from "./BulkModal";
 
 export default function Datatable() {
 
@@ -108,6 +109,7 @@ export default function Datatable() {
 
                         />
                     </Content>
+                    <BulkModal />
                     </>
                 }
             </Layout>

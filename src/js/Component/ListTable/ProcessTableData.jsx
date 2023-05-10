@@ -250,7 +250,7 @@ function ProcessTableData() {
         <>
             { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/> :
                     <>
-                    <Datatable />
+                    {/*<Datatable />*/}
                     {/*<BulkModal />*/}
                     </>
 
