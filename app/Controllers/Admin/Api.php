@@ -325,12 +325,14 @@ class Api {
 		foreach ( $_posts as $post ) {
 			$thefile                  = [];
 			$metadata                 = unserialize( $post->metadata );
-			$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
-			$thefile['mainfilename']  = basename( $metadata['file'] );
-			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-			$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
-			$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
 
+			if( ! empty( $metadata['file'] )){
+				$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
+				$thefile['mainfilename']  = basename( $metadata['file'] );
+				$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
+				$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+				$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+			}
 
 			if ( empty( $thefile['mainfilename'] ) ) {
 				$attac                    = get_attached_file( $post->ID );
