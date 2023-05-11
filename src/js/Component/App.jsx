@@ -105,11 +105,13 @@ function App() {
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_OPTIONS:
-                console.log( stateValue.options )
                     handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
                     handleRenameFocusout();
+                break;
+            case Types.UPDATE_SINGLE_MEDIA:
+                    console.log( stateValue )
                 break;
             default:
         }

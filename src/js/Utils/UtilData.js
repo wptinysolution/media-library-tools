@@ -109,22 +109,6 @@ export const columnList = [
     },
 ];
 
-/*export function columns(
-    bulkChecked,
-    onBulkCheck,
-    checkedData,
-    onCheckboxChange,
-    handleSortClick,
-    formEdited,
-    handleFocusout,
-    handleChange,
-    filtering,
-    setFiltering,
-    handleFilterData,
-){
-
-}*/
-
 const theImage = ( record ) => {
     let url;
     let width = 40;
@@ -207,82 +191,44 @@ export function columns(){
         });
     };
 
-    // useEffect(() => {
-    //     handleFilterData();
-    // }, [filtering]);
-    /*
-    return [
-        {
-            title: <Checkbox />,
-            key: 'CheckboxID',
-            dataIndex: 'ID',
-            width: '80px',
-            align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== checkedData.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
-        },
-        {
-            title: <Space wrap> { `ID` } <Button size={`small`} sort-by={`id`} onClick={ () => handleSortClick( 'id' )}> {`Sort`} </Button> </Space>,
-            key: 'ID',
-            dataIndex: 'ID',
-            width: '150px',
-            align: 'top'
-        },
-        {
-            title: 'File',
-            key: 'Image',
-            dataIndex: 'guid',
-            width: '100px',
-            align: 'top',
-            render:  ( text, record, i ) => <Space> <img width={`80`} src={text} /> </Space>,
-        },
-        {
-            title: <Space wrap> { `Title` } <Button size={`small`} onClick={ () => handleSortClick( 'title' )} > Sort </Button> </Space>,
-            key: 'Title',
-            dataIndex: 'post_title',
-            align: 'top',
-            width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
-        },
-        {
-            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ () => handleSortClick( 'alt' )}> Sort </Button> </Space>,
-            key: 'Alt',
-            dataIndex: 'alt_text',
-            align: 'top',
-            width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
-        },
-        {
-            title: <Space wrap> { `Caption` } <Button size={`small`} onClick={   () => handleSortClick( 'caption' ) }> Sort </Button> </Space>,
-            key: 'Caption',
-            dataIndex: 'post_excerpt',
-            width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
-        },
-        {
-            title: <Space wrap> { `Description` } <Button size={`small`} onClick={  () => handleSortClick( 'description' ) }> Sort </Button> </Space>,
-            key: 'Description',
-            dataIndex: 'post_content',
-            width: '350px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
-        },
-        {
-            title: <Space wrap> { `Category` } </Space>,
-            key: 'Category',
-            dataIndex: 'categories',
-            width: '250px',
-           render: ( text, record, i ) => {
-               const items = JSON.parse(record.categories)
-               return  items.map( item => item.id && <Button key={Math.random().toString(36).substr(2, 9)} size={`small`} onClick={  () => {
-                   setFiltering({
-                       ...filtering,
-                       categories: item.id,
-                   })
-               } }> {  item.name } </Button>  )
-           }
-        },
-    ];
-    */
-    // console.log( stateValue.bulkSubmitData )
+    const handleChange = ( event ) => {
+        const currentItem = parseInt( event.target.getAttribute('current') );
+        let posts = stateValue.mediaData.posts;
+
+        let currentData = {
+            ID: posts[currentItem].ID,
+            [event.target.name] : event.target.value.trim()
+        }
+
+        posts[currentItem][event.target.name] = event.target.value;
+
+        dispatch({
+            ...stateValue,
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                posts: posts,
+                isLoading: false
+            },
+        });
+
+        dispatch({
+            ...stateValue,
+            type: Types.UPDATE_SINGLE_MEDIA,
+            singleMedia: currentData
+        });
+
+    }
+    const handleFocusout = ( event ) => {
+        dispatch({
+            ...stateValue,
+            type: Types.UPDATE_SINGLE_MEDIA,
+            saveType: Types.UPDATE_SINGLE_MEDIA,
+        });
+    }
+
+
+   const formEdited = stateValue.singleMedia.formEdited;
 
     return [
 
@@ -315,6 +261,7 @@ export function columns(){
             dataIndex: 'post_title',
             align: 'top',
             width: '300px',
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,

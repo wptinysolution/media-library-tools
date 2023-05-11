@@ -27,27 +27,6 @@ import BulkModal from "./BulkModal";
 export default function Datatable() {
 
     const [stateValue, dispatch] = useStateValue();
-    //
-    // const {
-    //     posts,
-    //     paged,
-    //     isLoading,
-    //     total_post,
-    //     bulkChecked,
-    //     onBulkCheck,
-    //     checkedData,
-    //     handleChange,
-    //     handleFocusout,
-    //     posts_per_page,
-    //     handleSortClick,
-    //     handlePagination,
-    //     onCheckboxChange,
-    //     formEdited,
-    //     filtering,
-    //     setFiltering,
-    //     handleFilterData
-    //
-    // } = useContext( TheMediaTableContext );
 
     const handlePagination = ( current ) => {
         dispatch({
