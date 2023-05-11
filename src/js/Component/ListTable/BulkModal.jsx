@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
-import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
 import {useStateValue} from "../../Utils/StateProvider";
+
 const {  Content } = Layout;
 
 const { Title } = Typography;
@@ -13,17 +13,6 @@ const { TextArea } = Input;
 function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
-
-    /*
-    const {
-        bulkSubmitdata,
-        isBulkModalOpen,
-        handleBulkModalOk,
-        balkModalDataChange,
-        handleBulkModalCancel,
-        setbulkSubmitdata
-    } = useContext( TheMediaTableContext );
-    */
 
     return (
         <Modal

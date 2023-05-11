@@ -1,9 +1,6 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-
-import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
+import React, { useRef} from "react";
 
 import {  Input, Select, Layout, Button, Space } from 'antd';
-
 
 import {
     headerStyle,
@@ -20,16 +17,6 @@ const { Header } = Layout;
 function TheHeader() {
 
     const [stateValue, dispatch] = useStateValue();
-
-    // const {
-    //     postQuery,
-    //     formEdited,
-    //     setFiltering,
-    //     filtering,
-    //     handleBulkSubmit,
-    //     handleChangeBulkType,
-    //     handleColumnEditMode,
-    // } = useContext( TheMediaTableContext );
 
     // paged
     const inputRef = useRef(null);
@@ -63,17 +50,6 @@ function TheHeader() {
                     style={selectStyle}
                     options={ bulkOprions }
                 />
-
-                {/*<Select*/}
-                {/*    size="large"*/}
-                {/*    defaultValue={``}*/}
-                {/*    style={selectStyle}*/}
-                {/*    onChange={handleChangeBulkType}*/}
-                {/*    options={*/}
-                {/*        postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]*/}
-                {/*    }*/}
-                {/*/>*/}
-
                 <Button
                     type="primary"
                     size="large"

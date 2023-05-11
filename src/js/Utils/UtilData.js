@@ -267,19 +267,21 @@ export function columns(){
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text } </>
         },
         {
             title: <Space wrap> { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
             key: 'Caption',
             dataIndex: 'post_excerpt',
             width: '300px',
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <Space wrap> { `Description` } <Button size={`small`} onClick={  ( event ) => handleSortClick('description') }> Sort </Button> </Space>,
             key: 'Description',
             dataIndex: 'post_content',
             width: '350px',
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <Space wrap> { `Category` } </Space>,
@@ -296,7 +298,9 @@ export function columns(){
 
 
 export function renamerColumns(){
+
     const [stateValue, dispatch] = useStateValue();
+
     return [
         {
             title: <Space wrap> { `ID` } </Space>,

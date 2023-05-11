@@ -22,9 +22,8 @@ import {useStateValue} from "../Utils/StateProvider";
 
 import * as Types from "../Utils/actionType";
 
-import ProcessTableData from "./ListTable/ProcessTableData";
-
 import RenamerTableData from "./Renamer/RenamerTableData";
+
 import Datatable from "./ListTable/Datatable";
 
 function App() {

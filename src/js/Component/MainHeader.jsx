@@ -7,9 +7,7 @@ import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-desig
 import {useStateValue} from "../Utils/StateProvider";
 import * as Types from "../Utils/actionType";
 
-
 const { Header } = Layout;
-
 
 function MainHeader() {
 

@@ -1,22 +1,12 @@
-import React, { useContext } from "react";
-
-import {TheAppContext, TheMediaTableContext} from '../../Utils/TheContext';
+import React from "react";
 
 import {columns, defaultBulkSubmitData} from '../../Utils/UtilData';
 
 import Loader from "../../Utils/Loader";
 
-import {
-    Pagination,
-    Table,
-    Layout,
-    Spin
-} from 'antd';
+import {  Pagination, Table, Layout } from 'antd';
 
-const {
-    Content,
-    Footer
-} = Layout;
+const { Content } = Layout;
 
 
 import TheHeader from "./TheHeader";
@@ -44,7 +34,6 @@ export default function Datatable() {
             bulkSubmitData: defaultBulkSubmitData,
         });
     }
-
 
     const thecolumn = columns();
     const tablecolumn = thecolumn.filter( ( currentValue) => {
