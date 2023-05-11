@@ -91,7 +91,7 @@ function App() {
        }
     }
 
-    const handleRenameFocusout = async () => {
+    const fileRenamerUpdateSingleMedia = async () => {
         const  currentItemEdited = stateValue.rename;
         let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
         if( edited ){
@@ -102,16 +102,23 @@ function App() {
         }
     }
 
+    const singleMediaUpdateContent = async ( event ) => {
+        const response = await upDateSingleMedia( stateValue.singleMedia );
+        if( 200 === parseInt( response.status ) ) {
+            await getTheMedia()
+        }
+    }
+
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_OPTIONS:
                     handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
-                    handleRenameFocusout();
+                    fileRenamerUpdateSingleMedia();
                 break;
             case Types.UPDATE_SINGLE_MEDIA:
-                    console.log( stateValue )
+                    singleMediaUpdateContent()
                 break;
             default:
         }

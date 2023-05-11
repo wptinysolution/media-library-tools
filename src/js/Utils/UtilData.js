@@ -5,7 +5,6 @@ import {Button, Checkbox, Space, Input, Layout } from "antd";
 import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
-import {BULK_SUBMIT} from "./actionType";
 
 const { TextArea } = Input;
 
@@ -194,7 +193,6 @@ export function columns(){
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
         let posts = stateValue.mediaData.posts;
-
         let currentData = {
             ID: posts[currentItem].ID,
             [event.target.name] : event.target.value.trim()
@@ -203,7 +201,6 @@ export function columns(){
         posts[currentItem][event.target.name] = event.target.value;
 
         dispatch({
-            ...stateValue,
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
@@ -213,9 +210,11 @@ export function columns(){
         });
 
         dispatch({
-            ...stateValue,
             type: Types.UPDATE_SINGLE_MEDIA,
-            singleMedia: currentData
+            singleMedia: {
+                ...stateValue.singleMedia,
+                ...currentData,
+            }
         });
 
     }
@@ -226,7 +225,6 @@ export function columns(){
             saveType: Types.UPDATE_SINGLE_MEDIA,
         });
     }
-
 
    const formEdited = stateValue.singleMedia.formEdited;
 

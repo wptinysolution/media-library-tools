@@ -52,6 +52,7 @@ const reducer = (state, action) => {
 		case Types.UPDATE_SINGLE_MEDIA:
 			return {
 				...state,
+				saveType: action.saveType,
 				singleMedia: action.singleMedia,
 			};
 		case Types.UPDATE_OPTIONS:
