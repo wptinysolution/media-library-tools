@@ -9,17 +9,17 @@ export const initialState = {
 	saveType : null,
 	mediaData: {
 		postQuery: {
-			status: 'inherit',
+			status: null,
 			filtering : false,
-			paged: 1,
-			order: 'DESC',
 			media_per_page: 1,
-			orderby: 'id'
+			order: 'DESC',
+			orderby: 'id',
+			paged: 1
 		},
 		isLoading: true,
 		posts : [],
-		total_post: 0,
-		paged: 1,
+		total_post: -1,
+		paged: -1,
 		posts_per_page: 1,
 	},
 	singleMedia: {

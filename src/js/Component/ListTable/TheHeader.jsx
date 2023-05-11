@@ -31,12 +31,27 @@ function TheHeader() {
     //     handleColumnEditMode,
     // } = useContext( TheMediaTableContext );
 
-
     // paged
     const inputRef = useRef(null);
 
     const sharedProps = {
         ref: inputRef,
+    };
+
+    const handleSelectChange = (value, fieldName) => {
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                isLoading: true,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    filtering : true,
+                    paged: 1,
+                    [fieldName]: value
+                }
+            },
+        });
     };
 
     return (
@@ -64,25 +79,28 @@ function TheHeader() {
                     size="large"
                 > Apply </Button>
                 <Select
+                    size="large"
                     allowClear = {true}
                     placeholder={'Status'}
-                    size="large"
                     style={selectStyle}
+                    defaultValue={ stateValue.mediaData.postQuery.status || null }
                     options={[
                         {
                             value: 'trash',
                             label: 'Trash',
                         },
-                
                     ]}
+                    onChange={(value) => handleSelectChange(value, 'status')}
                 />
 
                 <Select
                     size="large"
-                    allowClear = {true}
-                    placeholder={'Date'}
-                    style={selectStyle}
+                    allowClear = { true }
+                    placeholder={ 'All dates' }
+                    style={ selectStyle }
+                    defaultValue={ stateValue.mediaData.postQuery.date || null  }
                     options={ stateValue.generalData.dateList }
+                    onChange={(value) => handleSelectChange(value, 'date')}
                 />
 
                 <Select
@@ -91,6 +109,8 @@ function TheHeader() {
                     placeholder={'Categories'}
                     style={selectStyle}
                     options={stateValue.generalData.termsList}
+                    defaultValue={ stateValue.mediaData.postQuery.categories || null }
+                    onChange={(value) => handleSelectChange(value, 'categories')}
                 />
 
                 <Button

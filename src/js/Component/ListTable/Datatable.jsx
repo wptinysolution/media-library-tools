@@ -78,11 +78,10 @@ export default function Datatable() {
     // optionsData
     return (
             <Layout className="layout">
-                { stateValue.generalData.isLoading || stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/>  :
+                { stateValue.generalData.isLoading || stateValue.mediaData.isLoading || stateValue.mediaData.total_post < 0 ?  <Loader/>  :
                     <>
                     <TheHeader/>
                     <Content>
-                
                         <Table
                             rowKey={(item) => item.ID}
                             pagination={false}
@@ -94,10 +93,7 @@ export default function Datatable() {
                             }}
                         />
                         <Pagination
-                            style={{
-                                padding: '30px',
-                                textAlign: 'right'
-                            }}
+                            style={{ padding: '30px', textAlign: 'right'  }}
                             showTitle={true}
                             showSizeChanger={false}
                             showQuickJumper={true}
@@ -109,7 +105,7 @@ export default function Datatable() {
 
                         />
                     </Content>
-                    <BulkModal />
+                    {/*<BulkModal />*/}
                     </>
                 }
             </Layout>

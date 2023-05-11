@@ -161,10 +161,7 @@ class Api {
 			$get_date = $wpdb->get_col( $date_query );
 			wp_cache_set( md5( $date_query ), $get_date, 'attachment-query' );
 		}
-		$dates[] = [
-			'value' => '',
-			'label' => 'All dates',
-		];
+		$dates = [];
 		if ( $get_date ) {
 			foreach ( $get_date as $date ) {
 				$dates[] = [

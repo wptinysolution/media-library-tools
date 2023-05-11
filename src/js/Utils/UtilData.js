@@ -236,7 +236,7 @@ export function columns(){
         },
     ];
     */
-    console.log( stateValue.bulkSubmitData )
+    // console.log( stateValue.bulkSubmitData )
     return [
 
         {

@@ -14,6 +14,7 @@ function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
+    /*
     const {
         bulkSubmitdata,
         isBulkModalOpen,
@@ -22,6 +23,7 @@ function BulkModal() {
         handleBulkModalCancel,
         setbulkSubmitdata
     } = useContext( TheMediaTableContext );
+    */
 
     return (
         <Modal
