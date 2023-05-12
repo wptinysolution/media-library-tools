@@ -3,6 +3,10 @@ import React from "react";
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
+import {defaultBulkSubmitData} from "../../Utils/UtilData";
+import * as Types from "../../Utils/actionType";
+
+import {submitBulkMedia, submitBulkMediaAction} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -14,10 +18,64 @@ function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
+    const bulkSubmitdata = stateValue.bulkSubmitData;
+
+    const balkModalDataChange = ( event ) => {
+        const data = {
+            ...bulkSubmitdata.data,
+            [event.target.name] : event.target.value
+        }
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...bulkSubmitdata,
+                data
+            },
+        });
+    };
+
+    const handleBulkModalOk = async ( event ) => {
+        const response = await submitBulkMediaAction( stateValue.bulkSubmitData );
+        console.log( 'submitBulkMediaAction' );
+        if( 200 === parseInt( response.status ) && response.data.updated ){
+            await dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    postQuery: {
+                        ...stateValue.mediaData.postQuery,
+                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
+                    },
+                },
+            });
+
+            await dispatch({
+                type: Types.BULK_SUBMIT,
+                bulkSubmitData: {
+                    ...defaultBulkSubmitData,
+                    type: 'bulkedit',
+                },
+            });
+        }
+    };
+
+    const handleBulkModalCancel = (event) => {
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...bulkSubmitdata,
+                isModalOpen: false,
+            },
+        });
+    };
+
+    // stateValue.bulkSubmitData.post_categories
+    const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
+
     return (
         <Modal
             title={`Bulk Edit`}
-            open={isBulkModalOpen}
+            open={ bulkSubmitdata.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
         >
@@ -53,10 +111,15 @@ function BulkModal() {
                 />
                 <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
                 <Select
-                    onChange={ (value) => setbulkSubmitdata({
-                        ...bulkSubmitdata,
-                        'post_categories': value
-                    }) }
+                    onChange={
+                        (value) => dispatch({
+                            type: Types.BULK_SUBMIT,
+                            bulkSubmitData: {
+                                ...stateValue.bulkSubmitData,
+                                'post_categories': value
+                            },
+                        })
+                    }
                     allowClear = {true}
                     placeholder={'Categories'}
                     size="large"
@@ -64,8 +127,7 @@ function BulkModal() {
                     style={{
                         width: '100%',
                     }}
-                    showArrow
-                    options={stateValue.termsList}
+                    options={ filteredOptions }
                 />
 
             </Content>

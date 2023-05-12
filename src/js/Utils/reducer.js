@@ -1,12 +1,11 @@
 /* global rtsbParams */
 
 import * as Types from "./actionType";
-// import {defaultBulkSubmitData} from "./UtilData";
-import {BULK_SUBMIT} from "./actionType";
+
 import {defaultBulkSubmitData} from "./UtilData";
 
 export const initialState = {
-	saveType : null,
+	saveType: null,
 	mediaData: {
 		postQuery: {
 			status: null,
@@ -14,10 +13,11 @@ export const initialState = {
 			media_per_page: 1,
 			order: 'DESC',
 			orderby: 'id',
-			paged: 1
+			paged: 1,
+			isUpdate: false,
 		},
 		isLoading: true,
-		posts : [],
+		posts: [],
 		total_post: -1,
 		paged: -1,
 		posts_per_page: 1,
@@ -32,13 +32,13 @@ export const initialState = {
 	options: {
 		isLoading: true,
 		default_alt_text: "none",
-		media_table_column : [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ]
+		media_table_column: [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ]
 	},
 	generalData:{
 		isLoading: true,
-		selectedMenu : localStorage.getItem("current_menu") || 'mediarename',
-		dateList:{},
-		termsList:{},
+		selectedMenu: localStorage.getItem("current_menu") || 'mediarename',
+		dateList: {},
+		termsList: {},
 	}
 };
 

@@ -37,6 +37,7 @@ export const defaultPostsQuery = {
 
 export const defaultBulkSubmitData = {
     bulkChecked : false,
+    isModalOpen : false,
     ids: [],
     type: '',
     data : {

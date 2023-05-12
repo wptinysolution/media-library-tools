@@ -40,7 +40,7 @@ function App() {
                 isLoading: false,
             }
         });
-        console.log( 'getTheOptins' );
+        console.log( 'getOptions' );
     }
 
     const getTheMedia = async () => {
@@ -53,7 +53,7 @@ function App() {
                 isLoading: false
             },
         });
-        console.log( 'getTheMedia' );
+        console.log( 'getMedia' );
     }
 
     const getDateAndTermsList = async () => {
@@ -70,7 +70,8 @@ function App() {
                 isLoading : false,
             },
         })
-        console.log( 'getDateTermsList' );
+        console.log( 'getDates' );
+        console.log( 'getTerms' );
     }
 
     const handleUpdateOption = async () => {
@@ -88,6 +89,7 @@ function App() {
                },
            });
        }
+       console.log( 'handleUpdateOption' );
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
@@ -98,7 +100,10 @@ function App() {
             if( 200 === parseInt( response.status ) ) {
                 await getTheMedia()
             }
+            console.log( 'upDateSingleMedia' );
+
         }
+
     }
 
     const singleMediaUpdateContent = async ( event ) => {
@@ -106,6 +111,7 @@ function App() {
         if( 200 === parseInt( response.status ) ) {
             await getTheMedia()
         }
+        console.log( 'upDateSingleMedia' );
     }
 
     const handleSave = () => {

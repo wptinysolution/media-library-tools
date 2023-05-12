@@ -5,7 +5,8 @@ import {  Input, Select, Layout, Button, Space } from 'antd';
 import {
     headerStyle,
     selectStyle,
-    bulkOprions
+    bulkOprions,
+    defaultBulkSubmitData
 } from '../../Utils/UtilData'
 
 import {useStateValue} from "../../Utils/StateProvider";
@@ -13,6 +14,8 @@ import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
+
+import { submitBulkMediaAction } from "../../Utils/Data";
 
 function TheHeader() {
 
@@ -41,6 +44,62 @@ function TheHeader() {
         });
     };
 
+    const handleChangeBulkType = (value) => {
+        const data = 'bulkedit' === value ? stateValue.bulkSubmitData.data : defaultBulkSubmitData.data;
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                type: value,
+                data,
+            },
+        });
+    };
+
+
+    const handleBulkSubmit = async (event) => {
+        let response = false;
+        switch( stateValue.bulkSubmitData.type ){
+            case 'trash':
+            case 'inherit':
+            case 'update':
+            case 'delete':
+                response = await submitBulkMediaAction( stateValue.bulkSubmitData );
+                await dispatch({
+                    type: Types.BULK_SUBMIT,
+                    bulkSubmitData: defaultBulkSubmitData,
+                });
+                console.log( 'submitBulkMediaAction' );
+                break;
+            case 'bulkedit':
+                dispatch({
+                    type: Types.BULK_SUBMIT,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen : true,
+                    },
+                });
+                break;
+            default:
+        }
+
+        if( 200 === parseInt( response.status ) && response.data.updated ){
+            await dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    postQuery: {
+                        ...stateValue.mediaData.postQuery,
+                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
+                    },
+                },
+            });
+        }
+
+    };
+
+    const postQuery =  stateValue.mediaData.postQuery;
+
     return (
         <Header style={headerStyle}>
             <Space wrap>
@@ -48,11 +107,15 @@ function TheHeader() {
                     size="large"
                     defaultValue={``}
                     style={selectStyle}
-                    options={ bulkOprions }
+                    onChange={handleChangeBulkType}
+                    options={
+                        postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
+                    }
                 />
                 <Button
                     type="primary"
                     size="large"
+                    onClick={handleBulkSubmit}
                 > Apply </Button>
                 <Select
                     size="large"

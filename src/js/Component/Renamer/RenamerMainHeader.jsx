@@ -60,9 +60,7 @@ function RenamerMainHeader() {
                     {...sharedProps}
                     type="primary"
                     size="large"
-                    style={{
-                        width: '50px'
-                    }}
+                    style={{ width: '50px' }}
                     onBlur={ (event) => dispatch({
                             ...stateValue,
                             type: Types.UPDATE_OPTIONS,

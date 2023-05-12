@@ -73,7 +73,7 @@ export default function Datatable() {
 
                         />
                     </Content>
-                    {/*<BulkModal />*/}
+                    <BulkModal />
                     </>
                 }
             </Layout>
