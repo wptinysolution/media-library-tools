@@ -154,24 +154,27 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_dates() {
-
 		global $wpdb;
 		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
-		$get_date   = wp_cache_get( md5( $date_query ), 'attachment-query' );
-		if ( false === $get_date ) {
+		$key = 'tsmlt_date_query_' . date("d_m_Y");
+		$dates = get_transient( $key );
+
+		if ( false === $dates ) {
+			delete_transient( $key );
 			$get_date = $wpdb->get_col( $date_query );
-			wp_cache_set( md5( $date_query ), $get_date, 'attachment-query' );
-		}
-		$dates = [];
-		if ( $get_date ) {
-			foreach ( $get_date as $date ) {
-				$dates[] = [
-					'value' => $date,
-					'label' => date( 'F Y', strtotime( $date ) ),
-				];
+			if ( $get_date ) {
+				$dates = [];
+				foreach ( $get_date as $date ) {
+					$dates[] = [
+						'value' => $date,
+						'label' => date( 'F Y', strtotime( $date ) ),
+					];
+				}
 			}
+			set_transient( $key, $dates, HOUR_IN_SECONDS );
 		}
 
+		$dates =  $dates ? $dates : [];
 		return wp_json_encode( $dates );
 	}
 
