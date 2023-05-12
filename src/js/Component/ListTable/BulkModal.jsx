@@ -6,7 +6,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 import {defaultBulkSubmitData} from "../../Utils/UtilData";
 import * as Types from "../../Utils/actionType";
 
-import {submitBulkMedia, submitBulkMediaAction} from "../../Utils/Data";
+import { submitBulkMediaAction } from "../../Utils/Data";
 
 const {  Content } = Layout;
 

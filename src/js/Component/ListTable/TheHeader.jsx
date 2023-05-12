@@ -102,7 +102,9 @@ function TheHeader() {
 
     return (
         <Header style={headerStyle}>
+
             <Space wrap>
+
                 <Select
                     size="large"
                     defaultValue={``}
@@ -112,11 +114,13 @@ function TheHeader() {
                         postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
                     }
                 />
+
                 <Button
                     type="primary"
                     size="large"
                     onClick={handleBulkSubmit}
                 > Apply </Button>
+
                 <Select
                     size="large"
                     allowClear = {true}
@@ -167,6 +171,7 @@ function TheHeader() {
                     }
                     ghost={ ! stateValue.singleMedia.formEdited }>  { stateValue.singleMedia.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                 </Button>
+
                 <Button
                     type="text"
                     size="large"
@@ -178,6 +183,7 @@ function TheHeader() {
                 >
                     Items Per page
                 </Button>
+
                 <Input
                     {...sharedProps}
                     type="primary"
@@ -201,7 +207,9 @@ function TheHeader() {
                     }
                     value={stateValue.options.media_per_page}
                 />
+
             </Space>
+
         </Header>
     );
 }

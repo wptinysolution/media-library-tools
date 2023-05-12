@@ -36,7 +36,7 @@ export const initialState = {
 	},
 	generalData:{
 		isLoading: true,
-		selectedMenu: localStorage.getItem("current_menu") || 'mediarename',
+		selectedMenu: localStorage.getItem("current_menu") || 'settings',
 		dateList: {},
 		termsList: {},
 	}
