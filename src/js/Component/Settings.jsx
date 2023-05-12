@@ -43,7 +43,6 @@ function Settings() {
     const isCheckedDiff = Object.keys( plainOptions ).length === Object.keys( stateValue.options.media_table_column ).length;
 
     const onChangeColumnList = (list) => {
-
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -54,7 +53,7 @@ function Settings() {
 
     };
 
-    const onCheckAllChange = (e) => {
+    const onCheckAllColumn = (e) => {
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -62,11 +61,9 @@ function Settings() {
                 media_table_column: e.target.checked ? plainOptions : [],
             }
         });
-
     };
 
     const defaultAltText = (e) => {
-
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -76,6 +73,17 @@ function Settings() {
         });
 
     }
+
+    const onChangeOthersFileList = (list) => {
+        dispatch({
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                others_file_support: list,
+            }
+        });
+
+    };
 
     return (
         <Form
@@ -104,7 +112,7 @@ function Settings() {
                     boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                 }}>
                     <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
-                        <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllChange} checked={isCheckedDiff}>Check all </Checkbox>
+                        <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
                         <Divider />
                         <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
                     </Form.Item>
@@ -158,6 +166,16 @@ function Settings() {
                             </>
                         }
 
+                    </Form.Item>
+                    <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others File Support </Title>} >
+                        <CheckboxGroup options={
+                            [
+                                {
+                                    label: 'SVG',
+                                    value: 'svg'
+                                }
+                            ]
+                        } value={stateValue.options.others_file_support} onChange={ onChangeOthersFileList } />
                     </Form.Item>
 
                 </Content>

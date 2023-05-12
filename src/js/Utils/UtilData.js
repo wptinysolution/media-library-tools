@@ -109,7 +109,7 @@ export const columnList = [
 ];
 
 const theImage = ( record ) => {
-    let url;
+    let url = record.guid;
     let width = 40;
     switch ( record.post_mime_type ) {
         case 'image/jpeg':
@@ -133,7 +133,6 @@ const theImage = ( record ) => {
             break;
         default:
     }
-
     return <img width={ width } src={url} /> ;
 
 };
@@ -234,7 +233,7 @@ export function columns(){
             title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'ID',
-            width: '100px',
+            width: '50px',
             align: 'center',
             render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },

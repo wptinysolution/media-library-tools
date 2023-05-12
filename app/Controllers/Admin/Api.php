@@ -98,7 +98,6 @@ class Api {
 		}
 
 		if ( ! empty( $parameters['media_table_column'] ) ) {
-			// $tsmlt_media['media_table_column'] =  [ 'Title',  rand() ];//$parameters['media_table_column'] ;
 			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
 		}
 
@@ -109,6 +108,8 @@ class Api {
 		if ( ! empty( $parameters['media_default_alt'] ) ) {
 			$tsmlt_media['media_default_alt'] = $parameters['media_default_alt'];
 		}
+
+		$tsmlt_media['others_file_support'] =  ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 

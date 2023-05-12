@@ -101,6 +101,11 @@ class Fns {
 		// Get the current metadata for the media file
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
+		if ( empty( $metadata['file'] ) ) {
+			$attac            = get_attached_file( $attachment_id );
+			$metadata['file'] = basename( $attac );
+		}
+
 		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 
 		$filebasename = basename( $metadata['file'], '.' . $fileextension );
@@ -127,21 +132,23 @@ class Fns {
 			// Update the metadata with the new file name
 			$metadata['file'] = $unique_filename;
 			// Loop through each size and rename the file
-			foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-				$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
-				if ( ! file_exists( $old_file_path ) ) {
-					continue;
-				}
-				$new_file_path = dirname( $file_path ) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
+			if ( ! empty( $metadata['sizes'] ) ) {
+				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+					if ( ! file_exists( $old_file_path ) ) {
+						continue;
+					}
+					$new_file_path = dirname( $file_path ) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
+					$renamed_size = rename( $old_file_path, $new_file_path );
 
-				$renamed_size = rename( $old_file_path, $new_file_path );
-				if ( $renamed_size ) {
-					$metadata['sizes'][ $size ]['file'] = str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
+					if ( $renamed_size ) {
+						$metadata['sizes'][ $size ]['file'] = str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
+					}
+
 				}
 			}
 			update_attached_file( $attachment_id, str_replace( basename( $file_path ), $new_file_name, $file_path ) );
 			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
-
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$updated = self::permalink_to_post_guid( $attachment_id );
 		}
