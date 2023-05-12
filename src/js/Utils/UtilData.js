@@ -110,30 +110,35 @@ export const columnList = [
 ];
 
 const theImage = ( record ) => {
-    let url = record.guid;
-    let width = 40;
-    switch ( record.post_mime_type ) {
-        case 'image/jpeg':
+    let type = record.post_mime_type.split("/"),
+        width = 40,
+        url;
+    type = Array.isArray( type ) ? type[0] : '';
+    switch ( type ) {
+        case 'image':
             url = record.guid;
             width = 60;
             break;
-        case 'audio/mpeg':
+        case 'audio':
             url = `${tsmltParams.includesUrl}/images/media/audio.png`
             break;
-        case 'video/mp4':
+        case 'video':
             url = `${tsmltParams.includesUrl}/images/media/video.png`
             break;
-        case 'application/zip':
-            url = `${tsmltParams.includesUrl}/images/media/archive.png`
+        case 'application':
+            if( 'application/zip' === record.post_mime_type ){
+                url = `${tsmltParams.includesUrl}/images/media/archive.png`
+            } else if ( 'application/pdf' === record.post_mime_type  ){
+                url = `${tsmltParams.includesUrl}/images/media/document.png`
+            }
             break;
-        case 'application/pdf':
-            url = `${tsmltParams.includesUrl}/images/media/document.png`
-            break;
-        case 'text/plain':
+        case 'text':
             url = `${tsmltParams.includesUrl}/images/media/text.png`
             break;
         default:
+            url = `${tsmltParams.includesUrl}/images/media/text.png`
     }
+
     return <img width={ width } src={url} /> ;
 
 };
@@ -300,7 +305,7 @@ export function columns(){
 export function renamerColumns(){
 
     const [stateValue, dispatch] = useStateValue();
-
+    console.log( stateValue )
     return [
         {
             title: <Space wrap> { `ID` } </Space>,
