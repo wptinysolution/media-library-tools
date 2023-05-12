@@ -29,8 +29,23 @@ class FilterHooks {
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'upload_mimes', [ __CLASS__, 'add_support_mime_types' ], 99 );
+		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
     }
-
+	/**
+	 * Check template screen
+	 *
+	 * @return boolean
+	 */
+	public static function hidden_columns( $hidden, $screen ) {
+		if( ! empty( $hidden ) || empty( $screen->base ) || 'upload' !== $screen->base ){
+			return $hidden;
+		}
+		$hidden[] = 'parent';
+		$hidden[] = 'author';
+		$hidden[] = 'comments';
+		$hidden[] = 'date';
+		return $hidden;
+	}
 	/**
 	 * @param $mimes
 	 *
