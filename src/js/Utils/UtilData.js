@@ -335,6 +335,7 @@ export function renamerColumns(){
                         name={`filebasename`}
                         placeholder={`The name Shouldn't leave empty`}
                         current={i}
+                        style={{ maxWidth: 'calc( 100% - 50px)' }}
                         onBlur={
                             () => dispatch({
                                 ...stateValue,
