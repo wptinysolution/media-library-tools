@@ -129,6 +129,12 @@ class Fns {
 		// If the file was successfully renamed, update the metadata for each size
 
 		if ( $renamed ) {
+			wp_update_post(
+				array (
+					'ID'        => $attachment_id,
+					'post_name' => $filebasename
+				)
+			);
 			// Update the metadata with the new file name
 			$metadata['file'] = $unique_filename;
 			// Loop through each size and rename the file
@@ -151,6 +157,7 @@ class Fns {
 			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$updated = self::permalink_to_post_guid( $attachment_id );
+
 		}
 
 		return $renamed;

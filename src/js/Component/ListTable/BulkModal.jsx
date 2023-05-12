@@ -3,10 +3,10 @@ import React from "react";
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
-import {defaultBulkSubmitData} from "../../Utils/UtilData";
-import * as Types from "../../Utils/actionType";
 
-import { submitBulkMediaAction } from "../../Utils/Data";
+import {defaultBulkSubmitData} from "../../Utils/UtilData";
+
+import * as Types from "../../Utils/actionType";
 
 const {  Content } = Layout;
 
@@ -34,29 +34,12 @@ function BulkModal() {
         });
     };
 
-    const handleBulkModalOk = async ( event ) => {
-        const response = await submitBulkMediaAction( stateValue.bulkSubmitData );
-        console.log( 'submitBulkMediaAction' );
-        if( 200 === parseInt( response.status ) && response.data.updated ){
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    postQuery: {
-                        ...stateValue.mediaData.postQuery,
-                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
-                    },
-                },
-            });
-
-            await dispatch({
-                type: Types.BULK_SUBMIT,
-                bulkSubmitData: {
-                    ...defaultBulkSubmitData,
-                    type: 'bulkedit',
-                },
-            });
-        }
+    const handleBulkModalOk = ( event ) => {
+        dispatch({
+            ...stateValue,
+            type: Types.BULK_SUBMIT,
+            saveType: Types.BULK_SUBMIT
+        });
     };
 
     const handleBulkModalCancel = (event) => {
@@ -69,7 +52,6 @@ function BulkModal() {
         });
     };
 
-    // stateValue.bulkSubmitData.post_categories
     const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
 
     return (

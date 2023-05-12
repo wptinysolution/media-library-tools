@@ -10,7 +10,9 @@ import {
     getOptions,
     updateOptins,
     upDateSingleMedia,
+    submitBulkMediaAction
 } from "../Utils/Data";
+
 
 const { Sider } = Layout;
 
@@ -25,6 +27,7 @@ import * as Types from "../Utils/actionType";
 import RenamerTableData from "./Renamer/RenamerTableData";
 
 import Datatable from "./ListTable/Datatable";
+import {defaultBulkSubmitData} from "../Utils/UtilData";
 
 function App() {
 
@@ -114,6 +117,31 @@ function App() {
         console.log( 'upDateSingleMedia' );
     }
 
+    const handleBulkModalDataSave = async () => {
+        const response = await submitBulkMediaAction( stateValue.bulkSubmitData );
+        if( 200 === parseInt( response.status ) && response.data.updated ){
+            await dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    postQuery: {
+                        ...stateValue.mediaData.postQuery,
+                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
+                    },
+                },
+            });
+
+            await dispatch({
+                type: Types.BULK_SUBMIT,
+                bulkSubmitData: {
+                    ...defaultBulkSubmitData,
+                    type: 'bulkedit',
+                },
+            });
+        }
+        console.log( 'submitBulkMediaAction' );
+    };
+
     const handleSave = () => {
         switch ( stateValue.saveType ) {
             case Types.UPDATE_OPTIONS:
@@ -123,7 +151,10 @@ function App() {
                     fileRenamerUpdateSingleMedia();
                 break;
             case Types.UPDATE_SINGLE_MEDIA:
-                    singleMediaUpdateContent()
+                    singleMediaUpdateContent();
+                break;
+            case Types.BULK_SUBMIT:
+                    handleBulkModalDataSave();
                 break;
             default:
         }

@@ -47,6 +47,7 @@ const reducer = (state, action) => {
 		case Types.BULK_SUBMIT:
 			return {
 				...state,
+				saveType: action.saveType,
 				bulkSubmitData: action.bulkSubmitData,
 			};
 		case Types.UPDATE_SINGLE_MEDIA:
