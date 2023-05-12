@@ -8,10 +8,12 @@ import {  Pagination, Table, Layout } from 'antd';
 
 const { Content } = Layout;
 
-
 import TheHeader from "./TheHeader";
+
 import {useStateValue} from "../../Utils/StateProvider";
+
 import * as Types from "../../Utils/actionType";
+
 import BulkModal from "./BulkModal";
 
 export default function Datatable() {

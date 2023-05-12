@@ -20,21 +20,6 @@ export const selectStyle = {
     paddingInline: 0,
 }
 
-export const defaultPosts = {
-    posts : [],
-    total_post: 0,
-    paged: 1,
-    posts_per_page: 1,
-}
-
-export const defaultPostsQuery = {
-    status: 'inherit',
-    filtering : false,
-    paged: 1,
-    orderby: 'menu_order',
-    order: 'DESC',
-}
-
 export const defaultBulkSubmitData = {
     bulkChecked : false,
     isModalOpen : false,
@@ -47,12 +32,6 @@ export const defaultBulkSubmitData = {
         post_description : '',
     },
     post_categories : [],
-}
-
-export const defaultPostsFilter = {
-    date: '',
-    categories: '',
-    filtering : false,
 }
 
 export const bulkOprions = [
@@ -305,7 +284,7 @@ export function columns(){
 export function renamerColumns(){
 
     const [stateValue, dispatch] = useStateValue();
-    console.log( stateValue )
+
     return [
         {
             title: <Space wrap> { `ID` } </Space>,

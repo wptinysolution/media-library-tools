@@ -4,8 +4,6 @@ import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
-import {defaultBulkSubmitData} from "../../Utils/UtilData";
-
 import * as Types from "../../Utils/actionType";
 
 const {  Content } = Layout;
@@ -34,7 +32,7 @@ function BulkModal() {
         });
     };
 
-    const handleBulkModalOk = ( event ) => {
+    const handleBulkModalOk = () => {
         dispatch({
             ...stateValue,
             type: Types.BULK_SUBMIT,
@@ -42,7 +40,7 @@ function BulkModal() {
         });
     };
 
-    const handleBulkModalCancel = (event) => {
+    const handleBulkModalCancel = () => {
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
