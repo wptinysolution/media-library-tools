@@ -1,4 +1,4 @@
-=== Media Library Tools - Media File Rename And Bulk Edit Image Title, Name, Alt Tag, Caption, Description Editing tools ===
+=== Media File And Image Rename And Bulk Edit Title, Name, Alt Tag, Caption, Description - Media Library Tools ===
 Contributors: tinysolution
 Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
 Requires at least: 5.5
@@ -10,79 +10,47 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
-== 🏆 Description ==
+== Description ==
 
-Properly naming your media files is important for several reasons:
-
-**Organization:** Naming your media files in a descriptive and consistent manner helps keep your website organized. When you have multiple files with similar names or no names at all, it can be difficult to find the file you need. A proper file name can make it easier to locate and manage your media files.
-
-**User Experience:** When users visit your website, they expect to find content quickly and easily. A descriptive media file name can provide context and help users understand what they're looking at before even clicking on the file.
-
-**Accessibility:** Properly named media files can make your website more accessible to users who rely on assistive technologies like screen readers. Descriptive file names can be read aloud by these technologies, making it easier for visually impaired users to understand the content of your website.
-
-**SEO:** Search engines like Google use file names to help understand the content of your website. Descriptive file names can help improve your website's search engine optimization (SEO) by providing context and relevance to the file content.
-
-
-Are you struggling to keep up with updating the image Title, Alt tags, Captions, and descriptions in your media library?
-
-Media Library Tools simplifies image metadata editing, allowing you to quickly update titles, ALT text, captions, and descriptions for individual or bulk images in your WordPress media library.
-Access helpful sorting and filtering tools to easily identify which images require attention. With one-click editing, optimizing your images for SEO has never been easier.
-Save time and improve your website's search engine rankings by streamlining the image metadata editing process with our plugin.
-
-[youtube https://www.youtube.com/watch?v=Yj1rTVZRZ8k]
-
-== 🏆 File Rename ==
+Media Library Tools is a WordPress plugin that simplifies image metadata editing, allowing users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library. Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO). The plugin provides helpful sorting and filtering tools to easily identify images that require attention, and with one-click editing, optimizing images for SEO has never been easier. Users can save time and improve their website's search engine rankings by streamlining the image metadata editing process with the plugin.
 
 [youtube https://www.youtube.com/watch?v=wwDqxVL0CU0]
 
+== 🏆 Features ==
 
-== 🏆 Improve your website's SEO score ==
-Image metadata, including information such as title, description, and ALT text, can be extremely valuable for SEO.
-Properly optimizing image metadata can help search engines understand the content and context of images on a website,
-leading to improved search engine rankings and visibility. By including relevant keywords in the image metadata,
-it's more likely that images will appear in relevant search queries, driving traffic to the website.
+* SVG Image Support
+* Rename media file names
+* Create image categories
+* Search images by category
+* Rename media files, bulk edit titles, ALT text, captions, descriptions, and categories
+* Edit the title, ALT text, caption, and description of images individually
+* Identify blank ALT tags, captions, and descriptions by sorting image data
+* Improve SEO score by assigning proper image metadata
+* Move images to trash instead of permanently deleting them
+* Filter and search for images by trash status
+* Permanently delete trash images with one click in the future
 
-Additionally, optimized image metadata can improve website accessibility,
-particularly for visually impaired users who rely on screen readers to access website content.
-Overall, neglecting to optimize image metadata can lead to missed opportunities for improved SEO,
-reduced website traffic, and decreased user engagement.
+== 🏆 Improving SEO Score ==
 
-== 🏆 FEATURES ==
+Optimizing image metadata, including information such as title, description, and ALT text, can be extremely valuable for SEO. Properly optimizing image metadata can help search engines understand the content and context of images on a website, leading to improved search engine rankings and visibility. By including relevant keywords in the image metadata, it's more likely that images will appear in relevant search queries, driving traffic to the website. Additionally, optimized image metadata can improve website accessibility, particularly for visually impaired users who rely on screen readers to access website content. Neglecting to optimize image metadata can lead to missed opportunities for improved SEO, reduced website traffic, and decreased user engagement.
 
-* Rename Media file name.
-* Make The Image Categories.
-* Search Image by the category.
-* Media File Rename, Bulk edit Title, ALT text, Caption, Description, And Category .
-* Edit the Title, ALT text, Caption, and Description of your images individually,
-* Find out Blank ALT tag, caption and description by data sorting the image.
-* Improve SEO score by assigning the proper image metadata.
-* Image Move to the trash instead of permanently delete.
-* Filter and search Image By Trash image.
-* In future can delete trash image permanently by one click.
+== 🏆 Getting Started ==
 
-
-== 🏆 Start Working ==
-
-* Install The plugin "Media Library Tools - WordPress Media Manager"
-* Go to Media > Media Tools -> Start editing From here.
+To start using the Media Library Tools plugin, users should first install it and then navigate to Media > Media Tools. From there, they can begin editing individual or bulk images and optimizing their metadata.
 
 == Frequently Asked Questions ==
 
-= How Enable Edit Mode for single items? =
-* By clicking "Enable Edit Mode" Button edit mode will enable.
+= How do I enable edit mode for single items? =
+To enable edit mode for a single item, users can click the "Enable Edit Mode" button.
 
-= How can I do move the images to trash? =
-* Go to Media > Media Tools.
-* At first select those images by clicking the checkbox that you want to trash. You can select all image by one click.
-* Select the "Bulk actions" Select box and find the  "Move to Trash" menu.
+= How do I move images to the trash? =
+To move images to the trash, users should navigate to Media > Media Tools and select the images they want to move by clicking the checkbox next to each image. They can then select "Move to Trash" from the "Bulk actions" menu.
 
-= How can I make image categories? =
-* Go to Media > Media Tools.
-* At first select those images by clicking the checkbox that you want to add category. You can select all image by one click.
-then chose "Bulk Edit" form "Bulk actions" Menu. The assign one or multiple image.
+= How do I create image categories? =
+To create image categories, users should navigate to Media > Media Tools and select the images they want to categorize by clicking the checkbox next to each image. They can then select "Bulk Edit" from the "Bulk actions" menu and assign the selected images to one or multiple categories.
 
-= How can search by categories? =
-* There has the fields near the Filter button. You can find the categories box there.
+= How do I search for images by categories? =
+To search for images by categories, users can find the categories box near the Filter button in Media > Media Tools.
 
 == Screenshots ==
 

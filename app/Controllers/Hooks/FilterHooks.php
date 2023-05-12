@@ -28,9 +28,41 @@ class FilterHooks {
         add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
-
+		add_filter( 'upload_mimes', [ __CLASS__, 'add_support_mime_types' ], 99 );
+		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
     }
-    /**
+	/**
+	 * Check template screen
+	 *
+	 * @return boolean
+	 */
+	public static function hidden_columns( $hidden, $screen ) {
+		if( ! empty( $hidden ) || empty( $screen->base ) || 'upload' !== $screen->base ){
+			return $hidden;
+		}
+		$hidden[] = 'parent';
+		$hidden[] = 'author';
+		$hidden[] = 'comments';
+		$hidden[] = 'date';
+		return $hidden;
+	}
+	/**
+	 * @param $mimes
+	 *
+	 * @return array
+	 */
+	public static function add_support_mime_types( $mimes ){
+		$options = Fns::get_options();
+		if( empty( $options['others_file_support'] ) || ! is_array( $options['others_file_support'] ) ){
+			return $mimes;
+		}
+		if( in_array( 'svg', $options['others_file_support'] ) ){
+			$mimes['svg'] = 'image/svg+xml';
+		}
+		return $mimes;
+	}
+
+	/**
      * Check template screen
      *
      * @return boolean
@@ -174,7 +206,7 @@ class FilterHooks {
      * @return array [array] plugin action link
      */
     public static function plugins_setting_links( $links ) {
-        $links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Start Edit Media', 'tsmlt-media-tools' ) . '</a>';
+        $links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Start Editing', 'tsmlt-media-tools' ) . '</a>';
         /*
          * TODO:: Next Version
          *

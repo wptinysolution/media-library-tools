@@ -1,9 +1,11 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import { Divider, Input, Modal, Select, Layout, Typography } from 'antd';
 
-// import {TheContext} from "../../Utils/TheContext";
-import { TheAppContext, TheMediaTableContext } from '../../Utils/TheContext';
+import {useStateValue} from "../../Utils/StateProvider";
+
+import * as Types from "../../Utils/actionType";
+
 const {  Content } = Layout;
 
 const { Title } = Typography;
@@ -11,20 +13,49 @@ const { Title } = Typography;
 const { TextArea } = Input;
 
 function BulkModal() {
-    const { termsList } = useContext( TheAppContext );
-    const {
-        bulkSubmitdata,
-        isBulkModalOpen,
-        handleBulkModalOk,
-        balkModalDataChange,
-        handleBulkModalCancel,
-        setbulkSubmitdata
-    } = useContext( TheMediaTableContext );
+
+    const [stateValue, dispatch] = useStateValue();
+
+    const bulkSubmitdata = stateValue.bulkSubmitData;
+
+    const balkModalDataChange = ( event ) => {
+        const data = {
+            ...bulkSubmitdata.data,
+            [event.target.name] : event.target.value
+        }
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...bulkSubmitdata,
+                data
+            },
+        });
+    };
+
+    const handleBulkModalOk = () => {
+        dispatch({
+            ...stateValue,
+            type: Types.BULK_SUBMIT,
+            saveType: Types.BULK_SUBMIT
+        });
+    };
+
+    const handleBulkModalCancel = () => {
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...bulkSubmitdata,
+                isModalOpen: false,
+            },
+        });
+    };
+
+    const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
 
     return (
         <Modal
             title={`Bulk Edit`}
-            open={isBulkModalOpen}
+            open={ bulkSubmitdata.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
         >
@@ -60,10 +91,15 @@ function BulkModal() {
                 />
                 <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
                 <Select
-                    onChange={ (value) => setbulkSubmitdata({
-                        ...bulkSubmitdata,
-                        'post_categories': value
-                    }) }
+                    onChange={
+                        (value) => dispatch({
+                            type: Types.BULK_SUBMIT,
+                            bulkSubmitData: {
+                                ...stateValue.bulkSubmitData,
+                                'post_categories': value
+                            },
+                        })
+                    }
                     allowClear = {true}
                     placeholder={'Categories'}
                     size="large"
@@ -71,8 +107,7 @@ function BulkModal() {
                     style={{
                         width: '100%',
                     }}
-                    showArrow
-                    options={termsList}
+                    options={ filteredOptions }
                 />
 
             </Content>

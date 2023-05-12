@@ -1,64 +1,54 @@
 
-import React, {useContext} from "react";
+import React from "react";
 
-import { TheMediaTableContext } from '../../Utils/TheContext';
+import { Layout, Pagination, Table } from "antd";
 
-import {LoadingOutlined} from "@ant-design/icons";
-
-import {Layout, Pagination, Spin, Space, Table} from "antd";
-
-const {
-    Content,
-} = Layout;
-
-import {
-    renamerColumns
-} from '../../Utils/UtilData'
+import { renamerColumns } from '../../Utils/UtilData'
 
 import RenamerMainHeader from "./RenamerMainHeader";
 
+import { useStateValue } from "../../Utils/StateProvider";
+
+import Loader from "../../Utils/Loader";
+
+import * as Types from "../../Utils/actionType";
+
+const { Content } = Layout;
+
 function RenamerTableData() {
 
-    const {
-        posts,
-        formEdited,
-        handleFocusout,
-        handleChange,
-        paged,
-        isLoading,
-        total_post,
-        posts_per_page,
-        handlePagination,
-    } = useContext( TheMediaTableContext );
+    const [ stateValue, dispatch ] = useStateValue();
 
+    const RenameTableColumns = renamerColumns();
 
-    const RenameTableColumns = renamerColumns(
-        formEdited,
-        handleFocusout,
-        handleChange
-    );
-
-    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+    const handlePagination = ( current ) => {
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    paged : current,
+                    orderby: 'id',
+                    order: 'DESC'
+                }
+            },
+        })
+    }
 
     return (
             <Layout className="layout">
                 <RenamerMainHeader/>
-                { isLoading || ! total_post > 0 ?
-                    <Content className="spain-icon" style={{
-                        height: "90vh",
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}> <Spin indicator={antIcon}/></Content>
-                    :
+                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/> :
                     <Content>
                         <Table
                             rowKey={(item) => item.ID}
                             pagination={false}
                             columns={ RenameTableColumns }
-                            dataSource={ posts }
+                            dataSource={ stateValue.mediaData.posts }
                             scroll={{
                                 x: 1300,
+                                y: 900,
                             }}
                         />
                         <Pagination
@@ -70,10 +60,10 @@ function RenamerTableData() {
                             showSizeChanger={false}
                             showQuickJumper={true}
                             showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                            total={total_post}
-                            pageSize={posts_per_page}
-                            current={paged}
-                            onChange={(current) => handlePagination(current)}
+                            total={ stateValue.mediaData.total_post }
+                            pageSize={ stateValue.mediaData.posts_per_page }
+                            current={ stateValue.mediaData.paged }
+                            onChange={ ( current ) => handlePagination( current ) }
                         />
                     </Content>
                 }

@@ -1,32 +1,21 @@
-import React, {useContext, useRef} from "react";
+import React, { useRef} from "react";
 
-import {Typography, Layout, Button, Space, Input} from 'antd';
+import { Typography, Layout, Button, Space, Input } from 'antd';
 
-import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
+import { headerStyle } from "../../Utils/UtilData";
 
-const { Text, Title } = Typography;
+import { useStateValue } from "../../Utils/StateProvider";
 
-
-import {TheAppContext, TheMediaTableContext} from "../../Utils/TheContext";
-import {headerStyle} from "../../Utils/UtilData";
+import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
 
+const { Title } = Typography;
 
 function RenamerMainHeader() {
 
-    const {
-        optionsData,
-        setOptionsData,
-        handleUpdateOption
-    } = useContext( TheAppContext );
+    const [ stateValue, dispatch ] = useStateValue();
 
-    const {
-        formEdited,
-        handleColumnEditMode,
-    } = useContext( TheMediaTableContext );
-
-    // paged
     const inputRef = useRef(null);
 
     const sharedProps = {
@@ -43,17 +32,27 @@ function RenamerMainHeader() {
                     }}
                     type="primary"
                     size="large"
-                    onClick={ () => handleColumnEditMode() }
-                    ghost={ ! formEdited }>  { formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
+                    onClick={
+                        () => dispatch({
+                            type: Types.UPDATE_RENAMER_MEDIA,
+                            rename:{
+                                ...stateValue.rename,
+                                formEdited : ! stateValue.rename.formEdited,
+                            }
+                        })
+                    }
+                    ghost={ ! stateValue.rename.formEdited }>  { stateValue.rename.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
                 </Button>
                 <Button
                     type="text"
                     size="large"
-                    onClick={() => {
-                        inputRef.current.focus({
-                            cursor: 'start',
-                        });
-                    }}
+                    onClick={
+                        () => {
+                            inputRef.current.focus({
+                                cursor: 'start',
+                            });
+                        }
+                    }
                 >
                     Items Per page
                 </Button>
@@ -61,17 +60,24 @@ function RenamerMainHeader() {
                     {...sharedProps}
                     type="primary"
                     size="large"
-                    style={{
-                        width: '50px'
-                    }}
-                    onBlur={ handleUpdateOption }
-                    onChange={
-                        (event) => setOptionsData({
-                            ...optionsData,
-                            media_per_page: event.target.value,
+                    style={{ width: '50px' }}
+                    onBlur={ (event) => dispatch({
+                            ...stateValue,
+                            type: Types.UPDATE_OPTIONS,
+                            saveType: Types.UPDATE_OPTIONS,
                         })
                     }
-                    value={optionsData.media_per_page}
+                    onChange={
+                        (event) => dispatch({
+                            ...stateValue,
+                            type: Types.UPDATE_OPTIONS,
+                            options : {
+                                ...stateValue.options,
+                                media_per_page: event.target.value,
+                            }
+                        })
+                    }
+                    value={stateValue.options.media_per_page}
                 />
                 <Title level={5} style={{
                     margin:'0 15px',

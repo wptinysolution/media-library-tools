@@ -98,7 +98,6 @@ class Api {
 		}
 
 		if ( ! empty( $parameters['media_table_column'] ) ) {
-			// $tsmlt_media['media_table_column'] =  [ 'Title',  rand() ];//$parameters['media_table_column'] ;
 			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
 		}
 
@@ -109,6 +108,8 @@ class Api {
 		if ( ! empty( $parameters['media_default_alt'] ) ) {
 			$tsmlt_media['media_default_alt'] = $parameters['media_default_alt'];
 		}
+
+		$tsmlt_media['others_file_support'] =  ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
@@ -153,27 +154,27 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_dates() {
-
 		global $wpdb;
 		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
-		$get_date   = wp_cache_get( md5( $date_query ), 'attachment-query' );
-		if ( false === $get_date ) {
+		$key = 'tsmlt_date_query_' . date("d_m_Y");
+		$dates = get_transient( $key );
+
+		if ( false === $dates ) {
+			delete_transient( $key );
 			$get_date = $wpdb->get_col( $date_query );
-			wp_cache_set( md5( $date_query ), $get_date, 'attachment-query' );
-		}
-		$dates[] = [
-			'value' => '',
-			'label' => 'All dates',
-		];
-		if ( $get_date ) {
-			foreach ( $get_date as $date ) {
-				$dates[] = [
-					'value' => $date,
-					'label' => date( 'F Y', strtotime( $date ) ),
-				];
+			if ( $get_date ) {
+				$dates = [];
+				foreach ( $get_date as $date ) {
+					$dates[] = [
+						'value' => $date,
+						'label' => date( 'F Y', strtotime( $date ) ),
+					];
+				}
 			}
+			set_transient( $key, $dates, HOUR_IN_SECONDS );
 		}
 
+		$dates =  $dates ? $dates : [];
 		return wp_json_encode( $dates );
 	}
 
@@ -214,8 +215,8 @@ class Api {
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 
-		if ( isset( $parameters['thefile']['newname'] ) ) {
-			$new_file_name = $parameters['thefile']['newname'] . '.' . $parameters['thefile']['fileextension'];
+		if ( isset( $parameters['newname'] ) ) {
+			$new_file_name = $parameters['newname'] . '.' . $parameters['postsdata']['fileextension'];
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
@@ -326,28 +327,37 @@ class Api {
 
 		$get_posts = [];
 		foreach ( $_posts as $post ) {
-			$thefile  = [];
-			$metadata = unserialize( $post->metadata );
+			$thefile                  = [];
+			$metadata                 = unserialize( $post->metadata );
 
-			$thefile['mainfilepath']  = dirname( wp_get_original_image_path( $post->ID ) );
-			$thefile['mainfilename']  = basename( $metadata['file'] );
-			$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-			$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
-			$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+			if( ! empty( $metadata['file'] )){
+				$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
+				$thefile['mainfilename']  = basename( $metadata['file'] );
+				$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
+				$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+				$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
+			}
 
-			//error_log( print_r( $thefile , true) . "\n\n", 3, __DIR__.'/logg.txt');
+			if ( empty( $thefile['mainfilename'] ) ) {
+				$attac                    = get_attached_file( $post->ID );
+				$thefile['mainfilename']  = basename( $attac );
+				$thefile['fileextension'] = pathinfo( $attac, PATHINFO_EXTENSION );
+				$thefile['filebasename']  = basename( $attac, '.' . $thefile['fileextension'] );
+				$thefile['originalname']  = basename( $attac, '.' . $thefile['fileextension'] );
+			}
 
 			$get_posts[] = [
-				'ID'           => $post->ID,
-				'post_title'   => $post->post_title,
-				'post_excerpt' => $post->post_excerpt,
-				'post_content' => $post->post_content,
-				'post_name'    => $post->post_name,
-				'guid'         => $post->guid,
-				'alt_text'     => $post->alt_text,
-				'categories'   => $post->categories,
-				'metadata'     => $metadata,
-				'thefile'      => $thefile,
+				'ID'             => $post->ID,
+				'post_title'     => $post->post_title,
+				'post_excerpt'   => $post->post_excerpt,
+				'post_content'   => $post->post_content,
+				'post_name'      => $post->post_name,
+				'guid'           => $post->guid,
+				'alt_text'       => $post->alt_text,
+				'categories'     => $post->categories,
+				'metadata'       => $metadata,
+				'thefile'        => $thefile,
+				'post_mime_type' => $post->post_mime_type
 			];
 		}
 		$query_data = [
@@ -402,7 +412,6 @@ class Api {
 				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
 				break;
 			case 'bulkedit':
-
 				$data       = $parameters['data'];
 				$categories = $parameters['post_categories'];
 				$set_data   = '';
@@ -442,7 +451,6 @@ class Api {
 
 				break;
 			default:
-
 		}
 
 		return $result;
