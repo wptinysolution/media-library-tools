@@ -14,7 +14,7 @@ Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptio
 
 Media Library Tools is a WordPress plugin that simplifies image metadata editing, allowing users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library. Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO). The plugin provides helpful sorting and filtering tools to easily identify images that require attention, and with one-click editing, optimizing images for SEO has never been easier. Users can save time and improve their website's search engine rankings by streamlining the image metadata editing process with the plugin.
 
-[youtube https://www.youtube.com/watch?v=wwDqxVL0CU0]
+[youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
 
 == 🏆 Features ==
 
