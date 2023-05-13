@@ -156,10 +156,10 @@ class Api {
 	public function get_dates() {
 		global $wpdb;
 		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
-		$key = 'tsmlt_date_query_' . date("d_m_Y");
+		$key = 'tsmlt_date_query_' . date("_m_Y");
 		$dates = get_transient( $key );
 
-		if ( false === $dates ) {
+		if ( empty( $dates ) ) {
 			delete_transient( $key );
 			$get_date = $wpdb->get_col( $date_query );
 			if ( $get_date ) {
@@ -174,7 +174,7 @@ class Api {
 			set_transient( $key, $dates, HOUR_IN_SECONDS );
 		}
 
-		$dates =  $dates ? $dates : [];
+		$dates = ! empty( $dates ) ? $dates : [];
 		return wp_json_encode( $dates );
 	}
 

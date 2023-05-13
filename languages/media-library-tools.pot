@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-03-08 15:06+0000\n"
+"POT-Creation-Date: 2023-05-13 07:25+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -22,47 +22,55 @@ msgstr ""
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:81, ../app/Controllers/Admin/Api.php:180, ../app/Controllers/Admin/Api.php:208, ../app/Controllers/Admin/Api.php:323, ../app/Controllers/Admin/Api.php:395
-msgid "Update failed. Please try to fix"
+#: ../app/Controllers/Admin/Api.php:81
+msgid "Update failed. Maybe change not found. "
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:110
+#: ../app/Controllers/Admin/Api.php:118
+msgid "Please try to fix"
+msgstr ""
+
+#: ../app/Controllers/Admin/Api.php:118
 msgid "Updated. Be happy"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:190
+#: ../app/Controllers/Admin/Api.php:190, ../app/Controllers/Admin/Api.php:230, ../app/Controllers/Admin/Api.php:383, ../app/Controllers/Admin/Api.php:450
+msgid "Update failed. Please try to fix"
+msgstr ""
+
+#: ../app/Controllers/Admin/Api.php:200
 msgid "The Title has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:194
+#: ../app/Controllers/Admin/Api.php:205
 msgid "The Caption has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:198
+#: ../app/Controllers/Admin/Api.php:210
 msgid "Content has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:202
+#: ../app/Controllers/Admin/Api.php:215, ../app/Controllers/Admin/Api.php:222
 msgid "Saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:343
+#: ../app/Controllers/Admin/Api.php:403
 msgid "Done. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:343
+#: ../app/Controllers/Admin/Api.php:403
 msgid "Failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:356
+#: ../app/Controllers/Admin/Api.php:412
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:356
+#: ../app/Controllers/Admin/Api.php:412
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:395
+#: ../app/Controllers/Admin/Api.php:450
 msgid "Updated. Be happy."
 msgstr ""
 
@@ -74,6 +82,6 @@ msgstr ""
 msgid "Media Tools"
 msgstr ""
 
-#: ../app/Controllers/Hooks/FilterHooks.php:180
-msgid "Start Edit Media"
+#: ../app/Controllers/Hooks/FilterHooks.php:209
+msgid "Start Editing"
 msgstr ""

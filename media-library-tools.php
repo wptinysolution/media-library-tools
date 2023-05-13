@@ -4,7 +4,7 @@
  * Plugin Name:       Media Library Tools
  * Plugin URI:        https://wordpress.org/plugins/
  * Description:       Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
- * Version:           1.0.3.1
+ * Version:           1.0.3
  * Author:            Tiny Solutions
  * Author URI:        https://profiles.wordpress.org/tinysolution/
  * Text Domain:       tsmlt-media-tools
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define media edit Constant.
  */
-define( 'TSMLT_VERSION', '1.0.3.1' );
+define( 'TSMLT_VERSION', '1.0.3' );
 define( 'TSMLT_FILE', __FILE__ );
 define( 'TSMLT_BASENAME', plugin_basename( __FILE__ ) );
 define( 'TSMLT_URL', plugins_url('', TSMLT_FILE));
