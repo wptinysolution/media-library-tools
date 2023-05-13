@@ -115,7 +115,7 @@ class Api {
 
 		$result['updated'] = boolval( $options );
 
-		$result['message'] = ! $options ? $result['message'] . esc_html__( 'Please try to fix', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
+		$result['message'] = ! $result['updated'] ? $result['message'] . esc_html__( 'Please try to fix', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
 
 		//error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
 
