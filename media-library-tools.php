@@ -2,7 +2,7 @@
 /**
  * @wordpress-plugin
  * Plugin Name:       Media Library Tools
- * Plugin URI:        https://wordpress.org/plugins/
+ * Plugin URI:        https://wordpress.org/support/plugin/media-library-tools
  * Description:       Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
  * Version:           1.0.3
  * Author:            Tiny Solutions

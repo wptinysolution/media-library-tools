@@ -135,7 +135,7 @@ class Review {
 			$dont_disturb = add_query_arg( $args + [ 'tsmlt_spare_me' => '1' ], self::tsmlt_current_admin_url() );
 			$remind_me    = add_query_arg( $args + [ 'tsmlt_remind_me' => '1' ], self::tsmlt_current_admin_url() );
 			$rated        = add_query_arg( $args + [ 'tsmlt_rated' => '1' ], self::tsmlt_current_admin_url() );
-			$reviewurl    = 'https://wordpress.org/support/plugin/tsmlt-media-tools/reviews/?filter=5#new-post';
+			$reviewurl    = 'https://wordpress.org/support/plugin/media-library-tools/reviews/?filter=5#new-post';
 			?>
 			<div class="notice tsmlt-review-notice tsmlt-review-notice--extended">
 				<div class="tsmlt-review-notice_content">
