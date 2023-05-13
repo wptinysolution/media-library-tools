@@ -139,8 +139,8 @@ class Review {
 			?>
 			<div class="notice tsmlt-review-notice tsmlt-review-notice--extended">
 				<div class="tsmlt-review-notice_content">
-					<h3>Enjoying "WP Media Tools"? </h3>
-                    <p>Thank you for choosing "<strong>WP Media Tools</strong>". If you have found our plugin useful and makes you smile, please consider giving us a 5-star rating on WordPress.org. It will help us to grow.</p>
+					<h3>Enjoying "Media Library Tools"? </h3>
+                    <p>Thank you for choosing "<string>Media Library Tools</string>". If you found our plugin useful, please consider giving us a 5-star rating on WordPress.org. Your feedback  will motivate us to grow. </p>
 					<div class="tsmlt-review-notice_actions">
 						<a href="<?php echo esc_url( $reviewurl ); ?>" class="tsmlt-review-button tsmlt-review-button--cta" target="_blank"><span>⭐ Yes, You Deserve It!</span></a>
 						<a href="<?php echo esc_url( $rated ); ?>" class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>😀 Already Rated!</span></a>
