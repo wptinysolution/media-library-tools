@@ -29,7 +29,7 @@ class Review {
      * @return void
      */
 	public static function tsmlt_check_installation_time() {
-        
+
 		// Added Lines Start
 		$nobug = get_option( 'tsmlt_spare_me' );
 
@@ -47,14 +47,12 @@ class Review {
 
 		$remind_time = get_option( 'tsmlt_remind_me' );
 
-        $remind_time = $remind_time ? $remind_time : $now;
+        $remind_time = $remind_time ? $remind_time : $past_date;
 
-        // $remind_due  = strtotime( '+600 seconds', $remind_time );
         $remind_due  = strtotime( '+15 days', $remind_time );
 
-
-        if ( ! $now >= $past_date || $now <= $remind_due ) {
-             return;
+        if ( ! $now > $past_date || $now < $remind_due ) {
+            return;
         }
 
         add_action( 'admin_notices', [ __CLASS__, 'tsmlt_display_admin_notice' ] );
