@@ -40,11 +40,12 @@ function TheHeader() {
                 }
             },
         });
-        
+
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: defaultBulkSubmitData,
         });
+
     };
 
     const handleChangeBulkType = (value) => {
