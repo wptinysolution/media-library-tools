@@ -63,6 +63,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.0.4 (  ) =
+* Fixed: Filter Issue fix
+
 = 1.0.3 ( May 13, 2023 ) =
 * Fixed: Optimized Query And Some Others File support
 * Added: SVG Support
