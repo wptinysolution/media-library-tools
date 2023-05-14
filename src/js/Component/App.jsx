@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 
 import { Layout } from 'antd';
@@ -23,9 +22,9 @@ import * as Types from "../Utils/actionType";
 
 import Datatable from "./ListTable/Datatable";
 
-import {useStateValue} from "../Utils/StateProvider";
+import { useStateValue } from "../Utils/StateProvider";
 
-import {defaultBulkSubmitData} from "../Utils/UtilData";
+import { defaultBulkSubmitData } from "../Utils/UtilData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
 
@@ -33,7 +32,7 @@ import RabbisFile from "./RabbisFile/RabbisFile";
 
 function App() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const [ stateValue, dispatch ] = useStateValue();
 
     const getTheOptins = async () => {
         const response = await getOptions();
@@ -165,7 +164,6 @@ function App() {
     useEffect(() => {
         handleSave();
     }, [ stateValue.saveType ] );
-
 
     useEffect(() => {
         getTheMedia();
