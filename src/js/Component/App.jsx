@@ -46,19 +46,6 @@ function App() {
         console.log( 'getOptions' );
     }
 
-    const getTheMedia = async () => {
-        const response = await getMedia('', stateValue.mediaData.postQuery );
-        await dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                ...response,
-                isLoading: false
-            },
-        });
-        console.log( 'getMedia' );
-    }
-
     const getDateAndTermsList = async () => {
         const responseDate = await getDates();
         const preparedDate =  await JSON.parse( responseDate.data );
@@ -75,6 +62,19 @@ function App() {
         })
         console.log( 'getDates' );
         console.log( 'getTerms' );
+    }
+
+    const getTheMedia = async () => {
+        const response = await getMedia('', stateValue.mediaData.postQuery );
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                ...response,
+                isLoading: false
+            },
+        });
+        console.log( 'getMedia' );
     }
 
     const handleUpdateOption = async () => {
@@ -166,15 +166,14 @@ function App() {
         handleSave();
     }, [ stateValue.saveType ] );
 
-
-    useEffect(() => {
-        getTheMedia();
-    }, [ stateValue.mediaData.postQuery ] );
-
     useEffect(() => {
         getTheOptins();
         getDateAndTermsList();
     }, [] );
+
+    useEffect(() => {
+        getTheMedia();
+    }, [ stateValue.mediaData.postQuery ] );
 
     return (
             <Layout className="tttme-App" style={{
