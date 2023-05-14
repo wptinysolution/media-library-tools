@@ -29,6 +29,8 @@ import {defaultBulkSubmitData} from "../Utils/UtilData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
 
+import RabbisFile from "./RabbisFile/RabbisFile";
+
 function App() {
 
     const [stateValue, dispatch] = useStateValue();
@@ -190,7 +192,7 @@ function App() {
                 <Layout className="layout" style={{ padding: '10px', overflowY: 'auto' }} >
                     { 'mediatable' === stateValue.generalData.selectedMenu && <Datatable /> }
                     { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
-                    {/*{ 'imageotindatabase' === selectedMenu && <ProcessRenamerTableData/> }*/}
+                    { 'rubbishfile' === stateValue.generalData.selectedMenu && <RabbisFile/> }
                     { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }
                 </Layout>
             </Layout>
