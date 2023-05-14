@@ -37,21 +37,22 @@ function RenamerTableData() {
     }
 
     const setRenamerMainQuery = () => {
-        dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                postQuery: {
-                    status: null,
-                    filtering : false,
-                    media_per_page: 1,
-                    order: 'DESC',
-                    orderby: 'id',
-                    paged: 1,
-                    isUpdate: false,
-                }
-            },
-        })
+        if ( stateValue.mediaData.postQuery.filtering ) {
+            dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    postQuery: {
+                        status: null,
+                        filtering: false,
+                        order: 'DESC',
+                        orderby: 'id',
+                        paged: 1,
+                        isUpdate: false,
+                    }
+                },
+            })
+        }
     }
 
     useEffect(() => {
