@@ -47,19 +47,16 @@ function App() {
     }
 
     const getTheMedia = async () => {
-        const selectedMenu = stateValue.generalData.selectedMenu;
-        if(  'mediatable' === selectedMenu ||  'mediarename' === selectedMenu ){
-            const response = await getMedia('', stateValue.mediaData.postQuery );
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    ...response,
-                    isLoading: false
-                },
-            });
-            console.log( 'getMedia' );
-        }
+        const response = await getMedia('', stateValue.mediaData.postQuery );
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                ...response,
+                isLoading: false
+            },
+        });
+        console.log( 'getMedia' );
     }
 
     const getDateAndTermsList = async () => {
