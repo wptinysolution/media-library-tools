@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, {useEffect} from "react";
 
 import { Layout, Pagination, Table } from "antd";
 
@@ -35,6 +35,28 @@ function RenamerTableData() {
             },
         })
     }
+
+    const setRenamerMainQuery = () => {
+        dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery: {
+                    status: null,
+                    filtering : false,
+                    media_per_page: 1,
+                    order: 'DESC',
+                    orderby: 'id',
+                    paged: 1,
+                    isUpdate: false,
+                }
+            },
+        })
+    }
+
+    useEffect(() => {
+        setRenamerMainQuery();
+    }, [] );
 
     return (
             <Layout className="layout">
