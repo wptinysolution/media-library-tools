@@ -106,9 +106,7 @@ function App() {
                 await getTheMedia()
             }
             console.log( 'upDateSingleMedia' );
-
         }
-
     }
 
     const singleMediaUpdateContent = async ( event ) => {
@@ -190,10 +188,10 @@ function App() {
                     <MainHeader/>
                 </Sider>
                 <Layout className="layout" style={{ padding: '10px', overflowY: 'auto' }} >
+                    { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }
                     { 'mediatable' === stateValue.generalData.selectedMenu && <Datatable /> }
                     { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
                     { 'rubbishfile' === stateValue.generalData.selectedMenu && <RabbisFile/> }
-                    { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }
                 </Layout>
             </Layout>
     );

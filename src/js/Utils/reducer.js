@@ -3,6 +3,7 @@
 import * as Types from "./actionType";
 
 import {defaultBulkSubmitData} from "./UtilData";
+import {RUBBISH_MEDIA} from "./actionType";
 
 export const initialState = {
 	saveType: null,
@@ -39,6 +40,9 @@ export const initialState = {
 		selectedMenu: localStorage.getItem("current_menu") || 'settings',
 		dateList: {},
 		termsList: {},
+	},
+	rubbishMedia:{
+		isLoading: true,
 	}
 };
 
@@ -77,6 +81,11 @@ const reducer = (state, action) => {
 			return {
 				...state,
 				generalData : action.generalData,
+			};
+		case Types.RUBBISH_MEDIA:
+			return {
+				...state,
+				rubbishMedia : action.rubbishMedia,
 			};
 
 		default:

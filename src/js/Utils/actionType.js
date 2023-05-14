@@ -1,5 +1,6 @@
 export const BULK_SUBMIT = 'BULK_SUBMIT';
 export const GENERAL_DATA = 'GENERAL_DATA';
+export const RUBBISH_MEDIA = 'RUBBISH_MEDIA';
 export const UPDATE_OPTIONS = 'UPDATE_OPTIONS';
 export const GET_MEDIA_LIST = 'GET_MEDIA_LIST';
 export const UPDATE_SINGLE_MEDIA = 'UPDATE_SINGLE_MEDIA';

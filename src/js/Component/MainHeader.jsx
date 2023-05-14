@@ -2,7 +2,7 @@ import React from "react";
 
 import { Menu, Layout } from 'antd';
 
-import { SettingOutlined, UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
+import { SettingOutlined, UnorderedListOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 import {useStateValue} from "../Utils/StateProvider";
 import * as Types from "../Utils/actionType";
@@ -37,6 +37,12 @@ function MainHeader() {
                 defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
                 items={[
                     {
+                        key: 'settings',
+                        label: 'Media Settings',
+                        icon: <SettingOutlined />,
+                        style: menuItemStyle
+                    },
+                    {
                         key: 'mediatable',
                         label: 'Media Table',
                         icon: <UnorderedListOutlined />,
@@ -51,15 +57,9 @@ function MainHeader() {
                     {
                         key: 'rubbishfile',
                         label: 'Rubbish file',
-                        icon: <EditOutlined />,
+                        icon: <DeleteOutlined />,
                         style: menuItemStyle,
-                    },
-                    {
-                        key: 'settings',
-                        label: 'Media Settings',
-                        icon: <SettingOutlined />,
-                        style: menuItemStyle
-                    },
+                    }
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                     dispatch({
