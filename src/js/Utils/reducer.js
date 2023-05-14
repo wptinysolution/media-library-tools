@@ -3,7 +3,6 @@
 import * as Types from "./actionType";
 
 import {defaultBulkSubmitData} from "./UtilData";
-import {RUBBISH_MEDIA} from "./actionType";
 
 export const initialState = {
 	saveType: null,
@@ -43,6 +42,7 @@ export const initialState = {
 	},
 	rubbishMedia:{
 		isLoading: true,
+		mediaFIle: []
 	}
 };
 
