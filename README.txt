@@ -1,9 +1,9 @@
-=== Media File And Image Rename And Bulk Edit Title, Name, Alt Tag, Caption, Description - Media Library Tools ===
+=== Media File And Image Rename And Bulk Edit Title, Name, Add Auto Alt text, Caption, Description, SVG Image Support - Media Library Tools ===
 Contributors: tinysolution
-Tags: image title, image Name, alt tag, caption, description, bulk edit, media Library, image trash, image SEO
+Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -14,7 +14,7 @@ Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptio
 
 Media Library Tools is a WordPress plugin that simplifies image metadata editing, allowing users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library. Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO). The plugin provides helpful sorting and filtering tools to easily identify images that require attention, and with one-click editing, optimizing images for SEO has never been easier. Users can save time and improve their website's search engine rankings by streamlining the image metadata editing process with the plugin.
 
-[youtube https://www.youtube.com/watch?v=wwDqxVL0CU0]
+[youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
 
 == 🏆 Features ==
 
@@ -60,14 +60,20 @@ To search for images by categories, users can find the categories box near the F
 04. Media Library
 05. Bulk Action
 06. Media File Rename Edit Mode
-06. Media File Rename Non Edit mode
-
 
 == Changelog ==
 
+= 1.0.4 (  ) =
+* Fixed: Filter Issue fix
+
+= 1.0.3 ( May 13, 2023 ) =
+* Fixed: Optimized Query And Some Others File support
+* Added: SVG Support
+* Added: Set Default Alt Text
+
 = 1.0.2 ( April 01, 2023 ) =
 * Fixed: File Delete issue fixed.
-* Added: Media File Renamar
+* Added: Media File Renamer
 * Added: Default alt text.
 
 = 1.0.1 ( MARCH 08, 2023 ) =

@@ -132,7 +132,7 @@ class Fns {
 			wp_update_post(
 				array (
 					'ID'        => $attachment_id,
-					'post_name' => $filebasename
+					'post_name' => $new_filebasename
 				)
 			);
 			// Update the metadata with the new file name

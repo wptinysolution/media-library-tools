@@ -13,21 +13,21 @@ import {
     submitBulkMediaAction
 } from "../Utils/Data";
 
-
 const { Sider } = Layout;
-
-import MainHeader from "./MainHeader";
 
 import Settings from "./Settings";
 
-import {useStateValue} from "../Utils/StateProvider";
+import MainHeader from "./MainHeader";
 
 import * as Types from "../Utils/actionType";
 
-import RenamerTableData from "./Renamer/RenamerTableData";
-
 import Datatable from "./ListTable/Datatable";
+
+import {useStateValue} from "../Utils/StateProvider";
+
 import {defaultBulkSubmitData} from "../Utils/UtilData";
+
+import RenamerTableData from "./Renamer/RenamerTableData";
 
 function App() {
 
@@ -130,14 +130,16 @@ function App() {
                     },
                 },
             });
-
             await dispatch({
+                ...stateValue,
                 type: Types.BULK_SUBMIT,
+                saveType: null,
                 bulkSubmitData: {
                     ...defaultBulkSubmitData,
-                    type: 'bulkedit',
+                    type: stateValue.bulkSubmitData.type,
                 },
             });
+            console.log( stateValue )
         }
         console.log( 'submitBulkMediaAction' );
     };

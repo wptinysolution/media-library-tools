@@ -1,4 +1,7 @@
-1. auto add alt text
 2. Export Media Library
 3. Media File Renamer https://wordpress.org/plugins/media-file-renamer/
 4. https://ps.w.org/wp-media-library-categories/assets/screenshot-1.png?rev=1073390
+
+* Image Delete check for others month
+* Save Functionality Need Others Move to others file
+* 

@@ -15,8 +15,6 @@ import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
 
-import { submitBulkMediaAction } from "../../Utils/Data";
-
 function TheHeader() {
 
     const [stateValue, dispatch] = useStateValue();
@@ -42,6 +40,12 @@ function TheHeader() {
                 }
             },
         });
+
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: defaultBulkSubmitData,
+        });
+
     };
 
     const handleChangeBulkType = (value) => {
@@ -57,23 +61,23 @@ function TheHeader() {
     };
 
 
-    const handleBulkSubmit = async (event) => {
-        let response = false;
+    const handleBulkSubmit = () => {
         switch( stateValue.bulkSubmitData.type ){
             case 'trash':
             case 'inherit':
             case 'update':
             case 'delete':
-                response = await submitBulkMediaAction( stateValue.bulkSubmitData );
-                await dispatch({
+                dispatch({
+                    ...stateValue,
                     type: Types.BULK_SUBMIT,
-                    bulkSubmitData: defaultBulkSubmitData,
+                    saveType: Types.BULK_SUBMIT,
                 });
-                console.log( 'submitBulkMediaAction' );
                 break;
             case 'bulkedit':
                 dispatch({
+                    ...stateValue,
                     type: Types.BULK_SUBMIT,
+                    saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
                         isModalOpen : true,
@@ -81,19 +85,6 @@ function TheHeader() {
                 });
                 break;
             default:
-        }
-
-        if( 200 === parseInt( response.status ) && response.data.updated ){
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    postQuery: {
-                        ...stateValue.mediaData.postQuery,
-                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
-                    },
-                },
-            });
         }
 
     };
