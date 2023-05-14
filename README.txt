@@ -1,6 +1,6 @@
-=== Media File And Image Rename And Bulk Edit Title, Name, Alt Tag, Caption, Description, SVG Image Support - Media Library Tools ===
+=== Media File And Image Rename And Bulk Edit Title, Name, Add Auto Alt text, Caption, Description, SVG Image Support - Media Library Tools ===
 Contributors: tinysolution
-Tags: image title, image name, alt tag, caption, description, bulk edit, media Library, image trash, svg, image SEO
+Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
 Stable tag: 1.0.3
@@ -60,19 +60,17 @@ To search for images by categories, users can find the categories box near the F
 04. Media Library
 05. Bulk Action
 06. Media File Rename Edit Mode
-06. Media File Rename Non Edit mode
-
 
 == Changelog ==
 
 = 1.0.3 ( May 13, 2023 ) =
-* Fixed: Optimized Query And SOme Others File support
+* Fixed: Optimized Query And Some Others File support
 * Added: SVG Support
 * Added: Set Default Alt Text
 
 = 1.0.2 ( April 01, 2023 ) =
 * Fixed: File Delete issue fixed.
-* Added: Media File Renamar
+* Added: Media File Renamer
 * Added: Default alt text.
 
 = 1.0.1 ( MARCH 08, 2023 ) =
