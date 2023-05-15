@@ -36,10 +36,28 @@ class ActionHooks {
 
 		if( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ){
 			update_post_meta( $post_id, '_wp_attachment_image_alt', $image_title );
-		} elseif ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ){
+		} else if ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ){
 			update_post_meta( $post_id, '_wp_attachment_image_alt', $options['media_default_alt'] );
 		}
 
+		$image_meta = [];
+
+		if( ! empty( $options['default_caption_text'] ) && 'image_name_to_caption' === $options['default_caption_text'] ){
+			$image_meta['post_excerpt' ] = $image_title;
+		} else if( ! empty( $options['media_default_caption'] ) && 'custom_text_to_caption' === $options['default_caption_text'] ){
+			$image_meta['post_excerpt' ] = $options['media_default_caption'];
+		}
+
+		if( ! empty( $options['default_desc_text'] ) && 'image_name_to_desc' === $options['default_desc_text'] ){
+			$image_meta['post_content' ] = $image_title;
+		} else if( ! empty( $options['media_default_desc'] ) && 'custom_text_to_desc' === $options['default_desc_text'] ){
+			$image_meta['post_content' ] = $options['media_default_desc'];
+		}
+
+		if( ! empty( $image_meta ) ){
+			$image_meta['ID'] = $post_id;
+			wp_update_post( $image_meta );
+		}
 	}
     /**
      * @param $column
