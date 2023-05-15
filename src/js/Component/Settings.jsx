@@ -125,10 +125,6 @@ function Settings() {
                                     {
                                         label: 'SVG',
                                         value: 'svg'
-                                    },
-                                    {
-                                        label: 'FFGGGVG',
-                                        value: 'FFGGGVG'
                                     }
                                 ]
                             } value={stateValue.options.others_file_support} onChange={ onChangeOthersFileList } />
@@ -136,13 +132,6 @@ function Settings() {
 
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Alt Text </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_alt_text`}
-                                value={`none`}
-                                checked={ 'none' === stateValue.options.default_alt_text }>
-                                None
-                            </Checkbox>
 
                             <Checkbox
                                 onChange={setDefaultText}
@@ -185,13 +174,6 @@ function Settings() {
 
                         </Form.Item>
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Caption Text </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_caption_text`}
-                                value={`none`}
-                                checked={ 'none' === stateValue.options.default_caption_text }>
-                                None
-                            </Checkbox>
 
                             <Checkbox
                                 onChange={setDefaultText}
@@ -234,13 +216,6 @@ function Settings() {
 
                         </Form.Item>
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_desc_text`}
-                                value={`none`}
-                                checked={ 'none' === stateValue.options.default_desc_text }>
-                                None
-                            </Checkbox>
 
                             <Checkbox
                                 onChange={setDefaultText}

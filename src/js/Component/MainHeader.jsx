@@ -54,12 +54,12 @@ function MainHeader() {
                         icon: <EditOutlined />,
                         style: menuItemStyle,
                     },
-                    {
-                        key: 'rubbishfile',
-                        label: 'Rubbish file',
-                        icon: <DeleteOutlined />,
-                        style: menuItemStyle,
-                    }
+                    // {
+                    //     key: 'rubbishfile',
+                    //     label: 'Rubbish file',
+                    //     icon: <DeleteOutlined />,
+                    //     style: menuItemStyle,
+                    // }
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                     dispatch({

@@ -101,15 +101,11 @@ class Api {
 			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
 		}
 
-		if ( ! empty( $parameters['default_alt_text'] ) ) {
-			$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'];
-		}
-		if ( ! empty( $parameters['default_caption_text'] ) ) {
-			$tsmlt_media['default_caption_text'] = $parameters['default_caption_text'];
-		}
-		if ( ! empty( $parameters['default_desc_text'] ) ) {
-			$tsmlt_media['default_desc_text'] = $parameters['default_desc_text'];
-		}
+		$tsmlt_media['default_alt_text'] = ! empty( $parameters['default_alt_text'] ) ? $parameters['default_alt_text'] : '';
+
+		$tsmlt_media['default_caption_text'] = ! empty( $parameters['default_caption_text'] ) ? $parameters['default_caption_text'] : '';
+
+		$tsmlt_media['default_desc_text'] = ! empty( $parameters['default_desc_text'] ) ? $parameters['default_desc_text'] : '';
 
 		$tsmlt_media['media_default_alt'] = ! empty( $parameters['media_default_alt'] ) ? $parameters['media_default_alt'] : '';
 
@@ -117,7 +113,7 @@ class Api {
 
 		$tsmlt_media['media_default_desc'] = ! empty( $parameters['media_default_desc'] ) ? $parameters['media_default_desc'] : '';
 
-		$tsmlt_media['others_file_support'] =  ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
+		$tsmlt_media['others_file_support'] = ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
@@ -164,8 +160,8 @@ class Api {
 	public function get_dates() {
 		global $wpdb;
 		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
-		$key = 'tsmlt_date_query_' . date("_m_Y");
-		$dates = get_transient( $key );
+		$key        = 'tsmlt_date_query_' . date( "_m_Y" );
+		$dates      = get_transient( $key );
 
 		if ( empty( $dates ) ) {
 			delete_transient( $key );
@@ -183,6 +179,7 @@ class Api {
 		}
 
 		$dates = ! empty( $dates ) ? $dates : [];
+
 		return wp_json_encode( $dates );
 	}
 
@@ -333,10 +330,10 @@ class Api {
 
 		$get_posts = [];
 		foreach ( $_posts as $post ) {
-			$thefile                  = [];
-			$metadata                 = unserialize( $post->metadata );
+			$thefile  = [];
+			$metadata = unserialize( $post->metadata );
 
-			if( ! empty( $metadata['file'] )){
+			if ( ! empty( $metadata['file'] ) ) {
 				$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
 				$thefile['mainfilename']  = basename( $metadata['file'] );
 				$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
