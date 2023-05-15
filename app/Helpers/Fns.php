@@ -130,7 +130,7 @@ class Fns {
 
 		if ( $renamed ) {
 			wp_update_post(
-				array (
+				array(
 					'ID'        => $attachment_id,
 					'post_name' => $new_filebasename
 				)
@@ -145,7 +145,7 @@ class Fns {
 						continue;
 					}
 					$new_file_path = dirname( $file_path ) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
-					$renamed_size = rename( $old_file_path, $new_file_path );
+					$renamed_size  = rename( $old_file_path, $new_file_path );
 
 					if ( $renamed_size ) {
 						$metadata['sizes'][ $size ]['file'] = str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
@@ -182,15 +182,18 @@ class Fns {
 	 */
 	public static function get_options() {
 		$defaults = array(
-			'media_per_page' => 20,
-			'media_table_column' => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
-			'default_alt_text' => '',
-			'media_default_alt' => '',
-			'others_file_support' => '',
-			'others_file_support' => '',
-			'others_file_support' => '',
+			'media_per_page'        => 20,
+			'media_table_column'    => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
+			'media_default_alt'     => '',
+			'media_default_caption' => '',
+			'media_default_desc'    => '',
+			'default_alt_text'      => "none",
+			'default_caption_text'  => "none",
+			'default_desc_text'     => "none",
+			'others_file_support'   => [],
 		);
-		$options = get_option( 'tsmlt_settings' );
+		$options  = get_option( 'tsmlt_settings' );
+
 		return wp_parse_args( $options, $defaults );
 	}
 

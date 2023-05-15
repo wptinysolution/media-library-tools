@@ -104,10 +104,18 @@ class Api {
 		if ( ! empty( $parameters['default_alt_text'] ) ) {
 			$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'];
 		}
-
-		if ( ! empty( $parameters['media_default_alt'] ) ) {
-			$tsmlt_media['media_default_alt'] = $parameters['media_default_alt'];
+		if ( ! empty( $parameters['default_caption_text'] ) ) {
+			$tsmlt_media['default_caption_text'] = $parameters['default_caption_text'];
 		}
+		if ( ! empty( $parameters['default_desc_text'] ) ) {
+			$tsmlt_media['default_desc_text'] = $parameters['default_desc_text'];
+		}
+
+		$tsmlt_media['media_default_alt'] = ! empty( $parameters['media_default_alt'] ) ? $parameters['media_default_alt'] : '';
+
+		$tsmlt_media['media_default_caption'] = ! empty( $parameters['media_default_caption'] ) ? $parameters['media_default_caption'] : '';
+
+		$tsmlt_media['media_default_desc'] = ! empty( $parameters['media_default_desc'] ) ? $parameters['media_default_desc'] : '';
 
 		$tsmlt_media['others_file_support'] =  ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
 
