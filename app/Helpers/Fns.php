@@ -181,7 +181,17 @@ class Fns {
 	 * @return false|string
 	 */
 	public static function get_options() {
-		return get_option( 'tsmlt_settings' );
+		$defaults = array(
+			'media_per_page' => 20,
+			'media_table_column' => [],
+			'default_alt_text' => '',
+			'media_default_alt' => '',
+			'others_file_support' => '',
+			'others_file_support' => '',
+			'others_file_support' => '',
+		);
+		$options = get_option( 'tsmlt_settings' );
+		return wp_parse_args( $options, $defaults );
 	}
 
 
