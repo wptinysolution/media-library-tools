@@ -183,7 +183,7 @@ class Fns {
 	public static function get_options() {
 		$defaults = array(
 			'media_per_page' => 20,
-			'media_table_column' => [],
+			'media_table_column' => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
 			'default_alt_text' => '',
 			'media_default_alt' => '',
 			'others_file_support' => '',
