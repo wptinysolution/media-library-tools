@@ -28,9 +28,13 @@ class FilterHooks {
         add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
-		add_filter( 'upload_mimes', [ __CLASS__, 'add_support_mime_types' ], 99 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
-    }
+
+		// SVG File Permission
+		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
+		add_filter( 'map_meta_cap', [ __CLASS__, 'allow_unfiltered_uploads' ], 10, 4 );
+	}
+
 	/**
 	 * Check template screen
 	 *
@@ -45,6 +49,22 @@ class FilterHooks {
 		$hidden[] = 'comments';
 		$hidden[] = 'date';
 		return $hidden;
+	}
+
+	/**
+	 * @param $caps
+	 * @param $cap
+	 * @param $user_id
+	 * @param $args
+	 *
+	 * @return mixed|string[]
+	 */
+	public static function allow_unfiltered_uploads( $caps, $cap, $user_id, $args ) {
+		$mime_types = wp_get_mime_types();
+		if( ! empty( $mime_types['svg|svgz'] ) ){
+			$caps = array( 'unfiltered_upload' );
+		}
+		return $caps;
 	}
 	/**
 	 * @param $mimes
