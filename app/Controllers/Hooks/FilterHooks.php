@@ -57,7 +57,7 @@ class FilterHooks {
 			return $mimes;
 		}
 		if( in_array( 'svg', $options['others_file_support'] ) ){
-			$mimes['svg'] = 'image/svg+xml';
+			$mimes['svg|svgz'] = 'image/svg+xml';
 		}
 		return $mimes;
 	}
