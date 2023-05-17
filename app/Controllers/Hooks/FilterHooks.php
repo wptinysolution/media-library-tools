@@ -30,10 +30,27 @@ class FilterHooks {
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
 
-		// SVG File Permission
+		// SVG File Permission.
 		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
-		add_filter( 'map_meta_cap', [ __CLASS__, 'allow_unfiltered_uploads' ], 10, 4 );
+        add_filter( 'wp_check_filetype_and_ext',  [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
+
 	}
+	/**
+	 * Check template screen
+	 *
+	 * @return boolean
+	 */
+	public static function allow_svg_upload( $data, $file, $filename, $mimes ) {
+
+        $filetype = wp_check_filetype( $filename, $mimes );
+
+        return [
+            'ext'				=> $filetype['ext'],
+            'type'				=> $filetype['type'],
+            'proper_filename'	=> $data['proper_filename']
+        ];
+
+    }
 
 	/**
 	 * Check template screen
@@ -52,21 +69,6 @@ class FilterHooks {
 	}
 
 	/**
-	 * @param $caps
-	 * @param $cap
-	 * @param $user_id
-	 * @param $args
-	 *
-	 * @return mixed|string[]
-	 */
-	public static function allow_unfiltered_uploads( $caps, $cap, $user_id, $args ) {
-		$mime_types = wp_get_mime_types();
-		if( ! empty( $mime_types['svg|svgz'] ) ){
-			$caps = array( 'unfiltered_upload' );
-		}
-		return $caps;
-	}
-	/**
 	 * @param $mimes
 	 *
 	 * @return array
@@ -76,6 +78,7 @@ class FilterHooks {
 		if( empty( $options['others_file_support'] ) || ! is_array( $options['others_file_support'] ) ){
 			return $mimes;
 		}
+
 		if( in_array( 'svg', $options['others_file_support'] ) ){
 			$mimes['svg|svgz'] = 'image/svg+xml';
 		}
