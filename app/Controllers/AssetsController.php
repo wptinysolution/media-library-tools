@@ -2,7 +2,6 @@
 
 namespace TinySolutions\mlt\Controllers;
 
-use TinySolutions\mlt\Controllers\Admin\Settings;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
@@ -81,7 +80,6 @@ class AssetsController
                     'ajaxUrl' => esc_url(admin_url('admin-ajax.php')),
                     'adminUrl' => esc_url(admin_url()),
                     'includesUrl' => esc_url(includes_url()),
-                    'settings' => Settings::instance()->get_sections(),
                     'restApiUrl' => esc_url_raw(rest_url()), // site_url(rest_get_url_prefix()),
                     'rest_nonce' => wp_create_nonce( 'wp_rest' ),
                     tsmlt()->nonceId => wp_create_nonce(tsmlt()->nonceId),
