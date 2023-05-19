@@ -56,8 +56,8 @@ class Dependencies {
 		}
 		$message = sprintf(
 		/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
-			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'wp-media' ),
-			'<strong>' . esc_html__( 'Media Edit', 'wp-media' ) . '</strong>',
+			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'tsmlt-media-tools' ),
+			'<strong>' . esc_html__( 'Media Library Tools', 'tsmlt-media-tools' ) . '</strong>',
 			'<strong>' . esc_html__( 'PHP', 'tsmlt-media-tools' ) . '</strong>',
 			self::MINIMUM_PHP_VERSION
 		);
