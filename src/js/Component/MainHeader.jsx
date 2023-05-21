@@ -59,6 +59,12 @@ function MainHeader() {
                         label: 'Rubbish file',
                         icon: <DeleteOutlined />,
                         style: menuItemStyle,
+                    },
+                    {
+                        key: 'needsupport',
+                        label: 'Need Support',
+                        icon: <DeleteOutlined />,
+                        style: menuItemStyle,
                     }
                 ]}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {

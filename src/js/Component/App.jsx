@@ -16,6 +16,8 @@ const { Sider } = Layout;
 
 import Settings from "./Settings";
 
+import NeedSupport from "./NeedSupport";
+
 import MainHeader from "./MainHeader";
 
 import * as Types from "../Utils/actionType";
@@ -190,6 +192,7 @@ function App() {
                     { 'mediatable' === stateValue.generalData.selectedMenu && <Datatable /> }
                     { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
                     { 'rubbishfile' === stateValue.generalData.selectedMenu && <RabbisFile/> }
+                    { 'needsupport' === stateValue.generalData.selectedMenu && <NeedSupport/> }
                 </Layout>
             </Layout>
     );
