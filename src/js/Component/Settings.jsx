@@ -105,7 +105,6 @@ function Settings() {
                     height: '100%'
                 }}
             >
-
                 { stateValue.options.isLoading ? <Loader/> :
                     <Content style={{
                         padding: '15px',
@@ -173,6 +172,7 @@ function Settings() {
                             }
 
                         </Form.Item>
+                        <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Caption Text </Title>} >
 
                             <Checkbox
@@ -215,6 +215,7 @@ function Settings() {
                             }
 
                         </Form.Item>
+                        <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
 
                             <Checkbox
