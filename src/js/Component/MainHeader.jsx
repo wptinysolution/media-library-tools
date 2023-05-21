@@ -2,7 +2,13 @@ import React from "react";
 
 import { Menu, Layout } from 'antd';
 
-import { SettingOutlined, UnorderedListOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+    EditOutlined,
+    DeleteOutlined,
+    SettingOutlined,
+    ContactsOutlined,
+    UnorderedListOutlined
+} from '@ant-design/icons';
 
 import {useStateValue} from "../Utils/StateProvider";
 import * as Types from "../Utils/actionType";
@@ -63,7 +69,7 @@ function MainHeader() {
                     {
                         key: 'needsupport',
                         label: 'Need Support',
-                        icon: <DeleteOutlined />,
+                        icon: <ContactsOutlined />,
                         style: menuItemStyle,
                     }
                 ]}
