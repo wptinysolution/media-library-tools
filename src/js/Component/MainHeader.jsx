@@ -60,12 +60,12 @@ function MainHeader() {
                         icon: <EditOutlined />,
                         style: menuItemStyle,
                     },
-                    {
-                        key: 'rubbishfile',
-                        label: 'Rubbish file',
-                        icon: <DeleteOutlined />,
-                        style: menuItemStyle,
-                    },
+                    // {
+                    //     key: 'rubbishfile',
+                    //     label: 'Rubbish file',
+                    //     icon: <DeleteOutlined />,
+                    //     style: menuItemStyle,
+                    // },
                     {
                         key: 'needsupport',
                         label: 'Need Support',
