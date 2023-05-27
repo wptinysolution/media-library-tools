@@ -67,7 +67,8 @@ class AssetsController
         }
 
 	    global $pagenow;
-	    if ( 'upload.php' === $pagenow && 'tsmlt-media-tools' === $_GET['page'] ) {
+
+	    if ( 'upload.php' === $pagenow && ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
 
             wp_enqueue_style('tsmlt-settings');
             wp_enqueue_script('tsmlt-settings');

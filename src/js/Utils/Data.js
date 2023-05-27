@@ -33,8 +33,8 @@ export const notifications = ( isTrue, text ) => {
     }
 }
 
-export const getMedia = async ( url = '', prams = {} ) => {
-    const result = await Api.get( `${url}`, { params: prams } );
+export const getMedia = async ( prams = {} ) => {
+    const result = await Api.get( `/`, { params: prams } );
     return JSON.parse( result.data );
 }
 

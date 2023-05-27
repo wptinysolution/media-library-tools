@@ -68,7 +68,7 @@ function App() {
     }
 
     const getTheMedia = async () => {
-        const response = await getMedia('', stateValue.mediaData.postQuery );
+        const response = await getMedia( stateValue.mediaData.postQuery );
         await dispatch({
             type: Types.GET_MEDIA_LIST,
             mediaData: {
