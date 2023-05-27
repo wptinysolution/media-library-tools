@@ -66,9 +66,8 @@ class AssetsController
             wp_register_script($script['handle'], $script['src'], $script['deps'], $this->version, $script['footer']);
         }
 
-        $current_screen =  get_current_screen() ;
-
-        if ( isset( $current_screen->id ) && 'media_page_tsmlt-media-tools' === $current_screen->id ){
+	    global $pagenow;
+	    if ( 'upload.php' === $pagenow && 'tsmlt-media-tools' === $_GET['page'] ) {
 
             wp_enqueue_style('tsmlt-settings');
             wp_enqueue_script('tsmlt-settings');
