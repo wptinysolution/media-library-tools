@@ -95,9 +95,7 @@ const theImage = ( record ) => {
     type = Array.isArray( type ) ? type[0] : '';
     switch ( type ) {
         case 'image':
-            const fileLocation = record.metadata.file
-            url = record.uploaddir + '/' + fileLocation;
-            console.log( url )
+            url = record.uploaddir + '/' + record.thefile.file;
             width = 60;
             break;
         case 'audio':

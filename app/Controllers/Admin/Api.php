@@ -332,9 +332,9 @@ class Api {
 		foreach ( $_posts as $post ) {
 			$thefile  = [];
 			$metadata = unserialize( $post->metadata );
-
+			$attached_file = get_attached_file( $post->ID );
 			if ( ! empty( $metadata['file'] ) ) {
-				$thefile['mainfilepath']  = dirname( get_attached_file( $post->ID ) );
+				$thefile['mainfilepath']  = dirname( $attached_file );
 				$thefile['mainfilename']  = basename( $metadata['file'] );
 				$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 				$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
@@ -342,15 +342,14 @@ class Api {
 			}
 
 			if ( empty( $thefile['mainfilename'] ) ) {
-				$attac                    = get_attached_file( $post->ID );
-				$thefile['mainfilename']  = basename( $attac );
-				$thefile['fileextension'] = pathinfo( $attac, PATHINFO_EXTENSION );
-				$thefile['filebasename']  = basename( $attac, '.' . $thefile['fileextension'] );
-				$thefile['originalname']  = basename( $attac, '.' . $thefile['fileextension'] );
+				$thefile['mainfilename']  = basename( $attached_file );
+				$thefile['fileextension'] = pathinfo( $attached_file, PATHINFO_EXTENSION );
+				$thefile['filebasename']  = basename( $attached_file, '.' . $thefile['fileextension'] );
+				$thefile['originalname']  = basename( $attached_file, '.' . $thefile['fileextension'] );
 			}
 			$upload_dir = wp_upload_dir();
 			$uploaddir  = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
-
+			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
