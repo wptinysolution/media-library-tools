@@ -31,7 +31,7 @@ function RabbisHeader() {
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
-                }}> Rabbis File Note </Title>
+                }}> Rabbis File Note : This is an Upcoming Feature </Title>
             </Space>
         </Header>
     );

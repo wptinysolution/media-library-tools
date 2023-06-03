@@ -2,15 +2,8 @@ import React from 'react';
 
 import { useStateValue } from '../Utils/StateProvider';
 
-import Loader from '../Utils/Loader';
-
 import {
-    Form,
-    Input,
     Layout,
-    Button,
-    Divider,
-    Checkbox,
     Typography
 } from 'antd';
 
@@ -30,7 +23,6 @@ function NeedSupport() {
                 borderRadius: '5px',
                 boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
             }}>
-                <Content style={{  }}>
                     <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px'}}> For faster support please send detail of your issue.</Title>
 
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
@@ -42,7 +34,6 @@ function NeedSupport() {
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
                         Check our  <a href={`https://profiles.wordpress.org/tinysolution/#content-plugins`} target={`_blank`}> Plugins List </a>
                     </Paragraph>
-                </Content>
             </Content>
         </Layout>
 
