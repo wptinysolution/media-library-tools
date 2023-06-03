@@ -348,6 +348,8 @@ class Api {
 				$thefile['filebasename']  = basename( $attac, '.' . $thefile['fileextension'] );
 				$thefile['originalname']  = basename( $attac, '.' . $thefile['fileextension'] );
 			}
+			$upload_dir = wp_upload_dir();
+			$uploaddir  = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 
 			$get_posts[] = [
 				'ID'             => $post->ID,
@@ -356,6 +358,7 @@ class Api {
 				'post_content'   => $post->post_content,
 				'post_name'      => $post->post_name,
 				'guid'           => $post->guid,
+				'uploaddir'      => $uploaddir,
 				'alt_text'       => $post->alt_text,
 				'categories'     => $post->categories,
 				'metadata'       => $metadata,

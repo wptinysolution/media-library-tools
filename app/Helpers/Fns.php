@@ -153,8 +153,10 @@ class Fns {
 
 				}
 			}
-			update_attached_file( $attachment_id, str_replace( basename( $file_path ), $new_file_name, $file_path ) );
-			//error_log( print_r( str_replace( basename( $file_path ) , $new_file_name, $file_path) , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
+			$new_file = str_replace( basename( $file_path ), $new_file_name, $file_path );
+			update_attached_file( $attachment_id, $new_file );
+
+			$metadata['file'] = _wp_relative_upload_path( $new_file );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$updated = self::permalink_to_post_guid( $attachment_id );
 
