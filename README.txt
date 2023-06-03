@@ -1,9 +1,9 @@
-=== Media File And Image Rename And Bulk Edit Title, Name, Add Auto Alt text, Caption, Description, SVG Image Upload Support - Media Library Tools ===
+=== Media File And Image Rename, Bulk Edit Title, Name, Alt text, Caption, Description, SVG Image Upload Support - Media Library Tools ===
 Contributors: tinysolution
 Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -12,7 +12,7 @@ Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptio
 
 == Description ==
 
-Media Library Tools is a lightweight WordPress plugin that does not affect your website's speed and simplifies image metadata editing. It allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
+Media Library Tools simplifies image metadata editing. It allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
 Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO).
 
@@ -21,6 +21,8 @@ The plugin provides helpful sorting and filtering tools to easily identify image
 Users can save time and improve their website's search engine rankings by streamlining the image metadata editing process with the plugin.
 
 [youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
+
+Media Library Tools is a lightweight WordPress plugin that does not affect your website's speed
 
 == 🏆 Features ==
 
@@ -68,6 +70,9 @@ To search for images by categories, users can find the categories box near the F
 06. Media File Rename Edit Mode
 
 == Changelog ==
+
+= 1.0.6 ( May 21, 2023  ) =
+* Fixed: Image Rename isue fixed
 
 = 1.0.5 ( May 21, 2023  ) =
 * Fixed: SVG Support Issue Fixed
