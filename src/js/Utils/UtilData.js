@@ -1,6 +1,10 @@
 import React, { useEffect } from "react";
 
-import {Button, Checkbox, Space, Input, Layout } from "antd";
+import {Button, Checkbox, Space, Input, Layout, Typography } from "antd";
+const {
+    Text,
+    Paragraph
+} = Typography;
 
 import {useStateValue} from "./StateProvider";
 
@@ -305,7 +309,7 @@ export function renamerColumns(){
             title: `File Name`,
             key: 'Image',
             dataIndex: 'guid',
-            width: '400px',
+            width: '300px',
             align: 'top',
             render:  ( text, record, i ) =>  <>
                 { stateValue.rename.formEdited ?  <Layout style={{
@@ -352,10 +356,19 @@ export function renamerColumns(){
             </>,
         },
         {
+            title: 'URL',
+            key: 'Image',
+            dataIndex: 'guid',
+            align: 'top',
+            render:  ( text, record, i ) => <Paragraph  copyable={{ text: `${record.uploaddir + '/' + record.thefile.file}` }} > <Text type="secondary" code style={{ fontSize: '15px', maxWidth:'calc( 100% - 50px)', display: 'inline-flex' }} > { record.uploaddir + '/' + record.thefile.file } </Text> </Paragraph>,
+        },
+
+        {
             title: <Space wrap> { `Title` } </Space>,
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
+            width: '200px',
         }
     ];
 }
