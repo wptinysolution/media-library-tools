@@ -82,7 +82,7 @@ function RenamerMainHeader() {
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
-                }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup of the file. Renaming the file will also modify its URL. If you have hardcoded the file URL, please ensure to update it with the new URL after renaming. </Title>
+                }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify its URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. </Title>
             </Space>
         </Header>
     );
