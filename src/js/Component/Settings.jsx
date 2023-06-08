@@ -97,7 +97,7 @@ function Settings() {
                         textAlign: 'left',
                     }
                 }}
-                wrapperCol={{ span: 12 }}
+                wrapperCol={{ span: 19 }}
                 layout="horizontal"
                 style={{
                     maxWidth: 900,
