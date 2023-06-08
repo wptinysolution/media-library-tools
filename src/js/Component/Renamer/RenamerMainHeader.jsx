@@ -25,7 +25,7 @@ function RenamerMainHeader() {
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
 
-            <Space wrap>
+            <Space >
                 <Button
                     style={{
                         width: '180px'
