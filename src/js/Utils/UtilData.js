@@ -372,3 +372,33 @@ export function renamerColumns(){
         }
     ];
 }
+
+
+
+export function RabbisFileColumns(){
+
+    const [stateValue, dispatch] = useStateValue();
+
+    return [
+        {
+            title: <Checkbox />,
+            key: 'CheckboxID',
+            dataIndex: 'ID',
+            width: '50px',
+            align: 'center',
+        },
+        {
+            title: 'File',
+            key: 'Image',
+            dataIndex: 'guid',
+            align: 'top',
+            width: '150px',
+        },
+        {
+            title: <Space wrap>{`URL`}</Space>,
+            key: 'URL',
+            dataIndex: 'uploaddir',
+            align: 'top',
+        }
+    ];
+}
