@@ -21,10 +21,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Define media edit Constant.
  */
+
 define( 'TSMLT_VERSION', '1.0.7' );
+
 define( 'TSMLT_FILE', __FILE__ );
+
 define( 'TSMLT_BASENAME', plugin_basename( __FILE__ ) );
+
 define( 'TSMLT_URL', plugins_url('', TSMLT_FILE));
+
 define( 'TSMLT_ABSPATH', dirname(TSMLT_FILE) );
 
 /**

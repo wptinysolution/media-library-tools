@@ -29,6 +29,7 @@ class FilterHooks {
         add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
         add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
+		add_filter('plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2);
 
 		// SVG File Permission.
 		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
@@ -239,6 +240,21 @@ class FilterHooks {
         }
         return $links;
     }
+
+	/**
+	 * @param $links
+	 * @param $file
+	 *
+	 * @return array
+	 */
+	public static function plugin_row_meta($links, $file) {
+		if ( $file == TSMLT_BASENAME ) {
+			$report_url = 'https://www.wptinysolutions.com/contact' ;//home_url( '/wp-admin/upload.php?page=tsmlt-media-tools' );
+			$row_meta['issues'] = sprintf('%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url($report_url), esc_html__('Facing issue?', 'tsmlt-media-tools'), '<span style="color: red">' . esc_html__('Please open a support ticket.', 'tsmlt-media-tools') . '</span>');
+			return array_merge($links, $row_meta);
+		}
+		return (array)$links;
+	}
 
 
 }
