@@ -47,9 +47,11 @@ class Review {
 
 		$remind_time = get_option( 'tsmlt_remind_me' );
 
-        $remind_time = $remind_time ? $remind_time : $past_date;
+		if( ! $remind_time ){
+			$remind_time = $install_date;
+		}
 
-        $remind_due  = strtotime( '+15 days', $remind_time );
+        $remind_due  = strtotime( '+10 days', $remind_time );
 
         if ( ! $now > $past_date || $now < $remind_due ) {
             return;
@@ -136,11 +138,12 @@ class Review {
 			$remind_me    = add_query_arg( $args + [ 'tsmlt_remind_me' => '1' ], self::tsmlt_current_admin_url() );
 			$rated        = add_query_arg( $args + [ 'tsmlt_rated' => '1' ], self::tsmlt_current_admin_url() );
 			$reviewurl    = 'https://wordpress.org/support/plugin/media-library-tools/reviews/?filter=5#new-post';
+			$plugin_name = 'Media Library Tools';
 			?>
 			<div class="notice tsmlt-review-notice tsmlt-review-notice--extended">
 				<div class="tsmlt-review-notice_content">
-					<h3>Enjoying "Media Library Tools"? </h3>
-                    <p>Thank you for choosing "<string>Media Library Tools</string>". If you found our plugin useful, please consider giving us a 5-star rating on WordPress.org. Your feedback  will motivate us to grow. </p>
+                    <h3>Enjoying "<?php echo $plugin_name; ?>"? </h3>
+                    <p>Thank you for choosing "<string><?php echo $plugin_name; ?></string>". If you found our plugin useful, please consider giving us a 5-star rating on WordPress.org. Your feedback  will motivate us to grow. </p>
 					<div class="tsmlt-review-notice_actions">
 						<a href="<?php echo esc_url( $reviewurl ); ?>" class="tsmlt-review-button tsmlt-review-button--cta" target="_blank"><span>⭐ Yes, You Deserve It!</span></a>
 						<a href="<?php echo esc_url( $rated ); ?>" class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>😀 Already Rated!</span></a>

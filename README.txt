@@ -26,7 +26,7 @@ Media Library Tools is a lightweight WordPress plugin that does not affect your 
 
 == 🏆 Features ==
 
-* SVG Image Support
+* SVG image upload support.
 * Rename media file names
 * Create image categories
 * Search images by category
