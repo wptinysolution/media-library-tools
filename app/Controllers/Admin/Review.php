@@ -279,35 +279,36 @@ class Review {
 
 		self::dialog_box_style();
 		self::deactivation_scripts();
+		$text_domain = 'tsmlt'; // This is for unique ID.
 		?>
         <div id="deactivation-dialog" title="Quick Feedback">
             <!-- Modal content -->
             <div class="modal-content">
                 <div id="feedback-form-body">
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-feedback-no_longer_needed" class="feedback-input" type="radio"
+                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-input" type="radio"
                                name="reason_key" value="no_longer_needed">
-                        <label for="feedback-deactivate-feedback-no_longer_needed" class="feedback-label">I no longer
+                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-label">I no longer
                             need the plugin</label>
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-feedback-found_a_better_plugin" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-found_a_better_plugin" class="feedback-input"
                                type="radio" name="reason_key" value="found_a_better_plugin">
-                        <label for="feedback-deactivate-feedback-found_a_better_plugin" class="feedback-label">I found a
+                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-found_a_better_plugin" class="feedback-label">I found a
                             better plugin</label>
                         <input class="feedback-feedback-text" type="text" name="reason_found_a_better_plugin"
                                placeholder="Please share which plugin">
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-feedback-couldnt_get_the_plugin_to_work" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-couldnt_get_the_plugin_to_work" class="feedback-input"
                                type="radio" name="reason_key" value="couldnt_get_the_plugin_to_work">
-                        <label for="feedback-deactivate-feedback-couldnt_get_the_plugin_to_work" class="feedback-label">I
+                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-couldnt_get_the_plugin_to_work" class="feedback-label">I
                             couldn't get the plugin to work</label>
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-feedback-temporary_deactivation" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-temporary_deactivation" class="feedback-input"
                                type="radio" name="reason_key" value="temporary_deactivation">
-                        <label for="feedback-deactivate-feedback-temporary_deactivation" class="feedback-label">It's a
+                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-temporary_deactivation" class="feedback-label">It's a
                             temporary deactivation</label>
                     </div>
 
@@ -485,8 +486,8 @@ class Review {
                     var given = localRetrieveData("feedback-given");
                     localStorage.removeItem( "feedback-given" );
                     if( 'given' === given ){
-                        //window.location.href = href;
-                       // return;
+                       window.location.href = href;
+                       return;
                     }
                     $('#deactivation-dialog').dialog({
                         modal: true,
@@ -518,7 +519,6 @@ class Review {
                     }
 
                     $.ajax({
-                        // url: 'http://woo-cpt.local/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
                         url: 'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
                         method: 'GET',
                         dataType: 'json',
