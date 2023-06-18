@@ -484,7 +484,6 @@ class Review {
                     e.preventDefault();
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var given = localRetrieveData("feedback-given");
-                    localStorage.removeItem( "feedback-given" );
                     if( 'given' === given ){
                        window.location.href = href;
                        return;
@@ -495,7 +494,6 @@ class Review {
                         buttons: {
                             Submit: function () {
                                 submitFeedback();
-                                window.location.href = href;
                             },
                             Cancel: function () {
                                 $(this).dialog('close');
@@ -517,6 +515,7 @@ class Review {
                     if( ! reasons && ! feedback && ! better_plugin ){
                         return;
                     }
+                    var href = $('.deactivate #deactivate-media-library-tools').attr('href');
 
                     $.ajax({
                         url: 'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
@@ -541,6 +540,7 @@ class Review {
                         },
                         complete: function(xhr, status) {
                             $('#deactivation-dialog').dialog('close');
+                            window.location.href = href;
                         }
 
                     });
