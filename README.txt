@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -70,6 +70,9 @@ To search for images by categories, users can find the categories box near the F
 06. Media File Rename Edit Mode
 
 == Changelog ==
+
+= 1.0.8 ( June 18, 2023  ) =
+* Fixed: Support Query issue
 
 = 1.0.7 ( May 21, 2023  ) =
 * Fixed: Image Rename isue fixed
