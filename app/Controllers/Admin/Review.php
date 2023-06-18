@@ -484,7 +484,6 @@ class Review {
                     e.preventDefault();
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var given = localRetrieveData("feedback-given");
-
                     if( 'given' === given ){
                        window.location.href = href;
                        return;
