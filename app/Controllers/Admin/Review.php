@@ -316,13 +316,18 @@ class Review {
                         <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-temporary_deactivation" class="feedback-label">It's a
                             temporary deactivation</label>
                     </div>
+                    <span style="color:red;font-size: 16px;"></span>
 
                 </div>
                 <p style="margin: 0 0 15px 0;">
                     Please let us know about any issues you are facing with the plugin.
                     How can we improve the plugin?
                 </p>
-                <textarea id="deactivation-feedback-<?php echo TSMLT_TEXT_DOMAIN ; ?>" rows="4" cols="40" placeholder=" Write something here. How can we improve the plugin?"></textarea>
+                <div class="feedback-text-wrapper-<?php echo TSMLT_TEXT_DOMAIN; ?>">
+                    <textarea id="deactivation-feedback-<?php echo TSMLT_TEXT_DOMAIN; ?>" rows="4" cols="40"
+                              placeholder=" Write something here. How can we improve the plugin?"></textarea>
+                    <span style="color:red;font-size: 16px;"></span>
+                </div>
                 <p style="margin: 0;">
                     Your satisfaction is our utmost inspiration. Thank you for your feedback.
                 </p>
@@ -410,6 +415,7 @@ class Review {
             #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content textarea {
                 border: 1px solid rgba(0, 0, 0, 0.3);
                 padding: 15px;
+                width: 100%;
             }
 
             #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content input.feedback-feedback-text {
@@ -530,6 +536,8 @@ class Review {
                     var better_plugin = $('#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN; ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
                     if( ! reasons && ! feedback && ! better_plugin ){
+                        $('#feedback-form-body-<?php echo TSMLT_TEXT_DOMAIN; ?> span').text('Choose The Reason');
+                        $('.feedback-text-wrapper-<?php echo TSMLT_TEXT_DOMAIN; ?> span').text('Please provide me with some advice.');
                         return;
                     }
                     if( 'temporary_deactivation' == reasons && ! feedback ){
