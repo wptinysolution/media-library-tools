@@ -284,7 +284,6 @@ export function columns(){
     ];
 }
 
-
 export function renamerColumns(){
 
     const [stateValue, dispatch] = useStateValue();
@@ -373,31 +372,31 @@ export function renamerColumns(){
     ];
 }
 
-
-
 export function RabbisFileColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
     return [
         {
-            title: <Checkbox />,
+            title: <Checkbox checked={ stateValue.rubbishMedia.bulkChecked } />,
             key: 'CheckboxID',
-            dataIndex: 'ID',
+            dataIndex: 'filepath',
             width: '50px',
             align: 'center',
+            render:  ( text, record ) => <Checkbox name="file_path" value={text}  />
         },
         {
             title: 'File',
             key: 'Image',
-            dataIndex: 'guid',
-            align: 'top',
+            dataIndex: 'fileUrl',
             width: '150px',
+            align: 'top',
+            render: ( url, record, i ) => <Space> <img width={ 80 } src={url} /> </Space>,
         },
         {
-            title: <Space wrap>{`URL`}</Space>,
-            key: 'URL',
-            dataIndex: 'uploaddir',
+            title: 'File',
+            key: 'Image',
+            dataIndex: 'filepath',
             align: 'top',
         }
     ];

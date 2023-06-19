@@ -45,7 +45,8 @@ export const initialState = {
 	},
 	rubbishMedia:{
 		isLoading: true,
-		mediaFIle: []
+		bulkChecked: false,
+		mediaFile: []
 	}
 };
 

@@ -62,6 +62,11 @@ class Api {
 			'callback'            => [ $this, 'update_option' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/getrabbisfile', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_rabbis_file' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
 	}
 
 	/**
@@ -330,8 +335,8 @@ class Api {
 
 		$get_posts = [];
 		foreach ( $_posts as $post ) {
-			$thefile  = [];
-			$metadata = unserialize( $post->metadata );
+			$thefile       = [];
+			$metadata      = unserialize( $post->metadata );
 			$attached_file = get_attached_file( $post->ID );
 			if ( ! empty( $metadata['file'] ) ) {
 				$thefile['mainfilepath']  = dirname( $attached_file );
@@ -347,10 +352,10 @@ class Api {
 				$thefile['filebasename']  = basename( $attached_file, '.' . $thefile['fileextension'] );
 				$thefile['originalname']  = basename( $attached_file, '.' . $thefile['fileextension'] );
 			}
-			$upload_dir = wp_upload_dir();
-			$uploaddir  = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
+			$upload_dir      = wp_upload_dir();
+			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
-			$get_posts[] = [
+			$get_posts[]     = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
 				'post_excerpt'   => $post->post_excerpt,
@@ -460,6 +465,28 @@ class Api {
 
 		return $result;
 	}
+
+	/**
+	 * @return false|string
+	 */
+	public function get_rabbis_file() {
+		$rabbis_file = [
+			[
+				"uploaddir" => "http://woo-cpt.local/wp-content/uploads",
+				"filepath"  => ABSPATH .'wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg',
+				"fileUrl"   => 'http://woo-cpt.local/wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg'
+
+			],
+			[
+				"uploaddir" => "http://woo-cpt.local/wp-content/uploads",
+				"filepath"  => ABSPATH .'wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg',
+				"fileUrl"   => 'http://woo-cpt.local/wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg'
+			]
+		];
+
+		return wp_json_encode( $rabbis_file );
+	}
+
 
 }
 

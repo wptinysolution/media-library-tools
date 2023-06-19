@@ -3,7 +3,7 @@
  */
 
 import Axios from 'axios';
-import { notification } from 'antd';
+import {notification} from 'antd';
 
 const apibaseUrl = `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`;
 
@@ -18,7 +18,7 @@ const Api = Axios.create({
     }
 });
 
-export const notifications = ( isTrue, text ) => {
+export const notifications = (isTrue, text) => {
     const message = {
         message: text, //response.data.message,
         placement: 'topRight',
@@ -26,34 +26,34 @@ export const notifications = ( isTrue, text ) => {
             marginTop: '10px',
         },
     }
-    if( isTrue ){
-        notification.success( message );
+    if (isTrue) {
+        notification.success(message);
     } else {
-        notification.error(message );
+        notification.error(message);
     }
 }
 
-export const getMedia = async ( prams = {} ) => {
-    const result = await Api.get( `/`, { params: prams } );
-    return JSON.parse( result.data );
+export const getMedia = async (prams = {}) => {
+    const result = await Api.get(`/`, {params: prams});
+    return JSON.parse(result.data);
 }
 
-export const upDateSingleMedia = async ( prams ) => {
-    const response = await Api.post(`/update`, prams );
+export const upDateSingleMedia = async (prams) => {
+    const response = await Api.post(`/update`, prams);
     // for info - blue box
-    notifications( 200 === response.status && response.data.updated, response.data.message );
+    notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
 
-export const submitBulkMediaAction = async ( prams ) => {
-    const response = await Api.post(`/bulk/submit`, prams );
-    notifications( 200 === response.status && response.data.updated, response.data.message );
+export const submitBulkMediaAction = async (prams) => {
+    const response = await Api.post(`/bulk/submit`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
 
-export const updateOptins = async (  prams ) => {
-    const response = await Api.post(`/updateoptins`, prams );
-    notifications( 200 === response.status && response.data.updated, response.data.message );
+export const updateOptins = async (prams) => {
+    const response = await Api.post(`/updateoptins`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
 
@@ -67,5 +67,10 @@ export const getTerms = async () => {
 
 export const getOptions = async () => {
     return await Api.get(`/getoptions`);
+}
+
+export const getRabbisFile = async () => {
+    const result = await Api.get(`/getrabbisfile`);
+    return JSON.parse(result.data);
 }
 
