@@ -264,7 +264,6 @@ class Review {
 		}
 	}
 
-
 	// Servay
 	/***
 	 * @param $mimes
@@ -279,42 +278,42 @@ class Review {
 
 		self::dialog_box_style();
 		self::deactivation_scripts();
-		$text_domain = 'tsmlt'; // This is for unique ID.
+
 		?>
-        <div id="deactivation-dialog" title="Quick Feedback">
+        <div id="deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?>" title="Quick Feedback">
             <!-- Modal content -->
             <div class="modal-content">
-                <div id="feedback-form-body">
+                <div id="feedback-form-body-<?php echo TSMLT_TEXT_DOMAIN ; ?>">
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-bug_issue_detected" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-bug_issue_detected" class="feedback-input"
                                type="radio" name="reason_key" value="bug_issue_detected">
-                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-bug_issue_detected" class="feedback-label">Bug Or Issue detected.</label>
+                        <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-bug_issue_detected" class="feedback-label">Bug Or Issue detected.</label>
                     </div>
 
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-input" type="radio"
+                        <input id="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-no_longer_needed" class="feedback-input" type="radio"
                                name="reason_key" value="no_longer_needed">
-                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-label">I no longer
+                        <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-no_longer_needed" class="feedback-label">I no longer
                             need the plugin</label>
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-found_a_better_plugin" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-found_a_better_plugin" class="feedback-input"
                                type="radio" name="reason_key" value="found_a_better_plugin">
-                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-found_a_better_plugin" class="feedback-label">I found a
+                        <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-found_a_better_plugin" class="feedback-label">I found a
                             better plugin</label>
                         <input class="feedback-feedback-text" type="text" name="reason_found_a_better_plugin"
                                placeholder="Please share which plugin">
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-couldnt_get_the_plugin_to_work" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-couldnt_get_the_plugin_to_work" class="feedback-input"
                                type="radio" name="reason_key" value="couldnt_get_the_plugin_to_work">
-                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-couldnt_get_the_plugin_to_work" class="feedback-label">I
+                        <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-couldnt_get_the_plugin_to_work" class="feedback-label">I
                             couldn't get the plugin to work</label>
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-temporary_deactivation" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-temporary_deactivation" class="feedback-input"
                                type="radio" name="reason_key" value="temporary_deactivation">
-                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-temporary_deactivation" class="feedback-label">It's a
+                        <label for="feedback-deactivate-<?php echo TSMLT_TEXT_DOMAIN ; ?>-temporary_deactivation" class="feedback-label">It's a
                             temporary deactivation</label>
                     </div>
 
@@ -323,7 +322,7 @@ class Review {
                     Please let us know about any issues you are facing with the plugin.
                     How can we improve the plugin?
                 </p>
-                <textarea id="deactivation-feedback" rows="4" cols="40" placeholder=" Write something here. How can we improve the plugin?"></textarea>
+                <textarea id="deactivation-feedback-<?php echo TSMLT_TEXT_DOMAIN ; ?>" rows="4" cols="40" placeholder=" Write something here. How can we improve the plugin?"></textarea>
                 <p style="margin: 0;">
                     Your satisfaction is our utmost inspiration. Thank you for your feedback.
                 </p>
@@ -337,7 +336,9 @@ class Review {
 	 *
 	 * @return mixed
 	 */
-	public static function dialog_box_style() { ?>
+	public static function dialog_box_style() {
+
+        ?>
         <style>
             /* Add Animation */
             @-webkit-keyframes animatetop {
@@ -362,7 +363,7 @@ class Review {
                 }
             }
 
-            #deactivation-dialog {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> {
                 display: none;
             }
 
@@ -371,7 +372,7 @@ class Review {
             }
 
             /* The Modal (background) */
-            #deactivation-dialog .modal {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal {
                 display: none; /* Hidden by default */
                 position: fixed; /* Stay in place */
                 z-index: 1; /* Sit on top */
@@ -384,39 +385,39 @@ class Review {
             }
 
             /* Modal Content */
-            #deactivation-dialog .modal-content {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content {
                 position: relative;
                 margin: auto;
                 padding: 0;
             }
 
-            #deactivation-dialog .modal-content > * {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content > * {
                 width: 100%;
                 padding: 10px 0 2px;
                 overflow: hidden;
             }
-            #deactivation-dialog .feedback-label,
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .feedback-label,
             div#deactivation-dialog p{
                 font-weight: 500;
             }
-            #deactivation-dialog .feedback-label {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .feedback-label {
                 font-size: 15px;
             }
-            div#deactivation-dialog p{
+            div#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> p{
                 font-size: 16px;
             }
 
-            #deactivation-dialog .modal-content textarea {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content textarea {
                 border: 1px solid rgba(0, 0, 0, 0.3);
                 padding: 15px;
             }
 
-            #deactivation-dialog .modal-content input.feedback-feedback-text {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-content input.feedback-feedback-text {
                 border: 1px solid rgba(0, 0, 0, 0.3);
             }
 
             /* The Close Button */
-            #deactivation-dialog input[type="radio"] {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> input[type="radio"] {
                 margin: 0;
             }
 
@@ -425,7 +426,7 @@ class Review {
                 font-weight: 600;
             }
 
-            #deactivation-dialog .modal-body {
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .modal-body {
                 padding: 2px 16px;
             }
 
@@ -462,7 +463,7 @@ class Review {
                 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
             }
 
-            div#deactivation-dialog,
+            #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?>,
             .ui-draggable .ui-dialog-titlebar {
                 padding: 18px 15px;
                 box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
@@ -503,7 +504,7 @@ class Review {
                       // window.location.href = href;
                       // return;
                     }
-                    $('#deactivation-dialog').dialog({
+                    $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?>').dialog({
                         modal: true,
                         width: 500,
                         buttons: {
@@ -517,16 +518,16 @@ class Review {
                         }
                     });
                     // Customize the button text
-                    $('.ui-dialog-buttonpane button:contains("Submit")').text('Submit & Deactivate');
+                    $('.ui-dialog-buttonpane button:contains("Submit")').text('Send Feedback & Deactivate');
                     $('.ui-dialog-buttonpane button:contains("Cancel")').text('Skip & Deactivate');
                 });
 
                 // Submit the feedback
                 function submitFeedback() {
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
-                    var reasons = $('#deactivation-dialog input[type="radio"]:checked').val();
-                    var feedback = $('#deactivation-feedback').val();
-                    var better_plugin = $('#deactivation-dialog .modal-content input[name="reason_found_a_better_plugin"]').val();
+                    var reasons = $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?> input[type="radio"]:checked').val();
+                    var feedback = $('#deactivation-feedback-<?php echo CPTINIT_TEXT_DOMAIN; ?>').val();
+                    var better_plugin = $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
                     if( ! reasons && ! feedback && ! better_plugin ){
                         return;
@@ -557,7 +558,7 @@ class Review {
                             console.error( 'Error', error);
                         },
                         complete: function(xhr, status) {
-                            $('#deactivation-dialog').dialog('close');
+                            $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?>').dialog('close');
                             window.location.href = href;
                         }
 
