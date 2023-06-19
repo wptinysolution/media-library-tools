@@ -286,6 +286,12 @@ class Review {
             <div class="modal-content">
                 <div id="feedback-form-body">
                     <div class="feedback-input-wrapper">
+                        <input id="feedback-deactivate-<?php echo $text_domain; ?>-bug_issue_detected" class="feedback-input"
+                               type="radio" name="reason_key" value="bug_issue_detected">
+                        <label for="feedback-deactivate-<?php echo $text_domain; ?>-bug_issue_detected" class="feedback-label">Bug Or Issue detected.</label>
+                    </div>
+
+                    <div class="feedback-input-wrapper">
                         <input id="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-input" type="radio"
                                name="reason_key" value="no_longer_needed">
                         <label for="feedback-deactivate-<?php echo $text_domain; ?>-no_longer_needed" class="feedback-label">I no longer
@@ -313,15 +319,14 @@ class Review {
                     </div>
 
                 </div>
-                <p style="margin: 0; font-size: 16px;">
+                <p style="margin: 0 0 15px 0;">
                     Please let us know about any issues you are facing with the plugin.
-                </p>
-                <p style="margin: 0 0 15px 0;font-size: 16px;">
                     How can we improve the plugin?
                 </p>
-                <textarea id="deactivation-feedback" rows="4" cols="40"
-                          placeholder=" Write something here. How can we improve the plugin?"></textarea>
-                <p style="margin: 0;font-size: 16px;">Your suggestion is important to us.</p>
+                <textarea id="deactivation-feedback" rows="4" cols="40" placeholder=" Write something here. How can we improve the plugin?"></textarea>
+                <p style="margin: 0;">
+                    Your satisfaction is our utmost inspiration. Thank you for your feedback.
+                </p>
             </div>
         </div>
 		<?php
@@ -389,6 +394,16 @@ class Review {
                 width: 100%;
                 padding: 10px 0 2px;
                 overflow: hidden;
+            }
+            #deactivation-dialog .feedback-label,
+            div#deactivation-dialog p{
+                font-weight: 500;
+            }
+            #deactivation-dialog .feedback-label {
+                font-size: 15px;
+            }
+            div#deactivation-dialog p{
+                font-size: 16px;
             }
 
             #deactivation-dialog .modal-content textarea {
@@ -485,8 +500,8 @@ class Review {
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var given = localRetrieveData("feedback-given");
                     if( 'given' === given ){
-                       window.location.href = href;
-                       return;
+                      // window.location.href = href;
+                      // return;
                     }
                     $('#deactivation-dialog').dialog({
                         modal: true,
@@ -508,6 +523,7 @@ class Review {
 
                 // Submit the feedback
                 function submitFeedback() {
+                    var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var reasons = $('#deactivation-dialog input[type="radio"]:checked').val();
                     var feedback = $('#deactivation-feedback').val();
                     var better_plugin = $('#deactivation-dialog .modal-content input[name="reason_found_a_better_plugin"]').val();
@@ -515,7 +531,10 @@ class Review {
                     if( ! reasons && ! feedback && ! better_plugin ){
                         return;
                     }
-                    var href = $('.deactivate #deactivate-media-library-tools').attr('href');
+                    if( 'temporary_deactivation' == reasons && ! feedback ){
+                        window.location.href = href;
+                    }
+                  
                     $.ajax({
                         url: 'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
                         method: 'GET',
