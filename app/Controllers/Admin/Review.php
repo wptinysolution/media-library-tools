@@ -397,7 +397,7 @@ class Review {
                 overflow: hidden;
             }
             #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .feedback-label,
-            div#deactivation-dialog p{
+            div#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> p{
                 font-weight: 500;
             }
             #deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN ; ?> .feedback-label {
