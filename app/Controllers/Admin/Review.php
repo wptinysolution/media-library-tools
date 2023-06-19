@@ -504,7 +504,7 @@ class Review {
                       // window.location.href = href;
                       // return;
                     }
-                    $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?>').dialog({
+                    $('#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN; ?>').dialog({
                         modal: true,
                         width: 500,
                         buttons: {
@@ -525,9 +525,9 @@ class Review {
                 // Submit the feedback
                 function submitFeedback() {
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
-                    var reasons = $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?> input[type="radio"]:checked').val();
-                    var feedback = $('#deactivation-feedback-<?php echo CPTINIT_TEXT_DOMAIN; ?>').val();
-                    var better_plugin = $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
+                    var reasons = $('#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN; ?> input[type="radio"]:checked').val();
+                    var feedback = $('#deactivation-feedback-<?php echo TSMLT_TEXT_DOMAIN; ?>').val();
+                    var better_plugin = $('#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN; ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
                     if( ! reasons && ! feedback && ! better_plugin ){
                         return;
@@ -558,7 +558,7 @@ class Review {
                             console.error( 'Error', error);
                         },
                         complete: function(xhr, status) {
-                            $('#deactivation-dialog-<?php echo CPTINIT_TEXT_DOMAIN; ?>').dialog('close');
+                            $('#deactivation-dialog-<?php echo TSMLT_TEXT_DOMAIN; ?>').dialog('close');
                             window.location.href = href;
                         }
 
