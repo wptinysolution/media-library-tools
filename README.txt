@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -71,6 +71,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.0.9 ( June 23, 2023  ) =
+* Fixed: Image Table no data found fix
+
 = 1.0.8 ( June 18, 2023  ) =
 * Fixed: Support Query issue
 
@@ -88,19 +91,6 @@ To search for images by categories, users can find the categories box near the F
 * Fixed: Media Column Issue fixed
 * Optimized: Media Query Optimize
 * Added: Caption/Description add Automatically
-
-= 1.0.3 ( May 13, 2023 ) =
-* Fixed: Optimized Query And Some Others File support
-* Added: SVG Support
-* Added: Set Default Alt Text
-
-= 1.0.2 ( April 01, 2023 ) =
-* Fixed: File Delete issue fixed.
-* Added: Media File Renamer
-* Added: Default alt text.
-
-= 1.0.1 ( MARCH 08, 2023 ) =
-* Fixed: Text fixed.
 
 1.0.0 ( MARCH 07, 2023 )
 * Initial Plugin.
