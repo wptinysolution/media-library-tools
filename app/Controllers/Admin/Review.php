@@ -152,9 +152,9 @@ class Review {
 
 			$args = [ '_wpnonce' => wp_create_nonce( 'tsmlt_notice_nonce' ) ];
 
-			$dont_disturb = add_query_arg( $args + [ 'tsmlt_spare_me' => '1' ], self::tsmlt_current_admin_url() );
-			$remind_me    = add_query_arg( $args + [ 'tsmlt_remind_me' => '1' ], self::tsmlt_current_admin_url() );
-			$rated        = add_query_arg( $args + [ 'tsmlt_rated' => '1' ], self::tsmlt_current_admin_url() );
+			$dont_disturb = add_query_arg( $args + [ 'tsmlt_spare_me' => '1' ], $this->tsmlt_current_admin_url() );
+			$remind_me    = add_query_arg( $args + [ 'tsmlt_remind_me' => '1' ], $this->tsmlt_current_admin_url() );
+			$rated        = add_query_arg( $args + [ 'tsmlt_rated' => '1' ], $this->tsmlt_current_admin_url() );
 			$reviewurl    = 'https://wordpress.org/support/plugin/media-library-tools/reviews/?filter=5#new-post';
 			$plugin_name  = 'Media Library Tools';
 			?>
