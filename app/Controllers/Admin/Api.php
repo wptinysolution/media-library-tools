@@ -273,43 +273,50 @@ class Api {
 					$orderby = 'post_excerpt';
 					break;
 				case 'alt':
-					$orderby = 'meta_value';
+					$orderby = 'meta_query';
 					break;
 				default:
 					$orderby = 'menu_order';
 			}
 		}
 
-		// _wp_attachment_metadata
-		$tsmlt_media_cache = 'tsmlt_attachment_query';
-		$_posts_query      = wp_cache_get( $tsmlt_media_cache, 'attachment-query' );
-		if ( false == $_posts_query ) {
-			$args = [
-				'post_type'      => 'attachment',  // Retrieve only attachments
-				'posts_per_page' => $limit,       // Number of attachments to retrieve
-				'post_status'    => $status,   // Retrieve attachments with 'inherit' status
-				'order'          => $order, // Sort in descending order
-			];
-			if ( 'meta_value' === $orderby ) {
-				$args['meta_key'] = '_wp_attachment_image_alt';
-			} else {
-				$args['orderby'] = $orderby;
-			}
-			if ( ! empty( $parameters['categories'] ) ) {
-				$args['tax_query'] = array(
-					array(
-						'taxonomy' => 'tsmlt_category',
-						'field'    => 'term_id',
-						'terms'    => $parameters['categories'],
-					),
-				);
-			}
-			$_posts_query = get_posts( $args );
-			wp_cache_set( $tsmlt_media_cache, $_posts_query, 'attachment-query' );
-		}
+		$args = [
+			'post_type'      => 'attachment',  // Retrieve only attachments
+			'posts_per_page' => $limit,
+			'post_status'    => $status,
+			'orderby'        => $orderby,
+			'order'          => $order,
+		];
 
-		$get_posts = [];
-		foreach ( $_posts_query as $post ) {
+		if ( 'meta_query' === $orderby ) {
+			$args['meta_query'] = [
+				'relation' => 'OR',
+				[
+					'key'     => '_wp_attachment_image_alt',
+					'compare' => 'EXISTS',
+				],
+				[
+					'key'     => '_wp_attachment_image_alt',
+					'compare' => 'NOT EXISTS',
+				],
+			];
+			$args['orderby']    = 'meta_value'; // Order by meta value
+			$args['meta_key']   = '_wp_attachment_image_alt'; // Meta key to use for ordering
+		}
+		if ( ! empty( $parameters['categories'] ) ) {
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => 'tsmlt_category',
+					'field'    => 'term_id',
+					'terms'    => $parameters['categories'],
+				),
+			);
+		}
+		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
+
+		$_posts_query = new \WP_Query( $args );
+		$get_posts    = [];
+		foreach ( $_posts_query->posts as $post ) {
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 			$attached_file = get_attached_file( $post->ID );
@@ -331,18 +338,18 @@ class Api {
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 
-			$terms = get_terms( 'tsmlt_category' );
+			$terms          = get_terms( 'tsmlt_category' );
 			$tsmlt_category = [];
-			if (!empty($terms)) {
-				foreach ($terms as $term) {
+			if ( ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
 					$tsmlt_category[] = array(
-						'id' => $term->term_id,
+						'id'   => $term->term_id,
 						'name' => $term->name
 					);
 				}
 			}
 
-			$get_posts[]     = [
+			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
 				'post_excerpt'   => $post->post_excerpt,
@@ -357,14 +364,14 @@ class Api {
 				'post_mime_type' => $post->post_mime_type
 			];
 		}
-		$attachment_counts = wp_count_posts('attachment');
-		$total = $attachment_counts->$status;
 		$query_data = [
 			'posts'          => $get_posts,
 			'posts_per_page' => absint( $limit ),
-			'total_post'     => $total,
+			'total_post'     => $_posts_query->found_posts,
 			'paged'          => absint( $paged ),
 		];
+		wp_reset_postdata();
+		remove_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 
 		return wp_json_encode( $query_data );
 	}

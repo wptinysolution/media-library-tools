@@ -199,5 +199,22 @@ class Fns {
 		return wp_parse_args( $options, $defaults );
 	}
 
+	/**
+	 * @param $clauses
+	 * @param $query
+	 *
+	 * @return mixed
+	 */
+	public static function custom_orderby_post_excerpt_content( $clauses, $query ) {
+		global $wpdb;
+		if ( 'post_excerpt' === $query->get( 'orderby' ) ) {
+			$clauses['orderby'] = "$wpdb->posts.post_excerpt {$query->get( 'order' )}";
+		} elseif ( 'post_content' === $query->get( 'orderby' ) ){
+			$clauses['orderby'] = "$wpdb->posts.post_content {$query->get( 'order' )}";
+		}
+		return $clauses;
+	}
+
+
 
 }
