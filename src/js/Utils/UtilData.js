@@ -250,7 +250,7 @@ export function columns(){
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
+            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',

@@ -242,13 +242,14 @@ class Api {
 		return $result;
 	}
 
+
 	/**
 	 * @param $request_data
 	 *
 	 * @return false|string|WP_Error
 	 */
 	public function get_media( $request_data ) {
-		global $wpdb;
+
 		$parameters = $request_data->get_params();
 
 		$options = get_option( 'tsmlt_settings' );
@@ -278,65 +279,52 @@ class Api {
 					$orderby = 'post_excerpt';
 					break;
 				case 'alt':
-					$orderby = 'alt_text';
+					$orderby = 'meta_query';
 					break;
 				default:
 					$orderby = 'menu_order';
 			}
 		}
 
+		$args = [
+			'post_type'      => 'attachment',  // Retrieve only attachments
+			'posts_per_page' => $limit,
+			'post_status'    => $status,
+			'orderby'        => $orderby,
+			'order'          => $order,
+		];
 
-		$offset = ( $paged - 1 ) * $limit;
-
-		$order_by_sql = sanitize_sql_orderby( "$orderby $order" );
-
-		$join_query = "LEFT JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id LEFT JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id ";
-
-		$join_query .= " LEFT JOIN $wpdb->terms AS t ON tt.term_id = t.term_id ";
-
-		$additional_query = ! empty( $parameters['categories'] ) ? $wpdb->prepare( " AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = %1\$d", $parameters['categories'] ) : null;
-
-		$additional_query .= ! empty( $parameters['date'] ) ? $wpdb->prepare( " AND DATE_FORMAT(p.post_date, '%1\$s') = '%2\$s'", '%Y-%m', $parameters['date'] ) : null;
-
-		$join_query .= " LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'";
-
-		$join_query .= " LEFT JOIN $wpdb->postmeta AS pmetadata ON pmetadata.post_id = p.ID AND pmetadata.meta_key = '_wp_attachment_metadata'";
-
-		$total = Fns::get_post_count( 'attachment', $status, 'attachment-query', $join_query, $additional_query );
-
-		/*
-			SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text, GROUP_CONCAT(t.name SEPARATOR ', ') as categories
-			FROM wp_posts AS p
-			JOIN wp_term_relationships AS tr ON p.ID = tr.object_id JOIN wp_term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id  LEFT JOIN wp_terms AS t ON tt.term_id = t.term_id  LEFT JOIN wp_postmeta AS pm ON pm.post_id = p.ID AND pm.meta_key = '_wp_attachment_image_alt'
-			WHERE p.post_status = 'inherit' AND p.post_type = 'attachment'  AND tt.taxonomy = 'tsmlt_category' AND tt.term_id = 26 AND DATE_FORMAT(p.post_date, '{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}Y-{0d14bdcf09b3d1a35f5fd07ad4439886975a8303fbd0dc755dff9adace5d0488}m') = '2023-03'
-			GROUP BY p.ID
-			ORDER BY menu_order DESC
-			LIMIT 0, 5
-		*/
-
-		$query = $wpdb->prepare(
-			"SELECT p.*, IFNULL(pm.meta_value, '') AS alt_text , pmetadata.meta_value AS metadata, JSON_ARRAYAGG(JSON_OBJECT('id', t.term_id, 'name', t.name)) AS categories
-            FROM $wpdb->posts AS p            
-            $join_query
-            WHERE p.post_status = '%1\$s' AND p.post_type = 'attachment' $additional_query 
-            GROUP BY p.ID
-            ORDER BY $order_by_sql
-            LIMIT %2\$d, %3\$d",
-			$status,
-			$offset,
-			$limit
-		);
-		// _wp_attachment_metadata
-		$_posts = wp_cache_get( md5( $query ), 'attachment-query' );
-		if ( false === $_posts ) {
-			$_posts = $wpdb->get_results( $query );
-			wp_cache_set( md5( $query ), $_posts, 'attachment-query' );
+		if ( 'meta_query' === $orderby ) {
+			$args['meta_query'] = [
+				'relation' => 'OR',
+				[
+					'key'     => '_wp_attachment_image_alt',
+					'compare' => 'EXISTS',
+				],
+				[
+					'key'     => '_wp_attachment_image_alt',
+					'compare' => 'NOT EXISTS',
+				],
+			];
+			$args['orderby']    = 'meta_value'; // Order by meta value
+			$args['meta_key']   = '_wp_attachment_image_alt'; // Meta key to use for ordering
 		}
+		if ( ! empty( $parameters['categories'] ) ) {
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => 'tsmlt_category',
+					'field'    => 'term_id',
+					'terms'    => $parameters['categories'],
+				),
+			);
+		}
+		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 
-		$get_posts = [];
-		foreach ( $_posts as $post ) {
+		$_posts_query = new \WP_Query( $args );
+		$get_posts    = [];
+		foreach ( $_posts_query->posts as $post ) {
 			$thefile       = [];
-			$metadata      = unserialize( $post->metadata );
+			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 			$attached_file = get_attached_file( $post->ID );
 			if ( ! empty( $metadata['file'] ) ) {
 				$thefile['mainfilepath']  = dirname( $attached_file );
@@ -355,7 +343,19 @@ class Api {
 			$upload_dir      = wp_upload_dir();
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
-			$get_posts[]     = [
+
+			$terms          = get_terms( 'tsmlt_category' );
+			$tsmlt_category = [];
+			if ( ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$tsmlt_category[] = array(
+						'id'   => $term->term_id,
+						'name' => $term->name
+					);
+				}
+			}
+
+			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
 				'post_excerpt'   => $post->post_excerpt,
@@ -363,8 +363,8 @@ class Api {
 				'post_name'      => $post->post_name,
 				'guid'           => $post->guid,
 				'uploaddir'      => $uploaddir,
-				'alt_text'       => $post->alt_text,
-				'categories'     => $post->categories,
+				'alt_text'       => get_post_meta( $post->ID, '_wp_attachment_image_alt', true ),
+				'categories'     => wp_json_encode( $tsmlt_category ),
 				'metadata'       => $metadata,
 				'thefile'        => $thefile,
 				'post_mime_type' => $post->post_mime_type
@@ -373,9 +373,11 @@ class Api {
 		$query_data = [
 			'posts'          => $get_posts,
 			'posts_per_page' => absint( $limit ),
-			'total_post'     => $total,
+			'total_post'     => $_posts_query->found_posts,
 			'paged'          => absint( $paged ),
 		];
+		wp_reset_postdata();
+		remove_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 
 		return wp_json_encode( $query_data );
 	}
