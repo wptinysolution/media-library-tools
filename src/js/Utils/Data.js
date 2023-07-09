@@ -86,9 +86,8 @@ export const getExtensionOptions = async () => {
     return await Api.get(`/get/extension/options`);
 }
 
-// export const activateLicense = async ( license_key ) => {
-//     const response = await Axios.get(`${tsmltParams.restApiUrl}lmfwc/v2/licenses/activate/${license_key}`);
-//     //notifications( 200 === response.status && response.data.updated, response.data.message );
-//     console.log( response )
-//     return response;
-// }
+export const activateLicense = async (  prams = {} ) => {
+    const response = await Api.get(`/licenses/activate/`, { params: prams } );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}

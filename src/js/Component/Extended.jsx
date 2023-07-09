@@ -15,7 +15,8 @@ import {
 import Loader from "../Utils/Loader";
 
 import * as Types from "../Utils/actionType";
-import {activateLicense} from "../Utils/Data";
+
+import {activateLicense, updateOptins} from "../Utils/Data";
 
 const {Content} = Layout;
 
@@ -25,8 +26,13 @@ function Extended() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    console.log( stateValue.extended )
+    const handleActivateLicense = async () => {
+        const response = await activateLicense( stateValue.extended );
+        if( 200 === parseInt( response.status ) ){
 
+        }
+        console.log( 'handleUpdateOption' );
+    }
     return (
         <Layout style={{position: 'relative'}}>
             { stateValue.extended.isLoading ? <Loader/> :
@@ -72,14 +78,17 @@ function Extended() {
                                 }
                                 value={stateValue.extended.extendedKey}
                             />
-                            <Button type="primary" size="large"
-                                onClick={() => {
-                                    console.log( 'Hello' );
-                                   return activateLicense( stateValue.extended.extendedKey );
-                                } }
-                            >
+                            { stateValue.extended.isReadyToValidate &&
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    onClick={ handleActivateLicense }
+                                    danger={stateValue.extended.isValidate}
+                                >
                                 { stateValue.extended.isValidate ? `Deactivate Licence` : `Active Licence` }
-                            </Button>
+                                </Button>
+                            }
+
                         </Form.Item>
 
                     </Form>
@@ -98,7 +107,7 @@ function Extended() {
                     type: Types.UPDATE_EXTENSION,
                     saveType: Types.UPDATE_EXTENSION,
                 })}>
-                Save Settings
+                Save Data
             </Button>
 
         </Layout>

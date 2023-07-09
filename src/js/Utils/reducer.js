@@ -33,6 +33,7 @@ export const initialState = {
 	extended: {
 		isLoading: true,
 		extendedKey:'',
+		isReadyToValidate: false,
 		isValidate: false,
 	},
 	options: {
