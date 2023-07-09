@@ -9,10 +9,14 @@ import {
     getOptions,
     updateOptins,
     upDateSingleMedia,
-    submitBulkMediaAction
+    submitBulkMediaAction,
+    updateExtensionOptions,
+    getExtensionOptions
 } from "../Utils/Data";
 
 const { Sider } = Layout;
+
+import Extended from "./Extended";
 
 import Settings from "./Settings";
 
@@ -47,6 +51,19 @@ function App() {
             }
         });
         console.log( 'getOptions' );
+    }
+
+    const getTheExtensionOptions = async () => {
+        const response = await getExtensionOptions();
+        const preparedData =  await JSON.parse( response.data );
+        await dispatch({
+            type: Types.UPDATE_EXTENSION,
+            extended: {
+                isLoading: false,
+                ...preparedData,
+            }
+        });
+        console.log( 'getExtensionOptions' );
     }
 
     const getDateAndTermsList = async () => {
@@ -96,6 +113,14 @@ function App() {
            });
        }
        console.log( 'handleUpdateOption' );
+    }
+
+    const handleUpdateExtensionOptions = async () => {
+        const response = await updateExtensionOptions( stateValue.extended );
+        if( 200 === parseInt( response.status ) ){
+           await getTheExtensionOptions();
+        }
+        console.log( 'handleUpdateExtensionOptions' );
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
@@ -150,6 +175,9 @@ function App() {
             case Types.UPDATE_OPTIONS:
                     handleUpdateOption();
                 break;
+            case Types.UPDATE_EXTENSION:
+                    handleUpdateExtensionOptions();
+                break;
             case Types.UPDATE_RENAMER_MEDIA:
                     fileRenamerUpdateSingleMedia();
                 break;
@@ -170,12 +198,25 @@ function App() {
     useEffect(() => {
         getTheOptins();
         getDateAndTermsList();
+        getTheExtensionOptions();
     }, [] );
 
     useEffect(() => {
         getTheMedia();
     }, [ stateValue.mediaData.postQuery ] );
 
+
+    const getContentType = () => {
+        let type = stateValue.generalData.selectedMenu;
+        switch ( stateValue.generalData.selectedMenu ) {
+            case 'hasExtended':
+                type = tsmltParams.hasExtended ? 'hasExtended' : 'settings';
+                break;
+            default:
+        }
+        return type;
+    };
+    
     return (
             <Layout className="tttme-App" style={{
                 padding: '10px',
@@ -188,11 +229,12 @@ function App() {
                     <MainHeader/>
                 </Sider>
                 <Layout className="layout" style={{ padding: '10px', overflowY: 'auto' }} >
-                    { 'settings' === stateValue.generalData.selectedMenu && <Settings/>  }
-                    { 'mediatable' === stateValue.generalData.selectedMenu && <Datatable /> }
-                    { 'mediarename' === stateValue.generalData.selectedMenu && <RenamerTableData/> }
-                    { 'rubbishfile' === stateValue.generalData.selectedMenu && <RabbisFile/> }
-                    { 'needsupport' === stateValue.generalData.selectedMenu && <NeedSupport/> }
+                    { 'settings' === getContentType() && <Settings/>  }
+                    { 'mediaTable' === getContentType() && <Datatable /> }
+                    { 'mediaRename' === getContentType() && <RenamerTableData/> }
+                    { 'rubbishFile' === getContentType() && <RabbisFile/> }
+                    { 'hasExtended' === getContentType() ? <Extended/> : null }
+                    { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
             </Layout>
     );

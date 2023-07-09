@@ -18,6 +18,13 @@ const Api = Axios.create({
     }
 });
 
+// const ApiPro = Axios.create({
+//     baseURL: `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`,
+//     headers: {
+//         'X-WP-Nonce': tsmltParams.rest_nonce
+//     }
+// });
+
 export const notifications = ( isTrue, text ) => {
     const message = {
         message: text, //response.data.message,
@@ -69,3 +76,19 @@ export const getOptions = async () => {
     return await Api.get(`/getoptions`);
 }
 
+export const updateExtensionOptions = async ( prams ) => {
+    const response = await Api.post(`/update/extension/options`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}
+
+export const getExtensionOptions = async () => {
+    return await Api.get(`/get/extension/options`);
+}
+
+// export const activateLicense = async ( license_key ) => {
+//     const response = await Axios.get(`${tsmltParams.restApiUrl}lmfwc/v2/licenses/activate/${license_key}`);
+//     //notifications( 200 === response.status && response.data.updated, response.data.message );
+//     console.log( response )
+//     return response;
+// }

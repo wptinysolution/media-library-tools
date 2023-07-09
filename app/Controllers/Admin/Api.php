@@ -83,37 +83,33 @@ class Api {
 
 		$parameters = $request_data->get_params();
 
-		// error_log( print_r( $parameters , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
 		$limit = absint( get_user_option( 'upload_per_page', get_current_user_id() ) );
 
-		$limit = $limit ? $limit : 20;
+		$limit = $limit ?? 20;
 
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
-		$media_per_page = ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : $limit;
+		$media_per_page = $parameters['media_per_page'] ?? $limit;
 
 		if ( ! empty( $parameters['media_per_page'] ) ) {
 			$tsmlt_media['media_per_page'] = absint( $media_per_page );
 		}
 
-		if ( ! empty( $parameters['media_table_column'] ) ) {
-			$tsmlt_media['media_table_column'] = $parameters['media_table_column'];
-		}
+		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
-		$tsmlt_media['default_alt_text'] = ! empty( $parameters['default_alt_text'] ) ? $parameters['default_alt_text'] : '';
+		$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'] ?? '';
 
-		$tsmlt_media['default_caption_text'] = ! empty( $parameters['default_caption_text'] ) ? $parameters['default_caption_text'] : '';
+		$tsmlt_media['default_caption_text'] = $parameters['default_caption_text'] ?? '';
 
-		$tsmlt_media['default_desc_text'] = ! empty( $parameters['default_desc_text'] ) ? $parameters['default_desc_text'] : '';
+		$tsmlt_media['default_desc_text'] = $parameters['default_desc_text'] ?? '';
 
-		$tsmlt_media['media_default_alt'] = ! empty( $parameters['media_default_alt'] ) ? $parameters['media_default_alt'] : '';
+		$tsmlt_media['media_default_alt'] = $parameters['media_default_alt'] ?? '';
 
-		$tsmlt_media['media_default_caption'] = ! empty( $parameters['media_default_caption'] ) ? $parameters['media_default_caption'] : '';
+		$tsmlt_media['media_default_caption'] = $parameters['media_default_caption'] ?? '';
 
-		$tsmlt_media['media_default_desc'] = ! empty( $parameters['media_default_desc'] ) ? $parameters['media_default_desc'] : '';
+		$tsmlt_media['media_default_desc'] = $parameters['media_default_desc'] ?? '';
 
-		$tsmlt_media['others_file_support'] = ! empty( $parameters['others_file_support'] ) ? $parameters['others_file_support'] : [];
+		$tsmlt_media['others_file_support'] = $parameters['others_file_support'] ?? [];
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
@@ -121,11 +117,8 @@ class Api {
 
 		$result['message'] = ! $result['updated'] ? $result['message'] . esc_html__( 'Please try to fix', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
 
-		//error_log( print_r( $result , true) . "\n\n", 3, __DIR__.'/logg.txt');
-
 		return $result;
 	}
-
 	/**
 	 * @return false|string
 	 */
