@@ -26,7 +26,7 @@ class Review {
 	 * @return void
 	 */
 	private function __construct() {
-		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ] );
+		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ], 1 );
 		add_action( 'admin_init', [ $this, 'tsmlt_spare_me' ], 5 );
 		add_action( 'admin_footer', [ $this, 'deactivation_popup' ], 99 );
 	}
@@ -620,7 +620,6 @@ class Review {
                         window.location.href = href;
                     }
 
-
                     $.ajax({
                         url: 'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
                         method: 'GET',
@@ -646,8 +645,9 @@ class Review {
                             $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog('close');
                             window.location.href = href;
                         }
-
                     });
+
+                    window.location.href = href;
                 }
 
                 // Store data in local storage with an expiration time of 1 hour

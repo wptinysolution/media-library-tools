@@ -77,17 +77,17 @@ export const getOptions = async () => {
 }
 
 export const updateExtensionOptions = async ( prams ) => {
-    const response = await Api.post(`/update/extension/options`, prams );
+    const response = await Api.post(`/updateExtensionOptions`, prams );
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }
 
 export const getExtensionOptions = async () => {
-    return await Api.get(`/get/extension/options`);
+    return await Api.get(`/getExtensionOptions`);
 }
 
-export const activateLicense = async (  prams = {} ) => {
-    const response = await Api.get(`/licenses/activate/`, { params: prams } );
-    notifications( 200 === response.status && response.data.updated, response.data.message );
+export const activateLicense = async ( prams ) => {
+    const response = await Api.post(`/licensesActivate`, prams );
+    await notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }

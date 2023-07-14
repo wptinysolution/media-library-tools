@@ -28,11 +28,17 @@ function Extended() {
 
     const handleActivateLicense = async () => {
         const response = await activateLicense( stateValue.extended );
-        if( 200 === parseInt( response.status ) ){
 
+        if( 200 === parseInt( response.status ) ){
+            // dispatch({
+            //     ...stateValue,
+            //     type: Types.UPDATE_EXTENSION,
+            //     saveType: Types.UPDATE_EXTENSION,
+            // })
         }
         console.log( 'handleUpdateOption' );
     }
+    
     return (
         <Layout style={{position: 'relative'}}>
             { stateValue.extended.isLoading ? <Loader/> :

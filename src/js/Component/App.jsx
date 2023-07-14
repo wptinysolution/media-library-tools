@@ -233,7 +233,7 @@ function App() {
                     { 'mediaTable' === getContentType() && <Datatable /> }
                     { 'mediaRename' === getContentType() && <RenamerTableData/> }
                     { 'rubbishFile' === getContentType() && <RabbisFile/> }
-                    { 'hasExtended' === getContentType() && <Extended/> }
+                    {/*{ 'hasExtended' === getContentType() && <Extended/> }*/}
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
             </Layout>
