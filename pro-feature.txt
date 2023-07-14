@@ -1,3 +1,0 @@
-1. Drag and drop Feature
-2. Unuse image Finder
-3. Add Image Watermark

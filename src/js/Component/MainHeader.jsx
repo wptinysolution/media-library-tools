@@ -23,6 +23,47 @@ function MainHeader() {
         borderRadius: 0,
         paddingInline: '10px',
     }
+    const menuItems = [
+        {
+            key: 'settings',
+            label: 'Media Settings',
+            icon: <SettingOutlined />,
+            style: menuItemStyle
+        },
+        {
+            key: 'mediaTable',
+            label: 'Media Table',
+            icon: <UnorderedListOutlined />,
+            style: menuItemStyle,
+        },
+        {
+            key: 'mediaRename',
+            label: 'Media Rename',
+            icon: <EditOutlined />,
+            style: menuItemStyle,
+        },
+        {
+            key: 'rubbishFile',
+            label: 'Rubbish file',
+            icon: <DeleteOutlined />,
+            style: menuItemStyle,
+        },
+        {
+            key: 'needSupport',
+            label: 'Need Support',
+            icon: <ContactsOutlined />,
+            style: menuItemStyle,
+        }
+    ];
+
+    // if ( tsmltParams.hasExtended ){
+    //     menuItems.unshift({
+    //         key: 'hasExtended',
+    //         label: 'Licence',
+    //         icon: <SettingOutlined />,
+    //         style: menuItemStyle
+    //     });
+    // }
 
     return (
 
@@ -41,38 +82,7 @@ function MainHeader() {
                 theme="dark"
                 mode="inline"
                 defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
-                items={[
-                    {
-                        key: 'settings',
-                        label: 'Media Settings',
-                        icon: <SettingOutlined />,
-                        style: menuItemStyle
-                    },
-                    {
-                        key: 'mediatable',
-                        label: 'Media Table',
-                        icon: <UnorderedListOutlined />,
-                        style: menuItemStyle,
-                    },
-                    {
-                        key: 'mediarename',
-                        label: 'Media Rename',
-                        icon: <EditOutlined />,
-                        style: menuItemStyle,
-                    },
-                    {
-                        key: 'rubbishfile',
-                        label: 'Rubbish file',
-                        icon: <DeleteOutlined />,
-                        style: menuItemStyle,
-                    },
-                    {
-                        key: 'needsupport',
-                        label: 'Need Support',
-                        icon: <ContactsOutlined />,
-                        style: menuItemStyle,
-                    }
-                ]}
+                items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                     dispatch({
                         type: Types.GENERAL_DATA,

@@ -26,7 +26,7 @@ class Review {
 	 * @return void
 	 */
 	private function __construct() {
-		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ] );
+		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ], 1 );
 		add_action( 'admin_init', [ $this, 'tsmlt_spare_me' ], 5 );
 		add_action( 'admin_footer', [ $this, 'deactivation_popup' ], 99 );
 	}
@@ -325,42 +325,42 @@ class Review {
 		$this->dialog_box_style();
 		$this->deactivation_scripts();
 		?>
-        <div id="deactivation-dialog-<?php echo $this->textdomain; ?>" title="Quick Feedback">
+        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback">
             <!-- Modal content -->
             <div class="modal-content">
-                <div id="feedback-form-body-<?php echo $this->textdomain; ?>">
+                <div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
 
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $this->textdomain; ?>-bug_issue_detected" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-bug_issue_detected" class="feedback-input"
                                type="radio" name="reason_key" value="bug_issue_detected">
-                        <label for="feedback-deactivate-<?php echo $this->textdomain; ?>-bug_issue_detected" class="feedback-label">Bug Or Issue detected.</label>
+                        <label for="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-bug_issue_detected" class="feedback-label">Bug Or Issue detected.</label>
                     </div>
 
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $this->textdomain; ?>-no_longer_needed" class="feedback-input" type="radio"
+                        <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-no_longer_needed" class="feedback-input" type="radio"
                                name="reason_key" value="no_longer_needed">
-                        <label for="feedback-deactivate-<?php echo $this->textdomain; ?>-no_longer_needed" class="feedback-label">I no longer
+                        <label for="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-no_longer_needed" class="feedback-label">I no longer
                             need the plugin</label>
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $this->textdomain; ?>-found_a_better_plugin" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-found_a_better_plugin" class="feedback-input"
                                type="radio" name="reason_key" value="found_a_better_plugin">
-                        <label for="feedback-deactivate-<?php echo $this->textdomain; ?>-found_a_better_plugin" class="feedback-label">I found a
+                        <label for="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-found_a_better_plugin" class="feedback-label">I found a
                             better plugin</label>
                         <input class="feedback-feedback-text" type="text" name="reason_found_a_better_plugin"
                                placeholder="Please share the plugin name">
                     </div>
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $this->textdomain; ?>-couldnt_get_the_plugin_to_work" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-couldnt_get_the_plugin_to_work" class="feedback-input"
                                type="radio" name="reason_key" value="couldnt_get_the_plugin_to_work">
-                        <label for="feedback-deactivate-<?php echo $this->textdomain; ?>-couldnt_get_the_plugin_to_work" class="feedback-label">I
+                        <label for="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-couldnt_get_the_plugin_to_work" class="feedback-label">I
                             couldn't get the plugin to work</label>
                     </div>
 
                     <div class="feedback-input-wrapper">
-                        <input id="feedback-deactivate-<?php echo $this->textdomain; ?>-temporary_deactivation" class="feedback-input"
+                        <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-temporary_deactivation" class="feedback-input"
                                type="radio" name="reason_key" value="temporary_deactivation">
-                        <label for="feedback-deactivate-<?php echo $this->textdomain; ?>-temporary_deactivation" class="feedback-label">It's a
+                        <label for="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-temporary_deactivation" class="feedback-label">It's a
                             temporary deactivation</label>
                     </div>
                     <span style="color:red;font-size: 16px;"></span>
@@ -369,8 +369,8 @@ class Review {
                     Please let us know about any issues you are facing with the plugin.
                     How can we improve the plugin?
                 </p>
-                <div class="feedback-text-wrapper-<?php echo $this->textdomain; ?>">
-                    <textarea id="deactivation-feedback-<?php echo $this->textdomain; ?>" rows="4" cols="40"
+                <div class="feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?>">
+                    <textarea id="deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>" rows="4" cols="40"
                               placeholder=" Write something here. How can we improve the plugin?"></textarea>
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
@@ -413,7 +413,7 @@ class Review {
                 }
             }
 
-            #deactivation-dialog-<?php echo $this->textdomain; ?> {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> {
                 display: none;
             }
 
@@ -422,7 +422,7 @@ class Review {
             }
 
             /* The Modal (background) */
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal {
                 display: none; /* Hidden by default */
                 position: fixed; /* Stay in place */
                 z-index: 1; /* Sit on top */
@@ -435,40 +435,40 @@ class Review {
             }
 
             /* Modal Content */
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal-content {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content {
                 position: relative;
                 margin: auto;
                 padding: 0;
             }
 
 
-            #deactivation-dialog-<?php echo $this->textdomain ; ?> .feedback-label {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ) ; ?> .feedback-label {
                 font-size: 15px;
             }
 
-            div#deactivation-dialog-<?php echo $this->textdomain ; ?> p {
+            div#deactivation-dialog-<?php echo esc_attr( $this->textdomain ) ; ?> p {
                 font-size: 16px;
             }
 
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal-content > * {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content > * {
                 width: 100%;
                 padding: 5px 2px;
                 overflow: hidden;
             }
 
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal-content textarea {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content textarea {
                 border: 1px solid rgba(0, 0, 0, 0.3);
                 padding: 15px;
                 width: 100%;
             }
 
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal-content input.feedback-feedback-text {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content input.feedback-feedback-text {
                 border: 1px solid rgba(0, 0, 0, 0.3);
                 min-width: 250px;
             }
 
             /* The Close Button */
-            #deactivation-dialog-<?php echo $this->textdomain; ?> input[type="radio"] {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> input[type="radio"] {
                 margin: 0;
             }
 
@@ -477,7 +477,7 @@ class Review {
                 font-weight: 600;
             }
 
-            #deactivation-dialog-<?php echo $this->textdomain; ?> .modal-body {
+            #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-body {
                 padding: 2px 16px;
             }
 
@@ -522,7 +522,7 @@ class Review {
                 z-index: 99;
             }
 
-            div#deactivation-dialog-<?php echo $this->textdomain; ?>,
+            div#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>,
             .ui-draggable .ui-dialog-titlebar {
                 padding: 18px 15px;
                 box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
@@ -575,7 +575,7 @@ class Review {
                         // window.location.href = href;
                         // return;
                     }
-                    $('#deactivation-dialog-<?php echo $this->textdomain; ?>').dialog({
+                    $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
                         modal: true,
                         width: 500,
                         show: {
@@ -605,21 +605,20 @@ class Review {
                 // Submit the feedback
                 function submitFeedback() {
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
-                    var reasons = $('#deactivation-dialog-<?php echo $this->textdomain; ?> input[type="radio"]:checked').val();
-                    var feedback = $('#deactivation-feedback-<?php echo $this->textdomain; ?>').val();
-                    var better_plugin = $('#deactivation-dialog-<?php echo $this->textdomain; ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
+                    var reasons = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> input[type="radio"]:checked').val();
+                    var feedback = $('#deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>').val();
+                    var better_plugin = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
                     if (!reasons && !feedback && !better_plugin) {
                         // Define flag variables
-                        $('#feedback-form-body-<?php echo $this->textdomain; ?> span').text('Choose The Reason');
-                        $('.feedback-text-wrapper-<?php echo $this->textdomain; ?> span').text('Please provide me with some advice.');
+                        $('#feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?> span').text('Choose The Reason');
+                        $('.feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?> span').text('Please provide me with some advice.');
                         return;
                     }
 
                     if ('temporary_deactivation' == reasons && !feedback) {
                         window.location.href = href;
                     }
-
 
                     $.ajax({
                         url: 'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
@@ -643,11 +642,12 @@ class Review {
                             console.error('Error', error);
                         },
                         complete: function (xhr, status) {
-                            $('#deactivation-dialog-<?php echo $this->textdomain; ?>').dialog('close');
+                            $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog('close');
                             window.location.href = href;
                         }
-
                     });
+
+                    window.location.href = href;
                 }
 
                 // Store data in local storage with an expiration time of 1 hour

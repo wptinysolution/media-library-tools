@@ -3,6 +3,7 @@
 import * as Types from "./actionType";
 
 import {defaultBulkSubmitData} from "./UtilData";
+import {UPDATE_EXTENSION} from "./actionType";
 
 export const initialState = {
 	saveType: null,
@@ -29,6 +30,12 @@ export const initialState = {
 	rename:{
 		formEdited : false,
 	},
+	extended: {
+		isLoading: true,
+		extendedKey:'',
+		isReadyToValidate: false,
+		isValidate: false,
+	},
 	options: {
 		isLoading: true,
 		media_table_column: [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
@@ -41,7 +48,7 @@ export const initialState = {
 		isLoading: true,
 		selectedMenu: localStorage.getItem("current_menu") || 'settings',
 		dateList: {},
-		termsList: {},
+		termsList: {}
 	},
 	rubbishMedia:{
 		isLoading: true,
@@ -69,6 +76,12 @@ const reducer = (state, action) => {
 				...state,
 				saveType: action.saveType,
 				options: action.options,
+			};
+		case Types.UPDATE_EXTENSION:
+			return {
+				...state,
+				saveType: action.saveType,
+				extended: action.extended,
 			};
 		case Types.UPDATE_RENAMER_MEDIA:
 			return {

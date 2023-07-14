@@ -62,7 +62,7 @@ function RenamerTableData() {
     return (
             <Layout className="layout">
                 <RenamerMainHeader/>
-                { stateValue.mediaData.isLoading || ! stateValue.mediaData.total_post > 0 ?  <Loader/> :
+                { stateValue.mediaData.isLoading || stateValue.mediaData.total_post < 0 ?  <Loader/> :
                     <Content>
                         <Table
                             rowKey={(item) => item.ID}

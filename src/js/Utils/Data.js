@@ -18,7 +18,7 @@ const Api = Axios.create({
     }
 });
 
-export const notifications = (isTrue, text) => {
+export const notifications = ( isTrue, text ) => {
     const message = {
         message: text, //response.data.message,
         placement: 'topRight',
@@ -72,5 +72,21 @@ export const getOptions = async () => {
 export const getRabbisFile = async () => {
     const result = await Api.get(`/getrabbisfile`);
     return JSON.parse(result.data);
+}
+
+export const updateExtensionOptions = async ( prams ) => {
+    const response = await Api.post(`/updateExtensionOptions`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}
+
+export const getExtensionOptions = async () => {
+    return await Api.get(`/getExtensionOptions`);
+}
+
+export const activateLicense = async ( prams ) => {
+    const response = await Api.post(`/licensesActivate`, prams );
+    await notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
 }
 
