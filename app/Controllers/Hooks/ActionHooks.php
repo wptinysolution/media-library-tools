@@ -8,6 +8,7 @@
 namespace TinySolutions\mlt\Controllers\Hooks;
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -15,14 +16,23 @@ defined( 'ABSPATH' ) || exit();
  * Main ActionHooks class.
  */
 class ActionHooks {
+
+	/**
+	 * Singleton
+	 */
+	use SingletonTrait;
+
 	/**
 	 * Init Hooks.
 	 *
 	 * @return void
 	 */
-	public static function init_hooks() {
-        add_action( 'manage_media_custom_column', [ __CLASS__, 'display_column_value' ], 10, 2 );
-		add_action( 'add_attachment', [ __CLASS__, 'add_image_info_to' ]  );
+	private function __construct() {
+        add_action( 'manage_media_custom_column', [ $this, 'display_column_value' ], 10, 2 );
+		add_action( 'add_attachment', [ $this, 'add_image_info_to' ]  );
+		// Hook the function to a cron job
+		add_action( 'init', [ $this, 'schedule_rabbis_cron_job' ] );
+		add_action( 'tsmltpro_upload_directory_scan', [ $this, 'scan_upload_directory_wrapper' ] );
 	}
 
 	/***
@@ -30,7 +40,7 @@ class ActionHooks {
 	 *
 	 * @return mixed
 	 */
-	public static function add_image_info_to( $post_id ) {
+	public function add_image_info_to( $post_id ) {
 		$options = Fns::get_options();
 		$image_title = get_the_title( $post_id ) ;
 
@@ -64,7 +74,7 @@ class ActionHooks {
      * @param $post_id
      * @return void
      */
-    public static function display_column_value( $column, $post_id ) {
+    public function display_column_value( $column, $post_id ) {
         $image = Fns::wp_get_attachment( $post_id );
         switch ( $column ) {
             case 'alt':
@@ -107,5 +117,88 @@ class ActionHooks {
         }
     }
 
+	/**
+	 * @param $directory
+	 * @param $offset
+	 *
+	 * @return array
+	 */
+	public function scan_upload_directory( $directory, $offset = 0 ) {
+		$found_files = array();
+		$scanned_files = array();
+
+		$files = scandir( $directory );
+
+		foreach ( $files as $file ) {
+			if ( $file === '.' || $file === '..' ) {
+				continue;
+			}
+
+			$path = $directory . '/' . $file;
+
+			if ( is_file( $path ) ) {
+				$scanned_files[] = $path;
+			} elseif ( is_dir( $path ) ) {
+				$subdirectory_files = $this->scan_upload_directory( $path );
+				$scanned_files = array_merge( $scanned_files, $subdirectory_files );
+			}
+		}
+
+		$total_files = count( $scanned_files );
+		$end_offset = min( $offset + 50, $total_files );
+
+		for ( $i = $offset; $i < $end_offset; $i++ ) {
+			$found_files[] = $scanned_files[ $i ];
+		}
+
+		return $found_files;
+	}
+
+	/**
+	 * Function to scan the upload directory and search for files
+	 * @return void
+	 */
+	public function scan_upload_directory_wrapper() {
+		$upload_dir = wp_upload_dir(); // Get the upload directory path
+		$directory  = $upload_dir['basedir']; // Get the base directory path
+
+		$last_processed_offset = 0; // Initialize the offset
+
+		// Retrieve the last processed offset from the previous run, if available
+		$last_processed_offset_path = __DIR__ . '/last_processed_offset.txt';
+		if ( file_exists( $last_processed_offset_path ) ) {
+			$last_processed_offset = (int) trim( file_get_contents( $last_processed_offset_path ) );
+		}
+
+		$found_files = $this->scan_upload_directory( $directory, $last_processed_offset ); // Scan the directory and search for files
+
+		$found_files_count = count( $found_files );
+
+		if ( $found_files_count > 0 ) {
+			// Process the found files here or perform any other actions you need
+			foreach ( $found_files as $file ) {
+				// Do something with each file, e.g., display its name
+				echo $file . '<br>';
+			}
+
+			$next_offset = $last_processed_offset + $found_files_count;
+
+			// Store the next offset for the next run
+			file_put_contents( $last_processed_offset_path, $next_offset );
+		} else {
+			// No new files found, clear the last processed offset
+			file_put_contents( $last_processed_offset_path, '0' );
+		}
+	}
+
+	/**
+	 * Schedule the cron job
+	 * @return void
+	 */
+	public function schedule_rabbis_cron_job() {
+		if ( ! wp_next_scheduled( 'tsmltpro_upload_directory_scan' ) ) {
+			wp_schedule_event( time(), 'everyminute', 'tsmltpro_upload_directory_scan' );
+		}
+	}
 
 }

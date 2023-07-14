@@ -21,7 +21,8 @@ class FilterHooks {
 	 * @return void
 	 */
 	public static function init_hooks() {
-        // Plugins Setting Page.
+
+		// Plugins Setting Page.
         add_filter( 'plugin_action_links_' . TSMLT_BASENAME,  [ __CLASS__, 'plugins_setting_links' ] );
         add_filter( 'manage_media_columns', [ __CLASS__, 'media_custom_column' ] );
         add_filter( 'manage_upload_sortable_columns', [ __CLASS__,  'media_sortable_columns' ] );
@@ -34,6 +35,9 @@ class FilterHooks {
 		// SVG File Permission.
 		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
         add_filter( 'wp_check_filetype_and_ext',  [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
+
+		// Cron Interval for check image file.
+		add_filter( 'cron_schedules', [ __CLASS__, 'rabbis_add_cron_interval' ] );
 
 	}
 	/**
@@ -254,6 +258,19 @@ class FilterHooks {
 			return array_merge($links, $row_meta);
 		}
 		return (array)$links;
+	}
+
+	/**
+	 * @param $schedules
+	 *
+	 * @return mixed
+	 */
+	public static function rabbis_add_cron_interval( $schedules ) {
+		$schedules['everyminute'] = array(
+			'interval'  => 60, // time in seconds
+			'display'   => 'Every Minute'
+		);
+		return $schedules;
 	}
 
 

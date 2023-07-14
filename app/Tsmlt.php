@@ -123,7 +123,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
             SubMenu::instance();
             RegisterPostAndTax::instance();
             FilterHooks::init_hooks();
-			ActionHooks::init_hooks();
+			ActionHooks::instance();
             Api::instance();
 
 			do_action( 'tsmlt/after_loaded' );

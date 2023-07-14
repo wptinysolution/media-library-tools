@@ -43,6 +43,8 @@ class Installation {
     /**
      * @return void
      */
-    public static function deactivation() { }
+    public static function deactivation() {
+		wp_clear_scheduled_hook( 'tsmltpro_upload_directory_scan' );
+    }
 
 }
