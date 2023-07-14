@@ -32,7 +32,7 @@ class ActionHooks {
 		add_action( 'add_attachment', [ $this, 'add_image_info_to' ]  );
 		// Hook the function to a cron job
 		add_action( 'init', [ $this, 'schedule_rabbis_cron_job' ] );
-		add_action( 'tsmltpro_upload_directory_scan', [ $this, 'scan_upload_directory_wrapper' ] );
+		add_action( 'tsmlt_upload_directory_scan', [ $this, 'scan_upload_directory_wrapper' ] );
 	}
 
 	/***
@@ -128,14 +128,12 @@ class ActionHooks {
 		$scanned_files = array();
 
 		$files = scandir( $directory );
-
+		$exclude_file = ['.', '..' ];
 		foreach ( $files as $file ) {
-			if ( $file === '.' || $file === '..' ) {
+			if ( in_array( $file, $exclude_file ) ) {
 				continue;
 			}
-
 			$path = $directory . '/' . $file;
-
 			if ( is_file( $path ) ) {
 				$scanned_files[] = $path;
 			} elseif ( is_dir( $path ) ) {
@@ -161,14 +159,8 @@ class ActionHooks {
 	public function scan_upload_directory_wrapper() {
 		$upload_dir = wp_upload_dir(); // Get the upload directory path
 		$directory  = $upload_dir['basedir']; // Get the base directory path
-
-		$last_processed_offset = 0; // Initialize the offset
-
-		// Retrieve the last processed offset from the previous run, if available
-		$last_processed_offset_path = __DIR__ . '/last_processed_offset.txt';
-		if ( file_exists( $last_processed_offset_path ) ) {
-			$last_processed_offset = (int) trim( file_get_contents( $last_processed_offset_path ) );
-		}
+		$rabbis_offset_key = 'tsmlt_rabbis_last_processed_offset';
+		$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
 
 		$found_files = $this->scan_upload_directory( $directory, $last_processed_offset ); // Scan the directory and search for files
 
@@ -178,16 +170,14 @@ class ActionHooks {
 			// Process the found files here or perform any other actions you need
 			foreach ( $found_files as $file ) {
 				// Do something with each file, e.g., display its name
-				echo $file . '<br>';
+
 			}
-
 			$next_offset = $last_processed_offset + $found_files_count;
-
 			// Store the next offset for the next run
-			file_put_contents( $last_processed_offset_path, $next_offset );
+			update_option( $rabbis_offset_key, $next_offset );
 		} else {
 			// No new files found, clear the last processed offset
-			file_put_contents( $last_processed_offset_path, '0' );
+			update_option( $rabbis_offset_key, 0 );
 		}
 	}
 
@@ -196,8 +186,8 @@ class ActionHooks {
 	 * @return void
 	 */
 	public function schedule_rabbis_cron_job() {
-		if ( ! wp_next_scheduled( 'tsmltpro_upload_directory_scan' ) ) {
-			wp_schedule_event( time(), 'everyminute', 'tsmltpro_upload_directory_scan' );
+		if ( ! wp_next_scheduled( 'tsmlt_upload_directory_scan' ) ) {
+			wp_schedule_event( time(), 'everyminute', 'tsmlt_upload_directory_scan' );
 		}
 	}
 
