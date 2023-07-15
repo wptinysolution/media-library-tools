@@ -145,7 +145,10 @@ class ActionHooks {
 
 		$found_files = $this->scan_upload_directory( $filesystem, $directory, $last_processed_offset ); // Scan the directory and search for files
 
-		$found_files_count = count( $found_files );
+		// Skip the files until the offset is reached
+		$files = array_slice( $found_files, $last_processed_offset, 50 );
+
+		$found_files_count = count( $files );
 
 		if ( $found_files_count > 0 ) {
 			global $wpdb;

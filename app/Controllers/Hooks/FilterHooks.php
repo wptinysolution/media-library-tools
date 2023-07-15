@@ -267,7 +267,7 @@ class FilterHooks {
 	 */
 	public static function rabbis_add_cron_interval( $schedules ) {
 		$schedules['everyminute'] = array(
-			'interval'  => 5, // time in seconds
+			'interval'  => 5, // Time in seconds.
 			'display'   => 'Every Minute'
 		);
 		return $schedules;
