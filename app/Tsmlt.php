@@ -56,9 +56,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * Class Constructor
 		 */
 		private function __construct() {
-
 			$this->current_theme = wp_get_theme()->get( 'TextDomain' );
-
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
 			// Register Plugin Active Hook.
