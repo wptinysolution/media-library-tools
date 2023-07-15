@@ -88,17 +88,9 @@ class Api {
 
 		$parameters = $request_data->get_params();
 
-		$limit = absint( get_user_option( 'upload_per_page', get_current_user_id() ) );
-
-		$limit = $limit ?? 20;
-
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
-		$media_per_page = $parameters['media_per_page'] ?? $limit;
-
-		if ( ! empty( $parameters['media_per_page'] ) ) {
-			$tsmlt_media['media_per_page'] = absint( $media_per_page );
-		}
+		$tsmlt_media['media_per_page'] = absint( $parameters['media_per_page'] ?? 20 );
 
 		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 

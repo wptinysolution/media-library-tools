@@ -59,6 +59,8 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			$this->current_theme = wp_get_theme()->get( 'TextDomain' );
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
+			add_action( 'plugins_loaded', [ Installation::class, 'migration' ], 100 );
+
 			// Register Plugin Active Hook.
 			register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
 			// Register Plugin Deactivate Hook.
