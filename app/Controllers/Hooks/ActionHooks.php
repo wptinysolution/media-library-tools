@@ -124,9 +124,7 @@ class ActionHooks {
 	 * @return array
 	 */
 	public function scan_upload_directory( $directory, $offset = 0 ) {
-		$found_files = array();
 		$scanned_files = array();
-
 		$files = scandir( $directory );
 		$exclude_file = ['.', '..' ];
 		foreach ( $files as $file ) {
@@ -138,18 +136,10 @@ class ActionHooks {
 				$scanned_files[] = $path;
 			} elseif ( is_dir( $path ) ) {
 				$subdirectory_files = $this->scan_upload_directory( $path );
-				$scanned_files = array_merge( $scanned_files, $subdirectory_files );
+				$scanned_files = array_unique( array_merge( $scanned_files, $subdirectory_files ) );
 			}
 		}
-
-		$total_files = count( $scanned_files );
-		$end_offset = min( $offset + 50, $total_files );
-
-		for ( $i = $offset; $i < $end_offset; $i++ ) {
-			$found_files[] = $scanned_files[ $i ];
-		}
-
-		return $found_files;
+		return $scanned_files;
 	}
 
 	/**
@@ -161,15 +151,39 @@ class ActionHooks {
 		$directory  = $upload_dir['basedir']; // Get the base directory path
 		$rabbis_offset_key = 'tsmlt_rabbis_last_processed_offset';
 		$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
-
 		$found_files = $this->scan_upload_directory( $directory, $last_processed_offset ); // Scan the directory and search for files
-
+		// error_log( print_r( $found_files, true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 		$found_files_count = count( $found_files );
 
 		if ( $found_files_count > 0 ) {
 			// Process the found files here or perform any other actions you need
-			foreach ( $found_files as $file ) {
-				// Do something with each file, e.g., display its name
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
+			//error_log( print_r( $found_files, true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
+
+			// Process the found files here or perform any other actions you need
+			foreach ( $found_files as $file_path ) {
+
+				// Check if the file_path already exists in the table using cached data
+				$existing_row = wp_cache_get("tsmlt_existing_row_$file_path");
+				if ($existing_row === false) {
+					$existing_row = $wpdb->get_row($wpdb->prepare("SELECT file_path FROM $table_name WHERE file_path = %s", $file_path));
+					// Cache the query result
+					wp_cache_set("tsmlt_existing_row_$file_path", $existing_row);
+				}
+
+//				$attachment_id = $file['attachment_id'] ?? 0;
+//
+//				$file_type = $file['file_type'] ?? '';
+//				$meta_data = $file['meta_data'] ?? '';
+//				// Do something with each file, e.g., display its name
+//				$wpdb->insert( $table_name, array(
+//					'attachment_id' => $attachment_id,
+//					'file_path' => $file_path,
+//					'file_type' => $file_type,
+//					'meta_data' => $meta_data,
+//				));
+//
 
 			}
 			$next_offset = $last_processed_offset + $found_files_count;
