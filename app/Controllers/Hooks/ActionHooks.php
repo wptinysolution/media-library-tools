@@ -9,6 +9,9 @@ namespace TinySolutions\mlt\Controllers\Hooks;
 
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
+use WP_Filesystem;
+use WP_Filesystem_Direct;
+use WP_Filesystem_Base;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -118,72 +121,43 @@ class ActionHooks {
     }
 
 	/**
-	 * @param $directory
-	 * @param $offset
-	 *
-	 * @return array
-	 */
-	public function scan_upload_directory( $directory, $offset = 0 ) {
-		$scanned_files = array();
-		$files = scandir( $directory );
-		$exclude_file = ['.', '..' ];
-		foreach ( $files as $file ) {
-			if ( in_array( $file, $exclude_file ) ) {
-				continue;
-			}
-			$path = $directory . '/' . $file;
-			if ( is_file( $path ) ) {
-				$scanned_files[] = $path;
-			} elseif ( is_dir( $path ) ) {
-				$subdirectory_files = $this->scan_upload_directory( $path );
-				$scanned_files = array_unique( array_merge( $scanned_files, $subdirectory_files ) );
-			}
-		}
-		return $scanned_files;
-	}
-
-	/**
 	 * Function to scan the upload directory and search for files
-	 * @return void
 	 */
 	public function scan_upload_directory_wrapper() {
+		global $wp_filesystem;
+
+		// Initialize the WP filesystem
+		if ( empty( $wp_filesystem ) ) {
+			// Include the file.php for WP filesystem functions
+			include_once ABSPATH . '/wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
 		$upload_dir = wp_upload_dir(); // Get the upload directory path
-		$directory  = $upload_dir['basedir']; // Get the base directory path
+
+		$directory = $upload_dir['basedir']; // Get the base directory path
+
 		$rabbis_offset_key = 'tsmlt_rabbis_last_processed_offset';
+
 		$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
-		$found_files = $this->scan_upload_directory( $directory, $last_processed_offset ); // Scan the directory and search for files
-		// error_log( print_r( $found_files, true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
+
+		$filesystem = $this->get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+
+		$found_files = $this->scan_upload_directory( $filesystem, $directory, $last_processed_offset ); // Scan the directory and search for files
+
 		$found_files_count = count( $found_files );
 
 		if ( $found_files_count > 0 ) {
-			// Process the found files here or perform any other actions you need
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-			//error_log( print_r( $found_files, true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
-
-			// Process the found files here or perform any other actions you need
 			foreach ( $found_files as $file_path ) {
-
 				// Check if the file_path already exists in the table using cached data
-				$existing_row = wp_cache_get("tsmlt_existing_row_$file_path");
-				if ($existing_row === false) {
-					$existing_row = $wpdb->get_row($wpdb->prepare("SELECT file_path FROM $table_name WHERE file_path = %s", $file_path));
+				$existing_row = wp_cache_get( "tsmlt_existing_row_$file_path" );
+				if ( $existing_row === false ) {
+					$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT file_path FROM $table_name WHERE file_path = %s", $file_path ) );
 					// Cache the query result
-					wp_cache_set("tsmlt_existing_row_$file_path", $existing_row);
+					wp_cache_set( "tsmlt_existing_row_$file_path", $existing_row );
 				}
-
-//				$attachment_id = $file['attachment_id'] ?? 0;
-//
-//				$file_type = $file['file_type'] ?? '';
-//				$meta_data = $file['meta_data'] ?? '';
-//				// Do something with each file, e.g., display its name
-//				$wpdb->insert( $table_name, array(
-//					'attachment_id' => $attachment_id,
-//					'file_path' => $file_path,
-//					'file_type' => $file_type,
-//					'meta_data' => $meta_data,
-//				));
-//
 
 			}
 			$next_offset = $last_processed_offset + $found_files_count;
@@ -196,6 +170,51 @@ class ActionHooks {
 	}
 
 	/**
+	 * Get the WP_Filesystem instance
+	 *
+	 * @return WP_Filesystem|WP_Filesystem_Direct The WP_Filesystem instance
+	 */
+	private function get_wp_filesystem_instance() {
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			WP_Filesystem();
+		}
+		// Check if WP_Filesystem_Direct is already instantiated
+		if ( $wp_filesystem instanceof WP_Filesystem_Base && $wp_filesystem instanceof WP_Filesystem_Direct ) {
+			if ( method_exists( $wp_filesystem, 'request_filesystem_credentials' ) ) {
+				$wp_filesystem = new WP_Filesystem_Direct( null );
+			}
+		}
+
+		return $wp_filesystem;
+	}
+
+	/**
+	 * Function to scan the upload directory and search for files.
+	 *
+	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
+	 * @param string $directory The directory to scan.
+	 * @param int $offset The offset to start scanning from.
+	 * @return array The list of found files.
+	 */
+	public function scan_upload_directory( $filesystem, $directory, $offset = 0 ) {
+		$scanned_files = [];
+		// Ensure the directory exists before scanning
+		if ( $filesystem->is_dir( $directory ) ) {
+			$files = $filesystem->dirlist( $directory );
+			foreach ( $files as $file ) {
+				$file_path = trailingslashit( $directory ) . $file['name'];
+				if ( $filesystem->is_dir( $file_path ) ) {
+					$subdirectory_files = $this->scan_upload_directory( $filesystem, $file_path );
+					$scanned_files = array_merge( $scanned_files, $subdirectory_files );
+				} else {
+					$scanned_files[] = $file_path;
+				}
+			}
+		}
+		return $scanned_files;
+	}
+	/**
 	 * Schedule the cron job
 	 * @return void
 	 */
@@ -204,5 +223,10 @@ class ActionHooks {
 			wp_schedule_event( time(), 'everyminute', 'tsmlt_upload_directory_scan' );
 		}
 	}
+
+
+
+
+
 
 }

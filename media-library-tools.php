@@ -32,6 +32,8 @@ define( 'TSMLT_URL', plugins_url('', TSMLT_FILE));
 
 define( 'TSMLT_ABSPATH', dirname(TSMLT_FILE) );
 
+define( 'FS_METHOD', 'direct' );
+
 /**
  * App Init.
  */
