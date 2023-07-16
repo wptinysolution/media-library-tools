@@ -182,7 +182,6 @@ class ActionHooks {
 	public function scan_upload_rabbis_file_cron_job() {
 
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
-		//error_log( print_r( $dis_list, true ) . "\n\n", 3, __DIR__ . '/dis_list.txt' );
 		if ( ! count( $dis_list ) ) {
 			return;
 		}
@@ -215,45 +214,55 @@ class ActionHooks {
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
+
 		foreach ( $found_files as $file_path ) {
 			$search_string = '';
-			$str = explode( 'wp-content/uploads/', $file_path );
-			if ( is_array( $str ) ) {
-				$search_string = '2023/07/Grid-FIle-100x100.jpg';//$str[1];
+			$str           = explode( 'wp-content/uploads/', $file_path );
+			if ( is_array( $str ) && ! empty( $str[1] ) ) {
+				$search_string = $str[1];
 			}
 			$attachment_id = 0;
-			if( $search_string ){
-				$attachment_id = attachment_url_to_postid($search_string);
+			if ( $search_string ) {
+				$attachment_id = attachment_url_to_postid( $search_string );
 			}
-			if( ! $attachment_id ){
-				$search_string = basename( $search_string );
-				$attachment_id = $wpdb->get_var(
+			if ( ! $attachment_id ) {
+				$search_basename = basename( $search_string );
+				$attachment_id   = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT post_id FROM {$wpdb->postmeta}
 				            WHERE meta_key = '_wp_attachment_metadata'
 				            AND meta_value LIKE %s",
-						'%' . $wpdb->esc_like( $search_string ) . '%'
+						'%' . $wpdb->esc_like( $search_basename ) . '%'
 					)
 				);
 			}
 
-			if( absint( $attachment_id ) ){
+			if ( absint( $attachment_id ) ) {
 				continue;
 			}
 
-			$cache_key = "tsmlt_existing_row_" . sanitize_title( $file_path );
+			$cache_key  = "tsmlt_existing_row_" . sanitize_title( $file_path );
+			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			// Check if the file_path already exists in the table using cached data
 			$existing_row = wp_cache_get( $cache_key );
 			if ( $existing_row === false ) {
-				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT file_path FROM $table_name WHERE file_path = %s", $file_path ) );
+				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) );
 				// Cache the query result
+				if ( $existing_row ) {
+					continue;
+				}
+				$save_data = array(
+					'file_path'     => $search_string,
+					'attachment_id' => 0,
+					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION),
+					'meta_data'     => serialize([]),
+				);
+				$wpdb->insert( $table_name, $save_data );
+
 				wp_cache_set( $cache_key, $existing_row );
 			}
 
 		}
-
-
 		update_option( 'tsmlt_get_directory_list', $dis_list );
 	}
 
