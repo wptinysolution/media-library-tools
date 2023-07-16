@@ -36,7 +36,18 @@ class Installation {
 	 * @return void
 	 */
 	public static function deactivation() {
-		wp_clear_scheduled_hook( 'tsmltpro_upload_directory_scan' );
+		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
+
+		/*
+			wp_clear_scheduled_hook( 'tsmltpro_upload_directory_scan' );
+			wp_clear_scheduled_hook( 'tsmlt_upload_directory_inner_file_scan' );
+			wp_clear_scheduled_hook( 'tsmlt_upload_directory_scan' );
+			wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
+			wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+			wp_clear_scheduled_hook( 'tsmlt_upload_inner_dir_scan' );
+		*/
+
 	}
 
 	/**

@@ -151,6 +151,9 @@ class ActionHooks {
 	 * @return array The list of found files.
 	 */
 	public function scan_upload_directory( $directory ) {
+		if( ! $directory ){
+			return [];
+		}
 		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
 		$scanned_files = [];
 		// Ensure the directory exists before scanning.
@@ -173,50 +176,57 @@ class ActionHooks {
 	 * Function to scan the upload directory and search for files
 	 */
 	public function scan_upload_rabbis_file_cron_job() {
-		global $wp_filesystem;
 
-		// Initialize the WP filesystem
-		if ( empty( $wp_filesystem ) ) {
-			// Include the file.php for WP filesystem functions
-			include_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
+		//$rabbis_offset_key = 'tsmlt_rabbis_last_processed_offset';
+		//$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
+
+		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
+
+		if( ! count( $dis_list ) ){
+			return;
+		}
+		$directory = '';
+		foreach ( $dis_list as $key => $item ) {
+			if( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ){
+				continue;
+			}
+			$directory = $key;
 		}
 
-		$upload_dir = wp_upload_dir(); // Get the upload directory path
-
-		$directory = $upload_dir['basedir']; // Get the base directory path
-
-		$rabbis_offset_key = 'tsmlt_rabbis_last_processed_offset';
-
-		$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
-
 		$found_files = $this->scan_upload_directory( $directory ); // Scan the directory and search for files
+		if( ! count( $found_files ) ){
+			return;
+		}
+
+		$dis_list[$directory]['total_items'] = count( $found_files );
+
+		$last_processed_offset = absint( $dis_list[$directory]['counted'] );
 
 		// Skip the files until the offset is reached
-		$files = array_slice( $found_files, $last_processed_offset, 50 );
+		$files = array_slice( $found_files, $last_processed_offset, 20 );
 
 		$found_files_count = count( $files );
+
+		$dis_list[$directory]['counted'] =  $last_processed_offset + $found_files_count;
 
 		if ( $found_files_count > 0 ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			foreach ( $found_files as $file_path ) {
+				$cache_key = "tsmlt_existing_row_" . sanitize_title( $file_path );
 				// Check if the file_path already exists in the table using cached data
-				$existing_row = wp_cache_get( "tsmlt_existing_row_$file_path" );
+				$existing_row = wp_cache_get( $cache_key );
 				if ( $existing_row === false ) {
 					$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT file_path FROM $table_name WHERE file_path = %s", $file_path ) );
 					// Cache the query result
-					wp_cache_set( "tsmlt_existing_row_$file_path", $existing_row );
+					wp_cache_set( $cache_key, $existing_row );
 				}
 
 			}
-			$next_offset = $last_processed_offset + $found_files_count;
-			// Store the next offset for the next run
-			update_option( $rabbis_offset_key, $next_offset );
-		} else {
-			// No new files found, clear the last processed offset
-			update_option( $rabbis_offset_key, 0 );
+
 		}
+
+		update_option('tsmlt_get_directory_list', $dis_list );
 	}
 
 	/**
@@ -236,8 +246,9 @@ class ActionHooks {
 		wp_clear_scheduled_hook( $event_hook );
 		// Schedule the cron job to run every minute
 		wp_schedule_event( time(), 'everyminute', $event_hook );
-
+		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 	}
+
 	/**
 	 * Function to retrieve the list of directories with paths from a given directory.
 	 *
@@ -246,6 +257,9 @@ class ActionHooks {
 	 * @return array The list of directories with their paths.
 	 */
 	public function scan_directory_list( $directory ) {
+		if( ! $directory || ! is_string(  $directory ) ){
+			return [];
+		}
 		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
 		$directories = [];
 		// Ensure the directory exists before scanning
@@ -255,14 +269,17 @@ class ActionHooks {
 				$file_path = trailingslashit($directory) . $file['name'];
 
 				if ($filesystem->is_dir($file_path)) {
-					$subdirectories = $this->scan_directory_list($filesystem, $file_path);
+					$subdirectories = $this->scan_directory_list( $file_path);
 					$directories = array_merge($directories, $subdirectories);
 				} else {
 					// Extract the directory path from the file path
 					$dir_path = dirname($file_path);
 					// Add the directory to the list if it doesn't exist
 					if (!in_array($dir_path, $directories)) {
-						$directories[$dir_path] = [];
+						$directories[$dir_path] = [
+							'total_items' => 0,
+							'counted' => 0
+						];
 					}
 				}
 			}
@@ -276,20 +293,14 @@ class ActionHooks {
 		$subdirectories = wp_cache_get( $cache_key );
 
 		if ( ! $subdirectories ) {
-			global $wp_filesystem;
-			// Initialize the WP filesystem
-			if ( empty( $wp_filesystem ) ) {
-				// Include the file.php for WP filesystem functions
-				include_once ABSPATH . '/wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
 			$upload_dir = wp_upload_dir(); // Get the upload directory path
 			$directory = $upload_dir['basedir']; // Get the base directory path
 			$subdirectories = $this->scan_directory_list( $directory );
 			wp_cache_set( $cache_key, $subdirectories );
 		}
-		$dis_status = get_option( 'tsmlt_get_directory_list' );
-		$subdirectories = wp_parse_args( $dis_status, $subdirectories );
+
+		$dir_status = get_option( 'tsmlt_get_directory_list', [] ) ;
+		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
 		update_option('tsmlt_get_directory_list', $subdirectories );
 
 	}
