@@ -9,9 +9,7 @@ namespace TinySolutions\mlt\Controllers\Hooks;
 
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
-use WP_Filesystem;
-use WP_Filesystem_Direct;
-use WP_Filesystem_Base;
+
 
 defined( 'ABSPATH' ) || exit();
 
@@ -31,11 +29,18 @@ class ActionHooks {
 	 * @return void
 	 */
 	private function __construct() {
-        add_action( 'manage_media_custom_column', [ $this, 'display_column_value' ], 10, 2 );
+
+		add_action( 'manage_media_custom_column', [ $this, 'display_column_value' ], 10, 2 );
 		add_action( 'add_attachment', [ $this, 'add_image_info_to' ]  );
+
 		// Hook the function to a cron job
-		add_action( 'init', [ $this, 'schedule_rabbis_cron_job' ] );
-		add_action( 'tsmlt_upload_directory_scan', [ $this, 'scan_upload_directory_wrapper' ] );
+		add_action( 'init', [ $this, 'schedule_directory_cron_job' ] );
+		add_action( 'tsmlt_upload_dir_scan', [ $this, 'get_directory_list_cron_job' ] );
+
+		// Rabbis Cron Job.
+		add_action( 'init', [ $this, 'schedule_rabbis_file_cron_job' ] );
+		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_upload_rabbis_file_cron_job' ] );
+
 	}
 
 	/***
@@ -121,9 +126,53 @@ class ActionHooks {
     }
 
 	/**
+	 * Schedule the cron job
+	 * @return void
+	 */
+	public function schedule_rabbis_file_cron_job() {
+		$event_hook = 'tsmlt_upload_inner_file_scan';
+		// Check if the cron job is already scheduled
+		$is_scheduled = wp_next_scheduled( $event_hook );
+		if ( $is_scheduled ) {
+			return; // Cron job is already scheduled, no need to proceed further
+		}
+		// Clear any existing scheduled events with the same hook
+		wp_clear_scheduled_hook( $event_hook );
+		// Schedule the cron job to run every minute
+		wp_schedule_event( time(), 'everyminute', $event_hook );
+	}
+
+	/**
+	 * Function to scan the upload directory and search for files.
+	 *
+	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
+	 * @param string $directory The directory to scan.
+	 * @param int $offset The offset to start scanning from.
+	 * @return array The list of found files.
+	 */
+	public function scan_upload_directory( $directory ) {
+		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+		$scanned_files = [];
+		// Ensure the directory exists before scanning.
+		if ( $filesystem->is_dir( $directory ) ) {
+			$files = $filesystem->dirlist( $directory );
+			foreach ( $files as $file ) {
+				$file_path = trailingslashit( $directory ) . $file['name'];
+				if ( $filesystem->is_dir( $file_path ) ) {
+					$subdirectory_files = $this->scan_upload_directory( $file_path );
+					$scanned_files = array_merge( $scanned_files, $subdirectory_files );
+				} else {
+					$scanned_files[] = $file_path;
+				}
+			}
+		}
+		return $scanned_files;
+	}
+
+	/**
 	 * Function to scan the upload directory and search for files
 	 */
-	public function scan_upload_directory_wrapper() {
+	public function scan_upload_rabbis_file_cron_job() {
 		global $wp_filesystem;
 
 		// Initialize the WP filesystem
@@ -141,9 +190,7 @@ class ActionHooks {
 
 		$last_processed_offset = absint( get_option( $rabbis_offset_key ) ); // Initialize the offset
 
-		$filesystem = $this->get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-
-		$found_files = $this->scan_upload_directory( $filesystem, $directory, $last_processed_offset ); // Scan the directory and search for files
+		$found_files = $this->scan_upload_directory( $directory ); // Scan the directory and search for files
 
 		// Skip the files until the offset is reached
 		$files = array_slice( $found_files, $last_processed_offset, 50 );
@@ -173,63 +220,79 @@ class ActionHooks {
 	}
 
 	/**
-	 * Get the WP_Filesystem instance
-	 *
-	 * @return WP_Filesystem|WP_Filesystem_Direct The WP_Filesystem instance
+	 * Schedule the cron job
+	 * @return void
+	 * Schedule the cron job
 	 */
-	private function get_wp_filesystem_instance() {
-		global $wp_filesystem;
-		if ( empty( $wp_filesystem ) ) {
-			WP_Filesystem();
-		}
-		// Check if WP_Filesystem_Direct is already instantiated
-		if ( $wp_filesystem instanceof WP_Filesystem_Base && $wp_filesystem instanceof WP_Filesystem_Direct ) {
-			if ( method_exists( $wp_filesystem, 'request_filesystem_credentials' ) ) {
-				$wp_filesystem = new WP_Filesystem_Direct( null );
-			}
-		}
+	public function schedule_directory_cron_job() {
+		$event_hook = 'tsmlt_upload_dir_scan';
+		// Check if the cron job is already scheduled
+		$is_scheduled = wp_next_scheduled( $event_hook );
 
-		return $wp_filesystem;
+		if ( $is_scheduled ) {
+			return; // Cron job is already scheduled, no need to proceed further
+		}
+		// Clear any existing scheduled events with the same hook
+		wp_clear_scheduled_hook( $event_hook );
+		// Schedule the cron job to run every minute
+		wp_schedule_event( time(), 'everyminute', $event_hook );
+
 	}
-
 	/**
-	 * Function to scan the upload directory and search for files.
+	 * Function to retrieve the list of directories with paths from a given directory.
 	 *
 	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
 	 * @param string $directory The directory to scan.
-	 * @param int $offset The offset to start scanning from.
-	 * @return array The list of found files.
+	 * @return array The list of directories with their paths.
 	 */
-	public function scan_upload_directory( $filesystem, $directory, $offset = 0 ) {
-		$scanned_files = [];
+	public function scan_directory_list( $directory ) {
+		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+		$directories = [];
 		// Ensure the directory exists before scanning
-		if ( $filesystem->is_dir( $directory ) ) {
-			$files = $filesystem->dirlist( $directory );
-			foreach ( $files as $file ) {
-				$file_path = trailingslashit( $directory ) . $file['name'];
-				if ( $filesystem->is_dir( $file_path ) ) {
-					$subdirectory_files = $this->scan_upload_directory( $filesystem, $file_path );
-					$scanned_files = array_merge( $scanned_files, $subdirectory_files );
+		if ($filesystem->is_dir($directory)) {
+			$files = $filesystem->dirlist($directory);
+			foreach ($files as $file) {
+				$file_path = trailingslashit($directory) . $file['name'];
+
+				if ($filesystem->is_dir($file_path)) {
+					$subdirectories = $this->scan_directory_list($filesystem, $file_path);
+					$directories = array_merge($directories, $subdirectories);
 				} else {
-					$scanned_files[] = $file_path;
+					// Extract the directory path from the file path
+					$dir_path = dirname($file_path);
+					// Add the directory to the list if it doesn't exist
+					if (!in_array($dir_path, $directories)) {
+						$directories[$dir_path] = [];
+					}
 				}
 			}
 		}
-		return $scanned_files;
+		return $directories;
 	}
-	/**
-	 * Schedule the cron job
-	 * @return void
-	 */
-	public function schedule_rabbis_cron_job() {
-		if ( ! wp_next_scheduled( 'tsmlt_upload_directory_scan' ) ) {
-			wp_schedule_event( time(), 'everyminute', 'tsmlt_upload_directory_scan' );
+
+	public function get_directory_list_cron_job() {
+
+		$cache_key = 'get_directory_list';
+		$subdirectories = wp_cache_get( $cache_key );
+
+		if ( ! $subdirectories ) {
+			global $wp_filesystem;
+			// Initialize the WP filesystem
+			if ( empty( $wp_filesystem ) ) {
+				// Include the file.php for WP filesystem functions
+				include_once ABSPATH . '/wp-admin/includes/file.php';
+				WP_Filesystem();
+			}
+			$upload_dir = wp_upload_dir(); // Get the upload directory path
+			$directory = $upload_dir['basedir']; // Get the base directory path
+			$subdirectories = $this->scan_directory_list( $directory );
+			wp_cache_set( $cache_key, $subdirectories );
 		}
+		$dis_status = get_option( 'tsmlt_get_directory_list' );
+		$subdirectories = wp_parse_args( $dis_status, $subdirectories );
+		update_option('tsmlt_get_directory_list', $subdirectories );
+
 	}
-
-
-
-
 
 
 }
