@@ -286,6 +286,7 @@ class Api {
 			'post_status'    => $status,
 			'orderby'        => $orderby,
 			'order'          => $order,
+			'paged'          => absint( $paged ),
 		];
 
 		if ( 'meta_query' === $orderby ) {
