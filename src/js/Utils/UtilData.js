@@ -380,24 +380,25 @@ export function RabbisFileColumns(){
         {
             title: <Checkbox checked={ stateValue.rubbishMedia.bulkChecked } />,
             key: 'CheckboxID',
-            dataIndex: 'filepath',
+            dataIndex: 'id',
             width: '50px',
             align: 'center',
-            render:  ( text, record ) => <Checkbox name="file_path" value={text}  />
+            render:  ( id, record ) => <Checkbox name="file_path" value={id}  />
         },
         {
             title: 'File',
             key: 'Image',
-            dataIndex: 'fileUrl',
+            dataIndex: 'file_path',
             width: '150px',
             align: 'top',
-            render: ( url, record, i ) => <Space> <img width={ 80 } src={url} /> </Space>,
+            render: ( file_path, record, i ) => <Space> <img width={ 80 } src={`${tsmltParams.uploadUrl}/${file_path}`} /> </Space>,
         },
         {
-            title: 'File',
-            key: 'Image',
-            dataIndex: 'filepath',
+            title: 'File Path',
+            key: 'FileType',
+            dataIndex: 'file_path',
             align: 'top',
+            render: ( file_path, record, i ) => <Space> { `${tsmltParams.uploadBasedir}/${file_path}` } </Space>,
         }
     ];
 }

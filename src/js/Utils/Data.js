@@ -80,10 +80,6 @@ export const updateExtensionOptions = async ( prams ) => {
     return response;
 }
 
-export const getExtensionOptions = async () => {
-    return await Api.get(`/getExtensionOptions`);
-}
-
 export const activateLicense = async ( prams ) => {
     const response = await Api.post(`/licensesActivate`, prams );
     await notifications( 200 === response.status && response.data.updated, response.data.message );

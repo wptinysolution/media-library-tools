@@ -46,9 +46,7 @@ class FilterHooks {
 	 * @return boolean
 	 */
 	public static function allow_svg_upload( $data, $file, $filename, $mimes ) {
-
         $filetype = wp_check_filetype( $filename, $mimes );
-
         return [
             'ext'				=> $filetype['ext'],
             'type'				=> $filetype['type'],

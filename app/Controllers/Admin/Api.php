@@ -277,6 +277,7 @@ class Api {
 			'post_status'    => $status,
 			'orderby'        => $orderby,
 			'order'          => $order,
+			'paged'          => absint( $paged ),
 		];
 
 		if ( 'meta_query' === $orderby ) {
@@ -456,22 +457,22 @@ class Api {
 	/**
 	 * @return false|string
 	 */
-	public function get_rabbis_file() {
-		$rabbis_file = [
-			[
-				"uploaddir" => "http://woo-cpt.local/wp-content/uploads",
-				"filepath"  => ABSPATH .'wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg',
-				"fileUrl"   => 'http://woo-cpt.local/wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg'
+	public function get_rabbis_file( $request_data ) {
+		global $wpdb;
+		$parameters = $request_data->get_params();
+		$limit = 10;
+		$page = $parameters['paged'] ?? 1;
+		$cache_key  = "tsmlt_unlisted_file";
+		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
+		// Check if the file_path already exists in the table using cached data
+		$existing_row = wp_cache_get( $cache_key );
+		if ( ! $existing_row ) {
+			$existing_row = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name LIMIT %d", $limit ) );
+			// Cache the query result
+			wp_cache_set( $cache_key, $existing_row );
+		}
 
-			],
-			[
-				"uploaddir" => "http://woo-cpt.local/wp-content/uploads",
-				"filepath"  => ABSPATH .'wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg',
-				"fileUrl"   => 'http://woo-cpt.local/wp-content/uploads/2023/06/t-shirt-with-logo-1.jpg'
-			]
-		];
-
-		return wp_json_encode( $rabbis_file );
+		return wp_json_encode( $existing_row );
 	}
 
 

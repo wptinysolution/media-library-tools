@@ -9,9 +9,7 @@ import {
     getOptions,
     updateOptins,
     upDateSingleMedia,
-    submitBulkMediaAction,
-    updateExtensionOptions,
-    getExtensionOptions
+    submitBulkMediaAction
 } from "../Utils/Data";
 
 const { Sider } = Layout;
@@ -53,18 +51,6 @@ function App() {
         console.log( 'getOptions' );
     }
 
-    const getTheExtensionOptions = async () => {
-        const response = await getExtensionOptions();
-        const preparedData =  await JSON.parse( response.data );
-        await dispatch({
-            type: Types.UPDATE_EXTENSION,
-            extended: {
-                isLoading: false,
-                ...preparedData,
-            }
-        });
-        console.log( 'getExtensionOptions' );
-    }
 
     const getDateAndTermsList = async () => {
         const responseDate = await getDates();
@@ -113,14 +99,6 @@ function App() {
            });
        }
        console.log( 'handleUpdateOption' );
-    }
-
-    const handleUpdateExtensionOptions = async () => {
-        const response = await updateExtensionOptions( stateValue.extended );
-        if( 200 === parseInt( response.status ) ){
-           await getTheExtensionOptions();
-        }
-        console.log( 'handleUpdateExtensionOptions' );
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
@@ -175,9 +153,6 @@ function App() {
             case Types.UPDATE_OPTIONS:
                     handleUpdateOption();
                 break;
-            case Types.UPDATE_EXTENSION:
-                    handleUpdateExtensionOptions();
-                break;
             case Types.UPDATE_RENAMER_MEDIA:
                     fileRenamerUpdateSingleMedia();
                 break;
@@ -198,7 +173,6 @@ function App() {
     useEffect(() => {
         getTheOptins();
         getDateAndTermsList();
-        getTheExtensionOptions();
     }, [] );
 
     useEffect(() => {

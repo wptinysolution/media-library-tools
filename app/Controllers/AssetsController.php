@@ -71,7 +71,8 @@ class AssetsController {
 
 			wp_enqueue_style( 'tsmlt-settings' );
 			wp_enqueue_script( 'tsmlt-settings' );
-
+			$upload_dir = wp_upload_dir(); // Get the upload directory path
+			
 			wp_localize_script(
 				'tsmlt-settings',
 				'tsmltParams',
@@ -80,6 +81,8 @@ class AssetsController {
 					'adminUrl'       => esc_url( admin_url() ),
 					'hasExtended'    => function_exists( 'tsmltpro' ),
 					'includesUrl'    => esc_url( includes_url() ),
+					'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
+					'uploadBasedir'  => $upload_dir['basedir'] ?? '',
 					'restApiUrl'     => esc_url_raw( rest_url() ), // site_url(rest_get_url_prefix()),
 					'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
 					tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
