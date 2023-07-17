@@ -100,7 +100,7 @@ const theImage = ( record ) => {
     switch ( type ) {
         case 'image':
             url = record.uploaddir + '/' + record.thefile.file;
-            width = 60;
+            width = 50;
             break;
         case 'audio':
             url = `${tsmltParams.includesUrl}/images/media/audio.png`

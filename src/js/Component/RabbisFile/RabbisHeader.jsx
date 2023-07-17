@@ -5,8 +5,6 @@ import { headerStyle } from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 
-import * as Types from "../../Utils/actionType";
-
 const { Header } = Layout;
 
 const { Title } = Typography;
@@ -31,7 +29,7 @@ function RabbisHeader() {
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
-                }}> Rabbis File Note : This is an Upcoming Feature </Title>
+                }}> Rabbis File Note : A "Rabbis File" refers to a file that exists within a directory but is not included in the media library or database. </Title>
             </Space>
         </Header>
     );

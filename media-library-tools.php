@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Define media edit Constant.
  */
 
-define( 'TSMLT_VERSION', '1.0.14' );
+define( 'TSMLT_VERSION', '1.2.0' );
 
 define( 'TSMLT_FILE', __FILE__ );
 
