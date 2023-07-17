@@ -70,8 +70,7 @@ function RenamerTableData() {
                             columns={ RenameTableColumns }
                             dataSource={ stateValue.mediaData.posts }
                             scroll={{
-                                x: 1300,
-                                y: 900,
+                                x: 1300
                             }}
                         />
                         <Pagination

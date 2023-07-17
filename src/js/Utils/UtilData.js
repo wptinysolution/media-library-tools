@@ -391,7 +391,7 @@ export function RabbisFileColumns(){
             dataIndex: 'file_path',
             width: '150px',
             align: 'top',
-            render: ( file_path, record, i ) => <Space> <img width={ 80 } src={`${tsmltParams.uploadUrl}/${file_path}`} /> </Space>,
+            render: ( file_path, record, i ) => <Space> <img width={ 50 } src={`${tsmltParams.uploadUrl}/${file_path}`} /> </Space>,
         },
         {
             title: 'File Path',

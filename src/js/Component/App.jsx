@@ -50,8 +50,7 @@ function App() {
         });
         console.log( 'getOptions' );
     }
-
-
+    
     const getDateAndTermsList = async () => {
         const responseDate = await getDates();
         const preparedDate =  await JSON.parse( responseDate.data );

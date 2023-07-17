@@ -3,7 +3,6 @@
 import * as Types from "./actionType";
 
 import {defaultBulkSubmitData} from "./UtilData";
-import {UPDATE_EXTENSION} from "./actionType";
 
 export const initialState = {
 	saveType: null,
@@ -53,7 +52,14 @@ export const initialState = {
 	rubbishMedia:{
 		isLoading: true,
 		bulkChecked: false,
-		mediaFile: []
+		mediaFile: [],
+		postQuery: {
+			paged: 1,
+			postsPerPage: 10
+		},
+		paged: 0,
+		totalPost: 0,
+		postsPerPage: 0
 	}
 };
 

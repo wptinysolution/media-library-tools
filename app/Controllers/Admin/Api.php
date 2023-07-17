@@ -460,19 +460,41 @@ class Api {
 	public function get_rabbis_file( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
-		$limit = 10;
+
+		$limit = $parameters['postsPerPage'] ?? 10;
 		$page = $parameters['paged'] ?? 1;
+		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
+
 		$cache_key  = "tsmlt_unlisted_file";
 		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 		// Check if the file_path already exists in the table using cached data
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
-			$existing_row = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name LIMIT %d", $limit ) );
+			$query = $wpdb->prepare("SELECT * FROM $table_name LIMIT %d OFFSET %d", $limit, $offset );
+			$existing_row = $wpdb->get_results( $query );
 			// Cache the query result
 			wp_cache_set( $cache_key, $existing_row );
 		}
 
-		return wp_json_encode( $existing_row );
+		// Media File Count.
+		$total_file_cache = $cache_key . '_total';
+		// Check if the file_path already exists in the table using cached data
+		$total_file = wp_cache_get( $total_file_cache );
+		if ( ! $total_file ) {
+			// Query to retrieve total number of posts
+			$total_query = $wpdb->prepare("SELECT COUNT(*) as total_count FROM $table_name", $table_name );
+			$total_file = $wpdb->get_var( $total_query );
+			wp_cache_set( $total_file_cache, $total_file );
+		}
+
+		$rabbis_data = [
+			'mediaFile' => $existing_row,
+			'paged' => absint( $page ),
+			'totalPost' => absint( $total_file ),
+			'postsPerPage' => absint( $limit )
+		];
+
+		return wp_json_encode( $rabbis_data );
 	}
 
 
