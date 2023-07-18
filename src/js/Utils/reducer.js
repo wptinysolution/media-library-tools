@@ -51,7 +51,6 @@ export const initialState = {
 	},
 	rubbishMedia:{
 		isLoading: true,
-		bulkChecked: false,
 		mediaFile: [],
 		postQuery: {
 			paged: 1,
@@ -60,7 +59,11 @@ export const initialState = {
 		paged: 0,
 		totalPost: 0,
 		postsPerPage: 0
-	}
+	},
+	bulkRabbisData: {
+		bulkChecked: false,
+		ids: [],
+	},
 };
 
 const reducer = (state, action) => {
@@ -110,7 +113,11 @@ const reducer = (state, action) => {
 				...state,
 				rubbishMedia : action.rubbishMedia,
 			};
-
+		case Types.BALK_RUBBISH:
+			return {
+				...state,
+				bulkRabbisData : action.bulkRabbisData,
+			};
 		default:
 			return state;
 	}

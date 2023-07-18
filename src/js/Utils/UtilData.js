@@ -142,11 +142,15 @@ export function columns(){
 
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
+            bulkRabbisData:{
                 ...stateValue.bulkSubmitData,
-                bulkChecked : checkedCount && checkedCount === postCount,
-                ids: changeData
-            },
+                bulkSubmitData: {
+                    ...stateValue.bulkSubmitData.bulkSubmitData,
+                    bulkChecked : checkedCount && checkedCount === postCount,
+                    ids: changeData
+                },
+            }
+
         });
 
     };
@@ -376,14 +380,50 @@ export function RabbisFileColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
+    const onRabbisBulkCheck = (event) => {
+        const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
+        console.log( postsId )
+        dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRabbisData: {
+                ...stateValue.bulkRabbisData,
+                bulkChecked : ! ! postsId.length,
+                ids: postsId
+            },
+        });
+    };
+
+    const onCheckboxChange = (event) => {
+        const value = event.target.value ;
+        const changeData = event.target.checked ? [
+            ...stateValue.bulkRabbisData.ids,
+            value
+        ] : stateValue.bulkRabbisData.ids.filter( item => item !== value );
+
+        const checkedCount = Object.keys( changeData ).length;
+        const postCount = Object.keys( stateValue.rubbishMedia.mediaFile ).length;
+
+        dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRabbisData: {
+                ...stateValue.bulkRabbisData,
+                bulkChecked: ! ! checkedCount && checkedCount === postCount,
+                ids: changeData
+            },
+        });
+
+    };
+
+    console.log( stateValue.bulkRabbisData )
+
     return [
         {
-            title: <Checkbox checked={ stateValue.rubbishMedia.bulkChecked } />,
+            title: <Checkbox checked={ stateValue.bulkRabbisData.bulkChecked } onChange={onRabbisBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'id',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox name="file_path" value={id}  />
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRabbisData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
         {
             title: 'File',
