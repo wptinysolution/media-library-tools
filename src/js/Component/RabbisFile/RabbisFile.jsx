@@ -12,7 +12,7 @@ const { Content } = Layout;
 
 import * as Types from "../../Utils/actionType";
 
-import { RabbisFileColumns } from "../../Utils/UtilData";
+import {defaultBulkSubmitData, RabbisFileColumns} from "../../Utils/UtilData";
 import { getRabbisFile } from "../../Utils/Data";
 
 function RabbisFile() {
@@ -45,7 +45,15 @@ function RabbisFile() {
                     paged: current,
                 }
             },
-        })
+        });
+        dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRabbisData: {
+                ...stateValue.bulkRabbisData,
+                bulkChecked: false,
+                ids: [],
+            },
+        });
     }
     const rabbisColumns = RabbisFileColumns();
 
