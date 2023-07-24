@@ -43,14 +43,9 @@ export const initialState = {
 		default_desc_text: "none",
 		others_file_support:[]
 	},
-	generalData:{
-		isLoading: true,
-		selectedMenu: localStorage.getItem("current_menu") || 'settings',
-		dateList: {},
-		termsList: {}
-	},
 	rubbishMedia:{
 		isLoading: true,
+		isDirModalOpen : false,
 		mediaFile: [],
 		postQuery: {
 			paged: 1,
@@ -63,6 +58,13 @@ export const initialState = {
 	bulkRabbisData: {
 		bulkChecked: false,
 		ids: [],
+	},
+	generalData:{
+		isLoading: true,
+		selectedMenu: localStorage.getItem("current_menu") || 'settings',
+		dateList: {},
+		termsList: {},
+		isDirModalOpen: false
 	},
 };
 

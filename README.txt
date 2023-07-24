@@ -1,6 +1,6 @@
-=== Media File Rename, Bulk Edit Media Content, SVG Image Support - Media Library Tools ===
+=== Media File Rename, SVG Support, Bulk Edit Media Content - Media Library Tools ===
 Contributors: tinysolution
-Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
+Tags: image SEO, alt text, SVG Support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
 Stable tag: 1.0.11

@@ -60,7 +60,6 @@ function TheHeader() {
         });
     };
 
-
     const handleBulkSubmit = () => {
         switch( stateValue.bulkSubmitData.type ){
             case 'trash':

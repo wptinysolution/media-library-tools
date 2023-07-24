@@ -13,7 +13,10 @@ const { Content } = Layout;
 import * as Types from "../../Utils/actionType";
 
 import {defaultBulkSubmitData, RabbisFileColumns} from "../../Utils/UtilData";
+
 import { getRabbisFile } from "../../Utils/Data";
+
+import DirectoryModal from "./DirectoryModal";
 
 function RabbisFile() {
 
@@ -88,6 +91,7 @@ function RabbisFile() {
                         onChange={(current) => handlePagination(current)}
                     />
                 </Content>
+                <DirectoryModal />
             </>
             }
         </Layout>
