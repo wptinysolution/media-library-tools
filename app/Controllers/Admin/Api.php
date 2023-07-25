@@ -67,6 +67,16 @@ class Api {
 			'callback'            => [ $this, 'get_rabbis_file' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/getDirList', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_dir_list' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/rescanDirList', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'rescan_dir_list' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
 	}
 
 	/**
@@ -452,6 +462,20 @@ class Api {
 		}
 
 		return $result;
+	}
+	/**
+	 * @return false|string
+	 */
+	public function get_dir_list() {
+		$directory_list  = get_option( 'tsmlt_get_directory_list', [] );
+		return json_encode( $directory_list );
+	}
+	/**
+	 * @return false|string
+	 */
+	public function rescan_dir_list() {
+		$directory_list  = get_option( 'tsmlt_get_directory_list', [] );
+		return json_encode( $directory_list );
 	}
 
 	/**

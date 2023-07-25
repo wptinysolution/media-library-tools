@@ -64,7 +64,8 @@ export const initialState = {
 		selectedMenu: localStorage.getItem("current_menu") || 'settings',
 		dateList: {},
 		termsList: {},
-		isDirModalOpen: false
+		isDirModalOpen: false,
+		scanRabbisDirList: [],
 	},
 };
 

@@ -6,6 +6,7 @@ import { headerStyle } from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
+import {getDates, getDirList, getTerms} from "../../Utils/Data";
 
 const { Header } = Layout;
 
@@ -15,12 +16,15 @@ function RabbisHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
 
-    const handleDirModal = () => {
-        dispatch({
+    const handleDirModal = async () => {
+        const responseDate = await getDirList();
+        const preparedDate =  await JSON.parse( responseDate.data );
+        await dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
                 isDirModalOpen: true,
+                scanRabbisDirList: preparedDate,
             },
         });
     };

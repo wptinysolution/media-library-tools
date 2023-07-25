@@ -69,6 +69,10 @@ export const getOptions = async () => {
     return await Api.get(`/getoptions`);
 }
 
+export const getDirList = async () => {
+    return await Api.get(`/getDirList`);
+}
+
 export const getRabbisFile = async ( prams = {} ) => {
     const result = await Api.get(`/getrabbisfile`, {params: prams} );
     return JSON.parse(result.data);
