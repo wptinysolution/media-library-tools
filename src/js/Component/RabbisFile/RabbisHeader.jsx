@@ -1,12 +1,12 @@
 import React from "react";
 
-import {Typography, Layout, Button, Space, Spin} from 'antd';
+import {Typography, Layout, Button, Space } from 'antd';
 
 import { headerStyle } from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
+
 import * as Types from "../../Utils/actionType";
-import {getDates, getDirList, getTerms} from "../../Utils/Data";
 
 const { Header } = Layout;
 

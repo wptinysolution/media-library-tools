@@ -4,7 +4,6 @@ import {useStateValue} from '../Utils/StateProvider';
 
 import {
     Button,
-    Checkbox,
     Divider,
     Form,
     Input,
@@ -16,7 +15,7 @@ import Loader from "../Utils/Loader";
 
 import * as Types from "../Utils/actionType";
 
-import {activateLicense, updateOptins} from "../Utils/Data";
+import {activateLicense} from "../Utils/Data";
 
 const {Content} = Layout;
 

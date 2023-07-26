@@ -1,18 +1,14 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 
-import {Divider, Input, Modal, List, Layout, Typography, Button, Spin} from 'antd';
+import {Divider, Modal, List, Layout, Button, Spin} from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, getRabbisFile, rescanDirList} from "../../Utils/Data";
+import {getDirList, rescanDirList} from "../../Utils/Data";
 
 const {  Content } = Layout;
-
-const { Title } = Typography;
-
-const { TextArea } = Input;
 
 function DirectoryModal() {
 
@@ -66,9 +62,8 @@ function DirectoryModal() {
 
     useEffect(() => {
         handleDirForModal()
-    }, [ stateValue.generalData.isDirModalOpen ] );
-
-    console.log( stateValue.generalData.scanDir )
+        console.log( 'Hello' )
+    }, [] );
 
     return (
         <Modal
@@ -91,7 +86,7 @@ function DirectoryModal() {
                                 title={ key }
                                 description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Found ${item.total_items} items, And Checked ${item.counted} items.` }` }
                             />
-                            <Button style={ { padding: '0 15px;' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
+                            <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
                                 Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
                             </Button>
                         </List.Item>
