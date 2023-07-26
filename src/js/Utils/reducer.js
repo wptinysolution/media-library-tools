@@ -65,6 +65,7 @@ export const initialState = {
 		dateList: {},
 		termsList: {},
 		isDirModalOpen: false,
+		scanDir: 'all',
 		scanRabbisDirList: [],
 	},
 };

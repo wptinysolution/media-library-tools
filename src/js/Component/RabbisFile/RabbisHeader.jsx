@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Typography, Layout, Button, Space } from 'antd';
+import {Typography, Layout, Button, Space, Spin} from 'antd';
 
 import { headerStyle } from "../../Utils/UtilData";
 
@@ -16,15 +16,13 @@ function RabbisHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
 
-    const handleDirModal = async () => {
-        const responseDate = await getDirList();
-        const preparedDate =  await JSON.parse( responseDate.data );
-        await dispatch({
+    const handleDirModal = () => {
+        dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
                 isDirModalOpen: true,
-                scanRabbisDirList: preparedDate,
+                scanDir: null
             },
         });
     };
@@ -39,7 +37,7 @@ function RabbisHeader() {
                     }}
                     type="primary"
                     size="large"
-                    ghost={ 1 }>  { 'Delete Rabbisd File' }
+                    ghost={ 1 }>  { 'Delete Rabbisd File' }>
                 </Button>
                 <Button
                     style={{
@@ -48,7 +46,9 @@ function RabbisHeader() {
                     type="primary"
                     size="large"
                     onClick={handleDirModal}
-                    ghost={ 1 }>  { 'Directory Scan History' }
+                    ghost={ ! stateValue.generalData.isDirModalOpen }>
+                    { `Directory Scan History` }
+
                 </Button>
 
                 <Title level={5} style={{

@@ -301,24 +301,26 @@ class ActionHooks {
 		$filesystem  = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
 		$directories = [];
 		// Ensure the directory exists before scanning
-		if ( $filesystem->is_dir( $directory ) ) {
-			$files = $filesystem->dirlist( $directory );
-			foreach ( $files as $file ) {
-				$file_path = trailingslashit( $directory ) . $file['name'];
+		if ( ! $filesystem->is_dir( $directory ) ) {
+			return [];
+		}
 
-				if ( $filesystem->is_dir( $file_path ) ) {
-					$subdirectories = $this->scan_directory_list( $file_path );
-					$directories    = array_merge( $directories, $subdirectories );
-				} else {
-					// Extract the directory path from the file path
-					$dir_path = dirname( $file_path );
-					// Add the directory to the list if it doesn't exist
-					if ( ! in_array( $dir_path, $directories ) ) {
-						$directories[ $dir_path ] = [
-							'total_items' => 0,
-							'counted'     => 0
-						];
-					}
+		$files = $filesystem->dirlist( $directory );
+		foreach ( $files as $file ) {
+			$file_path = trailingslashit( $directory ) . $file['name'];
+
+			if ( $filesystem->is_dir( $file_path ) ) {
+				$subdirectories = $this->scan_directory_list( $file_path );
+				$directories    = array_merge( $directories, $subdirectories );
+			} else {
+				// Extract the directory path from the file path
+				$dir_path = dirname( $file_path );
+				// Add the directory to the list if it doesn't exist
+				if ( ! in_array( $dir_path, $directories ) ) {
+					$directories[ $dir_path ] = [
+						'total_items' => 0,
+						'counted'     => 0
+					];
 				}
 			}
 		}

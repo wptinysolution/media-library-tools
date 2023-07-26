@@ -73,7 +73,7 @@ class Api {
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 		register_rest_route( $this->namespace, $this->resource_name . '/rescanDirList', array(
-			'methods'             => 'GET',
+			'methods'             => 'POST',
 			'callback'            => [ $this, 'rescan_dir_list' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
@@ -126,6 +126,7 @@ class Api {
 
 		return $result;
 	}
+
 	/**
 	 * @return false|string
 	 */
@@ -463,19 +464,38 @@ class Api {
 
 		return $result;
 	}
+
 	/**
 	 * @return false|string
 	 */
 	public function get_dir_list() {
-		$directory_list  = get_option( 'tsmlt_get_directory_list', [] );
+		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
+
 		return json_encode( $directory_list );
 	}
+
 	/**
 	 * @return false|string
 	 */
-	public function rescan_dir_list() {
-		$directory_list  = get_option( 'tsmlt_get_directory_list', [] );
-		return json_encode( $directory_list );
+	public function rescan_dir_list( $request_data ) {
+		$parameters = $request_data->get_params();
+		$dir        = $parameters['dir'] ?? 'all';
+		if ( 'all' === $dir ) {
+			$directory_list = [];
+		} else {
+			$directory_list = get_option( 'tsmlt_get_directory_list', [] );
+			$directory_list[ $dir ] = [
+				'total_items' => 0,
+				'counted'     => 0
+			];
+		}
+
+		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
+		return [
+			'updated' => boolval( $options ),
+			'message' => ! boolval( $options ) ? esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' )
+		];
+
 	}
 
 	/**
@@ -485,8 +505,8 @@ class Api {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 
-		$limit = $parameters['postsPerPage'] ?? 10;
-		$page = $parameters['paged'] ?? 1;
+		$limit  = $parameters['postsPerPage'] ?? 10;
+		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 
 		$cache_key  = "tsmlt_unlisted_file";
@@ -494,7 +514,7 @@ class Api {
 		// Check if the file_path already exists in the table using cached data
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
-			$query = $wpdb->prepare("SELECT * FROM $table_name LIMIT %d OFFSET %d", $limit, $offset );
+			$query        = $wpdb->prepare( "SELECT * FROM $table_name LIMIT %d OFFSET %d", $limit, $offset );
 			$existing_row = $wpdb->get_results( $query );
 			// Cache the query result
 			wp_cache_set( $cache_key, $existing_row );
@@ -506,15 +526,15 @@ class Api {
 		$total_file = wp_cache_get( $total_file_cache );
 		if ( ! $total_file ) {
 			// Query to retrieve total number of posts
-			$total_query = $wpdb->prepare("SELECT COUNT(*) as total_count FROM $table_name", $table_name );
-			$total_file = $wpdb->get_var( $total_query );
+			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name", $table_name );
+			$total_file  = $wpdb->get_var( $total_query );
 			wp_cache_set( $total_file_cache, $total_file );
 		}
 
 		$rabbis_data = [
-			'mediaFile' => $existing_row,
-			'paged' => absint( $page ),
-			'totalPost' => absint( $total_file ),
+			'mediaFile'    => $existing_row,
+			'paged'        => absint( $page ),
+			'totalPost'    => absint( $total_file ),
 			'postsPerPage' => absint( $limit )
 		];
 

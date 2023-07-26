@@ -14,13 +14,25 @@ import * as Types from "../../Utils/actionType";
 
 import {defaultBulkSubmitData, RabbisFileColumns} from "../../Utils/UtilData";
 
-import { getRabbisFile } from "../../Utils/Data";
+import {getDirList, getRabbisFile} from "../../Utils/Data";
 
 import DirectoryModal from "./DirectoryModal";
 
 function RabbisFile() {
 
     const [stateValue, dispatch] = useStateValue();
+
+    const handleDirForModal = async () => {
+        const responseDate = await getDirList();
+        const preparedDate =  await JSON.parse( responseDate.data );
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanRabbisDirList: preparedDate
+            },
+        });
+    };
 
     const getTheRabbisFile = async () => {
         const rabbisFile = await getRabbisFile( stateValue.rubbishMedia.postQuery );
@@ -59,6 +71,10 @@ function RabbisFile() {
         });
     }
     const rabbisColumns = RabbisFileColumns();
+
+    useEffect(() => {
+        handleDirForModal()
+    }, [] );
 
     useEffect(() => {
         getTheRabbisFile();
