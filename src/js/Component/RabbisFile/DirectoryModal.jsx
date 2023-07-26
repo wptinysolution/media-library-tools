@@ -89,9 +89,9 @@ function DirectoryModal() {
                         <List.Item>
                             <List.Item.Meta
                                 title={ key }
-                                description={ `Found ${item.total_items} items, And Checked ${item.counted} items` }
+                                description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Found ${item.total_items} items, And Checked ${item.counted} items.` }` }
                             />
-                            <Button key="rescan" onClick={ () => handleDirModalRescan( key ) }>
+                            <Button style={ { padding: '0 15px;' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
                                 Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
                             </Button>
                         </List.Item>
