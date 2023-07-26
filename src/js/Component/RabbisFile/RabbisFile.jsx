@@ -14,7 +14,7 @@ import * as Types from "../../Utils/actionType";
 
 import { RabbisFileColumns} from "../../Utils/UtilData";
 
-import {getDirList, getRabbisFile} from "../../Utils/Data";
+import { getRabbisFile} from "../../Utils/Data";
 
 import DirectoryModal from "./DirectoryModal";
 
@@ -38,6 +38,7 @@ function RabbisFile() {
         });
         console.log( 'getRabbisFile' );
     }
+
     const handlePagination = ( current ) => {
         dispatch({
             type: Types.RUBBISH_MEDIA,
@@ -58,8 +59,8 @@ function RabbisFile() {
             },
         });
     }
-    const rabbisColumns = RabbisFileColumns();
 
+    const rabbisColumns = RabbisFileColumns();
 
     useEffect(() => {
         getTheRabbisFile();

@@ -62,7 +62,6 @@ function DirectoryModal() {
 
     useEffect(() => {
         handleDirForModal()
-        console.log( 'Hello' )
     }, [] );
 
     return (
@@ -71,7 +70,9 @@ function DirectoryModal() {
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
-                <Button key="rescan" onClick={ () => handleDirModalRescan() }> Re-Scan { 'all' === stateValue.generalData.scanDir && <Spin size="small" /> }  </Button>,
+                <Button key="rescan" onClick={ () => handleDirModalRescan() }>
+                    Re-Scan Directory List { 'all' === stateValue.generalData.scanDir && <Spin size="small" /> }
+                </Button>,
                 <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue  </Button>,
             ]}
         >

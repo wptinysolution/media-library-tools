@@ -29,7 +29,6 @@ function RabbisHeader() {
 
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
-
             <Space wrap>
                 <Button
                     style={{
