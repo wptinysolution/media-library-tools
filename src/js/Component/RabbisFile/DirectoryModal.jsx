@@ -90,6 +90,9 @@ function DirectoryModal() {
                             <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
                                 Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
                             </Button>
+                            <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
+                                Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
+                            </Button>
                         </List.Item>
                     ) }
                     locale = {

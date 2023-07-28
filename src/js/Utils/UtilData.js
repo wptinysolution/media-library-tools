@@ -10,6 +10,8 @@ import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
 
+import { rabbisSingleDeleteAction } from "./Data";
+
 const { TextArea } = Input;
 
 export const headerStyle = {
@@ -414,7 +416,22 @@ export function RabbisFileColumns(){
 
     };
 
-    console.log( stateValue.bulkRabbisData )
+    const onRabbisSingleDeleteAction = async (data) => {
+        const response = await rabbisSingleDeleteAction( data );
+        if( 200 === parseInt( response.status ) ) {
+            await dispatch({
+                type: Types.RUBBISH_MEDIA,
+                rubbishMedia: {
+                    ...stateValue.rubbishMedia,
+                    postQuery: {
+                        ...stateValue.rubbishMedia.postQuery,
+                        isQueryUpdate: true,
+                    },
+                },
+            });
+        }
+        console.log( 'rabbisSingleAction' );
+    };
 
     return [
         {
@@ -439,6 +456,14 @@ export function RabbisFileColumns(){
             dataIndex: 'file_path',
             align: 'top',
             render: ( file_path, record, i ) => <Space> { `${tsmltParams.uploadBasedir}/${file_path}` } </Space>,
+        },
+        {
+            title: 'Actions',
+            key: 'FileType',
+            dataIndex: 'file_path',
+            align: 'top',
+            width: '350px',
+            render: ( text, record, i ) => <Button size={`small`} onClick={ () => onRabbisSingleDeleteAction( record ) } > Delete </Button>
         }
     ];
 }

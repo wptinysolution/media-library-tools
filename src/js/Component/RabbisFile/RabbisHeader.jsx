@@ -32,11 +32,12 @@ function RabbisHeader() {
             <Space wrap>
                 <Button
                     style={{
-                        width: '180px'
+                        width: '200px'
                     }}
                     type="primary"
                     size="large"
-                    ghost={ 1 }>  { 'Delete Rabbisd File' }>
+                    ghost={ 1 }>
+                    { 'Delete Selected File Pro' }
                 </Button>
                 <Button
                     style={{
@@ -46,7 +47,7 @@ function RabbisHeader() {
                     size="large"
                     onClick={handleDirModal}
                     ghost={ ! stateValue.generalData.isDirModalOpen }>
-                    { `Directory Scan History` }
+                    { `Directory List` }
 
                 </Button>
 

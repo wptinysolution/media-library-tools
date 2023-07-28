@@ -78,15 +78,15 @@ export const getRabbisFile = async ( prams = {} ) => {
     return JSON.parse(result.data);
 }
 
-export const updateExtensionOptions = async ( prams ) => {
-    const response = await Api.post(`/updateExtensionOptions`, prams );
-    notifications( 200 === response.status && response.data.updated, response.data.message );
-    return response;
-}
-
 export const rescanDirList = async ( prams ) => {
     const response = await Api.post(`/rescanDirList`, prams );
     await notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}
+
+export const rabbisSingleDeleteAction = async (prams) => {
+    const response = await Api.post(`/rabbis/single/delete/action`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
 
@@ -96,3 +96,8 @@ export const activateLicense = async ( prams ) => {
     return response;
 }
 
+export const updateExtensionOptions = async ( prams ) => {
+    const response = await Api.post(`/updateExtensionOptions`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}

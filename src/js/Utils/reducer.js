@@ -49,7 +49,8 @@ export const initialState = {
 		mediaFile: [],
 		postQuery: {
 			paged: 1,
-			postsPerPage: 10
+			postsPerPage: 10,
+			isQueryUpdate: false,
 		},
 		paged: 0,
 		totalPost: 0,

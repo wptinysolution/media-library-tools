@@ -77,6 +77,13 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir_list' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+
+		register_rest_route( $this->namespace, $this->resource_name . '/rabbis/single/delete/action', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'rabbis_single_delete_action' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+
 	}
 
 	/**
@@ -237,7 +244,6 @@ class Api {
 
 		return $result;
 	}
-
 
 	/**
 	 * @param $request_data
@@ -539,6 +545,36 @@ class Api {
 		];
 
 		return wp_json_encode( $rabbis_data );
+	}
+
+
+	/**
+	 * @return false|string
+	 */
+	public function rabbis_single_delete_action( $request_data ) {
+		global $wpdb;
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => true,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+
+		$file_path = $parameters['file_path'] ?? false;
+		if( ! $file_path ){
+			return $result;
+		}
+
+		$upload_dir     = wp_upload_dir(); // Get the upload directory path
+		$directory_path      = $upload_dir['basedir']; // Get the base directory path
+		$full_file_path = $directory_path .'/'. $file_path;
+
+		// error_log( print_r( $full_file_path, true) . "\n\n", 3, __DIR__ . '/log.txt' );
+
+		$result     = [
+			'updated' => true,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+		return $result;
 	}
 
 
