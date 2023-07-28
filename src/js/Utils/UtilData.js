@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 
-import {Button, Checkbox, Space, Input, Layout, Typography } from "antd";
+import {Button, Checkbox, Space, Input, Layout, Typography, Spin } from "antd";
+
 const {
     Text,
     Paragraph
@@ -382,6 +383,8 @@ export function RabbisFileColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
+    const [ deleteCurrentItem, setDeleteCurrentItem] = useState(null );
+
     const onRabbisBulkCheck = (event) => {
         const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
         console.log( postsId )
@@ -417,6 +420,8 @@ export function RabbisFileColumns(){
     };
 
     const onRabbisSingleDeleteAction = async (data) => {
+
+        setDeleteCurrentItem( data.id );
         const response = await rabbisSingleDeleteAction( data );
         if( 200 === parseInt( response.status ) ) {
             await dispatch({
@@ -429,6 +434,8 @@ export function RabbisFileColumns(){
                     },
                 },
             });
+            setDeleteCurrentItem( null );
+
         }
         console.log( 'rabbisSingleAction' );
     };
@@ -463,7 +470,9 @@ export function RabbisFileColumns(){
             dataIndex: 'file_path',
             align: 'top',
             width: '350px',
-            render: ( text, record, i ) => <Button size={`small`} onClick={ () => onRabbisSingleDeleteAction( record ) } > Delete </Button>
+            render: ( text, record, i ) => <Button onClick={ () => onRabbisSingleDeleteAction( record ) } loading={ record.id === deleteCurrentItem } >
+                Delete
+            </Button>
         }
     ];
 }
