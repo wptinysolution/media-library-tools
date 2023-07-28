@@ -524,7 +524,7 @@ class Api {
 
 		$cache_key         = "tsmlt_unlisted_file";
 		$table_name        = $wpdb->prefix . 'tsmlt_unlisted_file';
-		$excluded_statuses = array( 'hide' ); // Add the status values to exclude
+		$excluded_statuses = array( 'show' ); // Add the status values to exclude
 
 		// Add single quotes around each status value
 		$excluded_statuses = array_map(function ($status) {
@@ -537,7 +537,7 @@ class Api {
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
 			$query = $wpdb->prepare(
-				"SELECT * FROM $table_name WHERE status = 'show' LIMIT %d OFFSET %d",
+				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string ) LIMIT %d OFFSET %d",
 				$limit, $offset
 			);
 			//error_log( print_r( $query, true), 3, __DIR__ . '/log.txt' );
@@ -552,7 +552,7 @@ class Api {
 		$total_file = wp_cache_get( $total_file_cache );
 		if ( ! $total_file ) {
 			// Query to retrieve total number of posts
-			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status = 'show'", $table_name );
+			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status IN ( $placeholders_string )", $table_name );
 			$total_file  = $wpdb->get_var( $total_query );
 			wp_cache_set( $total_file_cache, $total_file );
 		}

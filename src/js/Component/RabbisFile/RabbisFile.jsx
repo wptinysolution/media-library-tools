@@ -28,7 +28,6 @@ function RabbisFile() {
             type: Types.RUBBISH_MEDIA,
             rubbishMedia:{
                 ...stateValue.rubbishMedia,
-                bulkChecked: true,
                 isLoading: false,
                 mediaFile: rabbisFile.mediaFile,
                 paged: rabbisFile.paged,
