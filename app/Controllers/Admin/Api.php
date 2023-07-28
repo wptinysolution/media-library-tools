@@ -489,7 +489,7 @@ class Api {
 		if ( 'all' === $dir ) {
 			$directory_list = [];
 		} else {
-			$directory_list = get_option( 'tsmlt_get_directory_list', [] );
+			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
 			$directory_list[ $dir ] = [
 				'total_items' => 0,
 				'counted'     => 0
@@ -497,6 +497,7 @@ class Api {
 		}
 
 		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
+
 		return [
 			'updated' => boolval( $options ),
 			'message' => ! boolval( $options ) ? esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' )
@@ -560,20 +561,27 @@ class Api {
 		];
 
 		$file_path = $parameters['file_path'] ?? false;
-		if( ! $file_path ){
+		if ( ! $file_path ) {
 			return $result;
 		}
 
 		$upload_dir     = wp_upload_dir(); // Get the upload directory path
-		$directory_path      = $upload_dir['basedir']; // Get the base directory path
-		$full_file_path = $directory_path .'/'. $file_path;
+		$directory_path = $upload_dir['basedir']; // Get the base directory path
+		$full_file_path = $directory_path . '/' . $file_path;
+		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
 
-		// error_log( print_r( $full_file_path, true) . "\n\n", 3, __DIR__ . '/log.txt' );
+		$is_deleted = false;
+		if ( file_exists( $full_file_path ) ) {
+			if ( unlink( $full_file_path ) ) {
+				$is_deleted = $wpdb->delete($table_name, array('file_path' => $file_path), array('%s'));
+			}
+		} else{
+			$is_deleted = $wpdb->delete($table_name, array('file_path' => $file_path), array('%s'));
+		}
 
-		$result     = [
-			'updated' => true,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
-		];
+		$result['updated'] = $is_deleted;
+		$result['message'] = $is_deleted ? esc_html__( 'File Deleted.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+
 		return $result;
 	}
 

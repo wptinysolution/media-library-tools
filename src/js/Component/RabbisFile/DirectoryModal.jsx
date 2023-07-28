@@ -66,6 +66,10 @@ function DirectoryModal() {
 
     return (
         <Modal
+            style={{
+                maxWidth: "950px"
+            }}
+            width="100%"
             title={`Directory List`}
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
