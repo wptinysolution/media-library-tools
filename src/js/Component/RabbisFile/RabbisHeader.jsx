@@ -1,8 +1,8 @@
 import React from "react";
 
-import {Typography, Layout, Button, Space } from 'antd';
+import {Typography, Layout, Button, Space, Select} from 'antd';
 
-import { headerStyle } from "../../Utils/UtilData";
+import {bulkOprions, defaultBulkSubmitData, headerStyle, selectStyle} from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 
@@ -27,18 +27,49 @@ function RabbisHeader() {
         });
     };
 
+    const handleChangeBulkType = (value) => {
+        console.log( value )
+    };
+
+    const handleBulkSubmit = ( value ) => {
+        console.log( value )
+        switch( stateValue.bulkSubmitData.type ){
+            case 'delete':
+
+                break;
+            case 'ignore':
+
+                break;
+            default:
+        }
+
+    };
+
+    const options = [
+        { value: 'delete', label: 'Delete' },
+        { value: 'ignore', label: 'Ignore' },
+        { value: 'restore', label: 'Restore' },
+    ];
+
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Space wrap>
-                <Button
+                <Select
                     style={{
-                        width: '200px'
+                        width: '150px'
                     }}
+                    size="large"
+                    defaultValue={`ignore`}
+                    onChange={handleChangeBulkType}
+                    options={ options }
+                />
+
+                <Button
                     type="primary"
                     size="large"
-                    ghost={ 1 }>
-                    { 'Delete Selected File Pro' }
-                </Button>
+                    onClick={handleBulkSubmit}
+                > Bulk Apply </Button>
+
                 <Button
                     style={{
                         width: '200px'

@@ -39,15 +39,6 @@ class Installation {
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
 
-		/*
-			wp_clear_scheduled_hook( 'tsmltpro_upload_directory_scan' );
-			wp_clear_scheduled_hook( 'tsmlt_upload_directory_inner_file_scan' );
-			wp_clear_scheduled_hook( 'tsmlt_upload_directory_scan' );
-			wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-			wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-			wp_clear_scheduled_hook( 'tsmlt_upload_inner_dir_scan' );
-		*/
-
 	}
 
 	/**
@@ -80,6 +71,7 @@ class Installation {
 					`attachment_id` INT DEFAULT 0,
 					`file_path` VARCHAR(255) NOT NULL,
 					`file_type` VARCHAR(50) DEFAULT NULL,
+					`status` VARCHAR(50) DEFAULT 'show',
 					`meta_data` VARCHAR(50) DEFAULT NULL
 				) $charset_collate";
 		dbDelta($sql_query);

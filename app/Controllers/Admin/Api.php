@@ -84,6 +84,12 @@ class Api {
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
+		register_rest_route( $this->namespace, $this->resource_name . '/rabbis/single/ignore/action', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'rabbis_single_ignore_action' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+
 	}
 
 	/**
@@ -516,12 +522,25 @@ class Api {
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 
-		$cache_key  = "tsmlt_unlisted_file";
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$cache_key         = "tsmlt_unlisted_file";
+		$table_name        = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$excluded_statuses = array( 'hide' ); // Add the status values to exclude
+
+		// Add single quotes around each status value
+		$excluded_statuses = array_map(function ($status) {
+			return "'" . esc_sql($status) . "'";
+		}, $excluded_statuses);
+
+		$placeholders_string = implode(', ', $excluded_statuses);
+
 		// Check if the file_path already exists in the table using cached data
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
-			$query        = $wpdb->prepare( "SELECT * FROM $table_name LIMIT %d OFFSET %d", $limit, $offset );
+			$query = $wpdb->prepare(
+				"SELECT * FROM $table_name WHERE status = 'show' LIMIT %d OFFSET %d",
+				$limit, $offset
+			);
+			//error_log( print_r( $query, true), 3, __DIR__ . '/log.txt' );
 			$existing_row = $wpdb->get_results( $query );
 			// Cache the query result
 			wp_cache_set( $cache_key, $existing_row );
@@ -533,7 +552,7 @@ class Api {
 		$total_file = wp_cache_get( $total_file_cache );
 		if ( ! $total_file ) {
 			// Query to retrieve total number of posts
-			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name", $table_name );
+			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status = 'show'", $table_name );
 			$total_file  = $wpdb->get_var( $total_query );
 			wp_cache_set( $total_file_cache, $total_file );
 		}
@@ -547,7 +566,6 @@ class Api {
 
 		return wp_json_encode( $rabbis_data );
 	}
-
 
 	/**
 	 * @return false|string
@@ -573,14 +591,52 @@ class Api {
 		$is_deleted = false;
 		if ( file_exists( $full_file_path ) ) {
 			if ( unlink( $full_file_path ) ) {
-				$is_deleted = $wpdb->delete($table_name, array('file_path' => $file_path), array('%s'));
+				$is_deleted = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
 			}
-		} else{
-			$is_deleted = $wpdb->delete($table_name, array('file_path' => $file_path), array('%s'));
+		} else {
+			$is_deleted = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
 		}
 
 		$result['updated'] = $is_deleted;
 		$result['message'] = $is_deleted ? esc_html__( 'File Deleted.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+
+		return $result;
+	}
+
+	/**
+	 * @return false|string
+	 */
+	public function rabbis_single_ignore_action( $request_data ) {
+		global $wpdb;
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => true,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+
+		$file_path = $parameters['file_path'] ?? false;
+		if ( ! $file_path ) {
+			return $result;
+		}
+		$upload_dir     = wp_upload_dir(); // Get the upload directory path
+		$directory_path = $upload_dir['basedir']; // Get the base directory path
+		$full_file_path = $directory_path . '/' . $file_path;
+		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
+		if ( file_exists( $full_file_path ) ) {
+			// Data to update (if needed)
+			$data_to_update = array(
+				'status' => 'ignore',  // Replace column1 with the actual column name to update
+			);
+			// Conditions for the update (in this case, based on file_path)
+			$where_conditions = array( 'file_path' => $file_path );
+			// Update the row
+			$is_updated = $wpdb->update( $table_name, $data_to_update, $where_conditions, '%s', '%s' );
+		} else {
+			$is_updated = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
+		}
+
+		$result['updated'] = $is_updated;
+		$result['message'] = $is_updated ? esc_html__( 'File Ignored.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 
 		return $result;
 	}

@@ -90,6 +90,12 @@ export const rabbisSingleDeleteAction = async (prams) => {
     return response;
 }
 
+export const rabbisSingleIgnoreAction = async (prams) => {
+    const response = await Api.post(`/rabbis/single/ignore/action`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
+    return response;
+}
+
 export const activateLicense = async ( prams ) => {
     const response = await Api.post(`/licensesActivate`, prams );
     await notifications( 200 === response.status && response.data.updated, response.data.message );

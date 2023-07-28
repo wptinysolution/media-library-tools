@@ -11,7 +11,7 @@ import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
 
-import { rabbisSingleDeleteAction } from "./Data";
+import { rabbisSingleDeleteAction, rabbisSingleIgnoreAction } from "./Data";
 
 const { TextArea } = Input;
 
@@ -383,8 +383,12 @@ export function RabbisFileColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [ deleteCurrentItem, setDeleteCurrentItem] = useState(null );
-
+    const [ deleteCurrentItem, setDeleteCurrentItem ] = useState(null );
+    const [ ignoreCurrentItem, setIgnoreCurrentItem ] = useState(null );
+    /**
+     *
+     * @param event
+     */
     const onRabbisBulkCheck = (event) => {
         const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
         console.log( postsId )
@@ -397,7 +401,10 @@ export function RabbisFileColumns(){
             },
         });
     };
-
+    /**
+     *
+     * @param event
+     */
     const onCheckboxChange = (event) => {
         const value = event.target.value ;
         const changeData = event.target.checked ? [
@@ -418,12 +425,21 @@ export function RabbisFileColumns(){
         });
 
     };
-
-    const onRabbisSingleDeleteAction = async (data) => {
-
-        setDeleteCurrentItem( data.id );
-        const response = await rabbisSingleDeleteAction( data );
-        if( 200 === parseInt( response.status ) ) {
+    /**
+     *
+     * @param data
+     * @returns {Promise<void>}
+     */
+    const onRabbisSingleAction = async (data, action ) => {
+        let response;
+        if( 'ignore' === action ){
+            setIgnoreCurrentItem( data.id );
+            response = await rabbisSingleIgnoreAction( data );
+        } else if ( 'delete' === action ) {
+            setDeleteCurrentItem( data.id );
+            response = await rabbisSingleDeleteAction( data );
+        }
+        if( 200 === parseInt( response?.status ) ) {
             await dispatch({
                 type: Types.RUBBISH_MEDIA,
                 rubbishMedia: {
@@ -434,8 +450,8 @@ export function RabbisFileColumns(){
                     },
                 },
             });
+            setIgnoreCurrentItem( null );
             setDeleteCurrentItem( null );
-
         }
         console.log( 'rabbisSingleAction' );
     };
@@ -470,9 +486,14 @@ export function RabbisFileColumns(){
             dataIndex: 'file_path',
             align: 'top',
             width: '350px',
-            render: ( text, record, i ) => <Button onClick={ () => onRabbisSingleDeleteAction( record ) } loading={ record.id === deleteCurrentItem } >
-                Delete
-            </Button>
+            render: ( text, record, i ) => <Space wrap>
+                <Button onClick={ () => onRabbisSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } >
+                    Delete File
+                </Button>
+                <Button onClick={ () => onRabbisSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >
+                    Ignore File
+                </Button>
+            </Space>
         }
     ];
 }
