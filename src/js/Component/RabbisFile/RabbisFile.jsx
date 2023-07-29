@@ -91,8 +91,9 @@ function RabbisFile() {
                         current={ stateValue.rubbishMedia.paged }
                         onChange={(current) => handlePagination(current)}
                     />
+                    <DirectoryModal />
                 </Content>
-                <DirectoryModal />
+
             </>
             }
         </Layout>
