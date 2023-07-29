@@ -157,20 +157,22 @@ class ActionHooks {
 		if ( ! $directory ) {
 			return [];
 		}
-		$filesystem    = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-		$scanned_files = [];
+		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
 		// Ensure the directory exists before scanning.
-		if ( $filesystem->is_dir( $directory ) ) {
-			$files = $filesystem->dirlist( $directory );
-			foreach ( $files as $file ) {
-				$file_path = trailingslashit( $directory ) . $file['name'];
-				if ( $filesystem->is_dir( $file_path ) ) {
-					$subdirectory_files = $this->scan_upload_directory( $file_path );
-					$scanned_files      = array_merge( $scanned_files, $subdirectory_files );
-				} else {
-					$scanned_files[] = $file_path;
-				}
+		if ( ! $filesystem->is_dir( $directory ) ) {
+			return [];
+		}
+		$scanned_files = [];
+		$files         = $filesystem->dirlist( $directory );
+		if ( ! is_array( $files ) ) {
+			return [];
+		}
+		foreach ( $files as $file ) {
+			$file_path = trailingslashit( $directory ) . $file['name'];
+			if ( $filesystem->is_dir( $file_path ) ) {
+				continue;
 			}
+			$scanned_files[] = $file_path;
 		}
 
 		return $scanned_files;
@@ -188,6 +190,9 @@ class ActionHooks {
 		$directory = '';
 		foreach ( $dis_list as $key => $item ) {
 			if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
+				continue;
+			}
+			if ( 'available' !== $item['status'] ?? 'available' ) {
 				continue;
 			}
 			$directory = $key;
@@ -254,14 +259,13 @@ class ActionHooks {
 				$save_data = array(
 					'file_path'     => $search_string,
 					'attachment_id' => 0,
-					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION),
-					'meta_data'     => serialize([]),
+					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
+					'meta_data'     => serialize( [] ),
 				);
 				$wpdb->insert( $table_name, $save_data );
 
 				wp_cache_set( $cache_key, $existing_row );
 			}
-
 		}
 		update_option( 'tsmlt_get_directory_list', $dis_list );
 	}
@@ -319,7 +323,8 @@ class ActionHooks {
 				if ( ! in_array( $dir_path, $directories ) ) {
 					$directories[ $dir_path ] = [
 						'total_items' => 0,
-						'counted'     => 0
+						'counted'     => 0,
+						'status'      => 'available'
 					];
 				}
 			}

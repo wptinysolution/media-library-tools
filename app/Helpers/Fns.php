@@ -6,6 +6,7 @@
  */
 
 namespace TinySolutions\mlt\Helpers;
+
 use WP_Filesystem;
 use WP_Filesystem_Direct;
 use WP_Filesystem_Base;
@@ -92,8 +93,6 @@ class Fns {
 
 		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
-		// error_log( print_r( $unique_filename , true) . "\n\n", 3, __DIR__.'/unique_filenamelogg.txt');
-
 		// Rename the file on the server
 		$renamed = rename( $file_path, $unique_filename );
 
@@ -168,7 +167,7 @@ class Fns {
 			'default_desc_text'     => "none",
 			'others_file_support'   => [],
 		);
-		$options  = get_option( 'tsmlt_settings' );
+		$options  = get_option( 'tsmlt_settings', [] );
 
 		return wp_parse_args( $options, $defaults );
 	}
@@ -183,9 +182,10 @@ class Fns {
 		global $wpdb;
 		if ( 'post_excerpt' === $query->get( 'orderby' ) ) {
 			$clauses['orderby'] = "$wpdb->posts.post_excerpt {$query->get( 'order' )}";
-		} elseif ( 'post_content' === $query->get( 'orderby' ) ){
+		} elseif ( 'post_content' === $query->get( 'orderby' ) ) {
 			$clauses['orderby'] = "$wpdb->posts.post_content {$query->get( 'order' )}";
 		}
+
 		return $clauses;
 	}
 

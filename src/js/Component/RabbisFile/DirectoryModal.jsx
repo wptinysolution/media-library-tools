@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 
-import {Divider, Modal, List, Layout, Button, Spin} from 'antd';
+import {Divider, Modal, List, Layout, Button, Spin, Space} from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
@@ -13,18 +13,6 @@ const {  Content } = Layout;
 function DirectoryModal() {
 
     const [stateValue, dispatch] = useStateValue();
-
-    const handleDirForModal = async () => {
-        const responseDate = await getDirList();
-        const preparedDate =  await JSON.parse( responseDate.data );
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanRabbisDirList: preparedDate
-            },
-        });
-    };
 
     const handleDirModalOk = () => {
         dispatch({
@@ -48,7 +36,7 @@ function DirectoryModal() {
         });
     };
 
-    const handleDirModalRescan = async ( dir = 'all' ) => {
+    const handleDirRescan = async ( dir = 'all' ) => {
         await dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
@@ -57,12 +45,18 @@ function DirectoryModal() {
             },
         });
         await rescanDirList( {  dir : dir } );
-        await handleDirForModal();
     };
 
-    useEffect(() => {
-        handleDirForModal()
-    }, [] );
+    const handleDirIgnore = async ( dir = 'all' ) => {
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanDir: dir,
+            },
+        });
+        await rescanDirList( {  dir : dir } );
+    };
 
     return (
         <Modal
@@ -74,7 +68,7 @@ function DirectoryModal() {
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
-                <Button key="rescan" onClick={ () => handleDirModalRescan() }>
+                <Button key="rescan" onClick={ () => handleDirRescan() }>
                     Re-Scan Directory List { 'all' === stateValue.generalData.scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue  </Button>,
@@ -86,17 +80,19 @@ function DirectoryModal() {
                     itemLayout="horizontal"
                     dataSource={ Object.entries( stateValue.generalData.scanRabbisDirList ) }
                     renderItem={ ( [key, item], index) => (
-                        <List.Item>
+                        <List.Item key={key}>
                             <List.Item.Meta
                                 title={ key }
                                 description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Found ${item.total_items} items, And Checked ${item.counted} items.` }` }
                             />
-                            <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
-                                Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
-                            </Button>
-                            <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirModalRescan( key ) }>
-                                Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
-                            </Button>
+                            <Space>
+                                <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
+                                    Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
+                                </Button>
+                                <Button style={ { padding: '0 15px' } } key="ignore" onClick={ () => handleDirIgnore( key ) }>
+                                    Ignore Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
+                                </Button>
+                            </Space>
                         </List.Item>
                     ) }
                     locale = {

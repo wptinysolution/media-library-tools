@@ -109,7 +109,7 @@ function TheHeader() {
                     type="primary"
                     size="large"
                     onClick={handleBulkSubmit}
-                > Apply </Button>
+                > Bulk Apply </Button>
 
                 <Select
                     size="large"
