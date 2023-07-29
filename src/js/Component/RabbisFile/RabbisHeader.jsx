@@ -81,7 +81,14 @@ function RabbisHeader() {
                     { `Directory List` }
 
                 </Button>
-
+                <Button
+                    style={{
+                        width: '180px'
+                    }}
+                    type="primary"
+                    size="large"
+                    ghost={ 1 }>  { 'Delete Rabbisd File' }
+                </Button>
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
