@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 import {Divider, Modal, List, Layout, Button, Spin, Space} from 'antd';
 
@@ -57,7 +57,7 @@ function DirectoryModal() {
         });
         await rescanDirList( {  dir : dir } );
     };
-
+    console.log( stateValue.generalData.scanRabbisDirList )
     return (
         <Modal
             style={{

@@ -497,7 +497,8 @@ class Api {
 			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
 			$directory_list[ $dir ] = [
 				'total_items' => 0,
-				'counted'     => 0
+				'counted'     => 0,
+				'status'      => "available"
 			];
 		}
 
@@ -526,11 +527,11 @@ class Api {
 		$excluded_statuses = array( 'show' ); // Add the status values to exclude
 
 		// Add single quotes around each status value
-		$excluded_statuses = array_map(function ($status) {
-			return "'" . esc_sql($status) . "'";
-		}, $excluded_statuses);
+		$excluded_statuses = array_map( function ( $status ) {
+			return "'" . esc_sql( $status ) . "'";
+		}, $excluded_statuses );
 
-		$placeholders_string = implode(', ', $excluded_statuses);
+		$placeholders_string = implode( ', ', $excluded_statuses );
 
 		// Check if the file_path already exists in the table using cached data
 		$existing_row = wp_cache_get( $cache_key );

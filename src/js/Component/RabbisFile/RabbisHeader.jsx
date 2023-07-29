@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 import {Typography, Layout, Button, Space, Select} from 'antd';
 
@@ -18,6 +18,9 @@ function RabbisHeader() {
     const [ stateValue, dispatch ] = useStateValue();
 
     const handleDirForModal = async () => {
+        if( ! stateValue.generalData.isDirModalOpen ){
+            return;
+        }
         const responseDate = await getDirList();
         const preparedDate =  await JSON.parse( responseDate.data );
         await dispatch({
@@ -27,26 +30,24 @@ function RabbisHeader() {
                 scanRabbisDirList: preparedDate
             },
         });
-        console.log( responseDate )
+        console.log( 'getDirList' )
     };
 
-    const handleDirModal = async () => {
-        await dispatch({
+    const openDirModal = () => {
+        dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                isDirModalOpen: true,
-                scanDir: null
+                isDirModalOpen: true
             },
         });
     };
 
     const handleChangeBulkType = (value) => {
-        console.log( value )
+
     };
 
     const handleBulkSubmit = ( value ) => {
-        console.log( value )
         switch( stateValue.bulkSubmitData.type ){
             case 'delete':
                 break;
@@ -65,7 +66,7 @@ function RabbisHeader() {
 
     useEffect(() => {
         handleDirForModal();
-    }, [] );
+    }, [ stateValue.generalData.isDirModalOpen ] );
 
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
@@ -90,7 +91,7 @@ function RabbisHeader() {
                     }}
                     type="primary"
                     size="large"
-                    onClick={handleDirModal}
+                    onClick={openDirModal}
                     ghost={ ! stateValue.generalData.isDirModalOpen }>
                     { `Directory List` }
                 </Button>
