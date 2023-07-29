@@ -144,7 +144,6 @@ class FilterHooks {
                             array(
                                 'key'     => '_wp_attachment_image_alt',
                                 'compare' => 'NOT EXISTS',
-                                'value'   => '',
                             ),
                             array(
                                 'key'     => '_wp_attachment_image_alt',

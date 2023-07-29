@@ -302,7 +302,6 @@ class Api {
 				],
 			];
 			$args['orderby']    = 'meta_value'; // Order by meta value
-			$args['meta_key']   = '_wp_attachment_image_alt'; // Meta key to use for ordering
 		}
 		if ( ! empty( $parameters['categories'] ) ) {
 			$args['tax_query'] = array(
