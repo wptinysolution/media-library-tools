@@ -1,18 +1,18 @@
-=== Media File Rename, Bulk Edit Media Content, SVG Image Support - Media Library Tools ===
+=== Media File Rename, SVG Support, Edit Title, Name, Alt tag, Media Content - Media Library Tools ===
 Contributors: tinysolution
 Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.11
+Stable tag: 1.0.12
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+SVG Support and Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == Description ==
 
-Media Library Tools simplifies image metadata editing. It allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
+Media Library Tools simplifies image SVG Support and metadata editing. It allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
 Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO).
 
@@ -70,6 +70,10 @@ To search for images by categories, users can find the categories box near the F
 06. Media File Rename Edit Mode
 
 == Changelog ==
+
+= 1.0.12 ( July 29, 2023  ) =
+* Fixed: Alt text ordering issue
+* Fixed: Name And Author Issue
 
 = 1.0.11 ( July 17, 2023  ) =
 * Fixed: Pagination
