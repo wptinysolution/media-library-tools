@@ -77,6 +77,11 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir_list' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/ignoreDirForScan', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'ignore_dir_for_scan' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
 
 		register_rest_route( $this->namespace, $this->resource_name . '/rabbis/single/delete/action', array(
 			'methods'             => 'POST',
@@ -501,15 +506,39 @@ class Api {
 				'status'      => "available"
 			];
 		}
-
 		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
 
 		return [
 			'updated' => boolval( $options ),
 			'message' => ! boolval( $options ) ? esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' )
 		];
+	}
+
+	/**
+	 * @return false|string
+	 */
+	public function ignore_dir_for_scan( $request_data ) {
+		$parameters = $request_data->get_params();
+		$dir        = $parameters['dir'] ?? null;
+		$result     = [
+			'updated' => false,
+			'message' => esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' )
+		];
+		if ( ! $dir ) {
+			return $result;
+		}
+
+		$directory_list                   = get_option( 'tsmlt_get_directory_list', [] );
+		$directory_list[ $dir ]['status'] = 'ignore';
+		$options                          = update_option( 'tsmlt_get_directory_list', $directory_list );
+		$result['updated']                = boolval( $options );
+		$result['message']                = ! boolval( $options ) ? $result['message'] : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
+
+		return $result;
 
 	}
+
+	// ignoreDirForScan
 
 	/**
 	 * @return false|string

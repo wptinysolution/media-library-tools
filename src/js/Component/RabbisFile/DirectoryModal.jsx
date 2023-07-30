@@ -8,8 +8,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, rescanDirList} from "../../Utils/Data";
-import Loader from "../../Utils/Loader";
+import {getDirList, ignoreDirForScan, rescanDirList} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -17,13 +16,16 @@ function DirectoryModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
+    const [ scanDir, setScanDir ] = useState( null );
+
+    const [ ignoreDir, setIgnoreDir ] = useState( null );
+
     const handleDirModalOk = () => {
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                isDirModalOpen: false,
-                scanDir: null
+                isDirModalOpen: false
             },
         });
     };
@@ -33,32 +35,22 @@ function DirectoryModal() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                isDirModalOpen: false,
-                scanDir: null
+                isDirModalOpen: false
             },
         });
     };
 
     const handleDirRescan = async ( dir = 'all' ) => {
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanDir: dir,
-            },
-        });
+        setScanDir( dir );
         await rescanDirList( {  dir : dir } );
+        await setScanDir(null);
     };
 
     const handleDirIgnore = async ( dir = 'all' ) => {
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanDir: dir,
-            },
-        });
-        await rescanDirList( {  dir : dir } );
+        setIgnoreDir( dir );
+        //await rescanDirList( {  dir : dir } );
+        await ignoreDirForScan({  dir : dir });
+        await setIgnoreDir(null);
     };
 
     const antIcon = (
@@ -82,7 +74,7 @@ function DirectoryModal() {
             onCancel={handleDirModalCancel}
             footer={[
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
-                    Re-Scan Directory List { 'all' === stateValue.generalData.scanDir && <Spin size="small" /> }
+                    Re-Scan Directory List { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue  </Button>,
             ]}
@@ -101,6 +93,7 @@ function DirectoryModal() {
                     <List
                         itemLayout="horizontal"
                         dataSource={ Object.entries( stateValue.generalData.scanRabbisDirList ) }
+                        locale = { { emptyText: 'No Data. Re scan start will after some time.' } }
                         renderItem={ ( [key, item], index) => (
                             <List.Item key={key}>
                                 <List.Item.Meta
@@ -109,19 +102,15 @@ function DirectoryModal() {
                                 />
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
-                                        Re-Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
+                                        Re-Scan { key === scanDir && <Spin size="small" /> }
                                     </Button>
                                     <Button style={ { padding: '0 15px' } } key="ignore" onClick={ () => handleDirIgnore( key ) }>
-                                        Ignore Scan { key === stateValue.generalData.scanDir && <Spin size="small" /> }
+                                        Ignore Scan { key === ignoreDir && <Spin size="small" /> }
                                     </Button>
                                 </Space>
                             </List.Item>
                         ) }
-                        locale = {
-                            {
-                                emptyText: 'No Data. Re scan start will after some time.'
-                            }
-                        }
+
                     />
                 </>
                 }
