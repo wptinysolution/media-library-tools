@@ -510,6 +510,7 @@ class Api {
 
 		return [
 			'updated' => boolval( $options ),
+			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
 			'message' => ! boolval( $options ) ? esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' )
 		];
 	}
@@ -527,15 +528,13 @@ class Api {
 		if ( ! $dir ) {
 			return $result;
 		}
-
 		$directory_list                   = get_option( 'tsmlt_get_directory_list', [] );
-		$directory_list[ $dir ]['status'] = 'ignore';
+		$status = 'ignore' == $directory_list[ $dir ]['status'] ? 'available' : 'ignore' ;
+		$directory_list[ $dir ]['status'] = $status;
 		$options                          = update_option( 'tsmlt_get_directory_list', $directory_list );
 		$result['updated']                = boolval( $options );
 		$result['message']                = ! boolval( $options ) ? $result['message'] : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
-
 		return $result;
-
 	}
 
 	// ignoreDirForScan

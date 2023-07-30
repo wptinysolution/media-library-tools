@@ -487,7 +487,7 @@ export function RabbisFileColumns(){
             align: 'top',
             width: '350px',
             render: ( text, record, i ) => <Space wrap>
-                <Button onClick={ () => onRabbisSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } >
+                <Button onClick={ () => onRabbisSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger >
                     Delete File
                 </Button>
                 <Button onClick={ () => onRabbisSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >

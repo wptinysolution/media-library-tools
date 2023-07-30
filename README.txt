@@ -1,6 +1,6 @@
-=== Media File Rename, SVG Support, Edit Title, Name, Alt tag, Media Content - Media Library Tools ===
+=== Media File Rename, SVG Support, Edit Media Title, Name, Alt tag, Media Content - Media Library Tools ===
 Contributors: tinysolution
-Tags: image SEO, alt text, SVG Support, caption, image title, description, bulk edit, media Library, image trash
+Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
 Stable tag: 1.0.12
@@ -77,20 +77,6 @@ To search for images by categories, users can find the categories box near the F
 
 = 1.0.11 ( July 17, 2023  ) =
 * Fixed: Pagination
-
-= 1.0.10 ( June 23, 2023  ) =
-* Fixed: Image Table no data found fix
-
-= 1.0.8 ( June 18, 2023  ) =
-* Fixed: Support Query issue
-
-= 1.0.7 ( May 21, 2023  ) =
-* Fixed: Image Rename isue fixed
-
-= 1.0.5 ( May 21, 2023  ) =
-* Fixed: SVG Support Issue Fixed
-* Fixed: Notice Fixed
-* Support: Support Added
 
 = 1.0.4 ( May 16, 2023  ) =
 * Fixed: Options Issue fix

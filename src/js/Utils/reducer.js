@@ -68,6 +68,7 @@ export const initialState = {
 		isDirModalOpen: false,
 		scanDir: '',
 		scanRabbisDirList: [],
+		scanRabbisDirLoading: true,
 	},
 };
 

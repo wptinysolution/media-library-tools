@@ -24,6 +24,7 @@ function RabbisFile() {
 
     const getTheRabbisFile = async () => {
         const rabbisFile = await getRabbisFile( stateValue.rubbishMedia.postQuery );
+        console.log( rabbisFile.mediaFile )
         await dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia:{
@@ -64,7 +65,7 @@ function RabbisFile() {
     useEffect(() => {
         getTheRabbisFile();
     }, [stateValue.rubbishMedia.postQuery] );
-
+    // console.log( stateValue.rubbishMedia )
     return (
         <Layout className="layout">
             { stateValue.rubbishMedia.isLoading ? <Loader/>  :

@@ -329,7 +329,12 @@ class Review {
             <!-- Modal content -->
             <div class="modal-content">
                 <div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
-
+                    <p style="margin: 0 0 15px 0;">
+                        Email: <span style="color: green; font-size:"> support@tinysolutions.freshdesk.com </span>
+                    </p>
+                    <p style="font-size: 20px;margin: 0 0 15px 0;">
+                        OR
+                    </p>
                     <div class="feedback-input-wrapper">
                         <input id="feedback-deactivate-<?php echo esc_attr( $this->textdomain ); ?>-bug_issue_detected" class="feedback-input"
                                type="radio" name="reason_key" value="bug_issue_detected">
@@ -443,11 +448,11 @@ class Review {
 
 
             #deactivation-dialog-<?php echo esc_attr( $this->textdomain ) ; ?> .feedback-label {
-                font-size: 15px;
+                font-size: 13px;
             }
 
             div#deactivation-dialog-<?php echo esc_attr( $this->textdomain ) ; ?> p {
-                font-size: 16px;
+                font-size: 13px;
             }
 
             #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content > * {
@@ -458,8 +463,9 @@ class Review {
 
             #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content textarea {
                 border: 1px solid rgba(0, 0, 0, 0.3);
-                padding: 15px;
+                padding: 10px;
                 width: 100%;
+                height: 80px;
             }
 
             #deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content input.feedback-feedback-text {

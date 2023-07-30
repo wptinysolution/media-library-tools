@@ -27,7 +27,8 @@ function RabbisHeader() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                scanRabbisDirList: preparedDate
+                scanRabbisDirList: preparedDate,
+                scanRabbisDirLoading: false,
             },
         });
         console.log( 'getDirList' )

@@ -42,7 +42,24 @@ function DirectoryModal() {
 
     const handleDirRescan = async ( dir = 'all' ) => {
         setScanDir( dir );
-        await rescanDirList( {  dir : dir } );
+        dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanRabbisDirLoading: true,
+            },
+        });
+        const dirList = await rescanDirList( {  dir : dir } );
+        if( dirList.data.updated ){
+            await dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    scanRabbisDirList: dirList.data.thedirlist,
+                    scanRabbisDirLoading: false,
+                },
+            });
+        }
         await setScanDir(null);
     };
 
@@ -81,7 +98,7 @@ function DirectoryModal() {
         >
             <Divider />
             <Content style={{ height: "450px", position:'relative' }} >
-            { ! Object.entries( stateValue.generalData.scanRabbisDirList ).length ?
+            { stateValue.generalData.scanRabbisDirLoading ?
                 <Spin indicator={antIcon} style={ {
                     position: 'absolute',
                     left: '50%',
@@ -103,9 +120,6 @@ function DirectoryModal() {
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
                                         Re-Scan { key === scanDir && <Spin size="small" /> }
-                                    </Button>
-                                    <Button style={ { padding: '0 15px' } } key="ignore" onClick={ () => handleDirIgnore( key ) }>
-                                        Ignore Scan { key === ignoreDir && <Spin size="small" /> }
                                     </Button>
                                 </Space>
                             </List.Item>
