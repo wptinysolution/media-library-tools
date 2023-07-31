@@ -454,15 +454,7 @@ export function RabbisFileColumns(){
         console.log( 'rabbisSingleAction' );
     };
 
-    return [
-        {
-            title: <Checkbox checked={ stateValue.bulkRabbisData.bulkChecked } onChange={onRabbisBulkCheck}/>,
-            key: 'CheckboxID',
-            dataIndex: 'id',
-            width: '50px',
-            align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRabbisData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
-        },
+    const rabbisHead = [
         {
             title: 'File',
             key: 'Image',
@@ -494,4 +486,17 @@ export function RabbisFileColumns(){
             </Space>
         }
     ];
+
+    if ( tsmltParams.hasExtended ){
+        rabbisHead.unshift({
+            title: <Checkbox checked={ stateValue.bulkRabbisData.bulkChecked } onChange={onRabbisBulkCheck}/>,
+            key: 'CheckboxID',
+            dataIndex: 'id',
+            width: '50px',
+            align: 'center',
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRabbisData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+        });
+    }
+    return rabbisHead;
+
 }

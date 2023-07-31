@@ -72,20 +72,25 @@ function RabbisHeader() {
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Space>
-                <Select
-                    style={{
-                        width: '150px'
-                    }}
-                    size="large"
-                    defaultValue={`ignore`}
-                    onChange={handleChangeBulkType}
-                    options={ options }
-                />
-                <Button
-                    type="primary"
-                    size="large"
-                    onClick={handleBulkSubmit}
-                > Bulk Apply </Button>
+                {
+                    tsmltParams.hasExtended && <>
+                        <Select
+                            style={{
+                                width: '150px'
+                            }}
+                            size="large"
+                            defaultValue={`ignore`}
+                            onChange={handleChangeBulkType}
+                            options={ options }
+                        />
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={handleBulkSubmit}
+                        > Bulk Apply </Button>
+                    </>
+                }
+
                 <Button
                     style={{
                         width: '200px'

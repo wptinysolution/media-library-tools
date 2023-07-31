@@ -56,15 +56,6 @@ function MainHeader() {
         }
     ];
 
-    // if ( tsmltParams.hasExtended ){
-    //     menuItems.unshift({
-    //         key: 'hasExtended',
-    //         label: 'Licence',
-    //         icon: <SettingOutlined />,
-    //         style: menuItemStyle
-    //     });
-    // }
-
     return (
 
         <Header className="header" style={{
