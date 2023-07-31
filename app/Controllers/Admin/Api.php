@@ -537,8 +537,6 @@ class Api {
 		return $result;
 	}
 
-	// ignoreDirForScan
-
 	/**
 	 * @return false|string
 	 */

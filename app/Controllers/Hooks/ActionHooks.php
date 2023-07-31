@@ -140,8 +140,12 @@ class ActionHooks {
 		}
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
+		$schedule = 'daily';
+		if( Fns::isLocalhost() ){
+			$schedule = 'everyminute';
+		}
 		// Schedule the cron job to run every minute
-		wp_schedule_event( time(), 'everyminute', $event_hook );
+		wp_schedule_event( time(), $schedule, $event_hook );
 	}
 
 	/**
@@ -286,7 +290,12 @@ class ActionHooks {
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
 		// Schedule the cron job to run every minute
-		wp_schedule_event( time(), 'everyminute', $event_hook );
+		$schedule = 'monthly';
+		if( Fns::isLocalhost() ){
+			$schedule = 'daily';
+		}
+
+		wp_schedule_event( time(), $schedule, $event_hook );
 		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 	}
 
