@@ -1,6 +1,6 @@
-=== Media File Rename, SVG Support, Edit Title, Name, Alt tag, Media Content - Media Library Tools ===
+=== Media File Rename, SVG Support, Edit Media Title, Name, Alt tag, Media Content - Media Library Tools ===
 Contributors: tinysolution
-Tags: image SEO, alt text, SVG image support, caption, image title, description, bulk edit, media Library, image trash
+Tags: media file renamer, svg support, svg, rename, files, renamer, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
 Stable tag: 1.0.12
@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-SVG Support and Proper Naming of media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+SVG Support and Media File Rename, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == Description ==
 
