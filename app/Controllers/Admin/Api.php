@@ -586,7 +586,7 @@ class Api {
 		}
 
 		$rabbis_data = [
-			'mediaFile'    => $existing_row,
+			'mediaFile'    => is_array( $existing_row ) ? $existing_row : [],
 			'paged'        => absint( $page ),
 			'totalPost'    => absint( $total_file ),
 			'postsPerPage' => absint( $limit )

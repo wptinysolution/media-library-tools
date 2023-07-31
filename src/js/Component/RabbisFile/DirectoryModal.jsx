@@ -97,7 +97,7 @@ function DirectoryModal() {
             ]}
         >
             <Divider />
-            <Content style={{ height: "450px", position:'relative' }} >
+            <Content style={{ height: "450px", position:'relative', 'overflow-y': 'auto', padding:'0 15px' }} >
             { stateValue.generalData.scanRabbisDirLoading ?
                 <Spin indicator={antIcon} style={ {
                     position: 'absolute',

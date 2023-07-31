@@ -192,7 +192,7 @@ class ActionHooks {
 			if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
 				continue;
 			}
-			if ( 'available' !== $item['status'] ?? 'available' ) {
+			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
 				continue;
 			}
 			$directory = $key;
