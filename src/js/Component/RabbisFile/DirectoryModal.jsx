@@ -8,7 +8,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, ignoreDirForScan, rescanDirList} from "../../Utils/Data";
+import { rescanDirList} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -17,8 +17,6 @@ function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
 
     const [ scanDir, setScanDir ] = useState( null );
-
-    const [ ignoreDir, setIgnoreDir ] = useState( null );
 
     const handleDirModalOk = () => {
         dispatch({
@@ -94,7 +92,7 @@ function DirectoryModal() {
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
                     Re-Scan All Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
-                <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue  </Button>,
+                <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue </Button>,
             ]}
         >
             <Divider />
@@ -116,7 +114,7 @@ function DirectoryModal() {
                             <List.Item key={key}>
                                 <List.Item.Meta
                                     title={ key }
-                                    description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Found ${item.total_items} items, And Checked ${item.counted} items.` }` }
+                                    description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Scanned ${item.counted} items of ${item.total_items} items` }` }
                                 />
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
