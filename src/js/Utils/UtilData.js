@@ -440,15 +440,13 @@ export function RabbisFileColumns(){
             response = await rabbisSingleDeleteAction( data );
         }
         if( 200 === parseInt( response?.status ) ) {
+            const mediaFile = stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id )
             await dispatch({
                 type: Types.RUBBISH_MEDIA,
-                rubbishMedia: {
+                rubbishMedia:{
                     ...stateValue.rubbishMedia,
-                    postQuery: {
-                        ...stateValue.rubbishMedia.postQuery,
-                        isQueryUpdate: true,
-                    },
-                },
+                    mediaFile: mediaFile
+                }
             });
             setIgnoreCurrentItem( null );
             setDeleteCurrentItem( null );

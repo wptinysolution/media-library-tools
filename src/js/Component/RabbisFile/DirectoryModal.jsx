@@ -40,6 +40,11 @@ function DirectoryModal() {
         });
     };
 
+    /**
+     *
+     * @param dir
+     * @returns {Promise<void>}
+     */
     const handleDirRescan = async ( dir = 'all' ) => {
         setScanDir( dir );
         dispatch({
@@ -62,14 +67,10 @@ function DirectoryModal() {
         }
         await setScanDir(null);
     };
-
-    const handleDirIgnore = async ( dir = 'all' ) => {
-        setIgnoreDir( dir );
-        //await rescanDirList( {  dir : dir } );
-        await ignoreDirForScan({  dir : dir });
-        await setIgnoreDir(null);
-    };
-
+    /**
+     *
+     * @type {JSX.Element}
+     */
     const antIcon = (
         <LoadingOutlined
             style={{
@@ -91,7 +92,7 @@ function DirectoryModal() {
             onCancel={handleDirModalCancel}
             footer={[
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
-                    Re-Scan Directory List { 'all' === scanDir && <Spin size="small" /> }
+                    Re-Scan All Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue  </Button>,
             ]}

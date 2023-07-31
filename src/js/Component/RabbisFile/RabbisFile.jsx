@@ -47,6 +47,7 @@ function RabbisFile() {
                 postQuery:{
                     ...stateValue.rubbishMedia.postQuery,
                     paged: current,
+                    isQueryUpdate: true
                 }
             },
         });
@@ -65,7 +66,7 @@ function RabbisFile() {
     useEffect(() => {
         getTheRabbisFile();
     }, [stateValue.rubbishMedia.postQuery] );
-    // console.log( stateValue.rubbishMedia )
+    
     return (
         <Layout className="layout">
             { stateValue.rubbishMedia.isLoading ? <Loader/>  :
@@ -81,6 +82,7 @@ function RabbisFile() {
                             x: 1300,
                         }}
                     />
+
                     <Pagination
                         style={{ padding: '30px', textAlign: 'right'  }}
                         showTitle={true}
