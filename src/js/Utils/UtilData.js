@@ -468,7 +468,7 @@ export function RabbisFileColumns(){
             key: 'FileType',
             dataIndex: 'file_path',
             align: 'top',
-            render: ( file_path, record, i ) => <Space> { `${tsmltParams.uploadBasedir}/${file_path}` } </Space>,
+            render: ( file_path, record, i ) => <Space> { `${tsmltParams.uploadUrl}/${file_path}` } </Space>,
         },
         {
             title: 'Actions',

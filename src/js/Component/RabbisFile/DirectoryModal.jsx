@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from "react";
 
-import {Divider, Modal, List, Layout, Button, Spin, Space} from 'antd';
+import {Divider, Modal, List, Layout, Button, Spin, Space, Typography} from 'antd';
+
+const { Title } = Typography;
 
 import { LoadingOutlined } from '@ant-design/icons';
 
@@ -53,16 +55,16 @@ function DirectoryModal() {
             },
         });
         const dirList = await rescanDirList( {  dir : dir } );
-        if( dirList.data.updated ){
-            await dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    scanRabbisDirList: dirList.data.thedirlist,
-                    scanRabbisDirLoading: false,
-                },
-            });
-        }
+
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanRabbisDirList: dirList.data.thedirlist,
+                scanRabbisDirLoading: false,
+            },
+        });
+
         await setScanDir(null);
     };
     /**
@@ -96,7 +98,7 @@ function DirectoryModal() {
             ]}
         >
             <Divider />
-            <Content style={{ height: "450px", position:'relative', 'overflow-y': 'auto', padding:'0 15px' }} >
+            <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
             { stateValue.generalData.scanRabbisDirLoading ?
                 <Spin indicator={antIcon} style={ {
                     position: 'absolute',
@@ -109,7 +111,7 @@ function DirectoryModal() {
                     <List
                         itemLayout="horizontal"
                         dataSource={ Object.entries( stateValue.generalData.scanRabbisDirList ) }
-                        locale = { { emptyText: 'No Data. Re scan start will after some time.' } }
+                        locale = { { emptyText: <Title level={5} style={{ margin:'0 15px', color: 'red' }}>No Directory found. Directory will search in next schedule be patience till then..</Title> } }
                         renderItem={ ( [key, item], index) => (
                             <List.Item key={key}>
                                 <List.Item.Meta
