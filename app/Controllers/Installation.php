@@ -24,12 +24,12 @@ class Installation {
                     'Description',
                 ] ;
             }
+	        // Create table.
+	        self::migration();
             update_option( 'tsmlt_settings', $tsmlt_media );
 	        update_option('tsmlt_plugin_version', TSMLT_VERSION);
             update_option('tsmlt_plugin_activation_time', strtotime( 'now' ) );
         }
-		// Create table.
-		self::migration();
     }
 
 	/**
@@ -38,7 +38,6 @@ class Installation {
 	public static function deactivation() {
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-
 	}
 
 	/**
@@ -46,12 +45,8 @@ class Installation {
 	 */
 	public static function migration() {
 		$prev_version = get_option( 'tsmlt_plugin_version' );
-		$is_updated = false;
-		if ( version_compare( TSMLT_VERSION, $prev_version, ">" ) ) {
+		if ( ! $prev_version || version_compare( TSMLT_VERSION, $prev_version, ">" ) ) {
 			self::create_tables();
-			$is_updated = true;
-		}
-		if( $is_updated ){
 			update_option('tsmlt_plugin_version', TSMLT_VERSION );
 		}
 	}
