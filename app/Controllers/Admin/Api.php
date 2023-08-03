@@ -495,6 +495,7 @@ class Api {
 	 */
 	public function rescan_dir_list( $request_data ) {
 		$parameters = $request_data->get_params();
+		wp_clear_scheduled_hook('tsmlt_upload_dir_scan');
 		$dir        = $parameters['dir'] ?? 'all';
 		if ( 'all' === $dir ) {
 			$directory_list = [];
@@ -507,7 +508,6 @@ class Api {
 			];
 		}
 		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
-
 		return [
 			'updated' => boolval( $options ),
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),

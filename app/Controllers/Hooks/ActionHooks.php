@@ -141,9 +141,9 @@ class ActionHooks {
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
 		$schedule = 'daily';
-		if( Fns::isLocalhost() ){
-			$schedule = 'everyminute';
-		}
+		//if( Fns::isLocalhost() ){
+		//	$schedule = 'daily';
+		//}
 		// Schedule the cron job to run every minute
 		wp_schedule_event( time(), $schedule, $event_hook );
 	}
@@ -291,9 +291,9 @@ class ActionHooks {
 		wp_clear_scheduled_hook( $event_hook );
 		// Schedule the cron job to run every minute
 		$schedule = 'monthly';
-		if( Fns::isLocalhost() ){
-			$schedule = 'everyminute';
-		}
+		//if( Fns::isLocalhost() ){
+		//	$schedule = 'monthly';
+		//}
 
 		wp_schedule_event( time(), $schedule, $event_hook );
 		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
@@ -307,7 +307,7 @@ class ActionHooks {
 	 *
 	 * @return array The list of directories with their paths.
 	 */
-	public function scan_directory_list( $directory ) {
+	private function scan_directory_list( $directory ) {
 		if ( ! $directory || ! is_string( $directory ) ) {
 			return [];
 		}
@@ -343,7 +343,7 @@ class ActionHooks {
 	}
 
 	public function get_directory_list_cron_job() {
-
+		error_log( print_r( 'Hello', true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		$cache_key      = 'get_directory_list';
 		$subdirectories = wp_cache_get( $cache_key );
 
