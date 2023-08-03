@@ -292,7 +292,7 @@ class ActionHooks {
 		// Schedule the cron job to run every minute
 		$schedule = 'monthly';
 		if( Fns::isLocalhost() ){
-			$schedule = 'daily';
+			$schedule = 'everyminute';
 		}
 
 		wp_schedule_event( time(), $schedule, $event_hook );
