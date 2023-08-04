@@ -48,9 +48,11 @@ function RubbishNotice() {
                     "Rubbish File" is a file that physically exists within a directory but is excluded from being indexed or included in the media library or database of an application or system.
                 </Paragraph >
                 <Divider />
-                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px', color:'green'}}> Delete File Can be restore ? </Title>
+                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px', color:'green'}}> Delete File Can be Restore ? </Title>
                 <Paragraph type="secondary" style={{ fontSize: '18px', color:'#333'}}>
-                   No. You can't get back that file. <span> That's Why Before deleting any file search this file in you media library. And Re-check the url.</span>
+                   No. You can't get back that file.
+                    <span> That's Why Before deleting any file search this file in you media library
+                    And Re-check the url and be sure before deleting.</span>
                 </Paragraph >
                 <Paragraph type="secondary" style={{ fontSize: '18px', color:'#333'}}>
                     Thank you for your cooperation and understanding.

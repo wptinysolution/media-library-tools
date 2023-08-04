@@ -475,13 +475,13 @@ export function RubbishFileColumns(){
             key: 'FileType',
             dataIndex: 'file_path',
             align: 'top',
-            width: '350px',
+            width: '450px',
             render: ( text, record, i ) => <Space wrap>
                 <Button onClick={ () => onRubbishSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger >
-                    Delete File
+                    Delete Unnecessary File
                 </Button>
                 <Button onClick={ () => onRubbishSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >
-                    Ignore File
+                    Ignore Important File
                 </Button>
             </Space>
         }
