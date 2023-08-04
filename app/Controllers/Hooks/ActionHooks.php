@@ -39,7 +39,7 @@ class ActionHooks {
 
 		// Rabbis Cron Job.
 		add_action( 'init', [ $this, 'schedule_rabbis_file_cron_job' ] );
-		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_upload_rabbis_file_cron_job' ] );
+		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rabbis_file_cron_job' ] );
 
 	}
 
@@ -141,9 +141,6 @@ class ActionHooks {
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
 		$schedule = 'daily';
-		//if( Fns::isLocalhost() ){
-		//	$schedule = 'daily';
-		//}
 		// Schedule the cron job to run every minute
 		wp_schedule_event( time(), $schedule, $event_hook );
 	}
@@ -157,7 +154,7 @@ class ActionHooks {
 	 *
 	 * @return array The list of found files.
 	 */
-	public function scan_upload_directory( $directory ) {
+	public function scan_file_in_directory( $directory ) {
 		if ( ! $directory ) {
 			return [];
 		}
@@ -185,7 +182,7 @@ class ActionHooks {
 	/**
 	 * Function to scan the upload directory and search for files
 	 */
-	public function scan_upload_rabbis_file_cron_job() {
+	public function scan_rabbis_file_cron_job() {
 
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 		if ( ! count( $dis_list ) ) {
@@ -202,7 +199,7 @@ class ActionHooks {
 			$directory = $key;
 		}
 
-		$found_files = $this->scan_upload_directory( $directory ); // Scan the directory and search for files
+		$found_files = $this->scan_file_in_directory( $directory ); // Scan the directory and search for files
 		if ( ! count( $found_files ) ) {
 			return;
 		}
@@ -290,11 +287,10 @@ class ActionHooks {
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
 		// Schedule the cron job to run every minute
-		$schedule = 'monthly';
+		$schedule = 'weekly';
 		//if( Fns::isLocalhost() ){
 		//	$schedule = 'monthly';
 		//}
-
 		wp_schedule_event( time(), $schedule, $event_hook );
 		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 	}
@@ -342,22 +338,21 @@ class ActionHooks {
 		return $directories;
 	}
 
+	/**
+	 * @return void
+	 */
 	public function get_directory_list_cron_job() {
-		error_log( print_r( 'Hello', true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		$cache_key      = 'get_directory_list';
 		$subdirectories = wp_cache_get( $cache_key );
-
 		if ( ! $subdirectories ) {
 			$upload_dir     = wp_upload_dir(); // Get the upload directory path
 			$directory      = $upload_dir['basedir']; // Get the base directory path
 			$subdirectories = $this->scan_directory_list( $directory );
 			wp_cache_set( $cache_key, $subdirectories );
 		}
-
 		$dir_status     = get_option( 'tsmlt_get_directory_list', [] );
 		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
 		update_option( 'tsmlt_get_directory_list', $subdirectories );
-
 	}
 
 

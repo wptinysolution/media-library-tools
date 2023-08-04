@@ -506,13 +506,13 @@ class Api {
 				'counted'     => 0,
 				'status'      => "available"
 			];
-			wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		}
+		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
 		return [
-			'updated' => boolval( $options ),
+			'updated' => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message' => ! boolval( $options ) ? esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' )
+			'message' => esc_html__( 'Action Execute.', 'tsmlt-media-tools' )
 		];
 	}
 
