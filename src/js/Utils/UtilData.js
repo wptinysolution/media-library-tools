@@ -11,7 +11,7 @@ import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
 
-import { rabbisSingleDeleteAction, rabbisSingleIgnoreAction } from "./Data";
+import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction } from "./Data";
 
 const { TextArea } = Input;
 
@@ -145,7 +145,7 @@ export function columns(){
 
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkRabbisData:{
+            bulkRubbishData:{
                 ...stateValue.bulkSubmitData,
                 bulkSubmitData: {
                     ...stateValue.bulkSubmitData.bulkSubmitData,
@@ -379,7 +379,7 @@ export function renamerColumns(){
     ];
 }
 
-export function RabbisFileColumns(){
+export function RubbishFileColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
@@ -389,13 +389,13 @@ export function RabbisFileColumns(){
      *
      * @param event
      */
-    const onRabbisBulkCheck = (event) => {
+    const onRubbishBulkCheck = (event) => {
         const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
         console.log( postsId )
         dispatch({
             type: Types.BALK_RUBBISH,
-            bulkRabbisData: {
-                ...stateValue.bulkRabbisData,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
                 bulkChecked : ! ! postsId.length,
                 ids: postsId
             },
@@ -408,17 +408,17 @@ export function RabbisFileColumns(){
     const onCheckboxChange = (event) => {
         const value = event.target.value ;
         const changeData = event.target.checked ? [
-            ...stateValue.bulkRabbisData.ids,
+            ...stateValue.bulkRubbishData.ids,
             value
-        ] : stateValue.bulkRabbisData.ids.filter( item => item !== value );
+        ] : stateValue.bulkRubbishData.ids.filter( item => item !== value );
 
         const checkedCount = Object.keys( changeData ).length;
         const postCount = Object.keys( stateValue.rubbishMedia.mediaFile ).length;
 
         dispatch({
             type: Types.BALK_RUBBISH,
-            bulkRabbisData: {
-                ...stateValue.bulkRabbisData,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
                 bulkChecked: ! ! checkedCount && checkedCount === postCount,
                 ids: changeData
             },
@@ -430,14 +430,14 @@ export function RabbisFileColumns(){
      * @param data
      * @returns {Promise<void>}
      */
-    const onRabbisSingleAction = async (data, action ) => {
+    const onRubbishSingleAction = async (data, action ) => {
         let response;
         if( 'ignore' === action ){
             setIgnoreCurrentItem( data.id );
-            response = await rabbisSingleIgnoreAction( data );
+            response = await rubbishSingleIgnoreAction( data );
         } else if ( 'delete' === action ) {
             setDeleteCurrentItem( data.id );
-            response = await rabbisSingleDeleteAction( data );
+            response = await rubbishSingleDeleteAction( data );
         }
         if( 200 === parseInt( response?.status ) ) {
             const mediaFile = stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id )
@@ -451,10 +451,10 @@ export function RabbisFileColumns(){
             setIgnoreCurrentItem( null );
             setDeleteCurrentItem( null );
         }
-        console.log( 'rabbisSingleAction' );
+        console.log( 'rubbishSingleAction' );
     };
 
-    const rabbisHead = [
+    const rubbishHead = [
         {
             title: 'File',
             key: 'Image',
@@ -477,10 +477,10 @@ export function RabbisFileColumns(){
             align: 'top',
             width: '350px',
             render: ( text, record, i ) => <Space wrap>
-                <Button onClick={ () => onRabbisSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger >
+                <Button onClick={ () => onRubbishSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger >
                     Delete File
                 </Button>
-                <Button onClick={ () => onRabbisSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >
+                <Button onClick={ () => onRubbishSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >
                     Ignore File
                 </Button>
             </Space>
@@ -488,15 +488,15 @@ export function RabbisFileColumns(){
     ];
 
     if ( tsmltParams.hasExtended ){
-        rabbisHead.unshift({
-            title: <Checkbox checked={ stateValue.bulkRabbisData.bulkChecked } onChange={onRabbisBulkCheck}/>,
+        rubbishHead.unshift({
+            title: <Checkbox checked={ stateValue.bulkRubbishData.bulkChecked } onChange={onRubbishBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'id',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRabbisData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         });
     }
-    return rabbisHead;
+    return rubbishHead;
 
 }

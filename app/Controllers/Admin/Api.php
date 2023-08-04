@@ -62,9 +62,9 @@ class Api {
 			'callback'            => [ $this, 'update_option' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
-		register_rest_route( $this->namespace, $this->resource_name . '/getrabbisfile', array(
+		register_rest_route( $this->namespace, $this->resource_name . '/getRubbishFile', array(
 			'methods'             => 'GET',
-			'callback'            => [ $this, 'get_rabbis_file' ],
+			'callback'            => [ $this, 'get_rubbish_file' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 		register_rest_route( $this->namespace, $this->resource_name . '/getDirList', array(
@@ -83,15 +83,15 @@ class Api {
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
-		register_rest_route( $this->namespace, $this->resource_name . '/rabbis/single/delete/action', array(
+		register_rest_route( $this->namespace, $this->resource_name . '/rubbish/single/delete/action', array(
 			'methods'             => 'POST',
-			'callback'            => [ $this, 'rabbis_single_delete_action' ],
+			'callback'            => [ $this, 'rubbish_single_delete_action' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
-		register_rest_route( $this->namespace, $this->resource_name . '/rabbis/single/ignore/action', array(
+		register_rest_route( $this->namespace, $this->resource_name . '/rubbish/single/ignore/action', array(
 			'methods'             => 'POST',
-			'callback'            => [ $this, 'rabbis_single_ignore_action' ],
+			'callback'            => [ $this, 'rubbish_single_ignore_action' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
@@ -541,7 +541,7 @@ class Api {
 	/**
 	 * @return false|string
 	 */
-	public function get_rabbis_file( $request_data ) {
+	public function get_rubbish_file( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 
@@ -584,20 +584,20 @@ class Api {
 			wp_cache_set( $total_file_cache, $total_file );
 		}
 
-		$rabbis_data = [
+		$rubbish_data = [
 			'mediaFile'    => is_array( $existing_row ) ? $existing_row : [],
 			'paged'        => absint( $page ),
 			'totalPost'    => absint( $total_file ),
 			'postsPerPage' => absint( $limit )
 		];
 
-		return wp_json_encode( $rabbis_data );
+		return wp_json_encode( $rubbish_data );
 	}
 
 	/**
 	 * @return false|string
 	 */
-	public function rabbis_single_delete_action( $request_data ) {
+	public function rubbish_single_delete_action( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 		$result     = [
@@ -633,7 +633,7 @@ class Api {
 	/**
 	 * @return false|string
 	 */
-	public function rabbis_single_ignore_action( $request_data ) {
+	public function rubbish_single_ignore_action( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 		$result     = [

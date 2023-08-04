@@ -19,7 +19,7 @@ function RubbishNotice() {
             type: Types.RUBBISH_MEDIA,
             rubbishMedia: {
                 ...stateValue.rubbishMedia,
-                showRabbisNotice: false
+                showRubbishNotice: false
             },
         });
     };
@@ -33,7 +33,7 @@ function RubbishNotice() {
             width="100%"
             height="500px"
             title={`Notice`}
-            open={ stateValue.rubbishMedia.showRabbisNotice }
+            open={ stateValue.rubbishMedia.showRubbishNotice }
             onCancel={handleNoticeModalHide}
             onOk={handleNoticeModalHide}
         >

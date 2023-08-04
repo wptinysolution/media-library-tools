@@ -109,8 +109,8 @@ export const getDirList = async () => {
  * @param prams
  * @returns {Promise<any>}
  */
-export const getRabbisFile = async ( prams = {} ) => {
-    const result = await Api.get(`/getrabbisfile`, {params: prams} );
+export const getRubbishFile = async ( prams = {} ) => {
+    const result = await Api.get(`/getRubbishFile`, {params: prams} );
     return JSON.parse(result.data);
 }
 /**
@@ -140,8 +140,8 @@ export const ignoreDirForScan = async ( prams ) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const rabbisSingleDeleteAction = async (prams) => {
-    const response = await Api.post(`/rabbis/single/delete/action`, prams);
+export const rubbishSingleDeleteAction = async (prams) => {
+    const response = await Api.post(`/rubbish/single/delete/action`, prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
@@ -150,8 +150,8 @@ export const rabbisSingleDeleteAction = async (prams) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const rabbisSingleIgnoreAction = async (prams) => {
-    const response = await Api.post(`/rabbis/single/ignore/action`, prams);
+export const rubbishSingleIgnoreAction = async (prams) => {
+    const response = await Api.post(`/rubbish/single/ignore/action`, prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }

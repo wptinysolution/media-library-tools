@@ -51,7 +51,7 @@ function DirectoryModal() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                scanRabbisDirLoading: true,
+                scanRubbishDirLoading: true,
             },
         });
         const dirList = await rescanDirList( {  dir : dir } );
@@ -60,8 +60,8 @@ function DirectoryModal() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                scanRabbisDirList: dirList.data.thedirlist,
-                scanRabbisDirLoading: false,
+                scanRubbishDirList: dirList.data.thedirlist,
+                scanRubbishDirLoading: false,
             },
         });
 
@@ -99,7 +99,7 @@ function DirectoryModal() {
         >
             <Divider />
             <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
-            { stateValue.generalData.scanRabbisDirLoading ?
+            { stateValue.generalData.scanRubbishDirLoading ?
                 <Spin indicator={antIcon} style={ {
                     position: 'absolute',
                     left: '50%',
@@ -110,7 +110,7 @@ function DirectoryModal() {
                 <>
                     <List
                         itemLayout="horizontal"
-                        dataSource={ Object.entries( stateValue.generalData.scanRabbisDirList ) }
+                        dataSource={ Object.entries( stateValue.generalData.scanRubbishDirList ) }
                         locale = { { emptyText: <Title level={5} style={{ margin:'0 15px', color: 'red' }}>No Directory found. Directory will search in next schedule be patience till then..</Title> } }
                         renderItem={ ( [key, item], index) => (
                             <List.Item key={key}>

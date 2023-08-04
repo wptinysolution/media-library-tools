@@ -12,9 +12,9 @@ const { Content } = Layout;
 
 import * as Types from "../../Utils/actionType";
 
-import { RabbisFileColumns} from "../../Utils/UtilData";
+import { RubbishFileColumns} from "../../Utils/UtilData";
 
-import { getRabbisFile} from "../../Utils/Data";
+import { getRubbishFile } from "../../Utils/Data";
 
 import DirectoryModal from "./DirectoryModal";
 
@@ -24,21 +24,21 @@ function RubbishFile() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const getTheRabbisFile = async () => {
-        const rabbisFile = await getRabbisFile( stateValue.rubbishMedia.postQuery );
-        console.log( rabbisFile.mediaFile )
+    const getTheRubbishFile = async () => {
+        const rubbishFile = await getRubbishFile( stateValue.rubbishMedia.postQuery );
+        console.log( rubbishFile.mediaFile )
         await dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia:{
                 ...stateValue.rubbishMedia,
                 isLoading: false,
-                mediaFile: rabbisFile.mediaFile,
-                paged: rabbisFile.paged,
-                totalPost: rabbisFile.totalPost,
-                postsPerPage: rabbisFile.postsPerPage
+                mediaFile: rubbishFile.mediaFile,
+                paged: rubbishFile.paged,
+                totalPost: rubbishFile.totalPost,
+                postsPerPage: rubbishFile.postsPerPage
             }
         });
-        console.log( 'getRabbisFile' );
+        console.log( 'getTheRubbishFile' );
     }
 
     const handlePagination = ( current ) => {
@@ -55,18 +55,18 @@ function RubbishFile() {
         });
         dispatch({
             type: Types.BALK_RUBBISH,
-            bulkRabbisData: {
-                ...stateValue.bulkRabbisData,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
                 bulkChecked: false,
                 ids: [],
             },
         });
     }
 
-    const rabbisColumns = RabbisFileColumns();
+    const rubbishColumns = RubbishFileColumns();
 
     useEffect(() => {
-        getTheRabbisFile();
+        getTheRubbishFile();
     }, [stateValue.rubbishMedia.postQuery] );
 
     return (
@@ -78,7 +78,7 @@ function RubbishFile() {
                     <Table
                         rowKey={(item) => (Math.random() + 1).toString(36).substring(7) }
                         pagination={false}
-                        columns={ rabbisColumns }
+                        columns={ rubbishColumns }
                         dataSource={ stateValue.rubbishMedia.mediaFile }
                         scroll={{
                             x: 1300,

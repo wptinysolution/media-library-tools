@@ -37,9 +37,9 @@ class ActionHooks {
 		add_action( 'init', [ $this, 'schedule_directory_cron_job' ] );
 		add_action( 'tsmlt_upload_dir_scan', [ $this, 'get_directory_list_cron_job' ] );
 
-		// Rabbis Cron Job.
-		add_action( 'init', [ $this, 'schedule_rabbis_file_cron_job' ] );
-		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rabbis_file_cron_job' ] );
+		// Rubbish Cron Job.
+		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
+		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rubbish_file_cron_job' ] );
 
 	}
 
@@ -131,7 +131,7 @@ class ActionHooks {
 	 * Schedule the cron job
 	 * @return void
 	 */
-	public function schedule_rabbis_file_cron_job() {
+	public function schedule_rubbish_file_cron_job() {
 		$event_hook = 'tsmlt_upload_inner_file_scan';
 		// Check if the cron job is already scheduled
 		$is_scheduled = wp_next_scheduled( $event_hook );
@@ -182,7 +182,7 @@ class ActionHooks {
 	/**
 	 * Function to scan the upload directory and search for files
 	 */
-	public function scan_rabbis_file_cron_job() {
+	public function scan_rubbish_file_cron_job() {
 
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 		if ( ! count( $dis_list ) ) {

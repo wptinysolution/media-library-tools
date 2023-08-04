@@ -37,7 +37,7 @@ class FilterHooks {
 		add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
 
 		// Cron Interval for check image file.
-		add_filter( 'cron_schedules', [ __CLASS__, 'rabbis_add_cron_interval' ] );
+		add_filter( 'cron_schedules', [ __CLASS__, 'rubbish_add_cron_interval' ] );
 
 	}
 
@@ -297,7 +297,7 @@ class FilterHooks {
 	 *
 	 * @return mixed
 	 */
-	public static function rabbis_add_cron_interval( $schedules ) {
+	public static function rubbish_add_cron_interval( $schedules ) {
 		$schedules['everyminute'] = array(
 			'interval' => 60, // Time in seconds.
 			'display'  => 'Every Minute'
