@@ -27,7 +27,8 @@ function RubbishHeader() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                scanRubbishDirList: preparedDate,
+                scanRubbishDirList: preparedDate.dirList,
+                scanDirNextSchedule: preparedDate.nextSchedule,
                 scanRubbishDirLoading: false,
             },
         });

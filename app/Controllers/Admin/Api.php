@@ -487,7 +487,24 @@ class Api {
 	public function get_dir_list() {
 		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 
-		return json_encode( $directory_list );
+		// Get the timestamp of the next scheduled event
+		$next_scheduled_timestamp = wp_next_scheduled('tsmlt_upload_dir_scan');
+		// Get WordPress timezone
+		// Get WordPress timezone
+		$wordpress_timezone = get_option('timezone_string');
+
+		// Set a default timezone in case the WordPress timezone is not set or invalid
+		$timezone = $wordpress_timezone ? new \DateTimeZone($wordpress_timezone) : new \DateTimeZone('UTC');
+
+		// Create a DateTime object with the scheduled timestamp and set the timezone
+		$next_scheduled_datetime = new \DateTime("@$next_scheduled_timestamp");
+		$next_scheduled_datetime->setTimezone($timezone);
+
+		$data = [
+			'dirList' => $directory_list,
+			'nextSchedule' => $next_scheduled_datetime->format('Y-m-d h:i:sa'),
+		];
+		return json_encode( $data );
 	}
 
 	/**

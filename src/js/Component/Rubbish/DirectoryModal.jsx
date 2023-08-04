@@ -111,12 +111,15 @@ function DirectoryModal() {
                     <List
                         itemLayout="horizontal"
                         dataSource={ Object.entries( stateValue.generalData.scanRubbishDirList ) }
-                        locale = { { emptyText: <Title level={5} style={{ margin:'0 15px', color: 'red' }}>No Directory found. Directory will search in next schedule be patience till then..</Title> } }
+                        locale = { { emptyText: <Title level={5} style={{ margin:'0 15px', color: 'red' }}>
+                                No Directory found. Directory will search in next schedule be patience till then. <br/>
+                                Next Schedule {stateValue.generalData.scanDirNextSchedule}
+                        </Title> } }
                         renderItem={ ( [key, item], index) => (
                             <List.Item key={key}>
                                 <List.Item.Meta
                                     title={ key }
-                                    description={ `${ item.total_items == 0 ? 'This directory will be scanned again according to the schedule.' : `Scanned ${item.counted} items of ${item.total_items} items` }` }
+                                    description={ `${ item.total_items == 0 ? `This directory will be scanned again according to the schedule.` : `Scanned ${item.counted} items of ${item.total_items} items` }` }
                                 />
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>

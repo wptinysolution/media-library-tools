@@ -69,6 +69,7 @@ export const initialState = {
 		isDirModalOpen: false,
 		scanDir: '',
 		scanRubbishDirList: [],
+		scanDirNextSchedule: '',
 		scanRubbishDirLoading: true,
 	},
 };
