@@ -495,10 +495,10 @@ class Api {
 	 */
 	public function rescan_dir_list( $request_data ) {
 		$parameters = $request_data->get_params();
-		wp_clear_scheduled_hook('tsmlt_upload_dir_scan');
 		$dir        = $parameters['dir'] ?? 'all';
 		if ( 'all' === $dir ) {
 			$directory_list = [];
+			wp_clear_scheduled_hook('tsmlt_upload_dir_scan');
 		} else {
 			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
 			$directory_list[ $dir ] = [
@@ -506,6 +506,7 @@ class Api {
 				'counted'     => 0,
 				'status'      => "available"
 			];
+			wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		}
 		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
 		return [
