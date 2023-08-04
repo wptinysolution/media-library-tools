@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 
 import {useStateValue} from "../../Utils/StateProvider";
 
-import RabbisHeader from "../RabbisFile/RabbisHeader";
+import RubbishHeader from "./RubbishHeader";
 
 import Loader from "../../Utils/Loader";
 
@@ -18,7 +18,9 @@ import { getRabbisFile} from "../../Utils/Data";
 
 import DirectoryModal from "./DirectoryModal";
 
-function RabbisFile() {
+import RubbishNotice from "./RubbishNotice";
+
+function RubbishFile() {
 
     const [stateValue, dispatch] = useStateValue();
 
@@ -71,7 +73,7 @@ function RabbisFile() {
         <Layout className="layout">
             { stateValue.rubbishMedia.isLoading ? <Loader/>  :
             <>
-                <RabbisHeader />
+                <RubbishHeader />
                 <Content>
                     <Table
                         rowKey={(item) => (Math.random() + 1).toString(36).substring(7) }
@@ -95,10 +97,10 @@ function RabbisFile() {
                     />
                     <DirectoryModal />
                 </Content>
-
+                <RubbishNotice/>
             </>
             }
         </Layout>
     )
 }
-export default RabbisFile;
+export default RubbishFile;

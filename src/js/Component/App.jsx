@@ -32,7 +32,7 @@ import { defaultBulkSubmitData } from "../Utils/UtilData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
 
-import RabbisFile from "./RabbisFile/RabbisFile";
+import RubbishFile from "./Rubbish/RubbishFile";
 
 function App() {
 
@@ -205,7 +205,7 @@ function App() {
                     { 'settings' === getContentType() && <Settings/>  }
                     { 'mediaTable' === getContentType() && <Datatable /> }
                     { 'mediaRename' === getContentType() && <RenamerTableData/> }
-                    { 'rubbishFile' === getContentType() && <RabbisFile/> }
+                    { 'rubbishFile' === getContentType() && <RubbishFile/> }
                     {/*{ 'hasExtended' === getContentType() && <Extended/> }*/}
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>

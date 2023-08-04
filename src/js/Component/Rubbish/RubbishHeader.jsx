@@ -13,7 +13,7 @@ const { Header } = Layout;
 
 const { Title } = Typography;
 
-function RabbisHeader() {
+function RubbishHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
 
@@ -27,8 +27,8 @@ function RabbisHeader() {
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                scanRabbisDirList: preparedDate,
-                scanRabbisDirLoading: false,
+                scanRubbishDirList: preparedDate,
+                scanRubbishDirLoading: false,
             },
         });
         console.log( 'getDirList' )
@@ -104,10 +104,10 @@ function RabbisHeader() {
                 <Title level={5} style={{
                     margin:'0 15px',
                     color: 'red'
-                }}> Rabbis File Note : A "Rabbis File" refers to a file that exists within a directory but is not included in the media library or database. </Title>
+                }}> Rubbish File Note : A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database. </Title>
             </Space>
         </Header>
     );
 }
 
-export default RabbisHeader;
+export default RubbishHeader;

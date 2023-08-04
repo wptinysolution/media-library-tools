@@ -46,6 +46,7 @@ export const initialState = {
 	rubbishMedia:{
 		isLoading: true,
 		isDirModalOpen : false,
+		showRabbisNotice: true,
 		mediaFile: [],
 		postQuery: {
 			paged: 1,
