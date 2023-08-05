@@ -145,13 +145,10 @@ export function columns(){
 
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkRubbishData:{
+            bulkSubmitData:{
                 ...stateValue.bulkSubmitData,
-                bulkSubmitData: {
-                    ...stateValue.bulkSubmitData.bulkSubmitData,
-                    bulkChecked : checkedCount && checkedCount === postCount,
-                    ids: changeData
-                },
+                bulkChecked : checkedCount && checkedCount === postCount,
+                ids: changeData
             }
 
         });
