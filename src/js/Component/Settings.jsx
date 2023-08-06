@@ -127,6 +127,10 @@ function Settings() {
                                     }
                                 ]
                             } value={stateValue.options.others_file_support} onChange={ onChangeOthersFileList } />
+                            <br/>
+                            <Text  type="secondary"  >
+                                Svg And Others File Upload.
+                            </Text>
                         </Form.Item>
 
                         <Divider />
