@@ -1,30 +1,50 @@
-=== Media File Rename, SVG Support, Edit Media Title, Name, Alt tag, Media Content - Media Library Tools ===
+=== Rename Media File, Clean Media Rubbish File, SVG Support, Media Content, Title, Alt text - Media Library Tools ===
 Contributors: tinysolution
-Tags: media file renamer, svg support, svg, rename, files, renamer, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
+Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
 Tested up to: 6.2
-Stable tag: 1.0.12
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-SVG Support and Media File Rename, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+Media File Rename, Find Unused image and Clean Media Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == Description ==
 
-Media Library Tools simplifies image SVG Support and metadata editing. It allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
+== 🏆 Main Features ==
+* Media File Rename
+* Find Unused image that are Rubbish File
+* Image SVG Support
+* Media Content Editing
 
-Properly naming media files and optimizing their metadata can improve website organization, user experience, accessibility, and search engine optimization (SEO).
 
-The plugin provides helpful sorting and filtering tools to easily identify images that require attention, and with one-click editing, optimizing images for SEO has never been easier.
+== 🏆 Media File Rename ==
 
-Users can save time and improve their website's search engine rankings by streamlining the image metadata editing process with the plugin.
+Optimizing media file names provides valuable SEO benefits. By using descriptive and keyword-rich filenames, search engines can better understand the content, leading to higher rankings and increased visibility.
+
+Well-named media files enhance user experience, improving engagement and reducing bounce rates. Organized filenames make it easier for users to find and share the content, ultimately driving more organic traffic to the website.
+
+== 🏆 Find Unused/Rubbish File And Clean Media ==
+
+Finding unused or rubbish image files in the media library is essential for efficient website management. Removing unnecessary files improves site performance, load times, and user experience.
+
+It also optimizes storage space and ensures search engines prioritize relevant content, positively impacting SEO rankings. Regular cleanups maintain a well-organized media library and enhance overall website functionality.
+
+== 🏆 Image SVG Support ==
+
+Image SVG support in the WordPress media library offers significant SEO advantages. SVG files are lightweight and scalable, improving website loading times and user experience.
+
+SVGs are also search engine-friendly, enhancing discoverability and ranking potential. With SVG support, websites can achieve better performance and accessibility, leading to higher search engine rankings and increased organic traffic.
+Additionally, SVGs provide high-quality visuals on various devices, boosting engagement and user retention.
+
+== 🏆 Media Content Editing ==
+Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
+
 
 [youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
 
-Media Library Tools is a lightweight WordPress plugin that does not affect your website's speed
-
-== 🏆 Features ==
+== 🏆 All Features ==
 
 * SVG image upload support.
 * Rename media file names
@@ -38,13 +58,10 @@ Media Library Tools is a lightweight WordPress plugin that does not affect your 
 * Filter and search for images by trash status
 * Permanently delete trash images with one click in the future
 
-== 🏆 Improving SEO Score ==
-
-Optimizing image metadata, including information such as title, description, and ALT text, can be extremely valuable for SEO. Properly optimizing image metadata can help search engines understand the content and context of images on a website, leading to improved search engine rankings and visibility. By including relevant keywords in the image metadata, it's more likely that images will appear in relevant search queries, driving traffic to the website. Additionally, optimized image metadata can improve website accessibility, particularly for visually impaired users who rely on screen readers to access website content. Neglecting to optimize image metadata can lead to missed opportunities for improved SEO, reduced website traffic, and decreased user engagement.
-
 == 🏆 Getting Started ==
 
-To start using the Media Library Tools plugin, users should first install it and then navigate to Media > Media Tools. From there, they can begin editing individual or bulk images and optimizing their metadata.
+To start using the Media Library Tools plugin, users should first install it and then navigate to Media > Media Tools.
+From there, they can begin editing individual or bulk images their metadata.
 
 == Frequently Asked Questions ==
 
@@ -62,14 +79,18 @@ To search for images by categories, users can find the categories box near the F
 
 == Screenshots ==
 
-01. Media Table
-02. Media Table Edit mode
-03. Media Settings
-04. Media Library
-05. Bulk Action
-06. Media File Rename Edit Mode
+01. Media Table For Edit Media Content
+02. Media File Rename Table
+03. Rubbish Media Notice
+04. Rubbish Media Table For Delete Un use Image
+05. Rubbish Media Directory List With Scan History
+06. Media Table Edit Mode
+07. Media Table Bulk Edit Mode
 
 == Changelog ==
+
+= 1.2.0 ( ) =
+Added: Search Rubbish File And Delete
 
 = 1.0.12 ( July 29, 2023  ) =
 * Fixed: Alt text ordering issue
