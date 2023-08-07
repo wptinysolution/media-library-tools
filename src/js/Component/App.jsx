@@ -14,7 +14,7 @@ import {
 
 const { Sider } = Layout;
 
-import Extended from "./Extended";
+import ProModal from "./ProModal";
 
 import Settings from "./Settings";
 
@@ -209,6 +209,7 @@ function App() {
                     {/*{ 'hasExtended' === getContentType() && <Extended/> }*/}
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
+                <ProModal/>
             </Layout>
     );
 }

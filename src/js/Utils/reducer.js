@@ -62,6 +62,7 @@ export const initialState = {
 		ids: [],
 	},
 	generalData:{
+		openProModal: false,
 		isLoading: true,
 		selectedMenu: localStorage.getItem("current_menu") || 'settings',
 		dateList: {},

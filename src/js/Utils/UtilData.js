@@ -428,28 +428,39 @@ export function RubbishFileColumns(){
      * @returns {Promise<void>}
      */
     const onRubbishSingleAction = async (data, action ) => {
-        let response;
-        if( 'ignore' === action ){
-            setIgnoreCurrentItem( data.id );
-            response = await rubbishSingleIgnoreAction( data );
-        } else if ( 'delete' === action ) {
-            setDeleteCurrentItem( data.id );
-            response = await rubbishSingleDeleteAction( data );
+        if ( tsmltParams.hasExtended ){
+            let response;
+            if( 'ignore' === action ){
+                setIgnoreCurrentItem( data.id );
+                response = await rubbishSingleIgnoreAction( data );
+            } else if ( 'delete' === action ) {
+                setDeleteCurrentItem( data.id );
+                response = await rubbishSingleDeleteAction( data );
+            }
+            if( 200 === parseInt( response?.status ) ) {
+                const mediaFile = response.data.updated ? stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : stateValue.rubbishMedia.mediaFile;
+                await dispatch({
+                    type: Types.RUBBISH_MEDIA,
+                    rubbishMedia:{
+                        ...stateValue.rubbishMedia,
+                        mediaFile: mediaFile
+                    }
+                });
+                setIgnoreCurrentItem( null );
+                setDeleteCurrentItem( null );
+            }
+            console.log( 'rubbishSingleAction' );
+            return ;
         }
-        if( 200 === parseInt( response?.status ) ) {
-            console.log( response.data )
-            const mediaFile = response.data.updated ? stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : stateValue.rubbishMedia.mediaFile;
-            await dispatch({
-                type: Types.RUBBISH_MEDIA,
-                rubbishMedia:{
-                    ...stateValue.rubbishMedia,
-                    mediaFile: mediaFile
-                }
-            });
-            setIgnoreCurrentItem( null );
-            setDeleteCurrentItem( null );
-        }
-        console.log( 'rubbishSingleAction' );
+
+        dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                openProModal: true,
+            },
+        });
+
     };
 
     const rubbishHead = [

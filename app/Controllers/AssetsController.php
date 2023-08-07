@@ -72,7 +72,7 @@ class AssetsController {
 			wp_enqueue_style( 'tsmlt-settings' );
 			wp_enqueue_script( 'tsmlt-settings' );
 			$upload_dir = wp_upload_dir(); // Get the upload directory path
-			
+
 			wp_localize_script(
 				'tsmlt-settings',
 				'tsmltParams',
@@ -80,6 +80,7 @@ class AssetsController {
 					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
 					'adminUrl'       => esc_url( admin_url() ),
 					'hasExtended'    => tsmlt()->has_pro(),
+					'proLink'        => 'https://profiles.wordpress.org/tinysolution/#content-plugins',
 					'includesUrl'    => esc_url( includes_url() ),
 					'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
 					'uploadBasedir'  => $upload_dir['basedir'] ?? '',

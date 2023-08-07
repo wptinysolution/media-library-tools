@@ -31,35 +31,44 @@ function RubbishNotice() {
                 maxWidth: "950px"
             }}
             width="100%"
-            height="500px"
+            height="600px"
             title={`Notice`}
             open={ stateValue.rubbishMedia.showRubbishNotice }
             onCancel={handleNoticeModalHide}
-            onOk={handleNoticeModalHide}
+            footer={ null }
         >
             <Divider />
-            <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
-                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px', color:'red'}}>
+            <Content style={{ height: "500px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
+                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '16px', color:'red'}}>
                     Important Notice: Prioritize data safety. Always back up files before deletion to avoid irreversible loss.
                 </Title>
-                <Divider />
-                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px', color:'green'}}> What is Rubbish File? </Title>
-                <Paragraph type="secondary" style={{ fontSize: '18px', color:'#333'}}>
+                <Divider style={{  margin: '10px 0'  }}/>
+                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '16px', color:'green'}}> What is Rubbish File? </Title>
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
                     "Rubbish File" is a file that physically exists within a directory but is excluded from being indexed or included in the media library or database of an application or system.
                 </Paragraph >
-                <Divider />
-                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px', color:'green'}}> Delete File Can be Restore ? </Title>
-                <Paragraph type="secondary" style={{ fontSize: '18px', color:'#333'}}>
+                <Divider style={{  margin: '10px 0'  }}/>
+                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '16px', color:'green'}}> Why Need Delete Rubbish File? </Title>
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
+                    <strong>Freeing up storage space</strong>: Delete rubbish files to create more available storage space on your device.
+                </Paragraph >
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
+                    <strong>Improving performance</strong>: Removing unnecessary files can lead to a faster and more efficient system.
+                </Paragraph >
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
+                    <strong>Enhancing security and organization</strong> : Deleting rubbish files can help keep your data secure and your file system organized.
+                </Paragraph >
+                <Divider style={{  margin: '10px 0' }}/>
+                <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '16px', color:'green'}}> Delete File Can be Restore ? </Title>
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
                    No. You can't get back that file.
                     <span> That's Why Before deleting any file search this file in you media library
                     And Re-check the url and be sure before deleting.</span>
                 </Paragraph >
-                <Paragraph type="secondary" style={{ fontSize: '18px', color:'#333'}}>
+                <Paragraph type="secondary" style={{ fontSize: '15px', color:'#333'}}>
                     Thank you for your cooperation and understanding.
                 </Paragraph >
-
             </Content>
-            <Divider />
         </Modal>
     )
 }
