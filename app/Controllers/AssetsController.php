@@ -79,7 +79,7 @@ class AssetsController {
 				[
 					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
 					'adminUrl'       => esc_url( admin_url() ),
-					'hasExtended'    => function_exists( 'tsmltpro' ),
+					'hasExtended'    => tsmlt()->has_pro(),
 					'includesUrl'    => esc_url( includes_url() ),
 					'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
 					'uploadBasedir'  => $upload_dir['basedir'] ?? '',

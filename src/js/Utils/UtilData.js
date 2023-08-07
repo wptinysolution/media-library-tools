@@ -437,7 +437,8 @@ export function RubbishFileColumns(){
             response = await rubbishSingleDeleteAction( data );
         }
         if( 200 === parseInt( response?.status ) ) {
-            const mediaFile = stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id )
+            console.log( response.data )
+            const mediaFile = response.data.updated ? stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : stateValue.rubbishMedia.mediaFile;
             await dispatch({
                 type: Types.RUBBISH_MEDIA,
                 rubbishMedia:{
@@ -452,6 +453,14 @@ export function RubbishFileColumns(){
     };
 
     const rubbishHead = [
+        {
+            title: <Checkbox checked={ stateValue.bulkRubbishData.bulkChecked } onChange={onRubbishBulkCheck}/>,
+            key: 'CheckboxID',
+            dataIndex: 'id',
+            width: '50px',
+            align: 'center',
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+        },
         {
             title: 'File',
             key: 'Image',
@@ -484,16 +493,6 @@ export function RubbishFileColumns(){
         }
     ];
 
-    if ( tsmltParams.hasExtended ){
-        rubbishHead.unshift({
-            title: <Checkbox checked={ stateValue.bulkRubbishData.bulkChecked } onChange={onRubbishBulkCheck}/>,
-            key: 'CheckboxID',
-            dataIndex: 'id',
-            width: '50px',
-            align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
-        });
-    }
     return rubbishHead;
 
 }

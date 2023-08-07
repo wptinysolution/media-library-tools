@@ -77,11 +77,6 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir_list' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
-		register_rest_route( $this->namespace, $this->resource_name . '/ignoreDirForScan', array(
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'ignore_dir_for_scan' ],
-			'permission_callback' => [ $this, 'login_permission_callback' ],
-		) );
 
 		register_rest_route( $this->namespace, $this->resource_name . '/rubbish/single/delete/action', array(
 			'methods'             => 'POST',
@@ -536,28 +531,6 @@ class Api {
 	/**
 	 * @return false|string
 	 */
-	public function ignore_dir_for_scan( $request_data ) {
-		$parameters = $request_data->get_params();
-		$dir        = $parameters['dir'] ?? null;
-		$result     = [
-			'updated' => false,
-			'message' => esc_html__( 'Update failed. Maybe change not found.', 'tsmlt-media-tools' )
-		];
-		if ( ! $dir ) {
-			return $result;
-		}
-		$directory_list                   = get_option( 'tsmlt_get_directory_list', [] );
-		$status = 'ignore' == $directory_list[ $dir ]['status'] ? 'available' : 'ignore' ;
-		$directory_list[ $dir ]['status'] = $status;
-		$options                          = update_option( 'tsmlt_get_directory_list', $directory_list );
-		$result['updated']                = boolval( $options );
-		$result['message']                = ! boolval( $options ) ? $result['message'] : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
-		return $result;
-	}
-
-	/**
-	 * @return false|string
-	 */
 	public function get_rubbish_file( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
@@ -615,74 +588,26 @@ class Api {
 	 * @return false|string
 	 */
 	public function rubbish_single_delete_action( $request_data ) {
-		global $wpdb;
 		$parameters = $request_data->get_params();
 		$result     = [
-			'updated' => true,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+			'updated' => false,
+			'hasPro' => tsmlt()->has_pro()
 		];
-
-		$file_path = $parameters['file_path'] ?? false;
-		if ( ! $file_path ) {
-			return $result;
-		}
-
-		$upload_dir     = wp_upload_dir(); // Get the upload directory path
-		$directory_path = $upload_dir['basedir']; // Get the base directory path
-		$full_file_path = $directory_path . '/' . $file_path;
-		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
-
-		$is_deleted = false;
-		if ( file_exists( $full_file_path ) ) {
-			if ( unlink( $full_file_path ) ) {
-				$is_deleted = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
-			}
-		} else {
-			$is_deleted = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
-		}
-
-		$result['updated'] = $is_deleted;
-		$result['message'] = $is_deleted ? esc_html__( 'File Deleted.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
-
-		return $result;
+		$result['message'] = ! $result['hasPro'] ? esc_html__( 'Pro Feature.', 'tsmlt-media-tools' ) : '';
+		return apply_filters( 'tsmlt/rubbish/single/file/delete/action', $result, $parameters );
 	}
 
 	/**
 	 * @return false|string
 	 */
 	public function rubbish_single_ignore_action( $request_data ) {
-		global $wpdb;
 		$parameters = $request_data->get_params();
 		$result     = [
-			'updated' => true,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+			'updated' => false,
+			'hasPro' => tsmlt()->has_pro()
 		];
-
-		$file_path = $parameters['file_path'] ?? false;
-		if ( ! $file_path ) {
-			return $result;
-		}
-		$upload_dir     = wp_upload_dir(); // Get the upload directory path
-		$directory_path = $upload_dir['basedir']; // Get the base directory path
-		$full_file_path = $directory_path . '/' . $file_path;
-		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
-		if ( file_exists( $full_file_path ) ) {
-			// Data to update (if needed)
-			$data_to_update = array(
-				'status' => 'ignore',  // Replace column1 with the actual column name to update
-			);
-			// Conditions for the update (in this case, based on file_path)
-			$where_conditions = array( 'file_path' => $file_path );
-			// Update the row
-			$is_updated = $wpdb->update( $table_name, $data_to_update, $where_conditions, '%s', '%s' );
-		} else {
-			$is_updated = $wpdb->delete( $table_name, array( 'file_path' => $file_path ), array( '%s' ) );
-		}
-
-		$result['updated'] = $is_updated;
-		$result['message'] = $is_updated ? esc_html__( 'File Ignored.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
-
-		return $result;
+		$result['message'] = ! $result['hasPro'] ? esc_html__( 'Pro Feature.', 'tsmlt-media-tools' ) : '';
+		return apply_filters( 'tsmlt/rubbish/single/file/ignore/action', $result, $parameters );
 	}
 
 

@@ -129,7 +129,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			return function_exists( 'tsmltp' );
+			return function_exists( 'tsmltpro' );
 		}
 
 		/**
