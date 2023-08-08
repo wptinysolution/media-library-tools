@@ -60,6 +60,7 @@ export const initialState = {
 	bulkRubbishData: {
 		bulkChecked: false,
 		ids: [],
+		type: 'ignore'
 	},
 	generalData:{
 		openProModal: false,

@@ -54,7 +54,7 @@ function ProModal() {
             onCancel={handleBulkModalCancel}
             footer={[
                 <Button key="rescan" onClick={ handleBulkModalCancel }> Cancel </Button>,
-                <Button type="primary">
+                <Button key="prourl" type="primary">
                     <a className={'ant-btn'} target={`_blank`} href={tsmltParams.proLink}>Get Pro Version</a>
                 </Button>
             ]}
@@ -68,7 +68,7 @@ function ProModal() {
                     itemLayout="horizontal"
                     dataSource={data}
                     renderItem={(item, index) => (
-                        <List.Item>
+                        <List.Item key={index}>
                             <List.Item.Meta
                                 avatar={<CheckSquareOutlined style={{ fontSize: '40px', color: '#1677ff' }} />}
                                 title={<span style={{ color:'#1677ff', fontSize: '15px' }}> { item.title } </span>}

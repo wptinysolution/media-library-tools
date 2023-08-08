@@ -155,6 +155,29 @@ export const rubbishSingleIgnoreAction = async (prams) => {
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
+
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const rubbishBulkDeleteAction = async (prams) => {
+    const response = await Api.post(`/rubbish/bulk/delete/action`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
+    return response;
+}
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const rubbishBulkIgnoreAction = async (prams) => {
+    const response = await Api.post(`/rubbish/bulk/ignore/action`, prams);
+    console.log( response.data )
+    notifications(200 === response.status && response.data.updated, response.data.message);
+    return response;
+}
 /**
  *
  * @param prams

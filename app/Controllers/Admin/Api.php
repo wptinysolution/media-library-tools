@@ -78,18 +78,6 @@ class Api {
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
-		register_rest_route( $this->namespace, $this->resource_name . '/rubbish/single/delete/action', array(
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'rubbish_single_delete_action' ],
-			'permission_callback' => [ $this, 'login_permission_callback' ],
-		) );
-
-		register_rest_route( $this->namespace, $this->resource_name . '/rubbish/single/ignore/action', array(
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'rubbish_single_ignore_action' ],
-			'permission_callback' => [ $this, 'login_permission_callback' ],
-		) );
-
 	}
 
 	/**
@@ -583,33 +571,6 @@ class Api {
 
 		return wp_json_encode( $rubbish_data );
 	}
-
-	/**
-	 * @return false|string
-	 */
-	public function rubbish_single_delete_action( $request_data ) {
-		$parameters = $request_data->get_params();
-		$result     = [
-			'updated' => false,
-			'hasPro' => tsmlt()->has_pro()
-		];
-		$result['message'] = ! $result['hasPro'] ? esc_html__( 'Pro Feature.', 'tsmlt-media-tools' ) : '';
-		return apply_filters( 'tsmlt/rubbish/single/file/delete/action', $result, $parameters );
-	}
-
-	/**
-	 * @return false|string
-	 */
-	public function rubbish_single_ignore_action( $request_data ) {
-		$parameters = $request_data->get_params();
-		$result     = [
-			'updated' => false,
-			'hasPro' => tsmlt()->has_pro()
-		];
-		$result['message'] = ! $result['hasPro'] ? esc_html__( 'Pro Feature.', 'tsmlt-media-tools' ) : '';
-		return apply_filters( 'tsmlt/rubbish/single/file/ignore/action', $result, $parameters );
-	}
-
 
 }
 

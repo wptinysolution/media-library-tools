@@ -7,7 +7,8 @@ import {bulkOprions, defaultBulkSubmitData, headerStyle, selectStyle} from "../.
 import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
-import {getDirList} from "../../Utils/Data";
+
+import {getDirList, rubbishBulkDeleteAction, rubbishBulkIgnoreAction} from "../../Utils/Data";
 
 const { Header } = Layout;
 
@@ -46,14 +47,32 @@ function RubbishHeader() {
     };
 
     const handleChangeBulkType = (value) => {
-
+        dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
+                type: value
+            },
+        });
     };
 
-    const handleBulkSubmit = ( value ) => {
-        switch( stateValue.bulkSubmitData.type ){
+    const handleBulkSubmit = async () => {
+        if ( ! tsmltParams.hasExtended ){
+            await dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+        switch( stateValue.bulkRubbishData.type ){
             case 'delete':
+                await rubbishBulkDeleteAction( stateValue.bulkRubbishData );
                 break;
             case 'ignore':
+                await rubbishBulkIgnoreAction( stateValue.bulkRubbishData );
                 break;
             default:
         }
@@ -63,7 +82,6 @@ function RubbishHeader() {
     const options = [
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
-        { value: 'restore', label: 'Restore' },
     ];
 
     useEffect(() => {
@@ -73,24 +91,18 @@ function RubbishHeader() {
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Space>
-                {
-                    tsmltParams.hasExtended && <>
-                        <Select
-                            style={{
-                                width: '150px'
-                            }}
-                            size="large"
-                            defaultValue={`ignore`}
-                            onChange={handleChangeBulkType}
-                            options={ options }
-                        />
-                        <Button
-                            type="primary"
-                            size="large"
-                            onClick={handleBulkSubmit}
-                        > Bulk Apply </Button>
-                    </>
-                }
+                <Select
+                    style={{ width: '150px' }}
+                    size="large"
+                    defaultValue={`ignore`}
+                    onChange={handleChangeBulkType}
+                    options={ options }
+                />
+                <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleBulkSubmit}
+                > Bulk Apply </Button>
 
                 <Button
                     style={{

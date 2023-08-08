@@ -408,7 +408,7 @@ export function RubbishFileColumns(){
             ...stateValue.bulkRubbishData.ids,
             value
         ] : stateValue.bulkRubbishData.ids.filter( item => item !== value );
-
+        
         const checkedCount = Object.keys( changeData ).length;
         const postCount = Object.keys( stateValue.rubbishMedia.mediaFile ).length;
 
@@ -417,7 +417,8 @@ export function RubbishFileColumns(){
             bulkRubbishData: {
                 ...stateValue.bulkRubbishData,
                 bulkChecked: ! ! checkedCount && checkedCount === postCount,
-                ids: changeData
+                ids: changeData,
+                files_path: changeData
             },
         });
 
