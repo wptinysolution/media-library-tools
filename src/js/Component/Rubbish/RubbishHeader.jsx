@@ -67,6 +67,15 @@ function RubbishHeader() {
             });
             return;
         }
+
+        await dispatch({
+            type: Types.RUBBISH_MEDIA,
+            rubbishMedia: {
+                ...stateValue.rubbishMedia,
+                isLoading: true,
+            },
+        });
+
         switch( stateValue.bulkRubbishData.type ){
             case 'delete':
                 await rubbishBulkDeleteAction( stateValue.bulkRubbishData );
@@ -76,6 +85,28 @@ function RubbishHeader() {
                 break;
             default:
         }
+
+        await dispatch({
+            type: Types.RUBBISH_MEDIA,
+            rubbishMedia: {
+                ...stateValue.rubbishMedia,
+                postQuery:{
+                    ...stateValue.rubbishMedia.postQuery,
+                    isQueryUpdate: ! stateValue.rubbishMedia.postQuery.isQueryUpdate
+                }
+            },
+        });
+
+        await dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
+                bulkChecked : false,
+                ids: [],
+                files: []
+            },
+        });
+
 
     };
 
