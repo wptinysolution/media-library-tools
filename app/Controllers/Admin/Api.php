@@ -523,7 +523,7 @@ class Api {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 
-		$limit  = $parameters['postsPerPage'] ?? 10;
+		$limit  = $parameters['postsPerPage'] ?? 20;
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 

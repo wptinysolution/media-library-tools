@@ -68,14 +68,6 @@ function RubbishHeader() {
             return;
         }
 
-        await dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                isLoading: true,
-            },
-        });
-
         switch( stateValue.bulkRubbishData.type ){
             case 'delete':
                 await rubbishBulkDeleteAction( stateValue.bulkRubbishData );
@@ -133,7 +125,24 @@ function RubbishHeader() {
                     type="primary"
                     size="large"
                     onClick={handleBulkSubmit}
-                > Bulk Apply </Button>
+                > Bulk Actions </Button>
+
+                <Select
+                    size="large"
+                    allowClear = {true}
+                    placeholder={'Show'}
+                    defaultValue={`show`}
+                    style={selectStyle}
+                    options={ [
+                        { value: 'show', label: 'Show' },
+                        { value: 'ignore', label: 'Ignore' }
+                    ] }
+                />
+
+                <Button
+                    type="primary"
+                    size="large"
+                > Apply Filter </Button>
 
                 <Button
                     style={{
