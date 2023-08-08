@@ -1,4 +1,4 @@
-=== Clean Media Rubbish File, Rename Media File, Support SVG , Edit Media Content, Title, Alt text - Media Library Tools ===
+=== Media File Rename, Clear Media Junk File, Support SVG , Edit Media Content, Title, Alt text - Media Library Tools ===
 Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
@@ -12,7 +12,7 @@ Media File Renamer, Find Unused Media File, Clean Media Rubbish File, SVG Suppor
 
 == Description ==
 
-== 🏆 Main Features ==
+**Main Features**
 * Find Unused Media File
 * Clean Media Rubbish File
 * Media File Renamer

@@ -388,27 +388,41 @@ export function RubbishFileColumns(){
      */
     const onRubbishBulkCheck = (event) => {
         const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
-        console.log( postsId )
+        const files = event.target.checked ? stateValue.rubbishMedia.mediaFile.map(item => ({
+                id: item.id,
+                path: item.file_path,
+            })) : [];
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
                 ...stateValue.bulkRubbishData,
                 bulkChecked : ! ! postsId.length,
-                ids: postsId
+                ids: postsId,
+                files: files
             },
         });
+        console.log( files )
     };
     /**
      *
      * @param event
      */
-    const onCheckboxChange = (event) => {
+    const onCheckboxChange = (event, record) => {
+
         const value = event.target.value ;
         const changeData = event.target.checked ? [
             ...stateValue.bulkRubbishData.ids,
             value
         ] : stateValue.bulkRubbishData.ids.filter( item => item !== value );
-        
+
+        const changePath = event.target.checked ? [
+            ...stateValue.bulkRubbishData.files,
+            {
+                id: record.id,
+                path: record.file_path,
+            }
+        ] : stateValue.bulkRubbishData.files.filter( item => item.id !== record.id );
+
         const checkedCount = Object.keys( changeData ).length;
         const postCount = Object.keys( stateValue.rubbishMedia.mediaFile ).length;
 
@@ -418,9 +432,11 @@ export function RubbishFileColumns(){
                 ...stateValue.bulkRubbishData,
                 bulkChecked: ! ! checkedCount && checkedCount === postCount,
                 ids: changeData,
-                files_path: changeData
+                files: changePath
             },
         });
+        
+        console.log( changeData, changePath );
 
     };
     /**
@@ -471,7 +487,7 @@ export function RubbishFileColumns(){
             dataIndex: 'id',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={ ( event ) => onCheckboxChange(event, record) } />
         },
         {
             title: 'File',

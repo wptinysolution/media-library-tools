@@ -59,8 +59,9 @@ export const initialState = {
 	},
 	bulkRubbishData: {
 		bulkChecked: false,
-		ids: [],
-		type: 'ignore'
+		files: [],
+		type: 'ignore',
+		ids: []
 	},
 	generalData:{
 		openProModal: false,
