@@ -42,7 +42,7 @@ function RabbisFile() {
                 borderRadius: '5px',
                 boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
             }}>
-                <Title level={2} > Announcement: Exciting Upcoming Feature - "Rabbis File Finder" . </Title>
+                <Title level={2} > Announcement: Exciting Upcoming Feature - "Rubbish File Finder" . </Title>
             </Content>
         </Layout>
     )

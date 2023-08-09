@@ -2,8 +2,8 @@
 Contributors: tinysolution
 Tags: media file renamer, svg support, svg, rename, files, renamer, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
-Tested up to: 6.2
-Stable tag: 1.0.12
+Tested up to: 6.3
+Stable tag: 1.0.13
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -70,6 +70,9 @@ To search for images by categories, users can find the categories box near the F
 06. Media File Rename Edit Mode
 
 == Changelog ==
+
+= 1.0.13 ( August 09, 2023  ) =
+* Fixed: Php Version Issue fixed
 
 = 1.0.12 ( July 29, 2023  ) =
 * Fixed: Alt text ordering issue
