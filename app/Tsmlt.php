@@ -9,7 +9,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
-require_once __DIR__ . './../vendor/autoload.php';
+
+require_once TSMLT_PATH . 'vendor/autoload.php';
 
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Installation;

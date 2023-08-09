@@ -93,6 +93,9 @@ To search for images by categories, users can find the categories box near the F
 = 1.2.0 ( ) =
 Added: Search Rubbish File And Delete
 
+= 1.0.13 ( August 09, 2023  ) =
+* Fixed: Php Version Issue fixed
+
 = 1.0.12 ( July 29, 2023  ) =
 * Fixed: Alt text ordering issue
 * Fixed: Name And Author Issue
