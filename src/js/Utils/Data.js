@@ -155,6 +155,16 @@ export const rubbishSingleIgnoreAction = async (prams) => {
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const rubbishSingleShowAction = async (prams) => {
+    const response = await Api.post(`/rubbish/single/show/action`, prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
+    return response;
+}
 
 
 /**

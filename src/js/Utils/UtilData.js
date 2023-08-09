@@ -11,7 +11,7 @@ import {useStateValue} from "./StateProvider";
 
 import * as Types from "./actionType";
 
-import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction } from "./Data";
+import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction } from "./Data";
 
 const { TextArea } = Input;
 
@@ -453,6 +453,8 @@ export function RubbishFileColumns(){
             } else if ( 'delete' === action ) {
                 setDeleteCurrentItem( data.id );
                 response = await rubbishSingleDeleteAction( data );
+            } else if ( 'show' === action ) {
+                response = await rubbishSingleShowAction( data );
             }
             if( 200 === parseInt( response?.status ) ) {
                 const mediaFile = response.data.updated ? stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : stateValue.rubbishMedia.mediaFile;
@@ -511,12 +513,17 @@ export function RubbishFileColumns(){
             align: 'top',
             width: '450px',
             render: ( text, record, i ) => <Space wrap>
-                <Button onClick={ () => onRubbishSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger >
-                    Delete Unnecessary File
-                </Button>
-                <Button onClick={ () => onRubbishSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } >
-                    Ignore Important File
-                </Button>
+                {
+                    'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ? (
+                        <Button onClick={ () => onRubbishSingleAction( record, 'show' ) } loading={ record.id === deleteCurrentItem } > Mark As Unnecessary File </Button>
+                    ) :
+                    (
+                        <>
+                            <Button onClick={ () => onRubbishSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger > Delete Unnecessary File  </Button>
+                            <Button onClick={ () => onRubbishSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } > Ignore Important File </Button>
+                        </>
+                    )
+                }
             </Space>
         }
     ];

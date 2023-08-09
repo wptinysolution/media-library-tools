@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 
 import {Typography, Layout, Button, Space, Select} from 'antd';
 
@@ -17,6 +17,12 @@ const { Title } = Typography;
 function RubbishHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
+    // paged
+    const inputRef = useRef(null);
+
+    const sharedProps = {
+        ref: inputRef,
+    };
 
     const handleDirForModal = async () => {
         if( ! stateValue.generalData.isDirModalOpen ){
@@ -52,6 +58,22 @@ function RubbishHeader() {
             bulkRubbishData: {
                 ...stateValue.bulkRubbishData,
                 type: value
+            },
+        });
+    };
+
+
+    const handleFilterApply = (value) => {
+        dispatch({
+            type: Types.RUBBISH_MEDIA,
+            rubbishMedia: {
+                ...stateValue.rubbishMedia,
+                isLoading: true,
+                postQuery:{
+                    ...stateValue.rubbishMedia.postQuery,
+                    fileStatus: value,
+                    paged: 1,
+                }
             },
         });
     };
@@ -103,6 +125,7 @@ function RubbishHeader() {
     };
 
     const options = [
+        { value: 'default', label: 'Bulk Action' },
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
@@ -117,7 +140,7 @@ function RubbishHeader() {
                 <Select
                     style={{ width: '150px' }}
                     size="large"
-                    defaultValue={`ignore`}
+                    defaultValue={`default`}
                     onChange={handleChangeBulkType}
                     options={ options }
                 />
@@ -126,23 +149,30 @@ function RubbishHeader() {
                     size="large"
                     onClick={handleBulkSubmit}
                 > Bulk Actions </Button>
-
+                <Button
+                    type="text"
+                    size="large"
+                    onClick={() => {
+                        inputRef.current.focus({
+                            cursor: 'start',
+                        });
+                    }}
+                >
+                    Filter Items
+                </Button>
                 <Select
+                    {...sharedProps}
                     size="large"
                     allowClear = {true}
                     placeholder={'Show'}
-                    defaultValue={`show`}
+                    defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }
                     style={selectStyle}
                     options={ [
-                        { value: 'show', label: 'Show' },
-                        { value: 'ignore', label: 'Ignore' }
+                        { value: 'show', label: 'Default' },
+                        { value: 'ignore', label: 'Ignored Filte' }
                     ] }
+                    onChange={handleFilterApply}
                 />
-
-                <Button
-                    type="primary"
-                    size="large"
-                > Apply Filter </Button>
 
                 <Button
                     style={{

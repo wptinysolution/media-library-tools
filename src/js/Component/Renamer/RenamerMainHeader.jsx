@@ -1,8 +1,8 @@
 import React, { useRef} from "react";
 
-import { Typography, Layout, Button, Space, Input } from 'antd';
+import {Typography, Layout, Button, Space, Input, Select} from 'antd';
 
-import { headerStyle } from "../../Utils/UtilData";
+import {bulkOprions, defaultBulkSubmitData, headerStyle, selectStyle} from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 
@@ -22,10 +22,76 @@ function RenamerMainHeader() {
         ref: inputRef,
     };
 
+    const handleChangeBulkType = (value) => {
+        const data = 'bulkrename' === value ? stateValue.bulkSubmitData.data : defaultBulkSubmitData.data;
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                type: value,
+                data,
+            },
+        });
+    };
+
+    const handleBulkSubmit = () => {
+        if ( ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+        switch( stateValue.bulkSubmitData.type ){
+            case 'bulkrename':
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: Types.BULK_SUBMIT,
+                });
+                break;
+            case 'bulkrenameModal':
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: null,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen : true,
+                    },
+                });
+                break;
+            default:
+        }
+
+    };
+
+    const options = [
+        { value: 'default', label: 'Bulk Action' },
+        { value: 'rename', label: 'Bulk Rename' },
+    ];
+
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
 
             <Space >
+                <Select
+                    size="large"
+                    defaultValue={`default`}
+                    style={selectStyle}
+                    onChange={handleChangeBulkType}
+                    options={ options }
+                />
+
+                <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleBulkSubmit}
+                > Bulk Apply </Button>
+
                 <Button
                     style={{
                         width: '180px'

@@ -52,6 +52,7 @@ export const initialState = {
 			paged: 1,
 			postsPerPage: 10,
 			isQueryUpdate: false,
+			fileStatus: 'show'
 		},
 		paged: 0,
 		totalPost: 0,

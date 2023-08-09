@@ -524,12 +524,14 @@ class Api {
 		$parameters = $request_data->get_params();
 
 		$limit  = $parameters['postsPerPage'] ?? 20;
+
+		$status  = $parameters['fileStatus'] ?? 'show';
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 
 		$cache_key         = "tsmlt_unlisted_file";
 		$table_name        = $wpdb->prefix . 'tsmlt_unlisted_file';
-		$excluded_statuses = array( 'show' ); // Add the status values to exclude
+		$excluded_statuses = array( $status ); // Add the status values to exclude
 
 		// Add single quotes around each status value
 		$excluded_statuses = array_map( function ( $status ) {
