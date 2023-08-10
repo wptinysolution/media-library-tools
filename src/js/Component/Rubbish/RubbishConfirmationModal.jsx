@@ -103,7 +103,7 @@ function RubbishConfirmationModal() {
             <Divider />
             <Content>
                 <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> Are You Confirm { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }? </Title>
-                { stateValue.bulkRubbishData.progressBar > 0 && <Progress showInfo={true} percent={stateValue.bulkRubbishData.progressBar} /> }
+                { stateValue.bulkRubbishData.progressBar >= 0 && <Progress showInfo={true} percent={stateValue.bulkRubbishData.progressBar} /> }
             </Content>
             <Divider />
 

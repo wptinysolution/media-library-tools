@@ -100,11 +100,11 @@ function BulkModal() {
         >
             <Divider />
             <Content>
-                { bulkSubmitdata.progressBar > 0 && <Progress showInfo={true} percent={bulkSubmitdata.progressBar} /> }
                 <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> Bulk Rename </Title>
                 <Input
                     style={{
-                        height: '40px'
+                        height: '40px',
+                        marginBottom:'15px'
                     }}
                     onChange={ balkModalDataChange }
                     name={`file_name`}
@@ -112,6 +112,7 @@ function BulkModal() {
                     placeholder={`File Name`}
                 />
             </Content>
+            { bulkSubmitdata.progressBar >= 0 && <Progress showInfo={true} percent={bulkSubmitdata.progressBar} /> }
             <Divider />
 
         </Modal>
