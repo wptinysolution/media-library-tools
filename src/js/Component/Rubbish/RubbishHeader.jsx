@@ -1,14 +1,16 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef } from "react";
 
 import {Typography, Layout, Button, Space, Select} from 'antd';
 
-import {bulkOprions, defaultBulkSubmitData, headerStyle, selectStyle} from "../../Utils/UtilData";
+import {  headerStyle, selectStyle} from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, rubbishBulkDeleteAction, rubbishBulkIgnoreAction} from "../../Utils/Data";
+import { getDirList } from "../../Utils/Data";
+
+import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
 const { Header } = Layout;
 
@@ -89,38 +91,24 @@ function RubbishHeader() {
             });
             return;
         }
-
+        let message = '' ;
         switch( stateValue.bulkRubbishData.type ){
             case 'delete':
-                await rubbishBulkDeleteAction( stateValue.bulkRubbishData );
+                message = 'Delete ?'
                 break;
             case 'ignore':
-                await rubbishBulkIgnoreAction( stateValue.bulkRubbishData );
+                message = 'Ignore ?'
                 break;
             default:
         }
 
-        await dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                postQuery:{
-                    ...stateValue.rubbishMedia.postQuery,
-                    isQueryUpdate: ! stateValue.rubbishMedia.postQuery.isQueryUpdate
-                }
-            },
-        });
-
-        await dispatch({
+        dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
                 ...stateValue.bulkRubbishData,
-                bulkChecked : false,
-                ids: [],
-                files: []
+                isModalOpen: true,
             },
         });
-
 
     };
 
@@ -189,6 +177,7 @@ function RubbishHeader() {
                     color: 'red'
                 }}> Rubbish File Note : A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database. </Title>
             </Space>
+            <RubbishConfirmationModal/>
         </Header>
     );
 }

@@ -150,18 +150,38 @@ export const ignoreDirForScan = async ( prams ) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
+export const singleDeleteApi = async (prams) => {
+    return await Api.post(`/rubbish/single/delete/action`, prams);
+}
+
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
 export const rubbishSingleDeleteAction = async (prams) => {
-    const response = await Api.post(`/rubbish/single/delete/action`, prams);
+    const response = await singleDeleteApi( prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const singleIgnoreApi = async (prams) => {
+    return await Api.post(`/rubbish/single/ignore/action`, prams);
+}
+
 /**
  *
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const rubbishSingleIgnoreAction = async (prams) => {
-    const response = await Api.post(`/rubbish/single/ignore/action`, prams);
+    const response = await singleIgnoreApi( prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
@@ -192,12 +212,13 @@ export const rubbishBulkDeleteAction = async (prams) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const rubbishBulkIgnoreAction = async (prams) => {
-    const response = await Api.post(`/rubbish/bulk/ignore/action`, prams);
-    console.log( response.data )
-    notifications(200 === response.status && response.data.updated, response.data.message);
-    return response;
-}
+// export const rubbishBulkIgnoreAction = async (prams) => {
+//     const response = await Api.post(`/rubbish/bulk/ignore/action`, prams);
+//     console.log( response.data )
+//     notifications(200 === response.status && response.data.updated, response.data.message);
+//     return response;
+// }
+
 /**
  *
  * @param prams

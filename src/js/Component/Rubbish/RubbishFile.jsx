@@ -26,7 +26,6 @@ function RubbishFile() {
 
     const getTheRubbishFile = async () => {
         const rubbishFile = await getRubbishFile( stateValue.rubbishMedia.postQuery );
-        console.log( rubbishFile.mediaFile )
         await dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia:{

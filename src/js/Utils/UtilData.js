@@ -435,7 +435,8 @@ export function RubbishFileColumns(){
                 ...stateValue.bulkRubbishData,
                 bulkChecked : ! ! postsId.length,
                 ids: postsId,
-                files: files
+                files: files,
+                progressTotal: files.length
             },
         });
         console.log( files )
@@ -469,10 +470,11 @@ export function RubbishFileColumns(){
                 ...stateValue.bulkRubbishData,
                 bulkChecked: ! ! checkedCount && checkedCount === postCount,
                 ids: changeData,
-                files: changePath
+                files: changePath,
+                progressTotal: checkedCount
             },
         });
-        
+
         console.log( changeData, changePath );
 
     };

@@ -60,6 +60,9 @@ export const initialState = {
 	},
 	bulkRubbishData: {
 		bulkChecked: false,
+		progressBar : false,
+		progressTotal : 0,
+		isModalOpen: false,
 		files: [],
 		type: 'ignore',
 		ids: []
