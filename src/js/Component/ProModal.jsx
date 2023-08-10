@@ -44,6 +44,10 @@ function ProModal() {
         {
             title: 'Ignore Important File. Take file safe mode never delete',
             desc: 'Stay worry-free while decluttering with Bulk mode, ensuring vital files are untouched. Safely ignore and remove unnecessary files with ease',
+        },
+        {
+            title: 'Ignore Important File. Take file safe mode never delete',
+            desc: 'Stay worry-free while decluttering with Bulk mode, ensuring vital files are untouched. Safely ignore and remove unnecessary files with ease',
         }
     ];
 

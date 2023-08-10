@@ -8,9 +8,12 @@ import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
+import BulkRanameModal from "./BulkRanameModal";
+
 const { Header } = Layout;
 
 const { Title } = Typography;
+
 
 function RenamerMainHeader() {
 
@@ -23,7 +26,7 @@ function RenamerMainHeader() {
     };
 
     const handleChangeBulkType = (value) => {
-        const data = 'bulkrename' === value ? stateValue.bulkSubmitData.data : defaultBulkSubmitData.data;
+        const data = 'bulkRename' === value ? stateValue.bulkSubmitData.data : defaultBulkSubmitData.data;
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
@@ -46,14 +49,8 @@ function RenamerMainHeader() {
             return;
         }
         switch( stateValue.bulkSubmitData.type ){
-            case 'bulkrename':
-                dispatch({
-                    ...stateValue,
-                    type: Types.BULK_SUBMIT,
-                    saveType: Types.BULK_SUBMIT,
-                });
-                break;
-            case 'bulkrenameModal':
+
+            case 'bulkRename':
                 dispatch({
                     ...stateValue,
                     type: Types.BULK_SUBMIT,
@@ -71,7 +68,7 @@ function RenamerMainHeader() {
 
     const options = [
         { value: 'default', label: 'Bulk Action' },
-        { value: 'rename', label: 'Bulk Rename' },
+        { value: 'bulkRename', label: 'Bulk Rename' },
     ];
 
     return (
@@ -150,6 +147,7 @@ function RenamerMainHeader() {
                     color: 'red'
                 }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. </Title>
             </Space>
+            <BulkRanameModal />
         </Header>
     );
 }

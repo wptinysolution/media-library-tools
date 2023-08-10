@@ -394,7 +394,7 @@ class Api {
 			return $result;
 		}
 
-		$ids = $parameters['ids'];
+		$ids = $parameters['ids'] ?? [];
 		switch ( $parameters['type'] ) {
 			case 'trash':
 			case 'inherit':
@@ -457,6 +457,10 @@ class Api {
 				$result['updated'] = (bool) $update;
 				$result['message'] = $update ? esc_html__( 'Updated. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 
+				break;
+			case 'bulkRename':
+				error_log( print_r( $parameters, true), 3, __DIR__ . '/log.txt' );
+				$result = apply_filters( 'tsmlt/bulk/rename', $result, $parameters );
 				break;
 			default:
 		}
