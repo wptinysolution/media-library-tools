@@ -12,13 +12,14 @@ class Api {
 	 * Singleton
 	 */
 	use SingletonTrait;
+	private $namespace = 'TinySolutions/mlt/v1';
+
+	private $resource_name = '/media';
 
 	/**
 	 * Construct
 	 */
 	private function __construct() {
-		$this->namespace     = 'TinySolutions/mlt/v1';
-		$this->resource_name = '/media';
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
 	}
 
