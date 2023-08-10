@@ -12,10 +12,14 @@ class Api {
 	 * Singleton
 	 */
 	use SingletonTrait;
-	private $namespace = 'TinySolutions/mlt/v1';
-
+	/**
+	 * @var string
+	 */
+	private $namespace     = 'TinySolutions/mlt/v1';
+	/**
+	 * @var string
+	 */
 	private $resource_name = '/media';
-
 	/**
 	 * Construct
 	 */
