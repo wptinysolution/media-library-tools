@@ -202,7 +202,6 @@ class Api {
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
 		];
 		$submit     = [];
-
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
 		}
@@ -228,8 +227,7 @@ class Api {
 		}
 
 		if ( isset( $parameters['newname'] ) ) {
-			$new_file_name = $parameters['newname'] . '.' . $parameters['postsdata']['fileextension'];
-			if ( Fns::wp_rename_attachment( $parameters['ID'], $new_file_name ) ) {
+			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 			}

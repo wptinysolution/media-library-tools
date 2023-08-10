@@ -45,13 +45,23 @@ export const getMedia = async (prams = {}) => {
     const result = await Api.get(`/`, {params: prams});
     return JSON.parse(result.data);
 }
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const singleUpDateApi = async (prams) => {
+    return await Api.post(`/update`, prams);
+}
+
 /**
  *
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const upDateSingleMedia = async (prams) => {
-    const response = await Api.post(`/update`, prams);
+    const response = await singleUpDateApi( prams );
     // for info - blue box
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;

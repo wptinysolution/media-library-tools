@@ -30,6 +30,8 @@ export const selectStyle = {
 export const defaultBulkSubmitData = {
     bulkChecked : false,
     isModalOpen : false,
+    progressBar : false,
+    progressTotal : 0,
     ids: [],
     type: '',
     data : {
@@ -37,6 +39,7 @@ export const defaultBulkSubmitData = {
         alt_text : '',
         caption : '',
         post_description : '',
+        file_name: ''
     },
     post_categories : [],
 }
@@ -221,7 +224,6 @@ export function columns(){
    const formEdited = stateValue.singleMedia.formEdited;
 
     return [
-
         {
             title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
@@ -292,13 +294,48 @@ export function renamerColumns(){
 
     const [stateValue, dispatch] = useStateValue();
 
+    const onCheckboxChange = (event) => {
+        const value = event.target.value ;
+        const changeData = event.target.checked ? [
+            ...stateValue.bulkSubmitData.ids,
+            value
+        ] : stateValue.bulkSubmitData.ids.filter( item => item !== value );
+
+        const checkedCount = Object.keys( changeData ).length;
+        const postCount = Object.keys( stateValue.mediaData.posts ).length;
+
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData:{
+                ...stateValue.bulkSubmitData,
+                bulkChecked : checkedCount && checkedCount === postCount,
+                ids: changeData,
+                progressTotal: checkedCount
+            }
+        });
+    };
+
+    const onBulkCheck = (event) => {
+        const postsId = event.target.checked ? stateValue.mediaData.posts.map( item => item.ID ) : [];
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                bulkChecked : ! ! postsId.length,
+                progressTotal: postsId.length,
+                ids: postsId
+            },
+        });
+    };
+
     return [
         {
-            title: <Space wrap> { `ID` } </Space>,
-            key: 'ID',
+            title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
+            key: 'CheckboxID',
             dataIndex: 'ID',
-            width: '100px',
-            align: 'top'
+            width: '50px',
+            align: 'center',
+            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
         {
             title: 'File',

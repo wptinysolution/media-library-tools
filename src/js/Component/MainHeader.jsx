@@ -82,6 +82,14 @@ function MainHeader() {
                             selectedMenu : key
                         }
                     });
+                    dispatch({
+                        type: Types.BULK_SUBMIT,
+                        bulkSubmitData:{
+                            ...stateValue.bulkSubmitData,
+                            bulkChecked : false,
+                            ids: []
+                        }
+                    });
                     localStorage.setItem( "current_menu", key );
                 } }
             />

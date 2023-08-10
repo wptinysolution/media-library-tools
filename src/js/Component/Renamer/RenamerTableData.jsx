@@ -34,6 +34,14 @@ function RenamerTableData() {
                 }
             },
         })
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData:{
+                ...stateValue.bulkSubmitData,
+                bulkChecked : false,
+                ids: []
+            }
+        });
     }
 
     const setRenamerMainQuery = () => {

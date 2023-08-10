@@ -82,9 +82,9 @@ class Fns {
 		}
 
 		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-
 		$filebasename = basename( $metadata['file'], '.' . $fileextension );
 
+		$new_file_name = $new_file_name . '.' . $fileextension;
 		if ( $filebasename == basename( $new_file_name, '.' . $fileextension ) ) {
 			return $updated;
 		}
