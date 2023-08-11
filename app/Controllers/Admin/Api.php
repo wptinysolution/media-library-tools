@@ -566,7 +566,7 @@ class Api {
 		//$limit  = $parameters['postsPerPage'] ?? 20;
 
 		$status  = $parameters['fileStatus'] ?? 'show';
-		$extension  = ! empty( $parameters['filterExtension'] ) ? $wpdb->prepare( "AND file_type = %s", $parameters['filterExtension'] ) : '';
+		$extension  = ! empty( $parameters['filterExtension'] ) ? $wpdb->prepare( " AND file_type = %s", $parameters['filterExtension'] ) : null;
 
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
@@ -586,7 +586,7 @@ class Api {
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
 			$query = $wpdb->prepare(
-				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string ) $extension LIMIT %d OFFSET %d",
+				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string )$extension LIMIT %d OFFSET %d",
 				$limit,
 				$offset
 			);

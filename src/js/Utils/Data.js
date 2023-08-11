@@ -184,13 +184,23 @@ export const rubbishSingleIgnoreAction = async (prams) => {
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const singleShowApi = async (prams) => {
+    return await Api.post(`/rubbish/single/show/action`, prams);
+}
+
 /**
  *
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const rubbishSingleShowAction = async (prams) => {
-    const response = await Api.post(`/rubbish/single/show/action`, prams);
+    const response = await singleShowApi( prams );
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }

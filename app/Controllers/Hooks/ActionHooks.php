@@ -287,11 +287,11 @@ class ActionHooks {
 		// Clear any existing scheduled events with the same hook
 		wp_clear_scheduled_hook( $event_hook );
 		// Schedule the cron job to run every minute
-		$schedule = 'weekly';
+		//$schedule = 'weekly';
 		//if( Fns::isLocalhost() ){
 		//	$schedule = 'monthly';
 		//}
-		wp_schedule_event( time(), $schedule, $event_hook );
+		wp_schedule_event( time(), 'daily', $event_hook );
 		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 	}
 

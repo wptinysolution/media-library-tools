@@ -41,12 +41,12 @@ function RubbishHeader() {
 
     const getTheRubbishFileType = async () => {
         const rubbishFile = await getRubbishFileType();
-       const types = await rubbishFile.fileTypes.map(
+        const types = await rubbishFile.fileTypes.map(
            ( item ) => ( {
                 value: item,
                 label: item
             })
-       );
+        );
         await setFilterItems( types );
     }
 
@@ -101,7 +101,6 @@ function RubbishHeader() {
                 }
             },
         });
-        // filterFile: value,
     };
 
     const fileTypeFilterApply = (value) => {
@@ -117,7 +116,6 @@ function RubbishHeader() {
                 }
             },
         });
-        // filterFile: value,
     };
 
     const handleBulkSubmit = async () => {
@@ -141,11 +139,18 @@ function RubbishHeader() {
 
     };
 
-    const options = [
+    let options = [
         { value: 'default', label: 'Bulk Action' },
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
+
+    if( 'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ){
+        options = [
+            { value: 'default', label: 'Bulk Action' },
+            { value: 'show', label: 'Make Deletable' },
+        ];
+    }
 
     useEffect(() => {
         getTheRubbishFileType();

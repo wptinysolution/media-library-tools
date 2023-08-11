@@ -5,7 +5,7 @@ import { Divider, Input, Modal, Layout, Typography, Progress } from 'antd';
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
-import {getMedia, singleDeleteApi, singleIgnoreApi, singleUpDateApi} from "../../Utils/Data";
+import { singleDeleteApi, singleIgnoreApi, singleShowApi } from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -37,6 +37,8 @@ function RubbishConfirmationModal() {
             response = await singleIgnoreApi( { file_path: file.path });
         } else if ( 'delete' == stateValue.bulkRubbishData.type ){
             response = await singleDeleteApi( { file_path: file.path });
+        } else if ( 'show' == stateValue.bulkRubbishData.type ){
+            response = await singleShowApi( { file_path: file.path });
         }
 
         // // Recur with the rest of the IDs in the list
