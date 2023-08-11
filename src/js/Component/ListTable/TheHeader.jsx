@@ -1,6 +1,8 @@
-import React, { useRef} from "react";
+import React, {useEffect, useRef} from "react";
 
 import {  Input, Select, Layout, Button, Space } from 'antd';
+
+import { SearchOutlined } from '@ant-design/icons';
 
 import {
     headerStyle,
@@ -11,6 +13,8 @@ import {
 
 import {useStateValue} from "../../Utils/StateProvider";
 
+import {useSearchDebounce} from "../../Utils/Hooks";
+
 import * as Types from "../../Utils/actionType";
 
 const { Header } = Layout;
@@ -18,6 +22,8 @@ const { Header } = Layout;
 function TheHeader() {
 
     const [stateValue, dispatch] = useStateValue();
+
+    const [search, setSearch] = useSearchDebounce();
 
     // paged
     const inputRef = useRef(null);
@@ -88,13 +94,32 @@ function TheHeader() {
 
     };
 
+    const upDateQuery = async () => {
+        if( stateValue.mediaData.postQuery.searchKeyWords === search ){
+            return;
+        }
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    searchKeyWords : search
+                }
+            },
+        });
+        console.log( search )
+    };
+
     const postQuery =  stateValue.mediaData.postQuery;
+
+    useEffect(() => {
+        upDateQuery();
+    }, [ search ]);
 
     return (
         <Header style={headerStyle}>
-
             <Space wrap>
-
                 <Select
                     size="large"
                     defaultValue={``}
@@ -145,10 +170,17 @@ function TheHeader() {
                     defaultValue={ stateValue.mediaData.postQuery.categories || null }
                     onChange={(value) => handleSelectChange(value, 'categories')}
                 />
+
                 <Input
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
                     type="primary"
                     size="large"
-                    
+                    addonAfter={<SearchOutlined />}
+                    placeholder="Keywords..."
+                    onChange={(e) => setSearch(e.target.value)}
                 />
 
                 <Button

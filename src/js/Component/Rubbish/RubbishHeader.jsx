@@ -124,6 +124,17 @@ function RubbishHeader() {
 
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
+            <Title level={5} style={{
+                border: '1px solid #f0f0f0',
+                padding: '10px 15px',
+                margin: '10px 0',
+                fontSize:'13px',
+                color: 'red'
+            }}>
+                Rubbish File Note: A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database.
+                Before making any changes it is highly recommended to take a backup.
+            </Title>
+
             <Space>
                 <Select
                     style={{ width: '150px' }}
@@ -164,7 +175,7 @@ function RubbishHeader() {
 
                 <Button
                     style={{
-                        width: '200px'
+                        width: '150px'
                     }}
                     type="primary"
                     size="large"
@@ -172,10 +183,7 @@ function RubbishHeader() {
                     ghost={ ! stateValue.generalData.isDirModalOpen }>
                     { `Directory List` }
                 </Button>
-                <Title level={5} style={{
-                    margin:'0 15px',
-                    color: 'red'
-                }}> Rubbish File Note : A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database. </Title>
+
             </Space>
             <RubbishConfirmationModal/>
         </Header>

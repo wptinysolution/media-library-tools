@@ -260,6 +260,7 @@ class Api {
 			$status = ! empty( $parameters['status'] ) ? $parameters['status'] : $status;
 		}
 
+		$searchKeyWords = $parameters['searchKeyWords'] ?? false;
 		$order = ! empty( $parameters['order'] ) ? $parameters['order'] : 'DESC';
 		$paged = ! empty( $parameters['paged'] ) ? $parameters['paged'] : 1;
 
@@ -293,6 +294,9 @@ class Api {
 			'order'          => $order,
 			'paged'          => absint( $paged ),
 		];
+		if( $searchKeyWords ){
+			$args['s'] = sanitize_text_field( $searchKeyWords );
+		}
 
 		if ( 'meta_query' === $orderby ) {
 			$args['meta_query'] = [

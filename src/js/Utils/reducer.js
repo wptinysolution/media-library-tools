@@ -11,6 +11,7 @@ export const initialState = {
 			status: null,
 			filtering : false,
 			media_per_page: 1,
+			searchKeyWords: '',
 			order: 'DESC',
 			orderby: 'id',
 			paged: 1,

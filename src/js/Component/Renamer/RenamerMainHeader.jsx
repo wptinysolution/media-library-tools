@@ -1,8 +1,10 @@
-import React, { useRef} from "react";
+import React, { useRef, useEffect } from "react";
 
 import {Typography, Layout, Button, Space, Input, Select} from 'antd';
 
-import {bulkOprions, defaultBulkSubmitData, headerStyle, selectStyle} from "../../Utils/UtilData";
+const { Title } = Typography;
+
+import { defaultBulkSubmitData, headerStyle, selectStyle} from "../../Utils/UtilData";
 
 import { useStateValue } from "../../Utils/StateProvider";
 
@@ -10,14 +12,18 @@ import * as Types from "../../Utils/actionType";
 
 import BulkRanameModal from "./BulkRanameModal";
 
-const { Header } = Layout;
+import {SearchOutlined} from "@ant-design/icons";
 
-const { Title } = Typography;
+import {useSearchDebounce} from "../../Utils/Hooks";
+
+const { Header } = Layout;
 
 
 function RenamerMainHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
+
+    const [search, setSearch] = useSearchDebounce();
 
     const inputRef = useRef(null);
 
@@ -36,6 +42,29 @@ function RenamerMainHeader() {
             },
         });
     };
+
+
+
+    const upDateQuery = async () => {
+        if( stateValue.mediaData.postQuery.searchKeyWords === search ){
+            return;
+        }
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                postQuery : {
+                    ...stateValue.mediaData.postQuery,
+                    searchKeyWords : search
+                }
+            },
+        });
+        console.log( search )
+    };
+
+    useEffect(() => {
+        upDateQuery();
+    }, [ search ]);
 
     const handleBulkSubmit = () => {
         if ( ! tsmltParams.hasExtended ){
@@ -73,6 +102,13 @@ function RenamerMainHeader() {
 
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
+            <Title level={5} style={{
+                border: '1px solid #f0f0f0',
+                padding: '10px 15px',
+                margin: '10px 0',
+                fontSize:'13px',
+                color: 'red'
+            }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. </Title>
 
             <Space >
                 <Select
@@ -88,7 +124,17 @@ function RenamerMainHeader() {
                     size="large"
                     onClick={handleBulkSubmit}
                 > Bulk Apply </Button>
-
+                <Input
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                    type="primary"
+                    size="large"
+                    addonAfter={<SearchOutlined />}
+                    placeholder="Keywords..."
+                    onChange={(e) => setSearch(e.target.value)}
+                />
                 <Button
                     style={{
                         width: '180px'
@@ -142,10 +188,7 @@ function RenamerMainHeader() {
                     }
                     value={stateValue.options.media_per_page}
                 />
-                <Title level={5} style={{
-                    margin:'0 15px',
-                    color: 'red'
-                }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. </Title>
+
             </Space>
             <BulkRanameModal />
         </Header>
