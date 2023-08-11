@@ -23,7 +23,7 @@ function RubbishConfirmationModal() {
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
                 ...stateValue.bulkRubbishData,
-                progressBar : 100 * ( stateValue.bulkRubbishData.progressTotal - prams.files.length ) / stateValue.bulkRubbishData.progressTotal,
+                progressBar : Math.floor( 100 * ( stateValue.bulkRubbishData.progressTotal - prams.files.length ) / stateValue.bulkRubbishData.progressTotal ),
             },
         });
         if ( prams.files.length === 0) {

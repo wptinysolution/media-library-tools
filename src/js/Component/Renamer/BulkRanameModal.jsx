@@ -38,7 +38,7 @@ function BulkModal() {
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
                 ...bulkSubmitdata,
-                progressBar : 100 * ( bulkSubmitdata.progressTotal - prams.ids.length ) / bulkSubmitdata.progressTotal,
+                progressBar: Math.floor( 100 * ( bulkSubmitdata.progressTotal - prams.ids.length ) / bulkSubmitdata.progressTotal ),
             },
         });
         if ( prams.ids.length === 0) {

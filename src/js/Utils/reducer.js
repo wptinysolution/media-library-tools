@@ -38,7 +38,7 @@ export const initialState = {
 	},
 	options: {
 		isLoading: true,
-		media_table_column: [ 'ID', 'Parents', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
+		media_table_column: [ 'ID', 'Image', 'Parents', 'Title', 'Alt', 'Caption', 'Category' ],
 		default_alt_text: "none",
 		default_caption_text: "none",
 		default_desc_text: "none",

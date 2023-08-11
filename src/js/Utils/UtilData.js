@@ -77,6 +77,10 @@ export const columnList = [
         key: 'Image',
     },
     {
+        title: `Parents`,
+        key: 'Parents',
+    },
+    {
         title: `Title`,
         key: 'Title',
     },
@@ -169,6 +173,7 @@ export function columns(){
             },
         });
     };
+
     const handleSortClick = ( odrby ) => {
         const { orderby, order } = stateValue.mediaData.postQuery;
         dispatch({
@@ -246,6 +251,14 @@ export function columns(){
             width: '150px',
             align: 'top',
             render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
+        },
+        {
+            title: <Space wrap> { `Parents` } </Space>,
+            key: 'Parents',
+            dataIndex: 'post_parents',
+            align: 'top',
+            width: '300px',
+            render: ( text, record, i ) => <> { text } </>
         },
         {
             title: <Space wrap> { `Title` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
@@ -344,6 +357,14 @@ export function renamerColumns(){
             width: '130px',
             align: 'top',
             render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
+        },
+        {
+            title: <Space wrap> { `Parents` } </Space>,
+            key: 'Parents',
+            dataIndex: 'post_parents',
+            align: 'top',
+            width: '100px',
+            render: ( text, record, i ) => <> { text } </>
         },
         {
             title: `File Name`,
@@ -539,7 +560,7 @@ export function RubbishFileColumns(){
             render: ( file_path, record, i ) => <Space> <img width={ 50 } src={`${tsmltParams.uploadUrl}/${file_path}`} /> </Space>,
         },
         {
-            title: 'File Path',
+            title: 'File URL',
             key: 'FileType',
             dataIndex: 'file_path',
             align: 'top',

@@ -37,7 +37,6 @@ const plainOptions = columnList.map( ( currentValue) => {
     return currentValue.key;
 } );
 
-
 function Settings() {
 
    const [stateValue, dispatch] = useStateValue();

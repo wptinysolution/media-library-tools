@@ -363,6 +363,7 @@ class Api {
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
+				'post_parents'   => $post->post_parent,
 				'post_excerpt'   => $post->post_excerpt,
 				'post_content'   => $post->post_content,
 				'post_name'      => $post->post_name,
