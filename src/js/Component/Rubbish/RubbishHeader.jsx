@@ -1,4 +1,4 @@
-import React, {useEffect, useRef } from "react";
+import React, {useEffect, useRef, useState } from "react";
 
 import {Typography, Layout, Button, Space, Select, Input} from 'antd';
 
@@ -8,7 +8,7 @@ import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import { getDirList } from "../../Utils/Data";
+import {getDirList, getRubbishFile, getRubbishFileType} from "../../Utils/Data";
 
 import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
@@ -19,17 +19,37 @@ const { Title } = Typography;
 function RubbishHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
+
+    const [ filterItems, setFilterItems ] = useState( [] );
     // paged
-    const inputRef = useRef(null);
-    const selectRef = useRef(null);
+    const statusFilterRef = useRef(null);
+    const perPageRef = useRef(null);
+
+    const fileTypeFilterRef = useRef(null);
 
     const sharedProps = {
-        ref: inputRef,
+        ref: statusFilterRef,
     };
 
-    const selectProps = {
-        ref: selectRef,
+    const perPageProps = {
+        ref: perPageRef,
     };
+
+    const fileTypeFilterRefProps = {
+        ref: fileTypeFilterRef,
+    };
+
+    const getTheRubbishFileType = async () => {
+        const rubbishFile = await getRubbishFileType();
+       const types = await rubbishFile.fileTypes.map(
+           ( item ) => ( {
+                value: item,
+                label: item
+            })
+       );
+        await setFilterItems( types );
+    }
+
     const handleDirForModal = async () => {
         if( ! stateValue.generalData.isDirModalOpen ){
             return;
@@ -68,7 +88,7 @@ function RubbishHeader() {
         });
     };
 
-    const handleFilterApply = (value) => {
+    const statusFilterApply = (value) => {
         dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia: {
@@ -81,6 +101,23 @@ function RubbishHeader() {
                 }
             },
         });
+        // filterFile: value,
+    };
+
+    const fileTypeFilterApply = (value) => {
+        dispatch({
+            type: Types.RUBBISH_MEDIA,
+            rubbishMedia: {
+                ...stateValue.rubbishMedia,
+                isLoading: true,
+                postQuery:{
+                    ...stateValue.rubbishMedia.postQuery,
+                    filterExtension: value,
+                    paged: 1,
+                }
+            },
+        });
+        // filterFile: value,
     };
 
     const handleBulkSubmit = async () => {
@@ -94,17 +131,6 @@ function RubbishHeader() {
             });
             return;
         }
-        let message = '' ;
-        switch( stateValue.bulkRubbishData.type ){
-            case 'delete':
-                message = 'Delete ?'
-                break;
-            case 'ignore':
-                message = 'Ignore ?'
-                break;
-            default:
-        }
-
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
@@ -120,7 +146,11 @@ function RubbishHeader() {
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
-    
+
+    useEffect(() => {
+        getTheRubbishFileType();
+    }, [] );
+
     useEffect(() => {
         handleDirForModal();
     }, [ stateValue.generalData.isDirModalOpen ] );
@@ -137,7 +167,6 @@ function RubbishHeader() {
                 Rubbish File Note: A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database.
                 Before making any changes it is highly recommended to take a backup.
             </Title>
-
             <Space>
                 <Select
                     style={{ width: '150px' }}
@@ -151,16 +180,17 @@ function RubbishHeader() {
                     size="large"
                     onClick={handleBulkSubmit}
                 > Bulk Actions </Button>
+
                 <Button
                     type="text"
                     size="large"
                     onClick={() => {
-                        inputRef.current.focus({
+                        statusFilterRef.current.focus({
                             cursor: 'start',
                         });
                     }}
                 >
-                    Filter Items
+                    Status
                 </Button>
                 <Select
                     {...sharedProps}
@@ -173,9 +203,30 @@ function RubbishHeader() {
                         { value: 'show', label: 'Default' },
                         { value: 'ignore', label: 'Ignored Filte' }
                     ] }
-                    onChange={handleFilterApply}
+                    onChange={statusFilterApply}
                 />
 
+                <Button
+                    type="text"
+                    size="large"
+                    onClick={() => {
+                        fileTypeFilterRef.current.focus({
+                            cursor: 'start',
+                        });
+                    }}
+                >
+                    Extension
+                </Button>
+                <Select
+                    {...fileTypeFilterRefProps}
+                    size="large"
+                    allowClear = {true}
+                    placeholder={'Show'}
+                    defaultValue={ stateValue.rubbishMedia.postQuery.filterExtension }
+                    style={ { ...selectStyle, width: 150 } }
+                    options={ filterItems }
+                    onChange={fileTypeFilterApply}
+                />
                 <Button
                     style={{
                         width: '150px'
@@ -190,7 +241,7 @@ function RubbishHeader() {
                     type="text"
                     size="large"
                     onClick={() => {
-                        selectRef.current.focus({
+                        perPageRef.current.focus({
                             cursor: 'start',
                         });
                     }}
@@ -199,7 +250,7 @@ function RubbishHeader() {
                 </Button>
 
                 <Input
-                    {...selectProps}
+                    {...perPageProps}
                     type="primary"
                     size="large"
                     style={{

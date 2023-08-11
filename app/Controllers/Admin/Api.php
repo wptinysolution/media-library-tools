@@ -67,6 +67,11 @@ class Api {
 			'callback'            => [ $this, 'update_option' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/getRubbishFileType', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_rubbish_filetype' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
 		register_rest_route( $this->namespace, $this->resource_name . '/getRubbishFile', array(
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'get_rubbish_file' ],
@@ -531,6 +536,26 @@ class Api {
 	/**
 	 * @return false|string
 	 */
+	public function get_rubbish_filetype() {
+		global $wpdb;
+		$cache_key         = "tsmlt_unlisted_filetypes";
+		$table_name        = $wpdb->prefix . 'tsmlt_unlisted_file';
+		// Check if the file_path already exists in the table using cached data
+		$types = wp_cache_get( $cache_key );
+		if ( ! $types ) {
+			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM $table_name" );
+			// Cache the query result
+			wp_cache_set( $cache_key, $types );
+		}
+		$rubbish_data = [
+			'fileTypes'    => is_array( $types ) ? $types : [],
+		];
+		return wp_json_encode( $rubbish_data );
+	}
+
+	/**
+	 * @return false|string
+	 */
 	public function get_rubbish_file( $request_data ) {
 		global $wpdb;
 		$parameters = $request_data->get_params();
@@ -541,6 +566,8 @@ class Api {
 		//$limit  = $parameters['postsPerPage'] ?? 20;
 
 		$status  = $parameters['fileStatus'] ?? 'show';
+		$extension  = ! empty( $parameters['filterExtension'] ) ? $wpdb->prepare( "AND file_type = %s", $parameters['filterExtension'] ) : '';
+
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 
@@ -559,8 +586,9 @@ class Api {
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
 			$query = $wpdb->prepare(
-				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string ) LIMIT %d OFFSET %d",
-				$limit, $offset
+				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string ) $extension LIMIT %d OFFSET %d",
+				$limit,
+				$offset
 			);
 			//error_log( print_r( $query, true), 3, __DIR__ . '/log.txt' );
 			$existing_row = $wpdb->get_results( $query );

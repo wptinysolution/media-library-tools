@@ -53,7 +53,8 @@ export const initialState = {
 			paged: 1,
 			postsPerPage: 10,
 			isQueryUpdate: false,
-			fileStatus: 'show'
+			fileStatus: 'show',
+			filterExtension: ''
 		},
 		paged: 0,
 		totalPost: 0,

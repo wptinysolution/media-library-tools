@@ -154,7 +154,6 @@ export const singleDeleteApi = async (prams) => {
     return await Api.post(`/rubbish/single/delete/action`, prams);
 }
 
-
 /**
  *
  * @param prams
@@ -207,17 +206,16 @@ export const rubbishBulkDeleteAction = async (prams) => {
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 }
+
 /**
  *
  * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
+ * @returns {Promise<any>}
  */
-// export const rubbishBulkIgnoreAction = async (prams) => {
-//     const response = await Api.post(`/rubbish/bulk/ignore/action`, prams);
-//     console.log( response.data )
-//     notifications(200 === response.status && response.data.updated, response.data.message);
-//     return response;
-// }
+export const getRubbishFileType = async () => {
+    const result = await Api.get(`/getRubbishFileType`);
+    return JSON.parse(result.data);
+}
 
 /**
  *
