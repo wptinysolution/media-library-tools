@@ -18,7 +18,6 @@ import {useSearchDebounce} from "../../Utils/Hooks";
 
 const { Header } = Layout;
 
-
 function RenamerMainHeader() {
 
     const [ stateValue, dispatch ] = useStateValue();
@@ -42,8 +41,6 @@ function RenamerMainHeader() {
             },
         });
     };
-
-
 
     const upDateQuery = async () => {
         if( stateValue.mediaData.postQuery.searchKeyWords === search ){
@@ -114,7 +111,7 @@ function RenamerMainHeader() {
                 <Select
                     size="large"
                     defaultValue={`default`}
-                    style={selectStyle}
+                    style={{ ...selectStyle, width: 150 }}
                     onChange={handleChangeBulkType}
                     options={ options }
                 />

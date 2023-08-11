@@ -108,6 +108,8 @@ class Api {
 
 		$tsmlt_media['media_per_page'] = absint( $parameters['media_per_page'] ?? 20 );
 
+		$tsmlt_media['rubbish_per_page'] = absint( $parameters['rubbish_per_page'] ?? 20 );
+
 		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
 		$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'] ?? '';
@@ -532,7 +534,10 @@ class Api {
 		global $wpdb;
 		$parameters = $request_data->get_params();
 
-		$limit  = $parameters['postsPerPage'] ?? 20;
+		$options = get_option( 'tsmlt_settings' );
+		$limit   = absint( $options['rubbish_per_page'] ?? 20 );
+
+		//$limit  = $parameters['postsPerPage'] ?? 20;
 
 		$status  = $parameters['fileStatus'] ?? 'show';
 		$page   = $parameters['paged'] ?? 1;

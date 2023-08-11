@@ -23,7 +23,7 @@ export const headerStyle = {
 };
 
 export const selectStyle = {
-    width: 160,
+    width: 130,
     paddingInline: 0,
 }
 

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef } from "react";
 
-import {Typography, Layout, Button, Space, Select} from 'antd';
+import {Typography, Layout, Button, Space, Select, Input} from 'antd';
 
 import {  headerStyle, selectStyle} from "../../Utils/UtilData";
 
@@ -21,11 +21,15 @@ function RubbishHeader() {
     const [ stateValue, dispatch ] = useStateValue();
     // paged
     const inputRef = useRef(null);
+    const selectRef = useRef(null);
 
     const sharedProps = {
         ref: inputRef,
     };
 
+    const selectProps = {
+        ref: selectRef,
+    };
     const handleDirForModal = async () => {
         if( ! stateValue.generalData.isDirModalOpen ){
             return;
@@ -63,7 +67,6 @@ function RubbishHeader() {
             },
         });
     };
-
 
     const handleFilterApply = (value) => {
         dispatch({
@@ -117,7 +120,7 @@ function RubbishHeader() {
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
-
+    
     useEffect(() => {
         handleDirForModal();
     }, [ stateValue.generalData.isDirModalOpen ] );
@@ -165,7 +168,7 @@ function RubbishHeader() {
                     allowClear = {true}
                     placeholder={'Show'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }
-                    style={selectStyle}
+                    style={ { ...selectStyle, width: 150 } }
                     options={ [
                         { value: 'show', label: 'Default' },
                         { value: 'ignore', label: 'Ignored Filte' }
@@ -183,6 +186,52 @@ function RubbishHeader() {
                     ghost={ ! stateValue.generalData.isDirModalOpen }>
                     { `Directory List` }
                 </Button>
+                <Button
+                    type="text"
+                    size="large"
+                    onClick={() => {
+                        selectRef.current.focus({
+                            cursor: 'start',
+                        });
+                    }}
+                >
+                    Items Per page
+                </Button>
+
+                <Input
+                    {...selectProps}
+                    type="primary"
+                    size="large"
+                    style={{
+                        width: '50px'
+                    }}
+                    onBlur={ async (event) => {
+                        await dispatch({
+                            ...stateValue,
+                            type: Types.UPDATE_OPTIONS,
+                            saveType: Types.UPDATE_OPTIONS,
+                        });
+                        await dispatch({
+                            type: Types.RUBBISH_MEDIA,
+                            rubbishMedia: {
+                                ...stateValue.rubbishMedia,
+                                isLoading: true,
+                            },
+                        });
+                    }  }
+                    onChange={
+                        (event) => {
+                            dispatch({
+                                type: Types.UPDATE_OPTIONS,
+                                options : {
+                                    ...stateValue.options,
+                                    rubbish_per_page: event.target.value,
+                                }
+                            });
+                        }
+                    }
+                    value={stateValue.options.rubbish_per_page}
+                />
 
             </Space>
             <RubbishConfirmationModal/>

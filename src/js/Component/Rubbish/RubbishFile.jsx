@@ -66,39 +66,41 @@ function RubbishFile() {
 
     useEffect(() => {
         getTheRubbishFile();
-    }, [stateValue.rubbishMedia.postQuery] );
+    }, [stateValue.rubbishMedia.postQuery, stateValue.saveType ] );
 
     return (
         <Layout className="layout">
-            { stateValue.rubbishMedia.isLoading ? <Loader/>  :
-            <>
-                <RubbishHeader />
-                <Content>
-                    <Table
-                        rowKey={(item) => (Math.random() + 1).toString(36).substring(7) }
-                        pagination={false}
-                        columns={ rubbishColumns }
-                        dataSource={ stateValue.rubbishMedia.mediaFile }
-                        scroll={{
-                            x: 1300,
-                        }}
-                    />
-                    <Pagination
-                        style={{ padding: '30px', textAlign: 'right'  }}
-                        showTitle={true}
-                        showSizeChanger={false}
-                        showQuickJumper={true}
-                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                        total={ stateValue.rubbishMedia.totalPost }
-                        pageSize={ stateValue.rubbishMedia.postsPerPage }
-                        current={ stateValue.rubbishMedia.paged }
-                        onChange={(current) => handlePagination(current)}
-                    />
-                    <DirectoryModal />
-                </Content>
-                <RubbishNotice/>
-            </>
-            }
+
+            <RubbishHeader />
+            <Content>
+                { stateValue.rubbishMedia.isLoading ? <Loader/>  :
+                    <>
+                        <Table
+                            rowKey={(item) => (Math.random() + 1).toString(36).substring(7) }
+                            pagination={false}
+                            columns={ rubbishColumns }
+                            dataSource={ stateValue.rubbishMedia.mediaFile }
+                            scroll={{
+                                x: 1300,
+                            }}
+                        />
+                        <Pagination
+                            style={{ padding: '30px', textAlign: 'right'  }}
+                            showTitle={true}
+                            showSizeChanger={false}
+                            showQuickJumper={true}
+                            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                            total={ stateValue.rubbishMedia.totalPost }
+                            pageSize={ stateValue.rubbishMedia.postsPerPage }
+                            current={ stateValue.rubbishMedia.paged }
+                            onChange={(current) => handlePagination(current)}
+                        />
+                    </>
+                }
+                <DirectoryModal />
+            </Content>
+            <RubbishNotice/>
+
         </Layout>
     )
 }
