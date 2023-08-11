@@ -145,6 +145,11 @@ function TheHeader() {
                     defaultValue={ stateValue.mediaData.postQuery.categories || null }
                     onChange={(value) => handleSelectChange(value, 'categories')}
                 />
+                <Input
+                    type="primary"
+                    size="large"
+                    
+                />
 
                 <Button
                     style={{  width: '180px' }}
