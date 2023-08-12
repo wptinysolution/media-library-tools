@@ -607,3 +607,39 @@ export const functionDebounce =  (func, delay) => {
         }, delay);
     };
 }
+
+
+// Store data in local storage with an expiration time of 1 hour
+export  function localStoreData(key, value) {
+    // Calculate the expiration time in milliseconds (1 hour = 60 minutes * 60 seconds * 1000 milliseconds)
+    var expirationTime = Date.now() + (60 * 60 * 1000);
+
+    // Create an object to store the data and expiration time
+    var dataObject = {
+        value: value,
+        expirationTime: expirationTime
+    };
+
+    // Store the object in local storage
+    localStorage.setItem(key, JSON.stringify(dataObject));
+}
+
+// Retrieve data from local storage
+export function localRetrieveData(key) {
+    // Get the stored data from local storage
+    var data = localStorage.getItem(key);
+    if (data) {
+        // Parse the stored JSON data
+        var dataObject = JSON.parse(data);
+        // Check if the data has expired
+        if (Date.now() <= dataObject.expirationTime) {
+            // Return the stored value
+            return dataObject.value;
+        } else {
+            // Data has expired, remove it from local storage
+            localStorage.removeItem(key);
+        }
+    }
+    // Return null if data doesn't exist or has expired
+    return null;
+}

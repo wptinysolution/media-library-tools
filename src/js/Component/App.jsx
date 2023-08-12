@@ -177,7 +177,7 @@ function App() {
     }, [] );
 
     useEffect(() => {
-        debouncedGetTheMedia();
+        getTheMedia();
     }, [ stateValue.mediaData.postQuery ] );
 
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Divider, Input, Modal, Layout, Typography, Progress } from 'antd';
+import { Divider, Input, Modal, Layout, Typography, Progress, Space } from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
@@ -15,11 +15,12 @@ function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [buttonDisabled, setButtonDisabled] = useState(false);
+    const [buttonDisabled, setButtonDisabled] = useState(true);
 
     const bulkSubmitdata = stateValue.bulkSubmitData;
 
     const balkModalDataChange = ( event ) => {
+       // setButtonDisabled( ! event.target.value.length );
         const data = {
             ...bulkSubmitdata.data,
             [event.target.name] : event.target.value
@@ -91,16 +92,19 @@ function BulkModal() {
 
     return (
         <Modal
+            maskClosable={false}
             title={`Bulk Rename`}
             open={ bulkSubmitdata.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: buttonDisabled }}
             cancelButtonProps={{ disabled: buttonDisabled }}
+            okText="Rename"
+            afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.ids.length ) }
         >
             <Divider />
             <Content>
-                <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> Bulk Rename </Title>
+                <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> File name</Title>
                 <Input
                     style={{
                         height: '40px',
@@ -111,8 +115,10 @@ function BulkModal() {
                     value={bulkSubmitdata.data.file_name}
                     placeholder={`File Name`}
                 />
+                <span> Empty value Not allowed. </span>
+                <Divider />
             </Content>
-            { bulkSubmitdata.progressBar >= 0 && <Progress showInfo={true} percent={bulkSubmitdata.progressBar} /> }
+            { bulkSubmitdata.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={bulkSubmitdata.progressBar} /> </> }
             <Divider />
 
         </Modal>

@@ -67,10 +67,10 @@ function RubbishFile() {
     const rubbishColumns = RubbishFileColumns();
 
     // Create a debounced version of getTheMedia
-    const debouncedgetTheRubbishFile = functionDebounce(getTheRubbishFile, 500);
+    //const debouncedgetTheRubbishFile = functionDebounce(getTheRubbishFile, 1000);
 
     useEffect(() => {
-        debouncedgetTheRubbishFile();
+        getTheRubbishFile();
     }, [stateValue.rubbishMedia.postQuery, stateValue.saveType ] );
 
     return (

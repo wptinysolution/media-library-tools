@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 
-import { Divider, Input, Modal, Layout, Typography, Progress } from 'antd';
+import { Divider, Modal, Layout, Typography, Progress } from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
+
 import { singleDeleteApi, singleIgnoreApi, singleShowApi } from "../../Utils/Data";
 
 const {  Content } = Layout;
@@ -15,7 +16,7 @@ function RubbishConfirmationModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [buttonDisabled, setButtonDisabled] = useState(false);
+    const [buttonDisabled, setButtonDisabled] = useState( true );
 
     const rubbishBulkActionRecursively = async ( prams ) => {
 
@@ -47,7 +48,6 @@ function RubbishConfirmationModal() {
         }
         return response;
     }
-
 
     const handleBulkModalOk = async () => {
         setButtonDisabled( true );
@@ -82,7 +82,6 @@ function RubbishConfirmationModal() {
 
     };
 
-
     const handleBulkModalCancel = () => {
         dispatch({
             type: Types.BALK_RUBBISH,
@@ -95,12 +94,15 @@ function RubbishConfirmationModal() {
 
     return (
         <Modal
-            title={`Bulk Action`}
+            maskClosable={false}
+            title={`Bulk ${ 'ignore' == stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' } Action`}
             open={ stateValue.bulkRubbishData.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: buttonDisabled }}
             cancelButtonProps={{ disabled: buttonDisabled }}
+            okText={ 'ignore' == stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' }
+            afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkRubbishData.ids.length ) }
         >
             <Divider />
             <Content>

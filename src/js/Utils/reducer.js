@@ -2,7 +2,9 @@
 
 import * as Types from "./actionType";
 
-import {defaultBulkSubmitData} from "./UtilData";
+import {defaultBulkSubmitData, localRetrieveData } from "./UtilData";
+
+//import { localStoreData, localRetrieveData } from "../../Utils/UtilData";
 
 export const initialState = {
 	saveType: null,
@@ -47,7 +49,7 @@ export const initialState = {
 	rubbishMedia:{
 		isLoading: true,
 		isDirModalOpen : false,
-		showRubbishNotice: true,
+		showRubbishNotice: 'disable' !== localRetrieveData( "showRubbishNotice" ),
 		mediaFile: [],
 		postQuery: {
 			paged: 1,
