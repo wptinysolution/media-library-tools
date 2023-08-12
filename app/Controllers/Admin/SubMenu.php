@@ -219,7 +219,6 @@ class SubMenu {
 
                         $('#licenses').on( 'change', function ( e ) {
                             var active = $( this ).val();
-                            var selector = '.price-for.website-' + active;
                             $('.price-for').removeClass( 'active-plan' );
                             $('.price-for.website-' + active).addClass("active-plan");
                         } );
