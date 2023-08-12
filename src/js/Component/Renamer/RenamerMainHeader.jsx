@@ -134,7 +134,8 @@ function RenamerMainHeader() {
                 />
                 <Button
                     style={{
-                        width: '180px'
+                        width: '180px',
+                        borderColor: '#d9d9d9'
                     }}
                     type="primary"
                     size="large"

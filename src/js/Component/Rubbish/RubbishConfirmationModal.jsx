@@ -42,7 +42,7 @@ function RubbishConfirmationModal() {
         }
 
         // // Recur with the rest of the IDs in the list
-        if( prams.ids.length && response.status ){
+        if( prams.ids.length && response?.status ){
             await rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
         }
         return response;
@@ -52,7 +52,7 @@ function RubbishConfirmationModal() {
     const handleBulkModalOk = async () => {
         setButtonDisabled( true );
         const response = await rubbishBulkActionRecursively( stateValue.bulkRubbishData );
-        if( 200 === response.status ){
+        if( 200 === response?.status ){
             await dispatch({
                 type: Types.BALK_RUBBISH,
                 bulkRubbishData: {

@@ -168,8 +168,6 @@ function RubbishHeader() {
         handleDirForModal();
     }, [ stateValue.generalData.isDirModalOpen ] );
 
-    console.log( stateValue.bulkRubbishData.type )
-
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Title level={5} style={{

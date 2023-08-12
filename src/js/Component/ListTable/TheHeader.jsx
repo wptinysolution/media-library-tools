@@ -184,7 +184,7 @@ function TheHeader() {
                 />
 
                 <Button
-                    style={{  width: '180px' }}
+                    style={{  width: '180px', borderColor: '#d9d9d9' }}
                     type="primary"
                     size="large"
                     onClick={
