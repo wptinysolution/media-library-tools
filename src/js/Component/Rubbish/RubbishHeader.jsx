@@ -49,7 +49,10 @@ function RubbishHeader() {
                 label: item
             })
         );
-        await setFilterItems( types );
+        await setFilterItems( [
+            { value: '', label: 'Default' },
+            ...types
+        ] );
     }
 
     const handleDirForModal = async () => {
@@ -208,7 +211,6 @@ function RubbishHeader() {
                 <Select
                     {...sharedProps}
                     size="large"
-                    allowClear = {true}
                     placeholder={'Show'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }
                     style={ { ...selectStyle, width: 150 } }
@@ -234,7 +236,7 @@ function RubbishHeader() {
                     {...fileTypeFilterRefProps}
                     size="large"
                     allowClear = {true}
-                    placeholder={'Show'}
+                    placeholder={'PNG/JPG'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.filterExtension }
                     style={ { ...selectStyle, width: 150 } }
                     options={ filterItems }

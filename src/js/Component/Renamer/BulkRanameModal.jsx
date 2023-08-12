@@ -9,7 +9,7 @@ import {getMedia, singleUpDateApi} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 function BulkModal() {
 
@@ -17,29 +17,29 @@ function BulkModal() {
 
     const [buttonDisabled, setButtonDisabled] = useState(true);
 
-    const bulkSubmitdata = stateValue.bulkSubmitData;
-
     const balkModalDataChange = ( event ) => {
-       // setButtonDisabled( ! event.target.value.length );
         const data = {
-            ...bulkSubmitdata.data,
+            ...stateValue.bulkSubmitData.data,
             [event.target.name] : event.target.value
         }
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
+                ...stateValue.bulkSubmitData,
                 data
             },
         });
+
+        setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! data.file_name.length > 0 );
+
     };
 
     const renameIdsRecursively = async ( prams ) => {
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
-                progressBar: Math.floor( 100 * ( bulkSubmitdata.progressTotal - prams.ids.length ) / bulkSubmitdata.progressTotal ),
+                ...stateValue.bulkSubmitData,
+                progressBar: Math.floor( 100 * ( stateValue.bulkSubmitData.progressTotal - prams.ids.length ) / stateValue.bulkSubmitData.progressTotal ),
             },
         });
         if ( prams.ids.length === 0) {
@@ -58,12 +58,12 @@ function BulkModal() {
 
     const handleBulkModalOk = async () => {
         setButtonDisabled( true );
-        const response = await renameIdsRecursively( bulkSubmitdata );
+        const response = await renameIdsRecursively( stateValue.bulkSubmitData );
         if( 200 === response?.status ){
             await dispatch({
                 type: Types.BULK_SUBMIT,
                 bulkSubmitData: {
-                    ...bulkSubmitdata,
+                    ...stateValue.bulkSubmitData,
                     isModalOpen: false,
                 },
             });
@@ -84,7 +84,7 @@ function BulkModal() {
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
+                ...stateValue.bulkSubmitData,
                 isModalOpen: false,
             },
         });
@@ -94,13 +94,13 @@ function BulkModal() {
         <Modal
             maskClosable={false}
             title={`Bulk Rename`}
-            open={ bulkSubmitdata.isModalOpen }
+            open={ stateValue.bulkSubmitData.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: buttonDisabled }}
             cancelButtonProps={{ disabled: buttonDisabled }}
             okText="Rename"
-            afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.ids.length ) }
+            afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.data.file_name.length ) }
         >
             <Divider />
             <Content>
@@ -112,13 +112,18 @@ function BulkModal() {
                     }}
                     onChange={ balkModalDataChange }
                     name={`file_name`}
-                    value={bulkSubmitdata.data.file_name}
+                    value={stateValue.bulkSubmitData.data.file_name}
                     placeholder={`File Name`}
                 />
-                <span> Empty value Not allowed. </span>
+                { ! stateValue.bulkSubmitData.ids.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
+                    No Item selected for rename
+                </Paragraph > }
+                { ! stateValue.bulkSubmitData.data.file_name.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
+                    Empty value Not allowed.
+                </Paragraph > }
                 <Divider />
             </Content>
-            { bulkSubmitdata.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={bulkSubmitdata.progressBar} /> </> }
+            { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
             <Divider />
 
         </Modal>

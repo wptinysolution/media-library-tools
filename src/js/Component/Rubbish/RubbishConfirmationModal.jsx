@@ -10,7 +10,7 @@ import { singleDeleteApi, singleIgnoreApi, singleShowApi } from "../../Utils/Dat
 
 const {  Content } = Layout;
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 function RubbishConfirmationModal() {
 
@@ -108,6 +108,12 @@ function RubbishConfirmationModal() {
             <Content>
                 <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> Are You Confirm { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }? </Title>
                 { stateValue.bulkRubbishData.progressBar >= 0 && <Progress showInfo={true} percent={stateValue.bulkRubbishData.progressBar} /> }
+                { ! stateValue.bulkRubbishData.ids.length &&
+                    <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
+                        No Item selected { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
+                    </Paragraph >
+                }
+
             </Content>
             <Divider />
 
