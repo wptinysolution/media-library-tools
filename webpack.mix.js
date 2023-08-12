@@ -66,7 +66,7 @@ if (
 		fs.ensureDir(languages, function (err) {
 			if (err) return console.error(err); // if file or folder does not exist
 			wpPot({
-				package: "WP Media Tools",
+				package: "Media Library Tools",
 				bugReport: "",
 				src: "**/*.php",
 				domain: "tsmlt-media-tools",

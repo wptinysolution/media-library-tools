@@ -242,7 +242,8 @@ function RubbishHeader() {
                 />
                 <Button
                     style={{
-                        width: '150px'
+                        width: '150px',
+                        borderColor: '#d9d9d9'
                     }}
                     type="primary"
                     size="large"

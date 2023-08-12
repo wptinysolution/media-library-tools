@@ -19,6 +19,15 @@ class SubMenu {
      * Singleton
      */
     use SingletonTrait;
+	/**
+	 * Parent Menu Page Slug
+	 */
+	const MENU_PAGE_SLUG = 'upload.php';
+
+	/**
+	 * Menu capability
+	 */
+	const MENU_CAPABILITY = 'manage_options';
 
     /**
      * Autoload method
@@ -34,13 +43,16 @@ class SubMenu {
      */
     public function register_sub_menu() {
         add_submenu_page(
-            'upload.php',
+	        self::MENU_PAGE_SLUG,
             esc_html__('Media Tools', 'tsmlt-media-tools'),
             esc_html__('Media Tools', 'tsmlt-media-tools'),
-            'manage_options',
+	        self::MENU_CAPABILITY,
             'tsmlt-media-tools',
-            array(&$this, 'wp_media_page_callback')
+            array($this, 'wp_media_page_callback')
         );
+
+		do_action( 'tsmlt/add/more/submenu', self::MENU_PAGE_SLUG, self::MENU_CAPABILITY  );
+
     }
 
     /**
