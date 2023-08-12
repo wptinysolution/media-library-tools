@@ -591,3 +591,19 @@ export function RubbishFileColumns(){
     return rubbishHead;
 
 }
+
+/**
+ * Function Debounce
+ * @param func
+ * @param delay
+ * @returns {(function(...[*]): void)|*}
+ */
+export const functionDebounce =  (func, delay) => {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}

@@ -28,7 +28,7 @@ import Datatable from "./ListTable/Datatable";
 
 import { useStateValue } from "../Utils/StateProvider";
 
-import { defaultBulkSubmitData } from "../Utils/UtilData";
+import { defaultBulkSubmitData, functionDebounce } from "../Utils/UtilData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
 
@@ -37,7 +37,6 @@ import RubbishFile from "./Rubbish/RubbishFile";
 function App() {
 
     const [ stateValue, dispatch ] = useStateValue();
-
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData =  await JSON.parse( response.data );
@@ -165,6 +164,9 @@ function App() {
         }
     }
 
+    // Create a debounced version of getTheMedia
+    const debouncedGetTheMedia = functionDebounce(getTheMedia, 500);
+
     useEffect(() => {
         handleSave();
     }, [ stateValue.saveType ] );
@@ -175,7 +177,7 @@ function App() {
     }, [] );
 
     useEffect(() => {
-        getTheMedia();
+        debouncedGetTheMedia();
     }, [ stateValue.mediaData.postQuery ] );
 
 

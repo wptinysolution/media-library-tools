@@ -58,7 +58,7 @@ function BulkModal() {
     const handleBulkModalOk = async () => {
         setButtonDisabled( true );
         const response = await renameIdsRecursively( bulkSubmitdata );
-        if( 200 === response.status ){
+        if( 200 === response?.status ){
             await dispatch({
                 type: Types.BULK_SUBMIT,
                 bulkSubmitData: {

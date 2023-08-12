@@ -14,6 +14,8 @@ import * as Types from "../../Utils/actionType";
 
 import { RubbishFileColumns} from "../../Utils/UtilData";
 
+import { functionDebounce } from "../../Utils/UtilData";
+
 import { getRubbishFile } from "../../Utils/Data";
 
 import DirectoryModal from "./DirectoryModal";
@@ -64,8 +66,11 @@ function RubbishFile() {
 
     const rubbishColumns = RubbishFileColumns();
 
+    // Create a debounced version of getTheMedia
+    const debouncedgetTheRubbishFile = functionDebounce(getTheRubbishFile, 500);
+
     useEffect(() => {
-        getTheRubbishFile();
+        debouncedgetTheRubbishFile();
     }, [stateValue.rubbishMedia.postQuery, stateValue.saveType ] );
 
     return (

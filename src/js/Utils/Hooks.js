@@ -10,3 +10,4 @@ export function useSearchDebounce() {
 
     return [search, setSearchQuery];
 }
+
