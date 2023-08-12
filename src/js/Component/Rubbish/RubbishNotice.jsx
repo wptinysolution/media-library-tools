@@ -72,7 +72,7 @@ function RubbishNotice() {
                 </Paragraph >
                 <Divider style={{  margin: '10px 0'  }}/>
                 <Paragraph type="secondary" style={{ fontSize: '14px', color:'#333'}}>
-                    <Checkbox onChange={ ( event ) => event.target.checked ? localStoreData("showRubbishNotice", 'disable') : localStorage.removeItem("showRubbishNotice") }>Hide Notice For One Hours </Checkbox>
+                    <Checkbox onChange={ ( event ) => event.target.checked ? localStoreData("showRubbishNotice", 'disable') : localStorage.removeItem("showRubbishNotice") }> <span style={{color:'green'}}> Hide Notice For Today </span> </Checkbox>
                 </Paragraph >
 
             </Content>

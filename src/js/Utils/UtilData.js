@@ -611,8 +611,8 @@ export const functionDebounce =  (func, delay) => {
 
 // Store data in local storage with an expiration time of 1 hour
 export  function localStoreData(key, value) {
-    // Calculate the expiration time in milliseconds (1 hour = 60 minutes * 60 seconds * 1000 milliseconds)
-    var expirationTime = Date.now() + (60 * 60 * 1000);
+    // Calculate the expiration time in milliseconds ( 1 day = 60 minutes * 60 seconds * 1000 milliseconds * 24 hours )
+    var expirationTime = Date.now() + ( 60 * 60 * 1000 * 24 );
 
     // Create an object to store the data and expiration time
     var dataObject = {

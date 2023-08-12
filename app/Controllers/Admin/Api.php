@@ -590,7 +590,6 @@ class Api {
 				$limit,
 				$offset
 			);
-			//error_log( print_r( $query, true), 3, __DIR__ . '/log.txt' );
 			$existing_row = $wpdb->get_results( $query );
 			// Cache the query result
 			wp_cache_set( $cache_key, $existing_row );
