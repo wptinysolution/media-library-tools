@@ -66,7 +66,7 @@ export const initialState = {
 		progressTotal : 0,
 		isModalOpen: false,
 		files: [],
-		type: 'ignore',
+		type: 'default',
 		ids: []
 	},
 	generalData:{

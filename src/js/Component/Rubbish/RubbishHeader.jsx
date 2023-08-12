@@ -21,8 +21,10 @@ function RubbishHeader() {
     const [ stateValue, dispatch ] = useStateValue();
 
     const [ filterItems, setFilterItems ] = useState( [] );
+
     // paged
     const statusFilterRef = useRef(null);
+
     const perPageRef = useRef(null);
 
     const fileTypeFilterRef = useRef(null);
@@ -79,6 +81,7 @@ function RubbishHeader() {
     };
 
     const handleChangeBulkType = (value) => {
+
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
@@ -86,9 +89,13 @@ function RubbishHeader() {
                 type: value
             },
         });
+
     };
 
     const statusFilterApply = (value) => {
+
+        handleChangeBulkType( 'default' );
+
         dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia: {
@@ -101,6 +108,7 @@ function RubbishHeader() {
                 }
             },
         });
+
     };
 
     const fileTypeFilterApply = (value) => {
@@ -160,6 +168,8 @@ function RubbishHeader() {
         handleDirForModal();
     }, [ stateValue.generalData.isDirModalOpen ] );
 
+    console.log( stateValue.bulkRubbishData.type )
+
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Title level={5} style={{
@@ -176,7 +186,7 @@ function RubbishHeader() {
                 <Select
                     style={{ width: '150px' }}
                     size="large"
-                    defaultValue={`default`}
+                    value={ stateValue.bulkRubbishData.type || `default` }
                     onChange={handleChangeBulkType}
                     options={ options }
                 />
