@@ -203,11 +203,11 @@ class SubMenu {
                                 <span class="lifetime"> $594.99 / Lifetime </span>
                             </div>
                         </li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media File</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important File</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important File </li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary file</li>
+                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media Files</li>
+                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
+                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>
+                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary Files</li>
+                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary Files</li>
                         <li class="footer">
                             <select id="licenses">
                                 <option value="1" selected="selected">Single Site License</option>
