@@ -29,7 +29,6 @@ if (process.env.npm_config_package) {
 			"vendor",
 			"index.php",
 			"README.txt",
-			"uninstall.php",
 			`${package_slug}.php`,
 		];
 		fs.ensureDir(copyTo, function (err) {

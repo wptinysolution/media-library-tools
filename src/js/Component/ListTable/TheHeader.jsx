@@ -108,6 +108,14 @@ function TheHeader() {
                 }
             },
         });
+        await dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                ids: [],
+                bulkChecked : false,
+            },
+        });
         console.log( search )
     };
 
