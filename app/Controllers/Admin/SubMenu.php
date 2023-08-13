@@ -149,7 +149,8 @@ class SubMenu {
                     line-height: 1;
                 }
 
-                #tsmlt-pro-key-wrapper #licenses {
+                #tsmlt-pro-key-wrapper #licenses ,
+                #tsmlt-pro-key-wrapper #billing_cycle {
                     padding: 5px 25px 5px 15px;
                     border-radius: 8px;
                     border-color: #1677ff;
@@ -162,6 +163,14 @@ class SubMenu {
                     display: flex;
                     flex-direction: column;
                     gap: 5px;
+                }
+
+                #tsmlt-pro-key-wrapper .price .header .price-for span{
+                    display: none;
+                }
+
+                #tsmlt-pro-key-wrapper .price .header .price-for.active-plan .active-cycle{
+                    display: flex;
                 }
 
                 @media only screen and (max-width: 600px) {
@@ -178,21 +187,20 @@ class SubMenu {
                             PRO
                             <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
                             <div class="price-for website-1 active-plan" >
-                                <span> $24.99 / Annual </span>
-                                <span> $74.99 / Lifetime </span>
+                                <span class="annual active-cycle"> $24.99 / Annual </span>
+                                <span class="lifetime"> $74.99 / Lifetime </span>
                             </div>
                             <div class="price-for website-5" >
-                                <span> $74.99 / Annual </span>
-                                <span> $224.99 / Lifetime </span>
-
+                                <span class="annual"> $74.99 / Annual </span>
+                                <span class="lifetime"> $224.99 / Lifetime </span>
                             </div>
                             <div class="price-for website-10" >
-                                <span> $124.99 / Annual </span>
-                                <span> $384.99 / Lifetime </span>
+                                <span class="annual"> $124.99 / Annual </span>
+                                <span class="lifetime"> $384.99 / Lifetime </span>
                             </div>
                             <div class="price-for website-50">
-                                <span> $194.99 / Annual </span>
-                                <span> $594.99 / Lifetime </span>
+                                <span class="annual"> $194.99 / Annual </span>
+                                <span class="lifetime"> $594.99 / Lifetime </span>
                             </div>
                         </li>
                         <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media File</li>
@@ -201,13 +209,17 @@ class SubMenu {
                         <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary</li>
                         <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary file</li>
                         <li class="footer">
-                            <button id="purchase">Buy Now</button>
                             <select id="licenses">
                                 <option value="1" selected="selected">Single Site License</option>
                                 <option value="5">5-Site License</option>
                                 <option value="10">10-Site License</option>
                                 <option value="50">50-Site License</option>
                             </select>
+                            <select id="billing_cycle">
+                                <option value="annual" selected="selected">Annual</option>
+                                <option value="lifetime">Lifetime</option>
+                            </select>
+                            <button id="purchase">Buy Now</button>
                         </li>
                     </ul>
 
@@ -219,8 +231,23 @@ class SubMenu {
 
                         $('#licenses').on( 'change', function ( e ) {
                             var active = $( this ).val();
+                            var cycle = $('#billing_cycle').val();
                             $('.price-for').removeClass( 'active-plan' );
                             $('.price-for.website-' + active).addClass("active-plan");
+
+                            $('.price-for').find( 'span' ).removeClass("active-cycle");
+                            $('.price-for').find( 'span.' + cycle ).addClass("active-cycle");
+
+                        } );
+
+                        $('#billing_cycle').on( 'change', function ( e ) {
+                            var active = $( '#licenses' ).val();
+                            var cycle = $( this ).val();
+                            $('.price-for').removeClass( 'active-plan' );
+                            $('.price-for.website-' + active).addClass("active-plan");
+
+                            $('.price-for').find( 'span' ).removeClass("active-cycle");
+                            $('.price-for').find( 'span.' + cycle ).addClass("active-cycle");
                         } );
 
                         var handler = FS.Checkout.configure({
@@ -233,6 +260,7 @@ class SubMenu {
                             handler.open({
                                 name     : 'Media library Tools Pro',
                                 licenses : $('#licenses').val(),
+                                billing_cycle: $('#billing_cycle').val(),
                                 // You can consume the response for after purchase logic.
                                 purchaseCompleted  : function (response) {
                                     // The logic here will be executed immediately after the purchase confirmation.                                // alert(response.user.email);
