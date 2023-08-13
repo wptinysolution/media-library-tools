@@ -268,8 +268,8 @@ class FilterHooks {
 		 * TODO:: Next Version
 		 *
 		 */
-		if ( ! Fns::is_plugins_installed( 'media-library-tools-pro/media-library-tools-pro.php' ) ) {
-			// $links['tsmlt_pro'] = sprintf( '<a href="#" target="_blank" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'wp-media' ) . '</a>' );
+		if ( ! tsmlt()->has_pro() ) {
+			 $links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" target="_blank" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
 		}
 
 		return $links;

@@ -139,7 +139,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return string
 		 */
 		public function pro_version_link() {
-			return '#';
+			return admin_url( 'upload.php?page=tsmlt-get-pro' );
 		}
 	}
 	/**
@@ -151,7 +151,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 
 	tsmlt();
 }
-
 
 // Register Plugin Active Hook.
 register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
