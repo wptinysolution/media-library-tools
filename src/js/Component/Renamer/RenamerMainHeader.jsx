@@ -174,17 +174,15 @@ function RenamerMainHeader() {
                                 saveType: Types.UPDATE_OPTIONS,
                             })
                     }
-                    onChange={ (event) => {
-                            dispatch({
-                                ...stateValue,
-                                type: Types.UPDATE_OPTIONS,
-                                options : {
-                                    ...stateValue.options,
-                                    media_per_page: event.target.value,
-                                }
-                            });
-
-                        }
+                    onChange={
+                        (event) => dispatch({
+                            ...stateValue,
+                            type: Types.UPDATE_OPTIONS,
+                            options : {
+                                ...stateValue.options,
+                                media_per_page: event.target.value,
+                            }
+                        })
                     }
                     value={stateValue.options.media_per_page}
                 />
