@@ -39,6 +39,15 @@ function RubbishFile() {
                 postsPerPage: rubbishFile.postsPerPage
             }
         });
+        dispatch({
+            type: Types.BALK_RUBBISH,
+            bulkRubbishData: {
+                ...stateValue.bulkRubbishData,
+                bulkChecked: false,
+                files: [],
+                ids: [],
+            },
+        });
         console.log( 'getTheRubbishFile' );
     }
 
@@ -54,14 +63,7 @@ function RubbishFile() {
                 }
             },
         });
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                bulkChecked: false,
-                ids: [],
-            },
-        });
+
     }
 
     const rubbishColumns = RubbishFileColumns();

@@ -78,6 +78,14 @@ function App() {
                 isLoading: false
             },
         });
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData:{
+                ...stateValue.bulkSubmitData,
+                bulkChecked : false,
+                ids: []
+            }
+        });
         console.log( 'getMedia' );
     }
 

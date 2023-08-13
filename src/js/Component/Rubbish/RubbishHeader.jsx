@@ -84,7 +84,6 @@ function RubbishHeader() {
     };
 
     const handleChangeBulkType = (value) => {
-
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {

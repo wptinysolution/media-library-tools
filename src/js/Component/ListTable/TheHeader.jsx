@@ -108,14 +108,6 @@ function TheHeader() {
                 }
             },
         });
-        await dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                ids: [],
-                bulkChecked : false,
-            },
-        });
         console.log( search )
     };
 
@@ -232,13 +224,16 @@ function TheHeader() {
                         saveType: Types.UPDATE_OPTIONS,
                     }) }
                     onChange={
-                        (event) => dispatch({
-                            type: Types.UPDATE_OPTIONS,
-                            options : {
-                                ...stateValue.options,
-                                media_per_page: event.target.value,
-                            }
-                        })
+                        (event) => {
+                            dispatch({
+                                type: Types.UPDATE_OPTIONS,
+                                options : {
+                                    ...stateValue.options,
+                                    media_per_page: event.target.value,
+                                }
+                            });
+
+                        }
                     }
                     value={stateValue.options.media_per_page}
                 />

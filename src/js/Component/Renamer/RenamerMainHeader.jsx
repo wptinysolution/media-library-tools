@@ -56,14 +56,6 @@ function RenamerMainHeader() {
                 }
             },
         });
-        await dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                ids: [],
-                bulkChecked : false,
-            },
-        });
         console.log( search )
     };
 
@@ -176,21 +168,23 @@ function RenamerMainHeader() {
                     type="primary"
                     size="large"
                     style={{ width: '50px' }}
-                    onBlur={ (event) => dispatch({
-                            ...stateValue,
-                            type: Types.UPDATE_OPTIONS,
-                            saveType: Types.UPDATE_OPTIONS,
-                        })
+                    onBlur={ () => dispatch({
+                                ...stateValue,
+                                type: Types.UPDATE_OPTIONS,
+                                saveType: Types.UPDATE_OPTIONS,
+                            })
                     }
-                    onChange={
-                        (event) => dispatch({
-                            ...stateValue,
-                            type: Types.UPDATE_OPTIONS,
-                            options : {
-                                ...stateValue.options,
-                                media_per_page: event.target.value,
-                            }
-                        })
+                    onChange={ (event) => {
+                            dispatch({
+                                ...stateValue,
+                                type: Types.UPDATE_OPTIONS,
+                                options : {
+                                    ...stateValue.options,
+                                    media_per_page: event.target.value,
+                                }
+                            });
+
+                        }
                     }
                     value={stateValue.options.media_per_page}
                 />
