@@ -118,7 +118,7 @@ class SubMenu {
                 }
                 #tsmlt-pro-key-wrapper .price .header span {
                     color: #fff;
-                    font-size: 14px;
+                    font-size: 15px;
                 }
                 #tsmlt-pro-key-wrapper .price  li.footer {
                     margin-top: 25px;
