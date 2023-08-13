@@ -1,4 +1,4 @@
-=== Media File Rename, Clear Media Junk File, Support SVG , Edit Media Content, Title, Alt text - Media Library Tools ===
+=== Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
@@ -8,16 +8,27 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Rename Media File, Find Unused Media File, Clean Media Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+Rename Media File, Find Unused Media File, Search Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
 
 == Description ==
 
-**Main Features**
+Media Library Tools allows users to quickly Rename Media File and update image titles, ALT text, captions, descriptions and categories for individual or bulk images in the media library.
+
+And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
+
+== 🏆 Main Features ==
 * Find Unused Media File
-* Clean Media Rubbish File
-* Media File Renamer
+* Search Media Junk/Rubbish File
+* Media File Rename
 * Image SVG Support
 * Bulk Edit Media Content, Title, Alt text, Caption, And Description.
+
+== 🏆 PRO Features ==
+* Bulk Rename Media File
+* Ignore Important File
+* Bulk Ignore Important File
+* Delete Rubbish/Junk/Unnecessary file
+* Bulk Delete Rubbish/Junk/Unnecessary file
 
 == 🏆 Media File Rename ==
 
@@ -39,6 +50,7 @@ SVGs are also search engine-friendly, enhancing discoverability and ranking pote
 Additionally, SVGs provide high-quality visuals on various devices, boosting engagement and user retention.
 
 == 🏆 Media Content Editing ==
+
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
 
@@ -47,7 +59,7 @@ Media Library Tools allows users to quickly update image titles, ALT text, capti
 == 🏆 All Features ==
 
 * SVG image upload support.
-* Rename media file names
+* Rename media files
 * Create image categories
 * Search images by category
 * Rename media files, bulk edit titles, ALT text, captions, descriptions, and categories
