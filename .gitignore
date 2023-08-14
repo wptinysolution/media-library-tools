@@ -80,6 +80,7 @@ composer.lock
 yarn.lock
 _ext_dev
 dist
+freemius
 .idea
 assets/css
 assets/js

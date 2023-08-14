@@ -50,7 +50,7 @@ function RubbishHeader() {
             })
         );
         await setFilterItems( [
-            { value: '', label: 'Default Image' },
+            { value: '', label: 'Only Image' },
             ...types
         ] );
     }
@@ -234,7 +234,6 @@ function RubbishHeader() {
                 <Select
                     {...fileTypeFilterRefProps}
                     size="large"
-                    allowClear = {true}
                     placeholder={'PNG/JPG'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.filterExtension }
                     style={ { ...selectStyle, width: 150 } }
