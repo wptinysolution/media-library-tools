@@ -105,8 +105,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.1 ( ) =
+= 1.1.2 ( ) =
 * Fixed : Term Issue Fixed
+* Fixed : Fixed File type issue
 
 = 1.1.1 ( August 10, 2023 ) =
 * Added: Bulk Action Fixed

@@ -54,7 +54,7 @@ class SubMenu {
 			add_submenu_page(
 				self::MENU_PAGE_SLUG,
 				esc_html__( 'License', 'tsmlt-media-tools' ),
-				'<span style="color: #6BBE66;">' . esc_html__( 'Go Pro - Media Tools', 'tsmlt-media-tools' ) . '</span>',
+				'<span style="color: #6BBE66;"> <span class="dashicons dashicons-editor-break" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'Go Pro - Media Tools', 'tsmlt-media-tools' ) . '</span>',
 				self::MENU_CAPABILITY,
 				'tsmlt-get-pro',
 				[ $this, 'pro_pages' ]
@@ -79,34 +79,45 @@ class SubMenu {
 	 */
 	public function pro_pages() { ?>
 		<div class="wrap tsmlt-license-wrap">
+            <?php
+
+                wp_enqueue_style( 'freemius-pricing', 'https://wcss.freemius.com/wordpress/pages/pricing.css?v=180' );
+                wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
+            ?>
             <style>
                 .media_page_tsmlt-get-pro #wpwrap {
                     background: #f9faff;
                 }
 
-                #tsmlt-pro-key-wrapper{
+                #tsmlt-pro-page-wrapper{
                     display: flex;
                     gap: 15px;
                     justify-content: center;
                     flex-wrap: wrap;
                 }
 
+                .tsmlt-pro-page-header #header {
+                    width: 915px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    position: relative;
+                    border: 0;
+                }
 
-                #tsmlt-pro-key-wrapper .columns {
+                #tsmlt-pro-page-wrapper .columns {
                     width: 450px;
-                    margin-top: 100px;
                     background: #fff;
                     border-radius: 8px;
                 }
-                #tsmlt-pro-key-wrapper .price li.footer * {
+                #tsmlt-pro-page-wrapper .price li.footer * {
                     flex: 1;
                 }
-                #tsmlt-pro-key-wrapper .price {
+                #tsmlt-pro-page-wrapper .price {
                     margin: 0;
                     padding: 0;
                     padding-bottom: 20px;
                 }
-                #tsmlt-pro-key-wrapper .price .header {
+                #tsmlt-pro-page-wrapper .price .header {
                     padding: 25px 15px;
                     font-size: 25px;
                     display: block;
@@ -116,15 +127,15 @@ class SubMenu {
                     line-height: 1.4;
                     margin-bottom: 35px;
                 }
-                #tsmlt-pro-key-wrapper .price .header span {
+                #tsmlt-pro-page-wrapper .price .header span {
                     color: #fff;
                     font-size: 15px;
                 }
-                #tsmlt-pro-key-wrapper .price  li.footer {
+                #tsmlt-pro-page-wrapper .price  li.footer {
                     margin-top: 25px;
                     margin-bottom: 20px;
                 }
-                #tsmlt-pro-key-wrapper .price li {
+                #tsmlt-pro-page-wrapper .price li {
                     padding: 10px 30px;
                     display: flex;
                     gap: 10px;
@@ -132,11 +143,11 @@ class SubMenu {
                     font-size: 16px;
                 }
 
-                #tsmlt-pro-key-wrapper .price li  span{
+                #tsmlt-pro-page-wrapper .price li  span{
                     color: #1677ff;
                 }
 
-                #tsmlt-pro-key-wrapper #purchase {
+                #tsmlt-pro-page-wrapper #purchase {
                     color: #fff;
                     background-color: #1677ff;
                     box-shadow: 0 2px 0 rgba(5, 145, 255, 0.1);
@@ -150,82 +161,117 @@ class SubMenu {
                     min-width: 100px;
                 }
 
-                #tsmlt-pro-key-wrapper #licenses ,
-                #tsmlt-pro-key-wrapper #billing_cycle {
+                #tsmlt-pro-page-wrapper #licenses ,
+                #tsmlt-pro-page-wrapper #billing_cycle {
                     padding: 5px 25px 5px 15px;
                     border-radius: 8px;
                     border-color: #1677ff;
+                    height: 40px;
                 }
-                #tsmlt-pro-key-wrapper .price .header .price-for {
+                #tsmlt-pro-page-wrapper .price .header .price-for {
                     display: none;
                 }
 
-                #tsmlt-pro-key-wrapper .price .header .price-for.active-plan{
+                #tsmlt-pro-page-wrapper .price .header .price-for.active-plan{
                     display: flex;
                     flex-direction: column;
                     gap: 5px;
                 }
 
-                #tsmlt-pro-key-wrapper .price .header .price-for span{
+                #tsmlt-pro-page-wrapper .price .header .price-for span{
                     display: none;
                 }
 
-                #tsmlt-pro-key-wrapper .price .header .price-for.active-plan .active-cycle{
+                #tsmlt-pro-page-wrapper .price .header .price-for.active-plan .active-cycle{
                     display: flex;
                 }
 
                 @media only screen and (max-width: 600px) {
-                    #tsmlt-pro-key-wrapper .columns {
+                    #tsmlt-pro-page-wrapper .columns {
                         width: 100%;
                     }
                 }
             </style>
-			<div id="tsmlt-pro-key-wrapper" class="tsmlt-pro-page-wrapper">
 
-                <div class="columns">
-                    <ul class="price">
-                        <li class="header">
-                            PRO
-                            <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
-                            <div class="price-for website-1 active-plan" >
-                                <span class="annual active-cycle"> $24.99 / Annual </span>
-                                <span class="lifetime"> $74.99 / Lifetime </span>
+			<div class="tsmlt-pro-page-wrapper" >
+                <div class="tsmlt-pro-page-header" >
+                    <header id="header" class="card clearfix" >
+                        <div class="product-header">
+                            <div class="product-icon">
+                                <img src="https://s3-us-west-2.amazonaws.com/freemius/plugins/13159/icons/b77811b8c1b98d63fe58f367d0d1526d.png" alt="">
                             </div>
-                            <div class="price-for website-5" >
-                                <span class="annual"> $74.99 / Annual </span>
-                                <span class="lifetime"> $224.99 / Lifetime </span>
+                            <div class="product-header-body" style="padding-top: 0;">
+                                <h1 class="page-title">Plans and Pricing</h1>
+                                <h2 class="plugin-title">Media library Tools Pro</h2>
+                                <h3>Choose your plan and upgrade in minutes!</h3>
                             </div>
-                            <div class="price-for website-10" >
-                                <span class="annual"> $124.99 / Annual </span>
-                                <span class="lifetime"> $384.99 / Lifetime </span>
-                            </div>
-                            <div class="price-for website-50">
-                                <span class="annual"> $194.99 / Annual </span>
-                                <span class="lifetime"> $594.99 / Lifetime </span>
-                            </div>
-                        </li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media Files</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary Files</li>
-                        <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary Files</li>
-                        <li class="footer">
-                            <select id="licenses">
-                                <option value="1" selected="selected">Single Site License</option>
-                                <option value="5">5-Site License</option>
-                                <option value="10">10-Site License</option>
-                                <option value="50">50-Site License</option>
-                            </select>
-                            <select id="billing_cycle">
-                                <option value="annual" selected="selected">Annual</option>
-                                <option value="lifetime">Lifetime</option>
-                            </select>
-                            <button id="purchase">Buy Now</button>
-                        </li>
-                    </ul>
-
+                        </div>
+                    </header>
                 </div>
-
+                <div id="tsmlt-pro-page-wrapper" >
+                    <div class="columns">
+                        <ul class="price">
+                            <li class="header">
+                                PRO
+                                <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
+                                <div class="price-for website-1 active-plan" >
+                                    <span class="annual active-cycle"> $24.99 / Annual </span>
+                                    <span class="lifetime"> $74.99 / Lifetime </span>
+                                </div>
+                                <div class="price-for website-5" >
+                                    <span class="annual"> $74.99 / Annual </span>
+                                    <span class="lifetime"> $224.99 / Lifetime </span>
+                                </div>
+                                <div class="price-for website-10" >
+                                    <span class="annual"> $124.99 / Annual </span>
+                                    <span class="lifetime"> $384.99 / Lifetime </span>
+                                </div>
+                                <div class="price-for website-50">
+                                    <span class="annual"> $194.99 / Annual </span>
+                                    <span class="lifetime"> $594.99 / Lifetime </span>
+                                </div>
+                            </li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary Files</li>
+                            <li class="footer">
+                                <select id="licenses">
+                                    <option value="1" selected="selected">Single Site License</option>
+                                    <option value="5">5-Site License</option>
+                                    <option value="10">10-Site License</option>
+                                    <option value="50">50-Site License</option>
+                                </select>
+                                <select id="billing_cycle">
+                                    <option value="annual" selected="selected">Annual</option>
+                                    <option value="lifetime">Lifetime</option>
+                                </select>
+                                <button id="purchase">Buy Now</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div  class="columns" >
+                        <section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
+                            <h1 style="font-size: 20px;">
+                                <b class="stars">
+                                    <i class="last">⋆</i>
+                                    <i class="middle">⋆</i>
+                                    <i class="first">⋆</i>
+                                </b>
+                                <span>14-Day Money Back Guarantee</span>
+                                <b class="stars">
+                                    <i class="first">⋆</i>
+                                    <i class="middle">⋆</i>
+                                    <i class="last">⋆</i>
+                                </b>
+                            </h1>
+                            <p>
+                                You are fully protected by our 100% Money Back Guarantee. If during the next 14 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money. <a class="message-trigger" data-for="#refund_policy" href="#">Learn more...</a>
+                            </p>
+                        </section>
+                    </div>
+                </div>
                 <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
                 <script src="https://checkout.freemius.com/checkout.min.js"></script>
                 <script>
