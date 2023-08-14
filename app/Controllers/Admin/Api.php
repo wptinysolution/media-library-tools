@@ -354,7 +354,7 @@ class Api {
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 
-			$terms          = get_terms( 'tsmlt_category' );
+			$terms          = get_the_terms( $post->ID, 'tsmlt_category' );
 			$tsmlt_category = [];
 			if ( ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
