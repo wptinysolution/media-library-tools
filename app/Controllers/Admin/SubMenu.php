@@ -147,6 +147,7 @@ class SubMenu {
                     cursor: pointer;
                     border: 0;
                     line-height: 1;
+                    min-width: 100px;
                 }
 
                 #tsmlt-pro-key-wrapper #licenses ,
