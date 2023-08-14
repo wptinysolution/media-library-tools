@@ -54,7 +54,7 @@ class SubMenu {
 			add_submenu_page(
 				self::MENU_PAGE_SLUG,
 				esc_html__( 'License', 'tsmlt-media-tools' ),
-				'<span style="color: #6BBE66;"> <span class="dashicons dashicons-editor-break" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'Go Pro - Media Tools', 'tsmlt-media-tools' ) . '</span>',
+				'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons dashicons-editor-break" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'Go Pro - Media Tools', 'tsmlt-media-tools' ) . '</span>',
 				self::MENU_CAPABILITY,
 				'tsmlt-get-pro',
 				[ $this, 'pro_pages' ]
@@ -85,6 +85,11 @@ class SubMenu {
                 wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
             ?>
             <style>
+
+                .current .tsmlt-submenu,
+                .current .dashicons{
+                    color: #1677ff !important;
+                }
                 .media_page_tsmlt-get-pro #wpwrap {
                     background: #f9faff;
                 }
@@ -132,8 +137,8 @@ class SubMenu {
                     font-size: 15px;
                 }
                 #tsmlt-pro-page-wrapper .price  li.footer {
-                    margin-top: 25px;
-                    margin-bottom: 20px;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
                 }
                 #tsmlt-pro-page-wrapper .price li {
                     padding: 10px 30px;
@@ -184,6 +189,14 @@ class SubMenu {
 
                 #tsmlt-pro-page-wrapper .price .header .price-for.active-plan .active-cycle{
                     display: flex;
+                }
+
+                .tsmlt-pro-page-footer div#faq {
+                    background: #fff;
+                    border-radius: 8px;
+                }
+                .tsmlt-pro-page-footer {
+                    margin-top: 30px;
                 }
 
                 @media only screen and (max-width: 600px) {
@@ -267,9 +280,55 @@ class SubMenu {
                                 </b>
                             </h1>
                             <p>
-                                You are fully protected by our 100% Money Back Guarantee. If during the next 14 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money. <a class="message-trigger" data-for="#refund_policy" href="#">Learn more...</a>
+                                You are fully protected by our 100% Money Back Guarantee. If during the next 14 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
                             </p>
                         </section>
+                    </div>
+                </div>
+                <div class="tsmlt-pro-page-footer" >
+                    <div class="container" style="max-width: 915px;">
+                        <div id="faq" style="max-width: 915px;margin: 0;" >
+                            <h2 style="margin-bottom: 30px;margin-top: 10px;">Frequently Asked Questions</h2>
+                                <ul>
+                                    <li>
+                                        <h3>Is there a setup fee?</h3>
+                                        <p>No. There are no setup fees on any of our plans.</p>
+                                    </li>
+                                    <li>
+                                        <h3>Can I cancel my account at any time?</h3>
+                                        <p>Yes, if you ever decide that Media library Tools Pro isn't the best plugin for your business, simply cancel your account from your Account panel.</p>
+                                    </li>
+                                    <li>
+                                        <h3>What's the time span for your contracts?</h3>
+                                        <p>All plans are year-to-year unless you purchase a lifetime plan.</p>
+                                    </li>
+                                    <li>
+                                        <h3>Do you offer a renewals discount?</h3>
+                                        <p>Yes, you get 10% discount for all annual plan automatic renewals. The renewal price will never be increased so long as the subscription is not cancelled.</p>
+                                    </li>
+                                    <li>
+                                        <h3>What payment methods are accepted?</h3>
+                                        <p>We accept all major credit cards including Visa, Mastercard, American Express, as well as PayPal payments.</p>
+                                    </li>
+                                    <li>
+                                        <h3>Do you offer refunds?</h3>
+                                        <p>Yes we do! We stand behind the quality of our product and will refund 100% of your money if you experience an issue that makes the plugin unusable and we are unable to resolve it.</p>
+                                    </li>
+                                    <li>
+                                        <h3>Do I get updates for the premium plugin?</h3>
+                                        <p>Yes! Automatic updates to our premium plugin are available free of charge as long as you stay our paying customer.</p>
+                                    </li>
+                                    <li>
+                                        <h3>Do you offer support if I need help?</h3>
+                                        <p>Yes! Top-notch customer support is key for a quality product, so we'll do our very best to resolve any issues you encounter via our support page.</p>
+                                    </li>
+                                    <li>
+                                        <h3>I have other pre-sale questions, can you help?</h3>
+                                        <p>Yes! You can ask us any question through our <a class="contact-link" data-subject="pre_sale_question" href="mailto:support@tinysolutions.freshdesk.com">support@tinysolutions.freshdesk.com</a>.</p>
+                                    </li>
+                                </ul>
+
+                        </div>
                     </div>
                 </div>
                 <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
