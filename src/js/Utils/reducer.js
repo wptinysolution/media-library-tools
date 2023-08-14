@@ -41,7 +41,7 @@ export const initialState = {
 	options: {
 		isLoading: true,
 		media_table_column: [ 'ID', 'Image',  'Title', 'Alt', 'Caption', 'Category' ],
-		default_alt_text: "none",
+		default_alt_text: "image_name_to_alt",
 		default_caption_text: "none",
 		default_desc_text: "none",
 		others_file_support:[]

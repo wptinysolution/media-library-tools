@@ -162,7 +162,7 @@ class Fns {
 			'media_default_alt'     => '',
 			'media_default_caption' => '',
 			'media_default_desc'    => '',
-			'default_alt_text'      => "none",
+			'default_alt_text'      => "image_name_to_alt",
 			'default_caption_text'  => "none",
 			'default_desc_text'     => "none",
 			'others_file_support'   => [],
