@@ -22,6 +22,9 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Media File Rename
 * Image SVG Support
 * Bulk Edit Media Content, Title, Alt text, Caption, And Description.
+* Auto input Alt text
+* Auto input Caption
+* Auto input Description
 
 == 🏆 PRO Features ==
 * Bulk Rename Media File
