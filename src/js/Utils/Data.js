@@ -128,8 +128,8 @@ export const getRubbishFile = async ( prams = {} ) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const rescanDirList = async ( prams ) => {
-    const response = await Api.post(`/rescanDirList`, prams );
+export const rescanDir = async ( prams ) => {
+    const response = await Api.post(`/rescanDir`, prams );
     await notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }

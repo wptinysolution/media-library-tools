@@ -10,7 +10,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import { rescanDirList} from "../../Utils/Data";
+import { rescanDir } from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -20,12 +20,11 @@ function DirectoryModal() {
 
     const [ scanDir, setScanDir ] = useState( null );
 
-    const handleDirModalOk = () => {
+    const handleNextSchedule = () => {
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                isDirModalOpen: false
             },
         });
     };
@@ -54,7 +53,7 @@ function DirectoryModal() {
                 scanRubbishDirLoading: true,
             },
         });
-        const dirList = await rescanDirList( {  dir : dir } );
+        const dirList = await rescanDir( {  dir : dir } );
 
         await dispatch({
             type: Types.GENERAL_DATA,
@@ -92,11 +91,12 @@ function DirectoryModal() {
             onCancel={handleDirModalCancel}
             footer={[
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
-                    Re-Scan All Directory { 'all' === scanDir && <Spin size="small" /> }
+                    Re-Scan And Get Directory List { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
-                <Button key="submit" type="primary"  onClick={handleDirModalOk}> Continue </Button>,
+                <Button key="NextSchedule" type="primary"  onClick={ () => handleDirRescan( 'NextSchedule' ) }> Execute Next Schedule </Button>
             ]}
         >
+
             <Divider />
             <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
             { stateValue.generalData.scanRubbishDirLoading ?
@@ -123,7 +123,7 @@ function DirectoryModal() {
                                 />
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
-                                        Re-Scan { key === scanDir && <Spin size="small" /> }
+                                        Re- Execute In Schedule  { key === scanDir && <Spin size="small" /> }
                                     </Button>
                                 </Space>
                             </List.Item>

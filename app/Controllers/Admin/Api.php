@@ -82,9 +82,9 @@ class Api {
 			'callback'            => [ $this, 'get_dir_list' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
-		register_rest_route( $this->namespace, $this->resource_name . '/rescanDirList', array(
+		register_rest_route( $this->namespace, $this->resource_name . '/rescanDir', array(
 			'methods'             => 'POST',
-			'callback'            => [ $this, 'rescan_dir_list' ],
+			'callback'            => [ $this, 'rescan_dir' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
 
@@ -485,6 +485,9 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_dir_list() {
+
+		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
+
 		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 
 		// Get the timestamp of the next scheduled event
@@ -508,28 +511,40 @@ class Api {
 	}
 
 	/**
-	 * @return false|string
+	 * @return array
 	 */
-	public function rescan_dir_list( $request_data ) {
+	public function rescan_dir( $request_data ) {
 		$parameters = $request_data->get_params();
 		$dir        = $parameters['dir'] ?? 'all';
-		if ( 'all' === $dir ) {
-			$directory_list = [];
-			wp_clear_scheduled_hook('tsmlt_upload_dir_scan');
-		} else {
-			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
-			$directory_list[ $dir ] = [
-				'total_items' => 0,
-				'counted'     => 0,
-				'status'      => "available"
-			];
-		}
+		$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
+		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
-		$options = update_option( 'tsmlt_get_directory_list', $directory_list );
+
+		switch ( $dir ) {
+			case "all":
+				$directory_list = [];
+				wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
+				break;
+			case "NextSchedule":
+				$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
+				break;
+			default:
+				if( ! empty( $directory_list[ $dir ] ) ) {
+					$directory_list[ $dir ] = [
+						'total_items' => 0,
+						'counted'     => 0,
+						'status'      => "available"
+					];
+				}
+		}
+
+		update_option( 'tsmlt_get_directory_list', $directory_list );
+
 		return [
 			'updated' => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message' => esc_html__( 'Action Execute.', 'tsmlt-media-tools' )
+			'message' => $message
 		];
 	}
 
