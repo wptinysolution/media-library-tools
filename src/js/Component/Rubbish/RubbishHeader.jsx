@@ -50,7 +50,7 @@ function RubbishHeader() {
             })
         );
         await setFilterItems( [
-            { value: '', label: 'Default' },
+            { value: '', label: 'Default Image' },
             ...types
         ] );
     }

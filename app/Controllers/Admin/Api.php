@@ -563,30 +563,36 @@ class Api {
 		$options = get_option( 'tsmlt_settings' );
 		$limit   = absint( $options['rubbish_per_page'] ?? 20 );
 
-		//$limit  = $parameters['postsPerPage'] ?? 20;
-
 		$status  = $parameters['fileStatus'] ?? 'show';
-		$extension  = ! empty( $parameters['filterExtension'] ) ? $wpdb->prepare( " AND file_type = %s", $parameters['filterExtension'] ) : null;
+
+		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
+
+		// Add single quotes around each status value
+		$extensions = array_map( function ( $extension ) {
+			return "'" . esc_sql( $extension ) . "'";
+		}, $extensions );
+
+		$extensions = implode( ', ', $extensions );
 
 		$page   = $parameters['paged'] ?? 1;
 		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
 
 		$cache_key         = "tsmlt_unlisted_file";
 		$table_name        = $wpdb->prefix . 'tsmlt_unlisted_file';
-		$excluded_statuses = array( $status ); // Add the status values to exclude
+		$in_statuses = [ $status ]; // Add the status values to exclude
 
 		// Add single quotes around each status value
-		$excluded_statuses = array_map( function ( $status ) {
+		$in_statuses = array_map( function ( $status ) {
 			return "'" . esc_sql( $status ) . "'";
-		}, $excluded_statuses );
+		}, $in_statuses );
 
-		$placeholders_string = implode( ', ', $excluded_statuses );
+		$placeholders_status = implode( ', ', $in_statuses );
 
 		// Check if the file_path already exists in the table using cached data
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
 			$query = $wpdb->prepare(
-				"SELECT * FROM $table_name WHERE status IN ( $placeholders_string )$extension LIMIT %d OFFSET %d",
+				"SELECT * FROM $table_name WHERE status IN ( $placeholders_status ) AND file_type IN ( $extensions ) LIMIT %d OFFSET %d",
 				$limit,
 				$offset
 			);
@@ -601,7 +607,7 @@ class Api {
 		$total_file = wp_cache_get( $total_file_cache );
 		if ( ! $total_file ) {
 			// Query to retrieve total number of posts
-			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status IN ( $placeholders_string )", $table_name );
+			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status IN ( $placeholders_status ) AND file_type IN ( $extensions )", $table_name );
 			$total_file  = $wpdb->get_var( $total_query );
 			wp_cache_set( $total_file_cache, $total_file );
 		}

@@ -105,9 +105,12 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.1 ( August 1, 2023 ) =
-Added: Bulk Action Fixed
-Added: Search Rubbish File
+= 1.1.1 ( ) =
+* Fixed : Term Issue Fixed
+
+= 1.1.1 ( August 10, 2023 ) =
+* Added: Bulk Action Fixed
+* Added: Search Rubbish File
 
 = 1.0.13 ( August 09, 2023  ) =
 * Fixed: Php Version Issue fixed
