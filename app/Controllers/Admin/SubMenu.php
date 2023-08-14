@@ -124,7 +124,7 @@ class SubMenu {
                 }
                 #tsmlt-pro-page-wrapper .price .header {
                     padding: 25px 15px;
-                    font-size: 25px;
+                    font-size: 30px;
                     display: block;
                     font-weight: 700;
                     background: #1677ff;
@@ -134,7 +134,7 @@ class SubMenu {
                 }
                 #tsmlt-pro-page-wrapper .price .header span {
                     color: #fff;
-                    font-size: 15px;
+                    font-size: 20px;
                 }
                 #tsmlt-pro-page-wrapper .price  li.footer {
                     margin-top: 20px;
@@ -144,8 +144,8 @@ class SubMenu {
                     padding: 10px 30px;
                     display: flex;
                     gap: 10px;
-                    font-weight: 600;
                     font-size: 16px;
+
                 }
 
                 #tsmlt-pro-page-wrapper .price li  span{
@@ -172,6 +172,7 @@ class SubMenu {
                     border-radius: 8px;
                     border-color: #1677ff;
                     height: 40px;
+                    font-weight: 400;
                 }
                 #tsmlt-pro-page-wrapper .price .header .price-for {
                     display: none;
