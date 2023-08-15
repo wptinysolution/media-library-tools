@@ -82,7 +82,7 @@ class Fns {
 		}
 
 		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-		$filebasename = basename( $metadata['file'], '.' . $fileextension );
+		$filebasename  = basename( $metadata['file'], '.' . $fileextension );
 
 		$new_file_name = $new_file_name . '.' . $fileextension;
 		if ( $filebasename == basename( $new_file_name, '.' . $fileextension ) ) {
@@ -157,15 +157,17 @@ class Fns {
 	 */
 	public static function get_options() {
 		$defaults = array(
-			'media_per_page'        => 20,
-			'media_table_column'    => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
-			'media_default_alt'     => '',
-			'media_default_caption' => '',
-			'media_default_desc'    => '',
-			'default_alt_text'      => "image_name_to_alt",
-			'default_caption_text'  => "none",
-			'default_desc_text'     => "none",
-			'others_file_support'   => [],
+			'media_per_page'         => 20,
+			'media_table_column'     => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
+			'media_default_alt'      => '',
+			'media_default_caption'  => '',
+			'media_default_desc'     => '',
+			'default_alt_text'       => "image_name_to_alt",
+			'default_caption_text'   => "none",
+			'default_desc_text'      => "none",
+			'others_file_support'    => [],
+			'enable_auto_rename'     => '',
+			'media_auto_rename_text' => '',
 		);
 		$options  = get_option( 'tsmlt_settings', [] );
 
@@ -210,15 +212,6 @@ class Fns {
 		}
 
 		return $wp_filesystem;
-	}
-
-	/**
-	 * @param $whitelist
-	 *
-	 * @return bool
-	 */
-	public static function isLocalhost($whitelist = ['127.0.0.1', '::1']) {
-		return in_array($_SERVER['REMOTE_ADDR'], $whitelist);
 	}
 
 }

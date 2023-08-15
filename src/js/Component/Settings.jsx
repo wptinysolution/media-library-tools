@@ -65,6 +65,16 @@ function Settings() {
     };
 
     const setDefaultText = (e) => {
+        if ( ! tsmltParams.hasExtended && 'enable_auto_rename' === e.target.name ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -111,9 +121,11 @@ function Settings() {
                         borderRadius: '5px',
                         boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                     }}>
+                        <Title level={3} style={{ margin:0 }}> Media Edit Table Settings </Title>
+                        <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
                             <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
-                            <Divider />
+                            <Divider style={ { margin: '10px 0' } }/>
                             <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
                         </Form.Item>
                         <Divider />
@@ -131,7 +143,6 @@ function Settings() {
                                 Svg And Others File Upload.
                             </Text>
                         </Form.Item>
-
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Alt Text </Title>} >
 
@@ -151,7 +162,7 @@ function Settings() {
                             </Checkbox>
                             { 'custom_text_to_alt' === stateValue.options.default_alt_text &&
                                 <>
-                                    <Divider />
+                                    <Divider style={ { margin: '10px 0' } }/>
                                     <TextArea
                                         type="primary"
                                         size="large"
@@ -177,7 +188,6 @@ function Settings() {
                         </Form.Item>
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Caption Text </Title>} >
-
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_caption_text`}
@@ -194,7 +204,7 @@ function Settings() {
                             </Checkbox>
                             { 'custom_text_to_caption' === stateValue.options.default_caption_text &&
                                 <>
-                                    <Divider />
+                                    <Divider style={ { margin: '10px 0' } }/>
                                     <TextArea
                                         type="primary"
                                         size="large"
@@ -237,7 +247,7 @@ function Settings() {
                             </Checkbox>
                             { 'custom_text_to_desc' === stateValue.options.default_desc_text &&
                                 <>
-                                    <Divider />
+                                    <Divider style={ { margin: '10px 0' } }/>
                                     <TextArea
                                         type="primary"
                                         size="large"
@@ -261,7 +271,47 @@ function Settings() {
                             }
 
                         </Form.Item>
+                        <Divider />
+                        <Title level={3} style={{ margin:0 }}> Media Renamer Table Settings </Title>
+                        <Divider />
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Enable Auto Rename </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`enable_auto_rename`}
+                                value={`enable_auto_rename`}
+                                checked={ 'enable_auto_rename' === stateValue.options.enable_auto_rename } >
+                                Custom text - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                            </Checkbox>
+                            <br/>
+                            <Text type="secondary" >
+                                Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
+                            </Text>
+                            { tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename &&
+                                <>
+                                    <Divider style={ { margin: '10px 0'} }/>
+                                    <Input
+                                        type="primary"
+                                        size="large"
+                                        placeholder="file name"
+                                        onChange={
+                                            (event) => dispatch({
+                                                type: Types.UPDATE_OPTIONS,
+                                                options : {
+                                                    ...stateValue.options,
+                                                    media_auto_rename_text: event.target.value,
+                                                }
+                                            })
+                                        }
+                                        value={stateValue.options.media_auto_rename_text}
+                                    />
+                                    <Text type="secondary" >
+                                        <span style={ { color: '#ff0000' } }>Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br/> Example: File Name </span>
+                                    </Text>
+                                </>
+                            }
 
+                        </Form.Item>
+                        <Divider style={ { margin: '10px 0' } }/>
                     </Content>
                 }
 

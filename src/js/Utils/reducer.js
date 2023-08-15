@@ -44,7 +44,9 @@ export const initialState = {
 		default_alt_text: "image_name_to_alt",
 		default_caption_text: "none",
 		default_desc_text: "none",
-		others_file_support:[]
+		others_file_support:[],
+		enable_auto_rename: '',
+		media_auto_rename_text: '',
 	},
 	rubbishMedia:{
 		isLoading: true,

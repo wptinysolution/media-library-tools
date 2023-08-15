@@ -131,6 +131,8 @@ class Api {
 
 		$tsmlt_media['others_file_support'] = $parameters['others_file_support'] ?? [];
 
+		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
+
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
 
 		$result['updated'] = boolval( $options );

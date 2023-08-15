@@ -19,19 +19,29 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 == 🏆 Main Features ==
 * Find Unused Media File
 * Search Media Junk/Rubbish File
+* Filter Junk/Rubbish File By File Extension
 * Media File Rename
 * Image SVG Support
-* Bulk Edit Media Content, Title, Alt text, Caption, And Description.
+* Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
 * Auto input Caption
 * Auto input Description
+* Create image categories
+* Search images by category
+* Identify blank ALT tags, captions, and descriptions by sorting image data
+* Move images to trash instead of permanently deleting them
+* Filter and search for images by trash status
+* Permanently delete trash images with one click.
+
 
 == 🏆 PRO Features ==
+* Auto Rename Media File
 * Bulk Rename Media File
-* Ignore Important File
-* Bulk Ignore Important File
 * Delete Rubbish/Junk/Unnecessary file
 * Bulk Delete Rubbish/Junk/Unnecessary file
+* Also Available for Ignore Important File
+* Also Available for Bulk Ignore Important File
+
 
 == 🏆 Media File Rename ==
 
@@ -56,22 +66,8 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
-
 [youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
 
-== 🏆 All Features ==
-
-* SVG image upload support.
-* Rename media files
-* Create image categories
-* Search images by category
-* Rename media files, bulk edit titles, ALT text, captions, descriptions, and categories
-* Edit the title, ALT text, caption, and description of images individually
-* Identify blank ALT tags, captions, and descriptions by sorting image data
-* Improve SEO score by assigning proper image metadata
-* Move images to trash instead of permanently deleting them
-* Filter and search for images by trash status
-* Permanently delete trash images with one click in the future
 
 == 🏆 Getting Started ==
 
@@ -105,16 +101,19 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.2 ( ) =
-* Fixed : Term Issue Fixed
-* Fixed : Fixed File type issue
+= 1.1.2 ( August 15, 2023 ) =
+* Fixed: Term Issue
+* Added: Search By extension
+* Added: Auto Renemar Support
+* Fixed: Fixed File type issue
+* Added: Schedule run Immediately
 
 = 1.1.1 ( August 10, 2023 ) =
-* Added: Bulk Action Fixed
+* Added: Bulk Action
 * Added: Search Rubbish File
 
 = 1.0.13 ( August 09, 2023  ) =
-* Fixed: Php Version Issue fixed
+* Fixed: Php Version Issue
 
 = 1.0.12 ( July 29, 2023  ) =
 * Fixed: Alt text ordering issue
@@ -122,13 +121,6 @@ To search for images by categories, users can find the categories box near the F
 
 = 1.0.11 ( July 17, 2023  ) =
 * Fixed: Pagination
-
-= 1.0.4 ( May 16, 2023  ) =
-* Fixed: Options Issue fix
-* Fixed: Filter Issue fix
-* Fixed: Media Column Issue fixed
-* Optimized: Media Query Optimize
-* Added: Caption/Description add Automatically
 
 1.0.0 ( MARCH 07, 2023 )
 * Initial Plugin.
