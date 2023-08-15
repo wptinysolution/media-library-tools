@@ -34,6 +34,11 @@ function ProModal() {
             desc: 'Bulk rename the file names as well with incremental numbers so they are all different',
         },
         {
+            title: 'Auto Rename Before Upload Media Files',
+            desc: 'Implement automatic renaming of media files prior to uploading for enhanced file organization and management.',
+        },
+
+        {
             title: 'Bulk Delete Unnecessary / Rubbish File',
             desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
         },
