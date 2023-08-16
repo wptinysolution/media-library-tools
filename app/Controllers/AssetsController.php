@@ -65,32 +65,47 @@ class AssetsController {
 			wp_register_script( $script['handle'], $script['src'], $script['deps'], $this->version, $script['footer'] );
 		}
 
+		$styles = [
+			[
+				'handle' => 'tsmlt-settings-style',
+				'src'    => tsmlt()->get_assets_uri( 'css/backend/admin-settings.css' ),
+			]
+		];
+
+		// Register public styles.
+		foreach ( $styles as $style ) {
+			wp_register_style( $style['handle'], $style['src'], [], $this->version );
+		}
+
 		global $pagenow;
 
-		if ( 'upload.php' === $pagenow && ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
+		if( 'upload.php' === $pagenow  ){
 
-			wp_enqueue_style( 'tsmlt-settings' );
-			wp_enqueue_script( 'tsmlt-settings' );
-			$upload_dir = wp_upload_dir(); // Get the upload directory path
+			if ( ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
 
-			wp_localize_script(
-				'tsmlt-settings',
-				'tsmltParams',
-				[
-					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
-					'adminUrl'       => esc_url( admin_url() ),
-					'hasExtended'    => tsmlt()->has_pro(),
-					'proLink'        => tsmlt()->pro_version_link(), //tsmlt()->pro_version_checkout_link(), //'https://checkout.freemius.com/mode/dialog/plugin/13159/plan/22377/',
-					'includesUrl'    => esc_url( includes_url() ),
-					'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
-					'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-					'restApiUrl'     => esc_url_raw( rest_url() ), // site_url(rest_get_url_prefix()),
-					'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
-					tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
-				]
-			);
+				wp_enqueue_script( 'tsmlt-settings' );
+
+				$upload_dir = wp_upload_dir(); // Get the upload directory path
+				wp_localize_script(
+					'tsmlt-settings',
+					'tsmltParams',
+					[
+						'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
+						'adminUrl'       => esc_url( admin_url() ),
+						'hasExtended'    => tsmlt()->has_pro(),
+						'proLink'        => tsmlt()->pro_version_link(), //tsmlt()->pro_version_checkout_link(), //'https://checkout.freemius.com/mode/dialog/plugin/13159/plan/22377/',
+						'includesUrl'    => esc_url( includes_url() ),
+						'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
+						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
+						'restApiUrl'     => esc_url_raw( rest_url() ), // site_url(rest_get_url_prefix()),
+						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
+						tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
+					]
+				);
+			}
 
 		}
+
 
 	}
 

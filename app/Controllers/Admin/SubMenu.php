@@ -42,6 +42,13 @@ class SubMenu {
      * @return void
      */
     public function register_sub_menu() {
+
+	    wp_enqueue_style( 'tsmlt-settings-style' );
+
+	    $tab_title = apply_filters( 'tsmlt/add/get-pro/submenu/label' ,  esc_html__('Pricing', 'tsmlt-media-tools' ) )  ;
+
+        $title = '<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' .  $tab_title . '</span>';
+
         add_submenu_page(
 	        self::MENU_PAGE_SLUG,
             esc_html__('Media Tools', 'tsmlt-media-tools'),
@@ -50,16 +57,15 @@ class SubMenu {
             'tsmlt-media-tools',
             array($this, 'wp_media_page_callback')
         );
-		if( ! tsmlt()->has_pro() ){
-			add_submenu_page(
-				self::MENU_PAGE_SLUG,
-				esc_html__( 'License', 'tsmlt-media-tools' ),
-				'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons dashicons-editor-break" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'Go Pro - Media Tools', 'tsmlt-media-tools' ) . '</span>',
-				self::MENU_CAPABILITY,
-				'tsmlt-get-pro',
-				[ $this, 'pro_pages' ]
-			);
-		}
+
+        add_submenu_page(
+            self::MENU_PAGE_SLUG,
+	        $tab_title,
+	        $title,
+            self::MENU_CAPABILITY,
+            'tsmlt-get-pro',
+            [ $this, 'pro_pages' ]
+        );
 
 		do_action( 'tsmlt/add/more/submenu', self::MENU_PAGE_SLUG, self::MENU_CAPABILITY  );
 
@@ -77,15 +83,16 @@ class SubMenu {
 	/**
 	 * @return void
 	 */
-	public function pro_pages() { ?>
-		<div class="wrap tsmlt-license-wrap">
-            <?php
+	public function pro_pages() {
 
+        ?>
+		<div class="wrap tsmlt-license-wrap">
+
+            <?php
                 wp_enqueue_style( 'freemius-pricing', 'https://wcss.freemius.com/wordpress/pages/pricing.css?v=180' );
                 wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
             ?>
             <style>
-
                 .current .tsmlt-submenu,
                 .current .dashicons{
                     color: #1677ff !important;
@@ -290,7 +297,7 @@ class SubMenu {
                 <div class="tsmlt-pro-page-footer" >
                     <div class="container" style="max-width: 915px;">
                         <div id="faq" style="max-width: 915px;margin: 0;" >
-                            <h2 style="margin-bottom: 30px;margin-top: 10px;">Frequently Asked Questions</h2>
+                            <h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>
                                 <ul>
                                     <li>
                                         <h3>Is there a setup fee?</h3>
