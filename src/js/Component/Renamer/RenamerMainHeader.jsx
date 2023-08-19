@@ -15,6 +15,7 @@ import BulkRanameModal from "./BulkRanameModal";
 import {SearchOutlined} from "@ant-design/icons";
 
 import {useSearchDebounce} from "../../Utils/Hooks";
+import {notifications} from "../../Utils/Data";
 
 const { Header } = Layout;
 
@@ -74,8 +75,11 @@ function RenamerMainHeader() {
             });
             return;
         }
+        if( ! stateValue.bulkSubmitData.ids.length ){
+            notifications( false, 'No checkboxes are checked. Please select at least one item.' );
+            return;
+        }
         switch( stateValue.bulkSubmitData.type ){
-
             case 'bulkRename':
                 dispatch({
                     ...stateValue,
@@ -88,6 +92,7 @@ function RenamerMainHeader() {
                 });
                 break;
             default:
+                notifications( false, 'No Actions are selected. Please select one.' );
         }
 
     };

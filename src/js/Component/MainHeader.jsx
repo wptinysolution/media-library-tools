@@ -12,6 +12,7 @@ import {
 
 import {useStateValue} from "../Utils/StateProvider";
 import * as Types from "../Utils/actionType";
+import { rescanDirApi} from "../Utils/Data";
 
 const { Header } = Layout;
 
@@ -75,19 +76,20 @@ function MainHeader() {
                 defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
                 items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
-                    dispatch({
-                        type: Types.GENERAL_DATA,
-                        generalData:{
-                            ...stateValue.generalData,
-                            selectedMenu : key
-                        }
-                    });
+                   
                     dispatch({
                         type: Types.BULK_SUBMIT,
                         bulkSubmitData:{
                             ...stateValue.bulkSubmitData,
                             bulkChecked : false,
                             ids: []
+                        }
+                    });
+                    dispatch({
+                        type: Types.GENERAL_DATA,
+                        generalData:{
+                            ...stateValue.generalData,
+                            selectedMenu : key
                         }
                     });
                     localStorage.setItem( "current_menu", key );

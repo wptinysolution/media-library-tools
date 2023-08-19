@@ -10,7 +10,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import { rescanDir } from "../../Utils/Data";
+import {rescanDir, rescanDirApi} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -19,15 +19,6 @@ function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
 
     const [ scanDir, setScanDir ] = useState( null );
-
-    const handleNextSchedule = () => {
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-            },
-        });
-    };
 
     const handleDirModalCancel = () => {
         dispatch({
@@ -112,7 +103,7 @@ function DirectoryModal() {
                         itemLayout="horizontal"
                         dataSource={ Object.entries( stateValue.generalData.scanRubbishDirList ) }
                         locale = { { emptyText: <Title level={5} style={{ margin:'0 15px', color: 'red' }}>
-                                No Directory found. Directory will search in next schedule be patience till then. <br/>
+                                Directory will search in next schedule be patience till then. <br/>
                                 Next Schedule {stateValue.generalData.scanDirNextSchedule}
                         </Title> } }
                         renderItem={ ( [key, item], index) => (

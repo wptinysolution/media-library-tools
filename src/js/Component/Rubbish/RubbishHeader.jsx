@@ -8,7 +8,7 @@ import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, getRubbishFile, getRubbishFileType} from "../../Utils/Data";
+import {getDirList, getRubbishFile, getRubbishFileType, notifications} from "../../Utils/Data";
 
 import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
@@ -139,6 +139,16 @@ function RubbishHeader() {
             });
             return;
         }
+        if( ! stateValue.bulkRubbishData.ids.length ){
+            notifications( false, 'No checkboxes are checked. Please select at least one item.' );
+            return;
+        }
+
+        if( ! stateValue.bulkRubbishData.type || `default` ==  stateValue.bulkRubbishData.type ){
+            notifications( false, 'No Actions are selected. Please select one.' );
+            return;
+        }
+
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {

@@ -123,13 +123,23 @@ export const getRubbishFile = async ( prams = {} ) => {
     const result = await Api.get(`/getRubbishFile`, {params: prams} );
     return JSON.parse(result.data);
 }
+
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const rescanDirApi = async (prams) => {
+    return await Api.post(`/rescanDir`, prams );
+}
 /**
  *
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const rescanDir = async ( prams ) => {
-    const response = await Api.post(`/rescanDir`, prams );
+    const response = await rescanDirApi( prams );
     await notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }

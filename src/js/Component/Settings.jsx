@@ -39,7 +39,7 @@ const plainOptions = columnList.map( ( currentValue) => {
 
 function Settings() {
 
-   const [stateValue, dispatch] = useStateValue();
+    const [stateValue, dispatch] = useStateValue();
 
     const isCheckedDiff = Object.keys( plainOptions ).length === Object.keys( stateValue.options.media_table_column ).length;
 
@@ -177,13 +177,14 @@ function Settings() {
                                         }
                                         value={stateValue.options.media_default_alt}
                                     />
-                                    <Text
-                                        type="secondary"
-                                    >
-                                        Alt Text Will add automatically when upload Media file
-                                    </Text>
+
                                 </>
                             }
+                            <br/>
+                            <br/>
+                            <Text  type="secondary">
+                                Alt Text Will add automatically when upload Media file
+                            </Text>
 
                         </Form.Item>
                         <Divider />
@@ -219,13 +220,13 @@ function Settings() {
                                         }
                                         value={stateValue.options.media_default_caption}
                                     />
-                                    <Text
-                                        type="secondary"
-                                    >
-                                        Caption text will add automatically when upload Media file
-                                    </Text>
                                 </>
                             }
+                            <br/>
+                            <br/>
+                            <Text  type="secondary" >
+                                Caption text will add automatically when upload Media file
+                            </Text>
 
                         </Form.Item>
                         <Divider />
@@ -262,13 +263,14 @@ function Settings() {
                                         }
                                         value={stateValue.options.media_default_desc}
                                     />
-                                    <Text
-                                        type="secondary"
-                                    >
-                                        Description text will add automatically when upload Media file
-                                    </Text>
+
                                 </>
                             }
+                            <br/>
+                            <br/>
+                            <Text  type="secondary"  >
+                                Description text will add automatically when upload Media file
+                            </Text>
 
                         </Form.Item>
                         <Divider />
@@ -282,6 +284,7 @@ function Settings() {
                                 checked={ 'enable_auto_rename' === stateValue.options.enable_auto_rename } >
                                 Custom text - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
                             </Checkbox>
+                            <br/>
                             <br/>
                             <Text type="secondary" >
                                 Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg

@@ -16,6 +16,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 import {useSearchDebounce} from "../../Utils/Hooks";
 
 import * as Types from "../../Utils/actionType";
+import {notifications} from "../../Utils/Data";
 
 const { Header } = Layout;
 
@@ -67,6 +68,13 @@ function TheHeader() {
     };
 
     const handleBulkSubmit = () => {
+
+        if( ! stateValue.bulkSubmitData.ids.length ){
+            console.log( 'Hello' )
+            notifications( false, 'No checkboxes are checked. Please select at least one item.' );
+            return;
+        }
+
         switch( stateValue.bulkSubmitData.type ){
             case 'trash':
             case 'inherit':
@@ -90,6 +98,7 @@ function TheHeader() {
                 });
                 break;
             default:
+                notifications( false, 'No Actions are selected. Please select one.' );
         }
 
     };
