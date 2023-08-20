@@ -67,7 +67,7 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
-[youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
+[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
 
 == 🏆 Getting Started ==

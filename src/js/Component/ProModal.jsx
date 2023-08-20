@@ -30,8 +30,8 @@ function ProModal() {
 
     const data = [
         {
-            title: 'File Rename Bulk Mode',
-            desc: 'Bulk rename the file names as well with incremental numbers so they are all different',
+            title: 'All Free Features',
+            desc: 'All features available in the free version are included within the scope of the professional features.',
         },
         {
             title: 'Auto Rename Before Upload Media Files',
