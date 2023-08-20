@@ -77,7 +77,7 @@ export const columnList = [
         key: 'Image',
     },
     {
-        title: `Parents`,
+        title: `Parents ID`,
         key: 'Parents',
     },
     {
@@ -253,7 +253,7 @@ export function columns(){
             render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Parents` } </Space>,
+            title: <Space wrap> { `Parents ID` } </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',
@@ -359,11 +359,10 @@ export function renamerColumns(){
             render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Parents` } </Space>,
+            title: <Space wrap> { `Parents ID` } </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
-            align: 'top',
-            width: '100px',
+            width: '150px',
             render: ( text, record, i ) => <> { text } </>
         },
         {

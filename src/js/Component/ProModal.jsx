@@ -31,13 +31,16 @@ function ProModal() {
     const data = [
         {
             title: 'All Free Features',
-            desc: 'All features available in the free version are included within the scope of the professional features.',
+            desc: 'All features available in the free version are included.',
         },
         {
-            title: 'Auto Rename Before Upload Media Files',
-            desc: 'Implement automatic renaming of media files prior to uploading for enhanced file organization and management.',
+            title: 'Auto Rename based on attached posts/Custom text',
+            desc: 'Automatic renaming of media files prior to uploading based on attached posts.',
         },
-
+        {
+            title: 'Auto Rename Auto Rename based on Custom text',
+            desc: 'Implement automatic renaming of media files based on custom text.',
+        },
         {
             title: 'Bulk Delete Unnecessary / Rubbish File',
             desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
@@ -68,12 +71,12 @@ function ProModal() {
                 <Paragraph type="secondary" style={{ fontSize: '13px', color:'#333'}}>
                     Pro Feature offers a range of enhanced functionalities and benefits...
                 </Paragraph >
-                <Divider style={{  margin: '10px 0' }}/>
+                <Divider style={{  margin: '5px 0' }}/>
                 <List
                     itemLayout="horizontal"
                     dataSource={data}
                     renderItem={(item, index) => (
-                        <List.Item key={index}>
+                        <List.Item key={index} style={{ padding: '5px 0' }} >
                             <List.Item.Meta
                                 avatar={<CheckSquareOutlined style={{ fontSize: '40px', color: '#1677ff' }} />}
                                 title={<span style={{ color:'#1677ff', fontSize: '15px' }}> { item.title } </span>}

@@ -65,7 +65,7 @@ function Settings() {
     };
 
     const setDefaultText = (e) => {
-        if ( ! tsmltParams.hasExtended && 'enable_auto_rename' === e.target.name ){
+        if ( ! tsmltParams.hasExtended && ( 'enable_auto_rename' === e.target.name || 'auto_rename_by_post_title' === e.target.name )){
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -100,7 +100,7 @@ function Settings() {
         <Layout style={{ position: 'relative' }}>
             <Form
                 labelCol={{
-                    span: 5,
+                    span: 7,
                     offset: 0,
                     style:{
                         textAlign: 'left',
@@ -109,7 +109,7 @@ function Settings() {
                 wrapperCol={{ span: 19 }}
                 layout="horizontal"
                 style={{
-                    maxWidth: 900,
+                    maxWidth: 950,
                     padding: '15px',
                     height: '100%'
                 }}
@@ -274,9 +274,24 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Title level={3} style={{ margin:0 }}> Media Renamer Table Settings </Title>
+                        <Title level={3} style={{ margin:0 }}> Media Renamer Settings </Title>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Enable Auto Rename </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Rename based on attached posts </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`auto_rename_by_post_title`}
+                                value={`auto_rename_by_post_title`}
+                                checked={ 'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title } >
+                                Auto Rename by post title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Auto rename will apply automatically when upload Media as attached posts.
+                            </Text>
+                        </Form.Item>
+                        <Divider />
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Auto Rename </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`enable_auto_rename`}
