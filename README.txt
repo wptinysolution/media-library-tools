@@ -37,7 +37,9 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 PRO Features ==
 * Include all free Features
-* Auto Rename Media File
+* Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
+* Automated Media File Renaming with Custom Labels
+* Media File Renaming Based on Associated Post Title
 * Delete Rubbish/Junk/Unnecessary file
 * Bulk Delete Rubbish/Junk/Unnecessary file
 * Also Available for Ignore Important File

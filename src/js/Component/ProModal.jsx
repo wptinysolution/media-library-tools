@@ -34,11 +34,15 @@ function ProModal() {
             desc: 'All features available in the free version are included.',
         },
         {
-            title: 'Auto Rename based on attached posts/Custom text',
+            title: 'Assign Post Title to Alt Text, Caption, and Description',
+            desc: 'Assign Upon Image Upload.',
+        },
+        {
+            title: 'Media File Renaming Based on Associated Post Title',
             desc: 'Automatic renaming of media files prior to uploading based on attached posts.',
         },
         {
-            title: 'Auto Rename Auto Rename based on Custom text',
+            title: 'Auto Rename Based on Custom Name',
             desc: 'Implement automatic renaming of media files based on custom text.',
         },
         {
