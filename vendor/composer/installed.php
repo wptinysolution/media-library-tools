@@ -1,24 +1,23 @@
-<?php return array (
-  'root' => 
-  array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
-    'aliases' => 
-    array (
+<?php return array(
+    'root' => array(
+        'name' => 'tinysolutions/media-library-tools',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => 'e7fc049b406b900ff18e9ffc2358e43b1600fd6f',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
     ),
-    'reference' => 'f72688ffabaa8a452e8801757a1da68b01b21f4d',
-    'name' => 'thetinytools/media-library-tools',
-  ),
-  'versions' => 
-  array (
-    'thetinytools/media-library-tools' => 
-    array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
-      'aliases' => 
-      array (
-      ),
-      'reference' => 'f72688ffabaa8a452e8801757a1da68b01b21f4d',
+    'versions' => array(
+        'tinysolutions/media-library-tools' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'e7fc049b406b900ff18e9ffc2358e43b1600fd6f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
     ),
-  ),
 );

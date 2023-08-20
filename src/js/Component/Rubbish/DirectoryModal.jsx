@@ -131,7 +131,7 @@ function DirectoryModal() {
                             <List.Item key={key}>
                                 <List.Item.Meta
                                     title={ key }
-                                    description={ `${ item.total_items == 0 ? `This directory will be scanned again according to the schedule.` : `Scanned ${item.counted} items of ${item.total_items} items` }` }
+                                    description={ item.total_items == 0 ? `This directory will be scanned again according to the schedule.` : <span style={ { color: '#1677ff' } }> Scanned {item.counted} items of {item.total_items} items </span> }
                                 />
                                 <Space>
                                     <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
