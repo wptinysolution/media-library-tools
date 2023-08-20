@@ -48,18 +48,21 @@ class ActionHooks {
 	 *
 	 * @return mixed
 	 */
-	public function add_image_info_to( $post_id ) {
+	public function add_image_info_to( $attachment_ID ) {
 		$options     = Fns::get_options();
-		$image_title = get_the_title( $post_id );
+		$image_title = get_the_title( $attachment_ID );
 
-		if ( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ) {
-			update_post_meta( $post_id, '_wp_attachment_image_alt', $image_title );
-		} else if ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ) {
-			update_post_meta( $post_id, '_wp_attachment_image_alt', $options['media_default_alt'] );
+		$post_id    = absint( $_REQUEST['post_id'] );
+
+		if( ! $post_id && ! empty( $options['alt_text_by_post_title'] ) ){
+			if ( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ) {
+				update_post_meta( $attachment_ID, '_wp_attachment_image_alt', $image_title );
+			} else if ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ) {
+				update_post_meta( $attachment_ID, '_wp_attachment_image_alt', $options['media_default_alt'] );
+			}
 		}
 
 		$image_meta = [];
-
 		if ( ! empty( $options['default_caption_text'] ) && 'image_name_to_caption' === $options['default_caption_text'] ) {
 			$image_meta['post_excerpt'] = $image_title;
 		} else if ( ! empty( $options['media_default_caption'] ) && 'custom_text_to_caption' === $options['default_caption_text'] ) {
@@ -72,8 +75,10 @@ class ActionHooks {
 			$image_meta['post_content'] = $options['media_default_desc'];
 		}
 
+		$image_meta = apply_filters( 'tsmlt/before/add/image/info' , $image_meta, $options, $attachment_ID, $post_id );
+
 		if ( ! empty( $image_meta ) ) {
-			$image_meta['ID'] = $post_id;
+			$image_meta['ID'] = $attachment_ID;
 			wp_update_post( $image_meta );
 		}
 	}

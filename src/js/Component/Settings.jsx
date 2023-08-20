@@ -65,15 +65,24 @@ function Settings() {
     };
 
     const setDefaultText = (e) => {
-        if ( ! tsmltParams.hasExtended && ( 'enable_auto_rename' === e.target.name || 'auto_rename_by_post_title' === e.target.name )){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
-            return;
+        if ( ! tsmltParams.hasExtended ){
+            const fields = [
+                'enable_auto_rename' ,
+                'alt_text_by_post_title',
+                'auto_rename_by_post_title',
+                'caption_text_by_post_title',
+                'desc_text_by_post_title',
+            ];
+            if( fields.indexOf( e.target.name ) !== -1 ) {
+                dispatch({
+                    type: Types.GENERAL_DATA,
+                    generalData: {
+                        ...stateValue.generalData,
+                        openProModal: true,
+                    },
+                });
+                return;
+            }
         }
         dispatch({
             type: Types.UPDATE_OPTIONS,
@@ -144,7 +153,7 @@ function Settings() {
                             </Text>
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Alt Text Base On Post Title </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Alt Text </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`alt_text_by_post_title`}
@@ -160,7 +169,7 @@ function Settings() {
                             <Divider style={ { margin: '10px 0' } }/>
                         </Form.Item>
 
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Images Alt text</Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Images Alt Text</Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_alt_text`}
@@ -203,7 +212,7 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Caption Text Base On Post Title </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Caption </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`caption_text_by_post_title`}
@@ -218,7 +227,7 @@ function Settings() {
                             </Text>
                             <Divider style={ { margin: '10px 0' } }/>
                         </Form.Item>
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Default Caption Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}>Default Caption Text </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_caption_text`}
@@ -261,7 +270,7 @@ function Settings() {
                         </Form.Item>
                         <Divider />
 
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Description Text Base On Post Title </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Description </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`desc_text_by_post_title`}
@@ -277,7 +286,7 @@ function Settings() {
                             <Divider style={ { margin: '10px 0' } }/>
                         </Form.Item>
 
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Default Description Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
 
                             <Checkbox
                                 onChange={setDefaultText}
