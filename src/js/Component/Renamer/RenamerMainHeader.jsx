@@ -65,16 +65,6 @@ function RenamerMainHeader() {
     }, [ search ]);
 
     const handleBulkSubmit = () => {
-        if ( ! tsmltParams.hasExtended ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
-            return;
-        }
         if( ! stateValue.bulkSubmitData.ids.length ){
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;

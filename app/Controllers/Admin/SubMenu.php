@@ -252,7 +252,7 @@ class SubMenu {
                                     <span class="lifetime"> $594.99 / Lifetime </span>
                                 </div>
                             </li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Rename Media Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> ALl free Features Included</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename Before Upload Media Files</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>

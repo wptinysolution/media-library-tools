@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -17,10 +17,11 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
 == 🏆 Main Features ==
+* Media File Rename
+* Bulk Rename Media File
 * Find Unused Media File
 * Search Media Junk/Rubbish File
 * Filter Junk/Rubbish File By File Extension
-* Media File Rename
 * Image SVG Support
 * Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
@@ -35,8 +36,8 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 
 == 🏆 PRO Features ==
+* Include all free Features
 * Auto Rename Media File
-* Bulk Rename Media File
 * Delete Rubbish/Junk/Unnecessary file
 * Bulk Delete Rubbish/Junk/Unnecessary file
 * Also Available for Ignore Important File
@@ -100,6 +101,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.1.3 ( August 20, 2023 ) =
+* Added: Bulk Media Rename
 
 = 1.1.2 ( August 15, 2023 ) =
 * Fixed: Term Issue

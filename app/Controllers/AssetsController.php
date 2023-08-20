@@ -93,11 +93,11 @@ class AssetsController {
 						'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
 						'adminUrl'       => esc_url( admin_url() ),
 						'hasExtended'    => tsmlt()->has_pro(),
-						'proLink'        => tsmlt()->pro_version_link(), //tsmlt()->pro_version_checkout_link(), //'https://checkout.freemius.com/mode/dialog/plugin/13159/plan/22377/',
+						'proLink'        => tsmlt()->pro_version_link(),
 						'includesUrl'    => esc_url( includes_url() ),
 						'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
 						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-						'restApiUrl'     => esc_url_raw( rest_url() ), // site_url(rest_get_url_prefix()),
+						'restApiUrl'     => esc_url_raw( rest_url() ),
 						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
 						tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
 					]
