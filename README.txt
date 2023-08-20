@@ -37,6 +37,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 PRO Features ==
 * Include all free Features
+* CSV Export Import Image
 * Auto Rename Media File
 * Delete Rubbish/Junk/Unnecessary file
 * Bulk Delete Rubbish/Junk/Unnecessary file
