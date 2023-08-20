@@ -121,7 +121,7 @@ function Settings() {
                         borderRadius: '5px',
                         boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                     }}>
-                        <Title level={3} style={{ margin:0 }}> Media Edit Table Settings </Title>
+                        <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
                             <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
@@ -144,8 +144,23 @@ function Settings() {
                             </Text>
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Alt Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Alt Text Base On Post Title </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`alt_text_by_post_title`}
+                                value={`alt_text_by_post_title`}
+                                checked={ 'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title }>
+                                Default Alt Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Alt Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
 
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Images Alt text</Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_alt_text`}
@@ -188,7 +203,22 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Caption Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Caption Text Base On Post Title </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`caption_text_by_post_title`}
+                                value={`caption_text_by_post_title`}
+                                checked={ 'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title }>
+                                Default Caption Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Caption Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Default Caption Text </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_caption_text`}
@@ -230,7 +260,24 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
+
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Description Text Base On Post Title </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`desc_text_by_post_title`}
+                                value={`desc_text_by_post_title`}
+                                checked={ 'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title }>
+                                Default Description Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Description Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
+
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Default Description Text </Title>} >
 
                             <Checkbox
                                 onChange={setDefaultText}
