@@ -87,6 +87,11 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/clearSchedule', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'clear_schedule' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
 
 	}
 
@@ -521,15 +526,11 @@ class Api {
 		$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
-
+		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		switch ( $dir ) {
 			case "all":
 				$directory_list = [];
-				wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
-				break;
-			case "NextSchedule":
-				$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 				break;
 			default:
 				if( ! empty( $directory_list[ $dir ] ) ) {
@@ -549,6 +550,21 @@ class Api {
 			'message' => $message
 		];
 	}
+
+
+	/**
+	 * @return array
+	 */
+	public function clear_schedule() {
+		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
+		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+		return [
+			'updated' => true,
+			'dirlist' => get_option( 'tsmlt_get_directory_list', [] ),
+			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'tsmlt-media-tools' )
+		];
+	}
+
 
 	/**
 	 * @return false|string

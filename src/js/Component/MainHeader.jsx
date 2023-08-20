@@ -11,8 +11,10 @@ import {
 } from '@ant-design/icons';
 
 import {useStateValue} from "../Utils/StateProvider";
+
 import * as Types from "../Utils/actionType";
-import { rescanDirApi} from "../Utils/Data";
+
+import {clearSchedule} from "../Utils/Data";
 
 const { Header } = Layout;
 
@@ -76,7 +78,9 @@ function MainHeader() {
                 defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
                 items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
-                   
+                   if( 'rubbishFile' == key ){
+                       clearSchedule()
+                   }
                     dispatch({
                         type: Types.BULK_SUBMIT,
                         bulkSubmitData:{

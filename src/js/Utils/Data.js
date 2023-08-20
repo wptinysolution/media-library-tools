@@ -124,7 +124,6 @@ export const getRubbishFile = async ( prams = {} ) => {
     return JSON.parse(result.data);
 }
 
-
 /**
  *
  * @param prams
@@ -215,7 +214,6 @@ export const rubbishSingleShowAction = async (prams) => {
     return response;
 }
 
-
 /**
  *
  * @param prams
@@ -254,6 +252,24 @@ export const activateLicense = async ( prams ) => {
  */
 export const updateExtensionOptions = async ( prams ) => {
     const response = await Api.post(`/updateExtensionOptions`, prams );
+    notifications( 200 === response.status && response.data.updated, response.data.message );
+    return response;
+}
+
+/**
+ *
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const clearSchedule = async () => {
+    return await Api.get(`/clearSchedule`);
+}
+
+/**
+ *
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const actionClearSchedule = async () => {
+    const response = await clearSchedule();
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
 }

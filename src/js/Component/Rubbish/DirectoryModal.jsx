@@ -10,7 +10,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {rescanDir, rescanDirApi} from "../../Utils/Data";
+import {actionClearSchedule, rescanDir} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -57,6 +57,27 @@ function DirectoryModal() {
 
         await setScanDir(null);
     };
+
+    const handleaClearSchedule = async () => {
+        dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanRubbishDirLoading: true,
+            },
+        });
+        const ClearSchedule = await actionClearSchedule();
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                scanRubbishDirList: ClearSchedule.data.dirlist,
+                scanRubbishDirLoading: false,
+            },
+        });
+
+    };
+
     /**
      *
      * @type {JSX.Element}
@@ -84,7 +105,7 @@ function DirectoryModal() {
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
                     Re-Scan And Get Directory List { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
-                <Button key="NextSchedule" type="primary"  onClick={ () => handleDirRescan( 'NextSchedule' ) }> Execute Next Schedule </Button>
+                <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Next Schedule </Button>
             ]}
         >
 
