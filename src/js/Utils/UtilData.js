@@ -104,13 +104,13 @@ export const columnList = [
 
 const theImage = ( record ) => {
     let type = record.post_mime_type.split("/"),
-        width = 40,
+        width = 100,
         url;
     type = Array.isArray( type ) ? type[0] : '';
     switch ( type ) {
         case 'image':
             url = record.uploaddir + '/' + record.thefile.file;
-            width = 50;
+            width = 100;
             break;
         case 'audio':
             url = `${tsmltParams.includesUrl}/images/media/audio.png`
@@ -266,7 +266,7 @@ export function columns(){
             dataIndex: 'post_title',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
         },
         {
             title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,

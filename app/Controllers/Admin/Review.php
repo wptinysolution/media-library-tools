@@ -325,7 +325,7 @@ class Review {
 		$this->dialog_box_style();
 		$this->deactivation_scripts();
 		?>
-        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback">
+        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback. What Issue You are Facing?">
             <!-- Modal content -->
             <div class="modal-content">
                 <div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
