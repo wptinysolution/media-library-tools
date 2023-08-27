@@ -375,7 +375,10 @@ class Api {
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
-				'post_parents'   => $post->post_parent,
+				'post_parents'   => $post->post_parent ? [
+					'title' => get_the_title( $post->post_parent ),
+					'permalink' => get_the_permalink( $post->post_parent )
+				] : [ 'title' => '', 'permalink' => '' ],
 				'post_excerpt'   => $post->post_excerpt,
 				'post_content'   => $post->post_content,
 				'post_name'      => $post->post_name,
