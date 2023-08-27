@@ -71,7 +71,7 @@ function ProModal() {
                 </Button>
             ]}
         >
-            <Content>
+            <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto' }}>
                 <Paragraph type="secondary" style={{ fontSize: '13px', color:'#333'}}>
                     Pro Feature offers a range of enhanced functionalities and benefits...
                 </Paragraph >
