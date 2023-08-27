@@ -213,6 +213,10 @@ export function columns(){
             type: Types.UPDATE_SINGLE_MEDIA,
             singleMedia: {
                 ...stateValue.singleMedia,
+                alt_text : null,
+                post_content: null,
+                post_excerpt: null,
+                post_title: null,
                 ...currentData,
             }
         });
@@ -226,7 +230,7 @@ export function columns(){
         });
     }
 
-   const formEdited = stateValue.singleMedia.formEdited;
+    const formEdited = stateValue.singleMedia.formEdited;
 
     return [
         {
