@@ -416,7 +416,8 @@ export function renamerColumns(){
                         value={ record.thefile.filebasename }
                     />
                     {`.${record.thefile.fileextension}`}
-                </Layout> : record.thefile.mainfilename }
+                </Layout> : <a target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
+
             </>,
         },
         {

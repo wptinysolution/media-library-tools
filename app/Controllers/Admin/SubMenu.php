@@ -155,7 +155,7 @@ class SubMenu {
 
                 }
 
-                #tsmlt-pro-page-wrapper .price li  span{
+                #tsmlt-pro-page-wrapper .price li span{
                     color: #1677ff;
                 }
 
@@ -191,7 +191,7 @@ class SubMenu {
                     gap: 5px;
                 }
 
-                #tsmlt-pro-page-wrapper .price .header .price-for span{
+                #tsmlt-pro-page-wrapper .price .header .price-for > span{
                     display: none;
                 }
 
@@ -272,7 +272,12 @@ class SubMenu {
                                 </select>
                                 <button id="purchase">Buy Now</button>
                             </li>
+                            <li class="footer-text" >
+                                <a style="color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+                            </li>
                         </ul>
+
+
                     </div>
                     <div  class="columns" >
                         <section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
@@ -295,8 +300,10 @@ class SubMenu {
                         </section>
                     </div>
                 </div>
+
                 <div class="tsmlt-pro-page-footer" >
                     <div class="container" style="max-width: 915px;">
+
                         <div id="faq" style="max-width: 915px;margin: 0;" >
                             <h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>
                                 <ul>
