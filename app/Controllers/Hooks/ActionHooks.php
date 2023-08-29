@@ -52,7 +52,7 @@ class ActionHooks {
 		$options     = Fns::get_options();
 		$image_title = get_the_title( $attachment_ID );
 
-		$post_id    = absint( $_REQUEST['post_id'] );
+		$post_id    = absint( $_REQUEST['post_id'] ?? 0 );
 
 		if( ! $post_id && ! empty( $options['alt_text_by_post_title'] ) ){
 			if ( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ) {
