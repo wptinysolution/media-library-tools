@@ -53,8 +53,9 @@ class ActionHooks {
 		$image_title = get_the_title( $attachment_ID );
 
 		$post_id    = absint( $_REQUEST['post_id'] ?? 0 );
+		//TODO::  Auto Add Alt text is not working
 
-		if( ! $post_id && ! empty( $options['alt_text_by_post_title'] ) ){
+		if( ! $post_id || empty( $options['alt_text_by_post_title'] ) ){
 			if ( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ) {
 				update_post_meta( $attachment_ID, '_wp_attachment_image_alt', $image_title );
 			} else if ( ! empty( $options['media_default_alt'] ) && 'custom_text_to_alt' === $options['default_alt_text'] ) {
