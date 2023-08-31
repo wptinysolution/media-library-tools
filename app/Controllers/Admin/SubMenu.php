@@ -159,6 +159,12 @@ class SubMenu {
                     color: #1677ff;
                 }
 
+                #tsmlt-pro-page-wrapper .price li a:hover span,
+                #tsmlt-pro-page-wrapper .price li a:hover{
+                    text-decoration: none;
+                    color: #FE0467 !important;
+                }
+
                 #tsmlt-pro-page-wrapper #purchase {
                     color: #fff;
                     background-color: #1677ff;
@@ -172,7 +178,9 @@ class SubMenu {
                     line-height: 1;
                     min-width: 100px;
                 }
-
+                #tsmlt-pro-page-wrapper #purchase:hover{
+                    background-color: #FE0467;
+                }
                 #tsmlt-pro-page-wrapper #licenses ,
                 #tsmlt-pro-page-wrapper #billing_cycle {
                     padding: 5px 25px 5px 15px;

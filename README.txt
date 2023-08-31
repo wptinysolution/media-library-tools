@@ -45,6 +45,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Also Available for Ignore Important File
 * Also Available for Bulk Ignore Important File
 
+👉 [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 == 🏆 Media File Rename ==
 
@@ -103,6 +104,10 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.1.5 ( September 0, 2023 ) =
+* Fixed: Post Id Error
+* Fixed: Alt text Issue
 
 = 1.1.4 ( August 27, 2023 ) =
 * Added: Parent Post Url
