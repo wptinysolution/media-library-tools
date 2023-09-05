@@ -53,9 +53,9 @@ class Fns {
 	/**
 	 * Image attachment details
 	 *
-	 * @param init $attachment_id image id.
+	 * @param int $attachment_id image id.
 	 *
-	 * @return array
+	 * @return bool
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
 		$updated = false;

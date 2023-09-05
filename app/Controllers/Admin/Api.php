@@ -244,14 +244,17 @@ class Api {
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			} else{
+				$result['updated'] = false;
+				$result['message'] = esc_html__( 'Rename Failed. Maybe File permission mismatch, Also Check File exist or not.', 'tsmlt-media-tools' );
 			}
 		}
 
 		if ( ! empty( $submit ) ) {
 			$submit['ID']      = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );
+			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 		}
-		$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 
 		return $result;
 	}
