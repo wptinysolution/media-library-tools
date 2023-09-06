@@ -234,7 +234,7 @@ export function columns(){
 
     return [
         {
-            title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
+            title: <Checkbox indeterminate={ ! stateValue.bulkSubmitData.bulkChecked} checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '50px',
@@ -347,7 +347,7 @@ export function renamerColumns(){
 
     return [
         {
-            title: <Checkbox checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
+            title: <Checkbox indeterminate={ ! stateValue.bulkSubmitData.bulkChecked} checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '50px',

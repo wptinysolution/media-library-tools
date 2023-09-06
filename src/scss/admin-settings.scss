@@ -1,2 +1,14 @@
 @import './abstracts/_abstracts-dir';
 @import './licence';
+
+#media_root {
+  span.ant-checkbox-inner {
+    border: 2px solid rgb(22 119 255 / 74%); //rgb(141 183 242);
+  }
+
+  .ant-checkbox-checked {
+    span.ant-checkbox-inner {
+      border-color: #1677ff;
+    }
+  }
+}
