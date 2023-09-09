@@ -118,14 +118,12 @@ function Settings() {
                 wrapperCol={{ span: 19 }}
                 layout="horizontal"
                 style={{
-                    maxWidth: 950,
-                    padding: '15px',
                     height: '100%'
                 }}
             >
                 { stateValue.options.isLoading ? <Loader/> :
                     <Content style={{
-                        padding: '15px',
+                        padding: '25px',
                         background: 'rgb(255 255 255 / 35%)',
                         borderRadius: '5px',
                         boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',

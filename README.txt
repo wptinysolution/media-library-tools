@@ -105,6 +105,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.1.x ( September 0, 2023 ) =
+* Fixed: Menu style change
+
 = 1.1.5 ( September 06, 2023 ) =
 * Fixed: Post id Error
 * Fixed: Alt text Issue

@@ -24,37 +24,43 @@ function MainHeader() {
 
     const menuItemStyle = {
         borderRadius: 0,
-        paddingInline: '10px',
+        paddingInline: '35px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontSize:'18px'
+    }
+    const iconStyle = {
+        fontSize: '18px',
     }
     const menuItems = [
         {
             key: 'settings',
             label: 'Media Settings',
-            icon: <SettingOutlined />,
+            icon: <SettingOutlined style={iconStyle} />,
             style: menuItemStyle
         },
         {
             key: 'mediaTable',
             label: 'Media Table',
-            icon: <UnorderedListOutlined />,
+            icon: <UnorderedListOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
             key: 'mediaRename',
             label: 'Media Rename',
-            icon: <EditOutlined />,
+            icon: <EditOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
             key: 'rubbishFile',
             label: 'Rubbish file',
-            icon: <DeleteOutlined />,
+            icon: <DeleteOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
             key: 'needSupport',
             label: 'Need Support',
-            icon: <ContactsOutlined />,
+            icon: <ContactsOutlined style={iconStyle} />,
             style: menuItemStyle,
         }
     ];
@@ -63,18 +69,17 @@ function MainHeader() {
 
         <Header className="header" style={{
             paddingInline: 0,
+            height: '80px',
         }}>
-            <div className="logo" style={{
-                height: '40px',
-                margin: '10px',
-                background: 'rgba(255, 255, 255, 0.2)'
-            }}/>
             <Menu
                 style={{
                     borderRadius: '0px',
+                    height: '100%',
+                    display: 'flex',
+                    flex: 1,
                 }}
                 theme="dark"
-                mode="inline"
+                mode="horizontal"
                 defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
                 items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {

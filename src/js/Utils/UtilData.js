@@ -17,7 +17,7 @@ const { TextArea } = Input;
 
 export const headerStyle = {
     height: 64,
-    paddingInline: 10,
+    paddingInline: 0,
     lineHeight: '64px',
     backgroundColor: '#fff',
 };
