@@ -152,7 +152,7 @@ class SubMenu {
                     display: flex;
                     gap: 10px;
                     font-size: 16px;
-
+                    line-height: 1.4;
                 }
 
                 #tsmlt-pro-page-wrapper .price li span{
@@ -261,7 +261,8 @@ class SubMenu {
                                 </div>
                             </li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename based on attached posts</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Text</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>

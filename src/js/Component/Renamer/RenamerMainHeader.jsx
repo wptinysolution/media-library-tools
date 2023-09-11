@@ -90,12 +90,23 @@ function RenamerMainHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
+                        rename_by_attached_post_title: 'no',
                         isModalOpen : true,
                     },
                 });
                 break;
             case 'bulkRenameByPostTitle':
-
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: null,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        rename_by_attached_post_title: 'yes',
+                        isModalOpen : true,
+                    },
+                });
+                break;
             default:
                 notifications( false, 'No Actions are selected. Please select one.' );
         }

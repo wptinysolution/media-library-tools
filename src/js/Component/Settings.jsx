@@ -157,7 +157,7 @@ function Settings() {
                                 name={`alt_text_by_post_title`}
                                 value={`alt_text_by_post_title`}
                                 checked={ 'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title }>
-                                Default Alt Text Base On Post Title
+                                Default Alt Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>

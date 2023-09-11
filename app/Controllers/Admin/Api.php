@@ -239,14 +239,29 @@ class Api {
 			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
-
-		if ( isset( $parameters['newname'] ) ) {
+		$new_name = $parameters['newname'] ?? '';
+		if ( ! empty( $new_name ) && 'rename_by_attached_post_title' !== $new_name ) {
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 			} else{
 				$result['updated'] = false;
 				$result['message'] = esc_html__( 'Rename Failed. Maybe File permission mismatch, Also Check File exist or not.', 'tsmlt-media-tools' );
+			}
+		}
+
+		if ( tsmlt()->has_pro() && ! empty( $new_name ) && 'rename_by_attached_post_title' === $new_name ) {
+			$attachment = get_post( $parameters['ID'] ?? 0 );
+			$new_name = '';
+			if ( $attachment ) {
+				$post_id = $attachment->post_parent;
+				if ( $post_id ) {
+					$new_name = get_the_title( $post_id );
+				}
+			}
+			if ( $new_name && Fns::wp_rename_attachment( $parameters['ID'], $new_name ) ) {
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
 			}
 		}
 
