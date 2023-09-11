@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.1.6
+Stable tag: 1.1.7
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -37,9 +37,10 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 PRO Features ==
 * Include all free Features
+* Bulk Renaming Based on Associated Post Title
+* Media File Renaming Based on Associated Post Title
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
 * Automated Media File Renaming with Custom Labels
-* Media File Renaming Based on Associated Post Title
 * Delete Rubbish/Junk/Unnecessary file
 * Bulk Delete Rubbish/Junk/Unnecessary file
 * Also Available for Ignore Important File
@@ -104,6 +105,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.1.7 ( September 12, 2023 ) =
+* Fixed: Rename By Post Title
 
 = 1.1.6 ( September 11, 2023 ) =
 * Fixed: Menu style change
