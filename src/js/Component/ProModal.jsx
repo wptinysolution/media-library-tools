@@ -34,16 +34,20 @@ function ProModal() {
             desc: 'All features available in the free version are included.',
         },
         {
-            title: 'Assign Post Title to Alt Text, Caption, and Description',
-            desc: 'Assign Upon Image Upload.',
+            title: 'Bulk Renaming File Based on Associated Post Title',
+            desc: 'Automatic renaming of media files bulk mode.',
         },
         {
-            title: 'Media File Renaming Based on Associated Post Title',
+            title: 'Renaming File Prior to Uploading Based on Attached Posts Title',
             desc: 'Automatic renaming of media files prior to uploading based on attached posts.',
         },
         {
             title: 'Auto Rename Based on Custom Name',
             desc: 'Implement automatic renaming of media files based on custom text.',
+        },
+        {
+            title: 'Assign Post Title to Alt Text, Caption, and Description',
+            desc: 'Assign Upon Image Upload.',
         },
         {
             title: 'Bulk Delete Unnecessary / Rubbish File',
@@ -71,7 +75,7 @@ function ProModal() {
                 </Button>
             ]}
         >
-            <Content style={{ height: "450px", position:'relative', 'overflowY': 'auto' }}>
+            <Content style={{ height: "550px", position:'relative', 'overflowY': 'auto' }}>
                 <Paragraph type="secondary" style={{ fontSize: '13px', color:'#333'}}>
                     Pro Feature offers a range of enhanced functionalities and benefits...
                 </Paragraph >

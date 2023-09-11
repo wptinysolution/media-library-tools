@@ -65,10 +65,23 @@ function RenamerMainHeader() {
     }, [ search ]);
 
     const handleBulkSubmit = () => {
+
+        if ( 'bulkRenameByPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+
         if( ! stateValue.bulkSubmitData.ids.length ){
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;
         }
+
         switch( stateValue.bulkSubmitData.type ){
             case 'bulkRename':
                 dispatch({
@@ -81,6 +94,8 @@ function RenamerMainHeader() {
                     },
                 });
                 break;
+            case 'bulkRenameByPostTitle':
+
             default:
                 notifications( false, 'No Actions are selected. Please select one.' );
         }
@@ -90,6 +105,7 @@ function RenamerMainHeader() {
     const options = [
         { value: 'default', label: 'Bulk Action' },
         { value: 'bulkRename', label: 'Bulk Rename' },
+        { value: 'bulkRenameByPostTitle', label: 'Bulk Rename by Post Title' },
     ];
 
     return (
@@ -106,7 +122,7 @@ function RenamerMainHeader() {
                 <Select
                     size="large"
                     defaultValue={`default`}
-                    style={{ ...selectStyle, width: 150 }}
+                    style={{ ...selectStyle, width: '250px' }}
                     onChange={handleChangeBulkType}
                     options={ options }
                 />

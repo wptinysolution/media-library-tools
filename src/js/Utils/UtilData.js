@@ -257,8 +257,8 @@ export function columns(){
             render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Parents` } </Space>,
-            key: 'Parents',
+            title: <Space wrap> { `Uploaded to` } </Space>,
+            key: 'Uploaded to',
             dataIndex: 'post_parents',
             align: 'top',
             width: '300px',
@@ -363,8 +363,8 @@ export function renamerColumns(){
             render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Parents` } </Space>,
-            key: 'Parents',
+            title: <Space wrap> { `Uploaded to` } </Space>,
+            key: 'Uploaded to',
             dataIndex: 'post_parents',
             width: '150px',
             render: ( text, record, i ) => <> { text['title'] ? <a target={'_blank'} href={ text['permalink'] }> { text['title'] } </a> : '' }</>
