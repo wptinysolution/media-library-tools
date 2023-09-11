@@ -157,7 +157,7 @@ function Settings() {
                                 name={`alt_text_by_post_title`}
                                 value={`alt_text_by_post_title`}
                                 checked={ 'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title }>
-                                Default Alt Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Default Alt Text Base On Post Title
                             </Checkbox>
                             <br/>
                             <br/>
@@ -216,7 +216,7 @@ function Settings() {
                                 name={`caption_text_by_post_title`}
                                 value={`caption_text_by_post_title`}
                                 checked={ 'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title }>
-                                Default Caption Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Default Caption Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>
@@ -274,7 +274,7 @@ function Settings() {
                                 name={`desc_text_by_post_title`}
                                 value={`desc_text_by_post_title`}
                                 checked={ 'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title }>
-                                Default Description Text Base On Post Title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Default Description Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>
@@ -336,7 +336,7 @@ function Settings() {
                                 name={`auto_rename_by_post_title`}
                                 value={`auto_rename_by_post_title`}
                                 checked={ 'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title } >
-                                Auto Rename by post title - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Auto Rename by post title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>
@@ -351,7 +351,7 @@ function Settings() {
                                 name={`enable_auto_rename`}
                                 value={`enable_auto_rename`}
                                 checked={ 'enable_auto_rename' === stateValue.options.enable_auto_rename } >
-                                Custom text - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Custom text { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>
