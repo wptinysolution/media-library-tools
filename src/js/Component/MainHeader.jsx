@@ -69,7 +69,7 @@ function MainHeader() {
 
         <Header className="header" style={{
             paddingInline: 0,
-            height: '80px',
+            height: '70px',
         }}>
             <Menu
                 style={{
