@@ -117,7 +117,7 @@ function BulkModal() {
                 { 'yes' === stateValue.bulkSubmitData.rename_by_attached_post_title ?
                     <>
                         <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
-                          Are You Sure File Rename By Attached Post Title ?
+                          Are You Sure Bulk Rename Based on Associated Post Title ?
                         </Title>
                     </> :
                     <>
