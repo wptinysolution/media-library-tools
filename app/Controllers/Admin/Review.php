@@ -527,7 +527,7 @@ class Review {
                 border-color: #fff;
                 border-top-color: transparent;
             }
-            
+
             .ui-dialog[aria-describedby="deactivation-dialog-tsmlt"] {
                 background-color: #fefefe;
                 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
@@ -596,7 +596,7 @@ class Review {
                 $('.deactivate #deactivate-media-library-tools').on('click', function (e) {
                     e.preventDefault();
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
-                    $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
+                    var dialogbox = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
                         modal: true,
                         width: 500,
                         show: {
@@ -621,6 +621,14 @@ class Review {
                             }
                         }
                     });
+                    
+                    // Close the dialog when clicking outside of it
+                    $(document).on('click', '.ui-widget-overlay.ui-front', function (event) {
+                        if ($(event.target).closest(dialogbox.parent()).length === 0) {
+                            dialogbox.dialog('close');
+                        }
+                    });
+
                     // Customize the button text
                     $('.ui-dialog-buttonpane button:contains("Submit")').text('Send Feedback & Deactivate');
                     $('.ui-dialog-buttonpane button:contains("Cancel")').text('Skip & Deactivate');
