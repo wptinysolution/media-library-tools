@@ -259,7 +259,7 @@ export function columns(){
         },
         {
             title: <Space wrap> { `Uploaded to` } </Space>,
-            key: 'Uploaded to',
+            key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',
             width: '300px',
@@ -365,7 +365,7 @@ export function renamerColumns(){
         },
         {
             title: <Space wrap> { `Uploaded to` } </Space>,
-            key: 'Uploaded to',
+            key: 'Parents',
             dataIndex: 'post_parents',
             width: '150px',
             render: ( text, record, i ) => <> { text['title'] ? <a target={'_blank'} href={ text['permalink'] }> { text['title'] } </a> : '' }</>
