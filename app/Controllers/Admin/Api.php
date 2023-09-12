@@ -240,7 +240,7 @@ class Api {
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 		$new_name = $parameters['newname'] ?? '';
-		if ( ! empty( $new_name ) && 'rename_by_attached_post_title' !== $new_name ) {
+		if ( ! empty( $new_name ) && 'edit_by_attached_post_title' !== $new_name ) {
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
@@ -250,7 +250,7 @@ class Api {
 			}
 		}
 
-		if ( tsmlt()->has_pro() && ! empty( $new_name ) && 'rename_by_attached_post_title' === $new_name ) {
+		if ( tsmlt()->has_pro() && ! empty( $new_name ) && 'edit_by_attached_post_title' === $new_name ) {
 			$attachment = get_post( $parameters['ID'] ?? 0 );
 			$new_name = '';
 			if ( $attachment ) {

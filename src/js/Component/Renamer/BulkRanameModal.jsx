@@ -47,7 +47,7 @@ function BulkModal() {
             return;
         }
         const id = prams.ids[0];
-        const newName = 'yes' === stateValue.bulkSubmitData.rename_by_attached_post_title ? 'rename_by_attached_post_title' : prams.data.file_name ;
+        const newName = 'yes' === stateValue.bulkSubmitData.edit_by_attached_post_title ? 'edit_by_attached_post_title' : prams.data.file_name ;
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await singleUpDateApi( { newname: newName, ID: id });
         // Recur with the rest of the IDs in the list
@@ -92,7 +92,7 @@ function BulkModal() {
     };
 
     const isTheButtonDisabled = () => {
-        if( 'yes' === stateValue.bulkSubmitData.rename_by_attached_post_title ){
+        if( 'yes' === stateValue.bulkSubmitData.edit_by_attached_post_title ){
             setIsButtonDisabled( false );
         } else {
             const isDisable = ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.data.file_name.length;
@@ -114,7 +114,7 @@ function BulkModal() {
         >
             <Divider />
             <Content>
-                { 'yes' === stateValue.bulkSubmitData.rename_by_attached_post_title ?
+                { 'yes' === stateValue.bulkSubmitData.edit_by_attached_post_title ?
                     <>
                         <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
                           Are You Sure Bulk Rename Based on Associated Post Title ?
