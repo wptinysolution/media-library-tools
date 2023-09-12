@@ -69,6 +69,17 @@ function TheHeader() {
 
     const handleBulkSubmit = () => {
 
+        if ( 'bulkEditPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+
         if( ! stateValue.bulkSubmitData.ids.length ){
             console.log( 'Hello' )
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
@@ -96,6 +107,9 @@ function TheHeader() {
                         isModalOpen : true,
                     },
                 });
+                break;
+            case 'bulkEditPostTitle':
+
                 break;
             default:
                 notifications( false, 'No Actions are selected. Please select one.' );
@@ -132,7 +146,7 @@ function TheHeader() {
                 <Select
                     size="large"
                     defaultValue={``}
-                    style={selectStyle}
+                    style={ { ...selectStyle, width: '230px' } }
                     onChange={handleChangeBulkType}
                     options={
                         postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]

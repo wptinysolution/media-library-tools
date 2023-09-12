@@ -46,6 +46,10 @@ function ProModal() {
             desc: 'Implement automatic renaming of media files based on custom text.',
         },
         {
+            title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title',
+            desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
+        },
+        {
             title: 'Assign Post Title to Alt Text, Caption, and Description',
             desc: 'Assign Upon Image Upload.',
         },
@@ -65,6 +69,10 @@ function ProModal() {
 
     return (
         <Modal
+            style={{
+                maxWidth: "650px"
+            }}
+            width="100%"
             title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> You have to buy pro version for this features. </Title> }
             open={ stateValue.generalData.openProModal }
             onCancel={handleBulkModalCancel}

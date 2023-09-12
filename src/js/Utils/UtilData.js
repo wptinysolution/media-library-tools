@@ -55,6 +55,10 @@ export const bulkOprions = [
         label: 'Bulk Edit',
     },
     {
+        value: 'bulkEditPostTitle',
+        label: 'Bulk Edit Based on Post Title',
+    },
+    {
         value: 'trash',
         label: 'Move to Trash',
     },

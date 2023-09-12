@@ -116,9 +116,8 @@ function RenamerMainHeader() {
     const options = [
         { value: 'default', label: 'Bulk Action' },
         { value: 'bulkRename', label: 'Bulk Rename' },
-        { value: 'bulkRenameByPostTitle', label: 'Bulk Rename by Post Title' },
+        { value: 'bulkRenameByPostTitle', label: 'Bulk Rename Based on Post Title' },
     ];
-
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Title level={5} style={{
