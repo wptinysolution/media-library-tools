@@ -40,8 +40,8 @@ export const defaultBulkSubmitData = {
         caption : '',
         post_description : '',
         file_name: '',
-        edit_by_attached_post_title: 'no',
     },
+    edit_by_attached_post_title: 'no',
     post_categories : [],
 }
 

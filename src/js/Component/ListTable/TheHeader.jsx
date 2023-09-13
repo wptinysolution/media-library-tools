@@ -81,7 +81,6 @@ function TheHeader() {
         }
 
         if( ! stateValue.bulkSubmitData.ids.length ){
-            console.log( 'Hello' )
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;
         }
@@ -104,12 +103,22 @@ function TheHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
+                        edit_by_attached_post_title: 'no',
                         isModalOpen : true,
                     },
                 });
                 break;
             case 'bulkEditPostTitle':
-
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: null,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        edit_by_attached_post_title: 'yes',
+                        isModalOpen : true,
+                    },
+                });
                 break;
             default:
                 notifications( false, 'No Actions are selected. Please select one.' );
@@ -139,6 +148,8 @@ function TheHeader() {
     useEffect(() => {
         upDateQuery();
     }, [ search ]);
+
+    console.log( stateValue.bulkSubmitData )
 
     return (
         <Header style={headerStyle}>
