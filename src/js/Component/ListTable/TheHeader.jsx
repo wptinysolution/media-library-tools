@@ -103,7 +103,6 @@ function TheHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
-                        edit_by_attached_post_title: 'no',
                         isModalOpen : true,
                     },
                 });
@@ -115,7 +114,6 @@ function TheHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
-                        edit_by_attached_post_title: 'yes',
                         isModalOpen : true,
                     },
                 });
@@ -149,14 +147,13 @@ function TheHeader() {
         upDateQuery();
     }, [ search ]);
 
-    console.log( stateValue.bulkSubmitData )
-
     return (
         <Header style={headerStyle}>
             <Space wrap>
                 <Select
+                    allowClear={true}
                     size="large"
-                    defaultValue={``}
+                    placeholder={'Bulk Apply'}
                     style={ { ...selectStyle, width: '230px' } }
                     onChange={handleChangeBulkType}
                     options={

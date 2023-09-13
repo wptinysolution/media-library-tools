@@ -42,14 +42,11 @@ export const defaultBulkSubmitData = {
         file_name: '',
     },
     edit_by_attached_post_title: 'no',
+    will_attached_post_title: [],
     post_categories : [],
 }
 
 export const bulkOprions = [
-    {
-        value: '',
-        label: 'Bulk actions',
-    },
     {
         value: 'bulkedit',
         label: 'Bulk Edit',

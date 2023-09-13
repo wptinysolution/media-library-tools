@@ -114,7 +114,6 @@ function RenamerMainHeader() {
     };
 
     const options = [
-        { value: 'default', label: 'Bulk Action' },
         { value: 'bulkRename', label: 'Bulk Rename' },
         { value: 'bulkRenameByPostTitle', label: 'Bulk Rename Based on Post Title' },
     ];
@@ -130,8 +129,9 @@ function RenamerMainHeader() {
 
             <Space >
                 <Select
+                    allowClear={true}
                     size="large"
-                    defaultValue={`default`}
+                    placeholder={'Bulk Apply'}
                     style={{ ...selectStyle, width: '250px' }}
                     onChange={handleChangeBulkType}
                     options={ options }

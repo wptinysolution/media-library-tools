@@ -61,26 +61,20 @@ function BulkModal() {
      * @param event
      */
     const onChangeAddTextByPostTitle = ( list ) => {
-        console.log( list )
-        // const data = {
-        //     ...bulkSubmitdata.data,
-        //     [event.target.name] : event.target.value
-        // }
-        // dispatch({
-        //     type: Types.BULK_SUBMIT,
-        //     bulkSubmitData: {
-        //         ...bulkSubmitdata,
-        //         data
-        //     },
-        // });
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...bulkSubmitdata,
+                will_attached_post_title: list
+            },
+        });
     };
-
 
     const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
 
     return (
         <Modal
-            title={ 'yes' === stateValue.bulkSubmitData.edit_by_attached_post_title ? `Bulk Assign` : `Bulk Edit` }
+            title={ 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ? `Bulk Assign` : `Bulk Edit` }
             open={ bulkSubmitdata.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
@@ -91,7 +85,7 @@ function BulkModal() {
             width="100%"
         >
             <Divider />
-            { 'yes' === stateValue.bulkSubmitData.edit_by_attached_post_title ?
+            { 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ?
                 <Content>
                     <Text >
                         Are you certain about performing a bulk assignment based on the associated post title?
@@ -118,26 +112,28 @@ function BulkModal() {
                                     gap: '10px'
                                 }}
                                 options={
-                                [
-                                    {
-                                        label: 'File Title Based on Associated Post Title',
-                                        value: 'post_title'
-                                    },
-                                    {
-                                        label: 'Alt Text Based on Associated Post Title',
-                                        value: 'alt_text'
-                                    },
-                                    {
-                                        label: 'Caption Based on Associated Post Title',
-                                        value: 'caption'
-                                    },
-                                    {
-                                        label: 'Description Based on Associated Post Title',
-                                        value: 'post_description'
-                                    },
+                                    [
+                                        {
+                                            label: 'File Title Based on Associated Post Title',
+                                            value: 'post_title'
+                                        },
+                                        {
+                                            label: 'Alt Text Based on Associated Post Title',
+                                            value: 'alt_text'
+                                        },
+                                        {
+                                            label: 'Caption Based on Associated Post Title',
+                                            value: 'caption'
+                                        },
+                                        {
+                                            label: 'Description Based on Associated Post Title',
+                                            value: 'post_description'
+                                        },
 
-                                ]
-                            } onChange={ onChangeAddTextByPostTitle } />
+                                    ]
+                                }
+                                onChange={ onChangeAddTextByPostTitle }
+                            />
 
                         </Form.Item>
                     </Form>
