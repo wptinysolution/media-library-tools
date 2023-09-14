@@ -35,13 +35,18 @@ function BulkModal() {
                 data
             },
         });
-        const changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+        const changeDetected = Object.values( data ).some(value => value !== '');
         const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
         setIsButtonDisabled( isDisable );
     };
 
     const isTheButtonDisabled = () => {
-        const changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+        let changeDetected = false;
+        if( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ){
+            changeDetected = stateValue.bulkSubmitData.will_attached_post_title.length;
+        } else {
+            changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+        }
         const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
         setIsButtonDisabled( isDisable );
     };
@@ -79,6 +84,8 @@ function BulkModal() {
                 will_attached_post_title: list
             },
         });
+        const isDisable = ! list.length;
+        setIsButtonDisabled( isDisable );
     };
 
     const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
