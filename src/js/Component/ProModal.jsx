@@ -30,7 +30,7 @@ function ProModal() {
 
     const data = [
         {
-            title: 'All Free Features',
+            title: 'All free Features Included',
             desc: 'All features available in the free version are included.',
         },
         {
