@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 
-import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox} from 'antd';
+import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox, Progress} from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
+import {getMedia, singleUpDateApi} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -51,15 +52,74 @@ function BulkModal() {
         setIsButtonDisabled( isDisable );
     };
 
+
+    /**
+     *
+     * @param prams
+     * @returns {Promise<axios.AxiosResponse<*>>}
+     */
+    const addDataRecursively = async ( prams ) => {
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                progressBar: Math.floor( 100 * ( stateValue.bulkSubmitData.progressTotal - prams.ids.length ) / stateValue.bulkSubmitData.progressTotal ),
+            },
+        });
+        if ( prams.ids.length === 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+        const id = prams.ids[0];
+        // Simulate the renaming operation using an asynchronous function (e.g., API call)
+        const response = await singleUpDateApi( { bulkEditPostTitle: stateValue.bulkSubmitData.will_attached_post_title, ID: id });
+        // Recur with the rest of the IDs in the list
+        if( prams.ids.length && response.status ){
+            await addDataRecursively( { ...prams, ids: prams.ids.slice(1) } );
+        }
+        return response;
+    }
+
+    const mediaHandleBulkModalOk = async () => {
+        setIsButtonDisabled( true );
+        const response = await addDataRecursively( stateValue.bulkSubmitData );
+        if( 200 === response?.status ){
+            await dispatch({
+                type: Types.BULK_SUBMIT,
+                bulkSubmitData: {
+                    ...stateValue.bulkSubmitData,
+                    isModalOpen: false,
+                },
+            });
+            const response = await getMedia( stateValue.mediaData.postQuery );
+            await dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    ...response,
+                    isLoading: false
+                },
+            });
+            setIsButtonDisabled( false );
+        }
+    };
+
+
     /**
      * @param event
      */
     const handleBulkModalOk = () => {
-        dispatch({
-            ...stateValue,
-            type: Types.BULK_SUBMIT,
-            saveType: Types.BULK_SUBMIT
-        });
+        if( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ){
+            //console.log( stateValue.bulkSubmitData )
+            mediaHandleBulkModalOk();
+        }else {
+            dispatch({
+                ...stateValue,
+                type: Types.BULK_SUBMIT,
+                saveType: Types.BULK_SUBMIT
+            });
+        }
+
     };
     /**
      * @param event
@@ -158,7 +218,8 @@ function BulkModal() {
 
                         </Form.Item>
                     </Form>
-
+                    { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
+                    <Divider />
                 </Content>
                 :
                 <Content>

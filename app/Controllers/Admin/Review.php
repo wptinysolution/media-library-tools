@@ -182,8 +182,8 @@ class Review {
             </div>
             <style>
                 .tsmlt-review-button--cta {
-                    --e-button-context-color: #5d3dfd;
-                    --e-button-context-color-dark: #5d3dfd;
+                    --e-button-context-color: #1677ff;
+                    --e-button-context-color-dark: #1677ff;
                     --e-button-context-tint: rgb(75 47 157/4%);
                     --e-focus-color: rgb(75 47 157/40%);
                 }

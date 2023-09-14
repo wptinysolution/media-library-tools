@@ -219,6 +219,46 @@ class Api {
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
 		}
+		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
+			$attachment = get_post( $parameters['ID'] );
+			$new_text = '';
+			if ( $attachment ) {
+				$post_id = $attachment->post_parent;
+				if ( $post_id ) {
+					$new_text = get_the_title( $post_id );
+				}
+			}
+			if( empty( $new_text ) ) {
+				return $result;
+			}
+
+			if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_title'] = $new_text;
+			}
+
+			if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
+				$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
+				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			}
+
+			if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_excerpt'] = $new_text;
+			}
+
+			if ( in_array( 'post_description', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_content'] = $new_text;
+			}
+
+			if ( ! empty( $submit ) ) {
+				$submit['ID']      = $parameters['ID'];
+				$result['updated'] = wp_update_post( $submit );
+				$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+			}
+
+			return $result;
+
+		}
+
 
 		if ( ! empty( $parameters['post_title'] ) ) {
 			$submit['post_title'] = trim( $parameters['post_title'] );
