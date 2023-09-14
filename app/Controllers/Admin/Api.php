@@ -572,7 +572,6 @@ class Api {
 		];
 	}
 
-
 	/**
 	 * @return array
 	 */
@@ -585,7 +584,6 @@ class Api {
 			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'tsmlt-media-tools' )
 		];
 	}
-
 
 	/**
 	 * @return false|string

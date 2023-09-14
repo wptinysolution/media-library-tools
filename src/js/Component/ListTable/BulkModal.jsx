@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox} from 'antd';
 
@@ -17,6 +17,7 @@ const CheckboxGroup = Checkbox.Group;
 function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
+    const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const bulkSubmitdata = stateValue.bulkSubmitData;
     /**
@@ -34,7 +35,17 @@ function BulkModal() {
                 data
             },
         });
+        const changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+        const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
+        setIsButtonDisabled( isDisable );
     };
+
+    const isTheButtonDisabled = () => {
+        const changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+        const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
+        setIsButtonDisabled( isDisable );
+    };
+
     /**
      * @param event
      */
@@ -78,11 +89,14 @@ function BulkModal() {
             open={ bulkSubmitdata.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
+            okButtonProps={{ disabled: IsButtonDisabled }}
             okText="Done"
             style={{
                 maxWidth: "650px"
             }}
             width="100%"
+
+            afterOpenChange={ isTheButtonDisabled }
         >
             <Divider />
             { 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ?
@@ -171,15 +185,19 @@ function BulkModal() {
                     />
                     <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
                     <Select
-                        onChange={
-                            (value) => dispatch({
-                                type: Types.BULK_SUBMIT,
-                                bulkSubmitData: {
-                                    ...stateValue.bulkSubmitData,
-                                    'post_categories': value
-                                },
-                            })
+                        onChange={ (value) => {
+                                dispatch({
+                                    type: Types.BULK_SUBMIT,
+                                    bulkSubmitData: {
+                                        ...stateValue.bulkSubmitData,
+                                        'post_categories': value
+                                    },
+                                });
+                            const isDisable = ! value.length;
+                            setIsButtonDisabled( isDisable );
+                            }
                         }
+                        name={`post_description`}
                         allowClear = {true}
                         placeholder={'Categories'}
                         size="large"
