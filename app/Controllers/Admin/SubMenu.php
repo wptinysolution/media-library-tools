@@ -260,14 +260,14 @@ class SubMenu {
                                     <span class="lifetime"> $594.99 / Lifetime </span>
                                 </div>
                             </li>
+
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Text</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary Files</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Name</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
+
                             <li class="footer">
                                 <select id="licenses">
                                     <option value="1" selected="selected">Single Site License</option>

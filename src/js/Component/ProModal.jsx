@@ -50,27 +50,15 @@ function ProModal() {
             desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
         },
         {
-            title: 'Assign Post Title to Alt Text, Caption, and Description',
-            desc: 'Assign Upon Image Upload.',
-        },
-        {
-            title: 'Bulk Delete Unnecessary / Rubbish File',
+            title: 'Find And Bulk Delete Unnecessary / Rubbish File',
             desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
-        },
-        {
-            title: 'Delete Unnecessary / Rubbish File Single Items',
-            desc: 'Efficiently remove unneeded files individually, streamlining your storage and organization.',
-        },
-        {
-            title: 'Ignore Important File. Take file safe mode never delete',
-            desc: 'Stay worry-free while decluttering with Bulk mode, ensuring vital files are untouched. Safely ignore and remove unnecessary files with ease',
         }
     ];
 
     return (
         <Modal
             style={{
-                maxWidth: "650px"
+                maxWidth: "630px"
             }}
             width="100%"
             title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> You have to buy pro version for this features. </Title> }
