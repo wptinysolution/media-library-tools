@@ -1,9 +1,9 @@
 === Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
-Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
+Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -17,12 +17,11 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
 == 🏆 Main Features ==
-* Media File Rename
+* Image SVG Support
+* Individual Rename Media File
 * Bulk Rename Media File
 * Find Unused Media File
-* Search Media Junk/Rubbish File
 * Filter Junk/Rubbish File By File Extension
-* Image SVG Support
 * Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
 * Auto input Caption
@@ -36,16 +35,15 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 
 == 🏆 PRO Features ==
-* Include all free Features
+* All free Features Included
 * Bulk Renaming Based on Associated Post Title
-* Media File Renaming Based on Associated Post Title
+* Renaming File Prior to Uploading Based on Attached Posts Title
+* Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
-* Automated Media File Renaming with Custom Labels
-* Delete Rubbish/Junk/Unnecessary file
-* Bulk Delete Rubbish/Junk/Unnecessary file
-* Also Available for Ignore Important File
-* Also Available for Bulk Ignore Important File
+* Auto Rename By Custom Name
+* Find And Delete Unnecessary / Rubbish File Bulk Mode
 
+== 🏆 Go Pro ==
 👉 [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 == 🏆 Media File Rename ==
@@ -106,6 +104,10 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.1.8 ( September 16, 2023 ) =
+* Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
+* Fixed: Issue Fixed
+
 = 1.1.7 ( September 12, 2023 ) =
 * Fixed: Rename By Post Title
 
@@ -122,31 +124,6 @@ To search for images by categories, users can find the categories box near the F
 * Added: Parent Post Url
 * Title: Added Url For Title
 * Fixed: Media content Issue
-
-
-= 1.1.3 ( August 20, 2023 ) =
-* Added: Bulk Media Rename
-
-= 1.1.2 ( August 15, 2023 ) =
-* Fixed: Term Issue
-* Added: Search By extension
-* Added: Auto Renemar Support
-* Fixed: Fixed File type issue
-* Added: Schedule run Immediately
-
-= 1.1.1 ( August 10, 2023 ) =
-* Added: Bulk Action
-* Added: Search Rubbish File
-
-= 1.0.13 ( August 09, 2023  ) =
-* Fixed: Php Version Issue
-
-= 1.0.12 ( July 29, 2023  ) =
-* Fixed: Alt text ordering issue
-* Fixed: Name And Author Issue
-
-= 1.0.11 ( July 17, 2023  ) =
-* Fixed: Pagination
 
 1.0.0 ( MARCH 07, 2023 )
 * Initial Plugin.
