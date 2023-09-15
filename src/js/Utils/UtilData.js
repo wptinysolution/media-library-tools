@@ -78,7 +78,7 @@ export const columnList = [
         key: 'Image',
     },
     {
-        title: `Parents ID`,
+        title: `Uploaded to`,
         key: 'Parents',
     },
     {
