@@ -20,19 +20,19 @@ function BulkModal() {
     const [stateValue, dispatch] = useStateValue();
     const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const bulkSubmitdata = stateValue.bulkSubmitData;
+    const bulkSubmitData = stateValue.bulkSubmitData;
     /**
      * @param event
      */
     const balkModalDataChange = ( event ) => {
         const data = {
-            ...bulkSubmitdata.data,
+            ...bulkSubmitData.data,
             [event.target.name] : event.target.value
         }
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
+                ...bulkSubmitData,
                 data
             },
         });
@@ -128,7 +128,7 @@ function BulkModal() {
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
+                ...bulkSubmitData,
                 isModalOpen: false,
             },
         });
@@ -140,7 +140,7 @@ function BulkModal() {
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
-                ...bulkSubmitdata,
+                ...bulkSubmitData,
                 will_attached_post_title: list
             },
         });
@@ -153,7 +153,7 @@ function BulkModal() {
     return (
         <Modal
             title={ 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ? `Bulk Assign` : `Bulk Edit` }
-            open={ bulkSubmitdata.isModalOpen }
+            open={ bulkSubmitData.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: IsButtonDisabled }}
@@ -227,28 +227,28 @@ function BulkModal() {
                     <TextArea
                         onChange={ balkModalDataChange }
                         name={`post_title`}
-                        value={bulkSubmitdata.data.post_title}
+                        value={bulkSubmitData.data.post_title}
                         placeholder={`Title`}
                     />
                     <Title style={{marginTop:'10px'}} level={5}> Alt Text </Title>
                     <TextArea
                         onChange={balkModalDataChange}
                         name={`alt_text`}
-                        value={bulkSubmitdata.data.alt_text}
+                        value={bulkSubmitData.data.alt_text}
                         placeholder={`Alt text`}
                     />
                     <Title style={{marginTop:'10px'}} level={5}> Caption </Title>
                     <TextArea
                         onChange={balkModalDataChange}
                         name={`caption`}
-                        value={bulkSubmitdata.data.caption}
+                        value={bulkSubmitData.data.caption}
                         placeholder={`Caption`}
                     />
                     <Title style={{marginTop:'10px'}} level={5}> Description </Title>
                     <TextArea
                         onChange={balkModalDataChange}
                         name={`post_description`}
-                        value={bulkSubmitdata.data.post_description}
+                        value={bulkSubmitData.data.post_description}
                         placeholder={`Description`}
                     />
                     <Title style={{marginTop:'10px'}} level={5}> Categories </Title>

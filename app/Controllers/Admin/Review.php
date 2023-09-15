@@ -325,7 +325,7 @@ class Review {
 		$this->dialog_box_style();
 		$this->deactivation_scripts();
 		?>
-        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback. What Issue You are Facing?">
+        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback: How can we improve the plugin?">
             <!-- Modal content -->
             <div class="modal-content">
                 <div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
@@ -371,8 +371,7 @@ class Review {
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
                 <p style="margin: 0 0 15px 0;">
-                    Please let us know about any issues you are facing with the plugin.
-                    How can we improve the plugin?
+                    Please let us know about any issues you are facing with the plugin
                 </p>
                 <div class="feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?>">
                     <textarea id="deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>" rows="4" cols="40"
@@ -598,7 +597,7 @@ class Review {
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var dialogbox = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
                         modal: true,
-                        width: 500,
+                        width: 600,
                         show: {
                             effect: "fadeIn",
                             duration: 400
