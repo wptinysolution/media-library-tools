@@ -130,7 +130,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			if( defined( 'TSMLTPRO_VERSION' ) ){
+			if( defined( 'TSMLTPRO_VERSION' ) && version_compare(TSMLTPRO_VERSION, '1.0.3', '>=' ) ){
 				return tsmltpro()->user_can_use_tsmltpro() || ( defined( 'TINY_DEBUG' ) && TINY_DEBUG );
 			}
 			return false;

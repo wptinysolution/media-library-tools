@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.1.8
+Stable tag: 1.1.9
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -105,7 +105,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.8 ( September 16, 2023 ) =
+= 1.1.9 ( September 16, 2023 ) =
 * Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Fixed: Error Fix
 
