@@ -90,7 +90,6 @@ function RenamerMainHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
-                        edit_by_attached_post_title: 'no',
                         isModalOpen : true,
                     },
                 });
@@ -102,7 +101,6 @@ function RenamerMainHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
-                        edit_by_attached_post_title: 'yes',
                         isModalOpen : true,
                     },
                 });
