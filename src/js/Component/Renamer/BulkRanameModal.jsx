@@ -61,13 +61,16 @@ function BulkModal() {
         setIsButtonDisabled( true );
         const response = await renameIdsRecursively( stateValue.bulkSubmitData );
         if( 200 === response?.status ){
-            await dispatch({
-                type: Types.BULK_SUBMIT,
-                bulkSubmitData: {
-                    ...stateValue.bulkSubmitData,
-                    isModalOpen: false,
-                },
-            });
+            // Close the modal after 2 seconds
+            setTimeout(() => {
+                dispatch({
+                    type: Types.BULK_SUBMIT,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen: false,
+                    },
+                });
+            }, 1000);
             const response = await getMedia( stateValue.mediaData.postQuery );
             await dispatch({
                 type: Types.GET_MEDIA_LIST,

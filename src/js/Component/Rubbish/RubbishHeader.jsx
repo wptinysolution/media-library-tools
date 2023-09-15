@@ -160,14 +160,12 @@ function RubbishHeader() {
     };
 
     let options = [
-        { value: 'default', label: 'Bulk Action' },
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
 
     if( 'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ){
         options = [
-            { value: 'default', label: 'Bulk Action' },
             { value: 'show', label: 'Make Deletable' },
         ];
     }
@@ -194,9 +192,10 @@ function RubbishHeader() {
             </Title>
             <Space>
                 <Select
+                    allowClear={true}
                     style={{ width: '150px' }}
+                    placeholder={'Bulk Action'}
                     size="large"
-                    value={ stateValue.bulkRubbishData.type || `default` }
                     onChange={handleChangeBulkType}
                     options={ options }
                 />
@@ -219,6 +218,7 @@ function RubbishHeader() {
                 </Button>
                 <Select
                     {...sharedProps}
+                    allowClear={true}
                     size="large"
                     placeholder={'Show'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }

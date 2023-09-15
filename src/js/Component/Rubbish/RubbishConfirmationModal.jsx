@@ -53,18 +53,20 @@ function RubbishConfirmationModal() {
         setButtonDisabled( true );
         const response = await rubbishBulkActionRecursively( stateValue.bulkRubbishData );
         if( 200 === response?.status ){
-            await dispatch({
-                type: Types.BALK_RUBBISH,
-                bulkRubbishData: {
-                    ...stateValue.bulkRubbishData,
-                    bulkChecked: false,
-                    progressBar : false,
-                    progressTotal : 0,
-                    isModalOpen: false,
-                    files: [],
-                    ids: []
-                },
-            });
+            setTimeout(() => {
+                dispatch({
+                    type: Types.BALK_RUBBISH,
+                    bulkRubbishData: {
+                        ...stateValue.bulkRubbishData,
+                        bulkChecked: false,
+                        progressBar : false,
+                        progressTotal : 0,
+                        isModalOpen: false,
+                        files: [],
+                        ids: []
+                    },
+                });
+            }, 1000);
 
             await dispatch({
                 type: Types.RUBBISH_MEDIA,

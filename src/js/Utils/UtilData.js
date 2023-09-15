@@ -170,6 +170,7 @@ export function columns(){
             bulkSubmitData: {
                 ...stateValue.bulkSubmitData,
                 bulkChecked : ! ! postsId.length,
+                progressTotal: postsId.length,
                 ids: postsId
             },
         });
