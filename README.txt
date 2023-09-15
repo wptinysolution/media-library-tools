@@ -44,7 +44,8 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Find And Delete Unnecessary / Rubbish File Bulk Mode
 
 == 🏆 Go Pro ==
-👉 [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
+
+👉 Media Library Tools [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 == 🏆 Media File Rename ==
 
@@ -106,7 +107,7 @@ To search for images by categories, users can find the categories box near the F
 
 = 1.1.8 ( September 16, 2023 ) =
 * Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
-* Fixed: Issue Fixed
+* Fixed: Error Fix
 
 = 1.1.7 ( September 12, 2023 ) =
 * Fixed: Rename By Post Title
