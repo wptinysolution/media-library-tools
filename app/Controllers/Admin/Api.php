@@ -220,6 +220,10 @@ class Api {
 			return $result;
 		}
 		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
+			if( ! tsmlt()->has_pro() ){
+				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
+				return $result;
+			}
 			$attachment = get_post( $parameters['ID'] );
 			$new_text = '';
 			if ( $attachment ) {
@@ -290,7 +294,11 @@ class Api {
 			}
 		}
 
-		if ( tsmlt()->has_pro() && ! empty( $new_name ) && 'edit_by_attached_post_title' === $new_name ) {
+		if ( ! empty( $new_name ) && 'edit_by_attached_post_title' === $new_name ) {
+			if( ! tsmlt()->has_pro() ){
+				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
+				return $result;
+			}
 			$attachment = get_post( $parameters['ID'] ?? 0 );
 			$new_name = '';
 			if ( $attachment ) {

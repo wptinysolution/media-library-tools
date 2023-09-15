@@ -30,7 +30,7 @@ export const selectStyle = {
 export const defaultBulkSubmitData = {
     bulkChecked : false,
     isModalOpen : false,
-    progressBar : false,
+    progressBar : 0,
     progressTotal : 0,
     ids: [],
     type: '',
