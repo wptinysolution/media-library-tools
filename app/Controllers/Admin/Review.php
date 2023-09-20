@@ -370,8 +370,10 @@ class Review {
                     </div>
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
-                <p style="margin: 0 0 15px 0;">
-                    Please let us know about any issues you are facing with the plugin
+                <p style="margin: 0 0 15px 0; color:red;">
+                    If you deactivate the plugin, some features will cease to function.
+                    For instance, the rubbish file scanner is a notable example.
+                    For additional information, please consult the settings page.
                 </p>
                 <div class="feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?>">
                     <textarea id="deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>" rows="4" cols="40"
@@ -379,6 +381,7 @@ class Review {
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
                 <p style="margin: 0;">
+                    Please let us know about any issues you are facing with the plugin,
                     Your satisfaction is our utmost inspiration. Thank you for your feedback.
                 </p>
             </div>

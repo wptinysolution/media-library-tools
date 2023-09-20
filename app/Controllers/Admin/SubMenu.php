@@ -84,10 +84,8 @@ class SubMenu {
 	 * @return void
 	 */
 	public function pro_pages() {
-
         ?>
 		<div class="wrap tsmlt-license-wrap">
-
             <?php
                 wp_enqueue_style( 'freemius-pricing', 'https://wcss.freemius.com/wordpress/pages/pricing.css?v=180' );
                 wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
@@ -408,7 +406,6 @@ class SubMenu {
 		</div>
 		<?php
 	}
-
 
 
 }
