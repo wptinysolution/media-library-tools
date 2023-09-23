@@ -96,7 +96,7 @@ function DirectoryModal() {
         const dirKey = prams[0];
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
-        
+
         // // Recur with the rest of the IDs in the list
         if( prams.length && response.status ){
             await searchFileBySingleDirRecursively(  prams.slice(1) );
@@ -117,12 +117,14 @@ function DirectoryModal() {
      * @returns {Promise<void>}
      */
     const handleDirScanManually = async () => {
+        setScanDir( 'bulkScan' );
         const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
         // Get object keys from the data
         const objectKeys = getObjectKeys( dirlist );
         const response = await searchFileBySingleDirRecursively( objectKeys );
         if( 200 === response?.status ){
             //  console.log( stateValue.bulkSubmitData.progressTotal )
+            setScanDir( null );
         }
 
     };
@@ -151,10 +153,18 @@ function DirectoryModal() {
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
-                <Button key="rescanManually" onClick={ () => handleDirScanManually() }>
-                    Search Immediately { 'all' === scanDir && <Spin size="small" /> }
+                <Button style={ {
+                    display: 'inline-flex',
+                    gap: '10px',
+                    alignItems: 'center'
+                } } key="rescanManually" onClick={ () => handleDirScanManually() }>
+                    Search Immediately { 'bulkScan' === scanDir && <Spin size="small" /> }
                 </Button>,
-                <Button key="rescan" onClick={ () => handleDirRescan() }>
+                <Button style={ {
+                    display: 'inline-flex',
+                    gap: '10px',
+                    alignItems: 'center'
+                } }  key="rescan" onClick={ () => handleDirRescan() }>
                     Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Schedule </Button>
@@ -197,7 +207,7 @@ function DirectoryModal() {
                 </>
                 }
             </Content>
-            { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
+            { stateValue.bulkSubmitData.progressBar > 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
             <Divider />
         </Modal>
     )
