@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-import {Divider, Modal, List, Layout, Button, Spin, Space, Typography} from 'antd';
+import {Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography} from 'antd';
 
 const { Title } = Typography;
 
@@ -19,6 +19,12 @@ function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
 
     const [ scanDir, setScanDir ] = useState( null );
+
+    const [ progressBar, setProgressBar ] = useState( -1 );
+
+    const [ progressTotal, setProgressTotal ] = useState( 0 );
+
+    const [ scaned, setScaned ] = useState( 0 );
 
     const handleDirModalCancel = () => {
         dispatch({
@@ -56,6 +62,8 @@ function DirectoryModal() {
         });
 
         await setScanDir(null);
+
+        return dirList;
     };
 
     const handleaClearSchedule = async () => {
@@ -77,6 +85,58 @@ function DirectoryModal() {
         });
 
     };
+
+    const scanManuallyRecursively = async ( prams ) => {
+        // setProgressBar( ( prevState ) => {
+        //     Math.floor( 100 * ( progressTotal - prams.ids.length ) / progressTotal )
+        // } );
+
+        if ( Object.entries( stateValue.generalData.scanRubbishDirList ).length === 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+        if ( prams.length === 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+        const dirKey = prams[0];
+        // Simulate the renaming operation using an asynchronous function (e.g., API call)
+        const response = await handleDirRescan( dirKey );
+
+        console.log( dirKey )
+
+        // // Recur with the rest of the IDs in the list
+        if( prams.length && response.status ){
+            await scanManuallyRecursively(  prams.slice(1) );
+        }
+        return response;
+    }
+
+    const getObjectKeys = (arr) => {
+        const keys = [];
+        arr.forEach( ( item ) => {
+            keys.push( item[0] );
+        });
+        return keys;
+    }
+    /**
+     *
+     * @param dir
+     * @returns {Promise<void>}
+     */
+    const handleDirScanManually = async () => {
+        const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
+        // Get object keys from the data
+        const objectKeys = getObjectKeys( dirlist );
+
+        setProgressTotal( objectKeys.length );
+
+        const response = await scanManuallyRecursively( objectKeys );
+        if( 200 === response?.status ){
+
+        }
+    };
+
 
     /**
      *
@@ -102,6 +162,9 @@ function DirectoryModal() {
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
+                <Button key="rescanManually" onClick={ () => handleDirScanManually() }>
+                   Scan Manually { 'all' === scanDir && <Spin size="small" /> }
+                </Button>,
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
                     Re-Scan And Get Directory List { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
@@ -145,6 +208,7 @@ function DirectoryModal() {
                 </>
                 }
             </Content>
+            { progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={progressBar} /> </> }
             <Divider />
         </Modal>
     )

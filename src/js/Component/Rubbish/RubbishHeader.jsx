@@ -259,7 +259,7 @@ function RubbishHeader() {
                     size="large"
                     onClick={openDirModal}
                     ghost={ ! stateValue.generalData.isDirModalOpen }>
-                    { `Directory List` }
+                    { `Scan Directory` }
                 </Button>
                 <Button
                     type="text"
