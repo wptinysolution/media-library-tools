@@ -312,8 +312,8 @@ class SubMenu {
                 </div>
 
                 <div class="tsmlt-pro-page-footer" >
-                    <div class="container" style="max-width: 915px;margin-bottom: 20px;">
-                        Email Here to Know running offer: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
+                    <div class="container" style="max-width: 915px;margin-bottom: 20px;font-size: 20px;margin: 50px auto;">
+                        Contact us via email to receive assistance and learn more about our current promotions.: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
                     </div>
 
                     <div class="container" style="max-width: 915px;">

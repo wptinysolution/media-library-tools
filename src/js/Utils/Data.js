@@ -60,6 +60,15 @@ export const singleUpDateApi = async (prams) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
+export const searchFileBySingleDir = async (prams) => {
+    return await Api.post(`/searchFileBySingleDir`, prams);
+}
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
 export const upDateSingleMedia = async (prams) => {
     const response = await singleUpDateApi( prams );
     // for info - blue box

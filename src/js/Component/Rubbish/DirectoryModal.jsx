@@ -10,7 +10,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {actionClearSchedule, rescanDir} from "../../Utils/Data";
+import {actionClearSchedule, rescanDir, searchFileBySingleDir} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -23,8 +23,6 @@ function DirectoryModal() {
     const [ progressBar, setProgressBar ] = useState( -1 );
 
     const [ progressTotal, setProgressTotal ] = useState( 0 );
-
-    const [ scaned, setScaned ] = useState( 0 );
 
     const handleDirModalCancel = () => {
         dispatch({
@@ -86,12 +84,13 @@ function DirectoryModal() {
 
     };
 
-    const scanManuallyRecursively = async ( prams ) => {
-        // setProgressBar( ( prevState ) => {
-        //     Math.floor( 100 * ( progressTotal - prams.ids.length ) / progressTotal )
-        // } );
+    const searchFileBySingleDirRecursively = async ( prams ) => {
 
-        if ( Object.entries( stateValue.generalData.scanRubbishDirList ).length === 0) {
+        setProgressBar( ( prevState ) => {
+           return Math.floor( 100 * ( progressTotal - prams.length ) / progressTotal )
+        } );
+
+        if ( 0 === progressTotal ) {
             // Base case: All renaming operations are completed
             return;
         }
@@ -101,13 +100,11 @@ function DirectoryModal() {
         }
         const dirKey = prams[0];
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
-        const response = await handleDirRescan( dirKey );
-
-        console.log( dirKey )
+        const response = await searchFileBySingleDir( { directory: dirKey } );
 
         // // Recur with the rest of the IDs in the list
         if( prams.length && response.status ){
-            await scanManuallyRecursively(  prams.slice(1) );
+            await searchFileBySingleDirRecursively(  prams.slice(1) );
         }
         return response;
     }
@@ -131,12 +128,15 @@ function DirectoryModal() {
 
         setProgressTotal( objectKeys.length );
 
-        const response = await scanManuallyRecursively( objectKeys );
+        const response = await searchFileBySingleDirRecursively( objectKeys );
         if( 200 === response?.status ){
 
         }
     };
 
+    //console.log( progressBar );
+
+    console.log( progressTotal );
 
     /**
      *
@@ -163,12 +163,12 @@ function DirectoryModal() {
             onCancel={handleDirModalCancel}
             footer={[
                 <Button key="rescanManually" onClick={ () => handleDirScanManually() }>
-                   Scan Manually { 'all' === scanDir && <Spin size="small" /> }
+                    Search Immediately { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="rescan" onClick={ () => handleDirRescan() }>
-                    Re-Scan And Get Directory List { 'all' === scanDir && <Spin size="small" /> }
+                    Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
-                <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Next Schedule </Button>
+                <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Schedule </Button>
             ]}
         >
 

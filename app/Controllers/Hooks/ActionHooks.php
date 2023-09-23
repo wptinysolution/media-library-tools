@@ -35,7 +35,7 @@ class ActionHooks {
 
 		// Hook the function to a cron job
 		add_action( 'init', [ $this, 'schedule_directory_cron_job' ] );
-		add_action( 'tsmlt_upload_dir_scan', [ $this, 'get_directory_list_cron_job' ] );
+		add_action( 'tsmlt_upload_dir_scan', [ Fns::class, 'get_directory_list_cron_job' ] );
 
 		// Rubbish Cron Job.
 		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
@@ -162,40 +162,6 @@ class ActionHooks {
 	}
 
 	/**
-	 * Function to scan the upload directory and search for files.
-	 *
-	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string $directory The directory to scan.
-	 * @param int $offset The offset to start scanning from.
-	 *
-	 * @return array The list of found files.
-	 */
-	public function scan_file_in_directory( $directory ) {
-		if ( ! $directory ) {
-			return [];
-		}
-		$filesystem = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
-		$scanned_files = [];
-		$files         = $filesystem->dirlist( $directory );
-		if ( ! is_array( $files ) ) {
-			return [];
-		}
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-			if ( $filesystem->is_dir( $file_path ) ) {
-				continue;
-			}
-			$scanned_files[] = $file_path;
-		}
-
-		return $scanned_files;
-	}
-
-	/**
 	 * Function to scan the upload directory and search for files
 	 */
 	public function scan_rubbish_file_cron_job() {
@@ -215,76 +181,8 @@ class ActionHooks {
 			$directory = $key;
 		}
 
-		$found_files = $this->scan_file_in_directory( $directory ); // Scan the directory and search for files
-		if ( ! count( $found_files ) ) {
-			return;
-		}
+		Fns::update_rubbish_file_to_database( $directory );
 
-		$dis_list[ $directory ]['total_items'] = count( $found_files );
-
-		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
-
-		// Skip the files until the offset is reached
-		$files = array_slice( $found_files, $last_processed_offset, 20 );
-
-		$found_files_count = count( $files );
-
-		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
-
-		if ( ! $found_files_count > 0 ) {
-			return;
-		}
-
-		global $wpdb;
-
-		foreach ( $found_files as $file_path ) {
-			$search_string = '';
-			$str           = explode( 'wp-content/uploads/', $file_path );
-			if ( is_array( $str ) && ! empty( $str[1] ) ) {
-				$search_string = $str[1];
-			}
-			$attachment_id = 0;
-			if ( $search_string ) {
-				$attachment_id = attachment_url_to_postid( $search_string );
-			}
-			if ( ! $attachment_id ) {
-				$search_basename = basename( $search_string );
-				$attachment_id   = $wpdb->get_var(
-					$wpdb->prepare(
-						"SELECT post_id FROM {$wpdb->postmeta}
-				            WHERE meta_key = '_wp_attachment_metadata'
-				            AND meta_value LIKE %s",
-						'%' . $wpdb->esc_like( $search_basename ) . '%'
-					)
-				);
-			}
-
-			if ( absint( $attachment_id ) ) {
-				continue;
-			}
-
-			$cache_key  = "tsmlt_existing_row_" . sanitize_title( $file_path );
-			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-			// Check if the file_path already exists in the table using cached data
-			$existing_row = wp_cache_get( $cache_key );
-			if ( $existing_row === false ) {
-				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) );
-				// Cache the query result
-				if ( $existing_row ) {
-					continue;
-				}
-				$save_data = array(
-					'file_path'     => $search_string,
-					'attachment_id' => 0,
-					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
-					'meta_data'     => serialize( [] ),
-				);
-				$wpdb->insert( $table_name, $save_data );
-
-				wp_cache_set( $cache_key, $existing_row );
-			}
-		}
-		update_option( 'tsmlt_get_directory_list', $dis_list );
 	}
 
 	/**
@@ -311,65 +209,7 @@ class ActionHooks {
 		//error_log( print_r( 'wp_schedule_event', true ) . "\n\n", 3, __DIR__ . '/the_log.txt' );
 	}
 
-	/**
-	 * Function to retrieve the list of directories with paths from a given directory.
-	 *
-	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string $directory The directory to scan.
-	 *
-	 * @return array The list of directories with their paths.
-	 */
-	private function scan_directory_list( $directory ) {
-		if ( ! $directory || ! is_string( $directory ) ) {
-			return [];
-		}
-		$filesystem  = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-		$directories = [];
-		// Ensure the directory exists before scanning
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
 
-		$files = $filesystem->dirlist( $directory );
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-
-			if ( $filesystem->is_dir( $file_path ) ) {
-				$subdirectories = $this->scan_directory_list( $file_path );
-				$directories    = array_merge( $directories, $subdirectories );
-			} else {
-				// Extract the directory path from the file path
-				$dir_path = dirname( $file_path );
-				// Add the directory to the list if it doesn't exist
-				if ( ! in_array( $dir_path, $directories ) ) {
-					$directories[ $dir_path ] = [
-						'total_items' => 0,
-						'counted'     => 0,
-						'status'      => 'available'
-					];
-				}
-			}
-		}
-
-		return $directories;
-	}
-
-	/**
-	 * @return void
-	 */
-	public function get_directory_list_cron_job() {
-		$cache_key      = 'get_directory_list';
-		$subdirectories = wp_cache_get( $cache_key );
-		if ( ! $subdirectories ) {
-			$upload_dir     = wp_upload_dir(); // Get the upload directory path
-			$directory      = $upload_dir['basedir']; // Get the base directory path
-			$subdirectories = $this->scan_directory_list( $directory );
-			wp_cache_set( $cache_key, $subdirectories );
-		}
-		$dir_status     = get_option( 'tsmlt_get_directory_list', [] );
-		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
-		update_option( 'tsmlt_get_directory_list', $subdirectories );
-	}
 
 
 }

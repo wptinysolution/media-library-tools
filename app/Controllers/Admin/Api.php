@@ -87,6 +87,12 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/searchFileBySingleDir', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'immediately_search_rubbish_file' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+
 		register_rest_route( $this->namespace, $this->resource_name . '/clearSchedule', array(
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'clear_schedule' ],
@@ -598,7 +604,7 @@ class Api {
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		switch ( $dir ) {
 			case "all":
-				$directory_list = [];
+				Fns::get_directory_list_cron_job( true);
 				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
 				break;
 			default:
@@ -609,15 +615,34 @@ class Api {
 						'status'      => "available"
 					];
 				}
+				update_option( 'tsmlt_get_directory_list', $directory_list );
 		}
 
-		update_option( 'tsmlt_get_directory_list', $directory_list );
 
 		return [
 			'updated' => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
 			'message' => $message
 		];
+	}
+	/**
+	 * @return array
+	 */
+	public function immediately_search_rubbish_file( $request_data ) {
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => false,
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
+		$directory  = $parameters['directory'] ?? '';
+		if ( empty( $directory ) ){
+			return $result;
+		}
+		$skip  = $parameters['skip'] ?? 0;
+
+		$result['updated'] = (bool) Fns::update_rubbish_file_to_database( $directory );;
+		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+		return $result;
 	}
 
 	/**
@@ -665,7 +690,7 @@ class Api {
 
 		$status  = $parameters['fileStatus'] ?? 'show';
 
-		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
+		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'php', 'log', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
 
 		// Add single quotes around each status value
 		$extensions = array_map( function ( $extension ) {

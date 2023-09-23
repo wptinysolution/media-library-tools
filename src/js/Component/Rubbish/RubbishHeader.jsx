@@ -50,7 +50,7 @@ function RubbishHeader() {
             })
         );
         await setFilterItems( [
-            { value: '', label: 'Image Only' },
+            { value: '', label: 'Default' },
             ...types
         ] );
     }
@@ -242,10 +242,10 @@ function RubbishHeader() {
                     Extension
                 </Button>
                 <Select
+                    allowClear
                     {...fileTypeFilterRefProps}
                     size="large"
-                    placeholder={'PNG/JPG'}
-                    defaultValue={ stateValue.rubbishMedia.postQuery.filterExtension }
+                    placeholder={'Default'}
                     style={ { ...selectStyle, width: 150 } }
                     options={ filterItems }
                     onChange={fileTypeFilterApply}
@@ -255,10 +255,10 @@ function RubbishHeader() {
                         width: '150px',
                         borderColor: '#d9d9d9'
                     }}
+
                     type="primary"
                     size="large"
-                    onClick={openDirModal}
-                    ghost={ ! stateValue.generalData.isDirModalOpen }>
+                    onClick={openDirModal}>
                     { `Scan Directory` }
                 </Button>
                 <Button
