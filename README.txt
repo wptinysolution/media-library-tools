@@ -105,6 +105,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.1.x ( , 2023 ) =
+* Support: Allow title empty.
+
 = 1.1.9 ( September 16, 2023 ) =
 * Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Fixed: Error Fix

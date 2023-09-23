@@ -280,14 +280,17 @@ class SubMenu {
                                 <button id="purchase">Buy Now</button>
                             </li>
                             <li class="footer-text" >
-                                <a style="color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+                                <div class="footer text">
+                                    <a style="color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+                                </div>
+
                             </li>
                         </ul>
-
-
+                        
                     </div>
                     <div  class="columns" >
                         <section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
+                            <img style="max-width: 100%;" src="<?php echo tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ); ?>" alt="">
                             <h1 style="font-size: 20px;">
                                 <b class="stars">
                                     <i class="last">⋆</i>
@@ -309,7 +312,12 @@ class SubMenu {
                 </div>
 
                 <div class="tsmlt-pro-page-footer" >
+                    <div class="container" style="max-width: 915px;margin-bottom: 20px;">
+                        Email Here to Know running offer: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
+                    </div>
+
                     <div class="container" style="max-width: 915px;">
+
 
                         <div id="faq" style="max-width: 915px;margin: 0;" >
                             <h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>

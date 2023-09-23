@@ -264,7 +264,7 @@ class Api {
 		}
 
 
-		if ( ! empty( $parameters['post_title'] ) ) {
+		if ( isset( $parameters['post_title'] ) ) {
 			$submit['post_title'] = trim( $parameters['post_title'] );
 			$result['message']    = esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' );
 		}
