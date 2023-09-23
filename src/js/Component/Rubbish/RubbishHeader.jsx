@@ -70,10 +70,23 @@ function RubbishHeader() {
                 scanRubbishDirLoading: false,
             },
         });
+
+        // console.log( preparedDate.dirList.length )
+        // Get object keys from the data
+        await dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                progressTotal: Object.entries( preparedDate.dirList ).length
+            },
+        });
+
+
         console.log( 'getDirList' )
     };
 
     const openDirModal = () => {
+
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {

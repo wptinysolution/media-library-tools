@@ -20,10 +20,6 @@ function DirectoryModal() {
 
     const [ scanDir, setScanDir ] = useState( null );
 
-    const [ progressBar, setProgressBar ] = useState( -1 );
-
-    const [ progressTotal, setProgressTotal ] = useState( 0 );
-
     const handleDirModalCancel = () => {
         dispatch({
             type: Types.GENERAL_DATA,
@@ -85,23 +81,22 @@ function DirectoryModal() {
     };
 
     const searchFileBySingleDirRecursively = async ( prams ) => {
-
-        setProgressBar( ( prevState ) => {
-           return Math.floor( 100 * ( progressTotal - prams.length ) / progressTotal )
-        } );
-
-        if ( 0 === progressTotal ) {
-            // Base case: All renaming operations are completed
-            return;
-        }
+        await dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                progressBar: Math.floor( 100 * ( stateValue.bulkSubmitData.progressTotal - prams.length ) / stateValue.bulkSubmitData.progressTotal ),
+            },
+        });
         if ( prams.length === 0) {
             // Base case: All renaming operations are completed
             return;
         }
+
         const dirKey = prams[0];
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
-
+        
         // // Recur with the rest of the IDs in the list
         if( prams.length && response.status ){
             await searchFileBySingleDirRecursively(  prams.slice(1) );
@@ -125,18 +120,12 @@ function DirectoryModal() {
         const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
         // Get object keys from the data
         const objectKeys = getObjectKeys( dirlist );
-
-        setProgressTotal( objectKeys.length );
-
         const response = await searchFileBySingleDirRecursively( objectKeys );
         if( 200 === response?.status ){
-
+            //  console.log( stateValue.bulkSubmitData.progressTotal )
         }
+
     };
-
-    //console.log( progressBar );
-
-    console.log( progressTotal );
 
     /**
      *
@@ -208,7 +197,7 @@ function DirectoryModal() {
                 </>
                 }
             </Content>
-            { progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={progressBar} /> </> }
+            { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
             <Divider />
         </Modal>
     )

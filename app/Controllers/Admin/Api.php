@@ -598,7 +598,7 @@ class Api {
 	public function rescan_dir( $request_data ) {
 		$parameters = $request_data->get_params();
 		$dir        = $parameters['dir'] ?? 'all';
-		$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
+		$directory_list         = [];
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
@@ -608,6 +608,7 @@ class Api {
 				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
 				break;
 			default:
+				$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
 				if( ! empty( $directory_list[ $dir ] ) ) {
 					$directory_list[ $dir ] = [
 						'total_items' => 0,
