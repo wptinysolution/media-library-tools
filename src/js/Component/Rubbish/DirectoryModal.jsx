@@ -90,8 +90,6 @@ function DirectoryModal() {
             }
         }
         setScanDir( dirKey );
-       // console.log( dirKey,  rescanSameDir, matchingObject )
-        //let thePrams = rescanSameDir ? dirKey : prams.slice(1);
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
 
