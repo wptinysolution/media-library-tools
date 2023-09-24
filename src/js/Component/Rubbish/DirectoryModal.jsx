@@ -20,6 +20,8 @@ function DirectoryModal() {
 
     const [ scanDir, setScanDir ] = useState( null );
 
+    const [ buttonSpain, setButtonSpain ] = useState( null );
+
     const handleDirModalCancel = () => {
         dispatch({
             type: Types.GENERAL_DATA,
@@ -77,7 +79,7 @@ function DirectoryModal() {
     };
 
     const searchFileBySingleDirRecursively = async ( prams ) => {
-        setScanDir( 'bulkScan' );
+        setButtonSpain( 'bulkScan' );
         await dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
@@ -87,7 +89,7 @@ function DirectoryModal() {
         });
         if ( prams.length <= 0) {
             setTimeout(async () => {
-                setScanDir( null );
+                setButtonSpain( null );
             }, 1000 );
             // Base case: All renaming operations are completed
             return;
@@ -107,13 +109,14 @@ function DirectoryModal() {
                 break; // Stop searching once a match is found
             }
         }
+        setScanDir( dirKey );
        // console.log( dirKey,  rescanSameDir, matchingObject )
         //let thePrams = rescanSameDir ? dirKey : prams.slice(1);
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
 
         // // Recur with the rest of the IDs in the list
-        if( prams.length && response.status ){
+        if( prams.length && 200 === response.status ){
             setTimeout(async () => {
                 const perser =  response.data ;
                // console.log( perser )
@@ -147,11 +150,20 @@ function DirectoryModal() {
      * @returns {Promise<void>}
      */
     const handleDirScanManually = async () => {
-        setScanDir( 'bulkScan' );
+        setButtonSpain( 'bulkScan' );
         const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
         // Get object keys from the data
         const objectKeys = getObjectKeys( dirlist );
-        await searchFileBySingleDirRecursively( objectKeys );
+        const response = await searchFileBySingleDirRecursively( objectKeys );
+        // // Recur with the rest of the IDs in the list
+        if( 200 === response.status ){
+            setTimeout(async () => {
+                setScanDir( null );
+            }, 1000 );
+
+        }
+
+
     };
 
     /**
@@ -172,25 +184,35 @@ function DirectoryModal() {
             style={{
                 maxWidth: "950px"
             }}
+            className={'rubbish-scan-directory-modal'}
             width="100%"
             height="500px"
             title={`Directory List`}
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
-                <Button style={ {
-                    display: 'inline-flex',
-                    gap: '10px',
-                    alignItems: 'center'
-                } } key="rescanManually" onClick={ () => handleDirScanManually() }>
-                    Search Immediately { 'bulkScan' === scanDir && <Spin size="small" /> }
+                <Button
+                    style={ {
+                        display: 'inline-flex',
+                        gap: '10px',
+                        alignItems: 'center'
+                    } }
+                    key="rescanManually"
+                    onClick={ () => handleDirScanManually() }
+                    type= { 'bulkScan' === buttonSpain ? "primary" : 'default' }
+                >
+                    Search Immediately { 'bulkScan' === buttonSpain && <Spin size="small" /> }
                 </Button>,
-                <Button style={ {
-                    display: 'inline-flex',
-                    gap: '10px',
-                    alignItems: 'center'
-                } }  key="rescan" onClick={ () => handleDirRescan( 'all' ) }>
-                    Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
+                <Button
+                    style={ {
+                        display: 'inline-flex',
+                        gap: '10px',
+                        alignItems: 'center'
+                    } }
+                    key="rescan" onClick={ () => handleDirRescan( 'all' ) }
+                    type= { 'all' === scanDir ? "primary" : 'default' }
+                >
+                        Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Schedule </Button>
             ]}
@@ -221,7 +243,17 @@ function DirectoryModal() {
                                     description={ item.total_items == 0 ? `This directory will be scanned again according to the schedule.` : <span style={ { color: '#1677ff' } }> Scanned {item.counted} items of {item.total_items} items </span> }
                                 />
                                 <Space>
-                                    <Button style={ { padding: '0 15px' } } key="rescan" onClick={ () => handleDirRescan( key ) }>
+                                    <Button
+                                        style={ {
+                                            padding: '0 15px',
+                                            display: 'inline-flex',
+                                            gap: '10px',
+                                            alignItems: 'center'
+                                        } }
+                                        key="rescan"
+                                        onClick={ () => handleDirRescan( key ) }
+                                        type= { key === scanDir ? "primary" : 'default' }
+                                    >
                                         Re- Execute In Schedule  { key === scanDir && <Spin size="small" /> }
                                     </Button>
                                 </Space>

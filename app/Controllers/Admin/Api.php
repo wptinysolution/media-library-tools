@@ -601,7 +601,6 @@ class Api {
 		$directory_list         = [];
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 		if( "all" === $dir ){
-			update_option( 'tsmlt_get_directory_list', [] );
 			Fns::get_directory_list_cron_job( true);
 			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
 		} elseif ( empty( $directory_list[ $dir ] ) ) {
