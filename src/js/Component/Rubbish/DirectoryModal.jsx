@@ -93,13 +93,40 @@ function DirectoryModal() {
             return;
         }
 
-        const dirKey = prams[0];
+        let dirKey = prams[0];
+
+        const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
+
+        // Find the object with the matching directory path
+        let matchingObject = null;
+        let rescanSameDir = false;
+        for (const entry of dirlist) {
+            if (entry[0] === dirKey) {
+                matchingObject = entry[1];
+                rescanSameDir = matchingObject.total_items > matchingObject.counted;
+                break; // Stop searching once a match is found
+            }
+        }
+       // console.log( dirKey,  rescanSameDir, matchingObject )
+        //let thePrams = rescanSameDir ? dirKey : prams.slice(1);
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
 
         // // Recur with the rest of the IDs in the list
         if( prams.length && response.status ){
-            await searchFileBySingleDirRecursively(  prams.slice(1) );
+
+            const perser =  response.data ;
+            console.log( perser )
+            await dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    scanRubbishDirList: perser.dirlist ,
+                    scanRubbishDirLoading: false,
+                },
+            });
+           let thePrams = rescanSameDir ? prams : prams.slice(1);
+           await searchFileBySingleDirRecursively( thePrams );
         }
         return response;
     }

@@ -602,23 +602,19 @@ class Api {
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
 		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-		switch ( $dir ) {
-			case "all":
-				Fns::get_directory_list_cron_job( true);
-				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
-				break;
-			default:
-				$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
-				if( ! empty( $directory_list[ $dir ] ) ) {
-					$directory_list[ $dir ] = [
-						'total_items' => 0,
-						'counted'     => 0,
-						'status'      => "available"
-					];
-				}
-				update_option( 'tsmlt_get_directory_list', $directory_list );
+		if( "all" === $dir ){
+			update_option( 'tsmlt_get_directory_list', [] );
+			Fns::get_directory_list_cron_job( true);
+			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
+		} elseif ( empty( $directory_list[ $dir ] ) ) {
+			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
+			$directory_list[ $dir ] = [
+				'total_items' => 0,
+				'counted'     => 0,
+				'status'      => "available"
+			];
+			update_option( 'tsmlt_get_directory_list', $directory_list );
 		}
-
 
 		return [
 			'updated' => true,
@@ -633,15 +629,19 @@ class Api {
 		$parameters = $request_data->get_params();
 		$result     = [
 			'updated' => false,
+			'data' => [],
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
 		];
 		$directory  = $parameters['directory'] ?? '';
 		if ( empty( $directory ) ){
 			return $result;
 		}
-		$skip  = $parameters['skip'] ?? 0;
 
 		$result['updated'] = (bool) Fns::update_rubbish_file_to_database( $directory );;
+		$result['dirlist'] = get_option( 'tsmlt_get_directory_list', [] );
+
+		error_log( print_r( [$directory, $result['dirlist'][$directory]  ] , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+
 		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 		return $result;
 	}
