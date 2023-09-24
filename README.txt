@@ -53,6 +53,13 @@ Optimizing media file names provides valuable SEO benefits. By using descriptive
 
 Well-named media files enhance user experience, improving engagement and reducing bounce rates. Organized filenames make it easier for users to find and share the content, ultimately driving more organic traffic to the website.
 
+
+== 🏆 Important Note ==
+
+Renaming files can be a risky process, which is why it's important to take precautions. Before renaming your files in bulk, try renaming them one by one to make sure the references in your pages are updated properly. It's worth noting that some plugins may use unconventional methods to encode file usage, which could cause issues with the renaming process. To ensure the safety of your files and database, it is crucial to make a backup before using Media File Renamer to its full extent. Protect your valuable media by taking these precautionary measures.
+
+If you notice any issues with your website after renaming your media files, try clearing your cache. Cached HTML can often hold onto old references, so this simple step can often resolve any issues.
+
 == 🏆 Find Unused/Rubbish File And Clean Media ==
 
 Finding unused or rubbish image files in the media library is essential for efficient website management. Removing unnecessary files improves site performance, load times, and user experience.
