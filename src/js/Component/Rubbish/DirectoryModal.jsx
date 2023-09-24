@@ -58,26 +58,6 @@ function DirectoryModal() {
         await setScanDir(null);
     };
 
-    const handleaClearSchedule = async () => {
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanRubbishDirLoading: true,
-            },
-        });
-        const ClearSchedule = await actionClearSchedule();
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanRubbishDirList: ClearSchedule.data.dirlist,
-                scanRubbishDirLoading: false,
-            },
-        });
-
-    };
-
     const searchFileBySingleDirRecursively = async ( prams ) => {
         setButtonSpain( 'bulkScan' );
         await dispatch({
@@ -213,8 +193,7 @@ function DirectoryModal() {
                     type= { 'all' === scanDir ? "primary" : 'default' }
                 >
                         Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
-                </Button>,
-                <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Schedule </Button>
+                </Button>
             ]}
         >
 
