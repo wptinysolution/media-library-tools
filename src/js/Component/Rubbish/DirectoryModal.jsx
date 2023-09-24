@@ -114,19 +114,21 @@ function DirectoryModal() {
 
         // // Recur with the rest of the IDs in the list
         if( prams.length && response.status ){
+            setTimeout(async () => {
+                const perser =  response.data ;
+                console.log( perser.dirlist )
+                await dispatch({
+                    type: Types.GENERAL_DATA,
+                    generalData: {
+                        ...stateValue.generalData,
+                        scanRubbishDirList: perser.dirlist ,
+                        scanRubbishDirLoading: false,
+                    },
+                });
+                let thePrams = rescanSameDir ? prams : prams.slice(1);
+                await searchFileBySingleDirRecursively( thePrams );
+            }, "1000");
 
-            const perser =  response.data ;
-            console.log( perser )
-            await dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    scanRubbishDirList: perser.dirlist ,
-                    scanRubbishDirLoading: false,
-                },
-            });
-           let thePrams = rescanSameDir ? prams : prams.slice(1);
-           await searchFileBySingleDirRecursively( thePrams );
         }
         return response;
     }
@@ -150,8 +152,10 @@ function DirectoryModal() {
         const objectKeys = getObjectKeys( dirlist );
         const response = await searchFileBySingleDirRecursively( objectKeys );
         if( 200 === response?.status ){
-            //  console.log( stateValue.bulkSubmitData.progressTotal )
-            setScanDir( null );
+            setTimeout(async () => {
+                setScanDir( null );
+            }, "1000");
+
         }
 
     };
