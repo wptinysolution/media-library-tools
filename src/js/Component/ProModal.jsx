@@ -30,30 +30,37 @@ function ProModal() {
 
     const data = [
         {
-            title: 'File Rename Bulk Mode',
-            desc: 'Bulk rename the file names as well with incremental numbers so they are all different',
+            title: 'All free Features Included',
+            desc: 'All features available in the free version are included.',
         },
         {
-            title: 'Auto Rename Before Upload Media Files',
-            desc: 'Implement automatic renaming of media files prior to uploading for enhanced file organization and management.',
+            title: 'Bulk Renaming File Based on Associated Post Title',
+            desc: 'Automatic renaming of media files bulk mode.',
         },
-
         {
-            title: 'Bulk Delete Unnecessary / Rubbish File',
+            title: 'Renaming File Prior to Uploading Based on Attached Posts Title',
+            desc: 'Automatic renaming of media files prior to uploading based on attached posts.',
+        },
+        {
+            title: 'Auto Rename Based on Custom Name',
+            desc: 'Implement automatic renaming of media files based on custom text.',
+        },
+        {
+            title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title',
+            desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
+        },
+        {
+            title: 'Find And Bulk Delete Unnecessary / Rubbish File',
             desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
-        },
-        {
-            title: 'Delete Unnecessary / Rubbish File Single Items',
-            desc: 'Efficiently remove unneeded files individually, streamlining your storage and organization.',
-        },
-        {
-            title: 'Ignore Important File. Take file safe mode never delete',
-            desc: 'Stay worry-free while decluttering with Bulk mode, ensuring vital files are untouched. Safely ignore and remove unnecessary files with ease',
         }
     ];
 
     return (
         <Modal
+            style={{
+                maxWidth: "630px"
+            }}
+            width="100%"
             title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> You have to buy pro version for this features. </Title> }
             open={ stateValue.generalData.openProModal }
             onCancel={handleBulkModalCancel}
@@ -64,16 +71,16 @@ function ProModal() {
                 </Button>
             ]}
         >
-            <Content>
+            <Content style={{ height: "550px", position:'relative', 'overflowY': 'auto' }}>
                 <Paragraph type="secondary" style={{ fontSize: '13px', color:'#333'}}>
                     Pro Feature offers a range of enhanced functionalities and benefits...
                 </Paragraph >
-                <Divider style={{  margin: '10px 0' }}/>
+                <Divider style={{  margin: '5px 0' }}/>
                 <List
                     itemLayout="horizontal"
                     dataSource={data}
                     renderItem={(item, index) => (
-                        <List.Item key={index}>
+                        <List.Item key={index} style={{ padding: '5px 0' }} >
                             <List.Item.Meta
                                 avatar={<CheckSquareOutlined style={{ fontSize: '40px', color: '#1677ff' }} />}
                                 title={<span style={{ color:'#1677ff', fontSize: '15px' }}> { item.title } </span>}

@@ -84,10 +84,8 @@ class SubMenu {
 	 * @return void
 	 */
 	public function pro_pages() {
-
         ?>
 		<div class="wrap tsmlt-license-wrap">
-
             <?php
                 wp_enqueue_style( 'freemius-pricing', 'https://wcss.freemius.com/wordpress/pages/pricing.css?v=180' );
                 wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
@@ -152,11 +150,17 @@ class SubMenu {
                     display: flex;
                     gap: 10px;
                     font-size: 16px;
-
+                    line-height: 1.4;
                 }
 
-                #tsmlt-pro-page-wrapper .price li  span{
+                #tsmlt-pro-page-wrapper .price li span{
                     color: #1677ff;
+                }
+
+                #tsmlt-pro-page-wrapper .price li a:hover span,
+                #tsmlt-pro-page-wrapper .price li a:hover{
+                    text-decoration: none;
+                    color: #FE0467 !important;
                 }
 
                 #tsmlt-pro-page-wrapper #purchase {
@@ -172,7 +176,9 @@ class SubMenu {
                     line-height: 1;
                     min-width: 100px;
                 }
-
+                #tsmlt-pro-page-wrapper #purchase:hover{
+                    background-color: #FE0467;
+                }
                 #tsmlt-pro-page-wrapper #licenses ,
                 #tsmlt-pro-page-wrapper #billing_cycle {
                     padding: 5px 25px 5px 15px;
@@ -191,7 +197,7 @@ class SubMenu {
                     gap: 5px;
                 }
 
-                #tsmlt-pro-page-wrapper .price .header .price-for span{
+                #tsmlt-pro-page-wrapper .price .header .price-for > span{
                     display: none;
                 }
 
@@ -252,12 +258,14 @@ class SubMenu {
                                     <span class="lifetime"> $594.99 / Lifetime </span>
                                 </div>
                             </li>
+
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename Before Upload Media Files</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Ignore Important Files</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Ignore Important Files </li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Delete Rubbish/Junk/Unnecessary Files</li>
-                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Delete Rubbish/Junk/Unnecessary Files</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Name</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
+
                             <li class="footer">
                                 <select id="licenses">
                                     <option value="1" selected="selected">Single Site License</option>
@@ -271,10 +279,18 @@ class SubMenu {
                                 </select>
                                 <button id="purchase">Buy Now</button>
                             </li>
+                            <li class="footer-text" >
+                                <div class="footer text">
+                                    <a style="color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+                                </div>
+
+                            </li>
                         </ul>
+                        
                     </div>
                     <div  class="columns" >
                         <section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
+                            <img style="max-width: 100%;" src="<?php echo tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ); ?>" alt="">
                             <h1 style="font-size: 20px;">
                                 <b class="stars">
                                     <i class="last">⋆</i>
@@ -294,8 +310,15 @@ class SubMenu {
                         </section>
                     </div>
                 </div>
+
                 <div class="tsmlt-pro-page-footer" >
+                    <div class="container" style="max-width: 915px;margin-bottom: 20px;font-size: 20px;margin: 50px auto;">
+                        Contact us via email to receive assistance and learn more about our current promotions.: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
+                    </div>
+
                     <div class="container" style="max-width: 915px;">
+
+
                         <div id="faq" style="max-width: 915px;margin: 0;" >
                             <h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>
                                 <ul>
@@ -391,7 +414,6 @@ class SubMenu {
 		</div>
 		<?php
 	}
-
 
 
 }

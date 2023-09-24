@@ -69,8 +69,18 @@ function TheHeader() {
 
     const handleBulkSubmit = () => {
 
+        if ( 'bulkEditPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+
         if( ! stateValue.bulkSubmitData.ids.length ){
-            console.log( 'Hello' )
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;
         }
@@ -87,6 +97,17 @@ function TheHeader() {
                 });
                 break;
             case 'bulkedit':
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: null,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen : true,
+                    },
+                });
+                break;
+            case 'bulkEditPostTitle':
                 dispatch({
                     ...stateValue,
                     type: Types.BULK_SUBMIT,
@@ -130,9 +151,10 @@ function TheHeader() {
         <Header style={headerStyle}>
             <Space wrap>
                 <Select
+                    allowClear={true}
                     size="large"
-                    defaultValue={``}
-                    style={selectStyle}
+                    placeholder={'Bulk Apply'}
+                    style={ { ...selectStyle, width: '230px' } }
                     onChange={handleChangeBulkType}
                     options={
                         postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]

@@ -65,15 +65,24 @@ function Settings() {
     };
 
     const setDefaultText = (e) => {
-        if ( ! tsmltParams.hasExtended && 'enable_auto_rename' === e.target.name ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
-            return;
+        if ( ! tsmltParams.hasExtended ){
+            const fields = [
+                'enable_auto_rename' ,
+                'alt_text_by_post_title',
+                'auto_rename_by_post_title',
+                'caption_text_by_post_title',
+                'desc_text_by_post_title',
+            ];
+            if( fields.indexOf( e.target.name ) !== -1 ) {
+                dispatch({
+                    type: Types.GENERAL_DATA,
+                    generalData: {
+                        ...stateValue.generalData,
+                        openProModal: true,
+                    },
+                });
+                return;
+            }
         }
         dispatch({
             type: Types.UPDATE_OPTIONS,
@@ -100,7 +109,7 @@ function Settings() {
         <Layout style={{ position: 'relative' }}>
             <Form
                 labelCol={{
-                    span: 5,
+                    span: 7,
                     offset: 0,
                     style:{
                         textAlign: 'left',
@@ -109,19 +118,17 @@ function Settings() {
                 wrapperCol={{ span: 19 }}
                 layout="horizontal"
                 style={{
-                    maxWidth: 900,
-                    padding: '15px',
                     height: '100%'
                 }}
             >
                 { stateValue.options.isLoading ? <Loader/> :
                     <Content style={{
-                        padding: '15px',
+                        padding: '25px',
                         background: 'rgb(255 255 255 / 35%)',
                         borderRadius: '5px',
                         boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                     }}>
-                        <Title level={3} style={{ margin:0 }}> Media Edit Table Settings </Title>
+                        <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
                             <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
@@ -144,8 +151,23 @@ function Settings() {
                             </Text>
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Alt Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Alt Text </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`alt_text_by_post_title`}
+                                value={`alt_text_by_post_title`}
+                                checked={ 'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title }>
+                                Default Alt Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Alt Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
 
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Images Alt Text</Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_alt_text`}
@@ -188,7 +210,22 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Caption Text </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Caption </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`caption_text_by_post_title`}
+                                value={`caption_text_by_post_title`}
+                                checked={ 'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title }>
+                                Default Caption Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Caption Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}>Default Caption Text </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`default_caption_text`}
@@ -230,6 +267,23 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
+
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Description </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`desc_text_by_post_title`}
+                                value={`desc_text_by_post_title`}
+                                checked={ 'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title }>
+                                Default Description Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Description Text will add automatically when upload Media as attached posts.
+                            </Text>
+                            <Divider style={ { margin: '10px 0' } }/>
+                        </Form.Item>
+
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
 
                             <Checkbox
@@ -274,15 +328,30 @@ function Settings() {
 
                         </Form.Item>
                         <Divider />
-                        <Title level={3} style={{ margin:0 }}> Media Renamer Table Settings </Title>
+                        <Title level={3} style={{ margin:0 }}> Media Renamer Settings </Title>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Enable Auto Rename </Title>} >
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Rename based on attached posts </Title>} >
+                            <Checkbox
+                                onChange={setDefaultText}
+                                name={`auto_rename_by_post_title`}
+                                value={`auto_rename_by_post_title`}
+                                checked={ 'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title } >
+                                Auto Rename by post title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
+                            </Checkbox>
+                            <br/>
+                            <br/>
+                            <Text type="secondary" >
+                                Auto rename will apply automatically when upload Media as attached posts.
+                            </Text>
+                        </Form.Item>
+                        <Divider />
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Auto Rename </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`enable_auto_rename`}
                                 value={`enable_auto_rename`}
                                 checked={ 'enable_auto_rename' === stateValue.options.enable_auto_rename } >
-                                Custom text - <span style={ { color: '#ff0000', fontWeight: 'bold' } }>PRO</span>
+                                Custom text { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
                             </Checkbox>
                             <br/>
                             <br/>

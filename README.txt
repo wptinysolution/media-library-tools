@@ -1,9 +1,9 @@
 === Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
-Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash
+Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.3
-Stable tag: 1.1.3
+Stable tag: 1.1.10
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -17,12 +17,11 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
 == 🏆 Main Features ==
-* Media File Rename
+* Image SVG Support
+* Individual Rename Media File
 * Bulk Rename Media File
 * Find Unused Media File
-* Search Media Junk/Rubbish File
 * Filter Junk/Rubbish File By File Extension
-* Image SVG Support
 * Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
 * Auto input Caption
@@ -36,20 +35,30 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 
 == 🏆 PRO Features ==
-* Include all free Features
-* CSV Export Import Image
-* Auto Rename Media File
-* Delete Rubbish/Junk/Unnecessary file
-* Bulk Delete Rubbish/Junk/Unnecessary file
-* Also Available for Ignore Important File
-* Also Available for Bulk Ignore Important File
+* All free Features Included
+* Bulk Renaming Based on Associated Post Title
+* Renaming File Prior to Uploading Based on Attached Posts Title
+* Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
+* Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
+* Auto Rename By Custom Name
+* Find And Delete Unnecessary / Rubbish File Bulk Mode
 
+== 🏆 Go Pro ==
+
+👉 Media Library Tools [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 == 🏆 Media File Rename ==
 
 Optimizing media file names provides valuable SEO benefits. By using descriptive and keyword-rich filenames, search engines can better understand the content, leading to higher rankings and increased visibility.
 
 Well-named media files enhance user experience, improving engagement and reducing bounce rates. Organized filenames make it easier for users to find and share the content, ultimately driving more organic traffic to the website.
+
+
+== 🏆 Important Note ==
+
+Renaming files can be a risky process, which is why it's important to take precautions. Before renaming your files in bulk, try renaming them one by one to make sure the references in your pages are updated properly. It's worth noting that some plugins may use unconventional methods to encode file usage, which could cause issues with the renaming process. To ensure the safety of your files and database, it is crucial to make a backup before using Media File Renamer to its full extent. Protect your valuable media by taking these precautionary measures.
+
+If you notice any issues with your website after renaming your media files, try clearing your cache. Cached HTML can often hold onto old references, so this simple step can often resolve any issues.
 
 == 🏆 Find Unused/Rubbish File And Clean Media ==
 
@@ -68,7 +77,7 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
 
-[youtube https://www.youtube.com/watch?v=Ub6pRvcwk1k]
+[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
 
 == 🏆 Getting Started ==
@@ -103,31 +112,30 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.3 ( August 20, 2023 ) =
-* Added: Bulk Media Rename
+= 1.1.10 ( , 2023 ) =
+* Support: Allow title empty.
+* Added: Rubbish File Balk Search
 
-= 1.1.2 ( August 15, 2023 ) =
-* Fixed: Term Issue
-* Added: Search By extension
-* Added: Auto Renemar Support
-* Fixed: Fixed File type issue
-* Added: Schedule run Immediately
+= 1.1.9 ( September 16, 2023 ) =
+* Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
+* Fixed: Error Fix
 
-= 1.1.1 ( August 10, 2023 ) =
-* Added: Bulk Action
-* Added: Search Rubbish File
+= 1.1.7 ( September 12, 2023 ) =
+* Fixed: Rename By Post Title
 
-= 1.0.13 ( August 09, 2023  ) =
-* Fixed: Php Version Issue
+= 1.1.6 ( September 11, 2023 ) =
+* Fixed: Menu style change
 
-= 1.0.12 ( July 29, 2023  ) =
-* Fixed: Alt text ordering issue
-* Fixed: Name And Author Issue
+= 1.1.5 ( September 06, 2023 ) =
+* Fixed: Post id Error
+* Fixed: Alt text Issue
+* Fixed: Modal issue
+* Fixed: Message text
 
-= 1.0.11 ( July 17, 2023  ) =
-* Fixed: Pagination
+= 1.1.4 ( August 27, 2023 ) =
+* Added: Parent Post Url
+* Title: Added Url For Title
+* Fixed: Media content Issue
 
 1.0.0 ( MARCH 07, 2023 )
 * Initial Plugin.
-
-

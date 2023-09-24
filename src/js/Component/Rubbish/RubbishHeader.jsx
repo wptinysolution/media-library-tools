@@ -50,7 +50,7 @@ function RubbishHeader() {
             })
         );
         await setFilterItems( [
-            { value: '', label: 'Image Only' },
+            { value: '', label: 'Default' },
             ...types
         ] );
     }
@@ -70,10 +70,23 @@ function RubbishHeader() {
                 scanRubbishDirLoading: false,
             },
         });
+
+        // console.log( preparedDate.dirList.length )
+        // Get object keys from the data
+        await dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                progressTotal: Object.entries( preparedDate.dirList ).length
+            },
+        });
+
+
         console.log( 'getDirList' )
     };
 
     const openDirModal = () => {
+
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
@@ -160,14 +173,12 @@ function RubbishHeader() {
     };
 
     let options = [
-        { value: 'default', label: 'Bulk Action' },
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
 
     if( 'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ){
         options = [
-            { value: 'default', label: 'Bulk Action' },
             { value: 'show', label: 'Make Deletable' },
         ];
     }
@@ -194,9 +205,10 @@ function RubbishHeader() {
             </Title>
             <Space>
                 <Select
+                    allowClear={true}
                     style={{ width: '150px' }}
+                    placeholder={'Bulk Action'}
                     size="large"
-                    value={ stateValue.bulkRubbishData.type || `default` }
                     onChange={handleChangeBulkType}
                     options={ options }
                 />
@@ -219,6 +231,7 @@ function RubbishHeader() {
                 </Button>
                 <Select
                     {...sharedProps}
+                    allowClear={true}
                     size="large"
                     placeholder={'Show'}
                     defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }
@@ -242,10 +255,10 @@ function RubbishHeader() {
                     Extension
                 </Button>
                 <Select
+                    allowClear
                     {...fileTypeFilterRefProps}
                     size="large"
-                    placeholder={'PNG/JPG'}
-                    defaultValue={ stateValue.rubbishMedia.postQuery.filterExtension }
+                    placeholder={'Default'}
                     style={ { ...selectStyle, width: 150 } }
                     options={ filterItems }
                     onChange={fileTypeFilterApply}
@@ -255,11 +268,11 @@ function RubbishHeader() {
                         width: '150px',
                         borderColor: '#d9d9d9'
                     }}
+
                     type="primary"
                     size="large"
-                    onClick={openDirModal}
-                    ghost={ ! stateValue.generalData.isDirModalOpen }>
-                    { `Directory List` }
+                    onClick={openDirModal}>
+                    { `Scan Directory` }
                 </Button>
                 <Button
                     type="text"

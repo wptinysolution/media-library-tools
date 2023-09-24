@@ -26,7 +26,7 @@ class Review {
 	 * @return void
 	 */
 	private function __construct() {
-		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ], 1 );
+		add_action( 'admin_init', [ $this, 'tsmlt_check_installation_time' ], 10 );
 		add_action( 'admin_init', [ $this, 'tsmlt_spare_me' ], 5 );
 		add_action( 'admin_footer', [ $this, 'deactivation_popup' ], 99 );
 	}
@@ -175,15 +175,15 @@ class Review {
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>🔔 Remind Me Later</span></a>
                         <a href="<?php echo esc_url( $dont_disturb ); ?>"
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--error tsmlt-review-button--outline"><span>😐 No Thanks </span></a>
-                        <a href="<?php echo esc_url( 'https://www.wptinysolutions.com/' ); ?>"
+                        <a target="_blank" href="<?php echo esc_url( 'https://www.wptinysolutions.com/contact/' ); ?>"
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--error tsmlt-review-button--outline"><span>😐 Need Help. Contact our support </span></a>
                     </div>
                 </div>
             </div>
             <style>
                 .tsmlt-review-button--cta {
-                    --e-button-context-color: #5d3dfd;
-                    --e-button-context-color-dark: #5d3dfd;
+                    --e-button-context-color: #1677ff;
+                    --e-button-context-color-dark: #1677ff;
                     --e-button-context-tint: rgb(75 47 157/4%);
                     --e-focus-color: rgb(75 47 157/40%);
                 }
@@ -325,7 +325,7 @@ class Review {
 		$this->dialog_box_style();
 		$this->deactivation_scripts();
 		?>
-        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback">
+        <div id="deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>" title="Quick Feedback: How can we improve the plugin?">
             <!-- Modal content -->
             <div class="modal-content">
                 <div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
@@ -370,9 +370,10 @@ class Review {
                     </div>
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
-                <p style="margin: 0 0 15px 0;">
-                    Please let us know about any issues you are facing with the plugin.
-                    How can we improve the plugin?
+                <p style="margin: 0 0 15px 0; color:red;">
+                    If you deactivate the plugin, some features will cease to function.
+                    For instance, the rubbish file scanner is a notable example.
+                    For additional information, please consult the settings page.
                 </p>
                 <div class="feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?>">
                     <textarea id="deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>" rows="4" cols="40"
@@ -380,6 +381,7 @@ class Review {
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
                 <p style="margin: 0;">
+                    Please let us know about any issues you are facing with the plugin,
                     Your satisfaction is our utmost inspiration. Thank you for your feedback.
                 </p>
             </div>
@@ -511,6 +513,7 @@ class Review {
                 transition: 0.3s all;
                 background: rgba(0, 0, 0, 0.02);
                 margin: 0;
+                flex: 1;
             }
 
             .ui-dialog-buttonset button:nth-child(2) {
@@ -520,6 +523,11 @@ class Review {
             .ui-dialog-buttonset button:hover {
                 background: #2271b1;
                 color: #fff;
+            }
+
+            .ui-dialog-buttonset button:hover .deactive-loading-spinner{
+                border-color: #fff;
+                border-top-color: transparent;
             }
 
             .ui-dialog[aria-describedby="deactivation-dialog-tsmlt"] {
@@ -553,6 +561,22 @@ class Review {
                 z-index: 9;
                 background-color: rgba(0, 0, 0, 0.5);
             }
+            /* Loading spinner styles */
+            .deactive-loading-spinner {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border: 2px solid #333;
+                border-top: 2px solid transparent;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-left: 10px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
 
         </style>
 
@@ -574,16 +598,9 @@ class Review {
                 $('.deactivate #deactivate-media-library-tools').on('click', function (e) {
                     e.preventDefault();
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
-                    var given = localRetrieveData("feedback-given");
-
-                    // If set for limited time.
-                    if ('given' === given) {
-                        // window.location.href = href;
-                        // return;
-                    }
-                    $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
+                    var dialogbox = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog({
                         modal: true,
-                        width: 500,
+                        width: 600,
                         show: {
                             effect: "fadeIn",
                             duration: 400
@@ -595,7 +612,10 @@ class Review {
 
                         buttons: {
                             Submit: function () {
-                                submitFeedback();
+                                // Set the submit button variable
+                                var button = $( this ).parents( '.ui-dialog.ui-front' ).find( '.ui-dialog-buttonset button.ui-button:first-child' );
+                                // Call the submitFeedback function to send the AJAX request
+                                submitFeedback( button );
                             },
                             Cancel: function () {
                                 $(this).dialog('close');
@@ -603,19 +623,36 @@ class Review {
                             }
                         }
                     });
+                    
+                    // Close the dialog when clicking outside of it
+                    $(document).on('click', '.ui-widget-overlay.ui-front', function (event) {
+                        if ($(event.target).closest(dialogbox.parent()).length === 0) {
+                            dialogbox.dialog('close');
+                        }
+                    });
+
                     // Customize the button text
                     $('.ui-dialog-buttonpane button:contains("Submit")').text('Send Feedback & Deactivate');
                     $('.ui-dialog-buttonpane button:contains("Cancel")').text('Skip & Deactivate');
                 });
 
                 // Submit the feedback
-                function submitFeedback() {
+                // Submit the feedback
+                function submitFeedback( button ) {
+                    // Define the submit button variable
+
+                    button.html('Loading... <span class="deactive-loading-spinner"></span>');
+                    button.prop('disabled', true);
+
                     var href = $('.deactivate #deactivate-media-library-tools').attr('href');
                     var reasons = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> input[type="radio"]:checked').val();
                     var feedback = $('#deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>').val();
                     var better_plugin = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
                     if (!reasons && !feedback && !better_plugin) {
+                        // Enable the submit button and update its text
+                        button.prop('disabled', false);
+                        button.html('Send Feedback & Deactivate');
                         // Define flag variables
                         $('#feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?> span').text('Choose The Reason');
                         $('.feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?> span').text('Please provide me with some advice.');
@@ -638,57 +675,18 @@ class Review {
                             wpplugin: 'media-tools',
                         },
                         success: function (response) {
-                            if (response.success) {
-                                console.log('Success');
-                                localStoreData("feedback-given", 'given');
-                            }
+                            $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog('close');
                         },
                         error: function (xhr, status, error) {
                             // Handle the error response
                             console.error('Error', error);
                         },
                         complete: function (xhr, status) {
-                            $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?>').dialog('close');
                             window.location.href = href;
                         }
                     });
 
                     window.location.href = href;
-                }
-
-                // Store data in local storage with an expiration time of 1 hour
-                function localStoreData(key, value) {
-                    // Calculate the expiration time in milliseconds (1 hour = 60 minutes * 60 seconds * 1000 milliseconds)
-                    var expirationTime = Date.now() + (60 * 60 * 1000);
-
-                    // Create an object to store the data and expiration time
-                    var dataObject = {
-                        value: value,
-                        expirationTime: expirationTime
-                    };
-
-                    // Store the object in local storage
-                    localStorage.setItem(key, JSON.stringify(dataObject));
-                }
-
-                // Retrieve data from local storage
-                function localRetrieveData(key) {
-                    // Get the stored data from local storage
-                    var data = localStorage.getItem(key);
-                    if (data) {
-                        // Parse the stored JSON data
-                        var dataObject = JSON.parse(data);
-                        // Check if the data has expired
-                        if (Date.now() <= dataObject.expirationTime) {
-                            // Return the stored value
-                            return dataObject.value;
-                        } else {
-                            // Data has expired, remove it from local storage
-                            localStorage.removeItem(key);
-                        }
-                    }
-                    // Return null if data doesn't exist or has expired
-                    return null;
                 }
 
             });

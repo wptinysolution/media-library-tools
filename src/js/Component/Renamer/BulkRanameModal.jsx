@@ -15,7 +15,7 @@ function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [buttonDisabled, setButtonDisabled] = useState(true);
+    const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const balkModalDataChange = ( event ) => {
         const data = {
@@ -30,7 +30,7 @@ function BulkModal() {
             },
         });
 
-        setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! data.file_name.length > 0 );
+        setIsButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! data.file_name.length > 0 );
 
     };
 
@@ -47,8 +47,9 @@ function BulkModal() {
             return;
         }
         const id = prams.ids[0];
+        const newName = 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ? 'bulkRenameByPostTitle' : prams.data.file_name ;
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
-        const response = await singleUpDateApi( { newname: prams.data.file_name, ID: id });
+        const response = await singleUpDateApi( { newname: newName, ID: id });
         // Recur with the rest of the IDs in the list
         if( prams.ids.length && response.status ){
             await renameIdsRecursively( { ...prams, ids: prams.ids.slice(1) } );
@@ -57,16 +58,19 @@ function BulkModal() {
     }
 
     const handleBulkModalOk = async () => {
-        setButtonDisabled( true );
+        setIsButtonDisabled( true );
         const response = await renameIdsRecursively( stateValue.bulkSubmitData );
         if( 200 === response?.status ){
-            await dispatch({
-                type: Types.BULK_SUBMIT,
-                bulkSubmitData: {
-                    ...stateValue.bulkSubmitData,
-                    isModalOpen: false,
-                },
-            });
+            // Close the modal after 2 seconds
+            setTimeout(() => {
+                dispatch({
+                    type: Types.BULK_SUBMIT,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen: false,
+                    },
+                });
+            }, 1000);
             const response = await getMedia( stateValue.mediaData.postQuery );
             await dispatch({
                 type: Types.GET_MEDIA_LIST,
@@ -76,7 +80,7 @@ function BulkModal() {
                     isLoading: false
                 },
             });
-            setButtonDisabled( false );
+            setIsButtonDisabled( false );
         }
     };
 
@@ -90,6 +94,15 @@ function BulkModal() {
         });
     };
 
+    const isTheButtonDisabled = () => {
+        if( 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ){
+            setIsButtonDisabled( false );
+        } else {
+            const isDisable = ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.data.file_name.length;
+            setIsButtonDisabled( isDisable );
+        }
+    };
+
     return (
         <Modal
             maskClosable={false}
@@ -97,30 +110,40 @@ function BulkModal() {
             open={ stateValue.bulkSubmitData.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
-            okButtonProps={{ disabled: buttonDisabled }}
-            cancelButtonProps={{ disabled: buttonDisabled }}
+            okButtonProps={{ disabled: IsButtonDisabled }}
+            cancelButtonProps={{ disabled: IsButtonDisabled }}
             okText="Rename"
-            afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.data.file_name.length ) }
+            afterOpenChange={ isTheButtonDisabled }
         >
             <Divider />
             <Content>
-                <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> File name</Title>
-                <Input
-                    style={{
-                        height: '40px',
-                        marginBottom:'15px'
-                    }}
-                    onChange={ balkModalDataChange }
-                    name={`file_name`}
-                    value={stateValue.bulkSubmitData.data.file_name}
-                    placeholder={`File Name`}
-                />
-                { ! stateValue.bulkSubmitData.ids.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                    No Item selected for rename
-                </Paragraph > }
-                { ! stateValue.bulkSubmitData.data.file_name.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                    Empty value Not allowed.
-                </Paragraph > }
+                { 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ?
+                    <>
+                        <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
+                          Are You Sure Bulk Rename Based on Associated Post Title ?
+                        </Title>
+                    </> :
+                    <>
+                        <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> File name</Title>
+                        <Input
+                            style={{
+                                height: '40px',
+                                marginBottom:'15px'
+                            }}
+                            onChange={ balkModalDataChange }
+                            name={`file_name`}
+                            value={stateValue.bulkSubmitData.data.file_name}
+                            placeholder={`File Name`}
+                        />
+                        { ! stateValue.bulkSubmitData.ids.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
+                            No Item selected for rename
+                        </Paragraph > }
+                        { ! stateValue.bulkSubmitData.data.file_name.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
+                            Empty value Not allowed.
+                        </Paragraph > }
+                    </>
+                }
+
                 <Divider />
             </Content>
             { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }

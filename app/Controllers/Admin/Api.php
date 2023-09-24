@@ -87,6 +87,12 @@ class Api {
 			'callback'            => [ $this, 'rescan_dir' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+		register_rest_route( $this->namespace, $this->resource_name . '/searchFileBySingleDir', array(
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'immediately_search_rubbish_file' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+
 		register_rest_route( $this->namespace, $this->resource_name . '/clearSchedule', array(
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'clear_schedule' ],
@@ -219,8 +225,52 @@ class Api {
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
 		}
+		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
+			if( ! tsmlt()->has_pro() ){
+				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
+				return $result;
+			}
+			$attachment = get_post( $parameters['ID'] );
+			$new_text = '';
+			if ( $attachment ) {
+				$post_id = $attachment->post_parent;
+				if ( $post_id ) {
+					$new_text = get_the_title( $post_id );
+				}
+			}
+			if( empty( $new_text ) ) {
+				return $result;
+			}
 
-		if ( ! empty( $parameters['post_title'] ) ) {
+			if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_title'] = $new_text;
+			}
+
+			if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
+				$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
+				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			}
+
+			if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_excerpt'] = $new_text;
+			}
+
+			if ( in_array( 'post_description', $parameters['bulkEditPostTitle'], true ) ) {
+				$submit['post_content'] = $new_text;
+			}
+
+			if ( ! empty( $submit ) ) {
+				$submit['ID']      = $parameters['ID'];
+				$result['updated'] = wp_update_post( $submit );
+				$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+			}
+
+			return $result;
+
+		}
+
+
+		if ( isset( $parameters['post_title'] ) ) {
 			$submit['post_title'] = trim( $parameters['post_title'] );
 			$result['message']    = esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' );
 		}
@@ -239,19 +289,41 @@ class Api {
 			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
-
-		if ( isset( $parameters['newname'] ) ) {
+		$new_name = $parameters['newname'] ?? '';
+		if ( ! empty( $new_name ) && 'bulkRenameByPostTitle' !== $new_name ) {
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			} else{
+				$result['updated'] = false;
+				$result['message'] = esc_html__( 'Rename Failed. Maybe File permission mismatch, Also Check File exist or not.', 'tsmlt-media-tools' );
+			}
+		}
+
+		if ( ! empty( $new_name ) && 'bulkRenameByPostTitle' === $new_name ) {
+			if( ! tsmlt()->has_pro() ){
+				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
+				return $result;
+			}
+			$attachment = get_post( $parameters['ID'] ?? 0 );
+			$new_name = '';
+			if ( $attachment ) {
+				$post_id = $attachment->post_parent;
+				if ( $post_id ) {
+					$new_name = get_the_title( $post_id );
+				}
+			}
+			if ( $new_name && Fns::wp_rename_attachment( $parameters['ID'], $new_name ) ) {
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
 			}
 		}
 
 		if ( ! empty( $submit ) ) {
 			$submit['ID']      = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );
+			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 		}
-		$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 
 		return $result;
 	}
@@ -375,7 +447,10 @@ class Api {
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
-				'post_parents'   => $post->post_parent,
+				'post_parents'   => $post->post_parent ? [
+					'title' => get_the_title( $post->post_parent ),
+					'permalink' => get_the_permalink( $post->post_parent )
+				] : [ 'title' => '', 'permalink' => '' ],
 				'post_excerpt'   => $post->post_excerpt,
 				'post_content'   => $post->post_content,
 				'post_name'      => $post->post_name,
@@ -523,34 +598,62 @@ class Api {
 	public function rescan_dir( $request_data ) {
 		$parameters = $request_data->get_params();
 		$dir        = $parameters['dir'] ?? 'all';
-		$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
+		$directory_list         = [];
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
+		if( "all" === $dir ){
+			Fns::get_directory_list_cron_job( true);
+			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
+		} elseif ( empty( $directory_list[ $dir ] ) ) {
+			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
+			if( ! empty( $directory_list[ $dir ] )){
+				$directory_list[ $dir ] = [
+					'total_items' => 0,
+					'counted'     => 0,
+					'status'      => "available"
+				];
+				update_option( 'tsmlt_get_directory_list', $directory_list );
+			}
+		}
 		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-		switch ( $dir ) {
-			case "all":
-				$directory_list = [];
-				$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
-				break;
-			default:
-				if( ! empty( $directory_list[ $dir ] ) ) {
-					$directory_list[ $dir ] = [
-						'total_items' => 0,
-						'counted'     => 0,
-						'status'      => "available"
-					];
-				}
-		}
-
-		update_option( 'tsmlt_get_directory_list', $directory_list );
-
 		return [
 			'updated' => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
 			'message' => $message
 		];
 	}
+	/**
+	 * @return array
+	 */
+	public function immediately_search_rubbish_file( $request_data ) {
+		$parameters = $request_data->get_params();
+		$result     = [
+			'updated' => false,
+			'data' => [],
+			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
+		];
 
+		$directory  = $parameters['directory'] ?? '';
+
+		if ( empty( $directory ) ){
+			return $result;
+		}
+
+		$updated = Fns::update_rubbish_file_to_database( $directory );
+		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
+
+		if( ! empty( $dirlist[ $directory ] ) ) {
+			if( isset( $dirlist[ $directory ]['total_items'] ) && isset( $dirlist[ $directory ]['counted'] ) ){
+				$directory = absint( $dirlist[ $directory ]['total_items'] ) > absint( $dirlist[ $directory ]['counted'] ) ? $directory : 'nextDir';
+			}
+		}
+
+		$result['updated'] = (bool) $updated;
+		$result['nextDir'] = $directory;
+		$result['dirlist'] = $dirlist;
+		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+		return $result;
+	}
 
 	/**
 	 * @return array
@@ -564,7 +667,6 @@ class Api {
 			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'tsmlt-media-tools' )
 		];
 	}
-
 
 	/**
 	 * @return false|string
@@ -598,7 +700,7 @@ class Api {
 
 		$status  = $parameters['fileStatus'] ?? 'show';
 
-		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
+		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'php', 'log', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
 
 		// Add single quotes around each status value
 		$extensions = array_map( function ( $extension ) {

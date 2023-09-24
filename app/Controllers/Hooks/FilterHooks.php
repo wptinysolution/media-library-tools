@@ -44,7 +44,7 @@ class FilterHooks {
 	/**
 	 * Check template screen
 	 *
-	 * @return boolean
+	 * @return array
 	 */
 	public static function allow_svg_upload( $data, $file, $filename, $mimes ) {
 		$filetype = wp_check_filetype( $filename, $mimes );
@@ -188,10 +188,10 @@ class FilterHooks {
 	 * @return array
 	 */
 	public static function media_custom_column( $columns ) {
-		$author   = isset( $columns['author'] ) ? $columns['author'] : '';
-		$date     = isset( $columns['date'] ) ? $columns['date'] : '';
-		$comments = isset( $columns['comments'] ) ? $columns['comments'] : '';
-		$parent   = isset( $columns['parent'] ) ? $columns['parent'] : '';
+		$author   = $columns['author'] ?? '';
+		$date     = $columns['date'] ?? '';
+		$comments = $columns['comments'] ?? '';
+		$parent   = $columns['parent'] ?? '';
 		unset( $columns['author'] );
 		unset( $columns['date'] );
 		unset( $columns['comments'] );

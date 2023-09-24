@@ -65,12 +65,36 @@ function RenamerMainHeader() {
     }, [ search ]);
 
     const handleBulkSubmit = () => {
+
+        if ( 'bulkRenameByPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+
         if( ! stateValue.bulkSubmitData.ids.length ){
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;
         }
+
         switch( stateValue.bulkSubmitData.type ){
             case 'bulkRename':
+                dispatch({
+                    ...stateValue,
+                    type: Types.BULK_SUBMIT,
+                    saveType: null,
+                    bulkSubmitData: {
+                        ...stateValue.bulkSubmitData,
+                        isModalOpen : true,
+                    },
+                });
+                break;
+            case 'bulkRenameByPostTitle':
                 dispatch({
                     ...stateValue,
                     type: Types.BULK_SUBMIT,
@@ -88,10 +112,9 @@ function RenamerMainHeader() {
     };
 
     const options = [
-        { value: 'default', label: 'Bulk Action' },
         { value: 'bulkRename', label: 'Bulk Rename' },
+        { value: 'bulkRenameByPostTitle', label: 'Bulk Rename Based on Post Title' },
     ];
-
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Title level={5} style={{
@@ -104,9 +127,10 @@ function RenamerMainHeader() {
 
             <Space >
                 <Select
+                    allowClear={true}
                     size="large"
-                    defaultValue={`default`}
-                    style={{ ...selectStyle, width: 150 }}
+                    placeholder={'Bulk Apply'}
+                    style={{ ...selectStyle, width: '250px' }}
                     onChange={handleChangeBulkType}
                     options={ options }
                 />

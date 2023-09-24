@@ -53,18 +53,20 @@ function RubbishConfirmationModal() {
         setButtonDisabled( true );
         const response = await rubbishBulkActionRecursively( stateValue.bulkRubbishData );
         if( 200 === response?.status ){
-            await dispatch({
-                type: Types.BALK_RUBBISH,
-                bulkRubbishData: {
-                    ...stateValue.bulkRubbishData,
-                    bulkChecked: false,
-                    progressBar : false,
-                    progressTotal : 0,
-                    isModalOpen: false,
-                    files: [],
-                    ids: []
-                },
-            });
+            setTimeout(() => {
+                dispatch({
+                    type: Types.BALK_RUBBISH,
+                    bulkRubbishData: {
+                        ...stateValue.bulkRubbishData,
+                        bulkChecked: false,
+                        progressBar : false,
+                        progressTotal : 0,
+                        isModalOpen: false,
+                        files: [],
+                        ids: []
+                    },
+                });
+            }, 1000);
 
             await dispatch({
                 type: Types.RUBBISH_MEDIA,
@@ -106,7 +108,9 @@ function RubbishConfirmationModal() {
         >
             <Divider />
             <Content>
-                <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> Are You Confirm { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }? </Title>
+                <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
+                    Are You Confirm { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' == stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete' }?
+                </Title>
                 { stateValue.bulkRubbishData.progressBar >= 0 && <Progress showInfo={true} percent={stateValue.bulkRubbishData.progressBar} /> }
                 { ! stateValue.bulkRubbishData.ids.length &&
                     <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
