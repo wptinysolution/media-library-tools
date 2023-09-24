@@ -345,6 +345,7 @@ class Fns {
 			wp_cache_set( $cache_key, $subdirectories );
 		}
 		$dir_status     = get_option( 'tsmlt_get_directory_list', [] );
+
 		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
 
 		update_option( 'tsmlt_get_directory_list', $subdirectories );

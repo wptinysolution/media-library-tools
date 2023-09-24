@@ -45,7 +45,6 @@ function DirectoryModal() {
             },
         });
         const dirList = await rescanDir( {  dir : dir } );
-
         await dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
@@ -54,10 +53,7 @@ function DirectoryModal() {
                 scanRubbishDirLoading: false,
             },
         });
-
         await setScanDir(null);
-
-        return dirList;
     };
 
     const handleaClearSchedule = async () => {
@@ -81,6 +77,7 @@ function DirectoryModal() {
     };
 
     const searchFileBySingleDirRecursively = async ( prams ) => {
+        setScanDir( 'bulkScan' );
         await dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
@@ -88,7 +85,10 @@ function DirectoryModal() {
                 progressBar: Math.floor( 100 * ( stateValue.bulkSubmitData.progressTotal - prams.length ) / stateValue.bulkSubmitData.progressTotal ),
             },
         });
-        if ( prams.length === 0) {
+        if ( prams.length <= 0) {
+            setTimeout(async () => {
+                setScanDir( null );
+            }, 1000 );
             // Base case: All renaming operations are completed
             return;
         }
@@ -116,7 +116,7 @@ function DirectoryModal() {
         if( prams.length && response.status ){
             setTimeout(async () => {
                 const perser =  response.data ;
-                console.log( perser.dirlist )
+               // console.log( perser )
                 await dispatch({
                     type: Types.GENERAL_DATA,
                     generalData: {
@@ -125,9 +125,10 @@ function DirectoryModal() {
                         scanRubbishDirLoading: false,
                     },
                 });
-                let thePrams = rescanSameDir ? prams : prams.slice(1);
+                let thePrams =  'nextDir' === perser.nextDir ? prams.slice(1) : prams ;
+                console.log( thePrams )
                 await searchFileBySingleDirRecursively( thePrams );
-            }, "1000");
+            }, 1000 );
 
         }
         return response;
@@ -150,14 +151,7 @@ function DirectoryModal() {
         const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
         // Get object keys from the data
         const objectKeys = getObjectKeys( dirlist );
-        const response = await searchFileBySingleDirRecursively( objectKeys );
-        if( 200 === response?.status ){
-            setTimeout(async () => {
-                setScanDir( null );
-            }, "1000");
-
-        }
-
+        await searchFileBySingleDirRecursively( objectKeys );
     };
 
     /**
@@ -195,7 +189,7 @@ function DirectoryModal() {
                     display: 'inline-flex',
                     gap: '10px',
                     alignItems: 'center'
-                } }  key="rescan" onClick={ () => handleDirRescan() }>
+                } }  key="rescan" onClick={ () => handleDirRescan( 'all' ) }>
                     Re-Search Directory { 'all' === scanDir && <Spin size="small" /> }
                 </Button>,
                 <Button key="NextSchedule" type="primary"  onClick={ () => handleaClearSchedule() }> Execute Schedule </Button>

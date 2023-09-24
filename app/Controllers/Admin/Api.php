@@ -600,22 +600,23 @@ class Api {
 		$dir        = $parameters['dir'] ?? 'all';
 		$directory_list         = [];
 		$message = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
-		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		if( "all" === $dir ){
 			update_option( 'tsmlt_get_directory_list', [] );
 			Fns::get_directory_list_cron_job( true);
 			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
 		} elseif ( empty( $directory_list[ $dir ] ) ) {
 			$directory_list         = get_option( 'tsmlt_get_directory_list', [] );
-			$directory_list[ $dir ] = [
-				'total_items' => 0,
-				'counted'     => 0,
-				'status'      => "available"
-			];
-			update_option( 'tsmlt_get_directory_list', $directory_list );
+			if( ! empty( $directory_list[ $dir ] )){
+				$directory_list[ $dir ] = [
+					'total_items' => 0,
+					'counted'     => 0,
+					'status'      => "available"
+				];
+				update_option( 'tsmlt_get_directory_list', $directory_list );
+			}
 		}
-
+		wp_clear_scheduled_hook('tsmlt_upload_inner_file_scan');
+		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		return [
 			'updated' => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
@@ -632,16 +633,25 @@ class Api {
 			'data' => [],
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' )
 		];
+
 		$directory  = $parameters['directory'] ?? '';
+
 		if ( empty( $directory ) ){
 			return $result;
 		}
 
-		$result['updated'] = (bool) Fns::update_rubbish_file_to_database( $directory );;
-		$result['dirlist'] = get_option( 'tsmlt_get_directory_list', [] );
+		$updated = Fns::update_rubbish_file_to_database( $directory );
+		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 
-		error_log( print_r( [$directory, $result['dirlist'][$directory]  ] , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+		if( ! empty( $dirlist[ $directory ] ) ) {
+			if( isset( $dirlist[ $directory ]['total_items'] ) && isset( $dirlist[ $directory ]['counted'] ) ){
+				$directory = absint( $dirlist[ $directory ]['total_items'] ) > absint( $dirlist[ $directory ]['counted'] ) ? $directory : 'nextDir';
+			}
+		}
 
+		$result['updated'] = (bool) $updated;
+		$result['nextDir'] = $directory;
+		$result['dirlist'] = $dirlist;
 		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 		return $result;
 	}
