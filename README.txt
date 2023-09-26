@@ -112,7 +112,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.10 ( , 2023 ) =
+= 1.1.10 ( 26 September, 2023 ) =
 * Support: Allow title empty.
 * Added: Rubbish File Balk Search
 
