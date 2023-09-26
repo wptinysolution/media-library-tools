@@ -47,6 +47,10 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 👉 Media Library Tools [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
+
+[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
+
+
 == 🏆 Media File Rename ==
 
 Optimizing media file names provides valuable SEO benefits. By using descriptive and keyword-rich filenames, search engines can better understand the content, leading to higher rankings and increased visibility.
@@ -76,8 +80,6 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 == 🏆 Media Content Editing ==
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
-
-[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
 
 == 🏆 Getting Started ==
