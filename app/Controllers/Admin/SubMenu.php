@@ -225,7 +225,7 @@ class SubMenu {
                     <header id="header" class="card clearfix" >
                         <div class="product-header">
                             <div class="product-icon">
-                                <img src="https://s3-us-west-2.amazonaws.com/freemius/plugins/13159/icons/b77811b8c1b98d63fe58f367d0d1526d.png" alt="">
+                                <img src="https://www.wptinysolutions.com/wp-content/uploads/2023/08/media-library-tools-icon-128x128-1.png" alt="">
                             </div>
                             <div class="product-header-body" style="padding-top: 0;">
                                 <h1 class="page-title">Plans and Pricing</h1>
@@ -292,12 +292,8 @@ class SubMenu {
                         <section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
                             <img style="max-width: 100%;" src="<?php echo tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ); ?>" alt="">
                             <h1 style="font-size: 20px;">
-                                <b class="stars">
-                                    <i class="last">⋆</i>
-                                    <i class="middle">⋆</i>
-                                    <i class="first">⋆</i>
-                                </b>
-                                <span>14-Day Money Back Guarantee</span>
+                                <b class="stars"> <i class="last">⋆</i> <i class="middle">⋆</i>  <i class="first">⋆</i> </b>
+                                <span>30-Days Money Back Guarantee</span>
                                 <b class="stars">
                                     <i class="first">⋆</i>
                                     <i class="middle">⋆</i>
@@ -305,7 +301,7 @@ class SubMenu {
                                 </b>
                             </h1>
                             <p>
-                                You are fully protected by our 100% Money Back Guarantee. If during the next 14 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
+                                You are fully protected by our 100% Money Back Guarantee. If during the next 30 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
                             </p>
                         </section>
                     </div>
@@ -317,7 +313,6 @@ class SubMenu {
                     </div>
 
                     <div class="container" style="max-width: 915px;">
-
 
                         <div id="faq" style="max-width: 915px;margin: 0;" >
                             <h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>
@@ -392,7 +387,7 @@ class SubMenu {
                             plugin_id:  '13159',
                             plan_id:    '22377',
                             public_key: 'pk_494675841e14feaa76ea20efa09ca',
-                            image:      'https://ps.w.org/media-library-tools/assets/icon-128x128.png?rev=2876093'
+                            image:      'https://www.wptinysolutions.com/wp-content/uploads/2023/08/media-library-tools-icon-128x128-1.png'
                         });
                         $('#purchase').on('click', function (e) {
                             handler.open({
