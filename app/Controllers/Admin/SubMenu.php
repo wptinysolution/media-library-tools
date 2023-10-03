@@ -309,6 +309,7 @@ class SubMenu {
 
                 <div class="tsmlt-pro-page-footer" >
                     <div class="container" style="max-width: 915px;margin-bottom: 20px;font-size: 20px;margin: 50px auto;line-height: 1.4;">
+                        <span style="color: #6bc406;">Are you enjoying the free version? Have you got some valuable feedback to share? Have you encountered a bug and found a solution? If so, we might have a special discount waiting for you!</span>
                         Contact us via email to receive assistance and learn more about our current promotions: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
                     </div>
 
