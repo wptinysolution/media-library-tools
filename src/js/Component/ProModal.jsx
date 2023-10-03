@@ -68,7 +68,8 @@ function ProModal() {
                 <Button key="rescan" onClick={ handleBulkModalCancel }> Cancel </Button>,
                 <Button key="prourl" type="primary">
                     <a className={'ant-btn'} target={`_blank`} href={tsmltParams.proLink}>Get Pro Version</a>
-                </Button>
+                </Button>,
+                <a className={'ant-btn'} target={`_blank`} href={ `${tsmltParams.proLink}#tsmlt-pro-page-footer` }>Get Discount </a>
             ]}
         >
             <Content style={{ height: "550px", position:'relative', 'overflowY': 'auto' }}>
