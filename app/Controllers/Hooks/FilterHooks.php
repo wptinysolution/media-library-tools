@@ -263,16 +263,17 @@ class FilterHooks {
 	 * @return array [array] plugin action link
 	 */
 	public static function plugins_setting_links( $links ) {
-		$links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Start Editing', 'tsmlt-media-tools' ) . '</a>';
+		$new_links = [];
+		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Start Editing', 'tsmlt-media-tools' ) . '</a>';
 		/*
 		 * TODO:: Next Version
 		 *
 		 */
 		if ( ! tsmlt()->has_pro() ) {
-			 $links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
+			$new_links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
 		}
 
-		return $links;
+		return array_merge( $new_links, $links );
 	}
 
 	/**

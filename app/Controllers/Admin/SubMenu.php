@@ -253,10 +253,6 @@ class SubMenu {
                                     <span class="annual"> $124.99 / Annual </span>
                                     <span class="lifetime"> $384.99 / Lifetime </span>
                                 </div>
-                                <div class="price-for website-50">
-                                    <span class="annual"> $194.99 / Annual </span>
-                                    <span class="lifetime"> $594.99 / Lifetime </span>
-                                </div>
                             </li>
 
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
@@ -271,7 +267,6 @@ class SubMenu {
                                     <option value="1" selected="selected">Single Site License</option>
                                     <option value="5">5-Site License</option>
                                     <option value="10">10-Site License</option>
-                                    <option value="50">50-Site License</option>
                                 </select>
                                 <select id="billing_cycle">
                                     <option value="annual" selected="selected">Annual</option>
