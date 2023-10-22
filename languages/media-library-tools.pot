@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-10-03 18:04+0000\n"
+"POT-Creation-Date: 2023-10-22 17:13+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -15,15 +15,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. translators: 1: Plugin name 2: PHP 3: Required PHP version
-#: ../app/Controllers/Dependencies.php:59
+#: ../app/Controllers/Dependencies.php:51
 msgid "\"%1$s\" requires \"%2$s\" version %3$s or greater."
 msgstr ""
 
-#: ../app/Controllers/Dependencies.php:60
+#: ../app/Controllers/Dependencies.php:52
 msgid "Media Library Tools"
 msgstr ""
 
-#: ../app/Controllers/Dependencies.php:61
+#: ../app/Controllers/Dependencies.php:53
 msgid "PHP"
 msgstr ""
 
@@ -123,18 +123,18 @@ msgstr ""
 msgid "Media Tools"
 msgstr ""
 
-#: ../app/Controllers/Hooks/FilterHooks.php:266
+#: ../app/Controllers/Hooks/FilterHooks.php:267
 msgid "Start Editing"
 msgstr ""
 
-#: ../app/Controllers/Hooks/FilterHooks.php:272
+#: ../app/Controllers/Hooks/FilterHooks.php:273
 msgid "Go Pro"
 msgstr ""
 
-#: ../app/Controllers/Hooks/FilterHooks.php:287
+#: ../app/Controllers/Hooks/FilterHooks.php:288
 msgid "Facing issue?"
 msgstr ""
 
-#: ../app/Controllers/Hooks/FilterHooks.php:287
+#: ../app/Controllers/Hooks/FilterHooks.php:288
 msgid "Please open a support ticket."
 msgstr ""

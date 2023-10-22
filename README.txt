@@ -2,7 +2,7 @@
 Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
-Tested up to: 6.3
+Tested up to: 6.4
 Stable tag: 1.1.11
 Requires PHP: 7.4
 License: GPLv3

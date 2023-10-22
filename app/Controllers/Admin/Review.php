@@ -65,7 +65,7 @@ class Review {
 			return;
 		}
 
-		// add_action( 'admin_notices', [ $this, 'tsmlt_display_admin_notice' ] );
+		 add_action( 'admin_notices', [ $this, 'tsmlt_display_admin_notice' ] );
 
 	}
 
@@ -381,8 +381,7 @@ class Review {
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
                 <p style="margin: 0;">
-                    Please let us know about any issues you are facing with the plugin,
-                    Your satisfaction is our utmost inspiration. Thank you for your feedback.
+                    Please let us know about any issues you are facing with the plugin.
                 </p>
             </div>
         </div>
