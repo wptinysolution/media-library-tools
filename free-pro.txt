@@ -1,4 +1,5 @@
 1. Download/Export Media Library
 2. CSV Export Import Image
 3. Download Media Library
+4. Auto assign Associated post
 https://wordpress.org/plugins/file-renaming-on-upload/

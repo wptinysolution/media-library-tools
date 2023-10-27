@@ -239,22 +239,21 @@ class SubMenu {
                     <div class="columns">
                         <ul class="price">
                             <li class="header">
-                                PRO
+                                Premium Plan
                                 <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
-                                <div class="price-for website-1 active-plan" >
-                                    <span class="annual active-cycle"> $24.99 / Annual </span>
-                                    <span class="lifetime"> $74.99 / Lifetime </span>
+                                <div class="price-for website-1 active-plan">
+                                    <span class="annual active-cycle"> $19.99 / Annual </span>
+                                    <span class="lifetime "> $69.99 / Lifetime </span>
                                 </div>
-                                <div class="price-for website-5" >
-                                    <span class="annual"> $74.99 / Annual </span>
-                                    <span class="lifetime"> $224.99 / Lifetime </span>
+                                <div class="price-for website-5">
+                                    <span class="annual"> $69.99 / Annual </span>
+                                    <span class="lifetime"> $149.99 / Lifetime </span>
                                 </div>
-                                <div class="price-for website-10" >
-                                    <span class="annual"> $124.99 / Annual </span>
-                                    <span class="lifetime"> $384.99 / Lifetime </span>
+                                <div class="price-for website-10">
+                                    <span class="annual"> $149.99 / Annual </span>
+                                    <span class="lifetime"> $299.99 / Lifetime </span>
                                 </div>
                             </li>
-
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
