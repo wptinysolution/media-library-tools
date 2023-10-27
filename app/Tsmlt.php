@@ -142,7 +142,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return string
 		 */
 		public function pro_version_link() {
-			return admin_url( 'https://www.wptinysolutions.com/tiny-products/media-library-tools/' );
+			return 'https://www.wptinysolutions.com/tiny-products/media-library-tools/';
 		}
 
 	}
