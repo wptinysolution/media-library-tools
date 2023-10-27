@@ -270,7 +270,7 @@ class FilterHooks {
 		 *
 		 */
 		if ( ! tsmlt()->has_pro() ) {
-			$new_links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" style="color: #39b54a; font-weight: bold;">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
+			$new_links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
 		}
 
 		return array_merge( $new_links, $links );
