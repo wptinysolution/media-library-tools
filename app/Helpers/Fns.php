@@ -396,9 +396,37 @@ class Fns {
 		return $directories;
 	}
 
+	/**
+	 * @param $attachment_id
+	 *
+	 * @return void
+	 */
+	public static function set_thumbnail_parent_id( $attachment_id ){
 
+		if ( 'attachment' !== get_post_type( $attachment_id ) ) {
+			return;
+		}
 
+		if( get_post_field('post_parent', $attachment_id) ){
+			return;
+		}
 
+		global $wpdb;
+		$meta_key = '_thumbnail_id';
+		$query = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", $meta_key, $attachment_id );
+		$parent_id = $wpdb->get_var($query);
+
+		if( ! $parent_id ){
+			return;
+		}
+		// Update the attachment's parent ID
+		$attachment_data = array(
+			'ID' => $attachment_id,
+			'post_parent' => $parent_id,
+		);
+		// Update the attachment using wp_update_post
+		wp_update_post($attachment_data);
+	}
 
 
 }
