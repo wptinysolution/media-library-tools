@@ -700,7 +700,7 @@ class Api {
 
 		$status  = $parameters['fileStatus'] ?? 'show';
 
-		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'php', 'log', 'png', 'gif', 'bmp', 'tiff', 'webp', 'heif', 'svg', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
+		$extensions  = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
 
 		// Add single quotes around each status value
 		$extensions = array_map( function ( $extension ) {

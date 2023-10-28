@@ -51,7 +51,7 @@ class Review {
 
 		$install_date = get_option( 'tsmlt_plugin_activation_time' );
 
-		$past_date = strtotime( '+10 days', $install_date );
+		$past_date = strtotime( '+30 days', $install_date );
 
 		$remind_time = get_option( 'tsmlt_remind_me' );
 
@@ -59,13 +59,13 @@ class Review {
 			$remind_time = $install_date;
 		}
 
-		$remind_due = strtotime( '+10 days', $remind_time );
+		$remind_due = strtotime( '+30 days', $remind_time );
 
 		if ( ! $now > $past_date || $now < $remind_due ) {
 			return;
 		}
 
-		add_action( 'admin_notices', [ $this, 'tsmlt_display_admin_notice' ] );
+		 add_action( 'admin_notices', [ $this, 'tsmlt_display_admin_notice' ] );
 
 	}
 
@@ -381,8 +381,7 @@ class Review {
                     <span style="color:red;font-size: 16px;"></span>
                 </div>
                 <p style="margin: 0;">
-                    Please let us know about any issues you are facing with the plugin,
-                    Your satisfaction is our utmost inspiration. Thank you for your feedback.
+                    Please let us know about any issues you are facing with the plugin.
                 </p>
             </div>
         </div>

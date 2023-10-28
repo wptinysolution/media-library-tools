@@ -142,16 +142,9 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return string
 		 */
 		public function pro_version_link() {
-			return admin_url( 'upload.php?page=tsmlt-get-pro' );
+			return 'https://www.wptinysolutions.com/tiny-products/media-library-tools/';
 		}
-		/**
-		 * PRO Version URL.
-		 *
-		 * @return string
-		 */
-		public function pro_version_checkout_link() {
-			return 'https://checkout.freemius.com/mode/dialog/plugin/13159/plan/22377/';
-		}
+
 	}
 	/**
 	 * @return Tsmlt

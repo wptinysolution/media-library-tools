@@ -36,14 +36,6 @@ class Dependencies {
 			add_action( 'admin_notices', [ $this, 'minimum_php_version' ] );
 			$this->allOk = false;
 		}
-
-		if ( ! function_exists( 'is_plugin_active' ) ) {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		if ( ! function_exists( 'wp_create_nonce' ) ) {
-			require_once ABSPATH . 'wp-includes/pluggable.php';
-		}
-
 		return $this->allOk;
 	}
 

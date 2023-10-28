@@ -2,8 +2,8 @@
 Contributors: tinysolution
 Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
-Tested up to: 6.3
-Stable tag: 1.1.10
+Tested up to: 6.4
+Stable tag: 1.1.12
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -47,6 +47,10 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 👉 Media Library Tools [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
+
+[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
+
+
 == 🏆 Media File Rename ==
 
 Optimizing media file names provides valuable SEO benefits. By using descriptive and keyword-rich filenames, search engines can better understand the content, leading to higher rankings and increased visibility.
@@ -76,8 +80,6 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 == 🏆 Media Content Editing ==
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
-
-[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
 
 == 🏆 Getting Started ==
@@ -112,7 +114,13 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.1.10 ( , 2023 ) =
+= 1.1.12 ( October 28, 2023 ) =
+* Fixed: Multisite issue.
+
+= 1.1.11 ( October 04, 2023 ) =
+* Fixed: Bulk Search Rubbish file error fix
+
+= 1.1.10 ( September 26, 2023 ) =
 * Support: Allow title empty.
 * Added: Rubbish File Balk Search
 

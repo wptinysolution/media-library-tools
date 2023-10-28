@@ -70,6 +70,7 @@ function DirectoryModal() {
         if ( prams.length <= 0) {
             setTimeout(async () => {
                 setButtonSpain( null );
+                setScanDir( null );
             }, 1000 );
             // Base case: All renaming operations are completed
             return;
