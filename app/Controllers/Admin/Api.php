@@ -412,7 +412,7 @@ class Api {
 		$_posts_query = new \WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
-			// Set Thumbnial Uploaded to
+			// Set Thumbnail Uploaded to
 			Fns::set_thumbnail_parent_id( $post->ID );
 
 			$thefile       = [];
