@@ -413,8 +413,16 @@ class Api {
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
 			// Set Thumbnail Uploaded to
-			Fns::set_thumbnail_parent_id( $post->ID );
-
+			$parent_id = Fns::set_thumbnail_parent_id( $post->ID );
+			$parent_title = '';
+			$parent_permalink = '';
+			if( $post->post_parent ){
+				$parent_title = get_the_title( $post->post_parent );
+				$parent_permalink = get_the_permalink( $post->post_parent );
+			} elseif ( $parent_id ){
+				$parent_title = get_the_title( $parent_id );
+				$parent_permalink = get_the_permalink( $parent_id );
+			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 			$attached_file = get_attached_file( $post->ID );
@@ -450,10 +458,7 @@ class Api {
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
-				'post_parents'   => $post->post_parent ? [
-					'title' => get_the_title( $post->post_parent ),
-					'permalink' => get_the_permalink( $post->post_parent )
-				] : [ 'title' => '', 'permalink' => '' ],
+				'post_parents'   => [ 'title' => $parent_title , 'permalink' => $parent_permalink ],
 				'post_excerpt'   => $post->post_excerpt,
 				'post_content'   => $post->post_content,
 				'post_name'      => $post->post_name,
