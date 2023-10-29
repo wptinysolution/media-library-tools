@@ -4,6 +4,7 @@ import { Menu, Layout } from 'antd';
 
 import {
     EditOutlined,
+    ExportOutlined,
     DeleteOutlined,
     SettingOutlined,
     ContactsOutlined,
@@ -24,10 +25,10 @@ function MainHeader() {
 
     const menuItemStyle = {
         borderRadius: 0,
-        paddingInline: '35px',
+        paddingInline: '25px',
         display: 'inline-flex',
         alignItems: 'center',
-        fontSize:'18px'
+        fontSize:'15px'
     }
     const iconStyle = {
         fontSize: '18px',
@@ -58,8 +59,14 @@ function MainHeader() {
             style: menuItemStyle,
         },
         {
+            key: 'exportImport',
+            label: 'Export/Import',
+            icon: <ExportOutlined style={iconStyle} />,
+            style: menuItemStyle,
+        },
+        {
             key: 'needSupport',
-            label: 'Need Support',
+            label: 'Get Support',
             icon: <ContactsOutlined style={iconStyle} />,
             style: menuItemStyle,
         }
@@ -69,7 +76,7 @@ function MainHeader() {
 
         <Header className="header" style={{
             paddingInline: 0,
-            height: '70px',
+            height: '65px',
         }}>
             <Menu
                 style={{

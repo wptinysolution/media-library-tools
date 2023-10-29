@@ -16,6 +16,8 @@ const { Sider } = Layout;
 
 import ProModal from "./ProModal";
 
+import ExportImport from "./ExportImport";
+
 import Settings from "./Settings";
 
 import NeedSupport from "./NeedSupport";
@@ -214,7 +216,7 @@ function App() {
                     { 'mediaTable' === getContentType() && <Datatable /> }
                     { 'mediaRename' === getContentType() && <RenamerTableData/> }
                     { 'rubbishFile' === getContentType() && <RubbishFile/> }
-                    {/*{ 'hasExtended' === getContentType() && <Extended/> }*/}
+                    { 'exportImport' === getContentType() && <ExportImport/> }
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
                 <ProModal/>
