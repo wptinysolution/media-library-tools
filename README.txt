@@ -116,6 +116,7 @@ To search for images by categories, users can find the categories box near the F
 
 = 1. ( , 2023 ) =
 * Added: Auto add image parent post
+* Fixed: Multisite issue for Unnecessary file.
 
 = 1.1.12 ( October 28, 2023 ) =
 * Fixed: Multisite issue.
