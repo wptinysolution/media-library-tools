@@ -278,9 +278,13 @@ class Fns {
 
 		global $wpdb;
 
+		$upload_dir      = wp_upload_dir();
+		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
+
 		foreach ( $found_files as $file_path ) {
 			$search_string = '';
-			$str           = explode( 'wp-content/uploads/', $file_path );
+			$str           = explode( $uploaddir.'/', $file_path );
+			
 			if ( is_array( $str ) && ! empty( $str[1] ) ) {
 				$search_string = $str[1];
 			}
