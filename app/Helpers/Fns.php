@@ -300,7 +300,7 @@ class Fns {
 				);
 			}
 
-			if ( absint( $attachment_id ) ) {
+			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
 				continue;
 			}
 
