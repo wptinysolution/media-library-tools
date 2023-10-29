@@ -403,7 +403,7 @@ class Fns {
 	/**
 	 * @param $attachment_id
 	 *
-	 * @return void
+	 * @return int|void
 	 */
 	public static function set_thumbnail_parent_id( $attachment_id ){
 
@@ -430,6 +430,7 @@ class Fns {
 		);
 		// Update the attachment using wp_update_post
 		wp_update_post($attachment_data);
+		return $parent_id;
 	}
 
 
