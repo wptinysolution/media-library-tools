@@ -114,6 +114,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1. ( , 2023 ) =
+* Added: Auto add image parent post
+
 = 1.1.12 ( October 28, 2023 ) =
 * Fixed: Multisite issue.
 

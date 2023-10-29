@@ -412,6 +412,9 @@ class Api {
 		$_posts_query = new \WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
+			// Set Thumbnail Uploaded to
+			Fns::set_thumbnail_parent_id( $post->ID );
+
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 			$attached_file = get_attached_file( $post->ID );
