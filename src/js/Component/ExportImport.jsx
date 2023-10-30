@@ -40,7 +40,7 @@ function ExportImport() {
                     marginLeft: 'auto',
                     marginRight: 'auto'
                 } }>
-                    <Title level={5}> Export File to a CSV file</Title>
+                    <Title level={3}> Export File to a CSV file</Title>
                     <Text type="secondary" >
                         This tool allows you to generate and download a CSV file containing a list of all media file.
                     </Text>
@@ -54,18 +54,19 @@ function ExportImport() {
                     />
                     <Divider />
                 </Content>
-                <Content style={ {
-                    display: 'flex',
-                    justifyContent: 'center'
-                } }>
-                    <Space className="button-wrapper" >
-                        <Button type="primary" size={`large`}  style={ buttonStyle } >
-                            <ExportOutlined/> <span>Export</span> <Spin size="small" />
-                        </Button>
-                        <Button type="primary" size={`large`} style={ buttonStyle } >
-                            <ImportOutlined/> Import <Spin size="small" />
-                        </Button>
-                    </Space>
+                <Content
+                    className={`csv-export-import-btn-wrapper`}
+                    style={ {
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '15px'
+                    } }>
+                    <Button type="primary" size={`large`}  style={ buttonStyle } >
+                        <ExportOutlined/> Export <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span>
+                    </Button>
+                    <Button type="primary" size={`large`} style={ buttonStyle } >
+                        <ImportOutlined/> Import <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span>
+                    </Button>
                 </Content>
             </Content>
         </Layout>
