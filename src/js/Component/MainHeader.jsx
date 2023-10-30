@@ -60,7 +60,7 @@ function MainHeader() {
         },
         {
             key: 'exportImport',
-            label: 'Export/Import',
+            label: 'Export / Import',
             icon: <ExportOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
