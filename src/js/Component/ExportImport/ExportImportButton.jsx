@@ -51,8 +51,29 @@ function ExportImportButton() {
                 background: 'rgb(255 255 255 / 35%)',
                 borderRadius: '5px',
                 boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
+                display: 'flex',
+                alignItems: 'center'
             }}>
-                { isExportImport && <ExportImportInfo/> }
+                { isExportImport &&
+                    <Layout>
+                        <ExportImportInfo/>
+                        <Button
+                            style={
+                                {
+                                    ...buttonStyle,
+                                    marginLeft: 'auto',
+                                    marginRight: 'auto',
+                                }
+                            }
+                            type="primary"
+                            size={`large`}
+                            onClick={ () => handleExportImport( 'reset' ) }
+                        >
+                            Cancel
+                        </Button>
+                    </Layout>
+                }
+
                 { ! isExportImport &&
                     <Content
                         className={`csv-export-import-btn-wrapper`}
@@ -61,7 +82,7 @@ function ExportImportButton() {
                             justifyContent: 'center',
                             gap: '15px'
                         } }
-                    >
+                        >
                         <Button
                             type="primary"
                             size={`large`}

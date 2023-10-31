@@ -13,12 +13,15 @@ function ExportImportInfo() {
     const [stateValue, dispatch] = useStateValue();
 
     const isExport = stateValue.exportImport.isExport && ! stateValue.exportImport.isImport;
+
     const isImport = stateValue.exportImport.isImport && ! stateValue.exportImport.isExport ;
+
     return (
             <Content style={ {
                 maxWidth: '700px',
                 marginLeft: 'auto',
-                marginRight: 'auto'
+                marginRight: 'auto',
+                width: '100%'
             } }>
                 <Title level={3}>
                     { isExport && 'Export File to a CSV file' }
