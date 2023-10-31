@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography} from 'antd';
+import { Divider, Modal, Popconfirm, Progress, Layout, Button, Spin, Space, Typography} from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -44,6 +44,15 @@ function ExportImportButton() {
         })
     }
 
+    const confirm = (e) => {
+        console.log(e);
+        message.success('Click on Yes');
+    };
+    const cancel = (e) => {
+        console.log(e);
+        message.error('Click on No');
+    };
+
     return (
         <Layout className="layout">
             <Content style={{
@@ -83,14 +92,23 @@ function ExportImportButton() {
                             gap: '15px'
                         } }
                         >
+                        <Popconfirm
+                            placement="topLeft"
+                            title={'Export Now?'}
+                            description={'Are you sure to Export media file?'}
+                            okText="Yes"
+                            cancelText="No"
+                            onConfirm={ () => handleExportImport( 'export' ) }
+                            onCancel={cancel}
+                        >
                         <Button
                             type="primary"
                             size={`large`}
                             style={ buttonStyle }
-                            onClick={ () => handleExportImport( 'export' ) }
                         >
                             <ExportOutlined/> Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
+                        </Popconfirm>
                         <Button
                             type="primary"
                             size={`large`}
