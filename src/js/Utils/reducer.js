@@ -85,6 +85,11 @@ export const initialState = {
 		scanDirNextSchedule: '',
 		scanRubbishDirLoading: true,
 	},
+    exportImport:{
+        isExport : false,
+        isImport : false,
+        percent : 50
+    },
 };
 
 const reducer = (state, action) => {
@@ -139,6 +144,11 @@ const reducer = (state, action) => {
 				...state,
 				bulkRubbishData : action.bulkRubbishData,
 			};
+        case Types.EXPORT_IMPORT:
+            return {
+                ...state,
+                exportImport : action.exportImport,
+            };
 		default:
 			return state;
 	}
