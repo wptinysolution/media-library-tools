@@ -15,7 +15,7 @@ import {
 import {useStateValue} from "../../Utils/StateProvider";
 import ExportImportInfo from "./ExportImportInfo";
 import * as Types from "../../Utils/actionType";
-import {EXPORT_IMPORT} from "../../Utils/actionType";
+import DownloadCSV from "./DownloadCSV";
 
 const buttonStyle = {
     width: '200px',
@@ -41,16 +41,14 @@ function ExportImportButton() {
                 isExport : 'export' === type && 'import' !== type,
                 isImport : 'import' === type && 'export' !== type,
             },
-        })
+        });
     }
 
     const confirm = (e) => {
-        console.log(e);
-        message.success('Click on Yes');
+        handleExportImport( 'export' );
     };
     const cancel = (e) => {
         console.log(e);
-        message.error('Click on No');
     };
 
     return (
@@ -66,6 +64,7 @@ function ExportImportButton() {
                 { isExportImport &&
                     <Layout>
                         <ExportImportInfo/>
+                        <DownloadCSV/>
                         <Button
                             style={
                                 {
@@ -98,7 +97,7 @@ function ExportImportButton() {
                             description={'Are you sure to Export media file?'}
                             okText="Yes"
                             cancelText="No"
-                            onConfirm={ () => handleExportImport( 'export' ) }
+                            onConfirm={ confirm }
                             onCancel={cancel}
                         >
                         <Button
