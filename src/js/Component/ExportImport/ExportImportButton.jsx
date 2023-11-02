@@ -34,6 +34,18 @@ function ExportImportButton() {
     const isExportImport = stateValue.exportImport.isExport || stateValue.exportImport.isImport;
 
     const handleExportImport = ( type ) => {
+
+        if ( ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
+
         dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: {

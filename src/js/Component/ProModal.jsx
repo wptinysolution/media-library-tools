@@ -61,15 +61,15 @@ function ProModal() {
                 maxWidth: "630px"
             }}
             width="100%"
-            title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> You have to buy pro version for this features. </Title> }
+            title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> To access these features, you'll need to purchase the pro version. </Title> }
             open={ stateValue.generalData.openProModal }
             onCancel={handleBulkModalCancel}
             footer={[
                 <Button key="rescan" onClick={ handleBulkModalCancel }> Cancel </Button>,
                 <Button key="prourl" type="primary">
-                    <a className={'ant-btn'} target={`_blank`} href={tsmltParams.proLink}>Get Pro Version</a>
+                    <a className={'ant-btn'} target={`_blank`} href={ `${tsmltParams.proLink}#tiny-pricing-plan` }>Get Pro Version</a>
                 </Button>,
-                <a className={'ant-btn'} target={`_blank`} href={ `${tsmltParams.proLink}#tsmlt-pro-page-footer` }>Get Discount </a>
+                <a key="weburl" className={'ant-btn'} target={`_blank`} href={ tsmltParams.proLink }>Visit Websites</a>
             ]}
         >
             <Content style={{ height: "550px", position:'relative', 'overflowY': 'auto' }}>
