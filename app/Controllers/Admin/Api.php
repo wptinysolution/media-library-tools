@@ -198,7 +198,7 @@ class Api {
 				foreach ( $get_date as $date ) {
 					$dates[] = [
 						'value' => $date,
-						'label' => date( 'F Y', strtotime( $date ) ),
+						'label' => date( 'M Y', strtotime( $date ) ),
 					];
 				}
 			}
