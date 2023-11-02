@@ -64,21 +64,27 @@ function ExportImportButton() {
                 { isExportImport &&
                     <Layout>
                         <ExportImportInfo/>
-                        <DownloadCSV/>
-                        <Button
-                            style={
-                                {
-                                    ...buttonStyle,
-                                    marginLeft: 'auto',
-                                    marginRight: 'auto',
-                                }
-                            }
-                            type="primary"
-                            size={`large`}
-                            onClick={ () => handleExportImport( 'reset' ) }
+                        <Space wrap
+                            style={ {
+                                justifyContent: 'center'
+                            } }
                         >
-                            Cancel
-                        </Button>
+                            <DownloadCSV/>
+                            <Button
+                                style={
+                                    {
+                                        ...buttonStyle,
+                                        marginLeft: 'auto',
+                                        marginRight: 'auto',
+                                    }
+                                }
+                                type="primary"
+                                size={`large`}
+                                onClick={ () => handleExportImport( 'reset' ) }
+                            >
+                                Cancel
+                            </Button>
+                        </Space>
                     </Layout>
                 }
 
