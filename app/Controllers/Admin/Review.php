@@ -648,14 +648,19 @@ class Review {
                     var feedback = $('#deactivation-feedback-<?php echo esc_attr( $this->textdomain ); ?>').val();
                     var better_plugin = $('#deactivation-dialog-<?php echo esc_attr( $this->textdomain ); ?> .modal-content input[name="reason_found_a_better_plugin"]').val();
                     // Perform AJAX request to submit feedback
-                    if (!reasons && !feedback && !better_plugin) {
+                    if ( 'temporary_deactivation' !== reasons && ! feedback ) {
+                        // Enable the submit button and update its text
+                        button.prop('disabled', false);
+                        button.html('Send Feedback & Deactivate');
+                        $('.feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?> span').text('Kindly provide additional details so we can address it in future updates.');
+                        return;
+                    }
+                    if (!reasons && !better_plugin) {
                         // Enable the submit button and update its text
                         button.prop('disabled', false);
                         button.html('Send Feedback & Deactivate');
                         // Define flag variables
                         $('#feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?> span').text('Choose The Reason');
-                        $('.feedback-text-wrapper-<?php echo esc_attr( $this->textdomain ); ?> span').text('Please provide me with some advice.');
-                        return;
                     }
 
                     if ('temporary_deactivation' == reasons && !feedback) {
