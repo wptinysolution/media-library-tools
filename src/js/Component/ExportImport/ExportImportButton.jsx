@@ -63,7 +63,6 @@ function ExportImportButton() {
                 ...theMediaCount
             }
         }
-
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: exportImport,
@@ -87,6 +86,7 @@ function ExportImportButton() {
                 display: 'flex',
                 alignItems: 'center'
             }}>
+
                 { isExportImport &&
                     <Layout>
                         <ExportImportInfo/>
@@ -95,7 +95,8 @@ function ExportImportButton() {
                                 justifyContent: 'center'
                             } }
                         >
-                            <DownloadCSV/>
+                            { 100 >= stateValue.exportImport.percent && <DownloadCSV/> }
+
                             <Button
                                 style={
                                     {

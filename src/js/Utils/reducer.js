@@ -89,9 +89,9 @@ export const initialState = {
         isExport : false,
         isImport : false,
         mediaFile: [],
-        fileCount : 500,
-        percent : 50,
-        totalPage: 10
+        fileCount : 0,
+        percent : 0,
+        totalPage: 0
     },
 };
 
