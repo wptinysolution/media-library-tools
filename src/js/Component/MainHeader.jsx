@@ -53,15 +53,15 @@ function MainHeader() {
             style: menuItemStyle,
         },
         {
-            key: 'rubbishFile',
-            label: 'Rubbish file',
-            icon: <DeleteOutlined style={iconStyle} />,
-            style: menuItemStyle,
-        },
-        {
             key: 'exportImport',
             label: 'Export / Import',
             icon: <ExportOutlined style={iconStyle} />,
+            style: menuItemStyle,
+        },
+        {
+            key: 'rubbishFile',
+            label: 'Rubbish file',
+            icon: <DeleteOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {

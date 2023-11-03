@@ -215,8 +215,8 @@ function App() {
                     { 'settings' === getContentType() && <Settings/>  }
                     { 'mediaTable' === getContentType() && <Datatable /> }
                     { 'mediaRename' === getContentType() && <RenamerTableData/> }
-                    { 'rubbishFile' === getContentType() && <RubbishFile/> }
                     { 'exportImport' === getContentType() && <ExportImportButton/> }
+                    { 'rubbishFile' === getContentType() && <RubbishFile/> }
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
                 <ProModal/>
