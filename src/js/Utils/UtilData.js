@@ -16,14 +16,15 @@ import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShow
 const { TextArea } = Input;
 
 export const headerStyle = {
-    height: 64,
+    height: 'auto',
     paddingInline: 0,
-    lineHeight: '64px',
+    lineHeight: '1',
     backgroundColor: '#fff',
+    padding: '15px 0'
 };
 
 export const selectStyle = {
-    width: 130,
+    width: 250,
     paddingInline: 0,
 }
 
