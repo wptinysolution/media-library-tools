@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 
 import { Divider, Progress, Layout, Typography} from 'antd';
 
@@ -7,6 +7,8 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "../../Utils/actionType";
+import {getAttachmentPageByPage} from "../../Utils/Data";
 
 function ExportImportInfo() {
 
@@ -15,6 +17,37 @@ function ExportImportInfo() {
     const isExport = stateValue.exportImport.isExport && ! stateValue.exportImport.isImport;
 
     const isImport = stateValue.exportImport.isImport && ! stateValue.exportImport.isExport ;
+
+    const getMediaRecursively = async ( totalPage ) => {
+
+        await dispatch({
+            type: Types.EXPORT_IMPORT,
+            exportImport: {
+                ...stateValue.exportImport,
+                percent:  Math.floor( 100 * ( stateValue.exportImport.totalPage - totalPage ) / stateValue.exportImport.totalPage )
+            },
+        });
+
+        if ( totalPage <= 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+        const totalPagesRemaining = totalPage - 1;
+        // Recur with the rest of the IDs in the list
+        const response = await getAttachmentPageByPage( { paged : stateValue.exportImport.totalPage - totalPagesRemaining } );
+        await getMediaRecursively( totalPagesRemaining );
+        console.log( response );
+        return response;
+    }
+
+    const getTheMediaRecursively = async () => {
+        const response = await getMediaRecursively( stateValue.exportImport.totalPage );
+
+    };
+
+    useEffect(() => {
+        getTheMediaRecursively();
+    }, [] );
 
     return (
             <Content style={ {

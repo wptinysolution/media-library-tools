@@ -88,7 +88,10 @@ export const initialState = {
     exportImport:{
         isExport : false,
         isImport : false,
-        percent : 50
+        mediaFile: [],
+        fileCount : 500,
+        percent : 50,
+        totalPage: 10
     },
 };
 

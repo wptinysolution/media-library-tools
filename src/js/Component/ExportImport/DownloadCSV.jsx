@@ -2,6 +2,8 @@ import React from 'react';
 import { CSVLink } from "react-csv";
 import {useStateValue} from "../../Utils/StateProvider";
 import {Button} from "antd";
+import * as Types from "../../Utils/actionType";
+import {getMedia, singleUpDateApi} from "../../Utils/Data";
 
 const buttonStyle = {
     width: '200px',
@@ -16,6 +18,42 @@ const buttonStyle = {
 function DownloadCSV() {
 
     const [stateValue, dispatch] = useStateValue();
+
+    /*
+    const getMediaRecursively = async ( prams ) => {
+        dispatch({
+            type: Types.BULK_SUBMIT,
+            bulkSubmitData: {
+                ...stateValue.bulkSubmitData,
+                progressBar: Math.floor( 100 * ( stateValue.bulkSubmitData.progressTotal - prams.ids.length ) / stateValue.bulkSubmitData.progressTotal ),
+            },
+        });
+        if ( prams.ids.length === 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+        const id = prams.ids[0];
+        const newName = 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ? 'bulkRenameByPostTitle' : prams.data.file_name ;
+        // Simulate the renaming operation using an asynchronous function (e.g., API call)
+        const response = await singleUpDateApi( { newname: newName, ID: id });
+        // Recur with the rest of the IDs in the list
+        if( prams.ids.length && response.status ){
+            await getMediaRecursively( { ...prams, ids: prams.ids.slice(1) } );
+        }
+        return response;
+    }
+
+    const handleBulkModalOk = async () => {
+
+        const response = await getMediaRecursively( stateValue.bulkSubmitData );
+        if( 200 === response?.status ){
+
+        }
+    };
+
+    */
+
+
 
     const headers = [
         { label: "First Name", key: "firstname" },

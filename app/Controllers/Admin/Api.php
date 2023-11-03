@@ -5,6 +5,7 @@ namespace TinySolutions\mlt\Controllers\Admin;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
+use WP_Query;
 
 class Api {
 
@@ -37,6 +38,13 @@ class Api {
 			'callback'            => [ $this, 'get_media' ],
 			'permission_callback' => [ $this, 'login_permission_callback' ],
 		) );
+
+		register_rest_route( $this->namespace, $this->resource_name. '/mediaCount', array(
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'media_count' ],
+			'permission_callback' => [ $this, 'login_permission_callback' ],
+		) );
+
 		register_rest_route( $this->namespace, $this->resource_name . '/update', array(
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'update_single_media' ],
@@ -264,9 +272,7 @@ class Api {
 				$result['updated'] = wp_update_post( $submit );
 				$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 			}
-
 			return $result;
-
 		}
 
 
@@ -327,6 +333,30 @@ class Api {
 
 		return $result;
 	}
+
+	/**
+	 * @return array
+	 */
+	public function media_count() {
+		$options = get_option( 'tsmlt_settings' );
+		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
+
+		$media_query = new WP_Query([
+			'post_type' => 'attachment', // Media files are attachments in WordPress
+			'posts_per_page' => $limit, // Retrieve all media files
+			'post_status'    => 'any',
+			'orderby'        => 'ID',
+			'order'          => 'DESC',
+		]);
+
+		$totalPage = $media_query->max_num_pages; // Assuming 50 media files per page
+
+		return [
+			'fileCount' => $media_query->found_posts,
+			'totalPage' => $totalPage
+		];
+	}
+
 
 	/**
 	 * @param $request_data
@@ -409,7 +439,7 @@ class Api {
 		}
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 
-		$_posts_query = new \WP_Query( $args );
+		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
 			// Set Thumbnail Uploaded to

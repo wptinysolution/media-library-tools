@@ -267,6 +267,26 @@ export const updateExtensionOptions = async ( prams ) => {
 
 /**
  *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const getAttachmentPageByPage = async (prams) => {
+    const response = await Api.get(`/get/attachment/page/by/page`, prams);
+    return JSON.parse( response.data );
+}
+
+/**
+ *
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const mediaCount = async () => {
+    const result = await Api.get(`/mediaCount`);
+    return result.data;
+}
+
+
+/**
+ *
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const clearSchedule = async () => {

@@ -16,6 +16,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 import ExportImportInfo from "./ExportImportInfo";
 import * as Types from "../../Utils/actionType";
 import DownloadCSV from "./DownloadCSV";
+import {mediaCount} from "../../Utils/Data";
 
 const buttonStyle = {
     width: '200px',
@@ -33,7 +34,7 @@ function ExportImportButton() {
 
     const isExportImport = stateValue.exportImport.isExport || stateValue.exportImport.isImport;
 
-    const handleExportImport = ( type ) => {
+    const handleExportImport = async ( type ) => {
 
         if ( ! tsmltParams.hasExtended ){
             dispatch({
@@ -46,13 +47,26 @@ function ExportImportButton() {
             return;
         }
 
-        dispatch({
+        const isExport = 'export' === type && 'import' !== type;
+        const isImport = 'import' === type && 'export' !== type;
+
+        let exportImport = {
+            ...stateValue.exportImport,
+            isExport,
+            isImport,
+        }
+
+        if( isExport ){
+            const theMediaCount = await mediaCount();
+            exportImport = {
+                ...exportImport,
+                ...theMediaCount
+            }
+        }
+
+        await dispatch({
             type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                isExport : 'export' === type && 'import' !== type,
-                isImport : 'import' === type && 'export' !== type,
-            },
+            exportImport: exportImport,
         });
     }
 
