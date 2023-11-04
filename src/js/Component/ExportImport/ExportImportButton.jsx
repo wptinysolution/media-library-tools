@@ -118,8 +118,7 @@ function ExportImportButton() {
                 }
 
                 { ! isExportImport &&
-                    <Content
-                        className={`csv-export-import-btn-wrapper`}
+                    <Content className={`csv-export-import-btn-wrapper`}
                         style={ {
                             display: 'flex',
                             justifyContent: 'center',

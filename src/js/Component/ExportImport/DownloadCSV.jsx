@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { CSVLink } from "react-csv";
 import {useStateValue} from "../../Utils/StateProvider";
 import {Button} from "antd";
-import * as Types from "../../Utils/actionType";
-import {getMedia, singleUpDateApi} from "../../Utils/Data";
 
 const buttonStyle = {
     width: '200px',
@@ -48,7 +46,7 @@ function DownloadCSV() {
     return (
         <>
             { stateValue.exportImport.mediaFiles.length &&
-                <CSVLink data={mediaFiles} headers={headers}>
+                <CSVLink data={mediaFiles} headers={headers} filename={ `export-csv-file-by-media-library-tools.csv` } >
                     <Button
                         style={
                             {
