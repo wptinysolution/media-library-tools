@@ -95,7 +95,8 @@ function ExportImportButton() {
                                 justifyContent: 'center'
                             } }
                         >
-                            { 100 >= stateValue.exportImport.percent && <DownloadCSV/> }
+
+                            { 100 <= stateValue.exportImport.percent && <DownloadCSV/> }
 
                             <Button
                                 style={

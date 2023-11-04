@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 import { Divider, Progress, Layout, Typography} from 'antd';
 
@@ -14,44 +14,51 @@ function ExportImportInfo() {
 
     const [stateValue, dispatch] = useStateValue();
 
+    const [percent, setPercent] = useState(0);
+
     const isExport = stateValue.exportImport.isExport && ! stateValue.exportImport.isImport;
 
     const isImport = stateValue.exportImport.isImport && ! stateValue.exportImport.isExport ;
 
     const getMediaRecursively = async ( totalPage ) => {
+        const countPercent = Math.floor( 100 * ( stateValue.exportImport.totalPage - totalPage ) / stateValue.exportImport.totalPage );
+        //  setPercent( countPercent );
+        setPercent( countPercent );
 
-        const percent = Math.floor( 100 * ( stateValue.exportImport.totalPage - totalPage ) / stateValue.exportImport.totalPage );
+        if ( totalPage <= 0) {
+            return await dispatch({
+                type: Types.EXPORT_IMPORT,
+                exportImport: {
+                    ...stateValue.exportImport,
+                    percent: countPercent
+                },
+            });
+            // Base case: All renaming operations are completed
+
+        }
+
+        const totalPagesRemaining = totalPage - 1;
+        const paged = stateValue.exportImport.totalPage - totalPagesRemaining;
+        // Recur with the rest of the IDs in the list
+        const response = await getAttachmentPageByPage( { paged } );
+
+        setTimeout(async () => {
+             await getMediaRecursively( totalPagesRemaining );
+        }, 500);
+
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: {
                 ...stateValue.exportImport,
-                percent: percent
+                percent: countPercent,
+                mediaFile: {
+                    ...stateValue.exportImport.mediaFile,
+                    ...response,
+                }
             },
         });
 
-        if ( totalPage <= 0) {
-            // Base case: All renaming operations are completed
-            return;
-        }
-
-        const totalPagesRemaining = totalPage - 1;
-        // Recur with the rest of the IDs in the list
-       // const response = await getAttachmentPageByPage( { paged : stateValue.exportImport.totalPage - totalPagesRemaining } );
-        await getMediaRecursively( totalPagesRemaining );
-
-       // console.log(  'Hello : ' + Math.random() ,  stateValue.exportImport.percent )
-
-        // await dispatch({
-        //     type: Types.EXPORT_IMPORT,
-        //     exportImport: {
-        //         ...stateValue.exportImport,
-        //         mediaFile: {
-        //             ...stateValue.exportImport.mediaFile,
-        //             ...response,
-        //         }
-        //     },
-        // });
-        // return response;
+        return response;
     }
 
     const getTheMediaRecursively = async () => {
@@ -69,6 +76,7 @@ function ExportImportInfo() {
                 marginRight: 'auto',
                 width: '100%'
             } }>
+                { console.log( stateValue.exportImport ) }
                 <Title level={3}>
                     { isExport && 'Export File to a CSV file' }
                     { isImport && 'Import File from a CSV file' }
@@ -83,7 +91,7 @@ function ExportImportInfo() {
                     style={ {
                         height: '30px'
                     } }
-                    showInfo={true} percent={ stateValue.exportImport.percent }
+                    showInfo={true} percent={ percent }
                 />
                 <Divider />
             </Content>
