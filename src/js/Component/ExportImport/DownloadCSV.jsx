@@ -31,6 +31,8 @@ function DownloadCSV() {
         { firstname: "Yezzi", lastname: "Min l3b", email: "ymin@cocococo.com" }
     ];
 
+    console.log( stateValue.exportImport.mediaFiles );
+
     return (
         <CSVLink data={data} headers={headers}>
             <Button

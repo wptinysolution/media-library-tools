@@ -95,23 +95,24 @@ function ExportImportButton() {
                                 justifyContent: 'center'
                             } }
                         >
-
-                            { 100 <= stateValue.exportImport.percent && <DownloadCSV/> }
-
-                            <Button
-                                style={
-                                    {
-                                        ...buttonStyle,
-                                        marginLeft: 'auto',
-                                        marginRight: 'auto',
+                            { 100 <= stateValue.exportImport.percent && <>
+                                <DownloadCSV/>
+                                <Button
+                                    style={
+                                        {
+                                            ...buttonStyle,
+                                            marginLeft: 'auto',
+                                            marginRight: 'auto',
+                                        }
                                     }
-                                }
-                                type="primary"
-                                size={`large`}
-                                onClick={ () => handleExportImport( 'reset' ) }
-                            >
-                                Cancel
-                            </Button>
+                                    type="primary"
+                                    size={`large`}
+                                    onClick={ () => handleExportImport( 'reset' ) }
+                                >
+                                    Cancel
+                                </Button>
+                            </> }
+
                         </Space>
                     </Layout>
                 }

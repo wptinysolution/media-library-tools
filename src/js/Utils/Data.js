@@ -272,7 +272,7 @@ export const updateExtensionOptions = async ( prams ) => {
  */
 export const getAttachmentPageByPage = async (prams) => {
     const response = await Api.get(`/get/attachment/page/by/page`, {params: prams});
-    return JSON.parse( response.data );
+    return response.data;
 }
 
 /**
