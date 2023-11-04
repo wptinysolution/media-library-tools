@@ -20,10 +20,6 @@ function ExportImportInfo() {
 
     const getMediaRecursively = async ( totalPage ) => {
 
-        if ( totalPage <= 0) {
-            // Base case: All renaming operations are completed
-            return;
-        }
         const percent = Math.floor( 100 * ( stateValue.exportImport.totalPage - totalPage ) / stateValue.exportImport.totalPage );
         await dispatch({
             type: Types.EXPORT_IMPORT,
@@ -33,24 +29,29 @@ function ExportImportInfo() {
             },
         });
 
+        if ( totalPage <= 0) {
+            // Base case: All renaming operations are completed
+            return;
+        }
+
         const totalPagesRemaining = totalPage - 1;
         // Recur with the rest of the IDs in the list
-        const response = await getAttachmentPageByPage( { paged : stateValue.exportImport.totalPage - totalPagesRemaining } );
+       // const response = await getAttachmentPageByPage( { paged : stateValue.exportImport.totalPage - totalPagesRemaining } );
         await getMediaRecursively( totalPagesRemaining );
 
        // console.log(  'Hello : ' + Math.random() ,  stateValue.exportImport.percent )
 
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                mediaFile: {
-                    ...stateValue.exportImport.mediaFile,
-                    ...response,
-                }
-            },
-        });
-        return response;
+        // await dispatch({
+        //     type: Types.EXPORT_IMPORT,
+        //     exportImport: {
+        //         ...stateValue.exportImport,
+        //         mediaFile: {
+        //             ...stateValue.exportImport.mediaFile,
+        //             ...response,
+        //         }
+        //     },
+        // });
+        // return response;
     }
 
     const getTheMediaRecursively = async () => {
