@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CSVLink } from "react-csv";
 import {useStateValue} from "../../Utils/StateProvider";
 import {Button} from "antd";
@@ -15,40 +15,56 @@ const buttonStyle = {
     gap: '5px'
 }
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
 function DownloadCSV() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const headers = [
-        { label: "First Name", key: "firstname" },
-        { label: "Last Name", key: "lastname" },
-        { label: "Email", key: "email" }
-    ];
+    const [headers, setHeaders] = useState([]);
 
-    const data = [
-        { firstname: "Ahmed", lastname: "Tomi", email: "ah@smthing.co.com" },
-        { firstname: "Raed", lastname: "Labes", email: "rl@smthing.co.com" },
-        { firstname: "Yezzi", lastname: "Min l3b", email: "ymin@cocococo.com" }
-    ];
+    const [mediaFiles, setMediaFiles] = useState([]);
 
-    console.log( stateValue.exportImport.mediaFiles );
+    const generateCSVStructure = async () => {
+        const media = stateValue.exportImport.mediaFiles;
+        if( ! media.length ){
+            return;
+        }
+        // Extract keys from the first item in the array
+        const keys = Object.keys(media[0]).map( ( item ) => (
+            { label: item, key: item }
+        ) );
+        setHeaders( (prevState) => keys );
+        setMediaFiles( (prevState) => media );
+    };
+
+    useEffect(() => {
+        generateCSVStructure();
+    }, []);
 
     return (
-        <CSVLink data={data} headers={headers}>
-            <Button
-                style={
-                    {
-                        ...buttonStyle,
-                        marginLeft: 'auto',
-                        marginRight: 'auto',
-                    }
-                }
-                type="primary"
-                size={`large`}
-            >
-                Download CSV
-            </Button>
-        </CSVLink>
+        <>
+            { stateValue.exportImport.mediaFiles.length &&
+                <CSVLink data={mediaFiles} headers={headers}>
+                    <Button
+                        style={
+                            {
+                                ...buttonStyle,
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                            }
+                        }
+                        type="primary"
+                        size={`large`}
+                    >
+                        Download CSV
+                    </Button>
+                </CSVLink>
+            }
+        </>
     );
 }
 

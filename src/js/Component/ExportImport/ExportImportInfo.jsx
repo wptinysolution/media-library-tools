@@ -8,11 +8,15 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 function ExportImportInfo() {
+
     const [stateValue, dispatch] = useStateValue();
+
     const [percent, setPercent] = useState(0);
+
     const [mediaFiles, setMediaFiles] = useState([]);
 
     const isExport = stateValue.exportImport.isExport && !stateValue.exportImport.isImport;
+
     const isImport = stateValue.exportImport.isImport && !stateValue.exportImport.isExport;
 
     const getMediaRecursively = async (totalPage, mediaFiles) => {
@@ -20,13 +24,6 @@ function ExportImportInfo() {
         setPercent( ( prevState ) => countPercent );
 
         if (totalPage <= 0) {
-            // await dispatch({
-            //     type: Types.EXPORT_IMPORT,
-            //     exportImport: {
-            //         ...stateValue.exportImport,
-            //         percent: countPercent, // Use the updated mediaFiles value
-            //     },
-            // });
             // Base case: All recursion is completed
             return {
                 mediaFiles,
@@ -50,7 +47,6 @@ function ExportImportInfo() {
     const getTheMediaRecursively = async () => {
         const finalMediaFiles = await getMediaRecursively(stateValue.exportImport.totalPage, mediaFiles);
         // Once the recursion is complete, update the state with the final mediaFiles
-        // setMediaFiles(finalMediaFiles);
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: {
@@ -63,8 +59,6 @@ function ExportImportInfo() {
     useEffect(() => {
         getTheMediaRecursively();
     }, []);
-
-    console.log( stateValue.exportImport );
 
     return (
         <Content style={{
