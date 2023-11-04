@@ -63,6 +63,17 @@ function ExportImportButton() {
                 ...theMediaCount
             }
         }
+
+        if( isImport ){
+            exportImport = {
+                ...exportImport,
+                mediaFiles: [],
+                fileCount : 0,
+                percent : 0,
+                totalPage: 0
+            }
+        }
+        console.log( exportImport )
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: exportImport,

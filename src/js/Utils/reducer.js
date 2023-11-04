@@ -88,7 +88,7 @@ export const initialState = {
     exportImport:{
         isExport : false,
         isImport : false,
-        mediaFile: [],
+        mediaFiles: [],
         fileCount : 0,
         percent : 0,
         totalPage: 0
