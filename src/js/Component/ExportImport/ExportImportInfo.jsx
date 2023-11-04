@@ -28,43 +28,47 @@ function ExportImportInfo() {
         setPercent( countPercent );
 
         if ( totalPage <= 0) {
-            return await dispatch({
-                type: Types.EXPORT_IMPORT,
-                exportImport: {
-                    ...stateValue.exportImport,
-                    mediaFile: mediaFiles,
-                    percent: countPercent
-                },
-            });
+            await dispatch( {
+                    type: Types.EXPORT_IMPORT,
+                    exportImport: {
+                        ...stateValue.exportImport,
+                        mediaFile: mediaFiles,
+                        percent: countPercent
+                    },
+                }
+            );
+            return;
             // Base case: All renaming operations are completed
         }
 
         const totalPagesRemaining = totalPage - 1;
         const paged = stateValue.exportImport.totalPage - totalPagesRemaining;
+
         // Recur with the rest of the IDs in the list
         const response = await getAttachmentPageByPage( { paged } );
 
-        setMediaFiles( {
-            ...mediaFiles
-        } );
+        await setMediaFiles( ( prevState) => ( {
+            ...prevState,
+            ...response
+        } ) );
 
-        setTimeout(async () => {
-             await getMediaRecursively( totalPagesRemaining );
-        }, 500);
+        console.log( response );
 
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                percent: countPercent,
-            },
-        });
+        await getMediaRecursively( totalPagesRemaining );
+
+        // await dispatch({
+        //     type: Types.EXPORT_IMPORT,
+        //     exportImport: {
+        //         ...stateValue.exportImport,
+        //         percent: countPercent,
+        //     },
+        // });
 
         return response;
     }
 
     const getTheMediaRecursively = async () => {
-        await getMediaRecursively( stateValue.exportImport.totalPage );
+        await getMediaRecursively(stateValue.exportImport.totalPage);
     };
 
     useEffect(() => {
@@ -78,7 +82,6 @@ function ExportImportInfo() {
                 marginRight: 'auto',
                 width: '100%'
             } }>
-                { console.log( stateValue.exportImport ) }
                 <Title level={3}>
                     { isExport && 'Export File to a CSV file' }
                     { isImport && 'Import File from a CSV file' }
