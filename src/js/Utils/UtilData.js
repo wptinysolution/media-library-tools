@@ -106,13 +106,13 @@ export const columnList = [
 
 const theImage = ( record ) => {
     let type = record.post_mime_type.split("/"),
-        width = 100,
+        width = 80,
         url;
     type = Array.isArray( type ) ? type[0] : '';
     switch ( type ) {
         case 'image':
             url = record.uploaddir + '/' + record.thefile.file;
-            width = 100;
+           // width = 80;
             break;
         case 'audio':
             url = `${tsmltParams.includesUrl}/images/media/audio.png`

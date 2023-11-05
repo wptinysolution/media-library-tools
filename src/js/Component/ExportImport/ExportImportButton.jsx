@@ -17,6 +17,7 @@ import ExportImportInfo from "./ExportImportInfo";
 import * as Types from "../../Utils/actionType";
 import DownloadCSV from "./DownloadCSV";
 import {mediaCount} from "../../Utils/Data";
+import UploadCsv from "./UploadCsv";
 
 const buttonStyle = {
     width: '200px',
@@ -73,7 +74,7 @@ function ExportImportButton() {
                 totalPage: 0
             }
         }
-        console.log( exportImport )
+
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: exportImport,
@@ -100,14 +101,23 @@ function ExportImportButton() {
 
                 { isExportImport &&
                     <Layout>
-                        <ExportImportInfo/>
+                        {
+                            stateValue.exportImport.isExport && <ExportImportInfo/>
+                        }
+
                         <Space wrap
                             style={ {
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                padding: '50px',
                             } }
                         >
-                            { 100 <= stateValue.exportImport.percent && <>
+                            { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&
                                 <DownloadCSV/>
+                            }
+                            { stateValue.exportImport.isImport &&
+                                <UploadCsv/>
+                            }
+                            { 100 <= stateValue.exportImport.percent &&
                                 <Button
                                     style={
                                         {
@@ -122,7 +132,7 @@ function ExportImportButton() {
                                 >
                                     Cancel
                                 </Button>
-                            </> }
+                            }
 
                         </Space>
                     </Layout>
