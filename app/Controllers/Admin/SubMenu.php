@@ -242,16 +242,14 @@ class SubMenu {
                                 Premium Plan
                                 <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
                                 <div class="price-for website-1 active-plan">
-                                    <span class="annual active-cycle"> $19.99 / Annual </span>
+                                    <span class="monthly active-cycle"> $8.99 / Monthly </span>
+                                    <span class="annual"> $19.99 / Annual </span>
                                     <span class="lifetime "> $69.99 / Lifetime </span>
                                 </div>
                                 <div class="price-for website-5">
+                                    <span class="monthly active-cycle"> $19.99 / Monthly </span>
                                     <span class="annual"> $69.99 / Annual </span>
                                     <span class="lifetime"> $149.99 / Lifetime </span>
-                                </div>
-                                <div class="price-for website-10">
-                                    <span class="annual"> $149.99 / Annual </span>
-                                    <span class="lifetime"> $299.99 / Lifetime </span>
                                 </div>
                             </li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
@@ -265,10 +263,10 @@ class SubMenu {
                                 <select id="licenses">
                                     <option value="1" selected="selected">Single Site License</option>
                                     <option value="5">5-Site License</option>
-                                    <option value="10">10-Site License</option>
                                 </select>
                                 <select id="billing_cycle">
-                                    <option value="annual" selected="selected">Annual</option>
+                                    <option value="monthly" selected="selected" >Monthly</option>
+                                    <option value="annual">Annual</option>
                                     <option value="lifetime">Lifetime</option>
                                 </select>
                                 <button id="purchase">Buy Now</button>
