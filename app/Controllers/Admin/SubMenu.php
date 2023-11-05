@@ -242,13 +242,13 @@ class SubMenu {
                                 Premium Plan
                                 <div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
                                 <div class="price-for website-1 active-plan">
-                                    <span class="monthly active-cycle"> $8.99 / Monthly </span>
-                                    <span class="annual"> $19.99 / Annual </span>
+                                    <span class="monthly"> $8.99 / Monthly </span>
+                                    <span class="annual active-cycle"> $19.99 / Annual </span>
                                     <span class="lifetime "> $69.99 / Lifetime </span>
                                 </div>
                                 <div class="price-for website-5">
-                                    <span class="monthly active-cycle"> $19.99 / Monthly </span>
-                                    <span class="annual"> $69.99 / Annual </span>
+                                    <span class="monthly"> $19.99 / Monthly </span>
+                                    <span class="annual active-cycle"> $69.99 / Annual </span>
                                     <span class="lifetime"> $149.99 / Lifetime </span>
                                 </div>
                             </li>
@@ -265,8 +265,8 @@ class SubMenu {
                                     <option value="5">5-Site License</option>
                                 </select>
                                 <select id="billing_cycle">
-                                    <option value="monthly" selected="selected" >Monthly</option>
-                                    <option value="annual">Annual</option>
+                                    <option value="monthly" >Monthly</option>
+                                    <option value="annual" selected="selected" >Annual</option>
                                     <option value="lifetime">Lifetime</option>
                                 </select>
                                 <button id="purchase">Buy Now</button>
@@ -398,6 +398,7 @@ class SubMenu {
                             e.preventDefault();
                         });
                 </script>
+
 			</div>
 		</div>
 		<?php
@@ -405,3 +406,6 @@ class SubMenu {
 
 
 }
+
+
+
