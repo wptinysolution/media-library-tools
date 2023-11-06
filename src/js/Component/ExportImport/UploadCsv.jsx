@@ -6,7 +6,7 @@ import {Button, Typography, Upload} from "antd";
 
 import {ImportOutlined, UploadOutlined} from "@ant-design/icons";
 
-import {fileUpload } from "../../Utils/Data";
+import {fileUpload, getAttachmentPageByPage} from "../../Utils/Data";
 
 import { usePapaParse } from 'react-papaparse';
 
@@ -59,7 +59,7 @@ function UploadCsv() {
                                 mediaFiles: results.data,
                                 fileCount : results.data.length,
                                 percent : 0,
-                                totalPage: 0
+                                totalPage: results.data.length
                             },
                         });
                     },
@@ -74,6 +74,7 @@ function UploadCsv() {
                 <>
                     <Button
                         icon={<ImportOutlined />}
+                        type="primary"
                         style={
                             {
                                 ...buttonStyle,
@@ -81,6 +82,13 @@ function UploadCsv() {
                                 marginRight: 'auto',
                             }
                         }
+                        onClick={ () => dispatch({
+                            type: Types.EXPORT_IMPORT,
+                            exportImport: {
+                                ...stateValue.exportImport,
+                                runImporter: true
+                            },
+                        })  }
                     >
                         Run the importer
                     </Button>

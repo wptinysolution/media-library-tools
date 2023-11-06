@@ -7,17 +7,13 @@ import { getAttachmentPageByPage } from "../../Utils/Data";
 const { Title, Text } = Typography;
 const { Content } = Layout;
 
-function ExportImportInfo() {
+function ExportInfo() {
 
     const [stateValue, dispatch] = useStateValue();
 
     const [percent, setPercent] = useState(0);
 
     const [mediaFiles, setMediaFiles] = useState([]);
-
-    const isExport = stateValue.exportImport.isExport && !stateValue.exportImport.isImport;
-
-    const isImport = stateValue.exportImport.isImport && !stateValue.exportImport.isExport;
 
     const getMediaRecursively = async (totalPage, mediaFiles) => {
         const countPercent = Math.floor(100 * (stateValue.exportImport.totalPage - totalPage) / stateValue.exportImport.totalPage);
@@ -68,12 +64,10 @@ function ExportImportInfo() {
             width: '100%'
         }}>
             <Title level={3}>
-                {isExport && 'Export File to a CSV file'}
-                {isImport && 'Import File from a CSV file'}
+                Export File to a CSV file
             </Title>
             <Text type="secondary" >
-                {isExport && 'This tool allows you to generate and download a CSV file containing a list of all media file.'}
-                {isImport && 'This tool allows you to import (or merge) Media data to your media library from a CSV.'}
+                This tool allows you to generate and download a CSV file containing a list of all media file.
             </Text>
             <Divider />
             <Progress
@@ -88,4 +82,4 @@ function ExportImportInfo() {
     )
 }
 
-export default ExportImportInfo;
+export default ExportInfo;

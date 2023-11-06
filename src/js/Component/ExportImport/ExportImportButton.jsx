@@ -12,7 +12,8 @@ import {
 } from '@ant-design/icons';
 
 import {useStateValue} from "../../Utils/StateProvider";
-import ExportImportInfo from "./ExportImportInfo";
+import ExportInfo from "./ExportInfo";
+import ImportInfo from "./ImportInfo";
 import * as Types from "../../Utils/actionType";
 import DownloadCSV from "./DownloadCSV";
 import {mediaCount} from "../../Utils/Data";
@@ -99,15 +100,21 @@ function ExportImportButton() {
             }}>
 
                 { isExportImport &&
-                    <Layout>
+                    <Layout
+                        style={ {
+                            padding: '50px',
+                        } }
+                    >
                         {
-                            stateValue.exportImport.isExport && <ExportImportInfo/>
+                            stateValue.exportImport.isExport && <ExportInfo/>
+                        }
+                        {
+                            stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
                         }
 
                         <Space wrap
                             style={ {
-                                justifyContent: 'center',
-                                padding: '50px',
+                                justifyContent: 'center'
                             } }
                         >
                             { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&

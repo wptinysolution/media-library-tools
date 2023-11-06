@@ -86,12 +86,13 @@ export const initialState = {
 		scanRubbishDirLoading: true,
 	},
     exportImport:{
-        isExport : false,
-        isImport : false,
+        isExport: false,
+        isImport: false,
+        runImporter: false,
         mediaFiles: [],
-        fileCount : 0,
-        percent : 0,
-        totalPage: 0
+        totalPage: 0,
+        fileCount: 0,
+        percent: 0
     },
 };
 
