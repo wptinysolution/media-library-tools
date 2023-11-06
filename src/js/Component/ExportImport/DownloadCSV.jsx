@@ -28,8 +28,6 @@ function DownloadCSV() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [headers, setHeaders] = useState([]);
-
     const [mediaFiles, setMediaFiles] = useState([]);
 
     const generateCSVStructure = async () => {
@@ -41,7 +39,6 @@ function DownloadCSV() {
         const keys = Object.keys(media[0]).map( ( item ) => (
             { label: item, key: item }
         ) );
-        setHeaders( (prevState) => keys );
         setMediaFiles( (prevState) => media );
     };
 
@@ -73,7 +70,7 @@ function DownloadCSV() {
                         }
                     }
                 >
-                        Download CSV
+                    Download CSV
                 </CSVDownloader>
             }
         </>
