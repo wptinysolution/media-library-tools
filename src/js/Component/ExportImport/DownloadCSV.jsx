@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { CSVLink } from "react-csv";
+
 import {useStateValue} from "../../Utils/StateProvider";
+
 import {Button} from "antd";
 
+import { useCSVDownloader } from 'react-papaparse';
+
 const buttonStyle = {
+    gap: '5px',
     width: '200px',
     height: '70px',
     fontSize: '25px',
     display: 'flex',
+    cursor: 'pointer',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '5px'
+    justifyContent: 'center'
 }
 
 /**
@@ -19,6 +23,8 @@ const buttonStyle = {
  * @constructor
  */
 function DownloadCSV() {
+
+    const { CSVDownloader, Type } = useCSVDownloader();
 
     const [stateValue, dispatch] = useStateValue();
 
@@ -46,21 +52,29 @@ function DownloadCSV() {
     return (
         <>
             { stateValue.exportImport.mediaFiles.length &&
-                <CSVLink data={mediaFiles} headers={headers} filename={ `export-csv-file-by-media-library-tools.csv` } >
-                    <Button
-                        style={
-                            {
-                                ...buttonStyle,
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                            }
+                <CSVDownloader
+                    type={Type.Button}
+                    bom={true}
+                    className={`primary`}
+                    config={{
+                        delimiter: ';',
+                    }}
+                    data={mediaFiles} filename={ `export-csv-file-by-media-library-tools` }
+                    style={
+                        {
+                            ...buttonStyle,
+                            border: 0,
+                            color: '#fff',
+                            marginLeft: 'auto',
+                            marginRight: 'auto',
+                            borderRadius: '8px',
+                            background: '#1677ff',
+
                         }
-                        type="primary"
-                        size={`large`}
-                    >
+                    }
+                >
                         Download CSV
-                    </Button>
-                </CSVLink>
+                </CSVDownloader>
             }
         </>
     );

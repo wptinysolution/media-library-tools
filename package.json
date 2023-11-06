@@ -22,10 +22,9 @@
 		"@ant-design/icons": "^5.0.1",
 		"antd": "^5.1.6",
 		"axios": "^1.2.2",
-		"prop-types": "^15.8.1",
 		"react": "^18.2.0",
-		"react-csv": "^2.2.2",
 		"react-dom": "^18.2.0",
+		"react-papaparse": "^4.4.0",
 		"toastr": "^2.1.4"
 	},
 	"devDependencies": {

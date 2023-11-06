@@ -126,7 +126,6 @@ function ExportImportButton() {
                                             marginRight: 'auto',
                                         }
                                     }
-                                    type="primary"
                                     size={`large`}
                                     onClick={ () => handleExportImport( 'reset' ) }
                                 >
