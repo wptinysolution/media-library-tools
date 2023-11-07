@@ -38,8 +38,8 @@ function ImportInfo() {
         await uploadMediaRecursively( mediaFiles );
     };
 
-    useEffect(async () => {
-        await uploadMediaRecursively( stateValue.exportImport.mediaFiles );
+    useEffect( () => {
+         uploadMediaRecursively( stateValue.exportImport.mediaFiles );
     }, [] );
 
     return (
