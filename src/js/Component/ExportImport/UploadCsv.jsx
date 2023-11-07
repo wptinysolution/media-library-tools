@@ -51,23 +51,26 @@ function UploadCsv() {
                 const { raw } = guid;
                 setFilename( name );
                 readRemoteFile(raw, {
+                    header: true, // Treat the first row as header
+                    dynamicTyping: true, // Automatically parse numeric values
                     complete: (results) => {
                         dispatch({
                             type: Types.EXPORT_IMPORT,
                             exportImport: {
                                 ...stateValue.exportImport,
                                 mediaFiles: results.data,
-                                fileCount : results.data.length,
-                                percent : 0,
-                                totalPage: results.data.length
+                                fileCount: results.data.length,
+                                percent: 0,
+                                totalPage: results.data.length,
                             },
                         });
+
                     },
                 });
             }
         },
     };
-
+    
     return (
         <>
             { stateValue.exportImport.fileCount ?
