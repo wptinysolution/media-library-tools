@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Divider, Progress, Layout, Typography } from 'antd';
 import { useStateValue } from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
-import { getAttachmentPageByPage } from "../../Utils/Data";
+import {getAttachmentPageByPage, importOneByOne} from "../../Utils/Data";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -32,7 +32,7 @@ function ImportInfo() {
 
         const firstObject = mediaFiles.shift();
 
-       console.log( firstObject )
+        await importOneByOne( { media : firstObject } );
 
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );

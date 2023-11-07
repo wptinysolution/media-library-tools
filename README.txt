@@ -42,7 +42,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
 * Auto Rename By Custom Name
 * Find And Delete Unnecessary / Rubbish File Bulk Mode
-* CSV Export Import Media file
+* CSV Export/Import Media file
 
 == 🏆 Go Pro ==
 

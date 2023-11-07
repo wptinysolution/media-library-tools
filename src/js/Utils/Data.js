@@ -157,11 +157,11 @@ export const rescanDir = async ( prams ) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const ignoreDirForScan = async ( prams ) => {
-    const response = await Api.post(`/ignoreDirForScan`, prams );
-    await notifications( 200 === response.status && response.data.updated, response.data.message );
-    return response;
-}
+// export const ignoreDirForScan = async ( prams ) => {
+//     const response = await Api.post(`/ignoreDirForScan`, prams );
+//     await notifications( 200 === response.status && response.data.updated, response.data.message );
+//     return response;
+// }
 
 /**
  *
@@ -228,11 +228,11 @@ export const rubbishSingleShowAction = async (prams) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const rubbishBulkDeleteAction = async (prams) => {
-    const response = await Api.post(`/rubbish/bulk/delete/action`, prams);
-    notifications(200 === response.status && response.data.updated, response.data.message);
-    return response;
-}
+// export const rubbishBulkDeleteAction = async (prams) => {
+//     const response = await Api.post(`/rubbish/bulk/delete/action`, prams);
+//     notifications(200 === response.status && response.data.updated, response.data.message);
+//     return response;
+// }
 
 /**
  *
@@ -249,21 +249,21 @@ export const getRubbishFileType = async () => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const activateLicense = async ( prams ) => {
-    const response = await Api.post(`/licensesActivate`, prams );
-    await notifications( 200 === response.status && response.data.updated, response.data.message );
-    return response;
-}
+// export const activateLicense = async ( prams ) => {
+//     const response = await Api.post(`/licensesActivate`, prams );
+//     await notifications( 200 === response.status && response.data.updated, response.data.message );
+//     return response;
+// }
 /**
  *
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const updateExtensionOptions = async ( prams ) => {
-    const response = await Api.post(`/updateExtensionOptions`, prams );
-    notifications( 200 === response.status && response.data.updated, response.data.message );
-    return response;
-}
+// export const updateExtensionOptions = async ( prams ) => {
+//     const response = await Api.post(`/updateExtensionOptions`, prams );
+//     notifications( 200 === response.status && response.data.updated, response.data.message );
+//     return response;
+// }
 
 /**
  *
@@ -301,4 +301,9 @@ export const actionClearSchedule = async () => {
     const response = await clearSchedule();
     notifications( 200 === response.status && response.data.updated, response.data.message );
     return response;
+}
+
+
+export const importOneByOne = async (prams) => {
+    return await Api.post(`/import/attachment/one/by/one`, prams);
 }
