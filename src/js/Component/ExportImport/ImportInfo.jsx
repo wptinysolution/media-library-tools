@@ -13,50 +13,34 @@ function ImportInfo() {
 
     const [percent, setPercent] = useState(0);
 
-    const [mediaFiles, setMediaFiles] = useState([]);
+    const totalMedia = stateValue.exportImport.totalPage;
+    /**
+     *
+     * @param files
+     * @returns {Promise<{mediaFiles: *[], percent: number}|*>}
+     */
+    const uploadMediaRecursively = async ( mediaFiles ) => {
 
-    const uploadMediaRecursively = async ( files ) => {
-        const countPercent = Math.floor(100 * (stateValue.exportImport.totalPage - totalPage) / stateValue.exportImport.totalPage);
-        setPercent( ( prevState ) => countPercent );
+        const countPercent = Math.floor(100 * ( totalMedia - mediaFiles.length ) / totalMedia );
 
-        if (totalPage <= 0) {
+        await setPercent( ( prevState ) => countPercent );
+
+        if ( mediaFiles.length <= 0) {
             // Base case: All recursion is completed
-            return {
-                mediaFiles,
-                percent : countPercent
-            };
+            return;
         }
 
-        const totalPagesRemaining = totalPage - 1;
-        const paged = stateValue.exportImport.totalPage - totalPagesRemaining;
+        const firstObject = mediaFiles.shift();
 
-        // const response = await getAttachmentPageByPage({ paged });
-
-        // console.log( Object.values(response) );
-        // Create a new array by merging the response into mediaFiles
-        const updatedMediaFiles = [...mediaFiles, ...response ];
+       console.log( firstObject )
 
         // Continue the recursion with the updated mediaFiles
-        return uploadMediaRecursively(totalPagesRemaining, updatedMediaFiles);
+        await uploadMediaRecursively( mediaFiles );
     };
 
-    const uploadTheMediaRecursively = async () => {
-        const finalMediaFiles = await uploadMediaRecursively( fileList );
-        // Once the recursion is complete, update the state with the final mediaFiles
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                ...finalMediaFiles
-            },
-        });
-    };
-
-    useEffect(() => {
-       // uploadTheMediaRecursively();
-    }, []);
-
-    console.log( stateValue.exportImport );
+    useEffect(async () => {
+        await uploadMediaRecursively( stateValue.exportImport.mediaFiles );
+    }, [] );
 
     return (
         <Content style={{

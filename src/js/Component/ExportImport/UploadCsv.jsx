@@ -50,7 +50,7 @@ function UploadCsv() {
                 const { guid } = response;
                 const { raw } = guid;
                 setFilename( name );
-                readRemoteFile(raw, {
+                readRemoteFile( raw, {
                     header: true, // Treat the first row as header
                     dynamicTyping: true, // Automatically parse numeric values
                     complete: (results) => {
@@ -64,13 +64,12 @@ function UploadCsv() {
                                 totalPage: results.data.length,
                             },
                         });
-
                     },
                 });
             }
         },
     };
-    
+
     return (
         <>
             { stateValue.exportImport.fileCount ?
