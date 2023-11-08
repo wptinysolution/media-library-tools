@@ -72,7 +72,7 @@ function UploadCsv() {
 
     return (
         <>
-            { stateValue.exportImport.fileCount ?
+            { stateValue.exportImport.fileCount && ! stateValue.exportImport.runImporter ?
                 <>
                     <Button
                         icon={<ImportOutlined />}

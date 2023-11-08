@@ -31,9 +31,10 @@ function ImportInfo() {
         }
 
         const firstObject = mediaFiles.shift();
-
-        await importOneByOne( { media : firstObject } );
-
+        if( firstObject.url.length ){
+            const uploaded = await importOneByOne( { media : firstObject } );
+            console.log( uploaded );
+        }
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
     };
@@ -44,7 +45,7 @@ function ImportInfo() {
 
     return (
         <Content style={{
-            maxWidth: '700px',
+            maxWidth: '1500px',
             marginLeft: 'auto',
             marginRight: 'auto',
             width: '100%'
