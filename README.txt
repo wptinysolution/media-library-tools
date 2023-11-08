@@ -36,13 +36,13 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 PRO Features ==
 * All free Features Included
+* Media file CSV Export Import
 * Bulk Renaming Based on Associated Post Title
 * Renaming File Prior to Uploading Based on Attached Posts Title
 * Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
 * Auto Rename By Custom Name
 * Find And Delete Unnecessary / Rubbish File Bulk Mode
-* CSV Export/Import Media file
 
 == 🏆 Go Pro ==
 
@@ -51,6 +51,10 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 [youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
+
+== 🏆 CSV Export/Import ==
+
+The implementation of a "Media Library CSV Export/Import" feature is a significant step forward in simplifying the management of media assets and their associated data. This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling. Users can export their media assets and metadata into CSV files, making it easier to transfer content between systems, collaborate on projects, or create backups. The ability to import media assets and metadata from CSV files enables bulk operations, saving users valuable time and reducing the risk of errors in data entry. Furthermore, customizable templates allow users to specify which data fields to include or exclude, providing flexibility in data management. With streamlined access to this feature, organizations can expect improved efficiency, data accuracy, and collaboration when working with their media libraries.
 
 == 🏆 Media File Rename ==
 

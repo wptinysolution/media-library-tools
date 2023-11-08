@@ -253,6 +253,7 @@ class SubMenu {
                                 </div>
                             </li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
+                            <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Media file CSV Export Import</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
                             <li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Name</li>

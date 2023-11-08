@@ -34,8 +34,12 @@ function ProModal() {
             desc: 'All features available in the free version are included.',
         },
         {
+            title: 'Media File CSV Export/Import',
+            desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.',
+        },
+        {
             title: 'Bulk Renaming File Based on Associated Post Title',
-            desc: 'Automatic renaming of media files bulk mode.',
+                desc: 'Automatic renaming of media files bulk mode.',
         },
         {
             title: 'Renaming File Prior to Uploading Based on Attached Posts Title',
