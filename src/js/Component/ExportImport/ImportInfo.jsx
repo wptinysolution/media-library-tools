@@ -13,6 +13,8 @@ function ImportInfo() {
 
     const [percent, setPercent] = useState(0);
 
+    const [fileUrl, setFileUrl] = useState(0);
+
     const totalMedia = stateValue.exportImport.totalPage;
     /**
      *
@@ -21,19 +23,20 @@ function ImportInfo() {
      */
     const uploadMediaRecursively = async ( mediaFiles ) => {
 
-        const countPercent = Math.floor(100 * ( totalMedia - mediaFiles.length ) / totalMedia );
+        const countPercent = Math.floor(100 * ( totalMedia - mediaFiles?.length ) / totalMedia );
 
         await setPercent( ( prevState ) => countPercent );
 
-        if ( mediaFiles.length <= 0) {
+        if ( mediaFiles?.length <= 0) {
             // Base case: All recursion is completed
             return;
         }
 
         const firstObject = mediaFiles.shift();
-        if( firstObject.url.length ){
+        console.log( firstObject , firstObject['url']?.length )
+        if( firstObject['url']?.length  ){
+            await setFileUrl( ( prevState ) => firstObject['url'] );
             const uploaded = await importOneByOne( { media : firstObject } );
-            console.log( uploaded );
         }
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
@@ -65,6 +68,12 @@ function ImportInfo() {
                 showInfo={true} percent={percent}
             />
             <Divider />
+            {
+                fileUrl && <Text type="secondary" >
+                    Executing file url: { fileUrl }
+                </Text>
+            }
+
         </Content>
     )
 }
