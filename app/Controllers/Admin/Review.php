@@ -59,7 +59,7 @@ class Review {
 			$remind_time = $install_date;
 		}
 
-		$remind_due = strtotime( '+30 days', $remind_time );
+		$remind_due = strtotime( '+20 days', $remind_time );
 
 		if ( ! $now > $past_date || $now < $remind_due ) {
 			return;
