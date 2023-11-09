@@ -36,7 +36,7 @@ function UploadCsv() {
     const { readRemoteFile } = usePapaParse();
 
     const [filename, setFilename ] = useState('' );
-    console.log( tsmltParams.restApiUrl );
+
     const uploadProps = {
         name: 'file',
         action: `${tsmltParams.restApiUrl}wp/v2/media`, // Replace with your API endpoint
@@ -44,7 +44,6 @@ function UploadCsv() {
             'X-WP-Nonce': tsmltParams.rest_nonce // You can add any custom headers here
         },
         onChange(info) {
-            console.log( info )
             if (info.file.status === 'done') {
                 // Get the file URL from the response (assuming your API provides it)
                 const { response, name } = info.file;
