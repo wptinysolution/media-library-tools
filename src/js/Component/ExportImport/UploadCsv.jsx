@@ -101,7 +101,11 @@ function UploadCsv() {
             }
 
             { ! stateValue.exportImport.fileCount ?
-                <Upload {...uploadProps} multiple={false} >
+                <Upload
+                    {...uploadProps}
+                    multiple={false}
+                    accept=".csv"
+                >
                     <Button
                         icon={<UploadOutlined/>}
                         style={
