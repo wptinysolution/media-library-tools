@@ -1,9 +1,9 @@
 === Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
-Tags: media file rename, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
+Tags: media file rename, csv, export import, csv export import, svg support, svg, rename, unused image,  clean media, files, rename, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,  optimize, library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.4
-Stable tag: 1.1.12
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -21,6 +21,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Individual Rename Media File
 * Bulk Rename Media File
 * Find Unused Media File
+* Number your files to allow for similar filenames
 * Filter Junk/Rubbish File By File Extension
 * Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
@@ -75,6 +76,9 @@ Finding unused or rubbish image files in the media library is essential for effi
 
 It also optimizes storage space and ensures search engines prioritize relevant content, positively impacting SEO rankings. Regular cleanups maintain a well-organized media library and enhance overall website functionality.
 
+== 🏆 Numbered files ==
+If the ideal filename already exists, a number will be appended, and increased if needs to be.
+
 == 🏆 Image SVG Support ==
 
 Image SVG support in the WordPress media library offers significant SEO advantages. SVG files are lightweight and scalable, improving website loading times and user experience.
@@ -119,7 +123,8 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1. ( , 2023 ) =
+= 1.2.0 ( November 9, 2023 ) =
+* Added: CSV Export addons support
 * Added: Auto add image parent post
 * Fixed: Multisite issue for Unnecessary file.
 
