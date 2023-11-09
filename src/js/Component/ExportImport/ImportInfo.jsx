@@ -109,7 +109,7 @@ function ImportInfo() {
                                             </Text>
                                         </a>
                                     }
-                                    description={ 'uploaded' === item.status ? `Successfully upload` : `Upload Failed` }
+                                    description={ 'uploaded' === item.status ? `Successfully upload` : `CSV ID(${item.id}) : Upload Failed` }
                                 />
                             </List.Item>
                         )}
