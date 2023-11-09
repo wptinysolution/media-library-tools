@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Divider, Progress, Layout, Typography } from 'antd';
+
+import {Divider, Progress, Layout, Typography, List, Avatar} from 'antd';
+
 import { useStateValue } from "../../Utils/StateProvider";
-import * as Types from "../../Utils/actionType";
-import {getAttachmentPageByPage, importOneByOne} from "../../Utils/Data";
+
+import {importOneByOne } from "../../Utils/Data";
 
 const { Title, Text } = Typography;
+
 const { Content } = Layout;
 
 function ImportInfo() {
@@ -13,15 +16,23 @@ function ImportInfo() {
 
     const [percent, setPercent] = useState(0);
 
-    const [fileUrl, setFileUrl] = useState('');
-
-    const [uploadedFile, setUploadedFile] = useState('');
+    const [uploadedFile, setUploadedFile] = useState([] );
 
     const totalMedia = stateValue.exportImport.totalPage;
+
+    // Function to extract the file name from the URL
+   const getFileNameFromURL = (url) => {
+        // Use the URL constructor to parse the URL
+       const urlObject = new URL(url);
+       // Access the pathname and split it by '/' to get the file name
+       const pathnameParts = urlObject.pathname.split('/');
+       return pathnameParts[pathnameParts.length - 1];
+    }
+
     /**
      *
-     * @param files
      * @returns {Promise<{mediaFiles: *[], percent: number}|*>}
+     * @param mediaFiles
      */
     const uploadMediaRecursively = async ( mediaFiles ) => {
 
@@ -36,16 +47,18 @@ function ImportInfo() {
 
         const firstObject = mediaFiles.shift();
         if( firstObject['url']?.length  ){
-            await setFileUrl( ( prevState ) => firstObject['url'] );
-            const importedItem = await importOneByOne( { media : firstObject } );
-            await setUploadedFile( ( prevState ) => importedItem );
+           const importedItem = await importOneByOne( { media : firstObject } );
+           await setUploadedFile( ( prevState ) => [
+               ...prevState,
+               importedItem.data
+           ] );
         }
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
     };
 
     useEffect( () => {
-         uploadMediaRecursively( stateValue.exportImport.mediaFiles );
+        uploadMediaRecursively( stateValue.exportImport.mediaFiles );
     }, [] );
 
     return (
@@ -70,18 +83,39 @@ function ImportInfo() {
                 showInfo={true} percent={percent}
             />
             <Divider />
-            {
-                fileUrl && <Text type="secondary" >
-                    Executing file import : { fileUrl }
-                </Text>
-            }
-            <br/>
-            {
-                uploadedFile.id && <Text type="success" >
-                    Uploaded file: { console.log( uploadedFile ) }
-                </Text>
-            }
 
+            { uploadedFile.length ?
+                <div
+                    id="scrollableDiv"
+                    style={{
+                        height: 400,
+                        overflow: 'auto',
+                        padding: '0 16px',
+                        border: '1px solid rgba(140, 140, 140, 0.35)',
+                    }}
+                >
+                    <List
+                        dataSource={uploadedFile}
+                        renderItem={(item) => (
+                            <List.Item key={item.id}>
+                                <List.Item.Meta
+                                    avatar={<Avatar src={item.url} />}
+                                    title={
+                                        <a
+                                            target={`_blank`}
+                                            href={item.url}>
+                                            <Text type={ 'uploaded' === item.status ? `success` : `danger` }>
+                                            { getFileNameFromURL( item.url ) }
+                                            </Text>
+                                        </a>
+                                    }
+                                    description={ 'uploaded' === item.status ? `Successfully upload` : `Upload Failed` }
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </div> : ''
+            }
         </Content>
     )
 }
