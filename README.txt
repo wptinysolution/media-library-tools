@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Rename Media File, Find Unused Media File, Search Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files.
+Rename Media File, Media CSV Export Import, Find Unused Media File, Search Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files.
 
 == Description ==
 
