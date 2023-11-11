@@ -40,7 +40,7 @@ function RubbishNotice() {
             footer={ null }
         >
             <Divider />
-            <Content style={{ height: "500px", position:'relative', 'overflowY': 'auto', padding:'0 15px' }} >
+            <Content style={{ height: "500px", position:'relative', 'overflowY': 'auto', padding:'0' }} >
                 <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '15px', color:'red'}}>
                     Important Notice: Prioritize data safety. Always back up files before deletion to avoid irreversible loss.
                 </Title>
