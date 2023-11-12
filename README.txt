@@ -1,6 +1,6 @@
 === Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
-Tags: media file rename, csv export import, svg support, export import, rename, unused image, svg, csv, clean media, files, rename files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,library, slug, change, modify
+Tags: media file rename, media library csv export import, export import, rename files, svg support, rename, unused image, svg, csv, clean media, files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.4
 Stable tag: 1.2.0
