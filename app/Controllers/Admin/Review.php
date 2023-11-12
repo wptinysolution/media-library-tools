@@ -162,7 +162,7 @@ class Review {
                 <div class="tsmlt-review-notice_content">
                     <h3>Enjoying "<?php echo $plugin_name; ?>"? </h3>
                     <p>
-                        Thank you for choosing " <string><?php echo $plugin_name; ?></string>". If you found our plugin useful, please consider giving us a 5-star rating on WordPress.org.
+                        Thank you for choosing " <strong><?php echo $plugin_name; ?></strong>". If you have indeed benefited from our services, we kindly request that you, please consider giving us a 5-star rating on WordPress.org.
                     </p>
                     <div class="tsmlt-review-notice_actions">
                         <a href="<?php echo esc_url( $reviewurl ); ?>"
