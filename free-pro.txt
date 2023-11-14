@@ -1,3 +1,8 @@
 1. Remove Register Image Size
 3. Download Media Library
 https://wordpress.org/plugins/file-renaming-on-upload/
+https://wordpress.org/plugins/force-regenerate-thumbnails/#description
+https://wordpress.org/plugins/image-sizes/
+https://wordpress.org/plugins/export-media-library/advanced/
+https://wordpress.org/plugins/media-download/
+

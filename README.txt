@@ -1,6 +1,6 @@
 === Media Library Tools - Media File Rename, Find Unused Media File, Support SVG , Edit Media Content ===
 Contributors: tinysolution
-Tags: media file rename, media library csv export import, export import, rename files, svg support, rename, unused image, svg, csv, clean media, files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,library, slug, change, modify
+Tags: media file rename, media library csv export import, media library categories, export import, rename files, svg support, rename, unused image, svg, csv, media cleaner, files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.4
 Stable tag: 1.2.0
@@ -17,17 +17,18 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
 == 🏆 Main Features ==
+
 * Image SVG Support
 * Individual Rename Media File
 * Bulk Rename Media File
-* Find Unused Media File
 * Number your files to allow for similar filenames
+* Find Unused Media File
 * Filter Junk/Rubbish File By File Extension
 * Bulk Or individually Edit Media Content, Title, Alt text, Caption, And Description.
 * Auto input Alt text
 * Auto input Caption
 * Auto input Description
-* Create image categories
+* Media Library Categories
 * Search images by category
 * Identify blank ALT tags, captions, and descriptions by sorting image data
 * Move images to trash instead of permanently deleting them
@@ -37,7 +38,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 PRO Features ==
 * All free Features Included
-* Media file CSV Export Import
+* CSV Export-Import Media Files Facilitating Media Library Transfer Across Servers.
 * Bulk Renaming Based on Associated Post Title
 * Renaming File Prior to Uploading Based on Attached Posts Title
 * Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
@@ -89,6 +90,11 @@ Additionally, SVGs provide high-quality visuals on various devices, boosting eng
 == 🏆 Media Content Editing ==
 
 Media Library Tools allows users to quickly update image titles, ALT text, captions, descriptions, and categories for individual or bulk images in the media library.
+
+== 🏆 Media Library Categories ==
+
+Adds the ability to use categories in the WordPress Media Library. When activated a dropdown of categories will show up in the media library.
+You can change / add / remove the category of multiple items at once with bulk actions.
 
 
 == 🏆 Getting Started ==
