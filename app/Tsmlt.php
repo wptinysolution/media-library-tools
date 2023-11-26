@@ -12,16 +12,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once TSMLT_PATH . 'vendor/autoload.php';
 
-use TinySolutions\mlt\Traits\SingletonTrait;
-use TinySolutions\mlt\Controllers\Installation;
-use TinySolutions\mlt\Controllers\Dependencies;
-use TinySolutions\mlt\Controllers\AssetsController;
-use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
-use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
-use TinySolutions\mlt\Controllers\Admin\SubMenu;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\Admin\RegisterPostAndTax;
-use TinySolutions\mlt\Controllers\Admin\Review;
+use TinySolutions\mlt\Controllers\Admin\SubMenu;
+use TinySolutions\mlt\Controllers\AssetsController;
+use TinySolutions\mlt\Controllers\Dependencies;
+use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
+use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
+use TinySolutions\mlt\Controllers\Installation;
+use TinySolutions\mlt\Controllers\Notice\Review;
+use TinySolutions\mlt\Controllers\Notice\BlackFriday;
+use TinySolutions\mlt\Traits\SingletonTrait;
 
 if ( ! class_exists( Tsmlt::class ) ) {
 	/**
@@ -112,6 +113,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 
 			do_action( 'tsmlt/before_loaded' );
 
+			BlackFriday::instance();
             Review::instance();
 			// Include File.
             AssetsController::instance();

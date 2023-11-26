@@ -1,6 +1,6 @@
 <?php
 
-namespace TinySolutions\mlt\Controllers\Admin;
+namespace TinySolutions\mlt\Controllers\Notice;
 
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -37,7 +37,9 @@ class Review {
 	 * @return void
 	 */
 	public function tsmlt_check_installation_time() {
-
+		if ( isset( $GLOBALS['tsmlt_bf_2023_notice'] ) ) {
+			 return;
+		}
 		// Added Lines Start
 		$nobug = get_option( 'tsmlt_spare_me' );
 
