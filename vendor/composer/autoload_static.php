@@ -22,15 +22,18 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/../..' . '/app/Abs/Discount.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/../..' . '/app/Controllers/Admin/Api.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => __DIR__ . '/../..' . '/app/Controllers/Admin/RegisterPostAndTax.php',
-        'TinySolutions\\mlt\\Controllers\\Admin\\Review' => __DIR__ . '/../..' . '/app/Controllers/Admin/Review.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/../..' . '/app/Controllers/Admin/SubMenu.php',
         'TinySolutions\\mlt\\Controllers\\AssetsController' => __DIR__ . '/../..' . '/app/Controllers/AssetsController.php',
         'TinySolutions\\mlt\\Controllers\\Dependencies' => __DIR__ . '/../..' . '/app/Controllers/Dependencies.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/ActionHooks.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\FilterHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/FilterHooks.php',
         'TinySolutions\\mlt\\Controllers\\Installation' => __DIR__ . '/../..' . '/app/Controllers/Installation.php',
+        'TinySolutions\\mlt\\Controllers\\Notice\\BlackFriday' => __DIR__ . '/../..' . '/app/Controllers/Notice/BlackFriday.php',
+        'TinySolutions\\mlt\\Controllers\\Notice\\Review' => __DIR__ . '/../..' . '/app/Controllers/Notice/Review.php',
+        'TinySolutions\\mlt\\Controllers\\Notice\\SpecialDiscount' => __DIR__ . '/../..' . '/app/Controllers/Notice/SpecialDiscount.php',
         'TinySolutions\\mlt\\Helpers\\Fns' => __DIR__ . '/../..' . '/app/Helpers/Fns.php',
         'TinySolutions\\mlt\\Traits\\SingletonTrait' => __DIR__ . '/../..' . '/app/Traits/SingletonTrait.php',
     );

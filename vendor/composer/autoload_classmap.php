@@ -7,15 +7,18 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'TinySolutions\\mlt\\Abs\\Discount' => $baseDir . '/app/Abs/Discount.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\Api' => $baseDir . '/app/Controllers/Admin/Api.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => $baseDir . '/app/Controllers/Admin/RegisterPostAndTax.php',
-    'TinySolutions\\mlt\\Controllers\\Admin\\Review' => $baseDir . '/app/Controllers/Admin/Review.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => $baseDir . '/app/Controllers/Admin/SubMenu.php',
     'TinySolutions\\mlt\\Controllers\\AssetsController' => $baseDir . '/app/Controllers/AssetsController.php',
     'TinySolutions\\mlt\\Controllers\\Dependencies' => $baseDir . '/app/Controllers/Dependencies.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => $baseDir . '/app/Controllers/Hooks/ActionHooks.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\FilterHooks' => $baseDir . '/app/Controllers/Hooks/FilterHooks.php',
     'TinySolutions\\mlt\\Controllers\\Installation' => $baseDir . '/app/Controllers/Installation.php',
+    'TinySolutions\\mlt\\Controllers\\Notice\\BlackFriday' => $baseDir . '/app/Controllers/Notice/BlackFriday.php',
+    'TinySolutions\\mlt\\Controllers\\Notice\\Review' => $baseDir . '/app/Controllers/Notice/Review.php',
+    'TinySolutions\\mlt\\Controllers\\Notice\\SpecialDiscount' => $baseDir . '/app/Controllers/Notice/SpecialDiscount.php',
     'TinySolutions\\mlt\\Helpers\\Fns' => $baseDir . '/app/Helpers/Fns.php',
     'TinySolutions\\mlt\\Traits\\SingletonTrait' => $baseDir . '/app/Traits/SingletonTrait.php',
 );

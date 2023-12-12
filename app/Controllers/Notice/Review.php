@@ -37,7 +37,7 @@ class Review {
 	 * @return void
 	 */
 	public function tsmlt_check_installation_time() {
-		if ( isset( $GLOBALS['tsmlt_bf_2023_notice'] ) ) {
+		if ( isset( $GLOBALS['tsmlt__notice'] ) ) {
 			 return;
 		}
 		// Added Lines Start

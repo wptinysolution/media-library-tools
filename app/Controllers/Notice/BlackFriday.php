@@ -144,8 +144,8 @@ class BlackFriday {
 					<h3><?php echo sprintf( '%s – Black Friday Deal!!', esc_html( $plugin_name ) ); ?></h3>
 
 					<p class="notice-text">
-						<?php echo esc_html__( "Don't miss out on our biggest sale of the year! Get your", 'tsmlt' ); ?>
-						<b><?php echo esc_html( $plugin_name ); ?> plan</b> with <b>UP TO 40% OFF</b>! Limited time
+						Don't miss out on our biggest sale of the year! Get your
+						<b>Media Library Tools Pro plan</b> with <b>UP TO 40% OFF</b>! Limited time
 						offer!!
 					</p>
 

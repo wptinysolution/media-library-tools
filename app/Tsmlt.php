@@ -21,7 +21,7 @@ use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
 use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
 use TinySolutions\mlt\Controllers\Installation;
 use TinySolutions\mlt\Controllers\Notice\Review;
-use TinySolutions\mlt\Controllers\Notice\BlackFriday;
+use TinySolutions\mlt\Controllers\Notice\SpecialDiscount;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 if ( ! class_exists( Tsmlt::class ) ) {
@@ -113,15 +113,19 @@ if ( ! class_exists( Tsmlt::class ) ) {
 
 			do_action( 'tsmlt/before_loaded' );
 
-			BlackFriday::instance();
-            Review::instance();
-			// Include File.
-            AssetsController::instance();
-            SubMenu::instance();
-            RegisterPostAndTax::instance();
-            FilterHooks::init_hooks();
-			ActionHooks::instance();
-            Api::instance();
+			Api::instance();
+
+			if( is_admin() ){
+				FilterHooks::init_hooks();
+				ActionHooks::instance();
+				// BlackFriday::instance();
+				Review::instance();
+				SpecialDiscount::instance();
+				// Include File.
+				AssetsController::instance();
+				SubMenu::instance();
+				RegisterPostAndTax::instance();
+			}
 
 			do_action( 'tsmlt/after_loaded' );
 		}
