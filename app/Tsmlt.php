@@ -119,8 +119,8 @@ if ( ! class_exists( Tsmlt::class ) ) {
 				FilterHooks::init_hooks();
 				ActionHooks::instance();
 				// BlackFriday::instance();
-				Review::instance();
 				SpecialDiscount::instance();
+				Review::instance();
 				// Include File.
 				AssetsController::instance();
 				SubMenu::instance();
