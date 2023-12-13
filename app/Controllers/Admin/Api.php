@@ -476,7 +476,7 @@ class Api {
 
 			$terms          = get_the_terms( $post->ID, 'tsmlt_category' );
 			$tsmlt_category = [];
-			if ( ! empty( $terms ) ) {
+			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
 					$tsmlt_category[] = array(
 						'id'   => $term->term_id,
