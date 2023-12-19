@@ -388,6 +388,7 @@ class SubMenu {
                                 name     : 'Media library Tools Pro',
                                 licenses : $('#licenses').val(),
                                 billing_cycle: $('#billing_cycle').val(),
+                                checkout_style: 'next',
                                 // You can consume the response for after purchase logic.
                                 purchaseCompleted  : function (response) {
                                     // The logic here will be executed immediately after the purchase confirmation.                                // alert(response.user.email);
