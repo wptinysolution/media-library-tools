@@ -43,12 +43,12 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @var string
 		 */
 		public $current_theme;
-        /**
-         * Post Type.
-         *
-         * @var string
-         */
-        public $category = 'tsmlt_category';
+		/**
+		 * Post Type.
+		 *
+		 * @var string
+		 */
+		public $category = 'tsmlt_category';
 		/**
 		 * Singleton
 		 */
@@ -62,7 +62,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
 			add_action( 'plugins_loaded', [ Installation::class, 'migration' ], 100 );
-        }
+		}
 
 		/**
 		 * Assets url generate with given assets file
@@ -116,8 +116,10 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			Api::instance();
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
-			if( is_admin() ){
+			if ( is_admin() ) {
+				/*
 				// BlackFriday::instance();
+				*/
 				SpecialDiscount::instance();
 				Review::instance();
 				// Include File.
@@ -135,7 +137,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * @return boolean
 		 */
 		public function has_pro() {
-			if( defined( 'TSMLTPRO_VERSION' ) && version_compare(TSMLTPRO_VERSION, '1.0.3', '>=' ) ){
+			if ( defined( 'TSMLTPRO_VERSION' ) && version_compare( TSMLTPRO_VERSION, '1.0.3', '>=' ) ) {
 				return tsmltpro()->user_can_use_tsmltpro() || ( defined( 'TINY_DEBUG' ) && TINY_DEBUG );
 			}
 			return false;
@@ -149,7 +151,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		public function pro_version_link() {
 			return 'https://www.wptinysolutions.com/tiny-products/media-library-tools/';
 		}
-
 	}
 	/**
 	 * @return Tsmlt
