@@ -114,10 +114,9 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			do_action( 'tsmlt/before_loaded' );
 
 			Api::instance();
-
+			FilterHooks::init_hooks();
+			ActionHooks::instance();
 			if( is_admin() ){
-				FilterHooks::init_hooks();
-				ActionHooks::instance();
 				// BlackFriday::instance();
 				SpecialDiscount::instance();
 				Review::instance();
