@@ -54,7 +54,7 @@ function DownloadCSV() {
                     bom={true}
                     className={`primary`}
                     config={{
-                        delimiter: ';',
+                        delimiter: ',',
                     }}
                     data={mediaFiles} filename={ `export-csv-file-by-media-library-tools` }
                     style={

@@ -5,6 +5,7 @@ import {Divider, Progress, Layout, Typography, List, Avatar} from 'antd';
 import { useStateValue } from "../../Utils/StateProvider";
 
 import {importOneByOne } from "../../Utils/Data";
+import * as Types from "../../Utils/actionType";
 
 const { Title, Text } = Typography;
 
@@ -17,6 +18,8 @@ function ImportInfo() {
     const [percent, setPercent] = useState(0);
 
     const [uploadedFile, setUploadedFile] = useState([] );
+
+    const [currentFile, setCurrentFile] = useState(null);
 
     const totalMedia = stateValue.exportImport.totalPage;
 
@@ -47,11 +50,12 @@ function ImportInfo() {
 
         const firstObject = mediaFiles.shift();
         if( firstObject['url']?.length  ){
-           const importedItem = await importOneByOne( { media : firstObject } );
-           await setUploadedFile( ( prevState ) => [
+            setCurrentFile( firstObject['url'] );
+            const importedItem = await importOneByOne( { media : firstObject } );
+            await setUploadedFile( ( prevState ) => [
                ...prevState,
                importedItem.data
-           ] );
+            ] );
         }
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
@@ -84,6 +88,13 @@ function ImportInfo() {
             />
             <Divider />
 
+            { currentFile &&
+                <Text type='success' >
+                    Uploading: { currentFile }
+                </Text>
+            }
+            <Divider />
+
             { uploadedFile.length ?
                 <div
                     id="scrollableDiv"
@@ -95,7 +106,7 @@ function ImportInfo() {
                     }}
                 >
                     <List
-                        dataSource={uploadedFile}
+                        dataSource={uploadedFile.reverse()}
                         renderItem={(item) => (
                             <List.Item key={item.id}>
                                 <List.Item.Meta
