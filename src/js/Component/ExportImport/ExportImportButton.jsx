@@ -119,9 +119,7 @@ function ExportImportButton() {
                             { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&
                                 <DownloadCSV/>
                             }
-                            { stateValue.exportImport.isImport &&
-                                <UploadCsv/>
-                            }
+                            { stateValue.exportImport.isImport && <UploadCsv/> }
                             { 100 <= stateValue.exportImport.percent &&
                                 <Button
                                     style={
@@ -164,7 +162,7 @@ function ExportImportButton() {
                             size={`large`}
                             style={ buttonStyle }
                         >
-                            <ExportOutlined/> Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
+                            <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
                         </Popconfirm>
                         <Button
@@ -173,7 +171,7 @@ function ExportImportButton() {
                             style={ buttonStyle }
                             onClick={ () => handleExportImport( 'import' ) }
                         >
-                            <ImportOutlined/> Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
+                            <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
                     </Content>
                 }

@@ -92,7 +92,8 @@ export const initialState = {
         mediaFiles: [],
         totalPage: 0,
         fileCount: 0,
-        percent: 0
+        percent: 0,
+        settings: []
     },
 };
 

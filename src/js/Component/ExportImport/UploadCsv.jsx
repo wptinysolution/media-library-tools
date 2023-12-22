@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
-import {Button, Typography, Upload} from "antd";
+import {Button, Checkbox, Divider, Typography, Upload} from "antd";
 
 import {ImportOutlined, UploadOutlined} from "@ant-design/icons";
 
@@ -74,6 +74,21 @@ function UploadCsv() {
         <>
             { stateValue.exportImport.fileCount && ! stateValue.exportImport.runImporter ?
                 <>
+                    <Checkbox
+                        checked={stateValue.exportImport.settings.importUpdateContent}
+                        onChange={ ( event ) => dispatch({
+                        type: Types.EXPORT_IMPORT,
+                        exportImport: {
+                            ...stateValue.exportImport,
+                            settings : {
+                                ...stateValue.exportImport.settings,
+                                importUpdateContent: event.target.checked ? 'update' : false
+                            }
+                        },
+                    }) }>
+                        Existing Media file that match by ID or File Name will be updated. Media that do not exist will be skipped? </Checkbox>
+                    <Divider />
+
                     <Button
                         icon={<ImportOutlined />}
                         type="primary"

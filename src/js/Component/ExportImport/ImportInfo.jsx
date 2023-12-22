@@ -7,7 +7,11 @@ import { useStateValue } from "../../Utils/StateProvider";
 import {importOneByOne } from "../../Utils/Data";
 import * as Types from "../../Utils/actionType";
 
-const { Title, Text } = Typography;
+const {
+    Title,
+    Paragraph,
+    Text
+} = Typography;
 
 const { Content } = Layout;
 
@@ -51,11 +55,12 @@ function ImportInfo() {
         const firstObject = mediaFiles.shift();
         if( firstObject['url']?.length  ){
             setCurrentFile( firstObject['url'] );
-            const importedItem = await importOneByOne( { media : firstObject } );
+            const importedItem = await importOneByOne( { media : firstObject, settings: stateValue.exportImport.settings } );
             await setUploadedFile( ( prevState ) => [
                ...prevState,
                importedItem.data
             ] );
+            setCurrentFile( null );
         }
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
@@ -89,9 +94,12 @@ function ImportInfo() {
             <Divider />
 
             { currentFile &&
-                <Text type='success' >
-                    Uploading: { currentFile }
-                </Text>
+                <Paragraph>
+                Uploading:
+                    <Text type='success' >
+                        { currentFile }
+                    </Text>
+                </Paragraph>
             }
             <Divider />
 
