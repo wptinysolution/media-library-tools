@@ -127,7 +127,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.2.3 (  13, 2023 ) =
+= 1.2.3 ( December 23, 2023 ) =
 * Fixed: Export Import Issue
 
 = 1.2.2 ( December 13, 2023 ) =
