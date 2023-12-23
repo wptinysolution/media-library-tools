@@ -38,7 +38,28 @@ class FilterHooks {
 
 		// Cron Interval for check image file.
 		add_filter( 'cron_schedules', [ __CLASS__, 'rubbish_add_cron_interval' ] );
-
+		
+		add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ] , 10, 2 );
+	}
+	
+	/**
+	 * @param $out
+	 * @param $id
+	 *
+	 * @return array|mixed
+	 */
+	public static function fix_svg_size_attributes( $out, $id ) {
+		if( ! is_admin() ){
+			return $out;
+		}
+		$image_url  = wp_get_attachment_url( $id );
+		$file_ext   = pathinfo($image_url, PATHINFO_EXTENSION );
+		
+		if ( 'svg' !== $file_ext ) {
+			return $out;
+		}
+		
+		return array( $image_url, null, null, false );
 	}
 
 	/**
