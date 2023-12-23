@@ -12,7 +12,7 @@ import { usePapaParse } from 'react-papaparse';
 
 import * as Types from "../../Utils/actionType";
 
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 
 const buttonStyle = {
     width: '280px',
@@ -87,7 +87,8 @@ function UploadCsv() {
                         },
                     }) }>
                         Existing Media file that match by ID or File Name will be updated. Media that do not exist will be skipped? </Checkbox>
-                    <Divider />
+
+                    <Divider style={{ margin: '10px'} } />
 
                     <Button
                         icon={<ImportOutlined />}
@@ -109,9 +110,12 @@ function UploadCsv() {
                     >
                         Run the importer
                     </Button>
-                    { filename && <Text>
-                        { filename }
-                    </Text>}
+                    <Divider style={{ margin: '5px 0'} } />
+                    <Paragraph style={{ textAlign: 'center'} }>
+                        { filename && <Text>
+                            { filename }
+                        </Text>}
+                    </Paragraph>
                 </> : ''
             }
 
