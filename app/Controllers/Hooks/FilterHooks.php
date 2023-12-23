@@ -37,29 +37,29 @@ class FilterHooks {
 		add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
 
 		// Cron Interval for check image file.
-		add_filter( 'cron_schedules', [ __CLASS__, 'rubbish_add_cron_interval' ] );
-		
-		add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ] , 10, 2 );
+		add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
 	}
-	
+
 	/**
-	 * @param $out
-	 * @param $id
+	 * Fix SVG size.
+	 *
+	 * @param array|boolean $out output.
+	 * @param int           $id image id.
 	 *
 	 * @return array|mixed
 	 */
 	public static function fix_svg_size_attributes( $out, $id ) {
-		if( ! is_admin() ){
+		if ( ! is_admin() ) {
 			return $out;
 		}
-		$image_url  = wp_get_attachment_url( $id );
-		$file_ext   = pathinfo($image_url, PATHINFO_EXTENSION );
-		
+		$image_url = wp_get_attachment_url( $id );
+		$file_ext  = pathinfo( $image_url, PATHINFO_EXTENSION );
+
 		if ( 'svg' !== $file_ext ) {
 			return $out;
 		}
-		
-		return array( $image_url, null, null, false );
+
+		return [ $image_url, null, null, false ];
 	}
 
 	/**
@@ -73,9 +73,8 @@ class FilterHooks {
 		return [
 			'ext'             => $filetype['ext'],
 			'type'            => $filetype['type'],
-			'proper_filename' => $data['proper_filename']
+			'proper_filename' => $data['proper_filename'],
 		];
-
 	}
 
 	/**
@@ -136,7 +135,7 @@ class FilterHooks {
 			return $actions;
 		}
 
-		$actions['trash']  = sprintf(
+		$actions['trash'] = sprintf(
 			'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
 			wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
 			/* translators: %s: Attachment title. */
@@ -175,28 +174,28 @@ class FilterHooks {
 		// TODO:: IF key is not exist then ignoting the items. Ii need to fix.
 		$vars = array_merge(
 			$vars,
-			array(
+			[
 				'orderby'    => 'meta_value',
-				'meta_query' => array(
+				'meta_query' => [
 					'relation' => 'OR',
-					array(
+					[
 						'key'     => '_wp_attachment_image_alt',
 						'compare' => 'NOT EXISTS',
-					),
-					array(
+					],
+					[
 						'relation' => 'OR', // Add a nested "OR" relation to handle empty alt text
-						array(
+						[
 							'key'     => '_wp_attachment_image_alt',
 							'compare' => 'EXISTS',
 							'value'   => '',
-						),
-						array(
+						],
+						[
 							'key'     => '_wp_attachment_image_alt',
 							'compare' => 'EXISTS',
-						)
-					),
-				),
-			)
+						],
+					],
+				],
+			]
 		);
 		return $vars;
 	}
@@ -247,7 +246,7 @@ class FilterHooks {
 	/**
 	 * Undocumented function
 	 *
-	 * @param array $pieces query.
+	 * @param array  $pieces query.
 	 * @param object $query post query.
 	 *
 	 * @return array
@@ -262,7 +261,7 @@ class FilterHooks {
 			return $pieces;
 		}
 		$order = strtoupper( $query->get( 'order' ) );
-		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+		if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
 			return $pieces;
 		}
 		switch ( $orderby ) {
@@ -284,14 +283,14 @@ class FilterHooks {
 	 * @return array [array] plugin action link
 	 */
 	public static function plugins_setting_links( $links ) {
-		$new_links = [];
+		$new_links                       = [];
 		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Start Editing', 'tsmlt-media-tools' ) . '</a>';
 		/*
 		 * TODO:: Next Version
 		 *
 		 */
 		if ( ! tsmlt()->has_pro() ) {
-			$links['tsmlt_pro'] = '<a href="'.esc_url( tsmlt()->pro_version_link() ) .'" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
+			$links['tsmlt_pro'] = '<a href="' . esc_url( tsmlt()->pro_version_link() ) . '" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
 		}
 
 		return array_merge( $new_links, $links );
@@ -305,7 +304,7 @@ class FilterHooks {
 	 */
 	public static function plugin_row_meta( $links, $file ) {
 		if ( $file == TSMLT_BASENAME ) {
-			$report_url         = 'https://www.wptinysolutions.com/contact';//home_url( '/wp-admin/upload.php?page=tsmlt-media-tools' );
+			$report_url         = 'https://www.wptinysolutions.com/contact';// home_url( '/wp-admin/upload.php?page=tsmlt-media-tools' );
 			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'tsmlt-media-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'tsmlt-media-tools' ) . '</span>' );
 
 			return array_merge( $links, $row_meta );
@@ -313,20 +312,5 @@ class FilterHooks {
 
 		return (array) $links;
 	}
-
-	/**
-	 * @param $schedules
-	 *
-	 * @return mixed
-	 */
-	public static function rubbish_add_cron_interval( $schedules ) {
-		$schedules['everyminute'] = array(
-			'interval' => 60, // Time in seconds.
-			'display'  => 'Every Minute'
-		);
-
-		return $schedules;
-	}
-
-
+	
 }
