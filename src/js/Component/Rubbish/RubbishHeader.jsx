@@ -157,7 +157,7 @@ function RubbishHeader() {
             return;
         }
 
-        if( ! stateValue.bulkRubbishData.type || `default` ==  stateValue.bulkRubbishData.type ){
+        if( ! stateValue.bulkRubbishData.type || `default` ===  stateValue.bulkRubbishData.type ){
             notifications( false, 'No Actions are selected. Please select one.' );
             return;
         }
@@ -177,7 +177,7 @@ function RubbishHeader() {
         { value: 'ignore', label: 'Ignore' },
     ];
 
-    if( 'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ){
+    if( 'ignore' === stateValue.rubbishMedia.postQuery.fileStatus ){
         options = [
             { value: 'show', label: 'Make Deletable' },
         ];

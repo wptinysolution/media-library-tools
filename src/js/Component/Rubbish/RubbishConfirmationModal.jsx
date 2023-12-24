@@ -34,11 +34,11 @@ function RubbishConfirmationModal() {
         const file = prams.files[0];
         let response;
         // // Simulate the renaming operation using an asynchronous function (e.g., API call)
-        if(  'ignore' == stateValue.bulkRubbishData.type ){
+        if(  'ignore' === stateValue.bulkRubbishData.type ){
             response = await singleIgnoreApi( { file_path: file.path });
-        } else if ( 'delete' == stateValue.bulkRubbishData.type ){
+        } else if ( 'delete' === stateValue.bulkRubbishData.type ){
             response = await singleDeleteApi( { file_path: file.path });
-        } else if ( 'show' == stateValue.bulkRubbishData.type ){
+        } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }
 
@@ -97,24 +97,32 @@ function RubbishConfirmationModal() {
     return (
         <Modal
             maskClosable={false}
-            title={`Bulk ${ 'ignore' == stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' } Action`}
+            title={`Bulk ${ 'ignore' === stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' } Action`}
             open={ stateValue.bulkRubbishData.isModalOpen }
             onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: buttonDisabled }}
             cancelButtonProps={{ disabled: buttonDisabled }}
-            okText={ 'ignore' == stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' }
+            okText={ 'ignore' === stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete' }
             afterOpenChange={ () => setButtonDisabled( ! stateValue.bulkRubbishData.ids.length ) }
         >
             <Divider />
             <Content>
+
                 <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
-                    Are You Confirm { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' == stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete' }?
-                </Title>
+                    { ! buttonDisabled ? <>
+                            Are You Confirm { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' === stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete' }?
+                        </> :
+                        <>
+                            Processing...
+                        </>
+                    }
+                    </Title>
+
                 { stateValue.bulkRubbishData.progressBar >= 0 && <Progress showInfo={true} percent={stateValue.bulkRubbishData.progressBar} /> }
                 { ! stateValue.bulkRubbishData.ids.length &&
                     <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                        No Item selected { 'ignore' == stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
+                        No Item selected { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
                     </Paragraph >
                 }
 

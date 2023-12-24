@@ -131,10 +131,10 @@ function DirectoryModal() {
     const handleDirScanManually = async () => {
         setButtonSpain( 'bulkScan' );
         const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
-        // Get object keys from the data
+        // Get object keys from the data.
         const objectKeys = getObjectKeys( dirlist );
         const response = await searchFileBySingleDirRecursively( objectKeys );
-        // // Recur with the rest of the IDs in the list
+        // Recur with the rest of the IDs in the list.
         if( 200 === response.status ){
             setTimeout(async () => {
                 setScanDir( null );
@@ -218,7 +218,7 @@ function DirectoryModal() {
                             <List.Item key={key}>
                                 <List.Item.Meta
                                     title={ key }
-                                    description={ item.total_items == 0 ? `This directory will be scanned again according to the schedule.` : <span style={ { color: '#1677ff' } }> Scanned {item.counted} items of {item.total_items} items </span> }
+                                    description={ item.total_items === 0 ? `This directory will be scanned again according to the schedule.` : <span style={ { color: '#1677ff' } }> Scanned {item.counted} items of {item.total_items} items </span> }
                                 />
                                 <Space>
                                     <Button
