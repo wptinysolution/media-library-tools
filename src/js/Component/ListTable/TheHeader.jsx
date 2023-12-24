@@ -247,7 +247,7 @@ function TheHeader() {
                     type="primary"
                     size="large"
                     style={{
-                        width: '50px'
+                        width: '80px'
                     }}
                     onBlur={ (event) => dispatch({
                         ...stateValue,

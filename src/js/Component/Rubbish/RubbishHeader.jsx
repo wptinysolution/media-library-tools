@@ -291,7 +291,7 @@ function RubbishHeader() {
                     type="primary"
                     size="large"
                     style={{
-                        width: '50px'
+                        width: '80px'
                     }}
                     onBlur={ async (event) => {
                         await dispatch({
