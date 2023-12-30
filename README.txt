@@ -17,7 +17,7 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
 
-👉 Media Library Tools [Documentation](https://docs.wptinysolutions.com/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
+👉 [Documentation](https://docs.wptinysolutions.com/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 [youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
 
