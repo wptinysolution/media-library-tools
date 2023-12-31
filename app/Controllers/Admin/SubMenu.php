@@ -45,7 +45,7 @@ class SubMenu {
 
 	    wp_enqueue_style( 'tsmlt-settings-style' );
 
-	    $tab_title = apply_filters( 'tsmlt/add/get-pro/submenu/label' ,  esc_html__('Pricing', 'tsmlt-media-tools' ) )  ;
+	    $tab_title = apply_filters( 'tsmlt/add/get-pro/submenu/label' ,  esc_html__('Get license', 'tsmlt-media-tools' ) )  ;
 
         $title = '<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' .  $tab_title . '</span>';
 
