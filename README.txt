@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, media library csv export import, media library categories, export import, rename files, svg support, rename, unused image, svg, csv, media cleaner, files, image SEO, alt text, caption, image title, description, bulk edit, media library, image trash. attachment,edit-attachment,edit-media-file,edit-file,file,library, slug, change, modify
 Requires at least: 5.5
 Tested up to: 6.4
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -126,6 +126,10 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.2.4 ( January 01, 2024 ) =
+* Fixed: SVG Issue
+* Fixed: Query issue
 
 = 1.2.3 ( December 23, 2023 ) =
 * Fixed: Export Import Issue

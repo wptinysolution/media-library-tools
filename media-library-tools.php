@@ -4,7 +4,7 @@
  * Plugin Name:       Media Library Tools
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
  * Description:       Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
- * Version:           1.2.3.1
+ * Version:           1.2.4
  * Author:            Tiny Solutions
  * Author URI:        https://www.wptinysolutions.com/
  * Text Domain:       tsmlt-media-tools
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Define media edit Constant.
  */
 
-define( 'TSMLT_VERSION', '1.2.3' );
+define( 'TSMLT_VERSION', '1.2.4' );
 
 define( 'TSMLT_FILE', __FILE__ );
 
