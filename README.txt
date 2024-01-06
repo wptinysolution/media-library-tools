@@ -70,6 +70,7 @@ Renaming files can be a risky process, which is why it's important to take preca
 If you notice any issues with your website after renaming your media files, try clearing your cache. Cached HTML can often hold onto old references, so this simple step can often resolve any issues.
 
 == 🏆 Find Unused/Rubbish File And Clean Media ==
+Unused images are images that exist on the server but are not included in the media and database.
 
 Finding unused or rubbish image files in the media library is essential for efficient website management. Removing unnecessary files improves site performance, load times, and user experience.
 
