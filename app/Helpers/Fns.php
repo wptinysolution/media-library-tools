@@ -42,12 +42,12 @@ class Fns {
 	public static function wp_get_attachment( $attachment_id ) {
 		$attachment = get_post( $attachment_id );
 
-		return array(
+		return [
 			'alt'         => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
 			'caption'     => $attachment->post_excerpt,
 			'description' => $attachment->post_content,
 			'title'       => $attachment->post_title,
-		);
+		];
 	}
 
 	/**
@@ -72,17 +72,12 @@ class Fns {
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
+		
+		$metadata_file = basename( $file_path );
+	
 
-		// Get the current metadata for the media file
-		$metadata = wp_get_attachment_metadata( $attachment_id );
-
-		if ( empty( $metadata['file'] ) ) {
-			$attac            = get_attached_file( $attachment_id );
-			$metadata['file'] = basename( $attac );
-		}
-
-		$fileextension = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
-		$filebasename  = basename( $metadata['file'], '.' . $fileextension );
+		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
+		$filebasename  = basename( $metadata_file, '.' . $fileextension );
 
 		$new_file_name = $new_file_name . '.' . $fileextension;
 		if ( $filebasename == basename( $new_file_name, '.' . $fileextension ) ) {
@@ -93,46 +88,35 @@ class Fns {
 
 		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
-		// Rename the file on the server
+		// Rename the file on the server.
 		$renamed = rename( $file_path, $unique_filename );
 
 		$new_file_name = basename( $unique_filename );
 
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
-		// If the file was successfully renamed, update the metadata for each size
+		// If the file was successfully renamed, update the metadata for each size.
 
 		if ( $renamed ) {
 			wp_update_post(
-				array(
+				[
 					'ID'        => $attachment_id,
-					'post_name' => $new_filebasename
-				)
+					'post_name' => $new_filebasename,
+				]
 			);
-			// Update the metadata with the new file name
-			$metadata['file'] = $unique_filename;
-			// Loop through each size and rename the file
-			if ( ! empty( $metadata['sizes'] ) ) {
-				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
-					if ( ! file_exists( $old_file_path ) ) {
-						continue;
-					}
-					$new_file_path = dirname( $file_path ) . '/' . str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
-					$renamed_size  = rename( $old_file_path, $new_file_path );
-
-					if ( $renamed_size ) {
-						$metadata['sizes'][ $size ]['file'] = str_replace( $filebasename, $new_filebasename, $fileinfo['file'] );
-					}
-
-				}
+			if ( ! function_exists( 'wp_crop_image' ) ) {
+				include ABSPATH . 'wp-admin/includes/image.php';
 			}
-			$new_file = str_replace( basename( $file_path ), $new_file_name, $file_path );
-			update_attached_file( $attachment_id, $new_file );
-
-			$metadata['file'] = _wp_relative_upload_path( $new_file );
-			wp_update_attachment_metadata( $attachment_id, $metadata );
+			// Update the metadata with the new file name.
+			//$new_file = str_replace( basename( $file_path ), $new_file_name, $file_path );
+			update_attached_file( $attachment_id, $unique_filename );
+			
+			error_log( print_r( [
+				$unique_filename
+			], true), 3, __DIR__ . '/log.txt' );
+			
+			$generate_meta    = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
+			wp_update_attachment_metadata( $attachment_id, $generate_meta );
 			$updated = self::permalink_to_post_guid( $attachment_id );
-
 		}
 
 		return $renamed;
@@ -156,19 +140,19 @@ class Fns {
 	 * @return false|string
 	 */
 	public static function get_options() {
-		$defaults = array(
+		$defaults = [
 			'media_per_page'         => 20,
 			'media_table_column'     => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
 			'media_default_alt'      => '',
 			'media_default_caption'  => '',
 			'media_default_desc'     => '',
-			'default_alt_text'       => "image_name_to_alt",
-			'default_caption_text'   => "none",
-			'default_desc_text'      => "none",
+			'default_alt_text'       => 'image_name_to_alt',
+			'default_caption_text'   => 'none',
+			'default_desc_text'      => 'none',
 			'others_file_support'    => [],
 			'enable_auto_rename'     => '',
 			'media_auto_rename_text' => '',
-		);
+		];
 		$options  = get_option( 'tsmlt_settings', [] );
 
 		return wp_parse_args( $options, $defaults );
@@ -218,8 +202,8 @@ class Fns {
 	 * Function to scan the upload directory and search for files.
 	 *
 	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string $directory The directory to scan.
-	 * @param int $offset The offset to start scanning from.
+	 * @param string                             $directory The directory to scan.
+	 * @param int                                $offset The offset to start scanning from.
 	 *
 	 * @return array The list of found files.
 	 */
@@ -253,13 +237,13 @@ class Fns {
 	 *
 	 * @return bool|void
 	 */
-	public static function update_rubbish_file_to_database( $directory ){
+	public static function update_rubbish_file_to_database( $directory ) {
 
 		$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
 		if ( ! count( $found_files ) ) {
 			return;
 		}
-		$dis_list     = get_option( 'tsmlt_get_directory_list', [] );
+		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 
 		$dis_list[ $directory ]['total_items'] = count( $found_files );
 
@@ -278,13 +262,13 @@ class Fns {
 
 		global $wpdb;
 
-		$upload_dir      = wp_upload_dir();
-		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
+		$upload_dir = wp_upload_dir();
+		$uploaddir  = $upload_dir['basedir'] ?? 'wp-content/uploads/';
 
 		foreach ( $found_files as $file_path ) {
 			$search_string = '';
-			$str           = explode( $uploaddir.'/', $file_path );
-			
+			$str           = explode( $uploaddir . '/', $file_path );
+
 			if ( is_array( $str ) && ! empty( $str[1] ) ) {
 				$search_string = $str[1];
 			}
@@ -308,7 +292,7 @@ class Fns {
 				continue;
 			}
 
-			$cache_key  = "tsmlt_existing_row_" . sanitize_title( $file_path );
+			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			// Check if the file_path already exists in the table using cached data
 			$existing_row = wp_cache_get( $cache_key );
@@ -318,12 +302,12 @@ class Fns {
 				if ( $existing_row ) {
 					continue;
 				}
-				$save_data = array(
+				$save_data = [
 					'file_path'     => $search_string,
 					'attachment_id' => 0,
 					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
 					'meta_data'     => serialize( [] ),
-				);
+				];
 				$wpdb->insert( $table_name, $save_data );
 
 				wp_cache_set( $cache_key, $existing_row );
@@ -336,8 +320,8 @@ class Fns {
 	/**
 	 * @return void
 	 */
-	public static function get_directory_list_cron_job(  $isRescan = false ) {
-		if( $isRescan ){
+	public static function get_directory_list_cron_job( $isRescan = false ) {
+		if ( $isRescan ) {
 			update_option( 'tsmlt_get_directory_list', [] );
 		}
 		$cache_key      = 'get_directory_list';
@@ -348,12 +332,11 @@ class Fns {
 			$subdirectories = self::scan_directory_list( $directory );
 			wp_cache_set( $cache_key, $subdirectories );
 		}
-		$dir_status     = get_option( 'tsmlt_get_directory_list', [] );
+		$dir_status = get_option( 'tsmlt_get_directory_list', [] );
 
 		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
 
 		update_option( 'tsmlt_get_directory_list', $subdirectories );
-
 	}
 
 
@@ -361,7 +344,7 @@ class Fns {
 	 * Function to retrieve the list of directories with paths from a given directory.
 	 *
 	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string $directory The directory to scan.
+	 * @param string                             $directory The directory to scan.
 	 *
 	 * @return array The list of directories with their paths.
 	 */
@@ -369,7 +352,7 @@ class Fns {
 		if ( ! $directory || ! is_string( $directory ) ) {
 			return [];
 		}
-		$filesystem  = Fns::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+		$filesystem  = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
 		$directories = [];
 		// Ensure the directory exists before scanning
 		if ( ! $filesystem->is_dir( $directory ) ) {
@@ -391,7 +374,7 @@ class Fns {
 					$directories[ $dir_path ] = [
 						'total_items' => 0,
 						'counted'     => 0,
-						'status'      => 'available'
+						'status'      => 'available',
 					];
 				}
 			}
@@ -405,33 +388,31 @@ class Fns {
 	 *
 	 * @return int|void
 	 */
-	public static function set_thumbnail_parent_id( $attachment_id ){
+	public static function set_thumbnail_parent_id( $attachment_id ) {
 
 		if ( 'attachment' !== get_post_type( $attachment_id ) ) {
 			return;
 		}
 
-		if( get_post_field('post_parent', $attachment_id) ){
+		if ( get_post_field( 'post_parent', $attachment_id ) ) {
 			return;
 		}
 
 		global $wpdb;
-		$meta_key = '_thumbnail_id';
-		$query = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", $meta_key, $attachment_id );
-		$parent_id = $wpdb->get_var($query);
+		$meta_key  = '_thumbnail_id';
+		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", $meta_key, $attachment_id );
+		$parent_id = $wpdb->get_var( $query );
 
-		if( ! $parent_id ){
+		if ( ! $parent_id ) {
 			return;
 		}
 		// Update the attachment's parent ID
-		$attachment_data = array(
-			'ID' => $attachment_id,
+		$attachment_data = [
+			'ID'          => $attachment_id,
 			'post_parent' => $parent_id,
-		);
+		];
 		// Update the attachment using wp_update_post
-		wp_update_post($attachment_data);
+		wp_update_post( $attachment_data );
 		return $parent_id;
 	}
-
-
 }
