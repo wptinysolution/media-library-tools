@@ -66,15 +66,14 @@ class Fns {
 			return $updated;
 		}
 
-		// Get the current file path and name
+		// Get the current file path and name.
 		$file_path = get_attached_file( $attachment_id );
 
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
-		
+
 		$metadata_file = basename( $file_path );
-	
 
 		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 		$filebasename  = basename( $metadata_file, '.' . $fileextension );
@@ -103,20 +102,32 @@ class Fns {
 					'post_name' => $new_filebasename,
 				]
 			);
+
+			// Get the current metadata for the media file.
+			$metadata = wp_get_attachment_metadata( $attachment_id );
+
+			if ( ! empty( $metadata['sizes'] ) ) {
+				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+					if ( ! file_exists( $old_file_path ) ) {
+						continue;
+					}
+					wp_delete_file( $old_file_path );
+				}
+			}
+
 			if ( ! function_exists( 'wp_crop_image' ) ) {
 				include ABSPATH . 'wp-admin/includes/image.php';
 			}
 			// Update the metadata with the new file name.
-			//$new_file = str_replace( basename( $file_path ), $new_file_name, $file_path );
 			update_attached_file( $attachment_id, $unique_filename );
-			
-			error_log( print_r( [
-				$unique_filename
-			], true), 3, __DIR__ . '/log.txt' );
-			
-			$generate_meta    = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
-			wp_update_attachment_metadata( $attachment_id, $generate_meta );
-			$updated = self::permalink_to_post_guid( $attachment_id );
+			try {
+				$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
+				wp_update_attachment_metadata( $attachment_id, $generate_meta );
+			} catch ( \Exception $e ) {
+				error_log( 'Error reading Exif data: ' . $e->getMessage() );
+			}
+			self::permalink_to_post_guid( $attachment_id );
 		}
 
 		return $renamed;
