@@ -76,7 +76,7 @@ export const initialState = {
 	generalData:{
 		openProModal: false,
 		isLoading: true,
-		selectedMenu: localStorage.getItem("current_menu") || 'settings',
+		selectedMenu: localStorage.getItem("mlts_current_menu") || 'settings',
 		dateList: {},
 		termsList: {},
 		isDirModalOpen: false,

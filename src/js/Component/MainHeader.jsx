@@ -108,7 +108,7 @@ function MainHeader() {
                             selectedMenu : key
                         }
                     });
-                    localStorage.setItem( "current_menu", key );
+                    localStorage.setItem( "mlts_current_menu", key );
                 } }
             />
         </Header>
