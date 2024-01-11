@@ -54,7 +54,13 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 == 🏆 CSV Export/Import ==
 
-The implementation of a "Media Library CSV Export/Import" feature is a significant step forward in simplifying the management of media assets and their associated data. This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling. Users can export their media assets and metadata into CSV files, making it easier to transfer content between systems, collaborate on projects, or create backups. The ability to import media assets and metadata from CSV files enables bulk operations, saving users valuable time and reducing the risk of errors in data entry. Furthermore, customizable templates allow users to specify which data fields to include or exclude, providing flexibility in data management. With streamlined access to this feature, organizations can expect improved efficiency, data accuracy, and collaboration when working with their media libraries.
+The implementation of a "Media Library CSV Export/Import" feature is a significant step forward in simplifying the management of media assets and their associated data.
+
+This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.
+
+Users can export their media assets and metadata into CSV files, making it easier to transfer content between systems, collaborate on projects, or create backups. The ability to import media assets and metadata from CSV files enables bulk operations, saving users valuable time and reducing the risk of errors in data entry.
+
+Furthermore, customizable templates allow users to specify which data fields to include or exclude, providing flexibility in data management. With streamlined access to this feature, organizations can expect improved efficiency, data accuracy, and collaboration when working with their media libraries.
 
 == 🏆 Media File Rename ==
 
@@ -65,7 +71,11 @@ Well-named media files enhance user experience, improving engagement and reducin
 
 == 🏆 Important Note ==
 
-Renaming files can be a risky process, which is why it's important to take precautions. Before renaming your files in bulk, try renaming them one by one to make sure the references in your pages are updated properly. It's worth noting that some plugins may use unconventional methods to encode file usage, which could cause issues with the renaming process. To ensure the safety of your files and database, it is crucial to make a backup before using Media File Renamer to its full extent. Protect your valuable media by taking these precautionary measures.
+Renaming files can be a risky process, We suggest you before renaming at first you should practice in your staging site.
+
+which is why it's important to take precautions. Before renaming your files in bulk, try renaming them one by one to make sure the references in your pages are updated properly.
+
+It's worth noting that some plugins may use unconventional methods to encode file usage, which could cause issues with the renaming process. To ensure the safety of your files and database, it is crucial to make a backup before using Media File Renamer to its full extent. Protect your valuable media by taking these precautionary measures.
 
 If you notice any issues with your website after renaming your media files, try clearing your cache. Cached HTML can often hold onto old references, so this simple step can often resolve any issues.
 
