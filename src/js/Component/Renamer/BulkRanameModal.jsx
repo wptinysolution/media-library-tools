@@ -51,6 +51,8 @@ function BulkModal() {
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await singleUpDateApi( { newname: newName, ID: id });
         // Recur with the rest of the IDs in the list
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         if( prams.ids.length && response.status ){
             await renameIdsRecursively( { ...prams, ids: prams.ids.slice(1) } );
         }

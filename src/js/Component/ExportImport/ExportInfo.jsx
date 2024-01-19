@@ -35,9 +35,9 @@ function ExportInfo() {
         // console.log( Object.values(response) );
         // Create a new array by merging the response into mediaFiles
         const updatedMediaFiles = [...mediaFiles, ...response ];
-
+        await new Promise(resolve => setTimeout(resolve, 300));
         // Continue the recursion with the updated mediaFiles
-        return getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
+        return await getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
     };
 
     const getTheMediaRecursively = async () => {

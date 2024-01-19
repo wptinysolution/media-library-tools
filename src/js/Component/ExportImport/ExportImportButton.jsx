@@ -90,6 +90,15 @@ function ExportImportButton() {
 
     return (
         <Layout className="layout">
+            <Title level={5} style={{
+                border: '1px solid #f0f0f0',
+                padding: '10px 15px',
+                margin: '0 0 10px 0px',
+                fontSize:'13px',
+                color: 'red',
+                textAlign: 'center'
+            }}>If file import fails, import small amount at a time. Its depend in your server capacity.</Title>
+
             <Content style={{
                 padding: '150px',
                 borderRadius: '5px',
