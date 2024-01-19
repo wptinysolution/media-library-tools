@@ -284,6 +284,10 @@ class Fns {
 		$uploaddir  = $upload_dir['basedir'] ?? 'wp-content/uploads/';
 
 		foreach ( $found_files as $file_path ) {
+			if ( ! file_exists( $file_path ) ) {
+				continue;
+			}
+			
 			$search_string = '';
 			$str           = explode( $uploaddir . '/', $file_path );
 
