@@ -91,6 +91,7 @@ function DirectoryModal() {
             }
         }
         setScanDir( dirKey );
+        await new Promise(resolve => setTimeout(resolve, 400));
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
 
