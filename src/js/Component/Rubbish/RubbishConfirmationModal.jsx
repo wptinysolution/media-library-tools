@@ -41,7 +41,7 @@ function RubbishConfirmationModal() {
         } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 400));
         // // Recur with the rest of the IDs in the list
         if( prams.ids.length && response?.status ){
             await rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );

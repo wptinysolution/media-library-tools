@@ -189,7 +189,7 @@ class Api {
 
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
-		$tsmlt_media['media_per_page'] = 1000 < $total_count ? 1000 : $total_count;
+		$tsmlt_media['media_per_page'] = 1500 < $total_count ? 1500 : $total_count;
 
 		$tsmlt_media['rubbish_per_page'] = absint( $parameters['rubbish_per_page'] ?? 20 );
 
@@ -398,15 +398,15 @@ class Api {
 	 * @return array
 	 */
 	public function media_count() {
-		$options = get_option( 'tsmlt_settings' );
-		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
+		// $options = get_option( 'tsmlt_settings' );
+		// $limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
 
-		$limit = 1000 < $limit ? 1000 : $limit;
+		// $limit = 1500 < $limit ? 1500 : $limit;
 
 		$media_query = new WP_Query(
 			[
 				'post_type'      => 'attachment', // Media files are attachments in WordPress.
-				'posts_per_page' => $limit, // Retrieve all media files.
+				'posts_per_page' => 1, // Retrieve all media files.
 				'post_status'    => 'any',
 				'orderby'        => 'ID',
 				'order'          => 'DESC',
@@ -433,6 +433,7 @@ class Api {
 
 		$options = get_option( 'tsmlt_settings' );
 		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
+		$limit = 1500 < $limit ? 1500 : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
@@ -679,16 +680,16 @@ class Api {
 
 		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 
-		// Get the timestamp of the next scheduled event
+		// Get the timestamp of the next scheduled event.
 		$next_scheduled_timestamp = wp_next_scheduled( 'tsmlt_upload_dir_scan' );
-		// Get WordPress timezone
-		// Get WordPress timezone
+
+		// Get WordPress timezone.
 		$wordpress_timezone = get_option( 'timezone_string' );
 
-		// Set a default timezone in case the WordPress timezone is not set or invalid
+		// Set a default timezone in case the WordPress timezone is not set or invalid.
 		$timezone = $wordpress_timezone ? new \DateTimeZone( $wordpress_timezone ) : new \DateTimeZone( 'UTC' );
 
-		// Create a DateTime object with the scheduled timestamp and set the timezone
+		// Create a DateTime object with the scheduled timestamp and set the timezone.
 		$next_scheduled_datetime = new \DateTime( "@$next_scheduled_timestamp" );
 		$next_scheduled_datetime->setTimezone( $timezone );
 

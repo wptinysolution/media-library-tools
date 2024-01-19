@@ -166,7 +166,7 @@ class Fns {
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );
 		$limit                     = absint( $options['media_per_page'] ?? 20 );
-		$options['media_per_page'] = 1000 < $limit ? 1000 : $limit;
+		$options['media_per_page'] = 1500 < $limit ? 1500 : $limit;
 		return wp_parse_args( $options, $defaults );
 	}
 
@@ -194,9 +194,9 @@ class Fns {
 	 */
 	public static function get_wp_filesystem_instance() {
 		global $wp_filesystem;
-		// Initialize the WP filesystem
+		// Initialize the WP filesystem.
 		if ( empty( $wp_filesystem ) ) {
-			// Include the file.php for WP filesystem functions
+			// Include the file.php for WP filesystem functions.
 			include_once ABSPATH . '/wp-admin/includes/file.php';
 			WP_Filesystem();
 		}

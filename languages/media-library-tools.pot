@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-19 15:08+0000\n"
+"POT-Creation-Date: 2024-01-19 18:15+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -43,7 +43,7 @@ msgstr ""
 msgid "Updated. Be happy"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:291, ../app/Controllers/Admin/Api.php:334, ../app/Controllers/Admin/Api.php:391, ../app/Controllers/Admin/Api.php:593, ../app/Controllers/Admin/Api.php:662, ../app/Controllers/Admin/Api.php:740, ../app/Controllers/Admin/Api.php:761
+#: ../app/Controllers/Admin/Api.php:291, ../app/Controllers/Admin/Api.php:334, ../app/Controllers/Admin/Api.php:391, ../app/Controllers/Admin/Api.php:594, ../app/Controllers/Admin/Api.php:663, ../app/Controllers/Admin/Api.php:741, ../app/Controllers/Admin/Api.php:762
 msgid "Update failed. Please try to fix"
 msgstr ""
 
@@ -75,39 +75,39 @@ msgstr ""
 msgid "Renamed."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:614
+#: ../app/Controllers/Admin/Api.php:615
 msgid "Done. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:614
+#: ../app/Controllers/Admin/Api.php:615
 msgid "Failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:623
+#: ../app/Controllers/Admin/Api.php:624
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:623
+#: ../app/Controllers/Admin/Api.php:624
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:662
+#: ../app/Controllers/Admin/Api.php:663
 msgid "Updated. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:709
+#: ../app/Controllers/Admin/Api.php:710
 msgid "Schedule Will Execute Soon."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:712
+#: ../app/Controllers/Admin/Api.php:713
 msgid "Schedule Will Execute Soon For Directory List."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:761
+#: ../app/Controllers/Admin/Api.php:762
 msgid "Done, Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:774
+#: ../app/Controllers/Admin/Api.php:775
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
