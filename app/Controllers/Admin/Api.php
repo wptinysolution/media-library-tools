@@ -189,11 +189,11 @@ class Api {
 
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
-		$tsmlt_media['media_per_page'] = 1500 < $total_count ? 1500 : $total_count;
+		$tsmlt_media['media_per_page'] = 1000 < $total_count ? 1000 : $total_count;
 		
 		$total_rabbis_count = absint( $parameters['rubbish_per_page'] ?? 20 );
 		
-		$tsmlt_media['rubbish_per_page'] = 1500 < $total_rabbis_count ? 1500 : $total_rabbis_count;
+		$tsmlt_media['rubbish_per_page'] = 1000 < $total_rabbis_count ? 1000 : $total_rabbis_count;
 
 		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
@@ -403,7 +403,7 @@ class Api {
 		// $options = get_option( 'tsmlt_settings' );
 		// $limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
 
-		// $limit = 1500 < $limit ? 1500 : $limit;
+		// $limit = 1000 < $limit ? 1000 : $limit;
 
 		$media_query = new WP_Query(
 			[
@@ -435,7 +435,7 @@ class Api {
 
 		$options = get_option( 'tsmlt_settings' );
 		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
-		$limit = 1500 < $limit ? 1500 : $limit;
+		$limit = 1000 < $limit ? 1000 : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
