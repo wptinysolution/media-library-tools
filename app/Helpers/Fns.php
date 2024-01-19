@@ -151,7 +151,7 @@ class Fns {
 	 * @return false|string
 	 */
 	public static function get_options() {
-		$defaults = [
+		$defaults                  = [
 			'media_per_page'         => 20,
 			'media_table_column'     => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
 			'media_default_alt'      => '',
@@ -164,8 +164,9 @@ class Fns {
 			'enable_auto_rename'     => '',
 			'media_auto_rename_text' => '',
 		];
-		$options  = get_option( 'tsmlt_settings', [] );
-
+		$options                   = get_option( 'tsmlt_settings', [] );
+		$limit                     = absint( $options['media_per_page'] ?? 20 );
+		$options['media_per_page'] = 1000 < $limit ? 1000 : $limit;
 		return wp_parse_args( $options, $defaults );
 	}
 
