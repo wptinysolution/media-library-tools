@@ -167,6 +167,12 @@ class Fns {
 		$options                   = get_option( 'tsmlt_settings', [] );
 		$limit                     = absint( $options['media_per_page'] ?? 20 );
 		$options['media_per_page'] = 1500 < $limit ? 1500 : $limit;
+
+		if ( ! empty( $options['rubbish_per_page'] ) ) {
+			$total_rabbis_count          = absint( $options['rubbish_per_page'] ?? 20 );
+			$options['rubbish_per_page'] = 1500 < $total_rabbis_count ? 1500 : $total_rabbis_count;
+		}
+
 		return wp_parse_args( $options, $defaults );
 	}
 

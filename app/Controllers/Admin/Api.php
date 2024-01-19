@@ -190,8 +190,10 @@ class Api {
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
 
 		$tsmlt_media['media_per_page'] = 1500 < $total_count ? 1500 : $total_count;
-
-		$tsmlt_media['rubbish_per_page'] = absint( $parameters['rubbish_per_page'] ?? 20 );
+		
+		$total_rabbis_count = absint( $parameters['rubbish_per_page'] ?? 20 );
+		
+		$tsmlt_media['rubbish_per_page'] = 1500 < $total_rabbis_count ? 1500 : $total_rabbis_count;
 
 		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
