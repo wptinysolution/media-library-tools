@@ -201,7 +201,7 @@ function RubbishHeader() {
                 color: 'red'
             }}>
                 Rubbish File Note: A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database.
-                Before making any changes it is highly recommended to take a backup.
+                Before making any changes it is highly recommended to take a backup. Item Per page maximum allowed 1500 for ignoring server capacity issue.
             </Title>
             <Space>
                 <Select
