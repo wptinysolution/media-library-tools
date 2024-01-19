@@ -123,7 +123,7 @@ function RenamerMainHeader() {
                 margin: '0 0 10px 0px',
                 fontSize:'13px',
                 color: 'red'
-            }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. </Title>
+            }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. Item Per page maximum allowed 1000 for ignoring server capacity issue.</Title>
 
             <Space >
                 <Select
@@ -180,7 +180,7 @@ function RenamerMainHeader() {
                         }
                     }
                 >
-                    Items Per page
+                    Items Per page (Max-1000)
                 </Button>
                 <Input
                     {...sharedProps}
