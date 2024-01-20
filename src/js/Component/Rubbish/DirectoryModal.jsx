@@ -91,7 +91,7 @@ function DirectoryModal() {
             }
         }
         setScanDir( dirKey );
-        await new Promise(resolve => setTimeout(resolve, 400));
+
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await searchFileBySingleDir( { directory: dirKey } );
 
@@ -111,7 +111,7 @@ function DirectoryModal() {
                 let thePrams =  'nextDir' === perser.nextDir ? prams.slice(1) : prams ;
                 console.log( thePrams )
                 await searchFileBySingleDirRecursively( thePrams );
-            }, 1000 );
+            }, 2000 );
 
         }
         return response;

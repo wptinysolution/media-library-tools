@@ -287,7 +287,6 @@ class Fns {
 			if ( ! file_exists( $file_path ) ) {
 				continue;
 			}
-			
 			$search_string = '';
 			$str           = explode( $uploaddir . '/', $file_path );
 
