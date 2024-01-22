@@ -39,6 +39,9 @@ function ImportInfo() {
 
     // Function to extract the file name from the URL
    const getFileNameFromURL = (url) => {
+       if( ! url ){
+           return false;
+       }
         // Use the URL constructor to parse the URL
        const urlObject = new URL(url);
        // Access the pathname and split it by '/' to get the file name
@@ -68,7 +71,7 @@ function ImportInfo() {
         }
 
         const firstObject = mediaFiles.shift();
-        if( firstObject['url']?.length  ){
+        if( firstObject['url']?.length || stateValue.exportImport.settings.importUpdateContent ){
             setCurrentFile( firstObject['url'] );
             const importedItem = await importOneByOne( { media : firstObject, settings: stateValue.exportImport.settings } );
             await setUploadedFile( ( prevState ) => [
@@ -152,7 +155,7 @@ function ImportInfo() {
                                             target={`_blank`}
                                             href={item.url}>
                                             <Text type={ 'uploaded' === item.status ? `success` : `danger` }>
-                                            { getFileNameFromURL( item.url ) }
+                                            { item.url && getFileNameFromURL( item.url ) }
                                             </Text>
                                         </a>
                                     }
