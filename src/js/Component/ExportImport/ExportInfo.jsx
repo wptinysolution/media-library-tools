@@ -70,6 +70,7 @@ function ExportInfo() {
                 This tool allows you to generate and download a CSV file containing a list of all media file.
             </Text>
             <Divider />
+
             <Progress
                 className={`progressbar-height`}
                 style={{

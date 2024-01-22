@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import {Divider, Progress, Layout, Typography, List, Avatar} from 'antd';
+import {Divider, Progress, Layout, Typography, Button, List, Avatar} from 'antd';
 
 import { useStateValue } from "../../Utils/StateProvider";
 
@@ -14,6 +14,16 @@ const {
 } = Typography;
 
 const { Content } = Layout;
+
+const buttonStyle = {
+    width: '200px',
+    height: '70px',
+    fontSize: '25px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '5px'
+}
 
 function ImportInfo() {
 
@@ -34,6 +44,11 @@ function ImportInfo() {
        // Access the pathname and split it by '/' to get the file name
        const pathnameParts = urlObject.pathname.split('/');
        return pathnameParts[pathnameParts.length - 1];
+    }
+
+    const handleExitImport = () => {
+        localStorage.setItem( "mlts_current_menu", 'mediaTable' );
+        location.reload();
     }
 
     /**
@@ -84,6 +99,7 @@ function ImportInfo() {
                This tool allows you to import (or merge) Media data to your media library from a CSV.
             </Text>
             <Divider />
+
             <Progress
                 className={`progressbar-height`}
                 style={{
@@ -92,7 +108,19 @@ function ImportInfo() {
                 showInfo={true} percent={percent}
             />
             <Divider />
-
+            {
+                100 <= percent &&
+                <Button style={ {
+                    ...buttonStyle,
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                } }
+                size={`large`}
+                onClick={ () => handleExitImport() }
+                >
+                    Done !! Exit Now
+                </Button>
+            }
             { currentFile &&
                 <Paragraph>
                 Uploading:
