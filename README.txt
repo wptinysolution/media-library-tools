@@ -62,6 +62,13 @@ Users can export their media assets and metadata into CSV files, making it easie
 
 Furthermore, customizable templates allow users to specify which data fields to include or exclude, providing flexibility in data management. With streamlined access to this feature, organizations can expect improved efficiency, data accuracy, and collaboration when working with their media libraries.
 
+Video 1: CSV transfer Media between systems.
+[youtube https://www.youtube.com/watch?v=CxBf8m3dTpo]
+
+Video 2: CSV Edit Title, Alt, Caption, Description.
+[youtube https://www.youtube.com/watch?v=rhyZv2YHMtQ]
+
+
 == 🏆 Media File Rename ==
 
 Optimizing media file names provides valuable SEO benefits. By using descriptive and keyword-rich filenames, search engines can better understand the content, leading to higher rankings and increased visibility.
