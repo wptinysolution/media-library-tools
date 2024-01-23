@@ -88,6 +88,7 @@ function ExportImportButton() {
         console.log(e);
     };
 
+    console.log( stateValue.exportImport );
     return (
         <Layout className="layout">
             <Title level={5} style={{

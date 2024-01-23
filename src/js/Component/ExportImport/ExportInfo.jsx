@@ -37,6 +37,18 @@ function ExportInfo() {
         const updatedMediaFiles = [...mediaFiles, ...response ];
         await new Promise(resolve => setTimeout(resolve, 300));
         // Continue the recursion with the updated mediaFiles
+       // const store = updatedMediaFiles;
+
+        const currentState = {
+            totalPage : stateValue.exportImport.totalPage,
+            updatedMediaFiles,
+            totalPagesRemaining,
+            countPercent
+        };
+        console.log( currentState )
+
+        localStorage.setItem( "mlt_exported_history", JSON.stringify(currentState) );
+
         return await getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
     };
 

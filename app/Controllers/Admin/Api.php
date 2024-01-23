@@ -400,15 +400,10 @@ class Api {
 	 * @return array
 	 */
 	public function media_count() {
-		// $options = get_option( 'tsmlt_settings' );
-		// $limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
-
-		// $limit = 1000 < $limit ? 1000 : $limit;
-
 		$media_query = new WP_Query(
 			[
 				'post_type'      => 'attachment', // Media files are attachments in WordPress.
-				'posts_per_page' => 1, // Retrieve all media files.
+				'posts_per_page' => 50, // Retrieve all media files.
 				'post_status'    => 'any',
 				'orderby'        => 'ID',
 				'order'          => 'DESC',
