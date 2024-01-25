@@ -403,7 +403,7 @@ class Api {
 		$media_query = new WP_Query(
 			[
 				'post_type'      => 'attachment', // Media files are attachments in WordPress.
-				'posts_per_page' => 50, // Retrieve all media files.
+				'posts_per_page' => 30,
 				'post_status'    => 'any',
 				'orderby'        => 'ID',
 				'order'          => 'DESC',
@@ -465,7 +465,7 @@ class Api {
 		}
 
 		$args = [
-			'post_type'      => 'attachment',  // Retrieve only attachments
+			'post_type'      => 'attachment',  // Retrieve only attachments.
 			'posts_per_page' => $limit,
 			'post_status'    => $status,
 			'orderby'        => $orderby,
@@ -488,7 +488,7 @@ class Api {
 					'compare' => 'NOT EXISTS',
 				],
 			];
-			$args['orderby']    = 'meta_value'; // Order by meta value
+			$args['orderby']    = 'meta_value'; // Order by meta value.
 		}
 		if ( ! empty( $parameters['categories'] ) ) {
 			$args['tax_query'] = [
@@ -504,7 +504,7 @@ class Api {
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
-			// Set Thumbnail Uploaded to
+			// Set Thumbnail Uploaded to.
 			$parent_id        = Fns::set_thumbnail_parent_id( $post->ID );
 			$parent_title     = '';
 			$parent_permalink = '';

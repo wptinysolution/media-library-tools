@@ -157,17 +157,6 @@ export const rescanDir = async ( prams ) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-// export const ignoreDirForScan = async ( prams ) => {
-//     const response = await Api.post(`/ignoreDirForScan`, prams );
-//     await notifications( 200 === response.status && response.data.updated, response.data.message );
-//     return response;
-// }
-
-/**
- *
- * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
 export const singleDeleteApi = async (prams) => {
     return await Api.post(`/rubbish/single/delete/action`, prams);
 }
@@ -226,44 +215,12 @@ export const rubbishSingleShowAction = async (prams) => {
 /**
  *
  * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-// export const rubbishBulkDeleteAction = async (prams) => {
-//     const response = await Api.post(`/rubbish/bulk/delete/action`, prams);
-//     notifications(200 === response.status && response.data.updated, response.data.message);
-//     return response;
-// }
-
-/**
- *
- * @param prams
  * @returns {Promise<any>}
  */
 export const getRubbishFileType = async () => {
     const result = await Api.get(`/getRubbishFileType`);
     return JSON.parse(result.data);
 }
-
-/**
- *
- * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-// export const activateLicense = async ( prams ) => {
-//     const response = await Api.post(`/licensesActivate`, prams );
-//     await notifications( 200 === response.status && response.data.updated, response.data.message );
-//     return response;
-// }
-/**
- *
- * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-// export const updateExtensionOptions = async ( prams ) => {
-//     const response = await Api.post(`/updateExtensionOptions`, prams );
-//     notifications( 200 === response.status && response.data.updated, response.data.message );
-//     return response;
-// }
 
 /**
  *

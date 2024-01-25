@@ -80,6 +80,13 @@ function ImportInfo() {
             ] );
             setCurrentFile( null );
         }
+        const currentState = {
+            totalMedia,
+            mediaFiles,
+            countPercent
+        };
+
+        await localStorage.setItem( "mlt_import_remaining_history", JSON.stringify(currentState) );
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
     };
