@@ -32,12 +32,10 @@ function ExportInfo() {
 
         const response = await getAttachmentPageByPage({ paged });
 
-        // console.log( Object.values(response) );
-        // Create a new array by merging the response into mediaFiles
+        // Create a new array by merging the response into mediaFiles.
         const updatedMediaFiles = [...mediaFiles, ...response ];
         await new Promise(resolve => setTimeout(resolve, 300));
-        // Continue the recursion with the updated mediaFiles
-       // const store = updatedMediaFiles;
+        // Continue the recursion with the updated mediaFiles.
 
         const currentState = {
             totalPage : stateValue.exportImport.totalPage,
@@ -45,9 +43,10 @@ function ExportInfo() {
             totalPagesRemaining,
             countPercent
         };
-        console.log( currentState )
+       // console.log( currentState )
 
-        localStorage.setItem( "mlt_exported_history", JSON.stringify(currentState) );
+        await localStorage.removeItem( "mlt_exported_history" );
+        await localStorage.setItem( "mlt_exported_history", JSON.stringify(currentState) );
 
         return await getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
     };

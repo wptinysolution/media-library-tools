@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState , useEffect } from "react";
 
 import { Divider, Modal, Popconfirm, Progress, Layout, Button, Spin, Space, Typography} from 'antd';
 
@@ -32,6 +32,11 @@ const buttonStyle = {
 function ExportImportButton() {
 
     const [stateValue, dispatch] = useStateValue();
+
+    const [ exportRemaining, setExportRemaining] = useState([] );
+
+    const [ importRemaining, setImportRemaining] = useState([] );
+
 
     const isExportImport = stateValue.exportImport.isExport || stateValue.exportImport.isImport;
 
@@ -88,7 +93,25 @@ function ExportImportButton() {
         console.log(e);
     };
 
-    console.log( stateValue.exportImport );
+    const isRemainingImport = () => {
+        const import_remaining = localStorage.getItem( "mlt_import_remaining_history");
+         const remaining = import_remaining ? JSON.parse( import_remaining ) : [];
+        // console.log( remaining )
+        return remaining.length;
+    }
+
+    const isRemainingExport = () => {
+        const export_remaining = localStorage.getItem( "mlt_exported_history");
+        const remaining = export_remaining ? JSON.parse( export_remaining ) : {};
+        console.log( remaining )
+        return remaining.length;
+    }
+
+    useEffect(() => {
+        isRemainingImport();
+        isRemainingExport();
+    }, []);
+
     return (
         <Layout className="layout">
             <Title level={5} style={{
@@ -158,6 +181,7 @@ function ExportImportButton() {
                             gap: '15px'
                         } }
                         >
+
                         <Popconfirm
                             placement="topLeft"
                             title={'Export Now?'}
@@ -175,6 +199,10 @@ function ExportImportButton() {
                             <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
                         </Popconfirm>
+
+                        {
+                            // console.log( 'import_remaining : ' ,  isRemainingImport )
+                        }
                         <Button
                             type="primary"
                             size={`large`}
@@ -183,6 +211,8 @@ function ExportImportButton() {
                         >
                             <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
+
+
                     </Content>
                 }
             </Content>
