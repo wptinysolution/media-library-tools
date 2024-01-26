@@ -88,7 +88,7 @@ function ExportImportButton() {
         console.log(e);
     };
 
-    console.log( stateValue.exportImport );
+    // console.log( stateValue.exportImport );
     return (
         <Layout className="layout">
             <Title level={5} style={{
@@ -98,7 +98,9 @@ function ExportImportButton() {
                 fontSize:'13px',
                 color: 'red',
                 textAlign: 'center'
-            }}>If file import fails, import small amount at a time. Its depend in your server capacity.</Title>
+            }}>
+                If file import fails, Try importing in small batches at a time. Its depend in your server capacity.
+            </Title>
 
             <Content style={{
                 padding: '150px',
