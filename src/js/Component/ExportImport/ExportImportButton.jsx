@@ -37,7 +37,6 @@ function ExportImportButton() {
 
     const [ importRemaining, setImportRemaining] = useState([] );
 
-
     const isExportImport = stateValue.exportImport.isExport || stateValue.exportImport.isImport;
 
     const handleExportImport = async ( type ) => {
@@ -121,7 +120,9 @@ function ExportImportButton() {
                 fontSize:'13px',
                 color: 'red',
                 textAlign: 'center'
-            }}>If file import fails, import small amount at a time. Its depend in your server capacity.</Title>
+            }}>
+                If file import fails, Try importing in small batches at a time. Its depend in your server capacity.
+            </Title>
 
             <Content style={{
                 padding: '150px',
