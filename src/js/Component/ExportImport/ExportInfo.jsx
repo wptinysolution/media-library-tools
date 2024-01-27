@@ -27,11 +27,12 @@ function ExportInfo() {
         setPercent( ( prevState ) => countPercent );
 
         if ( totalPagesRemaining <= 0 ) {
-            await setCurrentState(prevState => ({
-                ...prevState,
+            const theLastState = {
+                ...currentState,
                 exportedMediaFiles : currentState.exportedMediaFiles,
-                percent : countPercent
-            }));
+                countPercent : countPercent
+            };
+            await setCurrentState( theLastState );
             await dispatch({
                 type: Types.EXPORT_IMPORT,
                 exportImport: {
@@ -39,6 +40,10 @@ function ExportInfo() {
                     mediaFiles : currentState.exportedMediaFiles
                 },
             });
+            // console.log( theLastState );
+            // await setMediaFiles( exportedMediaFiles );
+            await localStorage.removeItem( "mlt_exported_history" );
+            await localStorage.setItem( "mlt_exported_history", JSON.stringify(theLastState) );
             return;
         }
 
@@ -57,20 +62,17 @@ function ExportInfo() {
             pagesRemaining,
             countPercent
         };
-        setCurrentState(prevState => ({
-            ...prevState,
-            ...theState
-        }));
+        setCurrentState( theState );
 
         // await setMediaFiles( exportedMediaFiles );
         await localStorage.removeItem( "mlt_exported_history" );
         await localStorage.setItem( "mlt_exported_history", JSON.stringify(theState) );
-        await new Promise(resolve => setTimeout( () => {
+        // console.log( theState );
+         setTimeout( () => {
             seTotalPagesRemaining( pagesRemaining );
-        }, 1000));
-
+        }, 1000);
     };
-    
+
     useEffect(() => {
         getMediaRecursively();
     }, [ totalPagesRemaining ]);
