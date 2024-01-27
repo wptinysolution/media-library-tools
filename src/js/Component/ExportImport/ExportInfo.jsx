@@ -13,59 +13,85 @@ function ExportInfo() {
 
     const [percent, setPercent] = useState(0);
 
-    const [mediaFiles, setMediaFiles] = useState([]);
+    const [totalPagesRemaining, seTotalPagesRemaining] = useState( stateValue.exportImport.totalPage );
 
-    const getMediaRecursively = async (totalPage, mediaFiles) => {
-        const countPercent = Math.floor(100 * (stateValue.exportImport.totalPage - totalPage) / stateValue.exportImport.totalPage);
+    const [currentState, setCurrentState] = useState({
+        totalPage : stateValue.exportImport.totalPage,
+        exportedMediaFiles: [],
+        pagesRemaining: stateValue.exportImport.totalPage,
+        countPercent : 0
+    } );
+
+    const getMediaRecursively = async () => {
+        const countPercent = Math.floor(100 * (stateValue.exportImport.totalPage - currentState.totalPage ) / stateValue.exportImport.totalPage);
         setPercent( ( prevState ) => countPercent );
 
-        if (totalPage <= 0) {
-            // Base case: All recursion is completed
-            return {
-                mediaFiles,
+        console.log( currentState );
+        if ( totalPagesRemaining <= 0) {
+            await setCurrentState(prevState => ({
+                ...prevState,
+                exportedMediaFiles : currentState.exportedMediaFiles,
                 percent : countPercent
-            };
+            }));
+            return;
+            // return {
+            //     exportedMediaFiles : currentState.exportedMediaFiles,
+            //     percent : countPercent
+            // };
         }
 
-        const totalPagesRemaining = totalPage - 1;
-        const paged = stateValue.exportImport.totalPage - totalPagesRemaining;
+        const pagesRemaining = totalPagesRemaining - 1;
+        const paged = stateValue.exportImport.totalPage - pagesRemaining;
 
         const response = await getAttachmentPageByPage({ paged });
-
+        //console.log(  currentState.exportedMediaFiles );
         // Create a new array by merging the response into mediaFiles.
-        const updatedMediaFiles = [...mediaFiles, ...response ];
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const exportedMediaFiles = [...currentState.exportedMediaFiles, ...response ];
         // Continue the recursion with the updated mediaFiles.
 
-        const currentState = {
-            totalPage : stateValue.exportImport.totalPage,
-            updatedMediaFiles,
-            totalPagesRemaining,
+        const theState = {
+            ...currentState,
+            exportedMediaFiles,
+            pagesRemaining,
             countPercent
         };
-       // console.log( currentState )
+        setCurrentState(prevState => ({
+            ...prevState,
+            ...theState
+        }));
+        // await setMediaFiles( exportedMediaFiles );
 
         await localStorage.removeItem( "mlt_exported_history" );
-        await localStorage.setItem( "mlt_exported_history", JSON.stringify(currentState) );
+        await localStorage.setItem( "mlt_exported_history", JSON.stringify(theState) );
+        //console.log( theState )
+        await new Promise(resolve => setTimeout( () => {
 
-        return await getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
+            seTotalPagesRemaining( pagesRemaining );
+        }, 1000));
+
+        //return await getMediaRecursively(totalPagesRemaining, updatedMediaFiles);
     };
 
-    const getTheMediaRecursively = async () => {
-        const finalMediaFiles = await getMediaRecursively(stateValue.exportImport.totalPage, mediaFiles);
-        // Once the recursion is complete, update the state with the final mediaFiles
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                ...finalMediaFiles
-            },
-        });
-    };
+   // console.log( currentState.totalPagesRemaining )
+    // const getTheMediaRecursively = async () => {
+    //     const finalMediaFiles = await getMediaRecursively();
+    //     // Once the recursion is complete, update the state with the final mediaFiles
+    //     await dispatch({
+    //         type: Types.EXPORT_IMPORT,
+    //         exportImport: {
+    //             ...stateValue.exportImport,
+    //             ...mediaFiles
+    //         },
+    //     });
+    // };
+
+    // useEffect(() => {
+    //     getTheMediaRecursively();
+    // }, []);
 
     useEffect(() => {
-        getTheMediaRecursively();
-    }, []);
+        getMediaRecursively();
+    }, [ totalPagesRemaining ]);
 
     return (
         <Content style={{
