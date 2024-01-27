@@ -37,7 +37,8 @@ function ExportInfo() {
                 type: Types.EXPORT_IMPORT,
                 exportImport: {
                     ...stateValue.exportImport,
-                    mediaFiles : currentState.exportedMediaFiles
+                    mediaFiles : currentState.exportedMediaFiles,
+                    percent: countPercent
                 },
             });
             // console.log( theLastState );
