@@ -18,6 +18,7 @@ import * as Types from "../../Utils/actionType";
 import DownloadCSV from "./DownloadCSV";
 import {mediaCount} from "../../Utils/Data";
 import UploadCsv from "./UploadCsv";
+import ResumeButton from "./ResumeButton";
 
 const buttonStyle = {
     width: '200px',
@@ -94,23 +95,30 @@ function ExportImportButton() {
 
     const isRemainingImport = () => {
         const import_remaining = localStorage.getItem( "mlt_import_remaining_history");
-         const remaining = import_remaining ? JSON.parse( import_remaining ) : [];
+        const remaining = import_remaining ? JSON.parse( import_remaining ) : [];
         // console.log( remaining )
-        return remaining.length;
+        return remaining;
     }
 
     const isRemainingExport = () => {
         const export_remaining = localStorage.getItem( "mlt_exported_history");
         const remaining = export_remaining ? JSON.parse( export_remaining ) : {};
        console.log( remaining )
-        return remaining.length;
+        dispatch({
+            type: Types.EXPORT_IMPORT,
+            exportImport: {
+                ...stateValue.exportImport,
+                mediaFiles : remaining?.exportedMediaFiles ? remaining.exportedMediaFiles : {} ,
+                percent: remaining?.countPercent ? remaining.countPercent : 0
+            },
+        });
+        return remaining;
     }
 
     useEffect(() => {
         isRemainingImport();
         isRemainingExport();
     }, []);
-
     return (
         <Layout className="layout">
             <Title level={5} style={{
@@ -174,7 +182,7 @@ function ExportImportButton() {
                     </Layout>
                 }
 
-                { ! isExportImport &&
+                { ! isExportImport && 100 <= stateValue.exportImport.percent ?
                     <Content className={`csv-export-import-btn-wrapper`}
                         style={ {
                             display: 'flex',
@@ -182,7 +190,6 @@ function ExportImportButton() {
                             gap: '15px'
                         } }
                         >
-
                         <Popconfirm
                             placement="topLeft"
                             title={'Export Now?'}
@@ -200,10 +207,6 @@ function ExportImportButton() {
                             <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
                         </Popconfirm>
-
-                        {
-                            // console.log( 'import_remaining : ' ,  isRemainingImport )
-                        }
                         <Button
                             type="primary"
                             size={`large`}
@@ -212,9 +215,8 @@ function ExportImportButton() {
                         >
                             <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                         </Button>
-
-
-                    </Content>
+                    </Content> :
+                    <ResumeButton/>
                 }
             </Content>
         </Layout>
