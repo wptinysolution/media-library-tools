@@ -8,10 +8,9 @@ const { Title, Text } = Typography;
 
 const { Content } = Layout;
 
-
-
 import { useCSVDownloader } from 'react-papaparse';
 import {ExportOutlined, ImportOutlined} from "@ant-design/icons";
+import * as Types from "../../Utils/actionType";
 
 const buttonStyle = {
     gap: '5px',
@@ -32,11 +31,10 @@ const buttonStyle = {
 function ResumeButton() {
 
     const [stateValue, dispatch] = useStateValue();
-
+    console.log( 'Resume' , stateValue.exportImport )
     return (
         <>
-            { stateValue.exportImport.mediaFiles.length &&
-
+            
                 <Content className={`csv-export-resum-btn-wrapper`}
                      style={ {
                          display: 'flex',
@@ -54,7 +52,16 @@ function ResumeButton() {
                                 }
                             }
                             size={`large`}
-
+                            onClick={ () => {
+                                dispatch({
+                                    type: Types.EXPORT_IMPORT,
+                                    exportImport: {
+                                        ...stateValue.exportImport,
+                                        runImporter: stateValue.exportImport.isImport,
+                                        runExporter: stateValue.exportImport.isExport,
+                                    }
+                                });
+                            } }
                         >
                             Resume
                         </Button>
@@ -68,13 +75,17 @@ function ResumeButton() {
                                 }
                             }
                             size={`large`}
-
+                            onClick={ () => {
+                                localStorage.removeItem( "mlt_exported_history" );
+                                localStorage.removeItem( "mlt_import_remaining_history" );
+                                location.reload();
+                            } }
                         >
                             Cancel
                         </Button>
 
                 </Content>
-            }
+
         </>
     );
 }

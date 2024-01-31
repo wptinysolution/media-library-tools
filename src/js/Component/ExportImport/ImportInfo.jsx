@@ -85,7 +85,8 @@ function ImportInfo() {
             mediaFiles,
             countPercent
         };
-
+        await localStorage.removeItem( "mlt_exported_history" );
+        await localStorage.removeItem( "mlt_import_remaining_history" );
         await localStorage.setItem( "mlt_import_remaining_history", JSON.stringify(currentState) );
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );

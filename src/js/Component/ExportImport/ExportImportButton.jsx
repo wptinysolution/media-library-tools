@@ -34,8 +34,6 @@ function ExportImportButton() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [ exportRemaining, setExportRemaining] = useState([] );
-
     const [ importRemaining, setImportRemaining] = useState([] );
 
     const isExportImport = stateValue.exportImport.isExport || stateValue.exportImport.isImport;
@@ -90,35 +88,57 @@ function ExportImportButton() {
         handleExportImport( 'export' );
     };
     const cancel = (e) => {
-        console.log(e);
+        //console.log(e);
     };
 
     const isRemainingImport = () => {
         const import_remaining = localStorage.getItem( "mlt_import_remaining_history");
-        const remaining = import_remaining ? JSON.parse( import_remaining ) : [];
-        // console.log( remaining )
-        return remaining;
+        const remaining = import_remaining ? JSON.parse( import_remaining ) : {};
+        if(  100 > remaining.countPercent  ) {
+           // console.log(remaining)
+            // dispatch({
+            //     type: Types.EXPORT_IMPORT,
+            //     exportImport: {
+            //         ...stateValue.exportImport,
+            //         isExport: true,
+            //         isImport: false,
+            //         runImporter: false,
+            //         totalPage: remaining?.totalPage ? remaining.totalPage : 0,
+            //         mediaFiles: remaining?.exportedMediaFiles ? remaining.exportedMediaFiles : {},
+            //         percent: remaining?.countPercent ? remaining.countPercent : 0
+            //     }
+            // });
+        }
     }
 
     const isRemainingExport = () => {
         const export_remaining = localStorage.getItem( "mlt_exported_history");
         const remaining = export_remaining ? JSON.parse( export_remaining ) : {};
-       console.log( remaining )
-        dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: {
-                ...stateValue.exportImport,
-                mediaFiles : remaining?.exportedMediaFiles ? remaining.exportedMediaFiles : {} ,
-                percent: remaining?.countPercent ? remaining.countPercent : 0
-            },
-        });
-        return remaining;
+        if( remaining?.countPercent && 100 > remaining?.countPercent ) {
+            dispatch({
+                type: Types.EXPORT_IMPORT,
+                exportImport: {
+                    ...stateValue.exportImport,
+                    isExport: true,
+                    isImport: false,
+                    runExporter: false,
+                   // mediaFiles: remaining?.exportedMediaFiles ? remaining.exportedMediaFiles : [],
+                    // pagesRemaining: remaining?.pagesRemaining ? remaining.pagesRemaining : 0,
+                    // totalPage: remaining?.totalPage ? remaining.totalPage : 0,
+                    percent: remaining?.countPercent ? remaining.countPercent : 0
+                }
+            });
+            //console.log( 'Resume' , remaining )
+        }
     }
 
     useEffect(() => {
         isRemainingImport();
         isRemainingExport();
     }, []);
+
+    //console.log( 'isExportImport : ', isExportImport );
+
     return (
         <Layout className="layout">
             <Title level={5} style={{
@@ -139,85 +159,88 @@ function ExportImportButton() {
                 display: 'flex',
                 alignItems: 'center'
             }}>
-
-                { isExportImport &&
                     <Layout
                         style={ {
                             padding: '50px',
                         } }
                     >
-                        {
-                            stateValue.exportImport.isExport && <ExportInfo/>
-                        }
-                        {
-                            stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
-                        }
-
-                        <Space wrap
-                            style={ {
-                                justifyContent: 'center'
-                            } }
-                        >
-                            { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&
-                                <DownloadCSV/>
+                        { isExportImport &&
+                            <>
+                            {
+                                stateValue.exportImport.isExport && stateValue.exportImport.runExporter && <ExportInfo/>
                             }
-                            { stateValue.exportImport.isImport && <UploadCsv/> }
-                            { 100 <= stateValue.exportImport.percent &&
-                                <Button
-                                    style={
-                                        {
-                                            ...buttonStyle,
-                                            marginLeft: 'auto',
-                                            marginRight: 'auto',
+                            {
+                                stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
+                            }
+
+                            <Space wrap
+                                style={ {
+                                    justifyContent: 'center'
+                                } }
+                            >
+                                { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&
+                                    <DownloadCSV/>
+                                }
+                                { stateValue.exportImport.isImport && <UploadCsv/> }
+                                { 100 <= stateValue.exportImport.percent &&
+                                    <Button
+                                        style={
+                                            {
+                                                ...buttonStyle,
+                                                marginLeft: 'auto',
+                                                marginRight: 'auto',
+                                            }
                                         }
-                                    }
-                                    size={`large`}
-                                    onClick={ () => handleExportImport( 'reset' ) }
+                                        size={`large`}
+                                        onClick={ () => handleExportImport( 'reset' ) }
+                                    >
+                                        Cancel
+                                    </Button>
+                                }
+
+                            </Space>
+                            </>
+                        }
+                        { ! isExportImport ?
+                            <Content className={`csv-export-import-btn-wrapper`}
+                                     style={ {
+                                         display: 'flex',
+                                         justifyContent: 'center',
+                                         gap: '15px'
+                                     } }
+                            >
+                                <Popconfirm
+                                    placement="topLeft"
+                                    title={'Export Now?'}
+                                    description={'Are you sure to Export media file?'}
+                                    okText="Yes"
+                                    cancelText="No"
+                                    onConfirm={ confirm }
+                                    onCancel={cancel}
                                 >
-                                    Cancel
+                                    <Button
+                                        type="primary"
+                                        size={`large`}
+                                        style={ buttonStyle }
+                                    >
+                                        <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
+                                    </Button>
+                                </Popconfirm>
+                                <Button
+                                    type="primary"
+                                    size={`large`}
+                                    style={ buttonStyle }
+                                    onClick={ () => handleExportImport( 'import' ) }
+                                >
+                                    <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                                 </Button>
-                            }
-
-                        </Space>
+                            </Content> :
+                            <ResumeButton/>
+                        }
                     </Layout>
-                }
 
-                { ! isExportImport && 100 <= stateValue.exportImport.percent ?
-                    <Content className={`csv-export-import-btn-wrapper`}
-                        style={ {
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '15px'
-                        } }
-                        >
-                        <Popconfirm
-                            placement="topLeft"
-                            title={'Export Now?'}
-                            description={'Are you sure to Export media file?'}
-                            okText="Yes"
-                            cancelText="No"
-                            onConfirm={ confirm }
-                            onCancel={cancel}
-                        >
-                        <Button
-                            type="primary"
-                            size={`large`}
-                            style={ buttonStyle }
-                        >
-                            <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
-                        </Button>
-                        </Popconfirm>
-                        <Button
-                            type="primary"
-                            size={`large`}
-                            style={ buttonStyle }
-                            onClick={ () => handleExportImport( 'import' ) }
-                        >
-                            <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
-                        </Button>
-                    </Content> :
-                    <ResumeButton/>
-                }
+
+
             </Content>
         </Layout>
         )

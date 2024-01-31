@@ -11,16 +11,11 @@ function ExportInfo() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const [percent, setPercent] = useState(0);
+    const [percent, setPercent] = useState(stateValue.exportImport.percent );
 
     const [totalPagesRemaining, seTotalPagesRemaining] = useState( stateValue.exportImport.totalPage );
 
-    const [currentState, setCurrentState] = useState({
-        totalPage : stateValue.exportImport.totalPage,
-        exportedMediaFiles: [],
-        pagesRemaining: stateValue.exportImport.totalPage,
-        countPercent : 0
-    } );
+    const [currentState, setCurrentState] = useState({} );
 
     const getMediaRecursively = async () => {
         const countPercent = Math.floor(100 * (stateValue.exportImport.totalPage - currentState.pagesRemaining ) / stateValue.exportImport.totalPage);
@@ -67,16 +62,38 @@ function ExportInfo() {
 
         // await setMediaFiles( exportedMediaFiles );
         await localStorage.removeItem( "mlt_exported_history" );
+        await localStorage.removeItem( "mlt_import_remaining_history" );
         await localStorage.setItem( "mlt_exported_history", JSON.stringify(theState) );
+
         // console.log( theState );
          setTimeout( () => {
             seTotalPagesRemaining( pagesRemaining );
         }, 1000);
     };
 
+    const setDefaultState = (e) => {
+        const export_remaining = localStorage.getItem( "mlt_exported_history");
+        const remaining = export_remaining ? JSON.parse( export_remaining ) : {};
+        if( 100 > remaining.countPercent ) {
+            setCurrentState(prevState => ({
+                ...prevState,
+                totalPage: stateValue.exportImport.totalPage,
+                exportedMediaFiles: stateValue.exportImport.mediaFiles,
+                pagesRemaining: remaining?.pagesRemaining ? remaining.pagesRemaining : 0,
+                countPercent: remaining?.countPercent ? remaining.countPercent : 0
+            }))
+        }
+    };
+
     useEffect(() => {
-        getMediaRecursively();
+        setDefaultState();
+    }, []);
+
+    useEffect(() => {
+       getMediaRecursively();
     }, [ totalPagesRemaining ]);
+
+   // console.log( stateValue.exportImport );
 
     return (
         <Content style={{
