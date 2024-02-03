@@ -175,8 +175,6 @@ class Review {
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>🔔 Remind Me Later</span></a>
                         <a href="<?php echo esc_url( $dont_disturb ); ?>"
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--error tsmlt-review-button--outline"><span>😐 No Thanks </span></a>
-                        <a target="_blank" href="<?php echo esc_url( 'https://www.wptinysolutions.com/contact/' ); ?>"
-                           class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--error tsmlt-review-button--outline"><span>😐 Need Help. Contact our support </span></a>
                     </div>
                 </div>
             </div>
