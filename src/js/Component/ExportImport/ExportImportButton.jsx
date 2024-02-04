@@ -64,13 +64,17 @@ function ExportImportButton() {
             const theMediaCount = await mediaCount();
             exportImport = {
                 ...exportImport,
-                ...theMediaCount
+                ...theMediaCount,
+                runImporter: false,
+                runExporter: true
             }
         }
 
         if( isImport ){
             exportImport = {
                 ...exportImport,
+                runImporter: true,
+                runExporter: false,
                 mediaFiles: [],
                 fileCount : 0,
                 percent : 0,
