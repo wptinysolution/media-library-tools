@@ -9,7 +9,8 @@
  * Author URI:        https://www.wptinysolutions.com/
  * Text Domain:       tsmlt-media-tools
  * Domain Path:       /languages
- *
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * @package TinySolutions\mlt
  */
 
