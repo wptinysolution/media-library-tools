@@ -295,6 +295,7 @@ class SubMenu {
 							</h1>
 							<p>
 								You are fully protected by our 100% Money Back Guarantee. If during the next 30 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
+                                <span style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
 							</p>
 						</section>
 					</div>
@@ -335,6 +336,11 @@ class SubMenu {
 										<h3>Do you offer refunds?</h3>
 										<p>Yes we do! We stand behind the quality of our product and will refund 100% of your money if you experience an issue that makes the plugin unusable and we are unable to resolve it.</p>
 									</li>
+                                    <li>
+                                        <h3>Do you have any restrictions on refunds?</h3>
+                                        <p style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
+                                        </p>
+                                    </li>
 									<li>
 										<h3>Do I get updates for the premium plugin?</h3>
 										<p>Yes! Automatic updates to our premium plugin are available free of charge as long as you stay our paying customer.</p>
