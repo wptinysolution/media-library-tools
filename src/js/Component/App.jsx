@@ -208,7 +208,8 @@ function App() {
                 background: '#fff',
                 borderRadius: '5px',
                 boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
-                height: 'calc( 100vh - 50px )',
+                height: '100vh',
+                // height: 'calc( 100vh - 50px )',
             }}>
                 <MainHeader/>
                 <Layout className="layout" style={{ overflowY: 'auto' }} >

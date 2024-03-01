@@ -32,7 +32,7 @@ function NeedSupport() {
                         This will create a ticket. We will response form there.
                     </Paragraph >
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
-                        Check our  <a href={`https://profiles.wordpress.org/tinysolution/#content-plugins`} target={`_blank`}> Plugins List </a>
+                        Check our  <a href={`https://www.wptinysolutions.com/tiny-products/`} target={`_blank`}> Plugins List </a>
                     </Paragraph>
             </Content>
         </Layout>
