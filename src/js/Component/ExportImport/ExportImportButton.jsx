@@ -15,8 +15,8 @@ import {useStateValue} from "../../Utils/StateProvider";
 // import ExportInfo from "./ExportInfo";
 import ImportInfo from "./ImportInfo";
 import * as Types from "../../Utils/actionType";
-import DownloadCSV from "./DownloadCSV";
-import {mediaCount} from "../../Utils/Data";
+// import DownloadCSV from "./DownloadCSV";
+// import {mediaCount} from "../../Utils/Data";
 import UploadCsv from "./UploadCsv";
 
 const buttonStyle = {
