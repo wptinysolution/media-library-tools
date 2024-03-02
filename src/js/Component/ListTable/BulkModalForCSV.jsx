@@ -46,7 +46,7 @@ function BulkModalForCSV() {
             okButtonProps={{ disabled: IsButtonDisabled }}
             okText="Done"
             footer={[
-                <Button key="rescan"> Cancel </Button>,
+                <Button key="cancel" onClick={ handleBulkModalCancel }> Cancel </Button>,
             ]}
             style={{
                 maxWidth: "650px"
