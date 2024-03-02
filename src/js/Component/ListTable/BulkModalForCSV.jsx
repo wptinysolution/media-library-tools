@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox, Progress} from 'antd';
+import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox, Progress, Button} from 'antd';
 
 import DownloadCSV from "../ExportImport/DownloadCSV";
 
@@ -45,13 +45,17 @@ function BulkModalForCSV() {
             onCancel={handleBulkModalCancel}
             okButtonProps={{ disabled: IsButtonDisabled }}
             okText="Done"
+            footer={[
+                <Button key="rescan"> Cancel </Button>,
+            ]}
             style={{
                 maxWidth: "650px"
             }}
             width="100%"
         >
             <Divider />
-            <DownloadCSV/>
+                <DownloadCSV/>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aperiam architecto corporis cum, earum eveniet molestiae nam, nihil possimus quod sed suscipit totam velit voluptas! Aspernatur autem dolorem expedita libero voluptatibus!
             <Divider />
         </Modal>
     )
