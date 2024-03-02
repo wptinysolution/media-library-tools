@@ -97,6 +97,9 @@ export const initialState = {
         percent: 0,
         settings: []
     },
+    bulkExport: {
+        isModalOpen: false,
+    },
 };
 
 const reducer = (state, action) => {
@@ -155,6 +158,11 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 exportImport : action.exportImport,
+            };
+        case Types.EXPORT_CSV:
+            return {
+                ...state,
+                bulkExport : action.bulkExport,
             };
 		default:
 			return state;

@@ -263,8 +263,8 @@ function BulkModal() {
                                         'post_categories': value
                                     },
                                 });
-                            const isDisable = ! value.length;
-                            setIsButtonDisabled( isDisable );
+                                const isDisable = ! value.length;
+                                setIsButtonDisabled( isDisable );
                             }
                         }
                         name={`post_description`}

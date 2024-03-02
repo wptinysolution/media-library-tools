@@ -15,6 +15,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
 
 import BulkModal from "./BulkModal";
+import BulkModalForCSV from "./BulkModalForCSV";
 
 export default function Datatable() {
 
@@ -74,7 +75,7 @@ export default function Datatable() {
 
                         />
                     </Content>
-                    <BulkModal />
+                    <BulkModal/><BulkModalForCSV />
                     </>
                 }
             </Layout>

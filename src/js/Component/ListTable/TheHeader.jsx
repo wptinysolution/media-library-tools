@@ -17,6 +17,8 @@ import {useSearchDebounce} from "../../Utils/Hooks";
 
 import * as Types from "../../Utils/actionType";
 import {notifications} from "../../Utils/Data";
+// import DownloadCSV from "../ExportImport/DownloadCSV";
+// import {EXPORT_CSV, EXPORT_IMPORT} from "../../Utils/actionType";
 
 const { Header } = Layout;
 
@@ -87,7 +89,15 @@ function TheHeader() {
 
         switch( stateValue.bulkSubmitData.type ){
             case 'csv_export':
-                console.log( 'Hello Csv' );
+                dispatch({
+                    ...stateValue,
+                    type: Types.EXPORT_CSV,
+                    saveType: Types.EXPORT_CSV,
+                    bulkExport: {
+                        ...stateValue.bulkExport,
+                        isModalOpen : true,
+                    },
+                });
                 break;
             case 'trash':
             case 'inherit':
