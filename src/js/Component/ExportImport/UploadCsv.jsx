@@ -6,7 +6,7 @@ import {Button, Checkbox, Divider, Typography, Upload} from "antd";
 
 import {ImportOutlined, UploadOutlined} from "@ant-design/icons";
 
-import {fileUpload, getAttachmentPageByPage} from "../../Utils/Data";
+//import {fileUpload, getAttachmentPageByPage} from "../../Utils/Data";
 
 import { usePapaParse } from 'react-papaparse';
 

@@ -86,6 +86,9 @@ function TheHeader() {
         }
 
         switch( stateValue.bulkSubmitData.type ){
+            case 'csv_export':
+                console.log( 'Hello Csv' );
+                break;
             case 'trash':
             case 'inherit':
             case 'update':

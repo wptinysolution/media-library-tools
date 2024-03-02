@@ -48,6 +48,10 @@ export const defaultBulkSubmitData = {
 
 export const bulkOprions = [
     {
+        value: 'csv_export',
+        label: 'CSV Export',
+    },
+    {
         value: 'bulkedit',
         label: 'Bulk Edit',
     },

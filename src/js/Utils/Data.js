@@ -227,10 +227,10 @@ export const getRubbishFileType = async () => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-export const getAttachmentPageByPage = async (prams) => {
-    const response = await Api.get(`/get/attachment/page/by/page`, {params: prams});
-    return response.data;
-}
+// export const getAttachmentPageByPage = async (prams) => {
+//     const response = await Api.get(`/get/attachment/page/by/page`, {params: prams});
+//     return response.data;
+// }
 
 /**
  *

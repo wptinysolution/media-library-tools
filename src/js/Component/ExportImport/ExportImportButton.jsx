@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons';
 
 import {useStateValue} from "../../Utils/StateProvider";
-import ExportInfo from "./ExportInfo";
+// import ExportInfo from "./ExportInfo";
 import ImportInfo from "./ImportInfo";
 import * as Types from "../../Utils/actionType";
 import DownloadCSV from "./DownloadCSV";
@@ -171,9 +171,8 @@ function ExportImportButton() {
                         { isExportImport &&
                             <>
                             {
-                                stateValue.exportImport.isExport && stateValue.exportImport.runExporter && <ExportInfo/>
-                            }
-                            {
+                                // stateValue.exportImport.isExport && stateValue.exportImport.runExporter && <ExportInfo/>
+
                                 stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
                             }
 
@@ -182,9 +181,9 @@ function ExportImportButton() {
                                     justifyContent: 'center'
                                 } }
                             >
-                                { 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&
-                                    <DownloadCSV/>
-                                }
+                                {/*{ 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&*/}
+                                {/*    <DownloadCSV/>*/}
+                                {/*}*/}
                                 { stateValue.exportImport.isImport && <UploadCsv/> }
                                 { 100 <= stateValue.exportImport.percent &&
                                     <Button
@@ -239,7 +238,9 @@ function ExportImportButton() {
                                     <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
                                 </Button>
                             </Content> :
-                            <ResumeButton/>
+                           <>
+                               {/*<ResumeButton/>*/}
+                           </>
                         }
                     </Layout>
 

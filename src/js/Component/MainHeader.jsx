@@ -54,7 +54,7 @@ function MainHeader() {
         },
         {
             key: 'exportImport',
-            label: 'Export / Import',
+            label: 'CSV Import',
             icon: <ExportOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
