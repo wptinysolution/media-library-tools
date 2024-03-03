@@ -547,6 +547,30 @@ class Api {
 				}
 			}
 
+			$get_meta = get_post_meta( $post->ID );
+			unset(
+				$get_meta['file'],
+				$get_meta['sizes'],
+				$get_meta['width'],
+				$get_meta['height'],
+				$get_meta['filesize'],
+				$get_meta['image_meta'],
+				$get_meta['_wp_attached_file'],
+				$get_meta['_wc_attachment_source'],
+				// $get_meta['_wp_attachment_image_alt'],
+				$get_meta['_wp_attachment_metadata'],
+				$get_meta['_wp_old_slug']
+			);
+			$custom_meta = [];
+			if ( ! empty( $get_meta ) ) {
+				foreach ( $get_meta as $key => $value ) {
+					$_value = $value[0] ?? '';
+					if ( ! is_array( $_value ) ) {
+						$custom_meta[ 'Custom_Meta:' . $key ] = $_value;
+					}
+				}
+			}
+
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'url'            => wp_get_attachment_url( $post->ID ),
@@ -565,6 +589,7 @@ class Api {
 				'metadata'       => $metadata,
 				'thefile'        => $thefile,
 				'post_mime_type' => $post->post_mime_type,
+				'custom_meta'	 => $custom_meta,
 			];
 		}
 		$query_data = [

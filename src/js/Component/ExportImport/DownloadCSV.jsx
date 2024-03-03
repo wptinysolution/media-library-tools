@@ -36,13 +36,14 @@ function DownloadCSV() {
             return;
         }
 
-        const updatedData = media.map(({ ID, url, post_title, post_excerpt, post_content, alt_text  }) => ({
+        const updatedData = media.map(({ ID, url, post_title, post_excerpt, post_content, alt_text, custom_meta  }) => ({
             'ID': ID,
             'url': url,
             'title': post_title,
             'caption': post_excerpt,
             'description': post_content,
-            'alt_text' : alt_text
+            'alt_text' : alt_text,
+            ...custom_meta,
         }));
 
         console.log( updatedData ) ;
