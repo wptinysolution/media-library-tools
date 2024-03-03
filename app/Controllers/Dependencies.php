@@ -43,9 +43,6 @@ class Dependencies {
 	 * Admin Notice For Required PHP Version
 	 */
 	public function minimum_php_version() {
-		if ( isset( $_GET['activate'] ) ) {
-			unset( $_GET['activate'] );
-		}
 		$message = sprintf(
 		/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
 			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'tsmlt-media-tools' ),
