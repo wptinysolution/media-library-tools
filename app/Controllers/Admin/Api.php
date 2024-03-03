@@ -557,7 +557,7 @@ class Api {
 				$get_meta['image_meta'],
 				$get_meta['_wp_attached_file'],
 				$get_meta['_wc_attachment_source'],
-				// $get_meta['_wp_attachment_image_alt'],
+				$get_meta['_wp_attachment_image_alt'],
 				$get_meta['_wp_attachment_metadata'],
 				$get_meta['_wp_old_slug']
 			);
