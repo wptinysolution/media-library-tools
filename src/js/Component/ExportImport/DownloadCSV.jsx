@@ -35,12 +35,14 @@ function DownloadCSV() {
         if( ! media.length ){
             return;
         }
-
-        const updatedData = media.map(({ ID, url, post_title, post_name, post_excerpt, post_content, alt_text, custom_meta  }) => ({
+        const selectedIds = stateValue.bulkSubmitData.ids;
+        const filteredData = media.filter(item => selectedIds.includes(item.ID));
+       // console.log( filteredData );
+        const updatedData = filteredData.map(({ ID, url, post_title, post_name, post_excerpt, post_content, alt_text, custom_meta  }) => ({
             'ID': ID,
+            'slug': post_name,
             'url': url,
             'title': post_title,
-            'slug': post_name,
             'caption': post_excerpt,
             'description': post_content,
             'alt_text' : alt_text,
