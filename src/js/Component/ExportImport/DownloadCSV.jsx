@@ -36,8 +36,9 @@ function DownloadCSV() {
             return;
         }
 
-        const updatedData = media.map(({ ID, post_title, post_excerpt, post_content, alt_text , ...rest }) => ({
+        const updatedData = media.map(({ ID, url, post_title, post_excerpt, post_content, alt_text  }) => ({
             'ID': ID,
+            'url': url,
             'title': post_title,
             'caption': post_excerpt,
             'description': post_content,
@@ -97,4 +98,12 @@ export default DownloadCSV;
 
 /**
 
+ ID
+ url
+ post_name
+ post_title
+ post_parents_id
+ post_excerpt
+ post_content
+ Meta:_wp_attachment_image_alt
  */
