@@ -35,12 +35,18 @@ function DownloadCSV() {
         if( ! media.length ){
             return;
         }
-        // Extract keys from the first item in the array
-        const keys = Object.keys(media[0]).map( ( item ) => (
-            { label: item, key: item }
-        ) );
-        console.log( keys )
-        setMediaFiles( (prevState) => media );
+
+        const updatedData = media.map(({ ID, post_title, post_excerpt, post_content, alt_text , ...rest }) => ({
+            'ID': ID,
+            'title': post_title,
+            'caption': post_excerpt,
+            'description': post_content,
+            'alt_text' : alt_text
+        }));
+
+        console.log( updatedData ) ;
+
+        setMediaFiles( (prevState) => updatedData );
     };
 
     useEffect(() => {
@@ -79,3 +85,16 @@ function DownloadCSV() {
 }
 
 export default DownloadCSV;
+
+
+/**
+ ID
+ title
+ caption
+ description
+ alt_text
+ */
+
+/**
+
+ */

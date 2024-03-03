@@ -54,8 +54,7 @@ function BulkModalForCSV() {
             width="100%"
         >
             <Divider />
-                <DownloadCSV/>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aperiam architecto corporis cum, earum eveniet molestiae nam, nihil possimus quod sed suscipit totam velit voluptas! Aspernatur autem dolorem expedita libero voluptatibus!
+            <DownloadCSV/>
             <Divider />
         </Modal>
     )
