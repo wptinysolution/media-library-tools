@@ -48,10 +48,6 @@ export const defaultBulkSubmitData = {
 
 export const bulkOprions = [
     {
-        value: 'csv_export',
-        label: 'CSV Export',
-    },
-    {
         value: 'bulkedit',
         label: 'Bulk Edit',
     },
@@ -71,6 +67,10 @@ export const bulkOprions = [
         value: 'delete',
         label: 'Delete Permanently ',
     },
+    {
+        value: 'csv_export',
+        label: 'CSV Export',
+    }
 ];
 
 export const columnList = [

@@ -566,7 +566,7 @@ class Api {
 				foreach ( $get_meta as $key => $value ) {
 					$_value = $value[0] ?? '';
 					if ( ! is_array( $_value ) ) {
-						$custom_meta[ 'Custom_Meta:' . $key ] = $_value;
+						$custom_meta[ 'CUSTOM_META:' . $key ] = $_value;
 					}
 				}
 			}
