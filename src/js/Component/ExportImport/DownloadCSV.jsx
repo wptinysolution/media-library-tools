@@ -31,8 +31,7 @@ function DownloadCSV() {
     const [mediaFiles, setMediaFiles] = useState([]);
 
     const generateCSVStructure = async () => {
-        const media = stateValue.exportImport.mediaFiles;
-        console.log( stateValue.mediaData.posts )
+        const media = stateValue.mediaData.posts;
         if( ! media.length ){
             return;
         }
@@ -40,6 +39,7 @@ function DownloadCSV() {
         const keys = Object.keys(media[0]).map( ( item ) => (
             { label: item, key: item }
         ) );
+        console.log( keys )
         setMediaFiles( (prevState) => media );
     };
 
@@ -49,7 +49,7 @@ function DownloadCSV() {
 
     return (
         <>
-            { stateValue.exportImport.mediaFiles.length ?
+            { mediaFiles.length ?
                 <CSVDownloader
                     type={Type.Button}
                     bom={true}
