@@ -138,7 +138,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 */
 		public function has_pro() {
 			if ( function_exists( 'tsmltpro' ) && version_compare( TSMLTPRO_VERSION, '1.2.0', '>=' ) ) {
-				return tsmltpro()->user_can_use_tsmltpro() || ( defined( 'TINY_DEBUG_PRO_1_2_0' ) && TINY_DEBUG_PRO_1_2_0 );
+				return tsmltpro()->user_can_use_tsmltpro() || ( defined( 'TINY_DEBUG_TSMLT_PRO_1_2_0' ) && TINY_DEBUG_TSMLT_PRO_1_2_0 );
 			}
 			return false;
 		}
