@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Divider, Modal, Layout, Typography, Progress } from 'antd';
+import {Divider, Modal, Layout, Typography, Progress, Spin, Space} from 'antd';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
@@ -18,6 +18,10 @@ function RubbishConfirmationModal() {
 
     const [buttonDisabled, setButtonDisabled] = useState( true );
 
+    const [theFile, setTheFile] = useState( '' );
+
+    const [total, setTotal] = useState( 0 );
+
     const rubbishBulkActionRecursively = async ( prams ) => {
 
         dispatch({
@@ -33,20 +37,23 @@ function RubbishConfirmationModal() {
         }
         const file = prams.files[0];
         let response;
-        // // Simulate the renaming operation using an asynchronous function (e.g., API call)
+        // Simulate the renaming operation using an asynchronous function (e.g., API call)
         if(  'ignore' === stateValue.bulkRubbishData.type ){
             response = await singleIgnoreApi( { file_path: file.path });
         } else if ( 'delete' === stateValue.bulkRubbishData.type ){
             response = await singleDeleteApi( { file_path: file.path });
+            console.log( response  )
         } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }
-        await new Promise(resolve => setTimeout(resolve, 400));
-        // // Recur with the rest of the IDs in the list
+        setTheFile( prevState => file.path );
+
+        setTotal( prams.files.length );
+
+        // Recur with the rest of the IDs in the list
         if( prams.ids.length && response?.status ){
-            await rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
+            return rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
         }
-        return response;
     }
 
     const handleBulkModalOk = async () => {
@@ -113,9 +120,9 @@ function RubbishConfirmationModal() {
                     { ! buttonDisabled ? <>
                             Are You Confirm { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' === stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete' }?
                         </> :
-                        <>
-                            Processing...
-                        </>
+                        <Space wrap>
+                            { total ? `Remaining - ${total}` : '' }
+                        </Space>
                     }
                     </Title>
 
@@ -125,7 +132,7 @@ function RubbishConfirmationModal() {
                         No Item selected { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
                     </Paragraph >
                 }
-
+                <Space wrap> { theFile.length > 0 ? <> <Spin size="small" /> { theFile } </> : '' } </Space>
             </Content>
             <Divider />
 

@@ -11,10 +11,10 @@ const buttonStyle = {
     width: '200px',
     height: '70px',
     fontSize: '25px',
-    display: 'flex',
+    // display: 'flex',
     cursor: 'pointer',
-    alignItems: 'center',
-    justifyContent: 'center'
+    // alignItems: 'center',
+    // justifyContent: 'center'
 }
 
 /**
@@ -74,8 +74,6 @@ function DownloadCSV() {
                             ...buttonStyle,
                             border: 0,
                             color: '#fff',
-                            marginLeft: 'auto',
-                            marginRight: 'auto',
                             borderRadius: '8px',
                             background: '#1677ff',
 
