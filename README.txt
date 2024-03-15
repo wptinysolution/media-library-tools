@@ -2,8 +2,8 @@
 Contributors: tinysolution
 Tags: media library, media file rename, media plugin, media library csv export import, SEO, media library categories, svg support, unused image, media cleaner, image trash
 Requires at least: 5.5
-Tested up to: 6.4
-Stable tag: 1.2.8
+Tested up to: 6.5
+Stable tag: 1.3.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -147,7 +147,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.3.0 ( , 2024 ) =
+= 1.3.0 ( March 16, 2024 ) =
 * Fixed: Import Issue
 * Fixed: Export Import Structure Change
 
