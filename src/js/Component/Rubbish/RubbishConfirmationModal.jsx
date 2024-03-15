@@ -42,7 +42,6 @@ function RubbishConfirmationModal() {
             response = await singleIgnoreApi( { file_path: file.path });
         } else if ( 'delete' === stateValue.bulkRubbishData.type ){
             response = await singleDeleteApi( { file_path: file.path });
-            console.log( response  )
         } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }
