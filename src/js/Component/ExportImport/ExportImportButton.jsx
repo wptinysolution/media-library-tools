@@ -7,16 +7,14 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 import {
-    ExportOutlined,
     ImportOutlined
 } from '@ant-design/icons';
 
 import {useStateValue} from "../../Utils/StateProvider";
-// import ExportInfo from "./ExportInfo";
+
 import ImportInfo from "./ImportInfo";
 import * as Types from "../../Utils/actionType";
-// import DownloadCSV from "./DownloadCSV";
-// import {mediaCount} from "../../Utils/Data";
+
 import UploadCsv from "./UploadCsv";
 
 const buttonStyle = {
@@ -98,8 +96,6 @@ function ExportImportButton() {
                         { isExportImport &&
                             <>
                             {
-                                // stateValue.exportImport.isExport && stateValue.exportImport.runExporter && <ExportInfo/>
-
                                 stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
                             }
 
@@ -108,9 +104,6 @@ function ExportImportButton() {
                                     justifyContent: 'center'
                                 } }
                             >
-                                {/*{ 100 <= stateValue.exportImport.percent && stateValue.exportImport.isExport &&*/}
-                                {/*    <DownloadCSV/>*/}
-                                {/*}*/}
                                 { stateValue.exportImport.isImport && <UploadCsv/> }
                                 { 100 <= stateValue.exportImport.percent &&
                                     <Button
@@ -139,23 +132,6 @@ function ExportImportButton() {
                                          gap: '15px'
                                      } }
                             >
-                                {/*<Popconfirm*/}
-                                {/*    placement="topLeft"*/}
-                                {/*    title={'Export Now?'}*/}
-                                {/*    description={'Are you sure to Export media file?'}*/}
-                                {/*    okText="Yes"*/}
-                                {/*    cancelText="No"*/}
-                                {/*    onConfirm={ confirm }*/}
-                                {/*    onCancel={cancel}*/}
-                                {/*>*/}
-                                {/*    <Button*/}
-                                {/*        type="primary"*/}
-                                {/*        size={`large`}*/}
-                                {/*        style={ buttonStyle }*/}
-                                {/*    >*/}
-                                {/*        <ExportOutlined/> CSV Export { stateValue.exportImport.isExport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }*/}
-                                {/*    </Button>*/}
-                                {/*</Popconfirm>*/}
                                 <Button
                                     type="primary"
                                     size={`large`}
@@ -166,7 +142,6 @@ function ExportImportButton() {
                                 </Button>
                             </Content> :
                            <>
-                               {/*<ResumeButton/>*/}
                            </>
                         }
                     </Layout>

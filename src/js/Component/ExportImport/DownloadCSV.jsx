@@ -90,24 +90,3 @@ function DownloadCSV() {
 }
 
 export default DownloadCSV;
-
-
-/**
- ID
- title
- caption
- description
- alt_text
- */
-
-/**
-
- ID
- url
- post_name
- post_title
- post_parents_id
- post_excerpt
- post_content
- Meta:_wp_attachment_image_alt
- */

@@ -147,6 +147,10 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.3.0 ( , 2024 ) =
+* Fixed: Import Issue
+* Fixed: Export Import Structure Change
+
 = 1.2.8 ( January 22, 2024 ) =
 * Fixed: Import Issue
 
