@@ -198,19 +198,19 @@ function BulkModal() {
                                 options={
                                     [
                                         {
-                                            label: 'File Title Based on Associated Post Title',
+                                            label: 'File Title Based on Attached Post',
                                             value: 'post_title'
                                         },
                                         {
-                                            label: 'Alt Text Based on Associated Post Title',
+                                            label: 'Alt Text Based on Attached Post',
                                             value: 'alt_text'
                                         },
                                         {
-                                            label: 'Caption Based on Associated Post Title',
+                                            label: 'Caption Based on Attached Post',
                                             value: 'caption'
                                         },
                                         {
-                                            label: 'Description Based on Associated Post Title',
+                                            label: 'Description Based on Attached Post',
                                             value: 'post_description'
                                         },
 

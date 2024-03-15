@@ -53,7 +53,7 @@ export const bulkOprions = [
     },
     {
         value: 'bulkEditPostTitle',
-        label: 'Bulk Edit Based on Post Title',
+        label: 'Edit Based on Attached Post Title',
     },
     {
         value: 'trash',
@@ -83,7 +83,7 @@ export const columnList = [
         key: 'Image',
     },
     {
-        title: `Uploaded to`,
+        title: `Attached Post (Parent)`,
         key: 'Parents',
     },
     {
@@ -264,7 +264,7 @@ export function columns(){
             render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Uploaded to` } </Space>,
+            title: <Space wrap> { `Attached Post (Parent)` } </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',
@@ -370,7 +370,7 @@ export function renamerColumns(){
             render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Uploaded to` } </Space>,
+            title: <Space wrap> { `Attached Post (Parent)` } </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
             width: '150px',
