@@ -36,7 +36,7 @@ function UploadCsv() {
     const { readRemoteFile } = usePapaParse();
 
     const [filename, setFilename ] = useState('' );
-
+    console.log( tsmltParams.restApiUrl );
     const uploadProps = {
         name: 'file',
         action: `${tsmltParams.restApiUrl}wp/v2/media`, // Replace with your API endpoint

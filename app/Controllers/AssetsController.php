@@ -57,7 +57,7 @@ class AssetsController {
 				'src'    => tsmlt()->get_assets_uri( 'js/backend/admin-settings.js' ),
 				'deps'   => [],
 				'footer' => true,
-			]
+			],
 		];
 
 		// Register public scripts.
@@ -69,7 +69,7 @@ class AssetsController {
 			[
 				'handle' => 'tsmlt-settings-style',
 				'src'    => tsmlt()->get_assets_uri( 'css/backend/admin-settings.css' ),
-			]
+			],
 		];
 
 		// Register public styles.
@@ -79,7 +79,7 @@ class AssetsController {
 
 		global $pagenow;
 
-		if( 'upload.php' === $pagenow  ){
+		if ( 'upload.php' === $pagenow ) {
 
 			if ( ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
 
@@ -95,7 +95,7 @@ class AssetsController {
 						'hasExtended'    => tsmlt()->has_pro(),
 						'proLink'        => tsmlt()->pro_version_link(),
 						'includesUrl'    => esc_url( includes_url() ),
-						'uploadUrl'      => esc_url( $upload_dir['baseurl'] ?? '#' ),
+						'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
 						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
 						'restApiUrl'     => esc_url_raw( rest_url() ),
 						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
@@ -103,11 +103,6 @@ class AssetsController {
 					]
 				);
 			}
-
 		}
-
-
 	}
-
-
 }
