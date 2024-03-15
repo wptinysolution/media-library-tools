@@ -82,7 +82,7 @@ function UploadCsv() {
                             }
                         },
                     }) }>
-                        Existing Media file that match by ID or File Name will be updated. Media that do not exist will be skipped? </Checkbox>
+                        Existing Media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text>  will be updated. Media that do not exist will be skipped? </Checkbox>
 
                     <Divider style={{ margin: '10px'} } />
 

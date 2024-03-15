@@ -556,6 +556,7 @@ class Api {
 				$get_meta['filesize'],
 				$get_meta['image_meta'],
 				$get_meta['_wp_attached_file'],
+				$get_meta['_elementor_source_image_hash'],
 				$get_meta['_wc_attachment_source'],
 				$get_meta['_wp_attachment_image_alt'],
 				$get_meta['_wp_attachment_metadata'],
