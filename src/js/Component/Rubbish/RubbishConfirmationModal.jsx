@@ -31,7 +31,15 @@ function RubbishConfirmationModal() {
                 progressBar : Math.floor( 100 * ( stateValue.bulkRubbishData.progressTotal - prams.files.length ) / stateValue.bulkRubbishData.progressTotal ),
             },
         });
+        setTotal( prams.files.length );
         if ( prams.files.length === 0) {
+            // dispatch({
+            //     type: Types.BALK_RUBBISH,
+            //     bulkRubbishData: {
+            //         ...stateValue.bulkRubbishData,
+            //         isModalOpen: false,
+            //     },
+            // });
             // Base case: All renaming operations are completed
             return;
         }
@@ -47,12 +55,11 @@ function RubbishConfirmationModal() {
         }
         setTheFile( prevState => file.path );
 
-        setTotal( prams.files.length );
-
         // Recur with the rest of the IDs in the list
         if( prams.ids.length && response?.status ){
             return rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
         }
+        return response;
     }
 
     const handleBulkModalOk = async () => {
@@ -72,6 +79,7 @@ function RubbishConfirmationModal() {
                         ids: []
                     },
                 });
+
             }, 1000);
 
             await dispatch({
@@ -120,7 +128,7 @@ function RubbishConfirmationModal() {
                             Are You Confirm { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' === stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete' }?
                         </> :
                         <Space wrap>
-                            { total ? `Remaining - ${total}` : '' }
+                            Remaining { `- ${total}` }
                         </Space>
                     }
                     </Title>
@@ -131,7 +139,7 @@ function RubbishConfirmationModal() {
                         No Item selected { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
                     </Paragraph >
                 }
-                <Space wrap> { theFile.length > 0 ? <> <Spin size="small" /> { theFile } </> : '' } </Space>
+                <Space wrap> { total && theFile.length > 0 ? <> <Spin size="small" /> { theFile } </> : '' } </Space>
             </Content>
             <Divider />
 

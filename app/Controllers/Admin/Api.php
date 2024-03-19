@@ -834,7 +834,7 @@ class Api {
 
 		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
 
-		// Add single quotes around each status value
+		// Add single quotes around each status value.
 		$extensions = array_map(
 			function ( $extension ) {
 				return "'" . esc_sql( $extension ) . "'";
@@ -845,13 +845,13 @@ class Api {
 		$extensions = implode( ', ', $extensions );
 
 		$page   = $parameters['paged'] ?? 1;
-		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number
+		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number.
 
 		$cache_key   = 'tsmlt_unlisted_file';
 		$table_name  = $wpdb->prefix . 'tsmlt_unlisted_file';
-		$in_statuses = [ $status ]; // Add the status values to exclude
+		$in_statuses = [ $status ]; // Add the status values to exclude.
 
-		// Add single quotes around each status value
+		// Add single quotes around each status value.
 		$in_statuses = array_map(
 			function ( $status ) {
 				return "'" . esc_sql( $status ) . "'";
@@ -861,7 +861,7 @@ class Api {
 
 		$placeholders_status = implode( ', ', $in_statuses );
 
-		// Check if the file_path already exists in the table using cached data
+		// Check if the file_path already exists in the table using cached data.
 		$existing_row = wp_cache_get( $cache_key );
 		if ( ! $existing_row ) {
 			$query        = $wpdb->prepare(
@@ -870,16 +870,16 @@ class Api {
 				$offset
 			);
 			$existing_row = $wpdb->get_results( $query );
-			// Cache the query result
+			// Cache the query result.
 			wp_cache_set( $cache_key, $existing_row );
 		}
 
 		// Media File Count.
 		$total_file_cache = $cache_key . '_total';
-		// Check if the file_path already exists in the table using cached data
+		// Check if the file_path already exists in the table using cached data.
 		$total_file = wp_cache_get( $total_file_cache );
 		if ( ! $total_file ) {
-			// Query to retrieve total number of posts
+			// Query to retrieve total number of posts.
 			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status IN ( $placeholders_status ) AND file_type IN ( $extensions )", $table_name );
 			$total_file  = $wpdb->get_var( $total_query );
 			wp_cache_set( $total_file_cache, $total_file );
