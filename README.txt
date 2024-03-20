@@ -1,6 +1,6 @@
-=== Media Library Tools - Media File Rename, Find Unused Media File, Support SVG, Edit Media Content ===
+=== Media File Rename, Find Unused Media File, Support SVG, Edit Media Content - Media Library Tools ===
 Contributors: tinysolution
-Tags: media library, media file rename, media plugin, media library csv export import, SEO, media library categories, svg support, unused image, media cleaner, image trash
+Tags: media file rename, media csv export import, Image SEO, svg support, unused image cleaner
 Requires at least: 5.5
 Tested up to: 6.5
 Stable tag: 1.3.0
@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Rename Media File, Media CSV Export Import, Find Unused Media File, Search Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files.
+Rename Media File, CSV Export Import, Find Unused Media File, Search Rubbish File, SVG Support, Bulk Edit Title, ALT tags, captions, and descriptions of your media files.
 
 == Description ==
 
