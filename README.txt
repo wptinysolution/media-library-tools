@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, media csv export import, Image SEO, svg support, unused image cleaner
 Requires at least: 5.5
 Tested up to: 6.5
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -146,6 +146,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.3.1 ( April 26, 2024 ) =
+* Fixed: Submenu Issue Fixed
 
 = 1.3.0 ( March 16, 2024 ) =
 * Fixed: Import Issue

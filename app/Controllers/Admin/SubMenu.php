@@ -243,15 +243,6 @@ class SubMenu {
 						<ul class="price">
 							<li class="header">
 								Premium Plan
-								<div style="border-bottom: 1px solid rgb(255 255 255 / 31%);margin: 15px 0;"></div>
-								<div class="price-for website-1 active-plan">
-									<span class="annual active-cycle"> $19.99 / Annual </span>
-									<span class="lifetime "> $69.99 / Lifetime </span>
-								</div>
-								<div class="price-for website-5">
-									<span class="annual active-cycle"> $69.99 / Annual </span>
-									<span class="lifetime"> $149.99 / Lifetime </span>
-								</div>
 							</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Media file CSV Export Import</li>
@@ -261,20 +252,9 @@ class SubMenu {
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
 
-							<li class="footer">
-								<select id="licenses">
-									<option value="1" selected="selected">Single Site License</option>
-									<option value="5">5-Site License</option>
-								</select>
-								<select id="billing_cycle">
-									<option value="annual" selected="selected" >Annual</option>
-									<option value="lifetime">Lifetime</option>
-								</select>
-								<button id="purchase">Buy Now</button>
-							</li>
 							<li class="footer-text" >
 								<div class="footer text">
-									<a style="color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+									<a style="margin-top:30px;color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
 								</div>
 
 							</li>
