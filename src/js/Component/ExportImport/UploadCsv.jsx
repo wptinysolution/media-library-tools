@@ -99,7 +99,9 @@ function UploadCsv() {
                                         }
                                     },
                                 }) }>
-                                Rename media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text> ? The upcoming name will mirror the value found in the <Text strong>( rename_to )</Text> column.</Checkbox>Please provide the name without including the file extension.
+                                Rename media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text> ? Rename using the value located in the <Text strong>( rename_to )</Text> column.</Checkbox>
+                                <br/>Note: The file extension will remain unchanged.
+
                             <Divider style={{ margin: '10px'} } />
 
                         </> : ''
