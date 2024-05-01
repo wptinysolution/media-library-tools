@@ -68,7 +68,7 @@ function DownloadCSV() {
                     config={{
                         delimiter: ',',
                     }}
-                    data={mediaFiles} filename={ `export-csv-file-by-media-library-tools-${window.location.hostname}` }
+                    data={mediaFiles} filename={ `export-media-file-${window.location.hostname}` }
                     style={
                         {
                             ...buttonStyle,
