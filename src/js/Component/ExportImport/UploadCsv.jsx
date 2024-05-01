@@ -82,9 +82,28 @@ function UploadCsv() {
                             }
                         },
                     }) }>
-                        Existing Media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text>  will be updated. Media that do not exist will be skipped? </Checkbox>
+                        Existing media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text>  will be updated. Media that do not exist will be skipped? </Checkbox>
 
                     <Divider style={{ margin: '10px'} } />
+                    {
+                        stateValue.exportImport.settings.importUpdateContent ? <>
+                            <Checkbox
+                                checked={stateValue.exportImport.settings.importRename}
+                                onChange={ ( event ) => dispatch({
+                                    type: Types.EXPORT_IMPORT,
+                                    exportImport: {
+                                        ...stateValue.exportImport,
+                                        settings : {
+                                            ...stateValue.exportImport.settings,
+                                            importRename: event.target.checked ? 'update' : false
+                                        }
+                                    },
+                                }) }>
+                                Rename media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text> ? The upcoming name will mirror the value found in the <Text strong>( rename_to )</Text> column.</Checkbox>Please provide the name without including the file extension.
+                            <Divider style={{ margin: '10px'} } />
+
+                        </> : ''
+                    }
 
                     <Button
                         icon={<ImportOutlined />}

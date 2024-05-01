@@ -90,7 +90,7 @@ function ExportImportButton() {
                         }}>
                             If file import fails, Try importing in small batches at a time. Its depend in your server capacity.
                             <br/>
-                           CSV File Accepted Column Header <Text strong>( ID, slug, url, title, caption, description, alt_text, custom_meta:_custom_meta_key, custom_meta:_meta_key_2, custom_meta:_meta_key_2  )</Text>
+                           CSV File Accepted Column Header <Text strong>( ID, slug, url, rename_to, title, caption, description, alt_text, custom_meta:_custom_meta_key, custom_meta:_meta_key_2, custom_meta:_meta_key_2  )</Text>
                         </Title>
 
                         { isExportImport &&
