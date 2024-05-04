@@ -60,6 +60,8 @@ class Fns {
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
 		$updated = false;
 
+		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
+
 		$new_file_name = sanitize_file_name( $new_file_name );
 
 		if ( empty( $new_file_name ) || ! $attachment_id ) {

@@ -65,7 +65,6 @@ function UploadCsv() {
             }
         },
     };
-
     return (
         <>
             { stateValue.exportImport.fileCount && ! stateValue.exportImport.runImporter ?
@@ -95,7 +94,7 @@ function UploadCsv() {
                                         ...stateValue.exportImport,
                                         settings : {
                                             ...stateValue.exportImport.settings,
-                                            importRename: event.target.checked ? 'update' : false
+                                            importRename: event.target.checked ? 'importRename' : false
                                         }
                                     },
                                 }) }>

@@ -807,11 +807,11 @@ class Api {
 		global $wpdb;
 		$cache_key  = 'tsmlt_unlisted_filetypes';
 		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Check if the file_path already exists in the table using cached data
+		// Check if the file_path already exists in the table using cached data.
 		$types = wp_cache_get( $cache_key );
 		if ( ! $types ) {
 			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM $table_name" );
-			// Cache the query result
+			// Cache the query result.
 			wp_cache_set( $cache_key, $types );
 		}
 		$rubbish_data = [
