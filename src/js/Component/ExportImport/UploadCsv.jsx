@@ -10,7 +10,7 @@ import { usePapaParse } from 'react-papaparse';
 
 import * as Types from "../../Utils/actionType";
 
-const { Text, Paragraph } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const buttonStyle = {
     width: '280px',
@@ -81,8 +81,8 @@ function UploadCsv() {
                             }
                         },
                     }) }>
-                        Existing media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text>  will be updated. Media that do not exist will be skipped? </Checkbox>
-
+                        Existing media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text>  will be updated. </Checkbox>
+                    <br/> Media that do not exist will be skipped and missing column data will remain unchanged.
                     <Divider style={{ margin: '10px'} } />
                     {
                         stateValue.exportImport.settings.importUpdateContent ? <>
@@ -98,9 +98,18 @@ function UploadCsv() {
                                         }
                                     },
                                 }) }>
-                                Rename media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text> ? Rename using the value located in the <Text strong>( rename_to )</Text> column.</Checkbox>
-                                <br/>Note: The file extension will remain unchanged.
-
+                                 Rename using the value located in the <Text strong>( rename_to )</Text> column.</Checkbox>
+                                <br/>Note: Rename media file that match by <Text strong>ID</Text>  or <Text strong>slug</Text> And Any missing column data will be left unchanged.
+                                <Title level={5} style={{
+                                    border: '1px solid #f0f0f0',
+                                    padding: '10px 15px',
+                                    margin: '0 0 10px 0px',
+                                    fontSize:'13px',
+                                    color: 'red',
+                                    textAlign: 'center'
+                                }} >
+                                    We suggest you before renaming at first you should practice in your staging site.
+                                </Title>
                             <Divider style={{ margin: '10px'} } />
 
                         </> : ''

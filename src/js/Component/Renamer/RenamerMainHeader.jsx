@@ -124,7 +124,7 @@ function RenamerMainHeader() {
                 fontSize:'13px',
                 color: 'red',
                 textAlign: 'center'
-            }}> Renamer Note: Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. Item Per page maximum allowed 1000 for ignoring server capacity issue.</Title>
+            }}> Renamer Note:  We suggest you before renaming at first you should practice in your staging site. Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. Item Per page maximum allowed 1000 for ignoring server capacity issue.</Title>
 
             <Space >
                 <Select

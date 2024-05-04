@@ -80,11 +80,6 @@ function ImportInfo() {
             ] );
             setCurrentFile( null );
         }
-        const currentState = {
-            totalMedia,
-            mediaFiles,
-            countPercent
-        };
 
         // Continue the recursion with the updated mediaFiles
         await uploadMediaRecursively( mediaFiles );
