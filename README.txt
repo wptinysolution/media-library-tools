@@ -1,4 +1,4 @@
-=== Media File Rename, Find Unused File, CSV Export Import, Edit Alt, Caption, Content - Media Library Tools ===
+=== Media File Rename, Find Unused File, Edit Alt, Caption, Content - Media Library Tools ===
 Contributors: tinysolution
 Tags: media file rename, media csv export import, Image SEO, media library plugin, unused image cleaner
 Requires at least: 5.5
@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Media Rename, CSV export/import, find unused media, search rubbish files, support SVG, bulk edit titles, ALT tags, captions & descriptions
+Media Rename, CSV export import, find unused media, search rubbish files, support SVG, bulk edit titles, ALT tags, captions & descriptions
 
 == Description ==
 
@@ -70,6 +70,12 @@ Furthermore, customizable templates allow users to specify which data fields to 
 👉 Video 2: Rename File, CSV Edit Title, Alt, Caption, Description. 👈
 
 [youtube https://www.youtube.com/watch?v=rhyZv2YHMtQ]
+
+👉 Bulk Rename With CSV Import 👈
+
+Example:
+Current filename: file-name.jpg
+Import CSV => brand-new-filename.jpg
 
 
 == 🏆 Media File Rename ==
@@ -148,8 +154,8 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.3. ( May 07, 2024 ) =
-* Added: Media File Rename Using CSV
+= 1.3.2 ( May 05, 2024 ) =
+* Support: Bulk Rename With CSV Import
 
 = 1.3.1 ( April 26, 2024 ) =
 * Fixed: Submenu Issue Fixed
