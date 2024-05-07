@@ -170,7 +170,7 @@ class Api {
 	 * @return true
 	 */
 	public function login_permission_callback() {
-		return current_user_can( 'manage_options' );
+		return current_user_can( 'upload_files' );
 	}
 
 	/**

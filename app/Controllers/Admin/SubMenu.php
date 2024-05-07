@@ -28,7 +28,7 @@ class SubMenu {
 	/**
 	 * Menu capability
 	 */
-	const MENU_CAPABILITY = 'manage_options';
+	const MENU_CAPABILITY = 'upload_files';
 
 	/**
 	 * Autoload method

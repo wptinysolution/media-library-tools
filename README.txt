@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, media csv export import, Image SEO, media library plugin, unused image cleaner
 Requires at least: 5.5
 Tested up to: 6.5
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -153,6 +153,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.3.3 ( May 08, 2024 ) =
+* update: Media edit user permission
 
 = 1.3.2 ( May 05, 2024 ) =
 * Support: Bulk Rename With CSV Import
