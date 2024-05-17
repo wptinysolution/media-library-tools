@@ -260,6 +260,9 @@ export const actionClearSchedule = async () => {
     return response;
 }
 
+export const getPluginList = async () => {
+    return await Api.get(`/getPluginList`);
+}
 
 export const importOneByOne = async (prams) => {
     return await Api.post(`/import/attachment/one/by/one`, prams);

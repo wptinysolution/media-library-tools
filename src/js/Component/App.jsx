@@ -36,6 +36,8 @@ import RenamerTableData from "./Renamer/RenamerTableData";
 
 import RubbishFile from "./Rubbish/RubbishFile";
 
+import PluginList from "./PluginList";
+
 function App() {
 
     const [ stateValue, dispatch ] = useStateValue();
@@ -218,6 +220,7 @@ function App() {
                     { 'mediaRename' === getContentType() && <RenamerTableData/> }
                     { 'exportImport' === getContentType() && <ExportImportButton/> }
                     { 'rubbishFile' === getContentType() && <RubbishFile/> }
+                    { 'usefulPlugins' === stateValue.generalData.selectedMenu && <PluginList/> }
                     { 'needSupport' === getContentType() && <NeedSupport/> }
                 </Layout>
                 <ProModal/>

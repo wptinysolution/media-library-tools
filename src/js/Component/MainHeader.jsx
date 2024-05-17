@@ -4,6 +4,7 @@ import { Menu, Layout } from 'antd';
 
 import {
     EditOutlined,
+    LikeOutlined,
     ExportOutlined,
     DeleteOutlined,
     SettingOutlined,
@@ -62,6 +63,12 @@ function MainHeader() {
             key: 'rubbishFile',
             label: 'Rubbish file',
             icon: <DeleteOutlined style={iconStyle} />,
+            style: menuItemStyle,
+        },
+        {
+            key: 'usefulPlugins',
+            label: 'Helpfully Plugins',
+            icon: <LikeOutlined />,
             style: menuItemStyle,
         },
         {

@@ -84,6 +84,7 @@ export const initialState = {
 		scanRubbishDirList: [],
 		scanDirNextSchedule: '',
 		scanRubbishDirLoading: true,
+        pluginList: {},
 	},
     exportImport:{
         isExport: false,
