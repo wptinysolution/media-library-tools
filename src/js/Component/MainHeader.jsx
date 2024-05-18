@@ -67,7 +67,7 @@ function MainHeader() {
         },
         {
             key: 'usefulPlugins',
-            label: 'Helpfully Plugins',
+            label: 'Useful Plugins',
             icon: <LikeOutlined />,
             style: menuItemStyle,
         },
