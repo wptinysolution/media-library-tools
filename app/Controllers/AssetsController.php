@@ -82,7 +82,9 @@ class AssetsController {
 		if ( 'upload.php' === $pagenow ) {
 
 			if ( ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
-
+				// Enqueue ThickBox scripts and styles.
+				wp_enqueue_script( 'thickbox' );
+				wp_enqueue_style( 'thickbox' );
 				wp_enqueue_script( 'tsmlt-settings' );
 
 				$upload_dir = wp_upload_dir(); // Get the upload directory path

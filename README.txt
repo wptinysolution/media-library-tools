@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, export media library, Image SEO, media library, media cleaner
 Requires at least: 5.5
 Tested up to: 6.5
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -153,6 +153,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.3.4 ( May 18, 2024 ) =
+* Added: Optimization
 
 = 1.3.3 ( May 08, 2024 ) =
 * update: Media edit user permission

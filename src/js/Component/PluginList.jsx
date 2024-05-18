@@ -23,11 +23,16 @@ function PluginList() {
         await setPluginList( preparedData );
     }
 
+    const decodeHTMLEntities = (text) => {
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+    };
+
     useEffect(() => {
-       getThePluginList();
+        getThePluginList();
     }, [] );
 
-    { console.log( pluginList ) }
     return (
         <Layout style={{
             position: 'relative',
@@ -41,7 +46,9 @@ function PluginList() {
 
         }}>
             { pluginList.length > 0 ?
-                    pluginList.map( ( plugin, index) => (
+                pluginList.map( ( plugin, index) => {
+                    const iframeUrl = decodeHTMLEntities(plugin.TB_iframe);
+                    return (
                         <Card
                             key={index}
                             style={{
@@ -50,22 +57,26 @@ function PluginList() {
                                 alignSelf: 'flex-start'
                             }}
                             actions={[
-                                <Button type="link" size={`large`}>
-                                    <a className="thickbox open-plugin-details-modal"
-                                       href={plugin.TB_iframe}> Install </a>
-                                </Button>
+                                <a target={`_blank`} className="thickbox open-plugin-details-modal"
+                                   href={iframeUrl}>
+                                    <Button type="link" size={`large`}>Install </Button>
+                                </a>,
+                                <a target={`_blank`} href={`https://www.wptinysolutions.com/tiny-products/${plugin.slug}`}>
+                                    <Button type="link" size={`large`}>  Visit Website </Button>
+                                </a>
                             ]}
                         >
                             <Meta
-                                avatar={<a className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}><Avatar
-                                    size={130} src={plugin?.icons['2x']}/> </a>}
-                                title={<a className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
-                                        <span dangerouslySetInnerHTML={{__html: plugin.plugin_name}}/>
+                                avatar={<a target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
+                                    <Avatar size={130} src={plugin?.icons['2x']}/>
                                     </a>}
+                                title={<a target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
+                                    <span dangerouslySetInnerHTML={{__html: plugin.plugin_name}}/>
+                                </a>}
                                 description={<span dangerouslySetInnerHTML={{__html: plugin.short_description}}/>}
                             />
                         </Card>
-                    )) :  <Loader/>
+                    )}) :  <Loader/>
             }
 
         </Layout>
