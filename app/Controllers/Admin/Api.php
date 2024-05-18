@@ -226,7 +226,7 @@ class Api {
 		$json_result = wp_json_encode( $result );
 		
 		// Cache the result for 1 day (24 hours * 60 minutes * 60 seconds).
-		set_transient( $transient_key, $json_result, DAY_IN_SECONDS );
+		set_transient( $transient_key, $json_result, 30 * DAY_IN_SECONDS );
 		
 		return $json_result;
 	}
