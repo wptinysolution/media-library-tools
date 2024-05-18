@@ -173,8 +173,6 @@ class Review {
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>😀 Already Rated!</span></a>
                         <a href="<?php echo esc_url( $remind_me ); ?>"
                            class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>🔔 Remind Me Later</span></a>
-                        <a href="<?php echo esc_url( $dont_disturb ); ?>"
-                           class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--error tsmlt-review-button--outline"><span>😐 No Thanks </span></a>
                     </div>
                 </div>
             </div>
