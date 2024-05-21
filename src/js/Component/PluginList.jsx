@@ -59,7 +59,7 @@ function PluginList() {
                             actions={[
                                 <a target={`_blank`} className="thickbox open-plugin-details-modal"
                                    href={iframeUrl}>
-                                    <Button type="link" size={`large`}>Install </Button>
+                                    <Button type="link" size={`large`}>Details</Button>
                                 </a>,
                                 <a target={`_blank`} href={`https://www.wptinysolutions.com/tiny-products/${plugin.slug}`}>
                                     <Button type="link" size={`large`}>  Visit Website </Button>

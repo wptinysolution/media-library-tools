@@ -8,7 +8,25 @@ body {
 			float: inherit;
 			height: 100%;
 		}
+		#TB_title{
+			height: 0px;
+		}
+		#TB_closeWindowButton {
+			left: auto;
+			right: -30px;
+			color: #f0f0f1;
+		}
+		.tb-close-icon {
+			color: #fff !important;
+			&:hover::after {
+				outline: 2px solid;
+				outline-offset: -4px;
+				border-radius: 4px;
+			}
+		}
 	}
+	
+	
 	
 	span.ant-checkbox-inner {
 		border: 1px solid rgb(22 119 255 / 74%) !important; //rgb(141 183 242);
@@ -36,5 +54,6 @@ body {
 		}
 		
 	}
+	
 	
 }
