@@ -53,7 +53,7 @@ class Review {
 
 		$install_date = get_option( 'tsmlt_plugin_activation_time' );
 
-		$past_date = strtotime( '+30 days', $install_date );
+		$past_date = strtotime( '+2 days', $install_date );
 
 		$remind_time = get_option( 'tsmlt_remind_me' );
 
