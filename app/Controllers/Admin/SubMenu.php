@@ -55,8 +55,8 @@ class SubMenu {
 		$menu_link_part = admin_url( 'upload.php?page=tsmlt-media-tools' );
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Tools', 'tsmlt-media-tools' ),
-			esc_html__( 'Media Tools', 'tsmlt-media-tools' ),
+			esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ),
+			esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ),
 			self::MENU_CAPABILITY,
 			'tsmlt-media-tools',
 			[ $this, 'wp_media_page_callback' ]
@@ -96,13 +96,7 @@ class SubMenu {
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/rubbishFile'
 		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
-			esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ),
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/plugins'
-		);
+		
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			$tab_title,
@@ -113,6 +107,13 @@ class SubMenu {
 		);
 
 		do_action( 'tsmlt/add/more/submenu', self::MENU_PAGE_SLUG, self::MENU_CAPABILITY );
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
+			esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/plugins'
+		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'Get Support', 'tsmlt-media-tools' ),
