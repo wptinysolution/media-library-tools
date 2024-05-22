@@ -16,7 +16,7 @@ export function setupNavigation() {
             const activeLink = Array.from(links).find(link => link.href === window.location.href);
             if (activeLink) {
                 const parentLi = activeLink.closest('li');
-                if (parentLi && parentLi.querySelector('.tsmlt-submenu')) {
+                if (parentLi && parentLi.querySelector('.tsmlt-is-submenu')) {
                     parentLi.classList.add('current');
                 }
             }
@@ -29,7 +29,7 @@ export function setupNavigation() {
         links.forEach(link => {
             link.addEventListener('click', (event) => {
                 const parentLi = link.closest('li');
-                if (parentLi && parentLi.querySelector('.tsmlt-submenu')) {
+                if (parentLi && parentLi.querySelector('.tsmlt-is-submenu')) {
                     event.preventDefault();
                     window.history.pushState(null, '', link.href);
                     setActiveLink();
