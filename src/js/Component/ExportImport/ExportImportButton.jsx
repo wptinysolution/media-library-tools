@@ -71,7 +71,7 @@ function ExportImportButton() {
             {/*<MainHeader/>*/}
             <Layout className="layout">
             <Content style={{
-                padding: '150px',
+                padding: '100px',
                 borderRadius: '5px',
                 boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
                 display: 'flex',

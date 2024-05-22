@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './Component/App';
 import { StateProvider } from './Utils/StateProvider';
 import reducer, { initialState } from './Utils/reducer';
+import {setupNavigation} from "./navigation";
 
 const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 
@@ -18,3 +19,6 @@ root.render(
         <App />
     </StateProvider>
 );
+
+//Row Js
+setupNavigation();
