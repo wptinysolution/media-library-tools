@@ -23,6 +23,7 @@ const { Content } = Layout;
 import { columnList } from '../Utils/UtilData'
 
 import * as Types from "../Utils/actionType";
+import MainHeader from "./MainHeader";
 
 const CheckboxGroup = Checkbox.Group;
 
@@ -105,7 +106,9 @@ function Settings() {
 
     };
 
-    return (
+    return (<>
+        <MainHeader/>
+        <Layout className="layout" style={{ overflowY: 'auto' }} >
         <Layout style={{ position: 'relative' }}>
             <Form
                 labelCol={{
@@ -404,8 +407,9 @@ function Settings() {
                 Save Settings
             </Button>
         </Layout>
-
+        </Layout>
+    </>
     );
-};
+}
 
 export default Settings;

@@ -21,6 +21,7 @@ import { getRubbishFile } from "../../Utils/Data";
 import DirectoryModal from "./DirectoryModal";
 
 import RubbishNotice from "./RubbishNotice";
+import MainHeader from "../MainHeader";
 
 function RubbishFile() {
 
@@ -76,7 +77,10 @@ function RubbishFile() {
     }, [stateValue.rubbishMedia.postQuery, stateValue.saveType ] );
 
     return (
-        <Layout className="layout">
+        <>
+            <MainHeader/>
+
+            <Layout className="layout">
 
             <RubbishHeader />
             <Content>
@@ -109,6 +113,6 @@ function RubbishFile() {
             <RubbishNotice/>
 
         </Layout>
-    )
+    </>)
 }
 export default RubbishFile;

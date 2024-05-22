@@ -6,6 +6,7 @@ import { useStateValue } from "../../Utils/StateProvider";
 
 import {importOneByOne } from "../../Utils/Data";
 import * as Types from "../../Utils/actionType";
+import {Link} from "react-router-dom";
 
 const {
     Title,
@@ -50,7 +51,6 @@ function ImportInfo() {
     }
 
     const handleExitImport = () => {
-        localStorage.setItem( "mlts_current_menu", 'mediaTable' );
         location.reload();
     }
 
@@ -122,7 +122,7 @@ function ImportInfo() {
                 size={`large`}
                 onClick={ () => handleExitImport() }
                 >
-                    Done !! Exit Now
+                    <Link to={`/mediaTable`}> Done !! Exit Now </Link>
                 </Button>
             }
             { currentFile &&

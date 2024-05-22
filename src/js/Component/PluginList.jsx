@@ -12,6 +12,7 @@ import {
 const { Title, Paragraph  } = Typography;
 
 import {getPluginList} from "../Utils/Data";
+import MainHeader from "./MainHeader";
 
 function PluginList() {
 
@@ -34,17 +35,20 @@ function PluginList() {
     }, [] );
 
     return (
-        <Layout style={{
-            position: 'relative',
-            height:'85vh',
-            padding: '30px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            flexDirection: 'row',
-            gap: '15px',
-            overflowY: 'auto',
+        <>
+            <MainHeader/>
 
-        }}>
+            <Layout style={{
+                position: 'relative',
+                height:'85vh',
+                padding: '30px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                flexDirection: 'row',
+                gap: '15px',
+                overflowY: 'auto',
+
+            }}>
             { pluginList.length > 0 ?
                 pluginList.map( ( plugin, index) => {
                     const iframeUrl = decodeHTMLEntities(plugin.TB_iframe);
@@ -80,8 +84,7 @@ function PluginList() {
             }
 
         </Layout>
-
-
+    </>
     );
 };
 

@@ -12,7 +12,7 @@ import {
     submitBulkMediaAction
 } from "../Utils/Data";
 
-const { Sider } = Layout;
+import {HashRouter, Navigate, Route, Routes} from "react-router-dom";
 
 import ProModal from "./ProModal";
 
@@ -210,19 +210,21 @@ function App() {
                 background: '#fff',
                 borderRadius: '5px',
                 boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
-                height: '100vh',
+                minHeight: '100vh',
                 // height: 'calc( 100vh - 50px )',
             }}>
-                <MainHeader/>
-                <Layout className="layout" style={{ overflowY: 'auto' }} >
-                    { 'settings' === getContentType() && <Settings/>  }
-                    { 'mediaTable' === getContentType() && <Datatable /> }
-                    { 'mediaRename' === getContentType() && <RenamerTableData/> }
-                    { 'exportImport' === getContentType() && <ExportImportButton/> }
-                    { 'rubbishFile' === getContentType() && <RubbishFile/> }
-                    { 'usefulPlugins' === stateValue.generalData.selectedMenu && <PluginList/> }
-                    { 'needSupport' === getContentType() && <NeedSupport/> }
-                </Layout>
+                <HashRouter>
+                    <Routes>
+                        <Route path="/" element={<Settings/>}/>
+                        <Route path="/mediaTable" element={<Datatable/>}/>
+                        <Route path="/mediaRename" element={<RenamerTableData/>}/>
+                        <Route path="/exportImport" element={<ExportImportButton/>}/>
+                        <Route path="/rubbishFile" element={<RubbishFile/>}/>
+                        <Route path="/plugins" element={<PluginList/>}/>
+                        <Route path="/support" element={<NeedSupport/>}/>
+                        <Route path="*" element={<Navigate to="/" replace/>}/>
+                    </Routes>
+                </HashRouter>
                 <ProModal/>
             </Layout>
     );

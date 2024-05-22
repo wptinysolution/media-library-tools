@@ -6,6 +6,7 @@ import {
     Layout,
     Typography
 } from 'antd';
+import MainHeader from "./MainHeader";
 
 const { Content } = Layout;
 
@@ -16,7 +17,9 @@ function NeedSupport() {
     const [stateValue, dispatch] = useStateValue();
 
     return (
-        <Layout style={{ position: 'relative' }}>
+        <>
+            <MainHeader/>
+            <Layout style={{ position: 'relative' }}>
             <Content style={{
                 padding: '150px',
                 background: 'rgb(255 255 255 / 35%)',
@@ -36,7 +39,7 @@ function NeedSupport() {
                     </Paragraph>
             </Content>
         </Layout>
-
+    </>
     );
 };
 

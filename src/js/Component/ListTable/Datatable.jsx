@@ -16,6 +16,7 @@ import * as Types from "../../Utils/actionType";
 
 import BulkModal from "./BulkModal";
 import BulkModalForCSV from "./BulkModalForCSV";
+import MainHeader from "../MainHeader";
 
 export default function Datatable() {
 
@@ -48,6 +49,8 @@ export default function Datatable() {
 
     // optionsData
     return (
+        <>
+            <MainHeader/>
             <Layout className="layout" >
                 { stateValue.generalData.isLoading || stateValue.mediaData.isLoading ?  <Loader/>  :
                     <>
@@ -79,6 +82,6 @@ export default function Datatable() {
                     </>
                 }
             </Layout>
-    );
+    </>);
 }
 

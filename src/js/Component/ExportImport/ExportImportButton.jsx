@@ -16,6 +16,7 @@ import ImportInfo from "./ImportInfo";
 import * as Types from "../../Utils/actionType";
 
 import UploadCsv from "./UploadCsv";
+import MainHeader from "../MainHeader";
 
 const buttonStyle = {
     width: '200px',
@@ -66,8 +67,9 @@ function ExportImportButton() {
     }
 
     return (
-        <Layout className="layout">
-
+        <>
+            <MainHeader/>
+            <Layout className="layout">
             <Content style={{
                 padding: '150px',
                 borderRadius: '5px',
@@ -146,11 +148,8 @@ function ExportImportButton() {
                            </>
                         }
                     </Layout>
-
-
-
             </Content>
         </Layout>
-        )
+       </> )
 }
 export default ExportImportButton;

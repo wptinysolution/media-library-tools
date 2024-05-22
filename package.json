@@ -25,6 +25,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-papaparse": "^4.4.0",
+		"react-router-dom": "^6.23.1",
 		"toastr": "^2.1.4"
 	},
 	"devDependencies": {

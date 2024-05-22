@@ -20,7 +20,11 @@ import {clearSchedule} from "../Utils/Data";
 
 const { Header } = Layout;
 
+import {Link, useLocation} from "react-router-dom";
+
 function MainHeader() {
+
+    let { pathname } = useLocation();
 
     const [stateValue, dispatch] = useStateValue();
 
@@ -36,44 +40,44 @@ function MainHeader() {
     }
     const menuItems = [
         {
-            key: 'settings',
-            label: 'Media Settings',
+            key: '/',
+            label: <Link to={`/`}> Media Settings </Link>,
             icon: <SettingOutlined style={iconStyle} />,
             style: menuItemStyle
         },
         {
-            key: 'mediaTable',
-            label: 'Media Table',
+            key: '/mediaTable',
+            label: <Link to={`/mediaTable`}> Media Table </Link>,
             icon: <UnorderedListOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
-            key: 'mediaRename',
-            label: 'Media Rename',
+            key: '/mediaRename',
+            label: <Link to={`/mediaRename`}> Media Rename </Link>,
             icon: <EditOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
-            key: 'exportImport',
-            label: 'CSV Import',
+            key: '/exportImport',
+            label: <Link to={`/exportImport`}> CSV Import</Link>,
             icon: <ExportOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
-            key: 'rubbishFile',
-            label: 'Rubbish files',
+            key: '/rubbishFile',
+            label: <Link to={`/rubbishFile`}> Rubbish files </Link>,
             icon: <DeleteOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {
-            key: 'usefulPlugins',
-            label: 'Useful Plugins',
+            key: '/plugins',
+            label: <Link to={`/plugins`}> Useful Plugins </Link>,
             icon: <LikeOutlined />,
             style: menuItemStyle,
         },
         {
-            key: 'needSupport',
-            label: 'Get Support',
+            key: '/support',
+            label: <Link to={`/support`}> Get Support </Link>,
             icon: <ContactsOutlined style={iconStyle} />,
             style: menuItemStyle,
         }
@@ -94,10 +98,10 @@ function MainHeader() {
                 }}
                 theme="dark"
                 mode="horizontal"
-                defaultSelectedKeys={[stateValue.generalData.selectedMenu]}
+                defaultSelectedKeys={[ pathname ]}
                 items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
-                   if( 'rubbishFile' == key ){
+                   if( '/rubbishFile' == key ){
                        clearSchedule()
                    }
                     dispatch({
@@ -115,7 +119,7 @@ function MainHeader() {
                             selectedMenu : key
                         }
                     });
-                    localStorage.setItem( "mlts_current_menu", key );
+                   // localStorage.setItem( "mlts_current_menu", key );
                 } }
             />
         </Header>
