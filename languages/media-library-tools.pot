@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-05-18 04:58+0000\n"
+"POT-Creation-Date: 2024-05-22 18:58+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -119,8 +119,36 @@ msgstr ""
 msgid "Get license"
 msgstr ""
 
-#: ../app/Controllers/Admin/SubMenu.php:57, ../app/Controllers/Admin/SubMenu.php:58
-msgid "Media Tools"
+#: ../app/Controllers/Admin/SubMenu.php:58, ../app/Controllers/Admin/SubMenu.php:59
+msgid "Media Tools Settings"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:73, ../app/Controllers/Admin/SubMenu.php:74
+msgid "Media Table"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:80, ../app/Controllers/Admin/SubMenu.php:81
+msgid "Media Rename"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:87, ../app/Controllers/Admin/SubMenu.php:88
+msgid "CSV Import"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:94, ../app/Controllers/Admin/SubMenu.php:95
+msgid "Rubbish files"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:112
+msgid "Useful Plugins"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:113
+msgid "Useful Plugins "
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:119, ../app/Controllers/Admin/SubMenu.php:120
+msgid "Get Support"
 msgstr ""
 
 #: ../app/Controllers/Hooks/FilterHooks.php:287
