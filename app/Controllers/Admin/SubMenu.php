@@ -85,28 +85,28 @@ class SubMenu {
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'CSV Import', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'CSV Import', 'tsmlt-media-tools' ). '</span>',
+			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'CSV Import', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/exportImport'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-            esc_html__( 'Rubbish files', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Rubbish files', 'tsmlt-media-tools' ). '</span>',
+			esc_html__( 'Rubbish files', 'tsmlt-media-tools' ),
+			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Rubbish files', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/rubbishFile'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-            esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ). '</span>',
+			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
+			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/plugins'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'Get Support', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Get Support', 'tsmlt-media-tools' ). '</span>',
+			'<span class="tsmlt-submenu" ><span class="dashicons dashicons-saved" ></span>' . esc_html__( 'Get Support', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/support'
 		);
