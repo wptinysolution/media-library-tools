@@ -112,14 +112,7 @@ function MainHeader() {
                             ids: []
                         }
                     });
-                    dispatch({
-                        type: Types.GENERAL_DATA,
-                        generalData:{
-                            ...stateValue.generalData,
-                            selectedMenu : key
-                        }
-                    });
-                   // localStorage.setItem( "mlts_current_menu", key );
+
                 } }
             />
         </Header>

@@ -52,6 +52,7 @@ class SubMenu {
 
 		$title = '<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . $tab_title . '</span>';
 
+		$menu_link_part = admin_url( 'upload.php?page=tsmlt-media-tools' );
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'Media Tools', 'tsmlt-media-tools' ),
@@ -60,7 +61,48 @@ class SubMenu {
 			'tsmlt-media-tools',
 			[ $this, 'wp_media_page_callback' ]
 		);
-
+//		add_submenu_page(
+//			self::MENU_PAGE_SLUG,
+//			esc_html__( 'Media Settings', 'tsmlt-media-tools' ),
+//			esc_html__( 'Media Settings', 'tsmlt-media-tools' ),
+//			self::MENU_CAPABILITY,
+//			$menu_link_part . '#/'
+//		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Media Table', 'tsmlt-media-tools' ),
+			esc_html__( 'Media Table', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/mediaTable'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Media Rename', 'tsmlt-media-tools' ),
+			esc_html__( 'Media Rename', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/mediaRename'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'CSV Import', 'tsmlt-media-tools' ),
+			esc_html__( 'CSV Import', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/exportImport'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Rubbish files', 'tsmlt-media-tools' ),
+			esc_html__( 'Rubbish files', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/rubbishFile'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
+			esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/plugins'
+		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			$tab_title,
@@ -71,7 +113,14 @@ class SubMenu {
 		);
 
 		do_action( 'tsmlt/add/more/submenu', self::MENU_PAGE_SLUG, self::MENU_CAPABILITY );
-	}
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'Get Support', 'tsmlt-media-tools' ),
+			esc_html__( 'Get Support', 'tsmlt-media-tools' ),
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/support'
+		);
+    }
 
 	/**
 	 * Render submenu
@@ -275,7 +324,7 @@ class SubMenu {
 							</h1>
 							<p>
 								You are fully protected by our 100% Money Back Guarantee. If during the next 30 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
-                                <span style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
+								<span style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
 							</p>
 						</section>
 					</div>
@@ -316,11 +365,11 @@ class SubMenu {
 										<h3>Do you offer refunds?</h3>
 										<p>Yes we do! We stand behind the quality of our product and will refund 100% of your money if you experience an issue that makes the plugin unusable and we are unable to resolve it.</p>
 									</li>
-                                    <li>
-                                        <h3>Do you have any restrictions on refunds?</h3>
-                                        <p style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
-                                        </p>
-                                    </li>
+									<li>
+										<h3>Do you have any restrictions on refunds?</h3>
+										<p style="color: #6bc406;"> Please note that if you change your mind without any reason and want to seek a refund, it will not be processed in accordance with our policy.</span>
+										</p>
+									</li>
 									<li>
 										<h3>Do I get updates for the premium plugin?</h3>
 										<p>Yes! Automatic updates to our premium plugin are available free of charge as long as you stay our paying customer.</p>

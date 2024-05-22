@@ -50,7 +50,7 @@ export default function Datatable() {
     // optionsData
     return (
         <>
-            <MainHeader/>
+            {/*<MainHeader/>*/}
             <Layout className="layout" >
                 { stateValue.generalData.isLoading || stateValue.mediaData.isLoading ?  <Loader/>  :
                     <>
