@@ -61,7 +61,7 @@ function MainHeader() {
         },
         {
             key: 'rubbishFile',
-            label: 'Rubbish file',
+            label: 'Rubbish files',
             icon: <DeleteOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
