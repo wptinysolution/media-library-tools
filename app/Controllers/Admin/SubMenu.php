@@ -56,7 +56,7 @@ class SubMenu {
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ),
-			esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ),
+            '<span class="tsmlt-is-submenu" >' .esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			'tsmlt-media-tools',
 			[ $this, 'wp_media_page_callback' ]
