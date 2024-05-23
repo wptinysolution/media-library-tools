@@ -36,7 +36,7 @@ function PluginList() {
 
     return (
         <>
-            {/*<MainHeader/>*/}
+            <MainHeader/>
 
             <Layout style={{
                 position: 'relative',

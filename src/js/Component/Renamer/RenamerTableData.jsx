@@ -62,7 +62,7 @@ function RenamerTableData() {
 
     return (
         <>
-            {/*<MainHeader/>*/}
+            <MainHeader/>
             <Layout className="layout">
                 <RenamerMainHeader/>
                 { stateValue.mediaData.isLoading || stateValue.mediaData.total_post < 0 ?  <Loader/> :

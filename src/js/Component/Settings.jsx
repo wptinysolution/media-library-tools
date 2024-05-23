@@ -107,7 +107,7 @@ function Settings() {
     };
 
     return (<>
-        {/*<MainHeader/>*/}
+        <MainHeader/>
         <Layout className="layout" style={{ overflowY: 'auto' }} >
         <Layout style={{ position: 'relative' }}>
             <Form

@@ -18,7 +18,7 @@ function NeedSupport() {
 
     return (
         <>
-            {/*<MainHeader/>*/}
+            <MainHeader/>
             <Layout style={{ position: 'relative' }}>
             <Content style={{
                 padding: '150px',

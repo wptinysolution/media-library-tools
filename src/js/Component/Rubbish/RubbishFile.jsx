@@ -78,7 +78,7 @@ function RubbishFile() {
 
     return (
         <>
-            {/*<MainHeader/>*/}
+            <MainHeader/>
 
             <Layout className="layout">
 
