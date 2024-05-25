@@ -23,7 +23,7 @@ function RubbishConfirmationModal() {
     const [total, setTotal] = useState( 0 );
 
     const rubbishBulkActionRecursively = async ( prams ) => {
-
+        let response = {};
         dispatch({
             type: Types.BALK_RUBBISH,
             bulkRubbishData: {
@@ -33,18 +33,28 @@ function RubbishConfirmationModal() {
         });
         setTotal( prams.files.length );
         if ( prams.files.length === 0) {
-            // dispatch({
-            //     type: Types.BALK_RUBBISH,
-            //     bulkRubbishData: {
-            //         ...stateValue.bulkRubbishData,
-            //         isModalOpen: false,
-            //     },
-            // });
+
+            // setTimeout(() => {
+            //     dispatch({
+            //         type: Types.RUBBISH_MEDIA,
+            //         rubbishMedia: {
+            //             ...stateValue.rubbishMedia,
+            //             isLoading: true,
+            //             postQuery:{
+            //                 ...stateValue.rubbishMedia.postQuery,
+            //                 isQueryUpdate: true
+            //             }
+            //         },
+            //     });
+            //
+            // }, 800);
+            //
+            response.status = 200;
             // Base case: All renaming operations are completed
-            return;
+            return response;
         }
         const file = prams.files[0];
-        let response;
+
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         if(  'ignore' === stateValue.bulkRubbishData.type ){
             response = await singleIgnoreApi( { file_path: file.path });
@@ -57,7 +67,7 @@ function RubbishConfirmationModal() {
 
         // Recur with the rest of the IDs in the list
         if( prams.ids.length && response?.status ){
-            return rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
+            return await rubbishBulkActionRecursively( { ...prams, files: prams.files.slice(1) } );
         }
         return response;
     }
@@ -93,7 +103,6 @@ function RubbishConfirmationModal() {
                 },
             });
 
-            setButtonDisabled( false );
         }
 
     };
