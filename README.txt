@@ -154,7 +154,8 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.3.5 () =
+= 1.3.5 ( May 26, 2024 ) =
+* Fixed: UI Issue
 * Added: Submenu Added
 
 = 1.3.4 ( May 18, 2024 ) =
