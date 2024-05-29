@@ -63,5 +63,14 @@ body {
 		
 	}
 	
+	.plugin-list-wrapper.ant-card {
+		align-self: flex-start;
+		max-width: calc((100% - calc(15px * 1)) / 2);
+		flex: 0 0 calc((100% - calc(15px * 1)) / 2);
+		@media (min-width: 1650px) {
+			max-width: calc((100% - calc(15px * 2)) / 3);
+			flex: 0 0 calc((100% - calc(15px * 2)) / 3);
+		}
+	}
 	
 }

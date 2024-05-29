@@ -54,12 +54,9 @@ function PluginList() {
                     const iframeUrl = decodeHTMLEntities(plugin.TB_iframe);
                     return (
                         <Card
+                            className={`plugin-list-wrapper`}
                             key={index}
-                            style={{
-                                maxWidth: window.innerWidth >= 1600 ? 'calc((100% - calc(15px * 2)) / 3)' : 'calc((100% - calc(15px * 1)) / 2)',
-                                flex: window.innerWidth >= 1600 ? '0 0 calc((100% - calc(15px * 2)) / 3)' : '0 0 calc((100% - calc(15px * 1)) / 2)',
-                                alignSelf: 'flex-start'
-                            }}
+
                             actions={[
                                 <a target={`_blank`} className="thickbox open-plugin-details-modal"
                                    href={iframeUrl}>
