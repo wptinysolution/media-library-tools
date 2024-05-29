@@ -56,8 +56,8 @@ function PluginList() {
                         <Card
                             key={index}
                             style={{
-                                maxWidth:'calc( ( 100% - calc( 15px * 1 ) ) / 2)',
-                                flex: '0 0 calc(( 100% - calc( 15px * 1 ) ) / 2)',
+                                maxWidth: window.innerWidth >= 1600 ? 'calc((100% - calc(15px * 2)) / 3)' : 'calc((100% - calc(15px * 1)) / 2)',
+                                flex: window.innerWidth >= 1600 ? '0 0 calc((100% - calc(15px * 2)) / 3)' : '0 0 calc((100% - calc(15px * 1)) / 2)',
                                 alignSelf: 'flex-start'
                             }}
                             actions={[
