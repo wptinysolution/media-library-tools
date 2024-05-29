@@ -190,9 +190,12 @@ class Api {
 		$transient_key = 'get_plugin_list_use_cache_' . TSMLT_VERSION;
 		// Try to get the cached data.
 		$cached_data = get_transient( $transient_key );
-		if ( false !== $cached_data ) {
+		if ( ! empty( $cached_data ) ) {
+			$is_empty = json_decode( $cached_data );
 			// Return the cached data if it exists.
-			return $cached_data;
+			if ( ! empty( $is_empty ) ) {
+				return $cached_data;
+			}
 		}
 		// Initialize the result array.
 		$result = [];
