@@ -71,9 +71,12 @@ function PluginList() {
                             ]}
                         >
                             <Meta
-                                avatar={<a target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
-                                    <Avatar size={130} src={plugin?.icons['2x']}/>
-                                    </a>}
+                                avatar={<a style={{
+                                    display: 'block',
+                                    lineHeight: 0
+                                }} target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
+                                    <Avatar shape="square" size={130} src={plugin?.icons['2x']}/>
+                                </a>}
                                 title={<a target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
                                     <span dangerouslySetInnerHTML={{__html: plugin.plugin_name}}/>
                                 </a>}

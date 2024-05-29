@@ -164,7 +164,7 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
-		
+
 		register_rest_route(
 			$this->namespace,
 			$this->resource_name . '/getPluginList',
@@ -174,7 +174,6 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
-		
 	}
 
 	/**
@@ -188,7 +187,7 @@ class Api {
 	 */
 	public function get_plugin_list() {
 		// Define a unique key for the transient.
-		$transient_key = 'get_plugin_list_use_cache';
+		$transient_key = 'get_plugin_list_use_cache_' . TSMLT_VERSION;
 		// Try to get the cached data.
 		$cached_data = get_transient( $transient_key );
 		if ( false !== $cached_data ) {
@@ -221,17 +220,17 @@ class Api {
 		} catch ( \Exception $ex ) {
 			// Handle exception (optional logging or error handling can be added here).
 		}
-		
+
 		// Encode the result to JSON.
 		$json_result = wp_json_encode( $result );
-		
+
 		// Cache the result for 1 day (24 hours * 60 minutes * 60 seconds).
 		set_transient( $transient_key, $json_result, 30 * DAY_IN_SECONDS );
-		
+
 		return $json_result;
 	}
-	
-	
+
+
 	/**
 	 * @return false|string
 	 */
