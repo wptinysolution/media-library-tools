@@ -72,7 +72,7 @@ function MainHeader() {
         {
             key: '/plugins',
             label: <Link to={`/plugins`}> Useful Plugins </Link>,
-            icon: <LikeOutlined />,
+            icon: <LikeOutlined style={iconStyle}/>,
             style: menuItemStyle,
         },
         {
