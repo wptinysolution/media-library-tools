@@ -432,6 +432,7 @@ export function renamerColumns(){
             key: 'Image',
             dataIndex: 'guid',
             align: 'top',
+            width: '300px',
             render:  ( text, record, i ) => <Paragraph  copyable={{ text: `${record.uploaddir + '/' + record.thefile.file}` }} > <Text type="secondary" code style={{ fontSize: '15px', maxWidth:'calc( 100% - 50px)', display: 'inline-flex' }} > { record.uploaddir + '/' + record.thefile.file } </Text> </Paragraph>,
         },
 
@@ -440,7 +441,7 @@ export function renamerColumns(){
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
-            width: '200px',
+
         }
     ];
 }
