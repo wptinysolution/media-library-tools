@@ -380,7 +380,7 @@ export function renamerColumns(){
             title: `File Name`,
             key: 'Image',
             dataIndex: 'guid',
-            width: '300px',
+            width: '350px',
             align: 'top',
             render:  ( text, record, i ) =>  <>
                 { stateValue.rename.formEdited ?  <Layout style={{
