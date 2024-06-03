@@ -89,6 +89,18 @@ class Fns {
 
 		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
+		// Check if the basename has "scaled-[number]" or "rotated-[number]".
+		if ( preg_match( '/-(scaled|rotated)-\d+\./', $unique_filename, $matches ) ) {
+			$old_name        = $unique_filename;
+			$unique_filename = preg_replace( '/-(scaled|rotated)-\d+(?=\.)/', '-$1', $unique_filename );
+			if ( file_exists( $unique_filename ) ) {
+				$unique_filename = $old_name;
+			}
+			$ori_filename = preg_replace( '/-(scaled|rotated)-\d+(?=\.)/', '', $unique_filename );
+			if ( file_exists( $ori_filename ) ) {
+				wp_delete_file( $ori_filename );
+			}
+		}
 		// Rename the file on the server.
 		$renamed = rename( $file_path, $unique_filename );
 
