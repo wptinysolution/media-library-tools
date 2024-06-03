@@ -87,6 +87,9 @@ class AssetsController {
 				wp_enqueue_style( 'thickbox' );
 				wp_enqueue_script( 'tsmlt-settings' );
 
+				// WPml Create Issue
+				wp_dequeue_style( 'wpml-tm-styles' );
+
 				$upload_dir = wp_upload_dir(); // Get the upload directory path
 				wp_localize_script(
 					'tsmlt-settings',
