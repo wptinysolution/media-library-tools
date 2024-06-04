@@ -89,7 +89,8 @@ class AssetsController {
 
 				// WPml Create Issue
 				wp_dequeue_style( 'wpml-tm-styles' );
-
+				wp_dequeue_script( 'wpml-tm-scripts' );
+				
 				$upload_dir = wp_upload_dir(); // Get the upload directory path
 				wp_localize_script(
 					'tsmlt-settings',
