@@ -61,46 +61,51 @@ class Fns {
 		$updated = false;
 
 		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
-
 		$new_file_name = sanitize_file_name( $new_file_name );
-
+		$new_file_name = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
 		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
 
-		// Get the current file path and name.
-		$file_path = get_attached_file( $attachment_id );
+		if ( function_exists( 'wp_get_original_image_path' ) ) {
+			$file_path = wp_get_original_image_path( $attachment_id );
+		} else {
+			$file_path = get_attached_file( $attachment_id );
+		}
 
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
+		// Get the current metadata for the media file.
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! empty( $metadata['sizes'] ) ) {
+			foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+				$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+				if ( ! file_exists( $old_file_path ) ) {
+					continue;
+				}
+				wp_delete_file( $old_file_path );
+			}
+		}
+		// Scaled.
+		if ( preg_match( '/-(scaled|rotated)\./', $metadata['file'], $matches ) ) {
+			$old_file_path = dirname( $file_path ) . '/' . basename( $metadata['file'] );
+			if ( file_exists( $old_file_path ) ) {
+				wp_delete_file( $old_file_path );
+			}
+		}
 
 		$metadata_file = basename( $file_path );
-
 		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 		$filebasename  = basename( $metadata_file, '.' . $fileextension );
-
 		$new_file_name = $new_file_name . '.' . $fileextension;
-		if ( $filebasename == basename( $new_file_name, '.' . $fileextension ) ) {
+		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
 			return $updated;
 		}
 
 		$path_being_saved_to = dirname( $file_path );
 
 		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
-
-		// Check if the basename has "scaled-[number]" or "rotated-[number]".
-		if ( preg_match( '/-(scaled|rotated)-\d+\./', $unique_filename, $matches ) ) {
-			$old_name        = $unique_filename;
-			$unique_filename = preg_replace( '/-(scaled|rotated)-\d+(?=\.)/', '-$1', $unique_filename );
-			if ( file_exists( $unique_filename ) ) {
-				$unique_filename = $old_name;
-			}
-			$ori_filename = preg_replace( '/-(scaled|rotated)-\d+(?=\.)/', '', $unique_filename );
-			if ( file_exists( $ori_filename ) ) {
-				wp_delete_file( $ori_filename );
-			}
-		}
 		// Rename the file on the server.
 		$renamed = rename( $file_path, $unique_filename );
 
@@ -116,19 +121,6 @@ class Fns {
 					'post_name' => $new_filebasename,
 				]
 			);
-
-			// Get the current metadata for the media file.
-			$metadata = wp_get_attachment_metadata( $attachment_id );
-
-			if ( ! empty( $metadata['sizes'] ) ) {
-				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
-					if ( ! file_exists( $old_file_path ) ) {
-						continue;
-					}
-					wp_delete_file( $old_file_path );
-				}
-			}
 
 			if ( ! function_exists( 'wp_crop_image' ) ) {
 				include ABSPATH . 'wp-admin/includes/image.php';
@@ -220,7 +212,7 @@ class Fns {
 			include_once ABSPATH . '/wp-admin/includes/file.php';
 			WP_Filesystem();
 		}
-		// Check if WP_Filesystem_Direct is already instantiated
+		// Check if WP_Filesystem_Direct is already instantiated.
 		if ( $wp_filesystem instanceof WP_Filesystem_Base && $wp_filesystem instanceof WP_Filesystem_Direct ) {
 			if ( method_exists( $wp_filesystem, 'request_filesystem_credentials' ) ) {
 				$wp_filesystem = new WP_Filesystem_Direct( null );
