@@ -76,6 +76,15 @@ class Fns {
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
+
+		$metadata_file = basename( $file_path );
+		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
+		$filebasename  = basename( $metadata_file, '.' . $fileextension );
+		$new_file_name = $new_file_name . '.' . $fileextension;
+		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
+			return $updated;
+		}
+
 		// Get the current metadata for the media file.
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 		if ( ! empty( $metadata['sizes'] ) ) {
@@ -93,14 +102,6 @@ class Fns {
 			if ( file_exists( $old_file_path ) ) {
 				wp_delete_file( $old_file_path );
 			}
-		}
-
-		$metadata_file = basename( $file_path );
-		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-		$filebasename  = basename( $metadata_file, '.' . $fileextension );
-		$new_file_name = $new_file_name . '.' . $fileextension;
-		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
-			return $updated;
 		}
 
 		$path_being_saved_to = dirname( $file_path );
