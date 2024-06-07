@@ -40,7 +40,7 @@ class AssetsController {
 		/**
 		 * Admin scripts.
 		 */
-		add_action( 'admin_enqueue_scripts', [ $this, 'backend_assets' ], 1 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'backend_assets' ], 99 );
 	}
 
 
