@@ -277,7 +277,7 @@ class SubMenu {
 					<header id="header" class="card clearfix" >
 						<div class="product-header">
 							<div class="product-icon">
-								<img src="https://www.wptinysolutions.com/wp-content/uploads/2023/08/media-library-tools-icon-128x128-1.png" alt="">
+								<img src="https://www.wptinysolutions.com/wp-content/uploads/2024/06/media-library-tools-con-256x256-1.gif" alt="">
 							</div>
 							<div class="product-header-body" style="padding-top: 0;">
 								<h1 class="page-title">Plans and Pricing</h1>
