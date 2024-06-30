@@ -65,7 +65,7 @@ function ProModal() {
                 maxWidth: "630px"
             }}
             width="100%"
-            title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}> Purchase the pro version to access these features.</Title> }
+            title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}>No Pro version or expired license. Please purchase or renew to access features.</Title> }
             open={ stateValue.generalData.openProModal }
             onCancel={handleBulkModalCancel}
             footer={[
