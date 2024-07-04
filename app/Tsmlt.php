@@ -125,9 +125,8 @@ if ( ! class_exists( Tsmlt::class ) ) {
 				// Include File.
 				AssetsController::instance();
 				SubMenu::instance();
-				RegisterPostAndTax::instance();
 			}
-
+			RegisterPostAndTax::instance();
 			do_action( 'tsmlt/after_loaded' );
 		}
 
