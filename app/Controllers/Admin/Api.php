@@ -297,6 +297,7 @@ class Api {
 		$terms       = get_terms(
 			[
 				'taxonomy'   => tsmlt()->category,
+                'hide_empty' => false,
 			]
 		);
         $terms_array = [];
