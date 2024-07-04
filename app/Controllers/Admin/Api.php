@@ -296,11 +296,16 @@ class Api {
 	public function get_terms() {
 		$terms       = get_terms(
 			[
-				'taxonomy'   => 'tsmlt_category',
-				'hide_empty' => false,
+				'taxonomy'   => tsmlt()->category,
 			]
 		);
-		$terms_array = [];
+        $terms_array = [];
+        // Check if get_terms returned an error
+        //if (is_wp_error($terms)) {
+        //    error_log('Error fetching terms: ' . $terms->get_error_message() . "\n\n", 3, __DIR__ . '/log.txt');
+        //    wp_json_encode( $terms_array );
+        //}
+
 		if ( ! is_wp_error( $terms ) && $terms ) {
 			foreach ( $terms as $term ) {
 				$terms_array[] = [
@@ -309,7 +314,7 @@ class Api {
 				];
 			}
 		}
-
+       // error_log(print_r( $terms_array , true) . "\n\n", 3, __DIR__ . '/log.txt');
 		return wp_json_encode( $terms_array );
 	}
 
@@ -554,7 +559,7 @@ class Api {
 		if ( ! empty( $parameters['categories'] ) ) {
 			$args['tax_query'] = [
 				[
-					'taxonomy' => 'tsmlt_category',
+					'taxonomy' => tsmlt()->category,
 					'field'    => 'term_id',
 					'terms'    => $parameters['categories'],
 				],
@@ -597,7 +602,7 @@ class Api {
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 
-			$terms          = get_the_terms( $post->ID, 'tsmlt_category' );
+			$terms          = get_the_terms( $post->ID, tsmlt()->category );
 			$tsmlt_category = [];
 			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
