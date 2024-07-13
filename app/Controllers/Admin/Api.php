@@ -297,16 +297,10 @@ class Api {
 		$terms       = get_terms(
 			[
 				'taxonomy'   => tsmlt()->category,
-                'hide_empty' => false,
+				'hide_empty' => false,
 			]
 		);
-        $terms_array = [];
-        // Check if get_terms returned an error
-        //if (is_wp_error($terms)) {
-        //    error_log('Error fetching terms: ' . $terms->get_error_message() . "\n\n", 3, __DIR__ . '/log.txt');
-        //    wp_json_encode( $terms_array );
-        //}
-
+		$terms_array = [];
 		if ( ! is_wp_error( $terms ) && $terms ) {
 			foreach ( $terms as $term ) {
 				$terms_array[] = [
@@ -315,7 +309,6 @@ class Api {
 				];
 			}
 		}
-       // error_log(print_r( $terms_array , true) . "\n\n", 3, __DIR__ . '/log.txt');
 		return wp_json_encode( $terms_array );
 	}
 
