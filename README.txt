@@ -19,7 +19,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 
 👉 [Documentation](https://docs.wptinysolutions.com/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
-[youtube https://www.youtube.com/watch?v=AW03uY1HLd8]
+[youtube https://www.youtube.com/watch?v=L7F33DYnsZU]
 
 == 🏆 Main Features ==
 
