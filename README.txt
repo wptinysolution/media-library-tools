@@ -118,8 +118,6 @@ Media Library Tools allows users to quickly update image titles, ALT text, capti
 
 == 🏆 Media Library Categories ==
 
-Adds the ability to use categories in the WordPress Media Library. When activated a dropdown of categories will show up in the media library.
-You can change / add / remove the category of multiple items at once with bulk actions.
 
 
 == 🏆 Getting Started ==
