@@ -118,7 +118,7 @@ Media Library Tools allows users to quickly update image titles, ALT text, capti
 
 == 🏆 Media Library Categories ==
 
-
+We've registered a category that allows users to add categories as needed. The 'Media Table' menu supports bulk adding of categories to media items. Currently, no additional category-related functionality has been added, but we will introduce more features in the future."
 
 == 🏆 Getting Started ==
 
