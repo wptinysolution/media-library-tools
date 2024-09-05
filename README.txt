@@ -63,6 +63,12 @@ Users can export their media assets and metadata into CSV files, making it easie
 
 Furthermore, customizable templates allow users to specify which data fields to include or exclude, providing flexibility in data management. With streamlined access to this feature, organizations can expect improved efficiency, data accuracy, and collaboration when working with their media libraries.
 
+
+== 🏆CSV For File Rename, And Edit title, caption, description, alt text, And Image Meta ==
+
+This plugin allows you to rename media files using a CSV file and edit their title, caption, description, alt text And Image Meta.
+
+
 👉 Video 1: CSV transfer Media between systems. 👈
 
 [youtube https://www.youtube.com/watch?v=CxBf8m3dTpo]
