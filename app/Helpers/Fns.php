@@ -59,62 +59,50 @@ class Fns {
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
 		$updated = false;
-
 		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
 		$new_file_name = sanitize_file_name( $new_file_name );
 		$new_file_name = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
 		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
-
-		if ( function_exists( 'wp_get_original_image_path' ) ) {
-			$file_path = wp_get_original_image_path( $attachment_id );
-		} else {
-			$file_path = get_attached_file( $attachment_id );
-		}
-
+		// Get the file path
+		$file_path = get_attached_file( $attachment_id );
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
 		}
-
 		$metadata_file = basename( $file_path );
 		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 		$filebasename  = basename( $metadata_file, '.' . $fileextension );
 		$new_file_name = $new_file_name . '.' . $fileextension;
+		// Check if the new name is different from the current one
 		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
 			return $updated;
 		}
-
-		// Get the current metadata for the media file.
-		$metadata = wp_get_attachment_metadata( $attachment_id );
-		if ( ! empty( $metadata['sizes'] ) ) {
-			foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-				$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
-				if ( ! file_exists( $old_file_path ) ) {
-					continue;
+		// Check file type to see if it's an image or other media (like video)
+		$filetype = wp_check_filetype( $file_path );
+		$is_image = strpos( $filetype['type'], 'image' ) !== false;
+		// Get the current metadata for the media file (images only)
+		if ( $is_image ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id );
+			if ( ! empty( $metadata['sizes'] ) ) {
+				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+					if ( file_exists( $old_file_path ) ) {
+						wp_delete_file( $old_file_path );
+					}
 				}
-				wp_delete_file( $old_file_path );
 			}
 		}
-		// Scaled.
-		if ( preg_match( '/-(scaled|rotated)\./', $metadata['file'], $matches ) ) {
-			$old_file_path = dirname( $file_path ) . '/' . basename( $metadata['file'] );
-			if ( file_exists( $old_file_path ) ) {
-				wp_delete_file( $old_file_path );
-			}
-		}
-
+		
+		// Renaming the file
 		$path_being_saved_to = dirname( $file_path );
-
 		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
-		// Rename the file on the server.
 		$renamed = rename( $file_path, $unique_filename );
-
+		
 		$new_file_name = basename( $unique_filename );
-
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
-		// If the file was successfully renamed, update the metadata for each size.
-
+		
+		// If successfully renamed, update metadata
 		if ( $renamed ) {
 			wp_update_post(
 				[
@@ -122,21 +110,28 @@ class Fns {
 					'post_name' => $new_filebasename,
 				]
 			);
-
-			if ( ! function_exists( 'wp_crop_image' ) ) {
-				include ABSPATH . 'wp-admin/includes/image.php';
+			
+			// Only regenerate metadata for images
+			if ( $is_image ) {
+				if ( ! function_exists( 'wp_crop_image' ) ) {
+					include ABSPATH . 'wp-admin/includes/image.php';
+				}
+				update_attached_file( $attachment_id, $unique_filename );
+				try {
+					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
+					wp_update_attachment_metadata( $attachment_id, $generate_meta );
+				} catch ( \Exception $e ) {
+					error_log( 'Error reading Exif data: ' . $e->getMessage() );
+				}
+			} else {
+				// For non-image files, just update the attached file path
+				update_attached_file( $attachment_id, $unique_filename );
 			}
-			// Update the metadata with the new file name.
-			update_attached_file( $attachment_id, $unique_filename );
-			try {
-				$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
-				wp_update_attachment_metadata( $attachment_id, $generate_meta );
-			} catch ( \Exception $e ) {
-				error_log( 'Error reading Exif data: ' . $e->getMessage() );
-			}
+			
+			// Update permalink
 			self::permalink_to_post_guid( $attachment_id );
 		}
-
+		
 		return $renamed;
 	}
 
