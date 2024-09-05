@@ -160,6 +160,7 @@ To search for images by categories, users can find the categories box near the F
 
 = 1.3.8 ( Sep 05, 2024 ) =
 * Fixed: Content Edit Re render Issue fixed
+* Fixed: Video File Rename Issue
 
 = 1.3.7 ( July 13, 2024 ) =
 * Fixed: Media Filter Category
