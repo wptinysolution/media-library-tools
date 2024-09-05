@@ -28,6 +28,7 @@ node_modules/
 **.DS_Store*
 ehthumbs.db
 Thumbs.db
+bun.lockb
 ._*
 .cache
 .project

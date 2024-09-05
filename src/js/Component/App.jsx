@@ -126,7 +126,7 @@ function App() {
     const singleMediaUpdateContent = async ( event ) => {
         const response = await upDateSingleMedia( stateValue.singleMedia );
         if( 200 === parseInt( response.status ) ) {
-            await getTheMedia()
+           // await getTheMedia()
         }
         console.log( 'upDateSingleMedia' );
     }
