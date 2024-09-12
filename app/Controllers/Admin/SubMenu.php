@@ -231,7 +231,7 @@ class SubMenu {
 				#tsmlt-pro-page-wrapper #purchase:hover{
 					background-color: #FE0467;
 				}
-				#tsmlt-pro-page-wrapper #licenses ,
+				
 				#tsmlt-pro-page-wrapper #billing_cycle {
 					padding: 5px 25px 5px 15px;
 					border-radius: 8px;
@@ -387,55 +387,7 @@ class SubMenu {
 						</div>
 					</div>
 				</div>
-				<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-				<script src="https://checkout.freemius.com/checkout.min.js"></script>
-				<script>
-
-						$('#licenses').on( 'change', function ( e ) {
-							var active = $( this ).val();
-							var cycle = $('#billing_cycle').val();
-							$('.price-for').removeClass( 'active-plan' );
-							$('.price-for.website-' + active).addClass("active-plan");
-
-							$('.price-for').find( 'span' ).removeClass("active-cycle");
-							$('.price-for').find( 'span.' + cycle ).addClass("active-cycle");
-
-						} );
-
-						$('#billing_cycle').on( 'change', function ( e ) {
-							var active = $( '#licenses' ).val();
-							var cycle = $( this ).val();
-							$('.price-for').removeClass( 'active-plan' );
-							$('.price-for.website-' + active).addClass("active-plan");
-
-							$('.price-for').find( 'span' ).removeClass("active-cycle");
-							$('.price-for').find( 'span.' + cycle ).addClass("active-cycle");
-						} );
-
-						var handler = FS.Checkout.configure({
-							plugin_id:  '13159',
-							plan_id:    '22377',
-							public_key: 'pk_494675841e14feaa76ea20efa09ca',
-							checkout_style: 'next',
-							image:      'https://www.wptinysolutions.com/wp-content/uploads/2023/08/media-library-tools-icon-128x128-1.png'
-						});
-						$('#purchase').on('click', function (e) {
-							handler.open({
-								name     : 'Media library Tools Pro',
-								licenses : $('#licenses').val(),
-								billing_cycle: $('#billing_cycle').val(),
-								// You can consume the response for after purchase logic.
-								purchaseCompleted  : function (response) {
-									// The logic here will be executed immediately after the purchase confirmation.                                // alert(response.user.email);
-								},
-								success  : function (response) {
-									// The logic here will be executed after the customer closes the checkout, after a successful purchase.                                // alert(response.user.email);
-								}
-							});
-							e.preventDefault();
-						});
-				</script>
-
+			
 			</div>
 		</div>
 		<?php
