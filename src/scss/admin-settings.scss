@@ -25,6 +25,12 @@ body {
 				border-radius: 4px;
 			}
 		}
+		.anticon{
+			margin: 0;
+			&:before{
+				content: none;
+			}
+		}
 	}
 	
 	.tsmlt-is-submenu{
