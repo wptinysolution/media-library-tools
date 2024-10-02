@@ -167,7 +167,7 @@ function TheHeader() {
                     allowClear={true}
                     size="large"
                     placeholder={'Bulk Apply'}
-                    style={ { ...selectStyle, width: '230px' } }
+                    style={ { ...selectStyle, minWidth: '280px', width: 'inherit' } }
                     onChange={handleChangeBulkType}
                     options={
                         postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
