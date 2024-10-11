@@ -59,16 +59,18 @@ function ImageSize() {
                 <Divider />
                 <Row>
                     <Col span={6}>
-                        <Title level={5} style={{ margin:0 }}> Registered New Image Size </Title>
+                        <Title level={5} style={{ margin:0 }}> Register New Image Size </Title>
                     </Col>
                     <Col span={18}>
                         {
                             Object.keys(allSizes).map((item, index) => {
                                 return (
+                                    <Content key={index}>
                                     <Flex
                                         key={index}
                                         gap={'small'}
                                         style={{ marginBottom: '10px' }}
+                                        align={'center'}
                                     >
                                         <Input
                                             style={{
@@ -92,6 +94,8 @@ function ImageSize() {
                                         />
                                         <Switch checked={true} checkedChildren="Hard Crop" unCheckedChildren="Soft Crop" />
                                     </Flex>
+                                    <Divider style={{margin:'10px 0'}}/>
+                                    </Content>
                                 );
                             })
                         }
