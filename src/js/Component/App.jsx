@@ -37,6 +37,7 @@ import RenamerTableData from "./Renamer/RenamerTableData";
 import RubbishFile from "./Rubbish/RubbishFile";
 
 import PluginList from "./PluginList";
+import ImageSize from "./ImageSize/ImageSize";
 
 function App() {
 
@@ -219,6 +220,7 @@ function App() {
                         <Route path="/mediaTable" element={<Datatable/>}/>
                         <Route path="/mediaRename" element={<RenamerTableData/>}/>
                         <Route path="/exportImport" element={<ExportImportButton/>}/>
+                        <Route path="/disableSize" element={<ImageSize/>}/>
                         <Route path="/rubbishFile" element={<RubbishFile/>}/>
                         <Route path="/plugins" element={<PluginList/>}/>
                         <Route path="/support" element={<NeedSupport/>}/>
