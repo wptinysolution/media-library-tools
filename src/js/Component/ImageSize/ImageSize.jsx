@@ -3,7 +3,20 @@ import React, { useEffect, useState } from 'react';
 import {useStateValue} from "../../Utils/StateProvider";
 import MainHeader from "../MainHeader";
 
-import {Checkbox, Col, Divider, Flex, Layout, Row, Typography} from 'antd';
+import {
+    Checkbox,
+    Col,
+    Divider,
+    Flex,
+    Input,
+    InputNumber,
+    Layout,
+    Switch,
+    Row,
+    Typography,
+    Button
+} from 'antd';
+
 const { Title, Text } = Typography;
 
 const { Content } = Layout;
@@ -45,10 +58,52 @@ function ImageSize() {
                 <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
                 <Divider />
                 <Row>
-                    <Col span={8}>
+                    <Col span={6}>
+                        <Title level={5} style={{ margin:0 }}> Registered New Image Size </Title>
+                    </Col>
+                    <Col span={18}>
+                        {
+                            Object.keys(allSizes).map((item, index) => {
+                                return (
+                                    <Flex
+                                        key={index}
+                                        gap={'small'}
+                                        style={{ marginBottom: '10px' }}
+                                    >
+                                        <Input
+                                            style={{
+                                                width: 300,
+                                            }}
+                                            addonBefore={'Size Key'}
+                                            placeholder="size-name" />
+                                        <InputNumber
+                                            style={{
+                                                width: 150,
+                                            }}
+                                            addonBefore={'Width'}
+                                            min={0}
+                                        />
+                                        <InputNumber
+                                            style={{
+                                                width: 150,
+                                            }}
+                                            addonBefore={'Height'}
+                                            min={0}
+                                        />
+                                        <Switch checked={true} checkedChildren="Hard Crop" unCheckedChildren="Soft Crop" />
+                                    </Flex>
+                                );
+                            })
+                        }
+                        <Button type="primary"> Add New Size </Button>
+                    </Col>
+                </Row>
+                <Divider />
+                <Row>
+                    <Col span={6}>
                         <Title level={5} style={{ margin:0 }}> Disable Registered Image Size </Title>
                     </Col>
-                    <Col span={8}>
+                    <Col span={14}>
                         <Title level={5} style={{ margin:0 }}> Image Size </Title>
                         <br/>
                         <Flex gap={'small'} vertical={true}>
