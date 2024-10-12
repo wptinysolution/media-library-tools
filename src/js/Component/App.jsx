@@ -220,7 +220,7 @@ function App() {
                         <Route path="/mediaTable" element={<Datatable/>}/>
                         <Route path="/mediaRename" element={<RenamerTableData/>}/>
                         <Route path="/exportImport" element={<ExportImportButton/>}/>
-                        <Route path="/disableSize" element={<ImageSize/>}/>
+                        <Route path="/imageSize" element={<ImageSize/>}/>
                         <Route path="/rubbishFile" element={<RubbishFile/>}/>
                         <Route path="/plugins" element={<PluginList/>}/>
                         <Route path="/support" element={<NeedSupport/>}/>

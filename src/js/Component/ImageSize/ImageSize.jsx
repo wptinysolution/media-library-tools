@@ -16,6 +16,7 @@ import {
     Typography,
     Button
 } from 'antd';
+import {DeleteOutlined} from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -40,7 +41,7 @@ const defaultCheckedList = [
  */
 function ImageSize() {
     const [checkedList, setCheckedList] = useState(defaultCheckedList);
-
+    const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
     const onCheckbox = (e, item) => {
         let val = e.target.checked ? [...checkedList, item] : checkedList.filter(i => i !== item) ;
         val = [...new Set(val)];
@@ -83,6 +84,8 @@ function ImageSize() {
                                             value={uniqKey}
                                             addonBefore={'Size Key'}
                                             placeholder="size-name"
+                                        />
+                                        <Text
                                             copyable={{
                                                 text: uniqKey,
                                             }}
@@ -104,6 +107,18 @@ function ImageSize() {
                                             min={0}
                                         />
                                         <Switch checked={true} checkedChildren="Hard Crop" unCheckedChildren="Soft Crop" />
+                                        <DeleteOutlined
+                                            style={{
+                                                position: 'absolute',
+                                                right: '50px',
+                                                margin: 'auto',
+                                                height: '20px',
+                                                color: deleteIconColor
+                                            }}
+                                            onClick={(event) => console.log('delete')}
+                                            onMouseEnter={() => setDeleteIconColor('var(--tsmlt-admin-color-secondary-hover)')}
+                                            onMouseLeave={() => setDeleteIconColor('var(--tsmlt-admin-color-secondary)')}
+                                        />
                                     </Flex>
                                     <Divider style={{margin:'10px 0'}}/>
                                     </Content>
