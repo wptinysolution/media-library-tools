@@ -24,7 +24,8 @@ const { Content } = Layout;
 const allSizes = {
     '11': 'Apple',
     '22': 'Pear',
-    '33': 'Orange'
+    '33': 'Orange',
+    '' : ''
 };
 
 const defaultCheckedList = [
@@ -40,7 +41,7 @@ const defaultCheckedList = [
 function ImageSize() {
     const [checkedList, setCheckedList] = useState(defaultCheckedList);
 
-    const onChange = (e, item) => {
+    const onCheckbox = (e, item) => {
         let val = e.target.checked ? [...checkedList, item] : checkedList.filter(i => i !== item) ;
         val = [...new Set(val)];
         setCheckedList(val);
@@ -64,6 +65,8 @@ function ImageSize() {
                     <Col span={18}>
                         {
                             Object.keys(allSizes).map((item, index) => {
+                                const uniqKey = allSizes[item].length > 0 ? allSizes[item] : '';
+                                const isDisable = allSizes[item].length > 0;
                                 return (
                                     <Content key={index}>
                                     <Flex
@@ -73,23 +76,31 @@ function ImageSize() {
                                         align={'center'}
                                     >
                                         <Input
+                                            disabled={isDisable}
                                             style={{
                                                 width: 300,
                                             }}
+                                            value={uniqKey}
                                             addonBefore={'Size Key'}
-                                            placeholder="size-name" />
+                                            placeholder="size-name"
+                                            copyable={{
+                                                text: uniqKey,
+                                            }}
+                                        />
                                         <InputNumber
                                             style={{
-                                                width: 150,
+                                                width: 200,
                                             }}
                                             addonBefore={'Width'}
+                                            addonAfter={'px'}
                                             min={0}
                                         />
                                         <InputNumber
                                             style={{
-                                                width: 150,
+                                                width: 200,
                                             }}
                                             addonBefore={'Height'}
+                                            addonAfter={'px'}
                                             min={0}
                                         />
                                         <Switch checked={true} checkedChildren="Hard Crop" unCheckedChildren="Soft Crop" />
@@ -117,7 +128,7 @@ function ImageSize() {
                                     <Checkbox
                                         key={index}
                                         checked={ checkedList.includes(item) }
-                                        onChange={ (e) => onChange(e, item) }
+                                        onChange={ (e) => onCheckbox(e, item) }
                                     >
                                         {allSizes[item]}
                                     </Checkbox>
