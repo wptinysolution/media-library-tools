@@ -193,18 +193,6 @@ function App() {
         getTheMedia();
     }, [ stateValue.mediaData.postQuery ] );
 
-
-    const getContentType = () => {
-        let type = stateValue.generalData.selectedMenu;
-        switch ( stateValue.generalData.selectedMenu ) {
-            case 'hasExtended':
-                type = tsmltParams.hasExtended ? 'hasExtended' : 'settings';
-                break;
-            default:
-        }
-        return type;
-    };
-    
     return (
             <Layout className="tttme-App" style={{
                 padding: '10px',

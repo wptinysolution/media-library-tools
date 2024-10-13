@@ -267,3 +267,7 @@ export const getPluginList = async () => {
 export const importOneByOne = async (prams) => {
     return await Api.post(`/import/attachment/one/by/one`, prams);
 }
+
+export const getRegisteredImageSizes = async () => {
+    return await Api.get(`/getRegisteredImageSizes`);
+}
