@@ -31,15 +31,25 @@ const { Content } = Layout;
  * @returns {JSX.Element}
  * @constructor
  */
-function DisableSize( props ) {
-    const { sizes }  = props ;
-    const [checkedList, setCheckedList] = useState([]);
+function DisableSize() {
+    const [ stateValue, dispatch ] = useStateValue();
+
+    const checkedList =  stateValue.imageSize.deregistered;
+    const sizes = stateValue.imageSize.allSizes;
+
     const onCheckbox = (e, item) => {
         let val = e.target.checked ? [...checkedList, item] : checkedList.filter(i => i !== item) ;
         val = [...new Set(val)];
-        setCheckedList(val);
+        dispatch({
+            type: Types.IMAGE_SIZE,
+            imageSize : {
+                ...stateValue.imageSize,
+                isLoading: false,
+                deregistered: val
+            }
+        })
     };
-   /// console.log( checkedList )
+
     return (
         <>
             <Row>

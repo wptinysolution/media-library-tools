@@ -30,16 +30,13 @@ const { Content } = Layout;
  * @returns {JSX.Element}
  * @constructor
  */
-function RegisterSize( props ) {
-    const { sizes }  = props ;
-    const [loading, setLoading] = useState(true);
-    const [checkedList, setCheckedList] = useState([]);
+function RegisterSize() {
+    const [ stateValue, dispatch ] = useStateValue();
+    const sizes  = stateValue.imageSize.customSize || [] ;
     const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
-
-    console.log( 'checkedList', checkedList );
     return (
         <>
-        <Row>
+            <Row>
                 <Col span={6}>
                     <Title level={5} style={{ margin:0 }}> Register New Image Size </Title>
                 </Col>
@@ -66,7 +63,7 @@ function RegisterSize( props ) {
                                             addonBefore={'Size Key'}
                                             placeholder="size-name"
                                         />
-                                        {/*{ console.log( 'uniqKey', typeof uniqKey ) }*/}
+                                        
                                         <Text
                                             copyable={{
                                                 text: uniqKey || 'size-name',

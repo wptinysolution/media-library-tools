@@ -101,6 +101,12 @@ export const initialState = {
     bulkExport: {
         isModalOpen: false,
     },
+    imageSize : {
+        isLoading: true,
+        allSizes:[],
+        customSize: [],
+        deregistered: []
+    }
 };
 
 const reducer = (state, action) => {
@@ -164,6 +170,11 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 bulkExport : action.bulkExport,
+            };
+        case Types.IMAGE_SIZE:
+            return {
+                ...state,
+                imageSize : action.imageSize,
             };
 		default:
 			return state;

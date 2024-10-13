@@ -33,23 +33,31 @@ const { Content } = Layout;
  * @constructor
  */
 function ImageSize() {
-    const [loading, setLoading] = useState(true);
-    const [sizes, setSizes] = useState([]);
+
+    const [ stateValue, dispatch ] = useStateValue();
 
     const getTheSizes = async () => {
         const response = await getRegisteredImageSizes();
-        setSizes( response.data );
-        setLoading( false );
+        await dispatch({
+            type: Types.IMAGE_SIZE,
+            imageSize : {
+                ...stateValue.imageSize,
+                isLoading: false,
+                allSizes: response.data
+            }
+        })
     }
 
     useEffect(() => {
         getTheSizes();
     }, [] );
 
+    console.log( stateValue.imageSize );
+
     return (
         <>
             <MainHeader/>
-            { loading ? <Loader/> :
+            { stateValue.imageSize.isLoading  ? <Loader/> :
                 <Content style={{
                     padding: '25px',
                     background: 'rgb(255 255 255 / 35%)',
@@ -58,8 +66,8 @@ function ImageSize() {
                 }}>
                     <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
                     <Divider />
-                    { tsmltParams.hasExtended ? <RegisterSize sizes={sizes}/> : null }
-                    <DisableSize sizes={sizes} />
+                    { tsmltParams.hasExtended ? <RegisterSize/> : null }
+                    <DisableSize/>
                 </Content>
             }
         </>
