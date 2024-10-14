@@ -16,6 +16,3 @@ export const UPDATE_RENAMER_MEDIA = 'UPDATE_RENAMER_MEDIA';
 export const EXPORT_IMPORT = 'EXPORT_IMPORT';
 
 export const EXPORT_CSV = 'EXPORT_CSV';
-
-export const IMAGE_SIZE = 'IMAGE_SIZE';
-

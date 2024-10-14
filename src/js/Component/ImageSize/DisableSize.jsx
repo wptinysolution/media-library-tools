@@ -32,23 +32,44 @@ const { Content } = Layout;
  * @constructor
  */
 function DisableSize() {
+
     const [ stateValue, dispatch ] = useStateValue();
 
-    const checkedList =  stateValue.imageSize.deregistered;
-    const sizes = stateValue.imageSize.allSizes;
-
+    const checkedList =  stateValue.options?.deregistered_image_sizes || [];
+    const sizes = stateValue.generalData?.allImageSizes || [];
+    /**
+     * @returns {Promise<void>}
+     */
+    const getTheSizes = async () => {
+        const response = await getRegisteredImageSizes();
+        await dispatch({
+            type: Types.GENERAL_DATA,
+            generalData: {
+                ...stateValue.generalData,
+                allImageSizes: response.data,
+            },
+        })
+    }
+    /**
+     * @param e
+     * @param item
+     */
     const onCheckbox = (e, item) => {
         let val = e.target.checked ? [...checkedList, item] : checkedList.filter(i => i !== item) ;
         val = [...new Set(val)];
         dispatch({
-            type: Types.IMAGE_SIZE,
-            imageSize : {
-                ...stateValue.imageSize,
-                isLoading: false,
-                deregistered: val
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                deregistered_image_sizes: val,
             }
-        })
+        });
+
     };
+
+    useEffect(() => {
+        getTheSizes();
+    }, [] );
 
     return (
         <>

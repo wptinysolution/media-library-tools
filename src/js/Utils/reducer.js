@@ -47,6 +47,8 @@ export const initialState = {
 		others_file_support:[],
 		enable_auto_rename: '',
 		media_auto_rename_text: '',
+        deregistered_image_sizes: [],
+        customImageSizes: [],
 	},
 	rubbishMedia:{
 		isLoading: true,
@@ -85,6 +87,7 @@ export const initialState = {
 		scanDirNextSchedule: '',
 		scanRubbishDirLoading: true,
         pluginList: {},
+        allImageSizes:[],
 	},
     exportImport:{
         isExport: false,
@@ -101,12 +104,6 @@ export const initialState = {
     bulkExport: {
         isModalOpen: false,
     },
-    imageSize : {
-        isLoading: true,
-        allSizes:[],
-        customSize: [],
-        deregistered: []
-    }
 };
 
 const reducer = (state, action) => {
@@ -171,11 +168,7 @@ const reducer = (state, action) => {
                 ...state,
                 bulkExport : action.bulkExport,
             };
-        case Types.IMAGE_SIZE:
-            return {
-                ...state,
-                imageSize : action.imageSize,
-            };
+
 		default:
 			return state;
 	}

@@ -36,28 +36,10 @@ function ImageSize() {
 
     const [ stateValue, dispatch ] = useStateValue();
 
-    const getTheSizes = async () => {
-        const response = await getRegisteredImageSizes();
-        await dispatch({
-            type: Types.IMAGE_SIZE,
-            imageSize : {
-                ...stateValue.imageSize,
-                isLoading: false,
-                allSizes: response.data
-            }
-        })
-    }
-
-    useEffect(() => {
-        getTheSizes();
-    }, [] );
-
-    console.log( stateValue.imageSize );
-
     return (
         <>
             <MainHeader/>
-            { stateValue.imageSize.isLoading  ? <Loader/> :
+            { stateValue.generalData.isLoading  ? <Loader/> :
                 <Content style={{
                     padding: '25px',
                     background: 'rgb(255 255 255 / 35%)',
@@ -68,6 +50,16 @@ function ImageSize() {
                     <Divider />
                     { tsmltParams.hasExtended ? <RegisterSize/> : null }
                     <DisableSize/>
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick={ () => dispatch({
+                            ...stateValue,
+                            type: Types.UPDATE_OPTIONS,
+                            saveType: Types.UPDATE_OPTIONS,
+                        }) } >
+                        Save Settings
+                    </Button>
                 </Content>
             }
         </>

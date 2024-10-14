@@ -32,7 +32,7 @@ const { Content } = Layout;
  */
 function RegisterSize() {
     const [ stateValue, dispatch ] = useStateValue();
-    const sizes  = stateValue.imageSize.customSize || [] ;
+    const sizes  = stateValue.options?.customImageSizes || [] ;
     const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
     return (
         <>
@@ -63,7 +63,7 @@ function RegisterSize() {
                                             addonBefore={'Size Key'}
                                             placeholder="size-name"
                                         />
-                                        
+
                                         <Text
                                             copyable={{
                                                 text: uniqKey || 'size-name',

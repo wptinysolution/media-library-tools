@@ -52,7 +52,6 @@ function App() {
                 isLoading: false,
             }
         });
-        console.log( 'getOptions' );
     }
     
     const getDateAndTermsList = async () => {
@@ -69,8 +68,6 @@ function App() {
                 isLoading : false,
             },
         })
-        console.log( 'getDates' );
-        console.log( 'getTerms' );
     }
 
     const getTheMedia = async () => {
@@ -91,7 +88,6 @@ function App() {
                 ids: []
             }
         });
-        console.log( 'getMedia' );
     }
 
     const handleUpdateOption = async () => {
@@ -109,7 +105,6 @@ function App() {
                },
            });
        }
-       console.log( 'handleUpdateOption' );
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
@@ -120,7 +115,6 @@ function App() {
             if( 200 === parseInt( response.status ) ) {
                 await getTheMedia()
             }
-            console.log( 'upDateSingleMedia' );
         }
     }
 
@@ -129,7 +123,7 @@ function App() {
         if( 200 === parseInt( response.status ) ) {
            // await getTheMedia()
         }
-        console.log( 'upDateSingleMedia' );
+
     }
 
     const handleBulkModalDataSave = async () => {
@@ -173,12 +167,10 @@ function App() {
             case Types.BULK_SUBMIT:
                     handleBulkModalDataSave();
                 break;
+
             default:
         }
     }
-
-    // Create a debounced version of getTheMedia
-    const debouncedGetTheMedia = functionDebounce(getTheMedia, 500);
 
     useEffect(() => {
         handleSave();
