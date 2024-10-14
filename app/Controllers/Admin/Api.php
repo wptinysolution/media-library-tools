@@ -199,7 +199,7 @@ class Api {
 		// Try to get the cached data.
 		$cached_data = get_transient( $transient_key );
 		if ( ! empty( $cached_data ) ) {
-			$is_empty = json_decode( $cached_data );
+			$is_empty = json_decode( $cached_data, true );
 			// Return the cached data if it exists.
 			if ( ! empty( $is_empty ) ) {
 				return $cached_data;

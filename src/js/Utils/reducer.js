@@ -48,7 +48,7 @@ export const initialState = {
 		enable_auto_rename: '',
 		media_auto_rename_text: '',
         deregistered_image_sizes: [],
-        customImageSizes: [],
+        custom_image_sizes: [],
 	},
 	rubbishMedia:{
 		isLoading: true,

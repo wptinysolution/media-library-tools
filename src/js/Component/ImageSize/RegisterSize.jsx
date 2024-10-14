@@ -32,7 +32,7 @@ const { Content } = Layout;
  */
 function RegisterSize() {
     const [ stateValue, dispatch ] = useStateValue();
-    const sizes  = stateValue.options?.customImageSizes || [] ;
+    const sizes  = stateValue.options?.custom_image_sizes || [] ;
     const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
     return (
         <>
