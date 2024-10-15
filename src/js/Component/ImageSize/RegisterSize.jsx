@@ -25,6 +25,14 @@ const { Title, Text } = Typography;
 
 const { Content } = Layout;
 
+const defaultSize = [
+    {
+        'sizeKey' : '',
+        'width' : '',
+        'height' : '',
+        'hardCrop' : true,
+    }
+];
 /**
  *
  * @returns {JSX.Element}
@@ -32,8 +40,24 @@ const { Content } = Layout;
  */
 function RegisterSize() {
     const [ stateValue, dispatch ] = useStateValue();
-    const sizes  = stateValue.options?.custom_image_sizes || [] ;
+    const sizes  = stateValue.options?.custom_image_sizes || defaultSize;
     const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
+
+    /**
+     * @returns {Promise<void>}
+     */
+    const registerImageSize = (index, key, value) => {
+        const updatedSizes = sizes.map((size, i) => {
+            return i === index ? { ...size, [key]: value } : size;
+        } );
+        dispatch({
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                custom_image_sizes: updatedSizes,
+            }
+        });
+    }
     return (
         <>
             <Row>
@@ -43,8 +67,6 @@ function RegisterSize() {
                 <Col span={18}>
                     {
                         Object.keys(sizes).map((item, index) => {
-                            const uniqKey = sizes[item].length > 0 ? sizes[item] : '';
-                            const isDisable = sizes[item].length > 0;
 
                             return (
                                 <Content key={index}>
@@ -55,37 +77,47 @@ function RegisterSize() {
                                         align={'center'}
                                     >
                                         <Input
-                                            disabled={isDisable}
+                                            disabled={false}
                                             style={{
                                                 width: 300,
                                             }}
-                                            value={uniqKey}
+                                            value={ sizes[index]?.sizeKey || null }
                                             addonBefore={'Size Key'}
                                             placeholder="size-name"
+                                            onChange={ (event) => registerImageSize( index, 'sizeKey', event.target.value ) }
                                         />
 
                                         <Text
                                             copyable={{
-                                                text: uniqKey || 'size-name',
+                                                text: sizes[index]?.sizeKey || '',
                                             }}
                                         />
                                         <InputNumber
                                             style={{
                                                 width: 200,
                                             }}
+                                            value={sizes[index]?.width || null }
                                             addonBefore={'Width'}
                                             addonAfter={'px'}
                                             min={0}
+                                            onChange={ ( value ) => registerImageSize( index, 'width', value ) }
                                         />
                                         <InputNumber
                                             style={{
                                                 width: 200,
                                             }}
+                                            value={sizes[index]?.height || null }
                                             addonBefore={'Height'}
                                             addonAfter={'px'}
                                             min={0}
+                                            onChange={ (value) => registerImageSize( index, 'height', value ) }
                                         />
-                                        <Switch checked={true} checkedChildren="Hard Crop" unCheckedChildren="Soft Crop" />
+                                        <Switch
+                                            checked={ sizes[index]?.hardCrop || false }
+                                            checkedChildren="Hard Crop"
+                                            unCheckedChildren="Soft Crop"
+                                            onChange={ ( checked ) => registerImageSize( index, 'hardCrop', checked ) }
+                                        />
                                         <DeleteOutlined
                                             style={{
                                                 position: 'absolute',
