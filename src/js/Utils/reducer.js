@@ -76,8 +76,8 @@ export const initialState = {
 		ids: []
 	},
 	generalData:{
-		openProModal: false,
-		isLoading: true,
+        isLoading: true,
+        openProModal: false,
 		selectedMenu: '/',
 		dateList: {},
 		termsList: {},

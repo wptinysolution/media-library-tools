@@ -39,7 +39,7 @@ function ImageSize() {
     return (
         <>
             <MainHeader/>
-            { stateValue.generalData.isLoading  ? <Loader/> :
+            { stateValue.generalData.isLoading ? <Loader/> :
                 <Content style={{
                     padding: '25px',
                     background: 'rgb(255 255 255 / 35%)',
