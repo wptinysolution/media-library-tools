@@ -47,9 +47,11 @@ function RegisterSize() {
      * @returns {Promise<void>}
      */
     const registerImageSize = (index, key, value) => {
+        let val = 'sizeKey' === key ? value.replace(/\s+/g, '_') : value ;
         const updatedSizes = sizes.map((size, i) => {
-            return i === index ? { ...size, [key]: value } : size;
+            return i === index ? { ...size, [key]: val } : size;
         } );
+        console.log( 'updatedSizes', updatedSizes )
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -62,17 +64,30 @@ function RegisterSize() {
      * Add New Image Size
      */
     const addNewImageSize = () => {
-        const validSizes = sizes.filter( size => {
-            return size?.sizeKey;
-        });
+        const validSizes = sizes.filter( size => size?.sizeKey );
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
                 ...stateValue.options,
-                custom_image_sizes: [ ...validSizes, defaultSize],
+                custom_image_sizes: [ ...validSizes, ...defaultSize],
             }
         });
     }
+
+    /**
+     * Add New Image Size
+     */
+    const deleteImageSize = ( sizeKey ) => {
+        const validSizes = sizes.filter( size => sizeKey !== size?.sizeKey );
+        dispatch({
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                custom_image_sizes: validSizes,
+            }
+        });
+    }
+
     return (
         <>
             <Row>
@@ -82,7 +97,6 @@ function RegisterSize() {
                 <Col span={18}>
                     {
                         Object.keys(sizes).map((item, index) => {
-
                             return (
                                 <Content key={index}>
                                     <Flex
@@ -97,14 +111,14 @@ function RegisterSize() {
                                                 width: 300,
                                             }}
                                             value={ sizes[index]?.sizeKey || null }
-                                            addonBefore={'Size Key'}
+                                            addonBefore={`Size Key: tsmlt_`}
                                             placeholder="size-name"
                                             onChange={ (event) => registerImageSize( index, 'sizeKey', event.target.value ) }
                                         />
 
                                         <Text
                                             copyable={{
-                                                text: sizes[index]?.sizeKey || '',
+                                                text: `tsmlt_${sizes[index]?.sizeKey || ''}`,
                                             }}
                                         />
                                         <InputNumber
@@ -141,7 +155,7 @@ function RegisterSize() {
                                                 height: '20px',
                                                 color: deleteIconColor
                                             }}
-                                            onClick={(event) => console.log('delete')}
+                                            onClick={(event) => deleteImageSize( sizes[index]?.sizeKey )}
                                             onMouseEnter={() => setDeleteIconColor('var(--tsmlt-admin-color-secondary-hover)')}
                                             onMouseLeave={() => setDeleteIconColor('var(--tsmlt-admin-color-secondary)')}
                                         />
@@ -151,7 +165,12 @@ function RegisterSize() {
                             );
                         })
                     }
-                    <Button onClick={ () => addNewImageSize() } type="primary"> Add New Size </Button>
+                    {/*<Text> Each Input Field Is required </Text>*/}
+                    {/*<Divider style={{margin:'10px 0'}}/>*/}
+                    <Button
+                        onClick={ () => addNewImageSize() }
+                        type="primary"> Add New Size
+                    </Button>
                 </Col>
             </Row>
          <Divider />

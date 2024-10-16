@@ -53,6 +53,11 @@ function ImageSize() {
                     <Button
                         type="primary"
                         size="large"
+                        style={{
+                            position: 'fixed',
+                            bottom: '100px',
+                            right: '100px'
+                        }}
                         onClick={ () => dispatch({
                             ...stateValue,
                             type: Types.UPDATE_OPTIONS,
