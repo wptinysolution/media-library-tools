@@ -48,7 +48,7 @@ function ImageSize() {
                 }}>
                     <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
                     <Divider />
-                    { tsmltParams.hasExtended ? <RegisterSize/> : null }
+                    <RegisterSize/>
                     <DisableSize/>
                     <Button
                         type="primary"

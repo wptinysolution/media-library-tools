@@ -54,6 +54,10 @@ function ProModal() {
             desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
         },
         {
+            "title": "Add Custom Image Sizes",
+            "desc": "Easily register custom image sizes as needed."
+        },
+        {
             title: 'Find And Bulk Delete Unnecessary / Rubbish File',
             desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
         }

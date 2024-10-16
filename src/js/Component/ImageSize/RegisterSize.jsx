@@ -47,11 +47,20 @@ function RegisterSize() {
      * @returns {Promise<void>}
      */
     const registerImageSize = (index, key, value) => {
+        if ( ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
         let val = 'sizeKey' === key ? value.replace(/\s+/g, '_') : value ;
         const updatedSizes = sizes.map((size, i) => {
             return i === index ? { ...size, [key]: val } : size;
         } );
-        console.log( 'updatedSizes', updatedSizes )
         dispatch({
             type: Types.UPDATE_OPTIONS,
             options : {
@@ -64,6 +73,16 @@ function RegisterSize() {
      * Add New Image Size
      */
     const addNewImageSize = () => {
+        if ( ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
         const validSizes = sizes.filter( size => size?.sizeKey );
         dispatch({
             type: Types.UPDATE_OPTIONS,
@@ -92,7 +111,7 @@ function RegisterSize() {
         <>
             <Row>
                 <Col span={6}>
-                    <Title level={5} style={{ margin:0 }}> Register New Image Size </Title>
+                    <Title level={5} style={{ margin:0 }}> Register New Image Size { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> } </Title>
                 </Col>
                 <Col span={18}>
                     {
