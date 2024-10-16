@@ -40,9 +40,9 @@ const defaultSize = [
  */
 function RegisterSize() {
     const [ stateValue, dispatch ] = useStateValue();
-    const sizes  = stateValue.options?.custom_image_sizes || defaultSize;
+    let sizes  = stateValue.options?.custom_image_sizes || defaultSize;
     const [ deleteIconColor, setDeleteIconColor] = useState( 'var(--tsmlt-admin-color-secondary)' );
-
+    sizes = sizes.length > 0 ? sizes : defaultSize;
     /**
      * @returns {Promise<void>}
      */
@@ -55,6 +55,21 @@ function RegisterSize() {
             options : {
                 ...stateValue.options,
                 custom_image_sizes: updatedSizes,
+            }
+        });
+    }
+    /**
+     * Add New Image Size
+     */
+    const addNewImageSize = () => {
+        const validSizes = sizes.filter( size => {
+            return size?.sizeKey;
+        });
+        dispatch({
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                custom_image_sizes: [ ...validSizes, defaultSize],
             }
         });
     }
@@ -136,7 +151,7 @@ function RegisterSize() {
                             );
                         })
                     }
-                    <Button type="primary"> Add New Size </Button>
+                    <Button onClick={ () => addNewImageSize() } type="primary"> Add New Size </Button>
                 </Col>
             </Row>
          <Divider />
