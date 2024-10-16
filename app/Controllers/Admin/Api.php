@@ -964,15 +964,17 @@ class Api {
 
 		return wp_json_encode( $rubbish_data );
 	}
-	
-	
+
+
 	/**
-	 * @return false|string
+	 * @return array
 	 */
 	public function get_registered_image_size() {
 		$image_sizes = wp_get_registered_image_subsizes();
-		return array_keys( $image_sizes );
+		$size        = [];
+		foreach ( $image_sizes as $key => $val ) {
+			$size[ $key ] = $key . ' (' . $val['width'] . 'x' . $val['height'] . ')';
+		}
+		return $size;
 	}
-
-
 }

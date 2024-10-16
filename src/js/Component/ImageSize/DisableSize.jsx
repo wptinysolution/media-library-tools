@@ -52,10 +52,11 @@ function DisableSize() {
     }
     /**
      * @param e
-     * @param item
+     * @param value
      */
-    const onCheckbox = (e, item) => {
-        let val = e.target.checked ? [...checkedList, item] : checkedList.filter(i => i !== item) ;
+    const onCheckbox = (e, value) => {
+        console.log( 'value', value )
+        let val = e.target.checked ? [...checkedList, value] : checkedList.filter(i => i !== value) ;
         val = [...new Set(val)];
         dispatch({
             type: Types.UPDATE_OPTIONS,
@@ -83,13 +84,14 @@ function DisableSize() {
                     <Flex gap={'small'} vertical={true}>
                         {
                             Object.keys(sizes).map((item, index) => {
+                                // console.log( item, `(${sizes[item]})` )
                                 return (
                                     <div  key={index} >
                                         { sizes[item].length > 0 ?
                                             <Checkbox
                                                 key={index}
-                                                checked={ checkedList.includes( sizes[item] ) }
-                                                onChange={ (e) => onCheckbox(e, sizes[item] ) }
+                                                checked={ checkedList.includes( item ) }
+                                                onChange={ (e) => onCheckbox(e, item ) }
                                             >
                                                 {sizes[item]}
                                             </Checkbox> : null
