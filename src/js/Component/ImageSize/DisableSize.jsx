@@ -55,7 +55,6 @@ function DisableSize() {
      * @param value
      */
     const onCheckbox = (e, value) => {
-        console.log( 'value', value )
         let val = e.target.checked ? [...checkedList, value] : checkedList.filter(i => i !== value) ;
         val = [...new Set(val)];
         dispatch({
@@ -70,7 +69,7 @@ function DisableSize() {
 
     useEffect(() => {
         getTheSizes();
-    }, [] );
+    }, [stateValue?.saveType] );
 
     return (
         <>

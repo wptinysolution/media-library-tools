@@ -4,7 +4,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 import MainHeader from "../MainHeader";
 
 import {
-    Checkbox,
+    Tooltip,
     Col,
     Divider,
     Flex,
@@ -124,22 +124,25 @@ function RegisterSize() {
                                         style={{ marginBottom: '10px' }}
                                         align={'center'}
                                     >
-                                        <Input
-                                            disabled={false}
-                                            style={{
-                                                width: 300,
-                                            }}
-                                            value={ sizes[index]?.sizeKey || null }
-                                            addonBefore={`Size Key: tsmlt_`}
-                                            placeholder="size-name"
-                                            onChange={ (event) => registerImageSize( index, 'sizeKey', event.target.value ) }
-                                        />
+                                        <Tooltip title={`tsmlt_${sizes[index]?.sizeKey || ''}`} >
+                                            <Input
+                                                disabled={false}
+                                                style={{
+                                                    width: 300,
+                                                }}
+                                                value={ sizes[index]?.sizeKey || null }
+                                                addonBefore={`Size Key: tsmlt_`}
+                                                placeholder="size-name"
+                                                onChange={ (event) => registerImageSize( index, 'sizeKey', event.target.value ) }
+                                            />
+                                        </Tooltip>
 
                                         <Text
                                             copyable={{
                                                 text: `tsmlt_${sizes[index]?.sizeKey || ''}`,
                                             }}
                                         />
+
                                         <InputNumber
                                             style={{
                                                 width: 200,
