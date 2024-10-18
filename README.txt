@@ -132,6 +132,14 @@ We've registered a category that allows users to add categories as needed. The '
 To start using the Media Library Tools plugin, users should first install it and then navigate to Media > Media Tools.
 From there, they can begin editing individual or bulk images their metadata.
 
+== 🏆 Disable Image Size ==
+
+This way we avoid that tons of additional thumbnails are generated which are not used at all.
+
+== 🏆 Register New Image Size ==
+
+Use this plugin to register the new image size needed for your project.
+
 == Frequently Asked Questions ==
 
 = How do I enable edit mode for single items? =
@@ -158,6 +166,10 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.4.0 ( Oct 18, 2024 ) =
+* New Feature: Disable Image size
+* New Feature: Addons Support for Register new image size
 
 = 1.3.8 ( Sep 05, 2024 ) =
 * Fixed: Content Edit Re render Issue fixed
