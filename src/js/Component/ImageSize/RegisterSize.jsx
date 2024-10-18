@@ -97,6 +97,16 @@ function RegisterSize() {
      * Add New Image Size
      */
     const deleteImageSize = ( sizeKey ) => {
+        if ( ! tsmltParams.hasExtended ){
+            dispatch({
+                type: Types.GENERAL_DATA,
+                generalData: {
+                    ...stateValue.generalData,
+                    openProModal: true,
+                },
+            });
+            return;
+        }
         const validSizes = sizes.filter( size => sizeKey !== size?.sizeKey );
         dispatch({
             type: Types.UPDATE_OPTIONS,
