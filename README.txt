@@ -46,6 +46,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * All free Features Included
 * CSV Export-Import Media Files Facilitating Media Library Transfer Across Servers.
 * Renaming using CSV
+* Register New Image Size
 * Bulk Renaming Based on Associated Post Title
 * Renaming File Prior to Uploading Based on Attached Posts Title
 * Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
