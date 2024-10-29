@@ -37,6 +37,7 @@ import RenamerTableData from "./Renamer/RenamerTableData";
 import RubbishFile from "./Rubbish/RubbishFile";
 
 import PluginList from "./PluginList";
+import ImageSize from "./ImageSize/ImageSize";
 
 function App() {
 
@@ -51,7 +52,6 @@ function App() {
                 isLoading: false,
             }
         });
-        console.log( 'getOptions' );
     }
     
     const getDateAndTermsList = async () => {
@@ -68,8 +68,6 @@ function App() {
                 isLoading : false,
             },
         })
-        console.log( 'getDates' );
-        console.log( 'getTerms' );
     }
 
     const getTheMedia = async () => {
@@ -90,7 +88,6 @@ function App() {
                 ids: []
             }
         });
-        console.log( 'getMedia' );
     }
 
     const handleUpdateOption = async () => {
@@ -108,7 +105,6 @@ function App() {
                },
            });
        }
-       console.log( 'handleUpdateOption' );
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
@@ -119,7 +115,6 @@ function App() {
             if( 200 === parseInt( response.status ) ) {
                 await getTheMedia()
             }
-            console.log( 'upDateSingleMedia' );
         }
     }
 
@@ -128,7 +123,7 @@ function App() {
         if( 200 === parseInt( response.status ) ) {
            // await getTheMedia()
         }
-        console.log( 'upDateSingleMedia' );
+
     }
 
     const handleBulkModalDataSave = async () => {
@@ -172,12 +167,10 @@ function App() {
             case Types.BULK_SUBMIT:
                     handleBulkModalDataSave();
                 break;
+
             default:
         }
     }
-
-    // Create a debounced version of getTheMedia
-    const debouncedGetTheMedia = functionDebounce(getTheMedia, 500);
 
     useEffect(() => {
         handleSave();
@@ -192,18 +185,6 @@ function App() {
         getTheMedia();
     }, [ stateValue.mediaData.postQuery ] );
 
-
-    const getContentType = () => {
-        let type = stateValue.generalData.selectedMenu;
-        switch ( stateValue.generalData.selectedMenu ) {
-            case 'hasExtended':
-                type = tsmltParams.hasExtended ? 'hasExtended' : 'settings';
-                break;
-            default:
-        }
-        return type;
-    };
-    
     return (
             <Layout className="tttme-App" style={{
                 padding: '10px',
@@ -219,6 +200,7 @@ function App() {
                         <Route path="/mediaTable" element={<Datatable/>}/>
                         <Route path="/mediaRename" element={<RenamerTableData/>}/>
                         <Route path="/exportImport" element={<ExportImportButton/>}/>
+                        <Route path="/imageSize" element={<ImageSize/>}/>
                         <Route path="/rubbishFile" element={<RubbishFile/>}/>
                         <Route path="/plugins" element={<PluginList/>}/>
                         <Route path="/support" element={<NeedSupport/>}/>

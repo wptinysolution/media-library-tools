@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-05 16:57+0000\n"
+"POT-Creation-Date: 2024-10-18 18:03+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -31,83 +31,83 @@ msgstr ""
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:244
+#: ../app/Controllers/Admin/Api.php:252
 msgid "Update failed. Maybe change not found. "
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:281
+#: ../app/Controllers/Admin/Api.php:291
 msgid "Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:281
+#: ../app/Controllers/Admin/Api.php:291
 msgid "Updated. Be happy"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:353, ../app/Controllers/Admin/Api.php:396, ../app/Controllers/Admin/Api.php:453, ../app/Controllers/Admin/Api.php:678, ../app/Controllers/Admin/Api.php:747, ../app/Controllers/Admin/Api.php:825, ../app/Controllers/Admin/Api.php:846
+#: ../app/Controllers/Admin/Api.php:363, ../app/Controllers/Admin/Api.php:406, ../app/Controllers/Admin/Api.php:463, ../app/Controllers/Admin/Api.php:688, ../app/Controllers/Admin/Api.php:757, ../app/Controllers/Admin/Api.php:835, ../app/Controllers/Admin/Api.php:856
 msgid "Update failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:361, ../app/Controllers/Admin/Api.php:433
+#: ../app/Controllers/Admin/Api.php:371, ../app/Controllers/Admin/Api.php:443
 msgid "Please active licence key."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:382, ../app/Controllers/Admin/Api.php:418, ../app/Controllers/Admin/Api.php:424
+#: ../app/Controllers/Admin/Api.php:392, ../app/Controllers/Admin/Api.php:428, ../app/Controllers/Admin/Api.php:434
 msgid "Saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:403
+#: ../app/Controllers/Admin/Api.php:413
 msgid "The Title has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:408
+#: ../app/Controllers/Admin/Api.php:418
 msgid "The Caption has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:413
+#: ../app/Controllers/Admin/Api.php:423
 msgid "Content has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:427
+#: ../app/Controllers/Admin/Api.php:437
 msgid "Rename Failed. Maybe File permission mismatch, Also Check File exist or not."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:446
+#: ../app/Controllers/Admin/Api.php:456
 msgid "Renamed."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:699
+#: ../app/Controllers/Admin/Api.php:709
 msgid "Done. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:699
+#: ../app/Controllers/Admin/Api.php:709
 msgid "Failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:708
+#: ../app/Controllers/Admin/Api.php:718
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:708
+#: ../app/Controllers/Admin/Api.php:718
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:747
+#: ../app/Controllers/Admin/Api.php:757
 msgid "Updated. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:794
+#: ../app/Controllers/Admin/Api.php:804
 msgid "Schedule Will Execute Soon."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:797
+#: ../app/Controllers/Admin/Api.php:807
 msgid "Schedule Will Execute Soon For Directory List."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:846
+#: ../app/Controllers/Admin/Api.php:856
 msgid "Done, Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:859
+#: ../app/Controllers/Admin/Api.php:869
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
@@ -139,15 +139,19 @@ msgstr ""
 msgid "Rubbish files"
 msgstr ""
 
-#: ../app/Controllers/Admin/SubMenu.php:101
+#: ../app/Controllers/Admin/SubMenu.php:101, ../app/Controllers/Admin/SubMenu.php:102
+msgid "Image Size"
+msgstr ""
+
+#: ../app/Controllers/Admin/SubMenu.php:108
 msgid "Useful Plugins"
 msgstr ""
 
-#: ../app/Controllers/Admin/SubMenu.php:102
+#: ../app/Controllers/Admin/SubMenu.php:109
 msgid "Useful Plugins "
 msgstr ""
 
-#: ../app/Controllers/Admin/SubMenu.php:108, ../app/Controllers/Admin/SubMenu.php:109
+#: ../app/Controllers/Admin/SubMenu.php:115, ../app/Controllers/Admin/SubMenu.php:116
 msgid "Get Support"
 msgstr ""
 

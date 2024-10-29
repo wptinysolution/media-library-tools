@@ -7,6 +7,7 @@ import {
     LikeOutlined,
     ExportOutlined,
     DeleteOutlined,
+    ScissorOutlined,
     SettingOutlined,
     ContactsOutlined,
     UnorderedListOutlined
@@ -67,6 +68,12 @@ function MainHeader() {
             key: '/rubbishFile',
             label: <Link to={`/rubbishFile`}> Rubbish files </Link>,
             icon: <DeleteOutlined style={iconStyle} />,
+            style: menuItemStyle,
+        },
+        {
+            key: '/imageSize',
+            label: <Link to={`/imageSize`}> Image Size </Link>,
+            icon: <ScissorOutlined style={iconStyle} />,
             style: menuItemStyle,
         },
         {

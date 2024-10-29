@@ -1,6 +1,11 @@
 @import './abstracts/_abstracts-dir';
 @import './licence';
 
+:root {
+	--tsmlt-admin-color-secondary: #d80e0e;
+	--tsmlt-admin-color-secondary-hover: #a80000;
+}
+
 body {
 	
 	&.media_page_tsmlt-media-tools{
@@ -79,4 +84,7 @@ body {
 		}
 	}
 	
+	div#media_root{
+	
+	}
 }

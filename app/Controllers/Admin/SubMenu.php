@@ -98,6 +98,13 @@ class SubMenu {
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
+			esc_html__( 'Image Size', 'tsmlt-media-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Image Size', 'tsmlt-media-tools' ) . '</span>',
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/imageSize'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
 			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
 			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ) . '</span>',
 			self::MENU_CAPABILITY,

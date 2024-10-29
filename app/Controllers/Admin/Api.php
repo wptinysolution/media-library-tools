@@ -164,7 +164,15 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
-
+		register_rest_route(
+			$this->namespace,
+			$this->resource_name . '/getRegisteredImageSizes',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'get_registered_image_size' ],
+				'permission_callback' => [ $this, 'login_permission_callback' ],
+			]
+		);
 		register_rest_route(
 			$this->namespace,
 			$this->resource_name . '/getPluginList',
@@ -191,7 +199,7 @@ class Api {
 		// Try to get the cached data.
 		$cached_data = get_transient( $transient_key );
 		if ( ! empty( $cached_data ) ) {
-			$is_empty = json_decode( $cached_data );
+			$is_empty = json_decode( $cached_data, true );
 			// Return the cached data if it exists.
 			if ( ! empty( $is_empty ) ) {
 				return $cached_data;
@@ -271,6 +279,8 @@ class Api {
 		$tsmlt_media['media_default_desc'] = $parameters['media_default_desc'] ?? '';
 
 		$tsmlt_media['others_file_support'] = $parameters['others_file_support'] ?? [];
+
+		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
@@ -953,5 +963,18 @@ class Api {
 		];
 
 		return wp_json_encode( $rubbish_data );
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function get_registered_image_size() {
+		$image_sizes = wp_get_registered_image_subsizes();
+		$size        = [];
+		foreach ( $image_sizes as $key => $val ) {
+			$size[ $key ] = $key . ' (' . $val['width'] . 'x' . $val['height'] . ')';
+		}
+		return $size;
 	}
 }

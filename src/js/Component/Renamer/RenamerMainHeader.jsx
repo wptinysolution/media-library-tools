@@ -131,7 +131,7 @@ function RenamerMainHeader() {
                     allowClear={true}
                     size="large"
                     placeholder={'Bulk Apply'}
-                    style={{ ...selectStyle, width: '250px' }}
+                    style={{ ...selectStyle, minWidth: '285px', width: 'inherit' }}
                     onChange={handleChangeBulkType}
                     options={ options }
                 />

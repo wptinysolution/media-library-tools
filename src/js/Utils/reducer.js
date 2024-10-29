@@ -47,6 +47,8 @@ export const initialState = {
 		others_file_support:[],
 		enable_auto_rename: '',
 		media_auto_rename_text: '',
+        deregistered_image_sizes: [],
+        custom_image_sizes: [],
 	},
 	rubbishMedia:{
 		isLoading: true,
@@ -74,8 +76,8 @@ export const initialState = {
 		ids: []
 	},
 	generalData:{
-		openProModal: false,
-		isLoading: true,
+        isLoading: true,
+        openProModal: false,
 		selectedMenu: '/',
 		dateList: {},
 		termsList: {},
@@ -85,6 +87,7 @@ export const initialState = {
 		scanDirNextSchedule: '',
 		scanRubbishDirLoading: true,
         pluginList: {},
+        allImageSizes:[],
 	},
     exportImport:{
         isExport: false,
@@ -165,6 +168,7 @@ const reducer = (state, action) => {
                 ...state,
                 bulkExport : action.bulkExport,
             };
+
 		default:
 			return state;
 	}
