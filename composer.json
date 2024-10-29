@@ -11,5 +11,8 @@
       "TinySolutions\\mlt\\": "app"
     }
   },
-  "description": ""
+  "description": "",
+  "require": {
+    "enshrined/svg-sanitize": "^0.20.0"
+  }
 }

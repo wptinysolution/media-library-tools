@@ -7,6 +7,7 @@
 
 namespace TinySolutions\mlt\Controllers\Hooks;
 
+use enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
 
 defined( 'ABSPATH' ) || exit();
@@ -35,11 +36,56 @@ class FilterHooks {
 		// SVG File Permission.
 		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
 		add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
-
+		// Sanitize the SVG file before it is uploaded to the server.
+		add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
 		// Cron Interval for check image file.
 		add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
 	}
-
+	/**
+	 * Sanitize an uploaded SVG file.
+	 *
+	 * @param array $file Uploaded file information.
+	 *
+	 * @return array
+	 * @since 1.1.3
+	 */
+	public static function sanitize_svg( $file ) {
+		// Only proceed if the file is an SVG.
+		if ( 'image/svg+xml' !== $file['type'] ) {
+			return $file;
+		}
+		// Set maximum file size (500KB max).
+		$max_file_size = apply_filters( 'tsmlt_upload_max_svg_file_size', 500 * 1024 );
+		$size_in_kb    = $max_file_size / 1024;
+		$size_in_mb    = $size_in_kb / 1024;
+		$size_message  = ( $size_in_kb < 1024 ) ? $size_in_kb . 'KB' : number_format( $size_in_mb, 2 ) . 'MB';
+		// Validate file size.
+		if ( $file['size'] > $max_file_size ) {
+			$file['error'] = sprintf(
+			/* translators: file size */
+				esc_html__( 'The uploaded SVG exceeds the maximum allowed file size of %s.', 'tsmlt-media-tools' ),
+				esc_html( $size_message )
+			);
+			return $file;
+		}
+		// Sanitize the SVG file.
+		$sanitizer = new Sanitizer();
+		$sanitizer->removeRemoteReferences( true );
+		$sanitizer->removeXMLTag( true );
+		$sanitizer->minify( true );
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$svg_content = file_get_contents( $file['tmp_name'] );
+		$clean_svg   = $sanitizer->sanitize( $svg_content );
+		// If the file is not safe, return an error.
+		if ( false === $clean_svg ) {
+			$file['error'] = esc_html__( 'This SVG file contains unsafe content and cannot be uploaded.', 'tsmlt-media-tools' );
+			return $file;
+		}
+		// Write sanitized SVG content back to the file.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		file_put_contents( $file['tmp_name'], $clean_svg );
+		return $file;
+	}
 	/**
 	 * Fix SVG size.
 	 *
@@ -312,5 +358,4 @@ class FilterHooks {
 
 		return (array) $links;
 	}
-	
 }
