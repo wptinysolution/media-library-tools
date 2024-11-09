@@ -30,14 +30,13 @@ class SpecialDiscount extends Discount {
 	 */
 	public function the_options(): array {
 		return [
-			'option_name'    => 'tsmlt_special_offer_2023',
-			'start_date'     => '10 December 2023',
-			'end_date'       => '10 January 2024',
-			'notice_message' => "Don't miss out on our biggest sale of the year! Get your
+			'option_name'      => 'tsmlt_special_offer_2023',
+			'prev_option_name' => 'tsmlt_special_offer_2024',
+			'start_date'       => '19 November 2024',
+			'end_date'         => '10 December 2024',
+			'notice_message'   => "Don't miss out on our biggest sale of the year! Get your
 						<b>Media Library Tools Pro plan</b> with <b>UP TO 20% OFF</b>! Limited time
-						offer!!"
+						offer!!",
 		];
-
 	}
-
 }

@@ -117,9 +117,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
 			if ( is_admin() ) {
-				/*
-				// BlackFriday::instance();
-				*/
 				SpecialDiscount::instance();
 				Review::instance();
 				// Include File.
