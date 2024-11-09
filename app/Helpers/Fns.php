@@ -58,7 +58,7 @@ class Fns {
 	 * @return bool
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
-		$updated = false;
+		$updated       = false;
 		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
 		$new_file_name = sanitize_file_name( $new_file_name );
 		$new_file_name = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
@@ -93,15 +93,15 @@ class Fns {
 				}
 			}
 		}
-		
+
 		// Renaming the file
 		$path_being_saved_to = dirname( $file_path );
-		$unique_filename = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
-		$renamed = rename( $file_path, $unique_filename );
-		
-		$new_file_name = basename( $unique_filename );
+		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
+		$renamed             = rename( $file_path, $unique_filename );
+
+		$new_file_name    = basename( $unique_filename );
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
-		
+
 		// If successfully renamed, update metadata
 		if ( $renamed ) {
 			wp_update_post(
@@ -110,7 +110,7 @@ class Fns {
 					'post_name' => $new_filebasename,
 				]
 			);
-			
+
 			// Only regenerate metadata for images
 			if ( $is_image ) {
 				if ( ! function_exists( 'wp_crop_image' ) ) {
@@ -127,11 +127,11 @@ class Fns {
 				// For non-image files, just update the attached file path
 				update_attached_file( $attachment_id, $unique_filename );
 			}
-			
+
 			// Update permalink
 			self::permalink_to_post_guid( $attachment_id );
 		}
-		
+
 		return $renamed;
 	}
 
@@ -437,5 +437,21 @@ class Fns {
 		// Update the attachment using wp_update_post
 		wp_update_post( $attachment_data );
 		return $parent_id;
+	}
+
+	/**
+	 * @param string $type string mime type.
+	 *
+	 * @return bool
+	 */
+	public static function is_support_mime_type( $type ) {
+		$options = self::get_options();
+		if ( empty( $options['others_file_support'] ) || ! is_array( $options['others_file_support'] ) ) {
+			return false;
+		}
+		if ( in_array( $type, $options['others_file_support'], true ) ) {
+			return true;
+		}
+		return false;
 	}
 }

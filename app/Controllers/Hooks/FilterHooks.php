@@ -32,15 +32,17 @@ class FilterHooks {
 		add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
 		add_filter( 'plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2 );
-
-		// SVG File Permission.
-		add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
-		add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
-		// Sanitize the SVG file before it is uploaded to the server.
-		add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
-		// Cron Interval for check image file.
-		add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
+		if ( Fns::is_support_mime_type( 'svg' ) ) {
+			// SVG File Permission.
+			add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
+			add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
+			// Sanitize the SVG file before it is uploaded to the server.
+			add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
+			// Cron Interval for check image file.
+			add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
+		}
 	}
+
 	/**
 	 * Sanitize an uploaded SVG file.
 	 *
@@ -104,7 +106,6 @@ class FilterHooks {
 		if ( 'svg' !== $file_ext ) {
 			return $out;
 		}
-
 		return [ $image_url, null, null, false ];
 	}
 
@@ -146,15 +147,7 @@ class FilterHooks {
 	 * @return array
 	 */
 	public static function add_support_mime_types( $mimes ) {
-		$options = Fns::get_options();
-		if ( empty( $options['others_file_support'] ) || ! is_array( $options['others_file_support'] ) ) {
-			return $mimes;
-		}
-
-		if ( in_array( 'svg', $options['others_file_support'] ) ) {
-			$mimes['svg|svgz'] = 'image/svg+xml';
-		}
-
+		$mimes['svg|svgz'] = 'image/svg+xml';
 		return $mimes;
 	}
 
