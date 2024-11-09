@@ -40,11 +40,8 @@ class ActionHooks {
 		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
 		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rubbish_file_cron_job' ] );
 		add_action( 'in_admin_header', [ $this, 'remove_all_notices' ], 99 );
-
-		// Image Size.
-		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'custom_image_sizes' ] );
 	}
-
+	
 	/**
 	 * @return void
 	 */
@@ -206,20 +203,5 @@ class ActionHooks {
 		wp_clear_scheduled_hook( $event_hook );
 		wp_schedule_event( time(), 'weekly', $event_hook );
 	}
-
-	/**
-	 * @param array $sizes images size.
-	 *
-	 * @return array
-	 */
-	public function custom_image_sizes( $sizes ) {
-		$options = Fns::get_options();
-		// add your image sizes, i.e.
-		if ( ! empty( $options['deregistered_image_sizes'] ) ) {
-			foreach ( $options['deregistered_image_sizes'] as $size ) {
-				unset( $sizes[ $size ] );
-			}
-		}
-		return $sizes;
-	}
+	
 }

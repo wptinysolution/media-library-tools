@@ -22,7 +22,6 @@ class FilterHooks {
 	 * @return void
 	 */
 	public static function init_hooks() {
-
 		// Plugins Setting Page.
 		add_filter( 'plugin_action_links_' . TSMLT_BASENAME, [ __CLASS__, 'plugins_setting_links' ] );
 		add_filter( 'manage_media_columns', [ __CLASS__, 'media_custom_column' ] );
@@ -32,6 +31,8 @@ class FilterHooks {
 		add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
 		add_filter( 'plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2 );
+		// Image Size.
+		add_filter( 'intermediate_image_sizes_advanced', [ __CLASS__, 'custom_image_sizes' ] );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
 			// SVG File Permission.
 			add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
@@ -40,9 +41,143 @@ class FilterHooks {
 			add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
 			// Cron Interval for check image file.
 			add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
+			// SVG size.
+			add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'svgs_generate_svg_attachment_metadata' ], 10, 3 );
 		}
 	}
 
+	/**
+	 * @param array $metadata image metadata.
+	 * @param int   $attachment_id image id.
+	 *
+	 * @return array
+	 */
+	public static function svgs_generate_svg_attachment_metadata( $metadata, $attachment_id ) {
+		$mime = get_post_mime_type( $attachment_id );
+		if ( 'image/svg+xml' === $mime ) {
+			$svg_path = get_attached_file( $attachment_id );
+			// Get the path relative to /uploads/.
+			$filename   = basename( $svg_path );
+			$dimensions = self::svgs_get_dimensions( $svg_path );
+			$metadata   = [
+				'width'  => intval( $dimensions->width ),
+				'height' => intval( $dimensions->height ),
+				'file'   => $filename,
+			];
+			$height     = intval( $dimensions->height );
+			$width      = intval( $dimensions->width );
+			// Generate sizes array for future implementations, if needed.
+			$sizes = [];
+			foreach ( get_intermediate_image_sizes() as $s ) {
+				$sizes[ $s ] = [
+					'width'  => '',
+					'height' => '',
+					'crop'   => false,
+				];
+				if ( 0 !== $width && 0 !== $height ) {
+					if ( isset( $_wp_additional_image_sizes[ $s ]['width'] ) ) {
+						$width_current_size = intval( $_wp_additional_image_sizes[ $s ]['width'] );
+					} else {
+						$width_current_size = get_option( "{$s}_size_w" );
+					}
+					if ( $width > $height ) {
+						$ratio      = round( $width / $height, 2 );
+						$new_height = round( $width_current_size / $ratio );
+					} else {
+						$ratio      = round( $height / $width, 2 );
+						$new_height = round( $width_current_size * $ratio );
+					}
+					$sizes[ $s ]['width']  = $width_current_size;
+					$sizes[ $s ]['height'] = $new_height;
+					$sizes[ $s ]['crop']   = false;
+				} else {
+					if ( isset( $_wp_additional_image_sizes[ $s ]['width'] ) ) {
+						$sizes[ $s ]['width'] = intval( $_wp_additional_image_sizes[ $s ]['width'] );
+					} else {
+						$sizes[ $s ]['width'] = get_option( "{$s}_size_w" );
+					}
+					if ( isset( $_wp_additional_image_sizes[ $s ]['height'] ) ) {
+						$sizes[ $s ]['height'] = intval( $_wp_additional_image_sizes[ $s ]['height'] );
+					} else {
+						$sizes[ $s ]['height'] = get_option( "{$s}_size_h" );
+					}
+					if ( isset( $_wp_additional_image_sizes[ $s ]['crop'] ) ) {
+						$sizes[ $s ]['crop'] = intval( $_wp_additional_image_sizes[ $s ]['crop'] );
+					} else {
+						$sizes[ $s ]['crop'] = get_option( "{$s}_crop" );
+					}
+				}
+				$sizes[ $s ]['file']      = $filename;
+				$sizes[ $s ]['mime-type'] = 'image/svg+xml';
+			}
+			$metadata['sizes'] = $sizes;
+		}
+		return $metadata;
+	}
+
+	/**
+	 * @param $svg
+	 *
+	 * @return object
+	 */
+	private static function svgs_get_dimensions( $svg ) {
+		$svg_content = '';
+		// Check if $svg is a URL or a local file path.
+		if ( filter_var( $svg, FILTER_VALIDATE_URL ) ) {
+			// For remote SVGs, use wp_remote_get().
+			$response = wp_remote_get( $svg );
+			if ( is_wp_error( $response ) ) {
+				return (object) [
+					'width'  => 0,
+					'height' => 0,
+				];
+			}
+			$svg_content = wp_remote_retrieve_body( $response );
+		} else {
+			// For local files, use WP_Filesystem to read the file content.
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+			global $wp_filesystem;
+			WP_Filesystem();
+			$svg_content = $wp_filesystem->get_contents( $svg );
+		}
+		if ( empty( $svg_content ) ) {
+			return (object) [
+				'width'  => 0,
+				'height' => 0,
+			];
+		}
+		$svg = simplexml_load_string( $svg_content );
+		if ( false === $svg ) {
+			$width  = '0';
+			$height = '0';
+		} else {
+			$attributes = $svg->attributes();
+			$width      = (string) $attributes->width;
+			$height     = (string) $attributes->height;
+		}
+		return (object) [
+			'width'  => $width,
+			'height' => $height,
+		];
+	}
+
+	/**
+	 * @param array $sizes images size.
+	 *
+	 * @return array
+	 */
+	public static function custom_image_sizes( $sizes ) {
+		$options = Fns::get_options();
+		// add your image sizes, i.e.
+		if ( ! empty( $options['deregistered_image_sizes'] ) ) {
+			foreach ( $options['deregistered_image_sizes'] as $size ) {
+				unset( $sizes[ $size ] );
+			}
+		}
+		return $sizes;
+	}
 	/**
 	 * Sanitize an uploaded SVG file.
 	 *
