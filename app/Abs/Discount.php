@@ -60,6 +60,9 @@ abstract class Discount {
 				if ( ! isset( $GLOBALS['tsmlt__notice'] ) ) {
 					$GLOBALS['tsmlt__notice'] = 'tsmlt__notice';
 					$this->offer_notice();
+					if ( ! empty( $this->options['prev_option_name'] ) ) {
+						delete_option( $this->options['prev_option_name'] );
+					}
 				}
 			}
 		}
@@ -90,8 +93,8 @@ abstract class Discount {
 						--e-focus-color: rgb(75 47 157/40%);
 						display: grid;
 						grid-template-columns: 100px auto;
-						padding-top: 25px;
-						padding-bottom: 22px;
+						padding-top: 12px;
+						padding-bottom: 12px;
 						column-gap: 15px;
 					}
 
@@ -155,7 +158,7 @@ abstract class Discount {
 						 src="<?php echo esc_url( $this->options['image_url'] ); ?>"
 						 width="100px"
 						 height="100px"/>
-					<h3><?php echo sprintf( '%s – %s', esc_html( $this->options['plugin_name'] ), esc_html( $this->options['notice_for'] ) ); ?></h3>
+					<h3><?php echo sprintf( '%s', esc_html( $this->options['notice_for'] ) ); ?></h3>
 
 					<p class="notice-text">
 						<?php echo $this->options['notice_message']; ?>
@@ -201,9 +204,6 @@ abstract class Discount {
 				check_ajax_referer( 'tsmlt-offer-dismissible-notice', 'nonce' );
 				if ( ! empty( $this->options['option_name'] ) ) {
 					update_option( $this->options['option_name'], '1' );
-				}
-				if ( ! empty( $this->options['prev_option_name'] ) ) {
-					delete_option( $this->options['prev_option_name'] );
 				}
 				wp_die();
 			}
