@@ -168,7 +168,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.5.1 ( November , 2024 ) =
+= 1.5.1 ( November 10, 2024 ) =
 * Optimize SVG Functionality
 
 = 1.5.0 ( Oct 29, 2024 ) =
