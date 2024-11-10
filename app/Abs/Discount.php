@@ -161,7 +161,7 @@ abstract class Discount {
 					<h3><?php echo sprintf( '%s', esc_html( $this->options['notice_for'] ) ); ?></h3>
 
 					<p class="notice-text">
-						<?php echo $this->options['notice_message']; ?>
+						<?php echo wp_kses_post( $this->options['notice_message'] ); ?>
 					</p>
 					<p>
 						<a class="button button-primary"
