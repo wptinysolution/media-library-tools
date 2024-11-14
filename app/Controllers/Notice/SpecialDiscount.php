@@ -36,7 +36,7 @@ class SpecialDiscount extends Discount {
 			'end_date'         => '10 December 2024',
 			'notice_for'       => 'Black Friday + Cyber Monday Deal!!',
 			'notice_message'   => "Don't miss out on our biggest sale of the year! Get your
-						<b>Media Library Tools Pro plan</b> with <b>UP TO 20% OFF</b>! Limited time
+						<b>Media Library Tools Pro plan</b> with <b>UP TO 30% OFF</b>! Limited time
 						offer!!",
 		];
 	}
