@@ -54,7 +54,7 @@ function ProModal() {
             desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
         },
         {
-            "title": "Add Custom Image Sizes",
+            "title": "Register Custom Image Sizes",
             "desc": "Easily register custom image sizes as needed."
         },
         {
