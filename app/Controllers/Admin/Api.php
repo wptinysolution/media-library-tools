@@ -243,26 +243,23 @@ class Api {
 
 
 	/**
-	 * @return false|string
+	 * @return array
 	 */
 	public function update_option( $request_data ) {
-
 		$result = [
-			'updated' => false,
 			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'tsmlt-media-tools' ),
 		];
-
 		$parameters = $request_data->get_params();
 
 		$total_count = absint( $parameters['media_per_page'] ?? 20 );
 
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
-
-		$tsmlt_media['media_per_page'] = 1000 < $total_count ? 1000 : $total_count;
+		
+		$tsmlt_media['media_per_page'] = Fns::maximum_media_per_page() < $total_count ? Fns::maximum_media_per_page() : $total_count;
 
 		$total_rabbis_count = absint( $parameters['rubbish_per_page'] ?? 20 );
 
-		$tsmlt_media['rubbish_per_page'] = 1000 < $total_rabbis_count ? 1000 : $total_rabbis_count;
+		$tsmlt_media['rubbish_per_page'] = Fns::maximum_media_per_page() < $total_rabbis_count ? Fns::maximum_media_per_page() : $total_rabbis_count;
 
 		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
@@ -500,7 +497,7 @@ class Api {
 
 		$options = get_option( 'tsmlt_settings' );
 		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
-		$limit   = 1000 < $limit ? 1000 : $limit;
+		$limit   = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
