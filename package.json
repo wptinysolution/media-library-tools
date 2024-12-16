@@ -13,14 +13,14 @@
 		"hot": "mix watch --hot",
 		"prod": "npm run production && npm run cleanmap",
 		"production": "mix --production",
-		"package": "npm run clean && npm run dev && npm run prod && npm run dev --package",
+		"package": "npm run clean && npm run dev && npm run prod && cross-env npm_config_package=true npm run dev",
 		"clean": "rm -rf dist/*",
 		"cleanmap": "rm -rf assets/**/**/*.map",
-		"zip": "npm run package && npm run dev --zip"
+		"zip": "npm run package && cross-env npm_config_package=true npm run dev"
 	},
 	"dependencies": {
 		"@ant-design/icons": "^5.3.7",
-        "antd": "^5.20.5",
+		"antd": "^5.20.5",
 		"axios": "^1.7.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
@@ -32,6 +32,7 @@
 		"@babel/preset-react": "^7.24.6",
 		"archiver": "^6.0.2",
 		"cli-color": "^2.0.4",
+		"cross-env": "^7.0.3",
 		"emojic": "^1.1.17",
 		"fs-extra": "^11.2.0",
 		"laravel-mix": "^6.0.49",
