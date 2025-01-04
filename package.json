@@ -16,7 +16,7 @@
 		"package": "npm run clean && npm run dev && npm run prod && cross-env npm_config_package=true npm run dev",
 		"clean": "rm -rf dist/*",
 		"cleanmap": "rm -rf assets/**/**/*.map",
-		"zip": "npm run package && cross-env npm_config_package=true npm run dev"
+		"zip": "npm run package && cross-env npm_config_zip=true npm run dev"
 	},
 	"dependencies": {
 		"@ant-design/icons": "^5.3.7",
