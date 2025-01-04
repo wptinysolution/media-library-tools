@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, export media library, Image SEO, media library, media cleaner
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -168,6 +168,9 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.5.2 ( Jan 04, 2025 ) =
+* Add New filter hooks for increase maximum image processing limit
+
 = 1.5.1 ( November 10, 2024 ) =
 * Optimize SVG Functionality
 
@@ -178,10 +181,6 @@ To search for images by categories, users can find the categories box near the F
 * New Feature: Disable Image size
 * New Feature: Addons Support for Register new image size
 
-= 1.3.8 ( Sep 05, 2024 ) =
-* Fixed: Content Edit Re render Issue fixed
-* Fixed: Video File Rename Issue
-
 = 1.3.7 ( July 13, 2024 ) =
 * Fixed: Media Filter Category
 * Fixed: Icon Change
@@ -189,86 +188,17 @@ To search for images by categories, users can find the categories box near the F
 * Remove: UnUsed Code
 * Update: Js Library Updates
 
-= 1.3.6 ( Jun 06, 2024 ) =
-* Fixed: Rename Issue
-* Fixed: Settings Page UI Issue
-* Remove: Remove WPML asset form Media Library tools settings pages, WPML Un-wanted Asset loaded Whole admin panel.
-
-= 1.3.5 ( May 26, 2024 ) =
-* Fixed: UI Issue
-* Added: Submenu Added
-
-= 1.3.4 ( May 18, 2024 ) =
-* Added: Optimization
-
-= 1.3.3 ( May 08, 2024 ) =
-* update: Media edit user permission
-
 = 1.3.2 ( May 05, 2024 ) =
 * Support: Bulk Rename With CSV Import
-
-= 1.3.1 ( April 26, 2024 ) =
-* Fixed: Submenu Issue Fixed
-
-= 1.3.0 ( March 16, 2024 ) =
-* Fixed: Import Issue
-* Fixed: Export Import Structure Change
-
-= 1.2.8 ( January 22, 2024 ) =
-* Fixed: Import Issue
-
-= 1.2.7 ( January 20, 2024 ) =
-* Fixed: Scanning time fix
-
-= 1.2.6 ( January 13, 2024 ) =
-* Fixed: Activation Time error fix
-
-= 1.2.5 ( January 10, 2024 ) =
-* Fixed: File Rename issue
-
-= 1.2.4 ( January 01, 2024 ) =
-* Fixed: SVG Issue
-* Fixed: Query issue
-
-= 1.2.3 ( December 23, 2023 ) =
-* Fixed: Export Import Issue
-
-= 1.2.2 ( December 13, 2023 ) =
-* Fixed: Remove Un-use code
-
-= 1.2.1 ( November 26, 2023 ) =
-* Fixed: Admin Page Css Fix
 
 = 1.2.0 ( November 9, 2023 ) =
 * Added: CSV Export addons support
 * Added: Auto add image parent post
 * Fixed: Multisite issue for Unnecessary file.
 
-= 1.1.12 ( October 28, 2023 ) =
-* Fixed: Multisite issue.
-
-= 1.1.11 ( October 04, 2023 ) =
-* Fixed: Bulk Search Rubbish file error fix
-
 = 1.1.10 ( September 26, 2023 ) =
 * Support: Allow title empty.
 * Added: Rubbish File Balk Search
-
-= 1.1.9 ( September 16, 2023 ) =
-* Support: Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
-* Fixed: Error Fix
-
-= 1.1.7 ( September 12, 2023 ) =
-* Fixed: Rename By Post Title
-
-= 1.1.6 ( September 11, 2023 ) =
-* Fixed: Menu style change
-
-= 1.1.5 ( September 06, 2023 ) =
-* Fixed: Post id Error
-* Fixed: Alt text Issue
-* Fixed: Modal issue
-* Fixed: Message text
 
 = 1.1.4 ( August 27, 2023 ) =
 * Added: Parent Post Url
