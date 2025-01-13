@@ -182,6 +182,18 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
+		
+		register_rest_route(
+			$this->namespace,
+			$this->resource_name . '/truncateUnlistedFile',
+			[
+				'methods'             => 'POST',
+				'callback'            => [ $this, 'truncate_unlisted_file' ],
+				'permission_callback' => [ $this, 'login_permission_callback' ],
+			]
+		);
+		
+		
 	}
 
 	/**
@@ -961,8 +973,7 @@ class Api {
 
 		return wp_json_encode( $rubbish_data );
 	}
-
-
+	
 	/**
 	 * @return array
 	 */
@@ -973,5 +984,27 @@ class Api {
 			$size[ $key ] = $key . ' (' . $val['width'] . 'x' . $val['height'] . ')';
 		}
 		return $size;
+	}
+	
+	/**
+	 * Truncate the 'tsmlt_unlisted_file' table.
+	 *
+	 * This function clears all data from the 'tsmlt_unlisted_file' table.
+	 *
+	 * @return bool True if the query succeeds, false otherwise.
+	 */
+	public function truncate_unlisted_file() {
+		global $wpdb;
+		// Get the table name with prefix
+		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
+		// Ensure the table exists before truncating
+		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name ) {
+			// Execute the TRUNCATE query
+			$result = $wpdb->query( "TRUNCATE TABLE `$table_name`" );
+			// Return true if the query succeeded, false otherwise
+			return $result !== false;
+		}
+		// Table does not exist, return false
+		return false;
 	}
 }

@@ -260,3 +260,8 @@ export const importOneByOne = async (prams) => {
 export const getRegisteredImageSizes = async () => {
     return await Api.get(`/getRegisteredImageSizes`);
 }
+
+export const truncateUnlistedFile = async () => {
+    return await Api.post(`/truncateUnlistedFile` );
+}
+

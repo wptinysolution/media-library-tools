@@ -10,7 +10,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {actionClearSchedule, rescanDir, searchFileBySingleDir} from "../../Utils/Data";
+import {actionClearSchedule, rescanDir, searchFileBySingleDir, truncateUnlistedFile} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -171,6 +171,21 @@ function DirectoryModal() {
             open={ stateValue.generalData.isDirModalOpen }
             onCancel={handleDirModalCancel}
             footer={[
+                <Button
+                    style={ {
+                        display: 'inline-flex',
+                        gap: '10px',
+                        alignItems: 'left'
+                    } }
+                    key="removeOld"
+                    onClick={ async () => {
+                       await truncateUnlistedFile();
+                       await handleDirRescan( 'all' );
+                       window.location.reload();
+                    } }
+                >
+                   Delete Old History
+                </Button>,
                 <Button
                     style={ {
                         display: 'inline-flex',
