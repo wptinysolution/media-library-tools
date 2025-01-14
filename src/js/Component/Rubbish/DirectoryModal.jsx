@@ -78,18 +78,18 @@ function DirectoryModal() {
 
         let dirKey = prams[0];
 
-        const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
+        // const dirlist = Object.entries( stateValue.generalData.scanRubbishDirList );
 
         // Find the object with the matching directory path
-        let matchingObject = null;
-        let rescanSameDir = false;
-        for (const entry of dirlist) {
-            if (entry[0] === dirKey) {
-                matchingObject = entry[1];
-                rescanSameDir = matchingObject.total_items > matchingObject.counted;
-                break; // Stop searching once a match is found
-            }
-        }
+        // let matchingObject = null;
+        // let rescanSameDir = false;
+        // for (const entry of dirlist) {
+        //     if (entry[0] === dirKey) {
+        //         matchingObject = entry[1];
+        //         rescanSameDir = matchingObject.total_items > matchingObject.counted;
+        //         break; // Stop searching once a match is found
+        //     }
+        // }
         setScanDir( dirKey );
 
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
