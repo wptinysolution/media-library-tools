@@ -260,9 +260,6 @@ class Fns {
 	public static function update_rubbish_file_to_database( $directory ) {
 
 		$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
-		if ( ! count( $found_files ) ) {
-			return;
-		}
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 
 		$dis_list[ $directory ]['total_items'] = count( $found_files );
@@ -275,11 +272,7 @@ class Fns {
 		$found_files_count = count( $files );
 
 		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
-
-		if ( ! $found_files_count > 0 ) {
-			return;
-		}
-
+		//error_log( print_r( $dis_list , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		global $wpdb;
 
 		$upload_dir = wp_upload_dir();
@@ -319,7 +312,7 @@ class Fns {
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			// Check if the file_path already exists in the table using cached data
 			$existing_row = wp_cache_get( $cache_key );
-			if ( $existing_row === false ) {
+			if ( ! $existing_row ) {
 				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) );
 				// Cache the query result
 				if ( $existing_row ) {
