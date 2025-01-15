@@ -181,8 +181,9 @@ class ActionHooks {
 			}
 			$directory = $key;
 		}
-
-		Fns::update_rubbish_file_to_database( $directory );
+		if ( ! empty( $directory ) ) {
+			Fns::update_rubbish_file_to_database( $directory );
+		}
 	}
 
 	/**
