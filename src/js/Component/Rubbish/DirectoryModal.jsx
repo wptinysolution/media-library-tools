@@ -1,66 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useStateValue } from "../../Utils/StateProvider";
+import { rescanDir, searchFileBySingleDir, truncateUnlistedFile } from "../../Utils/Data";
 import * as Types from "../../Utils/actionType";
-import { actionClearSchedule, rescanDir, searchFileBySingleDir, truncateUnlistedFile } from "../../Utils/Data";
+
 
 const { Title } = Typography;
 const { Content } = Layout;
 
 function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
+    // Local state management isDirModalOpen
+    const [scanRubbishDirList, setScanRubbishDirList] = useState({});
+    const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
+    const [progressBar, setProgressBar] = useState(0);
+    const [progressTotal, setProgressTotal] = useState(100); // Set default total for progress
     const [scanDir, setScanDir] = useState(null);
     const [buttonSpain, setButtonSpain] = useState(null);
+    const [scanDirNextSchedule, setScanDirNextSchedule] = useState("");
 
-    // Utility to dispatch general data updates
-    const updateGeneralData = (data) => {
+    // Close modal
+    const handleDirModalCancel = () => {
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                ...data,
+                isDirModalOpen: false,
             },
         });
     };
 
-    // Utility to update bulk submit data
-    const updateBulkSubmitData = (data) => {
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                ...data,
-            },
-        });
-    };
-
-    const handleDirModalCancel = () => {
-        updateGeneralData({ isDirModalOpen: false });
-    };
-
+    // Handle rescanning a directory
     const handleDirRescan = async (dir = "all") => {
         setScanDir(dir);
-        updateGeneralData({ scanRubbishDirLoading: true });
-
+        setScanRubbishDirLoading(true);
         try {
             const dirList = await rescanDir({ dir });
-            updateGeneralData({
-                scanRubbishDirList: dirList.data.thedirlist,
-                scanRubbishDirLoading: false,
-            });
+            setScanRubbishDirList(dirList.data.thedirlist);
         } finally {
+            setScanRubbishDirLoading(false);
             setScanDir(null);
         }
     };
 
+    // Recursive function to process directories
     const searchFileBySingleDirRecursively = async (prams) => {
         setButtonSpain("bulkScan");
-        updateBulkSubmitData({
-            progressBar: Math.floor(
-                (100 * (stateValue.bulkSubmitData.progressTotal - prams.length)) / stateValue.bulkSubmitData.progressTotal
-            ),
-        });
+
+        // Update progress
+        setProgressBar(
+            Math.floor((100 * (progressTotal - prams.length)) / progressTotal)
+        );
+
+        // Base case
         if (prams.length <= 0) {
             setTimeout(() => {
                 setButtonSpain(null);
@@ -68,16 +61,17 @@ function DirectoryModal() {
             }, 1000);
             return;
         }
+
         const dirKey = prams[0];
         setScanDir(dirKey);
+
         try {
             const response = await searchFileBySingleDir({ directory: dirKey });
+
             if (response?.status === 200) {
                 const { dirlist, nextDir } = response.data;
-                updateGeneralData({
-                    scanRubbishDirList: dirlist,
-                    scanRubbishDirLoading: false,
-                });
+                setScanRubbishDirList(dirlist);
+
                 const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
                 await searchFileBySingleDirRecursively(nextPrams);
             }
@@ -95,11 +89,16 @@ function DirectoryModal() {
 
     const handleDirScanManually = async () => {
         setButtonSpain("bulkScan");
-        const dirList = Object.entries(stateValue.generalData.scanRubbishDirList).map(([key]) => key);
+        const dirList = Object.entries(scanRubbishDirList).map(([key]) => key);
         await searchFileBySingleDirRecursively(dirList);
     };
 
+
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
+    useEffect(() => {
+        setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
+    }, [stateValue.generalData.scanRubbishDirList] );
 
     return (
         <Modal
@@ -146,7 +145,7 @@ function DirectoryModal() {
                     padding: "0 15px",
                 }}
             >
-                {stateValue.generalData.scanRubbishDirLoading ? (
+                {scanRubbishDirLoading ? (
                     <Spin
                         indicator={antIcon}
                         style={{
@@ -158,52 +157,48 @@ function DirectoryModal() {
                         }}
                     />
                 ) : (
-                    <>
-                        <List
-                            itemLayout="horizontal"
-                            dataSource={Object.entries(stateValue.generalData.scanRubbishDirList)}
-                            locale={{
-                                emptyText: (
-                                    <Title level={5} style={{ margin: "0 15px", color: "red" }}>
-                                        Directory will search in the next schedule. Please be patient.
-                                        <br />
-                                        Next Schedule: {stateValue.generalData.scanDirNextSchedule}
-                                    </Title>
-                                ),
-                            }}
-                            renderItem={([key, item]) => (
-                                <List.Item key={key}>
-                                    <List.Item.Meta
-                                        title={key}
-                                        description={
-                                            item.total_items === 0 ? (
-                                                "This directory will be scanned again according to the schedule."
-                                            ) : (
-                                                <span style={{ color: "#1677ff" }}>
-                          Scanned {item.counted} items of {item.total_items} items
-                        </span>
-                                            )
-                                        }
-                                    />
-                                    <Space>
-                                        <Button
-                                            key="rescan"
-                                            onClick={() => handleDirRescan(key)}
-                                            type={key === scanDir ? "primary" : "default"}
-                                        >
-                                            Re-Execute in Schedule {key === scanDir && <Spin size="small" />}
-                                        </Button>
-                                    </Space>
-                                </List.Item>
-                            )}
-                        />
-                    </>
+                    <List
+                        itemLayout="horizontal"
+                        dataSource={Object.entries(scanRubbishDirList)}
+                        locale={{
+                            emptyText: (
+                                <Title level={5} style={{ margin: "0 15px", color: "red" }}>
+                                    Directory will search in the next schedule. Please be patient.
+                                    <br />
+                                    Next Schedule: {scanDirNextSchedule}
+                                </Title>
+                            ),
+                        }}
+                        renderItem={([key, item]) => (
+                            <List.Item key={key}>
+                                <List.Item.Meta
+                                    title={key}
+                                    description={
+                                        item.total_items === 0 ? (
+                                            "This directory will be scanned again according to the schedule."
+                                        ) : (
+                                            <span style={{ color: "#1677ff" }}> Scanned {item.counted} items of {item.total_items} items</span>
+                                        )
+                                    }
+                                />
+                                <Space>
+                                    <Button
+                                        key="rescan"
+                                        onClick={() => handleDirRescan(key)}
+                                        type={key === scanDir ? "primary" : "default"}
+                                    >
+                                        Re-Execute in Schedule {key === scanDir && <Spin size="small" />}
+                                    </Button>
+                                </Space>
+                            </List.Item>
+                        )}
+                    />
                 )}
             </Content>
-            {stateValue.bulkSubmitData.progressBar > 0 && (
+            {progressBar > 0 && (
                 <>
                     <Title level={5}>Progress:</Title>
-                    <Progress showInfo percent={stateValue.bulkSubmitData.progressBar} />
+                    <Progress showInfo percent={progressBar} />
                 </>
             )}
             <Divider />

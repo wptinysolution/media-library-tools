@@ -6,7 +6,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-01-13 15:04+0000\n"
+"POT-Creation-Date: 2025-01-15 17:31+0000\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -31,83 +31,83 @@ msgstr ""
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:250
+#: ../app/Controllers/Admin/Api.php:262
 msgid "Update failed. Maybe change not found. "
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:288
+#: ../app/Controllers/Admin/Api.php:300
 msgid "Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:288
+#: ../app/Controllers/Admin/Api.php:300
 msgid "Updated. Be happy"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:360, ../app/Controllers/Admin/Api.php:403, ../app/Controllers/Admin/Api.php:460, ../app/Controllers/Admin/Api.php:685, ../app/Controllers/Admin/Api.php:754, ../app/Controllers/Admin/Api.php:832, ../app/Controllers/Admin/Api.php:853
+#: ../app/Controllers/Admin/Api.php:372, ../app/Controllers/Admin/Api.php:415, ../app/Controllers/Admin/Api.php:472, ../app/Controllers/Admin/Api.php:697, ../app/Controllers/Admin/Api.php:766, ../app/Controllers/Admin/Api.php:844, ../app/Controllers/Admin/Api.php:867
 msgid "Update failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:368, ../app/Controllers/Admin/Api.php:440
+#: ../app/Controllers/Admin/Api.php:380, ../app/Controllers/Admin/Api.php:452
 msgid "Please active licence key."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:389, ../app/Controllers/Admin/Api.php:425, ../app/Controllers/Admin/Api.php:431
+#: ../app/Controllers/Admin/Api.php:401, ../app/Controllers/Admin/Api.php:437, ../app/Controllers/Admin/Api.php:443
 msgid "Saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:410
+#: ../app/Controllers/Admin/Api.php:422
 msgid "The Title has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:415
+#: ../app/Controllers/Admin/Api.php:427
 msgid "The Caption has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:420
+#: ../app/Controllers/Admin/Api.php:432
 msgid "Content has been saved."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:434
+#: ../app/Controllers/Admin/Api.php:446
 msgid "Rename Failed. Maybe File permission mismatch, Also Check File exist or not."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:453
+#: ../app/Controllers/Admin/Api.php:465
 msgid "Renamed."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:706
+#: ../app/Controllers/Admin/Api.php:718
 msgid "Done. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:706
+#: ../app/Controllers/Admin/Api.php:718
 msgid "Failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:715
+#: ../app/Controllers/Admin/Api.php:727
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:715
+#: ../app/Controllers/Admin/Api.php:727
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:754
+#: ../app/Controllers/Admin/Api.php:766
 msgid "Updated. Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:801
+#: ../app/Controllers/Admin/Api.php:813
 msgid "Schedule Will Execute Soon."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:804
+#: ../app/Controllers/Admin/Api.php:816
 msgid "Schedule Will Execute Soon For Directory List."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:853
+#: ../app/Controllers/Admin/Api.php:867
 msgid "Done, Be happy."
 msgstr ""
 
-#: ../app/Controllers/Admin/Api.php:866
+#: ../app/Controllers/Admin/Api.php:880
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
