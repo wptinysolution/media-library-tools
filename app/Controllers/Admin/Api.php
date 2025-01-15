@@ -149,7 +149,7 @@ class Api {
 			$this->namespace,
 			$this->resource_name . '/searchFileBySingleDir',
 			[
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => [ $this, 'immediately_search_rubbish_file' ],
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
@@ -849,9 +849,6 @@ class Api {
 		if ( empty( $directory ) ) {
 			return $result;
 		}
-		error_log( print_r( [
-			'directory' => $directory,
-			], true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		$updated = Fns::update_rubbish_file_to_database( $directory );
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 

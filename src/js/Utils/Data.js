@@ -61,7 +61,8 @@ export const singleUpDateApi = async (prams) => {
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 export const searchFileBySingleDir = async (prams) => {
-    return await Api.post(`/searchFileBySingleDir`, prams);
+   // return await Api.post(`/searchFileBySingleDir`, prams);
+    return await Api.get(`/searchFileBySingleDir`, {params: prams});
 }
 
 /**

@@ -270,7 +270,7 @@ class Fns {
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
 		// Skip the files until the offset is reached
-		$files = array_slice( $found_files, $last_processed_offset, 20 );
+		$files = array_slice( $found_files, $last_processed_offset, 50 );
 
 		$found_files_count = count( $files );
 

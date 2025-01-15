@@ -15,7 +15,7 @@ function DirectoryModal() {
     const [scanRubbishDirList, setScanRubbishDirList] = useState({});
     const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
     const [progressBar, setProgressBar] = useState(0);
-    const [progressTotal, setProgressTotal] = useState(100); // Set default total for progress
+    const [progressTotal, setProgressTotal] = useState(0); // Set default total for progress
     const [scanDir, setScanDir] = useState(null);
     const [buttonSpain, setButtonSpain] = useState(null);
     const [scanDirNextSchedule, setScanDirNextSchedule] = useState("");
@@ -64,17 +64,16 @@ function DirectoryModal() {
 
         const dirKey = prams[0];
         setScanDir(dirKey);
-
+        console.log('prams', prams );
         try {
+            console.log('response', 'Before', dirKey );
             const response = await searchFileBySingleDir({ directory: dirKey });
-
-            if (response?.status === 200) {
-                const { dirlist, nextDir } = response.data;
-                setScanRubbishDirList(dirlist);
-
-                const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
-                await searchFileBySingleDirRecursively(nextPrams);
-            }
+            console.log('response', response );
+            const { dirlist, nextDir } = response.data;
+            setScanRubbishDirList(dirlist);
+            const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
+            console.log('nextPrams', nextPrams );
+            await searchFileBySingleDirRecursively(nextPrams);
         } catch (error) {
             console.error("Error processing directory:", dirKey, error);
         } finally {
@@ -97,6 +96,7 @@ function DirectoryModal() {
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
     useEffect(() => {
+        setProgressTotal( Object.entries( stateValue.generalData.scanRubbishDirList ).length );
         setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
     }, [stateValue.generalData.scanRubbishDirList] );
 
