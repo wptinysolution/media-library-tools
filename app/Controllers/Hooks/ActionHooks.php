@@ -157,7 +157,7 @@ class ActionHooks {
 		}
 		// Clear any existing scheduled events with the same hook.
 		wp_clear_scheduled_hook( $event_hook );
-		$schedule = 'weekly';
+		$schedule = 'daily';
 		// Schedule the cron job to run every minute.
 		wp_schedule_event( time(), $schedule, $event_hook );
 	}
