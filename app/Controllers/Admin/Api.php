@@ -843,8 +843,7 @@ class Api {
 			'data'    => [],
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
 		];
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-
+		
 		$directory = $parameters['directory'] ?? '';
 
 		if ( empty( $directory ) ) {
@@ -858,7 +857,6 @@ class Api {
 				$directory = absint( $dirlist[ $directory ]['total_items'] ) > absint( $dirlist[ $directory ]['counted'] ) ? $directory : 'nextDir';
 			}
 		}
-
 		$result['updated'] = (bool) $updated;
 		$result['nextDir'] = $directory;
 		$result['dirlist'] = $dirlist;

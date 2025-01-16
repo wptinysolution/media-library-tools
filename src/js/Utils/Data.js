@@ -14,6 +14,7 @@ const apibaseUrl = `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`;
 const Api = Axios.create({
     baseURL: apibaseUrl,
     headers: {
+        "Content-Type": "application/json",
         'X-WP-Nonce': tsmltParams.rest_nonce
     }
 });

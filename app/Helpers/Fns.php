@@ -329,8 +329,7 @@ class Fns {
 				wp_cache_set( $cache_key, $existing_row );
 			}
 		}
-		$updated = update_option( 'tsmlt_get_directory_list', $dis_list );
-		return $updated;
+		return update_option( 'tsmlt_get_directory_list', $dis_list );
 	}
 
 	/**

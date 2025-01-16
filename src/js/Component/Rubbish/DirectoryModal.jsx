@@ -44,7 +44,6 @@ function DirectoryModal() {
         }
     };
 
-    // Recursive function to process directories
     const searchFileBySingleDirRecursively = async (prams) => {
         setButtonSpain("bulkScan");
 
@@ -64,16 +63,23 @@ function DirectoryModal() {
 
         const dirKey = prams[0];
         setScanDir(dirKey);
-        console.log('prams', prams );
+
         try {
-            console.log('response', 'Before', dirKey );
+            // Call the function and process the response
             const response = await searchFileBySingleDir({ directory: dirKey });
-            console.log('response', response );
-            const { dirlist, nextDir } = response.data;
-            setScanRubbishDirList(dirlist);
-            const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
-            console.log('nextPrams', nextPrams );
-            await searchFileBySingleDirRecursively(nextPrams);
+
+            if (response && response.data) {
+                const { dirlist, nextDir } = response.data;
+
+                // Update the scan list and continue the recursion
+                setScanRubbishDirList(dirlist);
+                const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
+
+                // Recursive call
+                await searchFileBySingleDirRecursively(nextPrams);
+            } else {
+                console.error("Invalid response structure:", response);
+            }
         } catch (error) {
             console.error("Error processing directory:", dirKey, error);
         } finally {
@@ -85,7 +91,6 @@ function DirectoryModal() {
             }
         }
     };
-
     const handleDirScanManually = async () => {
         setButtonSpain("bulkScan");
         const dirList = Object.entries(scanRubbishDirList).map(([key]) => key);
