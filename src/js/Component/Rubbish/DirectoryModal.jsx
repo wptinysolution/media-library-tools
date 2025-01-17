@@ -55,6 +55,9 @@ function DirectoryModal() {
         params.append('directory', scanDir );
         const dir_List = dirList.slice(1);
         console.log( 'scanDir', scanDir );
+        if ( ! scanDir ){
+            return;
+        }
         Axios
             .post(tsmltParams.ajaxUrl, params )
             .then((response) => {
@@ -95,6 +98,9 @@ function DirectoryModal() {
     useEffect(() => {
         if ( dirList.length > 0 ){
             processDirectory();
+        } else {
+            setScanDir(null);
+            setButtonSpain(null);
         }
     }, [dirList,scanRubbishDirList] );
 
