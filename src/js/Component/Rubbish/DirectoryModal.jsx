@@ -119,7 +119,6 @@ function DirectoryModal() {
                     onClick={async () => {
                         await handleDirRescan("all");
                         await truncateUnlistedFile();
-                        await window.location.reload();
                     }}
                 >
                     Delete Old History
