@@ -113,12 +113,12 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			}
 
 			do_action( 'tsmlt/before_loaded' );
-
+			Ajax::instance();
 			Api::instance();
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
+			
 			if ( is_admin() ) {
-				Ajax::instance();
 				SpecialDiscount::instance();
 				Review::instance();
 				// Include File.

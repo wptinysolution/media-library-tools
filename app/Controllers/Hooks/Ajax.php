@@ -7,10 +7,6 @@
 
 namespace TinySolutions\mlt\Controllers\Hooks;
 
-use RadiusTheme\SB\Helpers\BuilderFns;
-use RadiusTheme\SB\Helpers\Cache;
-use RadiusTheme\SB\Helpers\Fns;
-use RadiusTheme\SB\Models\TemplateSettings;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 defined( 'ABSPATH' ) || exit();
@@ -23,12 +19,7 @@ class Ajax {
 	 * Singleton
 	 */
 	use SingletonTrait;
-
-	/**
-	 * @var object
-	 */
-	protected $loader;
-
+	
 	/**
 	 * Class Constructor
 	 */
@@ -41,8 +32,8 @@ class Ajax {
 	 *
 	 * @return void
 	 */
-	public function response() {
-
+	public function search_rubbish_file() {
+		error_log( print_r( 'Hello', true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		wp_send_json_success( true );
 	}
 }

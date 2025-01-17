@@ -3,6 +3,7 @@ import { Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography
 import { LoadingOutlined } from "@ant-design/icons";
 import { useStateValue } from "../../Utils/StateProvider";
 import { rescanDir, searchFileBySingleDir, truncateUnlistedFile } from "../../Utils/Data";
+import Axios from 'axios';
 import * as Types from "../../Utils/actionType";
 
 
@@ -13,6 +14,7 @@ function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
     // Local state management isDirModalOpen
     const [scanRubbishDirList, setScanRubbishDirList] = useState({});
+    const [dirList, setDirList] = useState([]);
     const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
     const [progressBar, setProgressBar] = useState(0);
     const [progressTotal, setProgressTotal] = useState(0); // Set default total for progress
@@ -38,20 +40,41 @@ function DirectoryModal() {
         try {
             const dirList = await rescanDir({ dir });
             setScanRubbishDirList(dirList.data.thedirlist);
+            const list = Object.entries( dirList.data.thedirlist ).map(([key]) => key);
+            setDirList(list);
         } finally {
             setScanRubbishDirLoading(false);
             setScanDir(null);
         }
     };
 
-    const searchFileBySingleDirRecursively = async (prams) => {
-        setButtonSpain("bulkScan");
+    const processDirectory = () => {
+        console.log('scanDir', scanDir );
+        Axios
+            .post(tsmltParams.ajaxUrl, {
+                action: "immediately_search_rubbish_file", // The action defined in WordPress
+                nonce: tsmltParams.tsmlt_wpnonce, // The nonce for security
+            })
+            .then((response) => {
+                console.log( response, response);
+                if (response && response.data) {
 
+                } else {
+                    //console.error("Invalid response structure:", response);
+                }
+            })
+            .catch((error) => {
+                console.error("Request failed:", error);
+            });
+    }
+
+    const searchFileBySingleDirRecursively = async (prams) => {
+        // Example usage.
+        setButtonSpain("bulkScan");
         // Update progress
         setProgressBar(
             Math.floor((100 * (progressTotal - prams.length)) / progressTotal)
         );
-
         // Base case
         if (prams.length <= 0) {
             setTimeout(() => {
@@ -65,21 +88,14 @@ function DirectoryModal() {
         setScanDir(dirKey);
 
         try {
-            // Call the function and process the response
-            const response = await searchFileBySingleDir({ directory: dirKey });
-
-            if (response && response.data) {
-                const { dirlist, nextDir } = response.data;
-
-                // Update the scan list and continue the recursion
-                setScanRubbishDirList(dirlist);
-                const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
-
-                // Recursive call
-                await searchFileBySingleDirRecursively(nextPrams);
-            } else {
-                console.error("Invalid response structure:", response);
-            }
+            processDirectory();
+                // const { dirlist, nextDir } = response.data;
+                // // Update the scan list and continue the recursion
+                // setScanRubbishDirList(dirlist);
+                // const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
+                // // Recursive call
+                // await searchFileBySingleDirRecursively(nextPrams);
+                //
         } catch (error) {
             console.error("Error processing directory:", dirKey, error);
         } finally {
@@ -93,15 +109,18 @@ function DirectoryModal() {
     };
     const handleDirScanManually = async () => {
         setButtonSpain("bulkScan");
-        const dirList = Object.entries(scanRubbishDirList).map(([key]) => key);
-        await searchFileBySingleDirRecursively(dirList);
+        await setDirList(dirList.slice(1));
+        // dirList.
+        await processDirectory();
     };
 
-
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
     useEffect(() => {
-        setProgressTotal( Object.entries( stateValue.generalData.scanRubbishDirList ).length );
+        const list = Object.entries( stateValue.generalData.scanRubbishDirList );
+        const dir_List = list.map(([key]) => key);
+        setProgressTotal( dir_List.length );
+        setDirList(dir_List);
+        setScanDir(dir_List[0]);
         setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
     }, [stateValue.generalData.scanRubbishDirList] );
 
