@@ -54,13 +54,17 @@ function DirectoryModal() {
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
         params.append('directory', scanDir );
         const dir_List = dirList.slice(1);
-
+        console.log( 'scanDir', scanDir );
         Axios
             .post(tsmltParams.ajaxUrl, params )
             .then((response) => {
                 if (response && response.data) {
-                    setDirList(dir_List);
-                    setScanDir(dir_List[0]);
+                    const { dirlist, nextDir } = response.data.data;
+                    setScanRubbishDirList(dirlist);
+                    if ( nextDir === "nextDir" ){
+                        setScanDir(dir_List[0]);
+                        setDirList(dir_List);
+                    }
                     setProgressBar(
                         Math.floor((100 * (progressTotal - dir_List.length)) / progressTotal)
                     );
@@ -86,13 +90,13 @@ function DirectoryModal() {
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
     useEffect(() => {
         setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
-    }, [stateValue.generalData.scanRubbishDirList] );
+    }, [stateValue.generalData.scanRubbishDirList ] );
 
     useEffect(() => {
         if ( dirList.length > 0 ){
             processDirectory();
         }
-    }, [dirList] );
+    }, [dirList,scanRubbishDirList] );
 
     return (
         <Modal
@@ -107,9 +111,9 @@ function DirectoryModal() {
                 <Button
                     key="removeOld"
                     onClick={async () => {
-                        await truncateUnlistedFile();
                         await handleDirRescan("all");
-                        window.location.reload();
+                        await truncateUnlistedFile();
+                        await window.location.reload();
                     }}
                 >
                     Delete Old History
