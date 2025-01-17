@@ -458,7 +458,7 @@ class FilterHooks {
 	 */
 	public static function plugins_setting_links( $links ) {
 		$new_links                       = [];
-		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Explore the playground', 'tsmlt-media-tools' ) . '</a>';
+		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Settings', 'tsmlt-media-tools' ) . '</a>';
 		/*
 		 * TODO:: Next Version
 		 *
