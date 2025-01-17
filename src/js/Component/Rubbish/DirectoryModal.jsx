@@ -49,18 +49,23 @@ function DirectoryModal() {
     };
 
     const processDirectory = () => {
-        console.log('scanDir', scanDir );
-        Axios
-            .post(tsmltParams.ajaxUrl, {
-                action: "immediately_search_rubbish_file", // The action defined in WordPress
-                nonce: tsmltParams.tsmlt_wpnonce, // The nonce for security
-            })
-            .then((response) => {
-                console.log( response, response);
-                if (response && response.data) {
+        var params = new URLSearchParams();
+        params.append('action', 'immediately_search_rubbish_file');
+        params.append('nonce', tsmltParams.tsmlt_wpnonce);
+        params.append('directory', scanDir );
+        const dir_List = dirList.slice(1);
 
+        Axios
+            .post(tsmltParams.ajaxUrl, params )
+            .then((response) => {
+                if (response && response.data) {
+                    setDirList(dir_List);
+                    setScanDir(dir_List[0]);
+                    setProgressBar(
+                        Math.floor((100 * (progressTotal - dir_List.length)) / progressTotal)
+                    );
                 } else {
-                    //console.error("Invalid response structure:", response);
+                    console.error("Invalid response structure:", response);
                 }
             })
             .catch((error) => {
@@ -68,61 +73,26 @@ function DirectoryModal() {
             });
     }
 
-    const searchFileBySingleDirRecursively = async (prams) => {
-        // Example usage.
+    const handleDirScanManually = () => {
         setButtonSpain("bulkScan");
-        // Update progress
-        setProgressBar(
-            Math.floor((100 * (progressTotal - prams.length)) / progressTotal)
-        );
-        // Base case
-        if (prams.length <= 0) {
-            setTimeout(() => {
-                setButtonSpain(null);
-                setScanDir(null);
-            }, 1000);
-            return;
-        }
-
-        const dirKey = prams[0];
-        setScanDir(dirKey);
-
-        try {
-            processDirectory();
-                // const { dirlist, nextDir } = response.data;
-                // // Update the scan list and continue the recursion
-                // setScanRubbishDirList(dirlist);
-                // const nextPrams = nextDir === "nextDir" ? prams.slice(1) : prams;
-                // // Recursive call
-                // await searchFileBySingleDirRecursively(nextPrams);
-                //
-        } catch (error) {
-            console.error("Error processing directory:", dirKey, error);
-        } finally {
-            if (prams.length === 1) {
-                setTimeout(() => {
-                    setButtonSpain(null);
-                    setScanDir(null);
-                }, 1000);
-            }
-        }
-    };
-    const handleDirScanManually = async () => {
-        setButtonSpain("bulkScan");
-        await setDirList(dirList.slice(1));
+        const list = Object.entries( stateValue.generalData.scanRubbishDirList );
+        const dir_List = list.map(([key]) => key);
+        setScanDir(dir_List[0]);
+        setDirList(dir_List);
+        setProgressTotal( dir_List.length );
         // dirList.
-        await processDirectory();
     };
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
     useEffect(() => {
-        const list = Object.entries( stateValue.generalData.scanRubbishDirList );
-        const dir_List = list.map(([key]) => key);
-        setProgressTotal( dir_List.length );
-        setDirList(dir_List);
-        setScanDir(dir_List[0]);
         setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
     }, [stateValue.generalData.scanRubbishDirList] );
+
+    useEffect(() => {
+        if ( dirList.length > 0 ){
+            processDirectory();
+        }
+    }, [dirList] );
 
     return (
         <Modal

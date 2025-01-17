@@ -33,7 +33,7 @@ class Ajax {
 	 * @return void
 	 */
 	public function search_rubbish_file() {
-		error_log( print_r( 'Hello', true) . "\n\n", 3, __DIR__ . '/log.txt' );
+	
 		wp_send_json_success( true );
 	}
 }
