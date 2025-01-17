@@ -19,6 +19,7 @@ use TinySolutions\mlt\Controllers\AssetsController;
 use TinySolutions\mlt\Controllers\Dependencies;
 use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
 use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
+use TinySolutions\mlt\Controllers\Hooks\Ajax;
 use TinySolutions\mlt\Controllers\Installation;
 use TinySolutions\mlt\Controllers\Notice\Review;
 use TinySolutions\mlt\Controllers\Notice\SpecialDiscount;
@@ -117,6 +118,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
 			if ( is_admin() ) {
+				Ajax::instance();
 				SpecialDiscount::instance();
 				Review::instance();
 				// Include File.
