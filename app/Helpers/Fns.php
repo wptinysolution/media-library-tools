@@ -20,6 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Fns class
  */
 class Fns {
+	/**
+	 * @var array
+	 */
+	private static $cache = [];
 
 	/**
 	 * @param $plugin_file_path
@@ -265,8 +269,16 @@ class Fns {
 	 * @return bool|void
 	 */
 	public static function update_rubbish_file_to_database( $directory ) {
-
-		$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
+		
+		$dir_cache_key = md5( $directory );
+		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
+			$found_files = self::$cache[ $dir_cache_key ];
+			error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+		} else {
+			$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
+			self::$cache[ $dir_cache_key ] = $found_files;
+		}
+		
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 
 		$dis_list[ $directory ]['total_items'] = count( $found_files );

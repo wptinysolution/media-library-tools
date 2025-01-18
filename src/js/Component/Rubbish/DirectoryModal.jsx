@@ -151,6 +151,7 @@ function DirectoryModal() {
                     position: "relative",
                     overflowY: "auto",
                     padding: "0 15px",
+                    borderBottom: '1px solid #eee'
                 }}
             >
                 {scanRubbishDirLoading ? (
@@ -214,11 +215,15 @@ function DirectoryModal() {
             </Content>
             {progressBar > 0 && (
                 <>
-                    <Title level={5}>Directory Scanning Progress:</Title>
+                    <Title style={{
+                        margin: '10px 0'
+                    }} level={5}>Directory Scanning Progress:</Title>
                     <Progress showInfo percent={progressBar} />
                 </>
             )}
-            <Divider />
+            <Divider style={{
+                margin: '5px 0'
+            }} />
         </Modal>
     );
 }
