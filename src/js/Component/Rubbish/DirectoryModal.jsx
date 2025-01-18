@@ -86,7 +86,7 @@ function DirectoryModal() {
             processDirectory();
         }
     }, [scanRubbishDirList] );
-    console.log( 'scanRubbishDirList', scanRubbishDirList );
+
     return (
         <Modal
             style={{ maxWidth: "950px" }}
