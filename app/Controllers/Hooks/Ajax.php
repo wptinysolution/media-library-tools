@@ -51,7 +51,8 @@ class Ajax {
 		}
 		error_log( print_r( $dir , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		wp_send_json_success( [
-			'dirList' => $dir
+			'dirList' => $dir,
+			'dirStatusList' => $dirlist
 		] );
 	}
 }

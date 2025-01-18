@@ -12,7 +12,7 @@ const { Content } = Layout;
 
 function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
-    // Local state management isDirModalOpen
+    const [dirListExist, setDirListExist] = useState([]);
     const [scanRubbishDirList, setScanRubbishDirList] = useState([]);
     const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
     const [progressBar, setProgressBar] = useState(0);
@@ -51,13 +51,13 @@ function DirectoryModal() {
             .post(tsmltParams.ajaxUrl, params )
             .then((response) => {
                 if (response && response.data) {
-                    const { dirList } = response.data.data;
-                   setScanRubbishDirList(dirList);
+                    const { dirList, dirStatusList } = response.data.data;
+                   setScanRubbishDirList(dirStatusList);
                    const list = Object.entries( dirList ).map(([key]) => key);
-                   //  console.log( 'list', list );
                     setProgressBar(
                         Math.floor((100 * (progressTotal - list.length)) / progressTotal)
                     );
+                    setDirListExist(list);
                 } else {
                     console.error("Invalid response structure:", response);
                 }
@@ -79,13 +79,13 @@ function DirectoryModal() {
 
     useEffect(() => {
         const list = Object.entries( scanRubbishDirList ).map(([key]) => key);
-        if ( list.length > 0 ){
-            processDirectory();
-        } else {
-            setButtonSpain(null);
-        }
+        setProgressTotal(list.length);
     }, [scanRubbishDirList] );
-
+    useEffect(() => {
+        if ( dirListExist.length > 0 ){
+            processDirectory();
+        }
+    }, [dirListExist] );
     console.log( 'scanRubbishDirList', scanRubbishDirList );
     return (
         <Modal
