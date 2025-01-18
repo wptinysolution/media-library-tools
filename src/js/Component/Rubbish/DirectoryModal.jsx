@@ -85,7 +85,7 @@ function DirectoryModal() {
         if ( dirListExist.length > 0 ){
             processDirectory();
         }
-    }, [dirListExist] );
+    }, [scanRubbishDirList] );
     console.log( 'scanRubbishDirList', scanRubbishDirList );
     return (
         <Modal
@@ -183,7 +183,7 @@ function DirectoryModal() {
             </Content>
             {progressBar > 0 && (
                 <>
-                    <Title level={5}>Progress:</Title>
+                    <Title level={5}>Directory Scanning Progress:</Title>
                     <Progress showInfo percent={progressBar} />
                 </>
             )}

@@ -188,7 +188,7 @@ class Api {
 			$this->resource_name . '/truncateUnlistedFile',
 			[
 				'methods'             => 'POST',
-				'callback'            => [ $this, 'truncate_unlisted_file' ],
+				'callback'            => [ $this, 'delete_all_rows_in_unlisted_file' ],
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
@@ -991,14 +991,15 @@ class Api {
 	 *
 	 * @return bool True if the query succeeds, false otherwise.
 	 */
-	public function truncate_unlisted_file() {
+	public function delete_all_rows_in_unlisted_file() {
 		global $wpdb;
 		// Get the table name with prefix
 		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Ensure the table exists before truncating
+		// Ensure the table exists before deleting rows
 		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name ) {
-			// Execute the TRUNCATE query
-			$result = $wpdb->query( "TRUNCATE TABLE `$table_name`" );
+			// Execute the DELETE query to remove all rows
+			$result = $wpdb->query( "DELETE FROM `$table_name`" );
+			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" );
 			// Return true if the query succeeded, false otherwise
 			return $result !== false;
 		}

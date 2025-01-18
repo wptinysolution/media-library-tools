@@ -49,7 +49,7 @@ class Ajax {
 				$dir[$key] = $item;
 			}
 		}
-		error_log( print_r( $dir , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+		//error_log( print_r( $dir , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		wp_send_json_success( [
 			'dirList' => $dir,
 			'dirStatusList' => $dirlist
