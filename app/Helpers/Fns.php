@@ -461,7 +461,7 @@ class Fns {
 	/**
 	 * Function to scan the upload directory and search for files
 	 */
-	public static function scan_rubbish_file_cron_job() {
+	public static function scan_rubbish_file_cron_job( $skip = [] ) {
 		
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 		if ( ! count( $dis_list ) ) {
@@ -475,8 +475,12 @@ class Fns {
 			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
 				continue;
 			}
+			if (in_array($key, $skip, true)) {
+				continue;
+			}
 			$directory = $key;
 		}
+		
 		if ( ! empty( $directory ) ) {
 			Fns::update_rubbish_file_to_database( $directory );
 		}

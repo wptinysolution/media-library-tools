@@ -18,7 +18,7 @@ function DirectoryModal() {
     const [progressBar, setProgressBar] = useState(0);
     const [progressTotal, setProgressTotal] = useState(0); // Set default total for progress
     const [buttonSpain, setButtonSpain] = useState(null);
-    const [scanDirNextSchedule, setScanDirNextSchedule] = useState("");
+    const [skip, setSkip] = useState([]);
 
     // Close modal
     const handleDirModalCancel = () => {
@@ -41,11 +41,26 @@ function DirectoryModal() {
             setScanRubbishDirLoading(false);
         }
     };
+    /**
+     *
+     * @param dir
+     * @returns {Promise<void>}
+     */
+    const exclude_from_bulk_scan = (dir = "") => {
+        setSkip( [
+            ...skip,
+            dir
+        ])
+    };
 
     const processDirectory = () => {
         var params = new URLSearchParams();
         params.append('action', 'immediately_search_rubbish_file');
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
+        // Append the array `skip` properly
+        skip.forEach((value) => {
+            params.append('skip[]', value); // Use `skip[]` to match PHP's expected array structure
+        });
 
         Axios
             .post(tsmltParams.ajaxUrl, params )
@@ -156,15 +171,19 @@ function DirectoryModal() {
                         locale={{
                             emptyText: (
                                 <Title level={5} style={{ margin: "0 15px", color: "red" }}>
-                                    Directory will search in the next schedule. Please be patient.
-                                    <br />
-                                    Next Schedule: {scanDirNextSchedule}
+                                    Directory will search in the next schedule. Please be patient
                                 </Title>
                             ),
                         }}
-                        renderItem={([key, item]) => (
-                            <List.Item key={key}>
+                        renderItem={([key, item]) => {
+                            const skippedItem = skip.includes(key);
+                            return (
+                            <List.Item
+                                // className={ skippedItem ? `skiped-item` : `scanned-dir`}
+                                style={skippedItem ? { opacity: 0.2 } : {}}
+                                key={key}>
                                 <List.Item.Meta
+
                                     title={key}
                                     description={
                                         item.total_items === 0 ? (
@@ -176,6 +195,13 @@ function DirectoryModal() {
                                 />
                                 <Space>
                                     <Button
+                                        key="exclude"
+                                        onClick={() => exclude_from_bulk_scan(key)}
+                                        type= "primary"
+                                    >
+                                        Exclude from Bulk Scan
+                                    </Button>
+                                    <Button
                                         key="rescan"
                                         onClick={() => handleDirRescan(key)}
                                         type= "primary"
@@ -184,7 +210,7 @@ function DirectoryModal() {
                                     </Button>
                                 </Space>
                             </List.Item>
-                        )}
+                        )}}
                     />
                 )}
             </Content>
