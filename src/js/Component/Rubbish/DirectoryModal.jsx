@@ -54,16 +54,23 @@ function DirectoryModal() {
                     const { dirList, dirStatusList } = response.data.data;
                    setScanRubbishDirList(dirStatusList);
                    const list = Object.entries( dirList ).map(([key]) => key);
-                    setProgressBar(
-                        Math.floor((100 * (progressTotal - list.length)) / progressTotal)
-                    );
+                   const percent =  Math.floor((100 * (progressTotal - list.length)) / progressTotal);
+                    setProgressBar( percent );
                     setDirListExist(list);
+                    console.log('percent', percent );
+                    if (percent >= 100 ){
+                        window.location.reload();
+                    }
                 } else {
                     console.error("Invalid response structure:", response);
                 }
             })
             .catch((error) => {
                 console.error("Request failed:", error);
+                console.log("Retrying directory processing in 1 second...");
+                setTimeout(() => {
+                    processDirectory();
+                }, 2000);
             });
     }
 
@@ -116,7 +123,7 @@ function DirectoryModal() {
                 <Button
                     key="rescan"
                     onClick={() => handleDirRescan("all")}
-                    type={"primary"}
+                    type={"default"}
                 >
                     Re-Search Directory
                 </Button>,
