@@ -61,7 +61,7 @@ function DirectoryModal() {
         skip.forEach((value) => {
             params.append('skip[]', value); // Use `skip[]` to match PHP's expected array structure
         });
-
+        console.log('skip', skip );
         Axios
             .post(tsmltParams.ajaxUrl, params )
             .then((response) => {
@@ -179,11 +179,9 @@ function DirectoryModal() {
                             const skippedItem = skip.includes(key);
                             return (
                             <List.Item
-                                // className={ skippedItem ? `skiped-item` : `scanned-dir`}
                                 style={skippedItem ? { opacity: 0.2 } : {}}
                                 key={key}>
                                 <List.Item.Meta
-
                                     title={key}
                                     description={
                                         item.total_items === 0 ? (
