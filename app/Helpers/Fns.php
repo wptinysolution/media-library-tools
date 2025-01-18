@@ -228,30 +228,37 @@ class Fns {
 	 * @return array The list of found files.
 	 */
 	public static function scan_file_in_directory( $directory ) {
-		if ( ! $directory ) {
+		if ( ! $directory || ! is_dir( $directory ) ) {
 			return [];
 		}
-		$filesystem = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
-		$scanned_files = [];
-		$files         = $filesystem->dirlist( $directory );
+		
+		// Get the list of files and directories in the given directory
+		$files = scandir( $directory );
+		
 		if ( ! is_array( $files ) ) {
 			return [];
 		}
+		
+		$scanned_files = [];
+		
 		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-			if ( $filesystem->is_dir( $file_path ) ) {
+			// Skip special directories "." and ".."
+			if ( $file === '.' || $file === '..' ) {
 				continue;
 			}
+			
+			$file_path = trailingslashit( $directory ) . $file;
+			
+			// Skip directories, only add files
+			if ( is_dir( $file_path ) ) {
+				continue;
+			}
+			
 			$scanned_files[] = $file_path;
 		}
-
+		
 		return $scanned_files;
 	}
-
 	/**
 	 * @param $directory
 	 *
