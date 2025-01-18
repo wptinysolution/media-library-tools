@@ -13,12 +13,10 @@ const { Content } = Layout;
 function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
     // Local state management isDirModalOpen
-    const [scanRubbishDirList, setScanRubbishDirList] = useState({});
-    const [dirList, setDirList] = useState([]);
+    const [scanRubbishDirList, setScanRubbishDirList] = useState([]);
     const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
     const [progressBar, setProgressBar] = useState(0);
     const [progressTotal, setProgressTotal] = useState(0); // Set default total for progress
-    const [scanDir, setScanDir] = useState(null);
     const [buttonSpain, setButtonSpain] = useState(null);
     const [scanDirNextSchedule, setScanDirNextSchedule] = useState("");
 
@@ -35,16 +33,12 @@ function DirectoryModal() {
 
     // Handle rescanning a directory
     const handleDirRescan = async (dir = "all") => {
-        setScanDir(dir);
         setScanRubbishDirLoading(true);
         try {
             const dirList = await rescanDir({ dir });
             setScanRubbishDirList(dirList.data.thedirlist);
-            const list = Object.entries( dirList.data.thedirlist ).map(([key]) => key);
-            setDirList(list);
         } finally {
             setScanRubbishDirLoading(false);
-            setScanDir(null);
         }
     };
 
@@ -52,24 +46,17 @@ function DirectoryModal() {
         var params = new URLSearchParams();
         params.append('action', 'immediately_search_rubbish_file');
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
-        params.append('directory', scanDir );
-        const dir_List = dirList.slice(1);
-        console.log( 'scanDir', scanDir );
-        if ( ! scanDir ){
-            return;
-        }
+
         Axios
             .post(tsmltParams.ajaxUrl, params )
             .then((response) => {
                 if (response && response.data) {
-                    const { dirlist, nextDir } = response.data.data;
-                    setScanRubbishDirList(dirlist);
-                    if ( nextDir === "nextDir" ){
-                        setScanDir(dir_List[0]);
-                        setDirList(dir_List);
-                    }
+                    const { dirList } = response.data.data;
+                   setScanRubbishDirList(dirList);
+                   const list = Object.entries( dirList ).map(([key]) => key);
+                   //  console.log( 'list', list );
                     setProgressBar(
-                        Math.floor((100 * (progressTotal - dir_List.length)) / progressTotal)
+                        Math.floor((100 * (progressTotal - list.length)) / progressTotal)
                     );
                 } else {
                     console.error("Invalid response structure:", response);
@@ -82,12 +69,7 @@ function DirectoryModal() {
 
     const handleDirScanManually = () => {
         setButtonSpain("bulkScan");
-        const list = Object.entries( stateValue.generalData.scanRubbishDirList );
-        const dir_List = list.map(([key]) => key);
-        setScanDir(dir_List[0]);
-        setDirList(dir_List);
-        setProgressTotal( dir_List.length );
-        // dirList.
+        processDirectory();
     };
 
     const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
@@ -96,14 +78,15 @@ function DirectoryModal() {
     }, [stateValue.generalData.scanRubbishDirList ] );
 
     useEffect(() => {
-        if ( dirList.length > 0 ){
+        const list = Object.entries( scanRubbishDirList ).map(([key]) => key);
+        if ( list.length > 0 ){
             processDirectory();
         } else {
-            setScanDir(null);
             setButtonSpain(null);
         }
-    }, [dirList,scanRubbishDirList] );
+    }, [scanRubbishDirList] );
 
+    console.log( 'scanRubbishDirList', scanRubbishDirList );
     return (
         <Modal
             style={{ maxWidth: "950px" }}
@@ -133,9 +116,9 @@ function DirectoryModal() {
                 <Button
                     key="rescan"
                     onClick={() => handleDirRescan("all")}
-                    type={scanDir === "all" ? "primary" : "default"}
+                    type={"primary"}
                 >
-                    Re-Search Directory {scanDir === "all" && <Spin size="small" />}
+                    Re-Search Directory
                 </Button>,
             ]}
         >
@@ -188,9 +171,9 @@ function DirectoryModal() {
                                     <Button
                                         key="rescan"
                                         onClick={() => handleDirRescan(key)}
-                                        type={key === scanDir ? "primary" : "default"}
+                                        type= "primary"
                                     >
-                                        Re-Execute in Schedule {key === scanDir && <Spin size="small" />}
+                                        Re-Execute in Schedule
                                     </Button>
                                 </Space>
                             </List.Item>

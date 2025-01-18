@@ -458,5 +458,28 @@ class Fns {
 		return absint( apply_filters( 'tsmlt_maximum_media_per_page', 1000 ) );
 	}
 	
+	/**
+	 * Function to scan the upload directory and search for files
+	 */
+	public static function scan_rubbish_file_cron_job() {
+		
+		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
+		if ( ! count( $dis_list ) ) {
+			return;
+		}
+		$directory = '';
+		foreach ( $dis_list as $key => $item ) {
+			if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
+				continue;
+			}
+			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
+				continue;
+			}
+			$directory = $key;
+		}
+		if ( ! empty( $directory ) ) {
+			Fns::update_rubbish_file_to_database( $directory );
+		}
+	}
 	
 }
