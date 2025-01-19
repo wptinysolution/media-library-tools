@@ -232,37 +232,30 @@ class Fns {
 	 * @return array The list of found files.
 	 */
 	public static function scan_file_in_directory( $directory ) {
-		if ( ! $directory || ! is_dir( $directory ) ) {
+		if ( ! $directory ) {
 			return [];
 		}
-		
-		// Get the list of files and directories in the given directory
-		$files = scandir( $directory );
-		
+		$filesystem = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+		// Ensure the directory exists before scanning.
+		if ( ! $filesystem->is_dir( $directory ) ) {
+			return [];
+		}
+		$scanned_files = [];
+		$files         = $filesystem->dirlist( $directory );
 		if ( ! is_array( $files ) ) {
 			return [];
 		}
-		
-		$scanned_files = [];
-		
 		foreach ( $files as $file ) {
-			// Skip special directories "." and ".."
-			if ( $file === '.' || $file === '..' ) {
+			$file_path = trailingslashit( $directory ) . $file['name'];
+			if ( $filesystem->is_dir( $file_path ) ) {
 				continue;
 			}
-			
-			$file_path = trailingslashit( $directory ) . $file;
-			
-			// Skip directories, only add files
-			if ( is_dir( $file_path ) ) {
-				continue;
-			}
-			
 			$scanned_files[] = $file_path;
 		}
 		
 		return $scanned_files;
 	}
+
 	/**
 	 * @param $directory
 	 *
@@ -273,7 +266,7 @@ class Fns {
 		$dir_cache_key = md5( $directory );
 		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
 			$found_files = self::$cache[ $dir_cache_key ];
-			error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+			//error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		} else {
 			$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
 			self::$cache[ $dir_cache_key ] = $found_files;
@@ -286,7 +279,7 @@ class Fns {
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
 		// Skip the files until the offset is reached
-		$files = array_slice( $found_files, $last_processed_offset, 50 );
+		$files = $found_files;//array_slice( $found_files, $last_processed_offset, 50 );
 
 		$found_files_count = count( $files );
 
