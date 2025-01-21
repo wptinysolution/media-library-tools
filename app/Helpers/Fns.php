@@ -284,14 +284,17 @@ class Fns {
 		$found_files_count = count( $files );
 
 		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
-		//error_log( print_r( $dis_list , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		global $wpdb;
 
 		$upload_dir = wp_upload_dir();
 		$uploaddir  = $upload_dir['basedir'] ?? 'wp-content/uploads/';
-
+		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === ( $_REQUEST['instantDeletion'] ?? '' ) ;
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
+				continue;
+			}
+			if ( $instantDeletion ){
+				do_action( 'tsmlt_unlisted_file_instant_deletion', $file_path );
 				continue;
 			}
 			$search_string = '';

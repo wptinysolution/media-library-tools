@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography } from "antd";
+import {Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography, Checkbox} from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useStateValue } from "../../Utils/StateProvider";
 import { rescanDir, searchFileBySingleDir, truncateUnlistedFile } from "../../Utils/Data";
@@ -18,6 +18,8 @@ function DirectoryModal() {
     const [progressBar, setProgressBar] = useState(0);
     const [progressTotal, setProgressTotal] = useState(0); // Set default total for progress
     const [buttonSpain, setButtonSpain] = useState(null);
+    const [instantDeletion, setInstantDeletion] = useState('not-instant');
+
     const [skip, setSkip] = useState([]);
 
     // Close modal
@@ -57,6 +59,7 @@ function DirectoryModal() {
         var params = new URLSearchParams();
         params.append('action', 'immediately_search_rubbish_file');
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
+        params.append('instantDeletion', instantDeletion );
         // Append the array `skip` properly
         skip.forEach((value) => {
             params.append('skip[]', value); // Use `skip[]` to match PHP's expected array structure
@@ -119,6 +122,14 @@ function DirectoryModal() {
             open={stateValue.generalData.isDirModalOpen}
             onCancel={handleDirModalCancel}
             footer={[
+                <span>
+                    { tsmltParams.hasExtended ?
+                        <Checkbox onChange={ ( event ) => setInstantDeletion( event.target.checked ? 'instant' : 'not-instant' ) }>
+                            <span style={{color:'green'}}> Rubbish File Instant Deletion During Bulk Scan </span>
+                        </Checkbox> :
+                        null
+                    }
+                </span>,
                 <Button
                     key="removeOld"
                     onClick={async () => {

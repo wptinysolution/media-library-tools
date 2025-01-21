@@ -33,24 +33,8 @@ function RubbishConfirmationModal() {
         });
         setTotal( prams.files.length );
         if ( prams.files.length === 0) {
-
-            // setTimeout(() => {
-            //     dispatch({
-            //         type: Types.RUBBISH_MEDIA,
-            //         rubbishMedia: {
-            //             ...stateValue.rubbishMedia,
-            //             isLoading: true,
-            //             postQuery:{
-            //                 ...stateValue.rubbishMedia.postQuery,
-            //                 isQueryUpdate: true
-            //             }
-            //         },
-            //     });
-            //
-            // }, 800);
-            //
             response.status = 200;
-            // Base case: All renaming operations are completed
+            // Base case: All renaming operations are completed.
             return response;
         }
         const file = prams.files[0];
