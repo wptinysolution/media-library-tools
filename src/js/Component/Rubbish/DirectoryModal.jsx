@@ -144,14 +144,14 @@ function DirectoryModal() {
                     onClick={handleDirScanManually}
                     type={buttonSpain === "bulkScan" ? "primary" : "default"}
                 >
-                    Search Immediately {buttonSpain === "bulkScan" && <Spin size="small" />}
+                    Bulk Scan Immediately {buttonSpain === "bulkScan" && <Spin size="small" />}
                 </Button>,
                 <Button
                     key="rescan"
                     onClick={() => handleDirRescan("all")}
                     type={"default"}
                 >
-                    Re-Search Directory
+                    Re-Scan Directory
                 </Button>,
             ]}
         >
