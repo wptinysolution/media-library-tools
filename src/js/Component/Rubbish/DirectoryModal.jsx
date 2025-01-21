@@ -122,7 +122,7 @@ function DirectoryModal() {
             open={stateValue.generalData.isDirModalOpen}
             onCancel={handleDirModalCancel}
             footer={[
-                <span>
+                <span key="InstantDeletion" >
                     { tsmltParams.hasExtended ?
                         <Checkbox onChange={ ( event ) => setInstantDeletion( event.target.checked ? 'instant' : 'not-instant' ) }>
                             <span style={{color:'green'}}> Rubbish File Instant Deletion During Bulk Scan </span>
