@@ -289,12 +289,9 @@ class Fns {
 		$upload_dir = wp_upload_dir();
 		$uploaddir  = $upload_dir['basedir'] ?? 'wp-content/uploads/';
 		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === ( $_REQUEST['instantDeletion'] ?? '' ) ;
+		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
-				continue;
-			}
-			if ( $instantDeletion ){
-				do_action( 'tsmlt_unlisted_file_instant_deletion', $file_path );
 				continue;
 			}
 			$search_string = '';
@@ -320,6 +317,13 @@ class Fns {
 			}
 
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
+				continue;
+			}
+			
+			if ( $instantDeletion ){
+				wp_delete_file( $file_path );
+				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
+				$dis_list = [];
 				continue;
 			}
 
