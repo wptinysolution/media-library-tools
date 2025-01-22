@@ -48,6 +48,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Renaming using CSV
 * Register New Image Size
 * Bulk Renaming Based on Associated Post Title
+* Bulk Rename product SKU as the filename
 * Renaming File Prior to Uploading Based on Attached Posts Title
 * Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
