@@ -435,7 +435,7 @@ class Api {
 			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 		}
 		$new_name = $parameters['newname'] ?? '';
-		if ( ! empty( $new_name ) && 'bulkRenameByPostTitle' !== $new_name ) {
+		if ( ! empty( $new_name ) && ! in_array( $new_name, ['bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
 			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
@@ -462,8 +462,25 @@ class Api {
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
 			}
+		} elseif ( ! empty( $new_name ) && 'bulkRenameBySKU' === $new_name ) {
+			if ( ! tsmlt()->has_pro() ) {
+				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
+				return $result;
+			}
+			$attachment = get_post( $parameters['ID'] ?? 0 );
+			$new_name   = '';
+			if ( $attachment ) {
+				$post_id = $attachment->post_parent;
+				if ( $post_id ) {
+					$new_name = get_post_meta($post_id, '_sku', true);
+				}
+			}
+			if ( $new_name && Fns::wp_rename_attachment( $parameters['ID'], $new_name ) ) {
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
+			}
 		}
-
+		
 		if ( ! empty( $submit ) ) {
 			$submit['ID']      = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );

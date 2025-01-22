@@ -66,7 +66,7 @@ function RenamerMainHeader() {
 
     const handleBulkSubmit = () => {
 
-        if ( 'bulkRenameByPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+        if ( ['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(stateValue.bulkSubmitData.type) && ! tsmltParams.hasExtended ){
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -84,16 +84,7 @@ function RenamerMainHeader() {
 
         switch( stateValue.bulkSubmitData.type ){
             case 'bulkRename':
-                dispatch({
-                    ...stateValue,
-                    type: Types.BULK_SUBMIT,
-                    saveType: null,
-                    bulkSubmitData: {
-                        ...stateValue.bulkSubmitData,
-                        isModalOpen : true,
-                    },
-                });
-                break;
+            case 'bulkRenameBySKU':
             case 'bulkRenameByPostTitle':
                 dispatch({
                     ...stateValue,
@@ -115,6 +106,10 @@ function RenamerMainHeader() {
         { value: 'bulkRename', label: 'Bulk Rename' },
         { value: 'bulkRenameByPostTitle', label: 'Rename Based on Attached Post Title' },
     ];
+    // Check condition and add a new option if it matches
+    if (tsmltParams?.hasWoo) {
+        options.push({ value: 'bulkRenameBySKU', label: 'Rename Based on Product SKU' });
+    }
     return (
         <Header style={{...headerStyle, height: 'inherit'}}>
             <Title level={5} style={{

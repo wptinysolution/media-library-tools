@@ -103,6 +103,7 @@ class AssetsController {
 						'includesUrl'    => esc_url( includes_url() ),
 						'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
 						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
+						'hasWoo'  => function_exists( 'WC' ),
 						'restApiUrl'     => esc_url_raw( rest_url() ),
 						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
 						tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),

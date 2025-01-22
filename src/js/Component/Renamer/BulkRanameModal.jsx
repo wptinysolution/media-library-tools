@@ -47,7 +47,15 @@ function BulkModal() {
             return;
         }
         const id = prams.ids[0];
-        const newName = 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ? 'bulkRenameByPostTitle' : prams.data.file_name ;
+        let newName;
+
+        if (stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle') {
+            newName = 'bulkRenameByPostTitle';
+        } else if (stateValue.bulkSubmitData.type === 'bulkRenameBySKU') {
+            newName = 'bulkRenameBySKU'; // Assuming 'product_sku' is the correct field in 'prams'
+        } else {
+            newName = prams.data.file_name;
+        }
         // Simulate the renaming operation using an asynchronous function (e.g., API call)
         const response = await singleUpDateApi( { newname: newName, ID: id });
         // Recur with the rest of the IDs in the list
@@ -97,7 +105,7 @@ function BulkModal() {
     };
 
     const isTheButtonDisabled = () => {
-        if( 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ){
+        if( ['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(stateValue.bulkSubmitData.type) ){
             setIsButtonDisabled( false );
         } else {
             const isDisable = ! stateValue.bulkSubmitData.ids.length || ! stateValue.bulkSubmitData.data.file_name.length;
@@ -119,33 +127,45 @@ function BulkModal() {
         >
             <Divider />
             <Content>
-                { 'bulkRenameByPostTitle' === stateValue.bulkSubmitData.type ?
-                    <>
-                        <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}>
-                          Are You Sure Bulk Rename Based on Associated Post Title ?
-                        </Title>
-                    </> :
-                    <>
-                        <Title style={{marginTop:'0px', marginBottom:'15px'}} level={5}> File name</Title>
-                        <Input
-                            style={{
-                                height: '40px',
-                                marginBottom:'15px'
-                            }}
-                            onChange={ balkModalDataChange }
-                            name={`file_name`}
-                            value={stateValue.bulkSubmitData.data.file_name}
-                            placeholder={`File Name`}
-                        />
-                        { ! stateValue.bulkSubmitData.ids.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                            No Item selected for rename
-                        </Paragraph > }
-                        { ! stateValue.bulkSubmitData.data.file_name.length && <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                            Empty value Not allowed.
-                        </Paragraph > }
-                    </>
+                {
+                    stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
+                        <>
+                            <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>
+                                Are You Sure Bulk Rename Based on Associated Post Title?
+                            </Title>
+                        </>
+                    ) : stateValue.bulkSubmitData.type === 'bulkRenameBySKU' ? (
+                        <>
+                            <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>
+                                Are You Sure Bulk Rename Based on Product SKU?
+                            </Title>
+                        </>
+                    ) : (
+                        <>
+                            <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>File name</Title>
+                            <Input
+                                style={{
+                                    height: '40px',
+                                    marginBottom: '15px'
+                                }}
+                                onChange={balkModalDataChange}
+                                name={`file_name`}
+                                value={stateValue.bulkSubmitData.data.file_name}
+                                placeholder={`File Name`}
+                            />
+                            { !stateValue.bulkSubmitData.ids.length && (
+                                <Paragraph type="secondary" style={{ fontSize: '14px', color: '#ff0000' }}>
+                                    No Item selected for rename
+                                </Paragraph>
+                            )}
+                            { !stateValue.bulkSubmitData.data.file_name.length && (
+                                <Paragraph type="secondary" style={{ fontSize: '14px', color: '#ff0000' }}>
+                                    Empty value not allowed.
+                                </Paragraph>
+                            )}
+                        </>
+                    )
                 }
-
                 <Divider />
             </Content>
             { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
