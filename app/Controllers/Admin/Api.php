@@ -369,127 +369,70 @@ class Api {
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
 		];
-		$submit     = [];
+		
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
 		}
-		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
-			if ( ! tsmlt()->has_pro() ) {
-				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
-				return $result;
-			}
-			$attachment = get_post( $parameters['ID'] );
-			$new_text   = '';
+		
+		// Check if PRO version is activated where needed
+		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], ['bulkRenameByPostTitle', 'bulkRenameBySKU'], true ) ) {
+			$result['message'] = esc_html__( 'Please activate the license key.', 'tsmlt-media-tools' );
+			return $result;
+		}
+		
+		// Handle bulk rename based on post title or SKU
+		$new_name = $parameters['newname'] ?? '';
+		$rename_to = '';
+		if ( ! empty( $new_name ) ) {
+			$attachment = get_post( $parameters['ID']);
 			if ( $attachment ) {
 				$post_id = $attachment->post_parent;
-				if ( $post_id ) {
-					$new_text = get_the_title( $post_id );
+				if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
+					$rename_to = get_the_title( $post_id );
+				} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
+					$rename_to = get_post_meta( $post_id, '_sku', true );
+				} else if ( ! in_array($new_name, ['bulkRenameByPostTitle', 'bulkRenameBySKU' ], true )){
+					$rename_to = $new_name;
 				}
 			}
-			if ( empty( $new_text ) ) {
-				return $result;
-			}
-
-			if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
-				$submit['post_title'] = $new_text;
-			}
-
-			if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
-				$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
-				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
-			}
-
-			if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
-				$submit['post_excerpt'] = $new_text;
-			}
-
-			if ( in_array( 'post_description', $parameters['bulkEditPostTitle'], true ) ) {
-				$submit['post_content'] = $new_text;
-			}
-
-			if ( ! empty( $submit ) ) {
-				$submit['ID']      = $parameters['ID'];
-				$result['updated'] = wp_update_post( $submit );
-				$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+			if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $parameters['ID'], $rename_to ) ) {
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
+			} else {
+				$result['message'] = esc_html__( 'Rename failed. Maybe file permission mismatch or the file doesn’t exist.', 'tsmlt-media-tools' );
 			}
 			return $result;
 		}
-
-		if ( isset( $parameters['post_title'] ) ) {
-			$submit['post_title'] = trim( $parameters['post_title'] );
-			$result['message']    = esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' );
-		}
-
-		if ( isset( $parameters['post_excerpt'] ) ) {
-			$submit['post_excerpt'] = trim( $parameters['post_excerpt'] );
-			$result['message']      = esc_html__( 'The Caption has been saved.', 'tsmlt-media-tools' );
-		}
-
-		if ( isset( $parameters['post_content'] ) ) {
-			$submit['post_content'] = trim( $parameters['post_content'] );
-			$result['message']      = esc_html__( 'Content has been saved.', 'tsmlt-media-tools' );
-		}
-
-		if ( isset( $parameters['alt_text'] ) ) {
-			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
-			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
-		}
-		$new_name = $parameters['newname'] ?? '';
-		if ( ! empty( $new_name ) && ! in_array( $new_name, ['bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
-			if ( Fns::wp_rename_attachment( $parameters['ID'], $parameters['newname'] ?? '' ) ) {
-				$result['updated'] = true;
-				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
-			} else {
-				$result['updated'] = false;
-				$result['message'] = esc_html__( 'Rename Failed. Maybe File permission mismatch, Also Check File exist or not.', 'tsmlt-media-tools' );
-			}
-		}
-
-		if ( ! empty( $new_name ) && 'bulkRenameByPostTitle' === $new_name ) {
-			if ( ! tsmlt()->has_pro() ) {
-				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
-				return $result;
-			}
-			$attachment = get_post( $parameters['ID'] ?? 0 );
-			$new_name   = '';
-			if ( $attachment ) {
-				$post_id = $attachment->post_parent;
-				if ( $post_id ) {
-					$new_name = get_the_title( $post_id );
-				}
-			}
-			if ( $new_name && Fns::wp_rename_attachment( $parameters['ID'], $new_name ) ) {
-				$result['updated'] = true;
-				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
-			}
-		} elseif ( ! empty( $new_name ) && 'bulkRenameBySKU' === $new_name ) {
-			if ( ! tsmlt()->has_pro() ) {
-				$result['message'] = esc_html__( 'Please active licence key.', 'tsmlt-media-tools' );
-				return $result;
-			}
-			$attachment = get_post( $parameters['ID'] ?? 0 );
-			$new_name   = '';
-			if ( $attachment ) {
-				$post_id = $attachment->post_parent;
-				if ( $post_id ) {
-					$new_name = get_post_meta($post_id, '_sku', true);
-				}
-			}
-			if ( $new_name && Fns::wp_rename_attachment( $parameters['ID'], $new_name ) ) {
-				$result['updated'] = true;
-				$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
+		
+		// Handle post title, excerpt, content, and alt text updates.
+		$submit = [];
+		$fields = [
+			'post_title'   => 'Title has been saved.',
+			'post_excerpt' => 'Caption has been saved.',
+			'post_content' => 'Content has been saved.',
+			'alt_text'     => '_wp_attachment_image_alt'
+		];
+		
+		foreach ( $fields as $field => $message ) {
+			if ( isset( $parameters[$field] ) ) {
+				$submit[$field] = trim( $parameters[$field] );
+				$result['message'] = esc_html__( $message, 'tsmlt-media-tools' );
 			}
 		}
 		
+		if ( isset( $parameters['alt_text'] ) ) {
+			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters['alt_text'] ) );
+		}
+		
+		// Perform the update if there are any changes.
 		if ( ! empty( $submit ) ) {
-			$submit['ID']      = $parameters['ID'];
+			$submit['ID'] = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );
 			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 		}
-
+		
 		return $result;
 	}
-
 	/**
 	 * @return array
 	 */
