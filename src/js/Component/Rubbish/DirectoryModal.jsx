@@ -125,7 +125,7 @@ function DirectoryModal() {
                 <span key="InstantDeletion" >
                     { tsmltParams.hasExtended ?
                         <Checkbox onChange={ ( event ) => setInstantDeletion( event.target.checked ? 'instant' : 'not-instant' ) }>
-                            <span style={{color:'green'}}> Rubbish File Instant Deletion During Bulk Scan </span>
+                            <span style={{color:'red'}}> Rubbish File Instant Deletion During Bulk Scan </span>
                         </Checkbox> :
                         null
                     }

@@ -385,11 +385,23 @@ class Fns {
 		if ( ! $directory || ! is_string( $directory ) ) {
 			return [];
 		}
-		$filesystem  = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
+		$filesystem  = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance.
 		$directories = [];
-		// Ensure the directory exists before scanning
+		// Ensure the directory exists before scanning.
 		if ( ! $filesystem->is_dir( $directory ) ) {
 			return [];
+		}
+		$paths_to_ignore = apply_filters(
+			'tsmlt_get_directory_list_paths_to_ignore',
+			[
+				'wp-content/uploads/elementor',
+				'wp-content/uploads/rtcl',
+			]
+		);
+		foreach ( $paths_to_ignore as $path ) {
+			if ( strpos( $directory, $path ) !== false ) {
+				return [];
+			}
 		}
 
 		$files = $filesystem->dirlist( $directory );
@@ -400,10 +412,10 @@ class Fns {
 				$subdirectories = self::scan_directory_list( $file_path );
 				$directories    = array_merge( $directories, $subdirectories );
 			} else {
-				// Extract the directory path from the file path
+				// Extract the directory path from the file path.
 				$dir_path = dirname( $file_path );
-				// Add the directory to the list if it doesn't exist
-				if ( ! in_array( $dir_path, $directories ) ) {
+				// Add the directory to the list if it doesn't exist.
+				if ( ! in_array( $dir_path, $directories, true ) ) {
 					$directories[ $dir_path ] = [
 						'total_items' => 0,
 						'counted'     => 0,
