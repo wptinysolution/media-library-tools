@@ -907,7 +907,7 @@ class Api {
 
 		$status = $parameters['fileStatus'] ?? 'show';
 
-		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : Fns::image_file_extensions();
+		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : Fns::default_file_extensions();
 
 		// Add single quotes around each status value.
 		$extensions = array_map(
@@ -999,9 +999,9 @@ class Api {
 			$result = $wpdb->query( "DELETE FROM `$table_name`" );
 			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" );
 			// Return true if the query succeeded, false otherwise.
-			return $result !== false;
 		}
+		update_option( 'tsmlt_get_directory_list', [] );
 		// Table does not exist, return false.
-		return false;
+		return true;
 	}
 }

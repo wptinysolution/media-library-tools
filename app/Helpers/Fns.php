@@ -321,7 +321,7 @@ class Fns {
 			
 			$metadata_file = basename( $file_path );
 			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-			if ( $instantDeletion && in_array( $fileextension, Fns::image_file_extensions(), true ) ) {
+			if ( $instantDeletion && in_array( $fileextension, Fns::default_file_extensions(), true ) ) {
 				wp_delete_file( $file_path );
 				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
 				continue;
@@ -527,7 +527,7 @@ class Fns {
 	/**
 	 * @return string[]
 	 */
-	public static function image_file_extensions () {
-		return apply_filters('tsmlt_image_file_extensions', [ 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
+	public static function default_file_extensions() {
+		return apply_filters('tsmlt_default_file_extensions', [ 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
 	}
 }
