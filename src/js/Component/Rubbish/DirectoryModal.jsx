@@ -114,7 +114,7 @@ function DirectoryModal() {
 
     return (
         <Modal
-            style={{ maxWidth: "950px" }}
+            style={{maxWidth: "950px"}}
             className="rubbish-scan-directory-modal"
             width="100%"
             height="500px"
@@ -122,14 +122,6 @@ function DirectoryModal() {
             open={stateValue.generalData.isDirModalOpen}
             onCancel={handleDirModalCancel}
             footer={[
-                <span key="InstantDeletion" >
-                    { tsmltParams.hasExtended ?
-                        <Checkbox onChange={ ( event ) => setInstantDeletion( event.target.checked ? 'instant' : 'not-instant' ) }>
-                            <span style={{color:'red'}}> Rubbish File Instant Deletion During Bulk Scan </span>
-                        </Checkbox> :
-                        null
-                    }
-                </span>,
                 <Button
                     key="removeOld"
                     onClick={async () => {
@@ -144,7 +136,7 @@ function DirectoryModal() {
                     onClick={handleDirScanManually}
                     type={buttonSpain === "bulkScan" ? "primary" : "default"}
                 >
-                    Bulk Scan Immediately {buttonSpain === "bulkScan" && <Spin size="small" />}
+                    Bulk Scan Immediately {buttonSpain === "bulkScan" && <Spin size="small"/>}
                 </Button>,
                 <Button
                     key="rescan"
@@ -155,7 +147,7 @@ function DirectoryModal() {
                 </Button>,
             ]}
         >
-            <Divider />
+            <Divider/>
             <Content
                 style={{
                     height: "450px",
@@ -182,7 +174,7 @@ function DirectoryModal() {
                         dataSource={Object.entries(scanRubbishDirList)}
                         locale={{
                             emptyText: (
-                                <Title level={5} style={{ margin: "0 15px", color: "red" }}>
+                                <Title level={5} style={{margin: "0 15px", color: "red"}}>
                                     Directory will search in the next schedule. Please be patient
                                 </Title>
                             ),
@@ -190,37 +182,39 @@ function DirectoryModal() {
                         renderItem={([key, item]) => {
                             const skippedItem = skip.includes(key);
                             return (
-                            <List.Item
-                                style={skippedItem ? { opacity: 0.2 } : {}}
-                                key={key}>
-                                <List.Item.Meta
-                                    title={key}
-                                    description={
-                                        item.total_items === 0 ? (
-                                            "This directory will be scanned again according to the schedule."
-                                        ) : (
-                                            <span style={{ color: "#1677ff" }}> Scanned {item.counted} items of {item.total_items} items</span>
-                                        )
-                                    }
-                                />
-                                <Space>
-                                    <Button
-                                        key="exclude"
-                                        onClick={() => exclude_from_bulk_scan(key)}
-                                        type= "primary"
-                                    >
-                                        Exclude from Bulk Scan
-                                    </Button>
-                                    <Button
-                                        key="rescan"
-                                        onClick={() => handleDirRescan(key)}
-                                        type= "primary"
-                                    >
-                                        Re-Execute in Schedule
-                                    </Button>
-                                </Space>
-                            </List.Item>
-                        )}}
+                                <List.Item
+                                    style={skippedItem ? {opacity: 0.2} : {}}
+                                    key={key}>
+                                    <List.Item.Meta
+                                        title={key}
+                                        description={
+                                            item.total_items === 0 ? (
+                                                "This directory will be scanned again according to the schedule."
+                                            ) : (
+                                                <span
+                                                    style={{color: "#1677ff"}}> Scanned {item.counted} items of {item.total_items} items</span>
+                                            )
+                                        }
+                                    />
+                                    <Space>
+                                        <Button
+                                            key="exclude"
+                                            onClick={() => exclude_from_bulk_scan(key)}
+                                            type="primary"
+                                        >
+                                            Exclude from Bulk Scan
+                                        </Button>
+                                        <Button
+                                            key="rescan"
+                                            onClick={() => handleDirRescan(key)}
+                                            type="primary"
+                                        >
+                                            Re-Execute in Schedule
+                                        </Button>
+                                    </Space>
+                                </List.Item>
+                            )
+                        }}
                     />
                 )}
             </Content>
@@ -229,12 +223,27 @@ function DirectoryModal() {
                     <Title style={{
                         margin: '10px 0'
                     }} level={5}>Directory Scanning Progress:</Title>
-                    <Progress showInfo percent={progressBar} />
+                    <Progress showInfo percent={progressBar}/>
                 </>
             )}
+            <span key="InstantDeletion" style={{
+                display: 'flex',
+                padding: '10px',
+                justifyContent: 'end',
+                gap: '10px'
+            }}>
+                Rubbish File Instant Deletion ?
+                {tsmltParams.hasExtended ?
+                    <Checkbox
+                        onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}>
+                        <span style={{color: 'red'}}> It could be risky during a bulk scan.</span>
+                    </Checkbox> :
+                    null
+                }
+                </span>
             <Divider style={{
                 margin: '5px 0'
-            }} />
+            }}/>
         </Modal>
     );
 }

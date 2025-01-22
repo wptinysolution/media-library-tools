@@ -322,9 +322,9 @@ class Fns {
 			$metadata_file = basename( $file_path );
 			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 			if ( $instantDeletion && in_array( $fileextension, Fns::image_file_extensions(), true ) ) {
-				//wp_delete_file( $file_path );
-				//$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
-				//continue;
+				wp_delete_file( $file_path );
+				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
+				continue;
 			}
 
 			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
