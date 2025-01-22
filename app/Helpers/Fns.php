@@ -172,11 +172,11 @@ class Fns {
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );
 		$limit                     = absint( $options['media_per_page'] ?? 20 );
-		$options['media_per_page'] = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
+		$options['media_per_page'] = self::maximum_media_per_page() < $limit ? self::maximum_media_per_page() : $limit;
 
 		if ( ! empty( $options['rubbish_per_page'] ) ) {
 			$total_rabbis_count          = absint( $options['rubbish_per_page'] ?? 20 );
-			$options['rubbish_per_page'] = Fns::maximum_media_per_page() < $total_rabbis_count ? Fns::maximum_media_per_page() : $total_rabbis_count;
+			$options['rubbish_per_page'] = self::maximum_media_per_page() < $total_rabbis_count ? self::maximum_media_per_page() : $total_rabbis_count;
 		}
 
 		return wp_parse_args( $options, $defaults );
@@ -252,7 +252,7 @@ class Fns {
 			}
 			$scanned_files[] = $file_path;
 		}
-		
+
 		return $scanned_files;
 	}
 
@@ -262,16 +262,16 @@ class Fns {
 	 * @return bool|void
 	 */
 	public static function update_rubbish_file_to_database( $directory ) {
-		
+
 		$dir_cache_key = md5( $directory );
 		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
 			$found_files = self::$cache[ $dir_cache_key ];
-			//error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
+			// error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		} else {
-			$found_files = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
+			$found_files                   = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
 			self::$cache[ $dir_cache_key ] = $found_files;
 		}
-		
+
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 
 		$dis_list[ $directory ]['total_items'] = count( $found_files );
@@ -279,17 +279,17 @@ class Fns {
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
 		// Skip the files until the offset is reached
-		$files = $found_files;//array_slice( $found_files, $last_processed_offset, 50 );
+		$files = $found_files;// array_slice( $found_files, $last_processed_offset, 50 );
 
 		$found_files_count = count( $files );
 
 		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
 		global $wpdb;
 
-		$upload_dir = wp_upload_dir();
-		$uploaddir  = $upload_dir['basedir'] ?? 'wp-content/uploads/';
-		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === ( $_REQUEST['instantDeletion'] ?? '' ) ;
-		$table_name     = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$upload_dir      = wp_upload_dir();
+		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
+		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === ( $_REQUEST['instantDeletion'] ?? '' );
+		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
 				continue;
@@ -319,11 +319,10 @@ class Fns {
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
 				continue;
 			}
-			
-			if ( $instantDeletion ){
+
+			if ( $instantDeletion ) {
 				wp_delete_file( $file_path );
 				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
-				$dis_list = [];
 				continue;
 			}
 
@@ -465,7 +464,7 @@ class Fns {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Image attachment details
 	 *
@@ -476,12 +475,12 @@ class Fns {
 	public static function maximum_media_per_page() {
 		return absint( apply_filters( 'tsmlt_maximum_media_per_page', 1000 ) );
 	}
-	
+
 	/**
 	 * Function to scan the upload directory and search for files
 	 */
 	public static function scan_rubbish_file_cron_job( $skip = [] ) {
-		
+
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 		if ( ! count( $dis_list ) ) {
 			return;
@@ -494,15 +493,14 @@ class Fns {
 			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
 				continue;
 			}
-			if (in_array($key, $skip, true)) {
+			if ( in_array( $key, $skip, true ) ) {
 				continue;
 			}
 			$directory = $key;
 		}
-		
+
 		if ( ! empty( $directory ) ) {
-			Fns::update_rubbish_file_to_database( $directory );
+			self::update_rubbish_file_to_database( $directory );
 		}
 	}
-	
 }

@@ -182,7 +182,7 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
-		
+
 		register_rest_route(
 			$this->namespace,
 			$this->resource_name . '/truncateUnlistedFile',
@@ -192,8 +192,6 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
-		
-		
 	}
 
 	/**
@@ -258,7 +256,7 @@ class Api {
 	 * @return array
 	 */
 	public function update_option( $request_data ) {
-		$result = [
+		$result     = [
 			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'tsmlt-media-tools' ),
 		];
 		$parameters = $request_data->get_params();
@@ -266,7 +264,7 @@ class Api {
 		$total_count = absint( $parameters['media_per_page'] ?? 20 );
 
 		$tsmlt_media = get_option( 'tsmlt_settings', [] );
-		
+
 		$tsmlt_media['media_per_page'] = Fns::maximum_media_per_page() < $total_count ? Fns::maximum_media_per_page() : $total_count;
 
 		$total_rabbis_count = absint( $parameters['rubbish_per_page'] ?? 20 );
@@ -843,7 +841,7 @@ class Api {
 			'data'    => [],
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
 		];
-		
+
 		$directory = $parameters['directory'] ?? '';
 
 		if ( empty( $directory ) ) {
@@ -971,7 +969,7 @@ class Api {
 
 		return wp_json_encode( $rubbish_data );
 	}
-	
+
 	/**
 	 * @return array
 	 */
@@ -983,7 +981,7 @@ class Api {
 		}
 		return $size;
 	}
-	
+
 	/**
 	 * Truncate the 'tsmlt_unlisted_file' table.
 	 *
@@ -993,17 +991,17 @@ class Api {
 	 */
 	public function delete_all_rows_in_unlisted_file() {
 		global $wpdb;
-		// Get the table name with prefix
+		// Get the table name with prefix.
 		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Ensure the table exists before deleting rows
-		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name ) {
-			// Execute the DELETE query to remove all rows
+		// Ensure the table exists before deleting rows.
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
+			// Execute the DELETE query to remove all rows.
 			$result = $wpdb->query( "DELETE FROM `$table_name`" );
 			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" );
-			// Return true if the query succeeded, false otherwise
+			// Return true if the query succeeded, false otherwise.
 			return $result !== false;
 		}
-		// Table does not exist, return false
+		// Table does not exist, return false.
 		return false;
 	}
 }
