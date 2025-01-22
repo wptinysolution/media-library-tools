@@ -907,7 +907,7 @@ class Api {
 
 		$status = $parameters['fileStatus'] ?? 'show';
 
-		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : [ 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ];
+		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : Fns::image_file_extensions();
 
 		// Add single quotes around each status value.
 		$extensions = array_map(
@@ -997,6 +997,9 @@ class Api {
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
 			// Execute the DELETE query to remove all rows.
 			$result = $wpdb->query( "DELETE FROM `$table_name`" );
+			error_log( print_r( [
+				'DELETE' => $result
+				], true) . "\n\n", 3, __DIR__ . '/DELETE-log.txt' );
 			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" );
 			// Return true if the query succeeded, false otherwise.
 			return $result !== false;

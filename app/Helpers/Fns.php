@@ -266,7 +266,6 @@ class Fns {
 		$dir_cache_key = md5( $directory );
 		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
 			$found_files = self::$cache[ $dir_cache_key ];
-			// error_log( print_r( $found_files , true) . "\n\n", 3, __DIR__ . '/log.txt' );
 		} else {
 			$found_files                   = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
 			self::$cache[ $dir_cache_key ] = $found_files;
@@ -319,11 +318,13 @@ class Fns {
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
 				continue;
 			}
-
-			if ( $instantDeletion ) {
-				wp_delete_file( $file_path );
-				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
-				continue;
+			
+			$metadata_file = basename( $file_path );
+			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
+			if ( $instantDeletion && in_array( $fileextension, Fns::image_file_extensions(), true ) ) {
+				//wp_delete_file( $file_path );
+				//$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
+				//continue;
 			}
 
 			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
@@ -521,5 +522,12 @@ class Fns {
 				'wp-content/uploads/rtcl',
 			]
 		);
+	}
+	
+	/**
+	 * @return string[]
+	 */
+	public static function image_file_extensions () {
+		return apply_filters('tsmlt_image_file_extensions', [ 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
 	}
 }
