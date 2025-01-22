@@ -528,6 +528,6 @@ class Fns {
 	 * @return string[]
 	 */
 	public static function default_file_extensions() {
-		return apply_filters('tsmlt_default_file_extensions', [ 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
+		return apply_filters('tsmlt_default_file_extensions', [ 'zip', 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
 	}
 }
