@@ -391,13 +391,7 @@ class Fns {
 		if ( ! $filesystem->is_dir( $directory ) ) {
 			return [];
 		}
-		$paths_to_ignore = apply_filters(
-			'tsmlt_get_directory_list_paths_to_ignore',
-			[
-				'wp-content/uploads/elementor',
-				'wp-content/uploads/rtcl',
-			]
-		);
+		$paths_to_ignore = self::paths_to_ignore();
 		foreach ( $paths_to_ignore as $path ) {
 			if ( strpos( $directory, $path ) !== false ) {
 				return [];
@@ -514,5 +508,18 @@ class Fns {
 		if ( ! empty( $directory ) ) {
 			self::update_rubbish_file_to_database( $directory );
 		}
+	}
+
+	/**
+	 * @return array|void
+	 */
+	public static function paths_to_ignore() {
+		return apply_filters(
+			'tsmlt_get_directory_list_paths_to_ignore',
+			[
+				'wp-content/uploads/elementor',
+				'wp-content/uploads/rtcl',
+			]
+		);
 	}
 }
