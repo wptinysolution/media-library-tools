@@ -169,6 +169,11 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.5.3 ( Jan , 2025 ) =
+* Optimize: Rubbish File Scan Functionality
+* Product SKU Renaming Feature Compatibility
+
+
 = 1.5.2 ( Jan 04, 2025 ) =
 * Add New filter hooks for increase maximum image processing limit
 
