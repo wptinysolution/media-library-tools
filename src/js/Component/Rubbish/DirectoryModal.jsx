@@ -117,34 +117,62 @@ function DirectoryModal() {
             style={{maxWidth: "950px"}}
             className="rubbish-scan-directory-modal"
             width="100%"
-            height="500px"
             title="Directory List"
             open={stateValue.generalData.isDirModalOpen}
             onCancel={handleDirModalCancel}
             footer={[
-                <Button
-                    key="removeOld"
-                    onClick={async () => {
-                        await handleDirRescan("all");
-                        await truncateUnlistedFile();
-                    }}
-                >
-                    Delete Old History
-                </Button>,
-                <Button
-                    key="rescanManually"
-                    onClick={handleDirScanManually}
-                    type={buttonSpain === "bulkScan" ? "primary" : "default"}
-                >
-                    Bulk Scan Immediately {buttonSpain === "bulkScan" && <Spin size="small"/>}
-                </Button>,
-                <Button
-                    key="rescan"
-                    onClick={() => handleDirRescan("all")}
-                    type={"default"}
-                >
-                    Re-Scan Directory
-                </Button>,
+                <div key={'foot'} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '5px'
+                }}>
+                    {tsmltParams.hasExtended ?
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '5px'
+                        }}>
+                            <Checkbox
+                                onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}>
+                                Rubbish File Instant Deletion ?
+                            </Checkbox>
+                            <span style={{color: 'red', textAlign: 'left'}}> Enabling this will delete files immediately during a bulk scan. Use with caution, as it may result in permanent loss of files without confirmation.</span>
+                            <Divider style={{
+                                margin: '5px 0'
+                            }}/>
+                        </div> :
+                        null
+                    }
+
+                    <div style={{
+                        display: 'flex',
+                        gap: '10px',
+                    }} >
+                        <Button
+                            key="removeOld"
+                            onClick={async () => {
+                                await handleDirRescan("all");
+                                await truncateUnlistedFile();
+                            }}
+                        >
+                            Delete Old History
+                        </Button>
+                        <Button
+                            key="rescanManually"
+                            onClick={handleDirScanManually}
+                            type={buttonSpain === "bulkScan" ? "primary" : "default"}
+                        >
+                            Bulk Scan Immediately {buttonSpain === "bulkScan" && <Spin size="small"/>}
+                        </Button>
+                        <Button
+                            key="rescan"
+                            onClick={() => handleDirRescan("all")}
+                            type={"default"}
+                        >
+                            Re-Scan Directory
+                        </Button>
+                    </div>
+                </div>
             ]}
         >
             <Divider/>
@@ -226,26 +254,6 @@ function DirectoryModal() {
                     <Progress showInfo percent={progressBar}/>
                 </>
             )}
-            <span key="InstantDeletion" style={{
-                display: 'flex',
-                padding: '10px',
-                justifyContent: 'end',
-                flexDirection: 'column',
-                gap: '10px'
-            }}>
-                {tsmltParams.hasExtended ?
-                    <>
-                        <Checkbox onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}>
-                            Rubbish File Instant Deletion ?
-                        </Checkbox>
-                        <span style={{color: 'red'}}> Enabling this will delete files immediately during a bulk scan. Use with caution, as it may result in permanent loss of files without confirmation.</span>
-                    </> :
-                    null
-                }
-                </span>
-            <Divider style={{
-                margin: '5px 0'
-            }}/>
         </Modal>
     );
 }
