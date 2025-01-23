@@ -230,14 +230,16 @@ function DirectoryModal() {
                 display: 'flex',
                 padding: '10px',
                 justifyContent: 'end',
+                flexDirection: 'column',
                 gap: '10px'
             }}>
-                Rubbish File Instant Deletion ?
                 {tsmltParams.hasExtended ?
-                    <Checkbox
-                        onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}>
-                        <span style={{color: 'red'}}> It could be risky during a bulk scan.</span>
-                    </Checkbox> :
+                    <>
+                        <Checkbox onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}>
+                            Rubbish File Instant Deletion ?
+                        </Checkbox>
+                        <span style={{color: 'red'}}> Enabling this will delete files immediately during a bulk scan. Use with caution, as it may result in permanent loss of files without confirmation.</span>
+                    </> :
                     null
                 }
                 </span>
