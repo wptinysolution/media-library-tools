@@ -447,6 +447,36 @@ class Api {
 			
 			return $result;
 		}
+
+		
+		// Process single updates for post fields.
+		$post_fields = [
+			'post_title'   => esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' ),
+			'post_excerpt' => esc_html__( 'The Caption has been saved.', 'tsmlt-media-tools' ),
+			'post_content' => esc_html__( 'Content has been saved.', 'tsmlt-media-tools' ),
+			'alt_text'     => esc_html__( 'Saved.', 'tsmlt-media-tools' ),
+		];
+		
+		foreach ( $post_fields as $field => $message ) {
+			if ( isset( $parameters[ $field ] ) ) {
+				if ( $field === 'alt_text' ) {
+					$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters[ $field ] ) );
+				} else {
+					$submit[ $field ] = trim( $parameters[ $field ] );
+				}
+				$result['message'] = $message;
+			}
+		}
+
+		// Update the post if applicable
+		if ( ! empty( $submit ) ) {
+			$submit['ID']      = $parameters['ID'];
+			$result['updated'] = wp_update_post( $submit );
+			$result['message'] = $result['updated']
+				? $result['message']
+				: esc_html__( 'Update failed. Please try to fix.', 'tsmlt-media-tools' );
+		}
+		
 		return $result;
 	}
 	/**
