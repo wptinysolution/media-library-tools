@@ -62,6 +62,13 @@ class Fns {
 		];
 	}
 	
+	/**
+	 * @param $field
+	 * @param $orig_image_url
+	 * @param $new_image_url
+	 *
+	 * @return array
+	 */
 	private static function bulk_rename_field( $field, $orig_image_url, $new_image_url ) {
 		global $wpdb;
 		
@@ -105,7 +112,7 @@ class Fns {
 	 * @return bool
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
-		$orig_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		$updated       = false;
 		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
 		$new_file_name = sanitize_file_name( $new_file_name );
@@ -129,19 +136,20 @@ class Fns {
 		// Check file type to see if it's an image or other media (like video)
 		$filetype = wp_check_filetype( $file_path );
 		$is_image = strpos( $filetype['type'], 'image' ) !== false;
-		// Get the current metadata for the media file (images only)
+		// Get the current metadata for the media file (images only).
+		$old_sizes = [];
 		if ( $is_image ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( ! empty( $metadata['sizes'] ) ) {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+					$old_sizes[$size] = wp_get_attachment_image_url( $attachment_id, $size );
 					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
 					if ( file_exists( $old_file_path ) ) {
-					//	 wp_delete_file( $old_file_path );
+						 wp_delete_file( $old_file_path );
 					}
 				}
 			}
 		}
-
 		// Renaming the file
 		$path_being_saved_to = dirname( $file_path );
 		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
@@ -165,13 +173,24 @@ class Fns {
 					include ABSPATH . 'wp-admin/includes/image.php';
 				}
 				update_attached_file( $attachment_id, $unique_filename );
-				$new_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
-				
+				$new_image_url = wp_get_attachment_url( $attachment_id );
 				self::bulk_rename_field( 'post_content', $orig_image_url, $new_image_url );
 				self::bulk_rename_field( 'post_excerpt', $orig_image_url, $new_image_url );
+				if ( empty( get_post_meta( $attachment_id, '_original_file_url', true ) ) ) {
+					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
+				}
 				try {
 					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
 					wp_update_attachment_metadata( $attachment_id, $generate_meta );
+					if ( ! empty( $generate_meta['sizes'] ) ) {
+						foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
+							$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
+							if ( ! empty( $old_sizes[$size] ) ) {
+								self::bulk_rename_field( 'post_content', $old_sizes[$size], $new_size_url );
+								self::bulk_rename_field( 'post_excerpt', $old_sizes[$size], $new_size_url );
+							}
+						}
+					}
 				} catch ( \Exception $e ) {
 					error_log( 'Error reading Exif data: ' . $e->getMessage() );
 				}
