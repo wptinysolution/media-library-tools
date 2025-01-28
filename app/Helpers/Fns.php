@@ -24,6 +24,14 @@ class Fns {
 	 * @var array
 	 */
 	private static $cache = [];
+	private static $useless_types_conditions = "
+		post_status NOT IN ('inherit', 'trash', 'auto-draft')
+		AND post_type NOT IN ('attachment', 'shop_order', 'shop_order_refund', 'nav_menu_item', 'revision', 'auto-draft', 'wphb_minify_group', 'customize_changeset', 'oembed_cache', 'nf_sub', 'jp_img_sitemap')
+		AND post_type NOT LIKE 'dlssus_%'
+		AND post_type NOT LIKE 'ml-slide%'
+		AND post_type NOT LIKE '%acf-%'
+		AND post_type NOT LIKE '%edd_%'
+	";
 
 	/**
 	 * @param $plugin_file_path
@@ -53,7 +61,37 @@ class Fns {
 			'title'       => $attachment->post_title,
 		];
 	}
-
+	
+	private static function bulk_rename_content( $orig_image_url, $new_image_url ) {
+		global $wpdb;
+		$useless_types_conditions = self::$useless_types_conditions;
+		// Get the IDs that require an update
+		$query = $wpdb->prepare( "SELECT ID FROM $wpdb->posts
+			WHERE post_content LIKE '%s'
+			AND {$useless_types_conditions}", '%' . $orig_image_url . '%' );
+		$ids = $wpdb->get_col( $query );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+		
+		// Prepare SQL (WHERE IN)
+		$ids_to_update = array_map(function( $id ) { return "'" . esc_sql( $id ) . "'"; }, $ids );
+		$ids_to_update = implode(',', $ids_to_update);
+		
+		
+		// Execute updates.
+		$query = $wpdb->prepare( "UPDATE $wpdb->posts
+			SET post_content = REPLACE(post_content, '%s', '%s')
+			WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+		$wpdb->query( $query );
+		
+		// Reverse updates.
+		$wpdb->prepare( "UPDATE $wpdb->posts
+			SET post_content = REPLACE(post_content, '%s', '%s')
+			WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+		return $ids;
+	}
+	
 	/**
 	 * Image attachment details
 	 *
@@ -62,6 +100,7 @@ class Fns {
 	 * @return bool
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
+		$orig_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
 		$updated       = false;
 		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
 		$new_file_name = sanitize_file_name( $new_file_name );
@@ -92,7 +131,7 @@ class Fns {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
 					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
 					if ( file_exists( $old_file_path ) ) {
-						wp_delete_file( $old_file_path );
+					//	 wp_delete_file( $old_file_path );
 					}
 				}
 			}
@@ -101,8 +140,8 @@ class Fns {
 		// Renaming the file
 		$path_being_saved_to = dirname( $file_path );
 		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
-		$renamed             = rename( $file_path, $unique_filename );
 
+		$renamed             = rename( $file_path, $unique_filename );
 		$new_file_name    = basename( $unique_filename );
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
 
@@ -121,6 +160,9 @@ class Fns {
 					include ABSPATH . 'wp-admin/includes/image.php';
 				}
 				update_attached_file( $attachment_id, $unique_filename );
+				$new_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+				
+				self::bulk_rename_content( $orig_image_url, $new_image_url );
 				try {
 					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
 					wp_update_attachment_metadata( $attachment_id, $generate_meta );
