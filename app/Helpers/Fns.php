@@ -96,7 +96,7 @@ class Fns {
         WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
 		$wpdb->query( $query );
 		
-		// Reverse updates & log
+		// Reverse updates
 		$query_revert = $wpdb->prepare( "UPDATE $wpdb->posts
         SET {$field} = REPLACE({$field}, '%s', '%s')
         WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
@@ -104,6 +104,40 @@ class Fns {
 		return $ids;
 	}
 	
+	/**
+	 * @param $post
+	 * @param $orig_image_url
+	 * @param $new_image_url
+	 *
+	 * @return void
+	 */
+	private static function elementor_metadata( $orig_image_url, $new_image_url ) {
+		if ( ! defined( 'ELEMENTOR_VERSION' ) ){
+			return;
+		}
+		global $wpdb;
+		$table_meta = $wpdb->postmeta;
+		
+		$orig_image_url = esc_sql( $orig_image_url );
+		$new_image_url = esc_sql( $new_image_url );
+		$orig_image_url = str_replace( '/', '\/', $orig_image_url );
+		$new_image_url = str_replace( '/', '\/', $new_image_url );
+		$searchValue = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
+		
+		$query = $wpdb->prepare( "UPDATE {$table_meta}
+		  SET meta_value = REPLACE(meta_value, %s, %s)
+		  WHERE meta_key = '_elementor_data'
+		  AND meta_value LIKE %s", $orig_image_url, $new_image_url, $searchValue
+		);
+		$wpdb->query( $query );
+		
+		// Elementor to regenerate
+		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_css'";
+		$wpdb->query( $query );
+		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_element_cache'";
+		$wpdb->query( $query );
+	}
+
 	/**
 	 * Image attachment details
 	 *
@@ -174,8 +208,10 @@ class Fns {
 				}
 				update_attached_file( $attachment_id, $unique_filename );
 				$new_image_url = wp_get_attachment_url( $attachment_id );
+				//$searchValue
 				self::bulk_rename_field( 'post_content', $orig_image_url, $new_image_url );
 				self::bulk_rename_field( 'post_excerpt', $orig_image_url, $new_image_url );
+				self::elementor_metadata($orig_image_url, $new_image_url);
 				if ( empty( get_post_meta( $attachment_id, '_original_file_url', true ) ) ) {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
@@ -188,6 +224,7 @@ class Fns {
 							if ( ! empty( $old_sizes[$size] ) ) {
 								self::bulk_rename_field( 'post_content', $old_sizes[$size], $new_size_url );
 								self::bulk_rename_field( 'post_excerpt', $old_sizes[$size], $new_size_url );
+								self::elementor_metadata($old_sizes[$size], $new_size_url);
 							}
 						}
 					}
