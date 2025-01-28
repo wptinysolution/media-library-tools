@@ -63,6 +63,50 @@ class Fns {
 	}
 	
 	/**
+	 * @param $element_id
+	 * @param $old_filepath
+	 * @param $new_filepath
+	 * @param $undo
+	 *
+	 * @return void
+	 */
+	private static function wpml_update_translations( $attachment_id ) {
+		if ( ! function_exists( 'icl_object_id' ) ){
+			return;
+		}
+		$args = [
+			'element_id'   => $attachment_id,
+			'element_type' => 'attachment',
+		];
+		$info = apply_filters( 'wpml_element_language_details', null, $args );
+		if ( ! empty( $info->trid ) ) {
+			$translations = apply_filters( 'wpml_get_element_translations', null, $info->trid, 'post_attachment' );
+			foreach ( $translations as $translation ) {
+				if ( $attachment_id != $translation->element_id ) {
+					update_post_meta(
+						$translation->element_id,
+						'_wp_attached_file',
+						get_post_meta(
+							$attachment_id,
+							'_wp_attached_file',
+							true
+						)
+					);
+					update_post_meta(
+						$translation->element_id,
+						'_wp_attachment_metadata',
+						get_post_meta(
+							$attachment_id,
+							'_wp_attachment_metadata',
+							true
+						)
+					);
+				}
+			}
+		}
+	}
+	
+	/**
 	 * @param $field
 	 * @param $orig_image_url
 	 * @param $new_image_url
@@ -154,7 +198,7 @@ class Fns {
 		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
-		// Get the file path
+		// Get the file path.
 		$file_path = get_attached_file( $attachment_id );
 		if ( ! file_exists( $file_path ) ) {
 			return $updated;
@@ -163,11 +207,11 @@ class Fns {
 		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 		$filebasename  = basename( $metadata_file, '.' . $fileextension );
 		$new_file_name = $new_file_name . '.' . $fileextension;
-		// Check if the new name is different from the current one
+		// Check if the new name is different from the current one.
 		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
 			return $updated;
 		}
-		// Check file type to see if it's an image or other media (like video)
+		// Check file type to see if it's an image or other media (like video).
 		$filetype = wp_check_filetype( $file_path );
 		$is_image = strpos( $filetype['type'], 'image' ) !== false;
 		// Get the current metadata for the media file (images only).
@@ -184,7 +228,7 @@ class Fns {
 				}
 			}
 		}
-		// Renaming the file
+		// Renaming the file.
 		$path_being_saved_to = dirname( $file_path );
 		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
@@ -192,7 +236,7 @@ class Fns {
 		$new_file_name    = basename( $unique_filename );
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
 
-		// If successfully renamed, update metadata
+		// If successfully renamed, update metadata.
 		if ( $renamed ) {
 			wp_update_post(
 				[
@@ -201,7 +245,7 @@ class Fns {
 				]
 			);
 
-			// Only regenerate metadata for images
+			// Only regenerate metadata for images.
 			if ( $is_image ) {
 				if ( ! function_exists( 'wp_crop_image' ) ) {
 					include ABSPATH . 'wp-admin/includes/image.php';
@@ -232,11 +276,12 @@ class Fns {
 					error_log( 'Error reading Exif data: ' . $e->getMessage() );
 				}
 			} else {
-				// For non-image files, just update the attached file path
+				// For non-image files, just update the attached file path.
 				update_attached_file( $attachment_id, $unique_filename );
 			}
-
-			// Update permalink
+			// WPML.
+			self::wpml_update_translations($attachment_id);
+			// Update permalink.
 			self::permalink_to_post_guid( $attachment_id );
 		}
 
