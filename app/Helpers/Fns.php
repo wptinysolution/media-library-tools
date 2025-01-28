@@ -62,33 +62,38 @@ class Fns {
 		];
 	}
 	
-	private static function bulk_rename_content( $orig_image_url, $new_image_url ) {
+	private static function bulk_rename_field( $field, $orig_image_url, $new_image_url ) {
 		global $wpdb;
+		
+		// Validate the field to prevent SQL injection
+		if ( ! in_array( $field, ['post_content', 'post_excerpt'], true ) ) {
+			return array();
+		}
 		$useless_types_conditions = self::$useless_types_conditions;
 		// Get the IDs that require an update
 		$query = $wpdb->prepare( "SELECT ID FROM $wpdb->posts
-			WHERE post_content LIKE '%s'
-			AND {$useless_types_conditions}", '%' . $orig_image_url . '%' );
+        WHERE {$field} LIKE '%s'
+        AND {$useless_types_conditions}", '%' . $orig_image_url . '%' );
 		$ids = $wpdb->get_col( $query );
 		if ( empty( $ids ) ) {
 			return array();
 		}
 		
 		// Prepare SQL (WHERE IN)
-		$ids_to_update = array_map(function( $id ) { return "'" . esc_sql( $id ) . "'"; }, $ids );
-		$ids_to_update = implode(',', $ids_to_update);
+		$ids_to_update = array_map( function( $id ) { return "'" . esc_sql( $id ) . "'"; }, $ids );
+		$ids_to_update = implode( ',', $ids_to_update );
 		
-		
-		// Execute updates.
+		// Execute updates
 		$query = $wpdb->prepare( "UPDATE $wpdb->posts
-			SET post_content = REPLACE(post_content, '%s', '%s')
-			WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+        SET {$field} = REPLACE({$field}, '%s', '%s')
+        WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
 		$wpdb->query( $query );
 		
-		// Reverse updates.
-		$wpdb->prepare( "UPDATE $wpdb->posts
-			SET post_content = REPLACE(post_content, '%s', '%s')
-			WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+		// Reverse updates & log
+		$query_revert = $wpdb->prepare( "UPDATE $wpdb->posts
+        SET {$field} = REPLACE({$field}, '%s', '%s')
+        WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+		
 		return $ids;
 	}
 	
@@ -162,7 +167,8 @@ class Fns {
 				update_attached_file( $attachment_id, $unique_filename );
 				$new_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
 				
-				self::bulk_rename_content( $orig_image_url, $new_image_url );
+				self::bulk_rename_field( 'post_content', $orig_image_url, $new_image_url );
+				self::bulk_rename_field( 'post_excerpt', $orig_image_url, $new_image_url );
 				try {
 					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
 					wp_update_attachment_metadata( $attachment_id, $generate_meta );
