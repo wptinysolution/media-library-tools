@@ -352,11 +352,11 @@ function Settings() {
                                         type: Types.UPDATE_OPTIONS,
                                         options: {
                                             ...stateValue.options,
-                                            media_auto_rename_prefix: event.target.value,
+                                            media_rename_prefix: event.target.value,
                                         }
                                     })
                                 }
-                                value={stateValue.options.media_auto_rename_prefix}
+                                value={stateValue.options.media_rename_prefix}
                             />
                             <br/>
                             <Text type="secondary">
@@ -381,11 +381,11 @@ function Settings() {
                                         type: Types.UPDATE_OPTIONS,
                                         options: {
                                             ...stateValue.options,
-                                            media_auto_rename_suffix: event.target.value,
+                                            media_rename_suffix: event.target.value,
                                         }
                                     })
                                 }
-                                value={stateValue.options.media_auto_rename_suffix}
+                                value={stateValue.options.media_rename_suffix}
 
                             />
                             <br/>

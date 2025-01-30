@@ -318,6 +318,9 @@ class Fns {
 			'others_file_support'    => [],
 			'enable_auto_rename'     => '',
 			'media_auto_rename_text' => '',
+			'media_rename_prefix' => '',
+			'media_rename_suffix' => '',
+			
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );
 		$limit                     = absint( $options['media_per_page'] ?? 20 );
