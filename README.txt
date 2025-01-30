@@ -170,7 +170,7 @@ To search for images by categories, users can find the categories box near the F
 == Changelog ==
 
 = 1.6.1 ( Jan 30, 2025 ) =
-* Fixed: File Rename Prefix and suffix
+* Fixed: File rename prefix and suffix
 
 = 1.6.0 ( Jan 29, 2025 ) =
 * Fixed: Image Broken Issue
