@@ -144,7 +144,7 @@ function BulkModal() {
                         <>
                             <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>File name </Title>
                             <Paragraph type="secondary" style={{ fontSize: '14px', color: '#ff0000' }}>
-                                Prefix and suffix will not apply for custom text bulk here
+                                Prefix and suffix will not apply for here
                             </Paragraph>
                             <Input
                                 style={{

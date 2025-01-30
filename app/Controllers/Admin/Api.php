@@ -365,7 +365,6 @@ class Api {
 	 */
 	public function update_single_media( $request_data ) {
 		$parameters = $request_data->get_params();
-		$options     = Fns::get_options();
 		$result     = [
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
@@ -388,10 +387,9 @@ class Api {
 			if ( $attachment ) {
 				$post_id = $attachment->post_parent;
 				if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
-					
-					$rename_to = get_the_title( $post_id );
+					$rename_to = Fns::add_filename_prefix_suffix(get_the_title( $post_id ));
 				} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
-					$rename_to = get_post_meta( $post_id, '_sku', true );
+					$rename_to = Fns::add_filename_prefix_suffix(get_post_meta( $post_id, '_sku', true ));
 				} else if ( ! in_array($new_name, ['bulkRenameByPostTitle', 'bulkRenameBySKU' ], true )){
 					$rename_to = $new_name;
 				}

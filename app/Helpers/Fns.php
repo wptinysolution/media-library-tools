@@ -181,7 +181,25 @@ class Fns {
 		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_element_cache'";
 		$wpdb->query( $query );
 	}
-
+	
+	/**
+	 * @param $name
+	 *
+	 * @return string
+	 */
+	public static function add_filename_prefix_suffix( $name ) {
+		if ( empty( $name ) ) {
+			return $name;
+		}
+		$options     = self::get_options();
+		if ( ! empty( $options['media_rename_prefix'] ) ) {
+			$name  = $options['media_rename_prefix'].'-'.$name;
+		}
+		if ( ! empty( $options['media_rename_suffix'] ) ) {
+			$name  = $name .'-'. $options['media_rename_suffix'];
+		}
+		return $name;
+	}
 	/**
 	 * Image attachment details
 	 *
@@ -211,6 +229,7 @@ class Fns {
 		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
 			return $updated;
 		}
+		
 		// Check file type to see if it's an image or other media (like video).
 		$filetype = wp_check_filetype( $file_path );
 		$is_image = strpos( $filetype['type'], 'image' ) !== false;
