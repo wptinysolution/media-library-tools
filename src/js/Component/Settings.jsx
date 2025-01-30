@@ -333,6 +333,68 @@ function Settings() {
                         <Divider />
                         <Title level={3} style={{ margin:0 }}> Media Renamer Settings </Title>
                         <Divider />
+                        <Form.Item label={<Title level={5} style={{margin: 0, fontSize: '14px'}}> File Rename Prefix And
+                            Suffix </Title>}>
+                            <Title level={5} style={{ marginTop: 0, fontSize: '14px'}}> Rename
+                                prefix {!tsmltParams.hasExtended &&
+                                    <span style={{color: '#ff0000', fontWeight: 'bold'}}> - PRO</span>} </Title>
+                            <Input
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    width: '300px'
+                                }}
+                                type="primary"
+                                size="large"
+                                placeholder="Prefix"
+                                onChange={
+                                    (event) => dispatch({
+                                        type: Types.UPDATE_OPTIONS,
+                                        options: {
+                                            ...stateValue.options,
+                                            media_auto_rename_prefix: event.target.value,
+                                        }
+                                    })
+                                }
+                                value={stateValue.options.media_auto_rename_prefix}
+                            />
+                            <br/>
+                            <Text type="secondary">
+                                A file rename prefix is a set of characters, words, or numbers added at the beginning of
+                                a filename when renaming it. This helps in organizing files, improving SEO, or
+                                maintaining a consistent naming convention.
+                            </Text>
+
+                            <Divider />
+                            <Title level={5} style={{ fontSize:'14px' }}> Rename suffix { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> } </Title>
+                            <Input
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    width: '300px'
+                                }}
+                                type="primary"
+                                size="large"
+                                placeholder="Suffix"
+                                onChange={
+                                    (event) => dispatch({
+                                        type: Types.UPDATE_OPTIONS,
+                                        options: {
+                                            ...stateValue.options,
+                                            media_auto_rename_suffix: event.target.value,
+                                        }
+                                    })
+                                }
+                                value={stateValue.options.media_auto_rename_suffix}
+
+                            />
+                            <br/>
+                            <Text type="secondary">
+                                A file rename suffix is a set of characters, words, or numbers added at the end of a filename when renaming it. This helps differentiate files, improve SEO, or maintain a structured naming convention.
+                            </Text>
+
+                        </Form.Item>
+                        <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Rename based on attached posts </Title>} >
                             <Checkbox
                                 onChange={setDefaultText}
@@ -344,26 +406,29 @@ function Settings() {
                             <br/>
                             <br/>
                             <Text type="secondary" >
-                                Auto rename will apply automatically when upload Media as attached posts.
+                                When you edit a post and upload an image, it will be renamed automatically based on the post title.
                             </Text>
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others Media Auto Rename </Title>} >
+                        <Form.Item label={<Title level={5} style={{margin: 0, fontSize: '14px'}}> Others Media Auto
+                            Rename </Title>}>
                             <Checkbox
                                 onChange={setDefaultText}
                                 name={`enable_auto_rename`}
                                 value={`enable_auto_rename`}
-                                checked={ 'enable_auto_rename' === stateValue.options.enable_auto_rename } >
-                                Custom text { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
+                                checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}>
+                                Custom text {!tsmltParams.hasExtended &&
+                                <span style={{color: '#ff0000', fontWeight: 'bold'}}> - PRO</span>}
                             </Checkbox>
                             <br/>
                             <br/>
-                            <Text type="secondary" >
-                                Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
+                            <Text type="secondary">
+                                Auto rename will apply automatically when upload Media file. File name will be unique by
+                                incremental number. Example: file-name.jpg next one file-name-1.jpg
                             </Text>
-                            { tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename &&
+                            {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename &&
                                 <>
-                                    <Divider style={ { margin: '10px 0'} }/>
+                                    <Divider style={{margin: '10px 0'}}/>
                                     <Input
                                         type="primary"
                                         size="large"
@@ -371,7 +436,7 @@ function Settings() {
                                         onChange={
                                             (event) => dispatch({
                                                 type: Types.UPDATE_OPTIONS,
-                                                options : {
+                                                options: {
                                                     ...stateValue.options,
                                                     media_auto_rename_text: event.target.value,
                                                 }
@@ -379,14 +444,14 @@ function Settings() {
                                         }
                                         value={stateValue.options.media_auto_rename_text}
                                     />
-                                    <Text type="secondary" >
-                                        <span style={ { color: '#ff0000' } }>Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br/> Example: File Name </span>
+                                    <Text type="secondary">
+                                        <span style={{color: '#ff0000'}}>Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br/> Example: File Name </span>
                                     </Text>
                                 </>
                             }
 
                         </Form.Item>
-                        <Divider style={ { margin: '10px 0' } }/>
+                        <Divider style={{margin: '10px 0'}}/>
                     </Content>
                 }
 

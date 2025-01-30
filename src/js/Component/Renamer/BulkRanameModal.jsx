@@ -142,7 +142,7 @@ function BulkModal() {
                         </>
                     ) : (
                         <>
-                            <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>File name</Title>
+                            <Title style={{ marginTop: '0px', marginBottom: '15px' }} level={5}>File name </Title>
                             <Input
                                 style={{
                                     height: '40px',
@@ -153,6 +153,9 @@ function BulkModal() {
                                 value={stateValue.bulkSubmitData.data.file_name}
                                 placeholder={`File Name`}
                             />
+                            <span style={{
+                                color: 'red'
+                            }}> Prefix And Suffix Will not apply here </span>
                             { !stateValue.bulkSubmitData.ids.length && (
                                 <Paragraph type="secondary" style={{ fontSize: '14px', color: '#ff0000' }}>
                                     No Item selected for rename
