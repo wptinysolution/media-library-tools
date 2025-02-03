@@ -369,28 +369,28 @@ class Api {
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
 		];
-		
+
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
 		}
-		
+
 		// Check if PRO version is activated where needed
-		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], ['bulkRenameByPostTitle', 'bulkRenameBySKU'], true ) ) {
+		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
 			$result['message'] = esc_html__( 'Please activate the license key.', 'tsmlt-media-tools' );
 			return $result;
 		}
-		$attachment = get_post( $parameters['ID']);
+		$attachment = get_post( $parameters['ID'] );
 		// Handle bulk rename based on post title or SKU
-		$new_name = $parameters['newname'] ?? '';
+		$new_name  = $parameters['newname'] ?? '';
 		$rename_to = '';
 		if ( ! empty( $new_name ) ) {
 			if ( $attachment ) {
 				$post_id = $attachment->post_parent;
 				if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
-					$rename_to = Fns::add_filename_prefix_suffix(get_the_title( $post_id ));
+					$rename_to = Fns::add_filename_prefix_suffix( get_the_title( $post_id ) );
 				} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
-					$rename_to = Fns::add_filename_prefix_suffix(get_post_meta( $post_id, '_sku', true ));
-				} else if ( ! in_array($new_name, ['bulkRenameByPostTitle', 'bulkRenameBySKU' ], true )){
+					$rename_to = Fns::add_filename_prefix_suffix( get_post_meta( $post_id, '_sku', true ) );
+				} elseif ( ! in_array( $new_name, [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
 					$rename_to = $new_name;
 				}
 			}
@@ -402,8 +402,8 @@ class Api {
 			}
 			return $result;
 		}
-		
-		// Handle bulk editing based on the associated post title
+
+		// Handle bulk editing based on the associated post title.
 		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
 			// Fetch the post title related to the attachment.
 			$new_text = '';
@@ -413,42 +413,41 @@ class Api {
 					$new_text = get_the_title( $post_id );
 				}
 			}
-			
+
 			if ( empty( $new_text ) ) {
 				return $result;
 			}
-			
+
 			$submit = [];
-			
-			// Process each field that requires updating
+
+			// Process each field that requires updating.
 			if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
 				$submit['post_title'] = $new_text;
 			}
-			
+
 			if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
 				$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
 				$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
 			}
-			
+
 			if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
 				$submit['post_excerpt'] = $new_text;
 			}
-			
+
 			if ( in_array( 'post_description', $parameters['bulkEditPostTitle'], true ) ) {
 				$submit['post_content'] = $new_text;
 			}
-			
-			// If any updates were made, save the changes to the post
+
+			// If any updates were made, save the changes to the post.
 			if ( ! empty( $submit ) ) {
-				$submit['ID'] = $parameters['ID'];
+				$submit['ID']      = $parameters['ID'];
 				$result['updated'] = wp_update_post( $submit );
 				$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
 			}
-			
+
 			return $result;
 		}
 
-		
 		// Process single updates for post fields.
 		$post_fields = [
 			'post_title'   => esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' ),
@@ -456,7 +455,7 @@ class Api {
 			'post_content' => esc_html__( 'Content has been saved.', 'tsmlt-media-tools' ),
 			'alt_text'     => esc_html__( 'Saved.', 'tsmlt-media-tools' ),
 		];
-		
+
 		foreach ( $post_fields as $field => $message ) {
 			if ( isset( $parameters[ $field ] ) ) {
 				if ( $field === 'alt_text' ) {
@@ -468,7 +467,7 @@ class Api {
 			}
 		}
 
-		// Update the post if applicable
+		// Update the post if applicable.
 		if ( ! empty( $submit ) ) {
 			$submit['ID']      = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );
@@ -476,7 +475,7 @@ class Api {
 				? $result['message']
 				: esc_html__( 'Update failed. Please try to fix.', 'tsmlt-media-tools' );
 		}
-		
+
 		return $result;
 	}
 	/**

@@ -140,12 +140,12 @@ class Fns {
 	private static function replace_image_at_content( $field, $orig_image_url, $new_image_url ) {
 		global $wpdb;
 		// replace_image_at_content() ;
-		// Validate the field to prevent SQL injection
+		// Validate the field to prevent SQL injection.
 		if ( ! in_array( $field, [ 'post_content', 'post_excerpt' ], true ) ) {
 			return [];
 		}
 		$useless_types_conditions = self::$useless_types_conditions;
-		// Get the IDs that require an update
+		// Get the IDs that require an update.
 		$query = $wpdb->prepare(
 			"SELECT ID FROM $wpdb->posts
         WHERE {$field} LIKE '%s'
@@ -157,7 +157,7 @@ class Fns {
 			return [];
 		}
 
-		// Prepare SQL (WHERE IN)
+		// Prepare SQL (WHERE IN).
 		$ids_to_update = array_map(
 			function ( $id ) {
 				return "'" . esc_sql( $id ) . "'";
@@ -166,7 +166,7 @@ class Fns {
 		);
 		$ids_to_update = implode( ',', $ids_to_update );
 
-		// Execute updates
+		// Execute updates.
 		$query = $wpdb->prepare(
 			"UPDATE $wpdb->posts
         SET {$field} = REPLACE({$field}, '%s', '%s')
@@ -176,7 +176,7 @@ class Fns {
 		);
 		$wpdb->query( $query );
 
-		// Reverse updates
+		// Reverse updates.
 		$query_revert = $wpdb->prepare(
 			"UPDATE $wpdb->posts
         SET {$field} = REPLACE({$field}, '%s', '%s')
