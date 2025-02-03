@@ -440,9 +440,7 @@ class Fns {
 	/**
 	 * Function to scan the upload directory and search for files.
 	 *
-	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string                             $directory The directory to scan.
-	 * @param int                                $offset The offset to start scanning from.
+	 * @param string $directory The directory to scan.
 	 *
 	 * @return array The list of found files.
 	 */
@@ -577,8 +575,8 @@ class Fns {
 		$cache_key      = 'get_directory_list';
 		$subdirectories = wp_cache_get( $cache_key );
 		if ( ! $subdirectories ) {
-			$upload_dir     = wp_upload_dir(); // Get the upload directory path
-			$directory      = $upload_dir['basedir']; // Get the base directory path
+			$upload_dir     = wp_upload_dir(); // Get the upload directory path.
+			$directory      = $upload_dir['basedir']; // Get the base directory path.
 			$subdirectories = self::scan_directory_list( $directory );
 			wp_cache_set( $cache_key, $subdirectories );
 		}
@@ -592,8 +590,7 @@ class Fns {
 	/**
 	 * Function to retrieve the list of directories with paths from a given directory.
 	 *
-	 * @param WP_Filesystem|WP_Filesystem_Direct $filesystem The WP_Filesystem instance.
-	 * @param string                             $directory The directory to scan.
+	 * @param string $directory The directory to scan.
 	 *
 	 * @return array The list of directories with their paths.
 	 */
