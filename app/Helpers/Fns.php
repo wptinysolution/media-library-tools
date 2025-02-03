@@ -23,7 +23,7 @@ class Fns {
 	/**
 	 * @var array
 	 */
-	private static $cache = [];
+	private static $cache                    = [];
 	private static $useless_types_conditions = "
 		post_status NOT IN ('inherit', 'trash', 'auto-draft')
 		AND post_type NOT IN ('attachment', 'shop_order', 'shop_order_refund', 'nav_menu_item', 'revision', 'auto-draft', 'wphb_minify_group', 'customize_changeset', 'oembed_cache', 'nf_sub', 'jp_img_sitemap')
@@ -61,7 +61,7 @@ class Fns {
 			'title'       => $attachment->post_title,
 		];
 	}
-	
+
 	/**
 	 * @param $element_id
 	 * @param $old_filepath
@@ -71,7 +71,7 @@ class Fns {
 	 * @return void
 	 */
 	private static function wpml_update_translations( $attachment_id ) {
-		if ( ! function_exists( 'icl_object_id' ) ){
+		if ( ! function_exists( 'icl_object_id' ) ) {
 			return;
 		}
 		$args = [
@@ -105,7 +105,6 @@ class Fns {
 			}
 		}
 	}
-	
 	/**
 	 * @param $field
 	 * @param $orig_image_url
@@ -113,41 +112,82 @@ class Fns {
 	 *
 	 * @return array
 	 */
-	private static function bulk_rename_field( $field, $orig_image_url, $new_image_url ) {
+	public static function search_image_at_content( $orig_image_url ) {
 		global $wpdb;
-		
+		$useless_types_conditions = self::$useless_types_conditions;
+		// Get the IDs that require an update.
+		$query = $wpdb->prepare(
+			"SELECT ID FROM $wpdb->posts WHERE (post_content LIKE %s OR post_excerpt LIKE %s)
+    				AND {$useless_types_conditions}",
+			'%' . $orig_image_url . '%',
+			'%' . $orig_image_url . '%'
+		);
+		$ids   = $wpdb->get_col( $query );
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * @param $field
+	 * @param $orig_image_url
+	 * @param $new_image_url
+	 *
+	 * @return array
+	 */
+	private static function replace_image_at_content( $field, $orig_image_url, $new_image_url ) {
+		global $wpdb;
+		// replace_image_at_content() ;
 		// Validate the field to prevent SQL injection
-		if ( ! in_array( $field, ['post_content', 'post_excerpt'], true ) ) {
-			return array();
+		if ( ! in_array( $field, [ 'post_content', 'post_excerpt' ], true ) ) {
+			return [];
 		}
 		$useless_types_conditions = self::$useless_types_conditions;
 		// Get the IDs that require an update
-		$query = $wpdb->prepare( "SELECT ID FROM $wpdb->posts
+		$query = $wpdb->prepare(
+			"SELECT ID FROM $wpdb->posts
         WHERE {$field} LIKE '%s'
-        AND {$useless_types_conditions}", '%' . $orig_image_url . '%' );
-		$ids = $wpdb->get_col( $query );
+        AND {$useless_types_conditions}",
+			'%' . $orig_image_url . '%'
+		);
+		$ids   = $wpdb->get_col( $query );
 		if ( empty( $ids ) ) {
-			return array();
+			return [];
 		}
-		
+
 		// Prepare SQL (WHERE IN)
-		$ids_to_update = array_map( function( $id ) { return "'" . esc_sql( $id ) . "'"; }, $ids );
+		$ids_to_update = array_map(
+			function ( $id ) {
+				return "'" . esc_sql( $id ) . "'";
+			},
+			$ids
+		);
 		$ids_to_update = implode( ',', $ids_to_update );
-		
+
 		// Execute updates
-		$query = $wpdb->prepare( "UPDATE $wpdb->posts
+		$query = $wpdb->prepare(
+			"UPDATE $wpdb->posts
         SET {$field} = REPLACE({$field}, '%s', '%s')
-        WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
+        WHERE ID IN (" . $ids_to_update . ')',
+			$orig_image_url,
+			$new_image_url
+		);
 		$wpdb->query( $query );
-		
+
 		// Reverse updates
-		$query_revert = $wpdb->prepare( "UPDATE $wpdb->posts
+		$query_revert = $wpdb->prepare(
+			"UPDATE $wpdb->posts
         SET {$field} = REPLACE({$field}, '%s', '%s')
-        WHERE ID IN (" . $ids_to_update . ")", $orig_image_url, $new_image_url );
-		
+        WHERE ID IN (" . $ids_to_update . ')',
+			$orig_image_url,
+			$new_image_url
+		);
+
 		return $ids;
 	}
-	
+
 	/**
 	 * @param $post
 	 * @param $orig_image_url
@@ -156,32 +196,36 @@ class Fns {
 	 * @return void
 	 */
 	private static function elementor_metadata( $orig_image_url, $new_image_url ) {
-		if ( ! defined( 'ELEMENTOR_VERSION' ) ){
+		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
 			return;
 		}
 		global $wpdb;
 		$table_meta = $wpdb->postmeta;
-		
+
 		$orig_image_url = esc_sql( $orig_image_url );
-		$new_image_url = esc_sql( $new_image_url );
+		$new_image_url  = esc_sql( $new_image_url );
 		$orig_image_url = str_replace( '/', '\/', $orig_image_url );
-		$new_image_url = str_replace( '/', '\/', $new_image_url );
-		$searchValue = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-		
-		$query = $wpdb->prepare( "UPDATE {$table_meta}
+		$new_image_url  = str_replace( '/', '\/', $new_image_url );
+		$searchValue    = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
+
+		$query = $wpdb->prepare(
+			"UPDATE {$table_meta}
 		  SET meta_value = REPLACE(meta_value, %s, %s)
 		  WHERE meta_key = '_elementor_data'
-		  AND meta_value LIKE %s", $orig_image_url, $new_image_url, $searchValue
+		  AND meta_value LIKE %s",
+			$orig_image_url,
+			$new_image_url,
+			$searchValue
 		);
 		$wpdb->query( $query );
-		
+
 		// Elementor to regenerate
 		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_css'";
 		$wpdb->query( $query );
 		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_element_cache'";
 		$wpdb->query( $query );
 	}
-	
+
 	/**
 	 * @param $name
 	 *
@@ -191,12 +235,12 @@ class Fns {
 		if ( empty( $name ) ) {
 			return $name;
 		}
-		$options     = self::get_options();
+		$options = self::get_options();
 		if ( ! empty( $options['media_rename_prefix'] ) ) {
-			$name  = $options['media_rename_prefix'].'-'.$name;
+			$name = $options['media_rename_prefix'] . '-' . $name;
 		}
 		if ( ! empty( $options['media_rename_suffix'] ) ) {
-			$name  = $name .'-'. $options['media_rename_suffix'];
+			$name = $name . '-' . $options['media_rename_suffix'];
 		}
 		return $name;
 	}
@@ -209,10 +253,10 @@ class Fns {
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
-		$updated       = false;
-		$new_file_name = pathinfo( $new_file_name, PATHINFO_FILENAME );
-		$new_file_name = sanitize_file_name( $new_file_name );
-		$new_file_name = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
+		$updated        = false;
+		$new_file_name  = pathinfo( $new_file_name, PATHINFO_FILENAME );
+		$new_file_name  = sanitize_file_name( $new_file_name );
+		$new_file_name  = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
 		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
@@ -229,7 +273,7 @@ class Fns {
 		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
 			return $updated;
 		}
-		
+
 		// Check file type to see if it's an image or other media (like video).
 		$filetype = wp_check_filetype( $file_path );
 		$is_image = strpos( $filetype['type'], 'image' ) !== false;
@@ -239,8 +283,8 @@ class Fns {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( ! empty( $metadata['sizes'] ) ) {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-					$old_sizes[$size] = wp_get_attachment_image_url( $attachment_id, $size );
-					$old_file_path = dirname( $file_path ) . '/' . $fileinfo['file'];
+					$old_sizes[ $size ] = wp_get_attachment_image_url( $attachment_id, $size );
+					$old_file_path      = dirname( $file_path ) . '/' . $fileinfo['file'];
 					if ( file_exists( $old_file_path ) ) {
 						 wp_delete_file( $old_file_path );
 					}
@@ -251,7 +295,7 @@ class Fns {
 		$path_being_saved_to = dirname( $file_path );
 		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
-		$renamed             = rename( $file_path, $unique_filename );
+		$renamed          = rename( $file_path, $unique_filename );
 		$new_file_name    = basename( $unique_filename );
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
 
@@ -271,10 +315,10 @@ class Fns {
 				}
 				update_attached_file( $attachment_id, $unique_filename );
 				$new_image_url = wp_get_attachment_url( $attachment_id );
-				//$searchValue
-				self::bulk_rename_field( 'post_content', $orig_image_url, $new_image_url );
-				self::bulk_rename_field( 'post_excerpt', $orig_image_url, $new_image_url );
-				self::elementor_metadata($orig_image_url, $new_image_url);
+				// $searchValue
+				self::replace_image_at_content( 'post_content', $orig_image_url, $new_image_url );
+				self::replace_image_at_content( 'post_excerpt', $orig_image_url, $new_image_url );
+				self::elementor_metadata( $orig_image_url, $new_image_url );
 				if ( empty( get_post_meta( $attachment_id, '_original_file_url', true ) ) ) {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
@@ -284,10 +328,10 @@ class Fns {
 					if ( ! empty( $generate_meta['sizes'] ) ) {
 						foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
 							$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
-							if ( ! empty( $old_sizes[$size] ) ) {
-								self::bulk_rename_field( 'post_content', $old_sizes[$size], $new_size_url );
-								self::bulk_rename_field( 'post_excerpt', $old_sizes[$size], $new_size_url );
-								self::elementor_metadata($old_sizes[$size], $new_size_url);
+							if ( ! empty( $old_sizes[ $size ] ) ) {
+								self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
+								self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
+								self::elementor_metadata( $old_sizes[ $size ], $new_size_url );
 							}
 						}
 					}
@@ -299,7 +343,7 @@ class Fns {
 				update_attached_file( $attachment_id, $unique_filename );
 			}
 			// WPML.
-			self::wpml_update_translations($attachment_id);
+			self::wpml_update_translations( $attachment_id );
 			// Update permalink.
 			self::permalink_to_post_guid( $attachment_id );
 		}
@@ -325,7 +369,7 @@ class Fns {
 	 * @return false|string
 	 */
 	public static function get_options() {
-		$defaults                  = [
+		$defaults = [
 			'media_per_page'         => 20,
 			'media_table_column'     => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
 			'media_default_alt'      => '',
@@ -337,9 +381,9 @@ class Fns {
 			'others_file_support'    => [],
 			'enable_auto_rename'     => '',
 			'media_auto_rename_text' => '',
-			'media_rename_prefix' => '',
-			'media_rename_suffix' => '',
-			
+			'media_rename_prefix'    => '',
+			'media_rename_suffix'    => '',
+
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );
 		$limit                     = absint( $options['media_per_page'] ?? 20 );
@@ -438,7 +482,7 @@ class Fns {
 		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
 			$found_files = self::$cache[ $dir_cache_key ];
 		} else {
-			$found_files                   = self::scan_file_in_directory( $directory ); // Scan the directory and search for files
+			$found_files                   = self::scan_file_in_directory( $directory ); // Scan the directory and search for files.
 			self::$cache[ $dir_cache_key ] = $found_files;
 		}
 
@@ -448,8 +492,9 @@ class Fns {
 
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
-		// Skip the files until the offset is reached
-		$files = $found_files;// array_slice( $found_files, $last_processed_offset, 50 );
+		// Skip the files until the offset is reached.
+		// $files = array_slice( $found_files, $last_processed_offset, 50 );.
+		$files = $found_files;
 
 		$found_files_count = count( $files );
 
@@ -489,10 +534,10 @@ class Fns {
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
 				continue;
 			}
-			
+
 			$metadata_file = basename( $file_path );
 			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-			if ( $instantDeletion && in_array( $fileextension, Fns::default_file_extensions(), true ) ) {
+			if ( $instantDeletion && in_array( $fileextension, self::default_file_extensions(), true ) ) {
 				wp_delete_file( $file_path );
 				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
 				continue;
@@ -543,7 +588,6 @@ class Fns {
 
 		update_option( 'tsmlt_get_directory_list', $subdirectories );
 	}
-
 
 	/**
 	 * Function to retrieve the list of directories with paths from a given directory.
@@ -604,25 +648,29 @@ class Fns {
 		if ( 'attachment' !== get_post_type( $attachment_id ) ) {
 			return;
 		}
-
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
 			return;
 		}
-
 		global $wpdb;
-		$meta_key  = '_thumbnail_id';
-		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", $meta_key, $attachment_id );
+		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
 		$parent_id = $wpdb->get_var( $query );
-
+		$post_ids  = [];
+		if ( ! $parent_id ) {
+			$orig_image_url = wp_get_attachment_url( $attachment_id );
+			$post_ids       = self::search_image_at_content( $orig_image_url );
+		}
+		if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
+			$parent_id = ! empty( $post_ids ) ? reset( $post_ids ) : null;
+		}
 		if ( ! $parent_id ) {
 			return;
 		}
-		// Update the attachment's parent ID
+		// Update the attachment's parent ID.
 		$attachment_data = [
 			'ID'          => $attachment_id,
 			'post_parent' => $parent_id,
 		];
-		// Update the attachment using wp_update_post
+		// Update the attachment using wp_update_post.
 		wp_update_post( $attachment_data );
 		return $parent_id;
 	}
@@ -694,11 +742,11 @@ class Fns {
 			]
 		);
 	}
-	
+
 	/**
 	 * @return string[]
 	 */
 	public static function default_file_extensions() {
-		return apply_filters('tsmlt_default_file_extensions', [ 'pdf', 'zip', 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
+		return apply_filters( 'tsmlt_default_file_extensions', [ 'pdf', 'zip', 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
 	}
 }
