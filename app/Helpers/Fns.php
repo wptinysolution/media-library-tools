@@ -219,7 +219,7 @@ class Fns {
 	 *
 	 * @return void
 	 */
-	private static function elementor_metadata( $orig_image_url, $new_image_url ) {
+	private static function update_elementor_metadata( $orig_image_url, $new_image_url ) {
 		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
 			return;
 		}
@@ -342,7 +342,7 @@ class Fns {
 				// $searchValue
 				self::replace_image_at_content( 'post_content', $orig_image_url, $new_image_url );
 				self::replace_image_at_content( 'post_excerpt', $orig_image_url, $new_image_url );
-				self::elementor_metadata( $orig_image_url, $new_image_url );
+				self::update_elementor_metadata( $orig_image_url, $new_image_url );
 				if ( empty( get_post_meta( $attachment_id, '_original_file_url', true ) ) ) {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
@@ -355,7 +355,7 @@ class Fns {
 							if ( ! empty( $old_sizes[ $size ] ) ) {
 								self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
 								self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
-								self::elementor_metadata( $old_sizes[ $size ], $new_size_url );
+								self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
 							}
 						}
 					}
@@ -683,8 +683,24 @@ class Fns {
 		if ( empty( $post_ids ) ) {
 			$post_ids = self::search_elementor_metadata( $orig_image_url );
 		}
+		if ( empty( $post_ids ) ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id );
+			if ( ! empty( $metadata['sizes'] ) ) {
+				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
+					$url      = wp_get_attachment_image_url( $attachment_id, $size );
+					$post_ids = self::search_image_at_content( $url );
+					if ( ! empty( $post_ids ) ) {
+						break;
+					}
+					$post_ids = self::search_elementor_metadata( $url );
+					if ( ! empty( $post_ids ) ) {
+						break;
+					}
+				}
+			}
+		}
 		if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
-			$parent_id = ! empty( $post_ids ) ? reset( $post_ids ) : null;
+			$parent_id = reset( $post_ids );
 		}
 
 		if ( ! $parent_id ) {
