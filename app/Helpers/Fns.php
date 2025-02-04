@@ -397,7 +397,7 @@ class Fns {
 	public static function get_options() {
 		$defaults = [
 			'media_per_page'         => 20,
-			'media_table_column'     => [ 'ID', 'Image', 'Parents', 'Title', 'Alt', 'Caption', 'Category' ],
+			'media_table_column'     => [ 'ID', 'Image', 'Title', 'Alt', 'Caption', 'Category' ],
 			'media_default_alt'      => '',
 			'media_default_caption'  => '',
 			'media_default_desc'     => '',

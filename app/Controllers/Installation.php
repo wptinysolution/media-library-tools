@@ -18,6 +18,7 @@ class Installation {
             if( empty( $tsmlt_media['media_table_column'] ) ){
                 $tsmlt_media['media_table_column'] = [
                     'Image',
+                    'Parents',
                     'Title',
                     'Alt',
                     'Caption',
