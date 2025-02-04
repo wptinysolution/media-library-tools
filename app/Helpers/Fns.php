@@ -193,28 +193,28 @@ class Fns {
 	 * @param string $orig_image_url
 	 * @return array List of post IDs where the URL is found.
 	 */
-    private static function search_elementor_metadata( $orig_image_url ) {
-        if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
-            return [];
-        }
-        global $wpdb;
-        $table_meta               = $wpdb->postmeta;
-        $table_posts              = $wpdb->posts;
-        $useless_types_conditions = self::$useless_types_conditions;
-        $orig_image_url           = esc_sql( $orig_image_url );
-        $orig_image_url           = str_replace( '/', '\/', $orig_image_url );
-        $searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
+	private static function search_elementor_metadata( $orig_image_url ) {
+		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
+			return [];
+		}
+		global $wpdb;
+		$table_meta               = $wpdb->postmeta;
+		$table_posts              = $wpdb->posts;
+		$useless_types_conditions = self::$useless_types_conditions;
+		$orig_image_url           = esc_sql( $orig_image_url );
+		$orig_image_url           = str_replace( '/', '\/', $orig_image_url );
+		$searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
 
-        $query = $wpdb->prepare(
-            "SELECT m.post_id FROM {$table_meta} AS m
+		$query = $wpdb->prepare(
+			"SELECT m.post_id FROM {$table_meta} AS m
 		JOIN {$table_posts} AS p ON m.post_id = p.ID
 		WHERE m.meta_key = '_elementor_data'
 		AND m.meta_value LIKE %s
 		AND {$useless_types_conditions}",
-            $searchValue
-        );
-        return $wpdb->get_col( $query );
-    }
+			$searchValue
+		);
+		return $wpdb->get_col( $query );
+	}
 	/**
 	 * @param $orig_image_url
 	 * @param $new_image_url
