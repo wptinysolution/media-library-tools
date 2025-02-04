@@ -52,9 +52,10 @@ export default function Datatable() {
         <>
             <MainHeader/>
             <Layout className="layout" >
+                <TheHeader/>
                 { stateValue.generalData.isLoading || stateValue.mediaData.isLoading ?  <Loader/>  :
                     <>
-                    <TheHeader/>
+
                     <Content>
                         <Table
                             rowKey={(item) => item.ID}
