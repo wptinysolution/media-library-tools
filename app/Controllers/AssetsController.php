@@ -87,7 +87,7 @@ class AssetsController {
 				wp_enqueue_style( 'thickbox' );
 				wp_enqueue_script( 'tsmlt-settings' );
 
-				// WPml Create Issue
+				// WPml Create Issue.
 				wp_dequeue_style( 'wpml-tm-styles' );
 				wp_dequeue_script( 'wpml-tm-scripts' );
 
