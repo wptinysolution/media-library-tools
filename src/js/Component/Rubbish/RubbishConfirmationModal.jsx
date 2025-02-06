@@ -43,9 +43,13 @@ function RubbishConfirmationModal() {
         if(  'ignore' === stateValue.bulkRubbishData.type ){
             response = await singleIgnoreApi( { file_path: file.path });
         } else if ( 'delete' === stateValue.bulkRubbishData.type ){
-            // response = await singleDeleteApi( { file_path: file.path });
-            response = await rubbishBulkDeleteApi( { file_paths: prams.files });
-            prams.files = [];
+            if ( '1.3.6' === tsmltParams?.proVersion ) {
+                response = await rubbishBulkDeleteApi({file_paths: prams.files});
+                prams.files = [];
+            } else {
+                response = await singleDeleteApi( { file_path: file.path });
+                console.log( 'response', response )
+            }
         } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }

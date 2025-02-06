@@ -90,8 +90,8 @@ class AssetsController {
 				// WPml Create Issue
 				wp_dequeue_style( 'wpml-tm-styles' );
 				wp_dequeue_script( 'wpml-tm-scripts' );
-				
-				$upload_dir = wp_upload_dir(); // Get the upload directory path
+
+				$upload_dir = wp_upload_dir(); // Get the upload directory path.
 				wp_localize_script(
 					'tsmlt-settings',
 					'tsmltParams',
@@ -99,11 +99,12 @@ class AssetsController {
 						'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
 						'adminUrl'       => esc_url( admin_url() ),
 						'hasExtended'    => tsmlt()->has_pro(),
+						'proVersion'     => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
 						'proLink'        => tsmlt()->pro_version_link(),
 						'includesUrl'    => esc_url( includes_url() ),
 						'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
 						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-						'hasWoo'  => function_exists( 'WC' ),
+						'hasWoo'         => function_exists( 'WC' ),
 						'restApiUrl'     => esc_url_raw( rest_url() ),
 						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
 						tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
