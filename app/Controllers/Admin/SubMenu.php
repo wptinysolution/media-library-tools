@@ -308,9 +308,12 @@ class SubMenu {
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
 
-							<li class="footer-text" >
+							<li class="footer-text" style="display: flex;justify-content: space-between;">
 								<div class="footer text">
-									<a style="margin-top:30px;color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website <span class="dashicons dashicons-arrow-right-alt"></span></a>
+									<a style="margin-top:30px;color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://checkout.freemius.com/plugin/13159/plan/22377/licenses/5/"> Buy Now <span class="dashicons dashicons-arrow-right-alt"></span></a>
+								</div>
+								<div class="footer text">
+									<a style="margin-top:30px;color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/"> Visit Our Website</a>
 								</div>
 
 							</li>
