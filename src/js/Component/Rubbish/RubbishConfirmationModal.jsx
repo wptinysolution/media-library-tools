@@ -6,7 +6,7 @@ import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import { singleDeleteApi, singleIgnoreApi, singleShowApi } from "../../Utils/Data";
+import {rubbishBulkDeleteApi, singleDeleteApi, singleIgnoreApi, singleShowApi} from "../../Utils/Data";
 
 const {  Content } = Layout;
 
@@ -43,7 +43,9 @@ function RubbishConfirmationModal() {
         if(  'ignore' === stateValue.bulkRubbishData.type ){
             response = await singleIgnoreApi( { file_path: file.path });
         } else if ( 'delete' === stateValue.bulkRubbishData.type ){
-            response = await singleDeleteApi( { file_path: file.path });
+            // response = await singleDeleteApi( { file_path: file.path });
+            response = await rubbishBulkDeleteApi( { file_paths: prams.files });
+            prams.files = [];
         } else if ( 'show' === stateValue.bulkRubbishData.type ){
             response = await singleShowApi( { file_path: file.path });
         }

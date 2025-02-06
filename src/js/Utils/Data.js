@@ -168,6 +168,16 @@ export const singleDeleteApi = async (prams) => {
  * @param prams
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
+export const rubbishBulkDeleteApi = async (prams) => {
+    return await Api.post(`/rubbish/bulk/delete/action`, prams);
+}
+
+
+/**
+ *
+ * @param prams
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
 export const rubbishSingleDeleteAction = async (prams) => {
     const response = await singleDeleteApi( prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
