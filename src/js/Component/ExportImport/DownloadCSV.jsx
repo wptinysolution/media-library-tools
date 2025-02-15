@@ -49,7 +49,7 @@ function DownloadCSV() {
             ...custom_meta,
         }));
 
-        console.log( updatedData ) ;
+        console.log( 'updatedData', updatedData ) ;
 
         setMediaFiles( (prevState) => updatedData );
     };

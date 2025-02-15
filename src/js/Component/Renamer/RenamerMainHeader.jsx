@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-import {Typography, Layout, Button, Space, Input, Select} from 'antd';
+import {Typography, Layout, Button, Space, Input, Select, Checkbox} from 'antd';
 
 const { Title } = Typography;
 
@@ -57,7 +57,7 @@ function RenamerMainHeader() {
                 }
             },
         });
-        console.log( search )
+        console.log( 'search', search )
     };
 
     useEffect(() => {
@@ -121,7 +121,7 @@ function RenamerMainHeader() {
                 textAlign: 'center'
             }}> Renamer Note:  We suggest you before renaming at first you should practice in your staging site. Before making any changes to the "File Name," it is highly recommended to take a backup. Renaming the file will also modify file URL. If you have hardcoded the file URL anywhere, please ensure to update it with the new URL after renaming. Item Per page maximum allowed 1000 for ignoring server capacity issue.</Title>
 
-            <Space >
+            <Space wrap >
                 <Select
                     allowClear={true}
                     size="large"
@@ -201,7 +201,6 @@ function RenamerMainHeader() {
                     }
                     value={stateValue.options.media_per_page}
                 />
-
             </Space>
             <BulkRanameModal />
         </Header>

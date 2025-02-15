@@ -64,6 +64,19 @@ function Settings() {
             }
         });
     };
+    /**
+     *
+     * @param e
+     */
+    const searchPost = (e) => {
+        dispatch({
+            type: Types.UPDATE_OPTIONS,
+            options : {
+                ...stateValue.options,
+                search_parent_post: e.target.checked,
+            }
+        });
+    };
 
     const setDefaultText = (e) => {
         if ( ! tsmltParams.hasExtended ){
@@ -103,7 +116,6 @@ function Settings() {
                 others_file_support: list,
             }
         });
-
     };
 
     return (<>
@@ -137,6 +149,14 @@ function Settings() {
                             <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
                             <Divider style={ { margin: '10px 0' } }/>
                             <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
+                        </Form.Item>
+                        <Divider />
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Search Attached Post </Title>} >
+                            <Checkbox onChange={searchPost} checked={stateValue.options.search_parent_post} > Search attached post when render media in media table </Checkbox>
+                            <br/>
+                            <Text  type="secondary"  >
+                                Search and attach media file when media file render.
+                            </Text>
                         </Form.Item>
                         <Divider />
                         <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others File Support </Title>} >

@@ -472,7 +472,7 @@ export function RubbishFileColumns(){
                 progressTotal: files.length
             },
         });
-        console.log( files )
+        console.log( 'files', files )
     };
     /**
      *

@@ -289,6 +289,8 @@ class Api {
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
+		$tsmlt_media['search_parent_post'] = $parameters['search_parent_post'] ?? false;
+
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
@@ -374,13 +376,13 @@ class Api {
 			return $result;
 		}
 
-		// Check if PRO version is activated where needed
+		// Check if PRO version is activated where needed.
 		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
 			$result['message'] = esc_html__( 'Please activate the license key.', 'tsmlt-media-tools' );
 			return $result;
 		}
 		$attachment = get_post( $parameters['ID'] );
-		// Handle bulk rename based on post title or SKU
+		// Handle bulk rename based on post title or SKU.
 		$new_name  = $parameters['newname'] ?? '';
 		$rename_to = '';
 		if ( ! empty( $new_name ) ) {

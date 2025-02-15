@@ -148,7 +148,7 @@ function App() {
                     type: stateValue.bulkSubmitData.type,
                 },
             });
-            console.log( stateValue )
+            console.log( 'stateValue', stateValue )
         }
         console.log( 'submitBulkMediaAction' );
     };

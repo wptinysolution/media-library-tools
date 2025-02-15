@@ -49,6 +49,7 @@ export const initialState = {
 		media_auto_rename_text: '',
         deregistered_image_sizes: [],
         custom_image_sizes: [],
+        search_parent_post: true,
 	},
 	rubbishMedia:{
 		isLoading: true,

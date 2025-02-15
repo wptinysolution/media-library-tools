@@ -15,13 +15,13 @@ function BulkModalForCSV() {
 
     const bulkExportData = stateValue.bulkExport;
 
-    console.log( bulkExportData );
+    console.log( 'bulkExportData kk', bulkExportData );
 
     /**
      * @param event
      */
     const handleBulkModalOk = () => {
-        console.log( bulkExportData );
+        console.log( 'bulkExportData', bulkExportData );
     };
 
     /**

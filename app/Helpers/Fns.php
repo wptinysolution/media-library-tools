@@ -674,6 +674,10 @@ class Fns {
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
 			return;
 		}
+		$options = self::get_options();
+		if ( empty( $options['search_parent_post'] ) ) {
+			return;
+		}
 		global $wpdb;
 		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
 		$parent_id = $wpdb->get_var( $query );
