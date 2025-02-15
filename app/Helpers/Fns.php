@@ -667,15 +667,14 @@ class Fns {
 	 * @return int|void
 	 */
 	public static function set_thumbnail_parent_id( $attachment_id ) {
-
+		$options = self::get_options();
+		if ( empty( $options['search_parent_post'] ) ) {
+			return;
+		}
 		if ( 'attachment' !== get_post_type( $attachment_id ) ) {
 			return;
 		}
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
-			return;
-		}
-		$options = self::get_options();
-		if ( empty( $options['search_parent_post'] ) ) {
 			return;
 		}
 		global $wpdb;
