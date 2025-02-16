@@ -151,8 +151,8 @@ function Settings() {
                             <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
                         </Form.Item>
                         <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Search Attached Post </Title>} >
-                            <Checkbox onChange={searchPost} checked={stateValue.options.search_parent_post} > Search attached post when render media in media table </Checkbox>
+                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Search And Set Attached Post </Title>} >
+                            <Checkbox onChange={searchPost} checked={stateValue.options.search_parent_post} > Search And Set attached post when render media in media table </Checkbox>
                             <br/>
                             <Text type="secondary" >
                                 Search and attach media file when media file render.
