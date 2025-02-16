@@ -389,6 +389,7 @@ class Api {
 			if ( $attachment ) {
 				$post_id = $attachment->post_parent;
 				if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
+
 					$rename_to = Fns::add_filename_prefix_suffix( get_the_title( $post_id ) );
 				} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
 					$rename_to = Fns::add_filename_prefix_suffix( get_post_meta( $post_id, '_sku', true ) );
@@ -589,15 +590,17 @@ class Api {
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
 			// Set Thumbnail Uploaded to.
-			$parent_id        = Fns::set_thumbnail_parent_id( $post->ID );
 			$parent_title     = '';
 			$parent_permalink = '';
 			if ( $post->post_parent ) {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
-			} elseif ( $parent_id ) {
-				$parent_title     = get_the_title( $parent_id );
-				$parent_permalink = get_the_permalink( $parent_id );
+			} else {
+				$parent_id = Fns::set_thumbnail_parent_id( $post->ID );
+				if ( $parent_id ) {
+					$parent_title     = get_the_title( $parent_id );
+					$parent_permalink = get_the_permalink( $parent_id );
+				}
 			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
