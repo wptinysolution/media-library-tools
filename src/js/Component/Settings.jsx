@@ -64,20 +64,7 @@ function Settings() {
             }
         });
     };
-    /**
-     *
-     * @param e
-     */
-    const searchPost = (e) => {
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options : {
-                ...stateValue.options,
-                search_parent_post: e.target.checked,
-            }
-        });
-    };
-
+  
     const setDefaultText = (e) => {
         if ( ! tsmltParams.hasExtended ){
             const fields = [

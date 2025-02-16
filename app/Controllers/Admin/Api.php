@@ -288,9 +288,7 @@ class Api {
 		$tsmlt_media['others_file_support'] = $parameters['others_file_support'] ?? [];
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
-
-		$tsmlt_media['search_parent_post'] = $parameters['search_parent_post'] ?? false;
-
+		
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
