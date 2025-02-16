@@ -288,7 +288,7 @@ class Api {
 		$tsmlt_media['others_file_support'] = $parameters['others_file_support'] ?? [];
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
-		
+
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
@@ -386,8 +386,10 @@ class Api {
 		if ( ! empty( $new_name ) ) {
 			if ( $attachment ) {
 				$post_id = $attachment->post_parent;
+				if ( ! $post_id ) {
+					$post_id = Fns::set_thumbnail_parent_id( $parameters['ID'] );
+				}
 				if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
-
 					$rename_to = Fns::add_filename_prefix_suffix( get_the_title( $post_id ) );
 				} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
 					$rename_to = Fns::add_filename_prefix_suffix( get_post_meta( $post_id, '_sku', true ) );

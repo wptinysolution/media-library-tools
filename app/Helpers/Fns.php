@@ -668,15 +668,15 @@ class Fns {
 	 */
 	public static function set_thumbnail_parent_id( $attachment_id ) {
 		if ( 'attachment' !== get_post_type( $attachment_id ) ) {
-			return;
+			return false;
 		}
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
-			return;
+			return false;
 		}
 
 		$time = get_post_meta( $attachment_id, '_parent_post_found', true );
 		if ( $time > time() ) {
-			return;
+			return false;
 		}
 		global $wpdb;
 		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
@@ -711,7 +711,7 @@ class Fns {
 
 		if ( ! $parent_id ) {
 			update_post_meta( $attachment_id, '_parent_post_found', time() + 10 * MINUTE_IN_SECONDS );
-			return;
+			return false;
 		}
 		// Update the attachment's parent ID.
 		$attachment_data = [
