@@ -673,13 +673,9 @@ class Fns {
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
 			return;
 		}
-		/*
-		$options = self::get_options();
-		if ( ! empty( $options['search_parent_post'] ) ) {
-			delete_post_meta( $attachment_id, '_parent_post_found' );
-		}
-		*/
-		if ( 'no' === get_post_meta( $attachment_id, '_parent_post_found', true ) ) {
+
+		$time = get_post_meta( $attachment_id, '_parent_post_found', true );
+		if ( $time > time() ) {
 			return;
 		}
 		global $wpdb;
@@ -714,7 +710,7 @@ class Fns {
 		}
 
 		if ( ! $parent_id ) {
-			update_post_meta( $attachment_id, '_parent_post_found', 'no' );
+			update_post_meta( $attachment_id, '_parent_post_found', time() + 10 * MINUTE_IN_SECONDS );
 			return;
 		}
 		// Update the attachment's parent ID.
