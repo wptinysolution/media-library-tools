@@ -23,6 +23,7 @@ const { Content } = Layout;
 import { columnList } from '../Utils/UtilData'
 
 import * as Types from "../Utils/actionType";
+
 import MainHeader from "./MainHeader";
 
 const CheckboxGroup = Checkbox.Group;

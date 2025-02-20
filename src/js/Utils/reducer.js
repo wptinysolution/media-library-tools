@@ -4,8 +4,6 @@ import * as Types from "./actionType";
 
 import {defaultBulkSubmitData, localRetrieveData } from "./UtilData";
 
-//import { localStoreData, localRetrieveData } from "../../Utils/UtilData";
-
 export const initialState = {
 	saveType: null,
 	mediaData: {

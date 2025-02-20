@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
 import Loader from '../Utils/Loader';
-import { Avatar, Card, Anchor } from 'antd';
+import { Avatar, Card } from 'antd';
 const { Meta } = Card;
 import {
     Button,
-    Layout,
-    Typography
+    Layout
 } from 'antd';
 
-const { Title, Paragraph  } = Typography;
-
 import {getPluginList} from "../Utils/Data";
+
 import MainHeader from "./MainHeader";
 
 function PluginList() {

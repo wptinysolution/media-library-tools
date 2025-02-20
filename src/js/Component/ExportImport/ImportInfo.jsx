@@ -5,7 +5,7 @@ import {Divider, Progress, Layout, Typography, Button, List, Avatar} from 'antd'
 import { useStateValue } from "../../Utils/StateProvider";
 
 import {importOneByOne } from "../../Utils/Data";
-import * as Types from "../../Utils/actionType";
+
 import {Link} from "react-router-dom";
 
 const {

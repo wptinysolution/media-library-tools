@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { useStateValue } from '../Utils/StateProvider';
-
 import {
     Layout,
     Typography
@@ -13,8 +11,6 @@ const { Content } = Layout;
 const { Title, Paragraph  } = Typography;
 
 function NeedSupport() {
-
-    const [stateValue, dispatch] = useStateValue();
 
     return (
         <>
