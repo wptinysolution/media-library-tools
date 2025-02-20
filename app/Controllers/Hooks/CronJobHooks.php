@@ -48,9 +48,9 @@ class CronJobHooks {
 	 * @return array The modified cron schedules.
 	 */
 	public function add_custom_cron_schedules( $schedules ) {
-		$schedules['every_three_hours'] = [
-			'interval' => 3 * 3600,
-			'display'  => __( 'Every Three Hours' ),
+		$schedules['every_six_hours'] = [
+			'interval' => 6 * 3600,
+			'display'  => __( 'Every 6 Hours' ),
 		];
 		return $schedules;
 	}
@@ -64,7 +64,7 @@ class CronJobHooks {
 		$event_hook = 'tsmlt_five_times_thumbnail_event';
 		if ( ! wp_next_scheduled( $event_hook ) ) {
 			wp_clear_scheduled_hook( $event_hook );
-			wp_schedule_event( time(), 'every_three_hours', $event_hook );
+			wp_schedule_event( time(), 'every_six_hours', $event_hook );
 		}
 	}
 
