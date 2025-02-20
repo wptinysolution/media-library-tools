@@ -5,6 +5,7 @@ import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox, Progr
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
+
 import {getMedia, singleUpDateApi} from "../../Utils/Data";
 
 const {  Content } = Layout;

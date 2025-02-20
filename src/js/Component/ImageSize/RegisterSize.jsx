@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {useStateValue} from "../../Utils/StateProvider";
-import MainHeader from "../MainHeader";
 
 import {
     Tooltip,
@@ -17,9 +16,8 @@ import {
     Button
 } from 'antd';
 import {DeleteOutlined} from "@ant-design/icons";
-import {getOptions, getRegisteredImageSizes} from "../../Utils/Data";
+
 import * as Types from "../../Utils/actionType";
-import Loader from "../../Utils/Loader";
 
 const { Title, Text } = Typography;
 
@@ -197,8 +195,7 @@ function RegisterSize() {
                             );
                         })
                     }
-                    {/*<Text> Each Input Field Is required </Text>*/}
-                    {/*<Divider style={{margin:'10px 0'}}/>*/}
+
                     <Button
                         onClick={ () => addNewImageSize() }
                         type="primary"> Add New Size

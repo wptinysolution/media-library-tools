@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 import {useStateValue} from "../../Utils/StateProvider";
 
-import {Button} from "antd";
-
 import { useCSVDownloader } from 'react-papaparse';
 
 const buttonStyle = {
@@ -11,10 +9,7 @@ const buttonStyle = {
     width: '200px',
     height: '70px',
     fontSize: '25px',
-    // display: 'flex',
     cursor: 'pointer',
-    // alignItems: 'center',
-    // justifyContent: 'center'
 }
 
 /**

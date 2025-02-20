@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-import {Typography, Layout, Button, Space, Input, Select, Checkbox} from 'antd';
+import {Typography, Layout, Button, Space, Input, Select} from 'antd';
 
 const { Title } = Typography;
 

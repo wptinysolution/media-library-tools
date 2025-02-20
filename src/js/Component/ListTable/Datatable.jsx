@@ -15,7 +15,9 @@ import {useStateValue} from "../../Utils/StateProvider";
 import * as Types from "../../Utils/actionType";
 
 import BulkModal from "./BulkModal";
+
 import BulkModalForCSV from "./BulkModalForCSV";
+
 import MainHeader from "../MainHeader";
 
 export default function Datatable() {
@@ -27,6 +29,7 @@ export default function Datatable() {
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
+                isLoading: true,
                 postQuery : {
                     ...stateValue.mediaData.postQuery,
                     paged : current

@@ -1,6 +1,6 @@
-import React, { useState , useEffect } from "react";
+import React from "react";
 
-import { Divider, Modal, Popconfirm, Progress, Layout, Button, Spin, Space, Typography} from 'antd';
+import { Layout, Button, Spin, Space, Typography} from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -13,9 +13,11 @@ import {
 import {useStateValue} from "../../Utils/StateProvider";
 
 import ImportInfo from "./ImportInfo";
+
 import * as Types from "../../Utils/actionType";
 
 import UploadCsv from "./UploadCsv";
+
 import MainHeader from "../MainHeader";
 
 const buttonStyle = {

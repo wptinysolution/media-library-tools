@@ -22,15 +22,13 @@ import Settings from "./Settings";
 
 import NeedSupport from "./NeedSupport";
 
-import MainHeader from "./MainHeader";
-
 import * as Types from "../Utils/actionType";
 
 import Datatable from "./ListTable/Datatable";
 
 import { useStateValue } from "../Utils/StateProvider";
 
-import { defaultBulkSubmitData, functionDebounce } from "../Utils/UtilData";
+import { defaultBulkSubmitData } from "../Utils/UtilData";
 
 import RenamerTableData from "./Renamer/RenamerTableData";
 

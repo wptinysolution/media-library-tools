@@ -36,6 +36,12 @@ body {
 				content: none;
 			}
 		}
+		.ant-pagination-item-active{
+			background-color: #1677ff;
+			a{
+				color: #fff;
+			}
+		}
 	}
 	
 	.tsmlt-is-submenu{

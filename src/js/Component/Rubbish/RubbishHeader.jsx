@@ -8,7 +8,7 @@ import { useStateValue } from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
 
-import {getDirList, getRubbishFile, getRubbishFileType, notifications} from "../../Utils/Data";
+import {getDirList, getRubbishFileType, notifications} from "../../Utils/Data";
 
 import RubbishConfirmationModal from "./RubbishConfirmationModal";
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {Divider, Modal, List, Progress, Layout, Button, Spin, Space, Typography, Checkbox} from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useStateValue } from "../../Utils/StateProvider";
-import { rescanDir, searchFileBySingleDir, truncateUnlistedFile } from "../../Utils/Data";
+import { rescanDir, truncateUnlistedFile } from "../../Utils/Data";
 import Axios from 'axios';
 import * as Types from "../../Utils/actionType";
 

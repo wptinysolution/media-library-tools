@@ -12,6 +12,7 @@ import { useStateValue } from "../../Utils/StateProvider";
 import Loader from "../../Utils/Loader";
 
 import * as Types from "../../Utils/actionType";
+
 import MainHeader from "../MainHeader";
 
 const { Content } = Layout;

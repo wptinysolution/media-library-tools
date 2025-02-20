@@ -1,30 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import {useStateValue} from "../../Utils/StateProvider";
-import MainHeader from "../MainHeader";
 
 import {
     Checkbox,
     Col,
-    Divider,
     Flex,
-    Input,
-    InputNumber,
-    Layout,
-    Switch,
     Row,
-    Typography,
-    Button
+    Typography
 } from 'antd';
-import {DeleteOutlined} from "@ant-design/icons";
-import {getOptions, getRegisteredImageSizes} from "../../Utils/Data";
+
+import { getRegisteredImageSizes} from "../../Utils/Data";
 import * as Types from "../../Utils/actionType";
-import Loader from "../../Utils/Loader";
-import RegisterSize from "./RegisterSize";
 
 const { Title, Text } = Typography;
 
-const { Content } = Layout;
 
 /**
  *
