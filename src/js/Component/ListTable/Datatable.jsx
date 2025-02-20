@@ -47,6 +47,8 @@ export default function Datatable() {
         return stateValue.options.media_table_column.includes( `${currentValue.key}` );
     } );
 
+    const bulkExportData = stateValue.bulkExport;
+
     // optionsData
     return (
         <>
@@ -76,10 +78,12 @@ export default function Datatable() {
                             pageSize={ stateValue.mediaData.posts_per_page }
                             current={ stateValue.mediaData.paged }
                             onChange={(current) => handlePagination(current)}
-
                         />
                     </Content>
-                    <BulkModal/><BulkModalForCSV />
+                    <BulkModal/>
+                        {
+                            bulkExportData.isModalOpen && ( <BulkModalForCSV /> )
+                        }
                     </>
                 }
             </Layout>
