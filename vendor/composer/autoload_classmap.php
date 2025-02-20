@@ -15,6 +15,7 @@ return array(
     'TinySolutions\\mlt\\Controllers\\Dependencies' => $baseDir . '/app/Controllers/Dependencies.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => $baseDir . '/app/Controllers/Hooks/ActionHooks.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\Ajax' => $baseDir . '/app/Controllers/Hooks/Ajax.php',
+    'TinySolutions\\mlt\\Controllers\\Hooks\\CronJobHooks' => $baseDir . '/app/Controllers/Hooks/CronJobHooks.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\FilterHooks' => $baseDir . '/app/Controllers/Hooks/FilterHooks.php',
     'TinySolutions\\mlt\\Controllers\\Installation' => $baseDir . '/app/Controllers/Installation.php',
     'TinySolutions\\mlt\\Controllers\\Notice\\Review' => $baseDir . '/app/Controllers/Notice/Review.php',

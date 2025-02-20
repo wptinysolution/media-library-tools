@@ -18,6 +18,7 @@ use TinySolutions\mlt\Controllers\Admin\SubMenu;
 use TinySolutions\mlt\Controllers\AssetsController;
 use TinySolutions\mlt\Controllers\Dependencies;
 use TinySolutions\mlt\Controllers\Hooks\ActionHooks;
+use TinySolutions\mlt\Controllers\Hooks\CronJobHooks;
 use TinySolutions\mlt\Controllers\Hooks\FilterHooks;
 use TinySolutions\mlt\Controllers\Hooks\Ajax;
 use TinySolutions\mlt\Controllers\Installation;
@@ -117,7 +118,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			Api::instance();
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
-			
+			CronJobHooks::instance();
 			if ( is_admin() ) {
 				SpecialDiscount::instance();
 				Review::instance();

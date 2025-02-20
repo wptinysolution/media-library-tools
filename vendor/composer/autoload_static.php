@@ -38,6 +38,7 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
         'TinySolutions\\mlt\\Controllers\\Dependencies' => __DIR__ . '/../..' . '/app/Controllers/Dependencies.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/ActionHooks.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\Ajax' => __DIR__ . '/../..' . '/app/Controllers/Hooks/Ajax.php',
+        'TinySolutions\\mlt\\Controllers\\Hooks\\CronJobHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/CronJobHooks.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\FilterHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/FilterHooks.php',
         'TinySolutions\\mlt\\Controllers\\Installation' => __DIR__ . '/../..' . '/app/Controllers/Installation.php',
         'TinySolutions\\mlt\\Controllers\\Notice\\Review' => __DIR__ . '/../..' . '/app/Controllers/Notice/Review.php',
