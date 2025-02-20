@@ -357,7 +357,7 @@ class FilterHooks {
 						'compare' => 'NOT EXISTS',
 					],
 					[
-						'relation' => 'OR', // Add a nested "OR" relation to handle empty alt text
+						'relation' => 'OR', // Add a nested "OR" relation to handle empty alt text.
 						[
 							'key'     => '_wp_attachment_image_alt',
 							'compare' => 'EXISTS',

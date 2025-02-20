@@ -10,19 +10,18 @@ namespace TinySolutions\mlt\Controllers\Hooks;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
-
 defined( 'ABSPATH' ) || exit();
 
 /**
  * Main ActionHooks class.
  */
 class CronJobHooks {
-	
+
 	/**
 	 * Singleton
 	 */
 	use SingletonTrait;
-	
+
 	/**
 	 * Init Hooks.
 	 *
@@ -35,45 +34,103 @@ class CronJobHooks {
 		// Rubbish Cron Job.
 		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
 		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rubbish_file_cron_job' ] );
+		// Thumbnail Cron Job (5 times a day).
+		add_action( 'init', [ $this, 'schedule_thumbnail_cron_job' ] );
+		add_action( 'tsmlt_five_times_thumbnail_event', [ $this, 'execute_thumbnail_cron_job' ] );
+		// Add custom interval for 5 times a day.
+		add_filter( 'cron_schedules', [ $this, 'add_custom_cron_schedules' ] );
 	}
 
 	/**
-	 * Schedule the cron job
+	 * Add custom cron intervals.
+	 *
+	 * @param array $schedules The existing cron schedules.
+	 * @return array The modified cron schedules.
+	 */
+	public function add_custom_cron_schedules( $schedules ) {
+		$schedules['every_three_hours'] = [
+			'interval' => 3 * 3600,
+			'display'  => __( 'Every Three Hours' ),
+		];
+		return $schedules;
+	}
+
+	/**
+	 * Schedule the thumbnail cron job to run 5 times a day.
+	 *
+	 * @return void
+	 */
+	public function schedule_thumbnail_cron_job() {
+		$event_hook = 'tsmlt_five_times_thumbnail_event';
+		if ( ! wp_next_scheduled( $event_hook ) ) {
+			wp_clear_scheduled_hook( $event_hook );
+			wp_schedule_event( time(), 'every_three_hours', $event_hook );
+		}
+	}
+
+	/**
+	 * Execute the thumbnail cron job in batches of 100.
+	 *
+	 * @return void
+	 */
+	public function execute_thumbnail_cron_job() {
+		 $batch_size        = 100;
+		 $offset_option_key = 'tsmlt_thumbnail_cron_offset';
+		$offset             = (int) get_option( $offset_option_key, 0 );
+		$args               = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => $batch_size,
+			'offset'         => $offset,
+			'fields'         => 'ids',
+		];
+		$media_files        = get_posts( $args );
+		if ( ! empty( $media_files ) ) {
+			foreach ( $media_files as $media_id ) {
+				Fns::set_thumbnail_parent_id( $media_id );
+			}
+			// Update offset for the next batch.
+			$offset += $batch_size;
+			update_option( $offset_option_key, $offset );
+		} else {
+			// Reset the offset when no more media files are found.
+			update_option( $offset_option_key, 0 );
+		}
+	}
+
+	/**
+	 * Schedule the rubbish file cron job (daily).
 	 *
 	 * @return void
 	 */
 	public function schedule_rubbish_file_cron_job() {
 		$file_scan_event_hook = 'tsmlt_upload_inner_file_scan';
-		// Check if the cron job is already scheduled.
-		$is_scheduled = wp_next_scheduled( $file_scan_event_hook );
+		$is_scheduled         = wp_next_scheduled( $file_scan_event_hook );
 		if ( ! $is_scheduled ) {
-			// Clear any existing scheduled events with the same hook.
 			wp_clear_scheduled_hook( $file_scan_event_hook );
 			$schedule = 'daily';
-			// Schedule the cron job to run every minute.
 			wp_schedule_event( time(), $schedule, $file_scan_event_hook );
 		}
 	}
-	
+
 	/**
-	 * Function to scan the upload directory and search for files
+	 * Execute the rubbish file cron job.
+	 *
+	 * @return void
 	 */
 	public function scan_rubbish_file_cron_job() {
 		Fns::scan_rubbish_file_cron_job();
 	}
-	
+
 	/**
-	 * Schedule the cron job
+	 * Schedule the directory scan cron job (weekly).
 	 *
 	 * @return void
-	 * Schedule the cron job
 	 */
 	public function schedule_directory_cron_job() {
 		$dir_scan_event_hook = 'tsmlt_upload_dir_scan';
-		// Check if the cron job is already scheduled.
-		$is_scheduled = wp_next_scheduled( $dir_scan_event_hook );
+		$is_scheduled        = wp_next_scheduled( $dir_scan_event_hook );
 		if ( ! $is_scheduled ) {
-			// Clear any existing scheduled events with the same hook.
 			wp_clear_scheduled_hook( $dir_scan_event_hook );
 			wp_schedule_event( time(), 'weekly', $dir_scan_event_hook );
 		}
