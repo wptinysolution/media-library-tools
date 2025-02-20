@@ -81,12 +81,16 @@ class CronJobHooks {
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'posts_per_page' => $batch_size,
+			'post_parent'    => 0,
 			'offset'         => $offset,
 			'fields'         => 'ids',
+			'order'          => 'DESC',
+			'orderby'        => 'ID',
 		];
 		$media_files        = get_posts( $args );
 		if ( ! empty( $media_files ) ) {
 			foreach ( $media_files as $media_id ) {
+				delete_post_meta( $media_id, '_parent_post_found' );
 				Fns::set_thumbnail_parent_id( $media_id );
 			}
 			// Update offset for the next batch.
