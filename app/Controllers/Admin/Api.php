@@ -712,6 +712,13 @@ class Api {
 
 		$ids = $parameters['ids'] ?? [];
 		switch ( $parameters['type'] ) {
+			case 'searchUses':
+				foreach ( $ids as $id ) {
+					Fns::set_thumbnail_parent_id( $id );
+				}
+				$result['updated'] = true;
+				$result['message'] = $result['updated'] ? esc_html__( 'Updated. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+				break;
 			case 'trash':
 			case 'inherit':
 				$query   = $wpdb->prepare(

@@ -125,12 +125,20 @@ function App() {
     }
 
     const handleBulkModalDataSave = async () => {
+        await dispatch({
+            type: Types.GET_MEDIA_LIST,
+            mediaData: {
+                ...stateValue.mediaData,
+                isLoading: true
+            },
+        });
         const response = await submitBulkMediaAction( stateValue.bulkSubmitData );
         if( 200 === parseInt( response.status ) && response.data.updated ){
             await dispatch({
                 type: Types.GET_MEDIA_LIST,
                 mediaData: {
                     ...stateValue.mediaData,
+                    isLoading: false,
                     postQuery: {
                         ...stateValue.mediaData.postQuery,
                         isUpdate: ! stateValue.mediaData.postQuery.isUpdate,

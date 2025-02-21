@@ -87,13 +87,6 @@ function TheHeader() {
             return;
         }
         switch( stateValue.bulkSubmitData.type ){
-            // case 'searchUses':
-            //     dispatch({
-            //         ...stateValue,
-            //         type: Types.SEARCH_USES,
-            //         saveType: Types.SEARCH_USES,
-            //     });
-            //     break;
             case 'csv_export':
                 dispatch({
                     ...stateValue,
@@ -157,7 +150,6 @@ function TheHeader() {
         upDateQuery();
     }, [ search ]);
 
-    console.log('stateValue.bulkSubmitData.type', stateValue );
     return (
         <Header style={headerStyle}>
             <Space wrap>
