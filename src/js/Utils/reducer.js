@@ -102,6 +102,9 @@ export const initialState = {
     bulkExport: {
         isModalOpen: false,
     },
+    searchUses: {
+        isModalOpen: false,
+    },
 };
 
 const reducer = (state, action) => {
@@ -165,6 +168,11 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 bulkExport : action.bulkExport,
+            };
+        case Types.SEARCH_USES:
+            return {
+                ...state,
+                searchUses : action.searchUses,
             };
 
 		default:

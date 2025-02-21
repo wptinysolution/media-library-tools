@@ -18,6 +18,7 @@ import {useSearchDebounce} from "../../Utils/Hooks";
 import * as Types from "../../Utils/actionType";
 
 import {notifications} from "../../Utils/Data";
+import {SEARCH_USES, SEARCHUSES} from "../../Utils/actionType";
 
 const { Header } = Layout;
 
@@ -70,7 +71,7 @@ function TheHeader() {
 
     const handleBulkSubmit = () => {
 
-        if ( 'bulkEditPostTitle' == stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+        if ( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -88,6 +89,15 @@ function TheHeader() {
 
         switch( stateValue.bulkSubmitData.type ){
             case 'searchUses':
+                dispatch({
+                    ...stateValue,
+                    type: Types.SEARCH_USES,
+                    saveType: Types.SEARCH_USES,
+                    searchUses: {
+                        ...stateValue.searchUses,
+                        isModalOpen : true,
+                    },
+                });
                 break;
             case 'csv_export':
                 dispatch({
@@ -161,7 +171,7 @@ function TheHeader() {
                     style={ { ...selectStyle, minWidth: '280px', width: 'inherit' } }
                     onChange={handleChangeBulkType}
                     options={
-                        postQuery.filtering && 'trash' == postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
+                        postQuery.filtering && 'trash' === postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
                     }
                 />
 

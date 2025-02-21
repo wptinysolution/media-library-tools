@@ -19,6 +19,7 @@ import BulkModal from "./BulkModal";
 import BulkModalForCSV from "./BulkModalForCSV";
 
 import MainHeader from "../MainHeader";
+import SearchUsesModal from "./SearchUsesModal";
 
 export default function Datatable() {
 
@@ -51,7 +52,8 @@ export default function Datatable() {
     } );
 
     const bulkExportData = stateValue.bulkExport;
-
+    const bulkSubmitData = stateValue.bulkSubmitData;
+    const searchUses = stateValue.searchUses;
     // optionsData
     return (
         <>
@@ -83,10 +85,9 @@ export default function Datatable() {
                             onChange={(current) => handlePagination(current)}
                         />
                     </Content>
-                    <BulkModal/>
-                        {
-                            bulkExportData.isModalOpen && ( <BulkModalForCSV /> )
-                        }
+                        { searchUses.isModalOpen ? <SearchUsesModal /> : null }
+                        { bulkSubmitData.isModalOpen ? <BulkModal /> : null }
+                        { bulkExportData.isModalOpen ? <BulkModalForCSV /> : null }
                     </>
                 }
             </Layout>

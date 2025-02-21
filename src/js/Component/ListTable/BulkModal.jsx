@@ -41,7 +41,9 @@ function BulkModal() {
         const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
         setIsButtonDisabled( isDisable );
     };
-
+    /**
+     * Button Disable
+     */
     const isTheButtonDisabled = () => {
         let changeDetected = false;
         if( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ){
@@ -52,7 +54,6 @@ function BulkModal() {
         const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
         setIsButtonDisabled( isDisable );
     };
-
 
     /**
      *
@@ -123,9 +124,9 @@ function BulkModal() {
                 saveType: Types.BULK_SUBMIT
             });
         }
-
     };
     /**
+     * searchUses
      * @param event
      */
     const handleBulkModalCancel = () => {
