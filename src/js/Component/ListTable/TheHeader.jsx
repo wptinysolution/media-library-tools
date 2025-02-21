@@ -111,16 +111,6 @@ function TheHeader() {
                 });
                 break;
             case 'bulkedit':
-                dispatch({
-                    ...stateValue,
-                    type: Types.BULK_SUBMIT,
-                    saveType: null,
-                    bulkSubmitData: {
-                        ...stateValue.bulkSubmitData,
-                        isModalOpen : true,
-                    },
-                });
-                break;
             case 'bulkEditPostTitle':
                 dispatch({
                     ...stateValue,
