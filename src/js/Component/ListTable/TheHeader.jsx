@@ -86,19 +86,14 @@ function TheHeader() {
             notifications( false, 'No checkboxes are checked. Please select at least one item.' );
             return;
         }
-
         switch( stateValue.bulkSubmitData.type ){
-            case 'searchUses':
-                dispatch({
-                    ...stateValue,
-                    type: Types.SEARCH_USES,
-                    saveType: Types.SEARCH_USES,
-                    searchUses: {
-                        ...stateValue.searchUses,
-                        isModalOpen : true,
-                    },
-                });
-                break;
+            // case 'searchUses':
+            //     dispatch({
+            //         ...stateValue,
+            //         type: Types.SEARCH_USES,
+            //         saveType: Types.SEARCH_USES,
+            //     });
+            //     break;
             case 'csv_export':
                 dispatch({
                     ...stateValue,
@@ -114,6 +109,7 @@ function TheHeader() {
             case 'inherit':
             case 'update':
             case 'delete':
+            case 'searchUses':
                 dispatch({
                     ...stateValue,
                     type: Types.BULK_SUBMIT,
@@ -161,6 +157,7 @@ function TheHeader() {
         upDateQuery();
     }, [ search ]);
 
+    console.log('stateValue.bulkSubmitData.type', stateValue );
     return (
         <Header style={headerStyle}>
             <Space wrap>
