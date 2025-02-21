@@ -38,6 +38,7 @@ body {
 		}
 		.ant-pagination-item-active{
 			background-color: #1677ff;
+			&:hover a,
 			a{
 				color: #fff;
 			}

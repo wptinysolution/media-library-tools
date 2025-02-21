@@ -596,11 +596,13 @@ class Api {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
 			} else {
+				/*
 				$parent_id = Fns::set_thumbnail_parent_id( $post->ID );
 				if ( $parent_id ) {
 					$parent_title     = get_the_title( $parent_id );
 					$parent_permalink = get_the_permalink( $parent_id );
 				}
+				*/
 			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
