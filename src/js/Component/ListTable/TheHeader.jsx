@@ -87,6 +87,8 @@ function TheHeader() {
         }
 
         switch( stateValue.bulkSubmitData.type ){
+            case 'searchUses':
+                break;
             case 'csv_export':
                 dispatch({
                     ...stateValue,

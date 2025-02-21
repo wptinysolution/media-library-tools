@@ -671,11 +671,6 @@ class Fns {
 			return false;
 		}
 
-		$time = get_post_meta( $attachment_id, '_parent_post_found', true );
-		if ( $time > time() ) {
-			return false;
-		}
-
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
 			return false;
 		}
@@ -709,11 +704,6 @@ class Fns {
 		}
 		if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
 			$parent_id = reset( $post_ids );
-		}
-
-		if ( ! $parent_id ) {
-			update_post_meta( $attachment_id, '_parent_post_found', time() + 30 * MINUTE_IN_SECONDS );
-			return false;
 		}
 		// Update the attachment's parent ID.
 		$attachment_data = [
