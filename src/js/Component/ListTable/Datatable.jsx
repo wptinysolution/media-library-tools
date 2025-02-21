@@ -50,10 +50,17 @@ export default function Datatable() {
         }
         return stateValue.options.media_table_column.includes( `${currentValue.key}` );
     } );
-
-    const bulkExportData = stateValue.bulkExport;
-    const bulkSubmitData = stateValue.bulkSubmitData;
-    const searchUses = stateValue.searchUses;
+    
+    const renderModal = () => {
+        if (stateValue.searchUses.isModalOpen){
+            return <SearchUsesModal />
+        } else if (stateValue.bulkSubmitData.isModalOpen) {
+            return <BulkModal />
+        } else if (stateValue.bulkExport.isModalOpen) {
+            return <BulkModalForCSV />
+        }
+        return null;
+    };
     // optionsData
     return (
         <>
@@ -62,7 +69,6 @@ export default function Datatable() {
                 <TheHeader/>
                 { stateValue.generalData.isLoading || stateValue.mediaData.isLoading ?  <Loader/>  :
                     <>
-
                     <Content>
                         <Table
                             rowKey={(item) => item.ID}
@@ -85,9 +91,7 @@ export default function Datatable() {
                             onChange={(current) => handlePagination(current)}
                         />
                     </Content>
-                        { searchUses.isModalOpen ? <SearchUsesModal /> : null }
-                        { bulkSubmitData.isModalOpen ? <BulkModal /> : null }
-                        { bulkExportData.isModalOpen ? <BulkModalForCSV /> : null }
+                    { renderModal() }
                     </>
                 }
             </Layout>
