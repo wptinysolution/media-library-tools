@@ -6,19 +6,19 @@ import Loader from "../../Utils/Loader";
 
 import {  Pagination, Table, Layout } from 'antd';
 
-const { Content } = Layout;
-
 import TheHeader from "./TheHeader";
 
 import {useStateValue} from "../../Utils/StateProvider";
-
-import * as Types from "../../Utils/actionType";
 
 import BulkModal from "./BulkModal";
 
 import BulkModalForCSV from "./BulkModalForCSV";
 
 import MainHeader from "../MainHeader";
+
+import * as Types from "../../Utils/actionType";
+
+const { Content } = Layout;
 
 export default function Datatable() {
 
