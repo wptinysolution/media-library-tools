@@ -19,7 +19,6 @@ import BulkModal from "./BulkModal";
 import BulkModalForCSV from "./BulkModalForCSV";
 
 import MainHeader from "../MainHeader";
-import SearchUsesModal from "./SearchUsesModal";
 
 export default function Datatable() {
 
@@ -50,11 +49,11 @@ export default function Datatable() {
         }
         return stateValue.options.media_table_column.includes( `${currentValue.key}` );
     } );
-    
+    /**
+     * @returns {JSX.Element|null}
+     */
     const renderModal = () => {
-        if (stateValue.searchUses.isModalOpen){
-            return <SearchUsesModal />
-        } else if (stateValue.bulkSubmitData.isModalOpen) {
+        if (stateValue.bulkSubmitData.isModalOpen) {
             return <BulkModal />
         } else if (stateValue.bulkExport.isModalOpen) {
             return <BulkModalForCSV />

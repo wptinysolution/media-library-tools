@@ -54,7 +54,6 @@ function BulkModal() {
         const isDisable = ! stateValue.bulkSubmitData.ids.length || ! changeDetected;
         setIsButtonDisabled( isDisable );
     };
-
     /**
      *
      * @param prams
@@ -81,7 +80,9 @@ function BulkModal() {
         }
         return response;
     }
-
+    /**
+     * @returns {Promise<void>}
+     */
     const mediaHandleBulkModalOk = async () => {
         setIsButtonDisabled( true );
         const response = await addDataRecursively( stateValue.bulkSubmitData );
@@ -108,8 +109,6 @@ function BulkModal() {
             setIsButtonDisabled( false );
         }
     };
-
-
     /**
      * @param event
      */
