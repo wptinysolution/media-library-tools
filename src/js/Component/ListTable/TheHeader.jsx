@@ -19,6 +19,7 @@ import * as Types from "../../Utils/actionType";
 
 import {notifications} from "../../Utils/Data";
 import {SEARCH_USES, SEARCHUSES} from "../../Utils/actionType";
+import Loader from "../../Utils/Loader";
 
 const { Header } = Layout;
 
@@ -168,7 +169,7 @@ function TheHeader() {
                     type="primary"
                     size="large"
                     onClick={handleBulkSubmit}
-                > Bulk Apply </Button>
+                > { stateValue.mediaData.isLoading ? <Loader/> : `Bulk Apply` } </Button>
 
                 <Select
                     size="large"
