@@ -191,43 +191,6 @@ To search for images by categories, users can find the categories box near the F
 * Fixed: Image Broken Issue
 * Fixed: Elementor Page Image Broken Issue Fixed
 
-= 1.5.3 ( Jan 27, 2025 ) =
-* Optimize: Media Editing Functionality
-* Optimize: Rubbish File Scan Functionality
-* Product SKU Renaming Feature Compatibility
-
-= 1.5.2 ( Jan 04, 2025 ) =
-* Add New filter hooks for increase maximum image processing limit
-
-= 1.5.1 ( November 10, 2024 ) =
-* Optimize SVG Functionality
-
-= 1.5.0 ( Oct 29, 2024 ) =
-* Sanitize SVGs
-
-= 1.4.0 ( Oct 18, 2024 ) =
-* New Feature: Disable Image size
-* New Feature: Addons Support for Register new image size
-
-= 1.3.7 ( July 13, 2024 ) =
-* Fixed: Media Filter Category
-* Fixed: Icon Change
-* Fixed: API Call issue
-* Remove: UnUsed Code
-* Update: Js Library Updates
-
-= 1.3.2 ( May 05, 2024 ) =
-* Support: Bulk Rename With CSV Import
-
-= 1.2.0 ( November 9, 2023 ) =
-* Added: CSV Export addons support
-* Added: Auto add image parent post
-* Fixed: Multisite issue for Unnecessary file.
-
-= 1.1.10 ( September 26, 2023 ) =
-* Support: Allow title empty.
-* Added: Rubbish File Balk Search
-
 = 1.1.4 ( August 27, 2023 ) =
 * Added: Parent Post Url
 * Title: Added Url For Title
