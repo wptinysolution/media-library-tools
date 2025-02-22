@@ -49,7 +49,7 @@ export const defaultBulkSubmitData = {
 export const bulkOprions = [
     {
         value: 'searchUses',
-        label: 'Search Used Images',
+        label: 'Search Used Images (Attached Post)',
     },
     {
         value: 'bulkedit',
