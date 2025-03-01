@@ -301,11 +301,12 @@ class Fns {
 		}
 
 		// Check file type to see if it's an image or other media (like video).
-		$filetype = wp_check_filetype( $file_path );
-		$is_image = strpos( $filetype['type'], 'image' ) !== false;
+		$filetype     = wp_check_filetype( $file_path );
+		$is_image     = strpos( $filetype['type'], 'image' ) !== false;
+		$is_not_svg_image = $is_image && 'image/svg+xml' !== $filetype['type'];
 		// Get the current metadata for the media file (images only).
 		$old_sizes = [];
-		if ( $is_image ) {
+		if ( $is_image && $is_not_svg_image ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( ! empty( $metadata['sizes'] ) ) {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
