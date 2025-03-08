@@ -306,7 +306,7 @@ class Fns {
 		$is_not_svg_image = $is_image && 'image/svg+xml' !== $filetype['type'];
 		// Get the current metadata for the media file (images only).
 		$old_sizes = [];
-		if ( $is_image  ) {
+		if ( $is_image && $is_not_svg_image ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( ! empty( $metadata['sizes'] ) ) {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
@@ -350,20 +350,18 @@ class Fns {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
 				try {
-				
-						$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
-						wp_update_attachment_metadata( $attachment_id, $generate_meta );
-						if ( ! empty( $generate_meta['sizes'] ) ) {
-							foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
-								$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
-								if ( ! empty( $old_sizes[ $size ] ) ) {
-									self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
-									self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
-									self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
-								}
+					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
+					wp_update_attachment_metadata( $attachment_id, $generate_meta );
+					if ( ! empty( $generate_meta['sizes'] ) ) {
+						foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
+							$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
+							if ( ! empty( $old_sizes[ $size ] ) ) {
+								self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
+								self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
+								self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
 							}
 						}
-					
+					}
 				} catch ( \Exception $e ) {
 					error_log( 'Error reading data: ' . $e->getMessage() );
 				}
