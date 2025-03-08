@@ -31,8 +31,8 @@ class FilterHooks {
 		add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
 		add_filter( 'plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2 );
-		// Remove Srcset.
-		add_filter( 'wp_calculate_image_srcset', [ __CLASS__, 'remove_srcset_for_svg' ], 10, 3 );
+		// Remove Srcset. TODO: WIll Remove.
+		// add_filter( 'wp_calculate_image_srcset', [ __CLASS__, 'remove_srcset_for_svg' ], 10, 3 );
 		// Image Size.
 		add_filter( 'intermediate_image_sizes_advanced', [ __CLASS__, 'custom_image_sizes' ] );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
@@ -42,7 +42,8 @@ class FilterHooks {
 			// Sanitize the SVG file before it is uploaded to the server.
 			add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
 			// Cron Interval for check image file.
-			add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
+			// TODO: WIll Remove.
+			// add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
 			// SVG size.
 			add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'svgs_generate_svg_attachment_metadata' ], 10, 3 );
 		}

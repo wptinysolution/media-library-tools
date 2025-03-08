@@ -306,7 +306,7 @@ class Fns {
 		$is_not_svg_image = $is_image && 'image/svg+xml' !== $filetype['type'];
 		// Get the current metadata for the media file (images only).
 		$old_sizes = [];
-		if ( $is_image && $is_not_svg_image ) {
+		if ( $is_image  ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
 			if ( ! empty( $metadata['sizes'] ) ) {
 				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
@@ -350,7 +350,7 @@ class Fns {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
 				try {
-					if ( $is_not_svg_image ) {
+				
 						$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
 						wp_update_attachment_metadata( $attachment_id, $generate_meta );
 						if ( ! empty( $generate_meta['sizes'] ) ) {
@@ -363,7 +363,7 @@ class Fns {
 								}
 							}
 						}
-					}
+					
 				} catch ( \Exception $e ) {
 					error_log( 'Error reading data: ' . $e->getMessage() );
 				}

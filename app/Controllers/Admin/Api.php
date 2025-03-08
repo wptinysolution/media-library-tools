@@ -609,7 +609,7 @@ class Api {
 			$attached_file = get_attached_file( $post->ID );
 			if ( ! empty( $metadata['file'] ) ) {
 				$thefile['mainfilepath']  = dirname( $attached_file );
-				$thefile['mainfilename']  = basename( $metadata['file'] );
+				$thefile['mainfilename']  = basename( $attached_file );
 				$thefile['fileextension'] = pathinfo( $metadata['file'], PATHINFO_EXTENSION );
 				$thefile['filebasename']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
 				$thefile['originalname']  = basename( $metadata['file'], '.' . $thefile['fileextension'] );
@@ -620,6 +620,7 @@ class Api {
 				$thefile['fileextension'] = pathinfo( $attached_file, PATHINFO_EXTENSION );
 				$thefile['filebasename']  = basename( $attached_file, '.' . $thefile['fileextension'] );
 				$thefile['originalname']  = basename( $attached_file, '.' . $thefile['fileextension'] );
+				
 			}
 			$upload_dir      = wp_upload_dir();
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
@@ -681,6 +682,7 @@ class Api {
 				'post_mime_type' => $post->post_mime_type,
 				'custom_meta'	 => $custom_meta,
 			];
+			
 		}
 		$query_data = [
 			'posts'          => $get_posts,
