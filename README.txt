@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: media file rename, export media library, Image SEO, media library, media cleaner
 Requires at least: 5.5
 Tested up to: 6.7
-Stable tag: 1.6.6
+Stable tag: 1.6.7
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -168,6 +168,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.6.7 ( Mar 09, 2025 ) =
+* Fixed: Url Fixed And Remove unwanted srcset from SVG images
 
 = 1.6.6 ( Mar 01, 2025 ) =
 * Fixed: SVG Image Rename Broker Issue fixed
