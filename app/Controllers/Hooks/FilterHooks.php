@@ -77,7 +77,7 @@ class FilterHooks {
 		if ( 'image/svg+xml' === $mime ) {
 			$svg_path      = get_attached_file( $attachment_id );
 			$upload_dir    = wp_upload_dir();
-			$relative_path = $svg_path ? str_replace( $upload_dir['basedir'], '', $svg_path ) : '';
+			$relative_path = $svg_path ? str_replace( $upload_dir['basedir'] . '/', '', $svg_path ) : '';
 			// Get the path relative to /uploads/.
 			$filename   = basename( $svg_path );
 			$dimensions = self::svgs_get_dimensions( $svg_path );
