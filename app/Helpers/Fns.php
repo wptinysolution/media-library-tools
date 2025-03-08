@@ -301,8 +301,8 @@ class Fns {
 		}
 
 		// Check file type to see if it's an image or other media (like video).
-		$filetype     = wp_check_filetype( $file_path );
-		$is_image     = strpos( $filetype['type'], 'image' ) !== false;
+		$filetype         = wp_check_filetype( $file_path );
+		$is_image         = strpos( $filetype['type'], 'image' ) !== false;
 		$is_not_svg_image = $is_image && 'image/svg+xml' !== $filetype['type'];
 		// Get the current metadata for the media file (images only).
 		$old_sizes = [];
@@ -350,20 +350,22 @@ class Fns {
 					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
 				}
 				try {
-					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
-					wp_update_attachment_metadata( $attachment_id, $generate_meta );
-					if ( ! empty( $generate_meta['sizes'] ) ) {
-						foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
-							$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
-							if ( ! empty( $old_sizes[ $size ] ) ) {
-								self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
-								self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
-								self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
+					if ( $is_not_svg_image ) {
+						$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
+						wp_update_attachment_metadata( $attachment_id, $generate_meta );
+						if ( ! empty( $generate_meta['sizes'] ) ) {
+							foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
+								$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
+								if ( ! empty( $old_sizes[ $size ] ) ) {
+									self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
+									self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
+									self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
+								}
 							}
 						}
 					}
 				} catch ( \Exception $e ) {
-					error_log( 'Error reading Exif data: ' . $e->getMessage() );
+					error_log( 'Error reading data: ' . $e->getMessage() );
 				}
 			} else {
 				// For non-image files, just update the attached file path.
