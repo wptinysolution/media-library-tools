@@ -2,7 +2,7 @@
 Contributors: tinysolution
 Tags: media file rename, export media library, Image SEO, media library, media cleaner
 Requires at least: 5.5
-Tested up to: 6.7
+Tested up to: 6.8
 Stable tag: 1.6.7
 Requires PHP: 7.4
 License: GPLv3
