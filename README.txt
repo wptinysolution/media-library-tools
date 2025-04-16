@@ -76,11 +76,13 @@ This plugin allows you to rename media files using a CSV file and edit their tit
 
 [youtube https://www.youtube.com/watch?v=CxBf8m3dTpo]
 
-👉 Video 2: Rename File, CSV Edit Title, Alt, Caption, Description. 👈
+👉 Video 2: CSV Edit Title, Alt, Caption, Description. 👈
 
-[youtube https://www.youtube.com/watch?v=rhyZv2YHMtQ]
+[youtube https://www.youtube.com/watch?v=VKUo1zzNnJQ]
 
 👉 Bulk Rename With CSV Import 👈
+
+[youtube https://www.youtube.com/watch?v=4o17Q5gRSXs]
 
 Example:
 Current filename: file-name.jpg
