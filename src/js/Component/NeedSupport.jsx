@@ -25,7 +25,7 @@ function NeedSupport() {
                     <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px'}}> For faster support please send detail of your issue.</Title>
 
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
-                        Email: <a href={`mailto:support@tinysolutions.freshdesk.com`}> support@tinysolutions.freshdesk.com </a>
+                        Visit Our Support Center: <a target={`_blank`} href={`https://help.wptinysolutions.com/`}> Contact Support </a>
                     </Paragraph>
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
                         This will create a ticket. We will response form there.
