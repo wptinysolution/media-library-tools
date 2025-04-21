@@ -25,7 +25,7 @@ function NeedSupport() {
                     <Title level={5} style={{ margin:'0 0 15px 0', fontSize: '20px'}}> For faster support please send detail of your issue.</Title>
 
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
-                        Visit Our Support Center: <a target={`_blank`} href={`https://help.wptinysolutions.com/`}> Contact Support </a>
+                        Visit Our <a target={`_blank`} href={`https://help.wptinysolutions.com/`}> Support Center </a>
                     </Paragraph>
                     <Paragraph type="secondary" style={{ fontSize: '18px'}}>
                         This will create a ticket. We will response form there.
