@@ -1,6 +1,6 @@
 === Media File Rename, Find Unused File, Add Alt text, Caption, Desc For Image SEO - Media Library Tools ===
 Contributors: tinysolution
-Tags: media file rename, export media library, Image SEO, media library, media cleaner
+Tags: csv, export import, media, file, rename
 Requires at least: 5.5
 Tested up to: 6.8
 Stable tag: 1.6.8
