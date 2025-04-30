@@ -638,7 +638,7 @@ class Api {
 
 			$get_meta = get_post_meta( $post->ID );
 			// Remove unwanted meta keys.
-			$remove_keys = Fns::remove_meta_keys();
+			$remove_keys = Fns::skip_meta_keys();
 			$get_meta    = array_diff_key( $get_meta, array_flip( $remove_keys ) );
 
 			$all_meta_keys = Fns::get_all_necessary_meta_keys();

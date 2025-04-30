@@ -794,24 +794,31 @@ class Fns {
 	/**
 	 * @return string[]
 	 */
-	public static function remove_meta_keys() {
+	public static function skip_meta_keys() {
 		// List of meta keys to remove.
-		return [
-			'file',
-			'sizes',
-			'width',
-			'height',
-			'filesize',
-			'image_meta',
-			'_wp_attached_file',
-			'_elementor_source_image_hash',
-			'_wc_attachment_source',
-			'_wp_attachment_image_alt',
-			'_wp_attachment_metadata',
-			'_wp_old_slug',
-			'_edit_lock',
-			'_edit_last',
-		];
+		$skip_key = apply_filters(
+			'tsmlt_skip_meta_keys',
+			[
+				'file',
+				'sizes',
+				'width',
+				'height',
+				'filesize',
+				'image_meta',
+				'_wp_attached_file',
+				'_elementor_source_image_hash',
+				'_wc_attachment_source',
+				'_wp_attachment_image_alt',
+				'_wp_attachment_metadata',
+				'_wp_old_slug',
+				'_edit_lock',
+				'_edit_last',
+			]
+		);
+		if ( empty( $skip_key ) || ! is_array( $skip_key ) ) {
+			return [];
+		}
+		return $skip_key;
 	}
 	/**
 	 * @return array
@@ -829,7 +836,7 @@ class Fns {
 			)
 		);
 		// List of meta keys to remove.
-		$remove_keys = self::remove_meta_keys();
+		$remove_keys = self::skip_meta_keys();
 		// Remove by value.
 		$meta_keys = array_values( array_diff( $meta_keys, $remove_keys ) );
 
