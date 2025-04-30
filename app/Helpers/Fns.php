@@ -790,4 +790,50 @@ class Fns {
 	public static function default_file_extensions() {
 		return apply_filters( 'tsmlt_default_file_extensions', [ 'pdf', 'zip', 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
 	}
+
+	/**
+	 * @return string[]
+	 */
+	public static function remove_meta_keys() {
+		// List of meta keys to remove.
+		return [
+			'file',
+			'sizes',
+			'width',
+			'height',
+			'filesize',
+			'image_meta',
+			'_wp_attached_file',
+			'_elementor_source_image_hash',
+			'_wc_attachment_source',
+			'_wp_attachment_image_alt',
+			'_wp_attachment_metadata',
+			'_wp_old_slug',
+			'_edit_lock',
+			'_edit_last',
+		];
+	}
+	/**
+	 * @return array
+	 */
+	public static function get_all_necessary_meta_keys() {
+		$keys_attachment = 'get_all_attachment_necessary_meta_keys';
+		if ( isset( self::$cache[ $keys_attachment ] ) ) {
+			return self::$cache[ $keys_attachment ];
+		}
+		global $wpdb;
+		$meta_keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"  SELECT DISTINCT pm.meta_key  FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s",
+				'attachment'
+			)
+		);
+		// List of meta keys to remove.
+		$remove_keys = self::remove_meta_keys();
+		// Remove by value.
+		$meta_keys = array_values( array_diff( $meta_keys, $remove_keys ) );
+
+		self::$cache[ $keys_attachment ] = $meta_keys;
+		return $meta_keys;
+	}
 }
