@@ -34,9 +34,9 @@ function ImportButton() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const isExportImport = stateValue.exportImport.isImport;
+    const isImport = stateValue.exportImport.isImport;
 
-    const handleExportImport = async ( type ) => {
+    const handleImport = async ( type ) => {
 
         if ( ! tsmltParams.hasExtended ){
             dispatch({
@@ -48,12 +48,9 @@ function ImportButton() {
             });
             return;
         }
-
-        const isImport = 'import' === type;
-
         let exportImport = {
             ...stateValue.exportImport,
-            isImport,
+            isImport: 'import' === type,
             runImporter: false,
             runExporter: false,
             mediaFiles: [],
@@ -98,38 +95,19 @@ function ImportButton() {
                            CSV File Accepted Column Header <Text strong>( ID, slug, url, rename_to, title, caption, description, alt_text, custom_meta:_custom_meta_key, custom_meta:_meta_key_2, custom_meta:_meta_key_3  )</Text>
                         </Title>
 
-                        { isExportImport &&
+                        { isImport &&
                             <>
-                            {
-                                stateValue.exportImport.isImport && stateValue.exportImport.runImporter ? <ImportInfo/> : ''
-                            }
-
+                            { stateValue.exportImport.runImporter ? <ImportInfo/> : '' }
                             <Space wrap
                                 style={ {
                                     justifyContent: 'center'
                                 } }
                             >
-                                { stateValue.exportImport.isImport && <UploadCsv/> }
-                                { 100 <= stateValue.exportImport.percent &&
-                                    <Button
-                                        style={
-                                            {
-                                                ...buttonStyle,
-                                                marginLeft: 'auto',
-                                                marginRight: 'auto',
-                                            }
-                                        }
-                                        size={`large`}
-                                        onClick={ () => handleExportImport( 'reset' ) }
-                                    >
-                                        Cancel
-                                    </Button>
-                                }
-
+                                <UploadCsv/>
                             </Space>
                             </>
                         }
-                        { ! isExportImport ?
+                        { ! isImport ?
                             <Content className={`csv-export-import-btn-wrapper`}
                                      style={ {
                                          display: 'flex',
@@ -141,17 +119,15 @@ function ImportButton() {
                                     type="primary"
                                     size={`large`}
                                     style={ buttonStyle }
-                                    onClick={ () => handleExportImport( 'import' ) }
+                                    onClick={ () => handleImport( 'import' ) }
                                 >
-                                    <ImportOutlined/> CSV Import { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
+                                    <ImportOutlined/> CSV Import
                                 </Button>
-                            </Content> :
-                           <>
-                           </>
+                            </Content> : null
                         }
                     </Layout>
             </Content>
-        </Layout>
+            </Layout>
        </> )
 }
 export default ImportButton;

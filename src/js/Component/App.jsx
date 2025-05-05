@@ -37,10 +37,8 @@ import RubbishFile from "./Rubbish/RubbishFile";
 import PluginList from "./PluginList";
 import ImageSize from "./ImageSize/ImageSize";
 import ExportImportRoot from "./ExportImport/ExportImportRoot";
+import ExportButton from "./ExportImport/ExportButton";
 
-function ExportButton() {
-    return null;
-}
 
 function App() {
 

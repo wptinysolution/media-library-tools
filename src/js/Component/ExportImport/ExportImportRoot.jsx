@@ -29,46 +29,13 @@ const buttonStyle = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '5px'
+    gap: '5px',
+    border:'1px solid #1677ff'
 }
 
 function ExportImportRoot() {
 
     const [stateValue, dispatch] = useStateValue();
-
-    const isExportImport = stateValue.exportImport.isImport;
-
-    const handleExportImport = async ( type ) => {
-
-        if ( ! tsmltParams.hasExtended ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
-            return;
-        }
-
-        const isImport = 'import' === type;
-
-        let exportImport = {
-            ...stateValue.exportImport,
-            isImport,
-            runImporter: false,
-            runExporter: false,
-            mediaFiles: [],
-            fileCount : 0,
-            percent : 0,
-            totalPage: 0
-        }
-
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: exportImport,
-        });
-    }
 
     return (
         <>
@@ -84,10 +51,29 @@ function ExportImportRoot() {
                     <Layout
                         style={ {
                             padding: '50px',
+                            display: 'flex',
+                            flexDirection:'row',
+                            flexWrap: 'wrap',
+                            gap: '15px',
+                            justifyContent: 'center'
                         } }
                     >
-                        <Link to={`/export`}> Export </Link>
-                        <Link to={`/import`}> Import </Link>
+                        <Button
+                            type="link"
+                            size={`large`}
+                            style={ buttonStyle }
+                            href={ '#/export' }
+                        >
+                            Export
+                        </Button>
+                        <Button
+                            type="link"
+                            size={`large`}
+                            style={ buttonStyle }
+                            href={ '#/import' }
+                        >
+                            Import
+                        </Button>
                     </Layout>
                 </Content>
             </Layout>
