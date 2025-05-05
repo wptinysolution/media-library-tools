@@ -60,7 +60,7 @@ function MainHeader() {
         },
         {
             key: '/exportImport',
-            label: <Link to={`/exportImport`}> CSV Import</Link>,
+            label: <Link to={`/exportImport`}> CSV Export/Import</Link>,
             icon: <ExportOutlined style={iconStyle} />,
             style: menuItemStyle,
         },

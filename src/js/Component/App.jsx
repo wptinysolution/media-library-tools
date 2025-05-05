@@ -16,7 +16,7 @@ import {HashRouter, Navigate, Route, Routes} from "react-router-dom";
 
 import ProModal from "./ProModal";
 
-import ExportImportButton from "./ExportImport/ExportImportButton";
+import ImportButton from "./ExportImport/ImportButton";
 
 import Settings from "./Settings";
 
@@ -36,6 +36,11 @@ import RubbishFile from "./Rubbish/RubbishFile";
 
 import PluginList from "./PluginList";
 import ImageSize from "./ImageSize/ImageSize";
+import ExportImportRoot from "./ExportImport/ExportImportRoot";
+
+function ExportButton() {
+    return null;
+}
 
 function App() {
 
@@ -205,7 +210,9 @@ function App() {
                         <Route path="/" element={<Settings/>}/>
                         <Route path="/mediaTable" element={<Datatable/>}/>
                         <Route path="/mediaRename" element={<RenamerTableData/>}/>
-                        <Route path="/exportImport" element={<ExportImportButton/>}/>
+                        <Route path="/exportImport" element={<ExportImportRoot/>}/>
+                        <Route path="/import" element={<ImportButton/>}/>
+                        <Route path="/export" element={<ExportButton/>}/>
                         <Route path="/imageSize" element={<ImageSize/>}/>
                         <Route path="/rubbishFile" element={<RubbishFile/>}/>
                         <Route path="/plugins" element={<PluginList/>}/>

@@ -30,7 +30,7 @@ const buttonStyle = {
     gap: '5px'
 }
 
-function ExportImportButton() {
+function ImportButton() {
 
     const [stateValue, dispatch] = useStateValue();
 
@@ -154,4 +154,4 @@ function ExportImportButton() {
         </Layout>
        </> )
 }
-export default ExportImportButton;
+export default ImportButton;
