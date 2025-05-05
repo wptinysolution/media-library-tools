@@ -40,7 +40,7 @@ function DownloadCSV() {
 
     const media = stateValue.mediaData?.posts || [];
     const selectedIds = stateValue.bulkSubmitData?.ids || [];
-
+    const REQUIRED_KEYS = ['ID', 'post_name'];
     const filteredData = media.filter(item => selectedIds.includes(item.ID));
 
     function getSelectedKeysWithMeta() {
@@ -126,7 +126,12 @@ function DownloadCSV() {
                 >
                     {keys.map((key) => (
                         <div key={key} style={{ marginBottom: 8 }}>
-                            <Checkbox value={key}>{key}</Checkbox>
+                            <Checkbox
+                                value={key}
+                                disabled={REQUIRED_KEYS.includes(key)}
+                            >
+                                {key}
+                            </Checkbox>
                         </div>
                     ))}
                 </Checkbox.Group>
