@@ -34,9 +34,9 @@ function ExportButton() {
 
     const [stateValue, dispatch] = useStateValue();
 
-    const isExportImport = stateValue.exportImport.isImport;
+    const isExport = stateValue.exportImport.isExport;
 
-    const handleExportImport = async ( type ) => {
+    const handleExport = async ( type ) => {
 
         if ( ! tsmltParams.hasExtended ){
             dispatch({
@@ -49,11 +49,10 @@ function ExportButton() {
             return;
         }
 
-        const isImport = 'import' === type;
-
         let exportImport = {
             ...stateValue.exportImport,
-            isImport,
+            isExport: 'export' === type,
+            isImport: false,
             runImporter: false,
             runExporter: false,
             mediaFiles: [],
@@ -67,6 +66,9 @@ function ExportButton() {
             exportImport: exportImport,
         });
     }
+
+   // console.log('stateValue.exportImport', stateValue.exportImport );
+
 
     return (
         <>
@@ -95,9 +97,9 @@ function ExportButton() {
                                     type="primary"
                                     size={`large`}
                                     style={ buttonStyle }
-                                    onClick={ () => handleExportImport( 'export' ) }
+                                    onClick={ () => handleExport( 'export' ) }
                                 >
-                                    <ImportOutlined/> CSV Export { stateValue.exportImport.isImport && <span style={ { marginLeft: '8px' } }> <Spin size="small" /> </span> }
+                                    <ImportOutlined/> Run Exporter
                                 </Button>
                             </Content>
                     </Layout>

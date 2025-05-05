@@ -1,26 +1,15 @@
-import React from "react";
+import React, {useEffect} from "react";
 
-import { Layout, Button, Spin, Space, Typography} from 'antd';
-
-const { Title, Text } = Typography;
+import { Layout, Button } from 'antd';
 
 const { Content } = Layout;
 
-import {
-    ImportOutlined
-} from '@ant-design/icons';
-
-import {useStateValue} from "../../Utils/StateProvider";
-
-import ImportInfo from "./ImportInfo";
-
 import * as Types from "../../Utils/actionType";
 
-import UploadCsv from "./UploadCsv";
-
 import MainHeader from "../MainHeader";
-import {Link, Route} from "react-router-dom";
-import ImportButton from "./ImportButton";
+
+import {initialState} from "../../Utils/reducer";
+import {useStateValue} from "../../Utils/StateProvider";
 
 const buttonStyle = {
     width: '200px',
@@ -36,6 +25,18 @@ const buttonStyle = {
 function ExportImportRoot() {
 
     const [stateValue, dispatch] = useStateValue();
+
+    const resetExportImport = async () => {
+        await dispatch({
+            type: Types.EXPORT_IMPORT,
+            exportImport: initialState.exportImport,
+        });
+    }
+
+    useEffect(() => {
+        resetExportImport();
+    }, [] );
+    // console.log('stateValue.exportImport', stateValue.exportImport );
 
     return (
         <>
