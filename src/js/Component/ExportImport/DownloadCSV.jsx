@@ -36,7 +36,10 @@ const escapeValues = (obj) => {
 function DownloadCSV() {
     const [stateValue] = useStateValue();
     const [csvData, setCsvData] = useState('');
-    const [selectedKeys, setSelectedKeys] = useState(['ID','post_name']);
+    const defaultKeys = [
+        'ID', 'post_name', 'url', 'post_title', 'post_excerpt', 'post_content', 'alt_text'
+    ];
+    const [selectedKeys, setSelectedKeys] = useState(defaultKeys);
 
     const media = stateValue.mediaData?.posts || [];
     const selectedIds = stateValue.bulkSubmitData?.ids || [];
@@ -45,12 +48,9 @@ function DownloadCSV() {
 
     function getSelectedKeysWithMeta() {
         const item = filteredData[0];
-        const selectedKeys = [
-            'ID', 'post_name', 'url', 'post_title', 'post_excerpt', 'post_content', 'alt_text'
-        ];
         const keys = [];
         // Loop through selected keys and add them to the list
-        selectedKeys.forEach((key) => {
+        defaultKeys.forEach((key) => {
             if (item.hasOwnProperty(key)) {
                 keys.push(key);
             }
@@ -67,22 +67,33 @@ function DownloadCSV() {
 
     const generateCSVStructure = () => {
 
-        const updatedData = filteredData.map(
-            ({ ID, url, post_title, post_name, post_excerpt, post_content, alt_text, custom_meta }) => {
-                const flatMeta = custom_meta || {};
-                const row = {
-                    ID,
-                    slug: post_name,
-                    url,
-                    title: post_title,
-                    caption: post_excerpt,
-                    description: post_content,
-                    alt_text,
-                    ...flatMeta,
-                };
-                return escapeValues(row);
-            }
-        );
+        const updatedData = filteredData.map(item => {
+            const flatMeta = item.custom_meta || {};
+
+            const fullRow = {
+                ID: item.ID,
+                post_name: item.post_name,
+                url: item.url,
+                post_title: item.post_title,
+                post_excerpt: item.post_excerpt,
+                post_content: item.post_content,
+                alt_text: item.alt_text,
+                ...flatMeta,
+            };
+
+            const finalKeys = Array.from(new Set(['ID', 'post_name', ...selectedKeys]));
+            const filteredRow = {};
+
+            finalKeys.forEach(key => {
+                if (key in fullRow) {
+                    filteredRow[key] = fullRow[key];
+                }
+            });
+
+            return escapeValues(filteredRow);
+        });
+
+        console.log('updatedData', updatedData );
 
         const csv = Papa.unparse(updatedData, {
             quotes: true,
@@ -93,7 +104,7 @@ function DownloadCSV() {
 
     useEffect(() => {
         generateCSVStructure();
-    }, []);
+    }, [selectedKeys]);
 
     const downloadCSV = () => {
         const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
