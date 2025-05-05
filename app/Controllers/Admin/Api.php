@@ -647,24 +647,24 @@ class Api {
 				foreach ( $all_meta_keys as $name ) {
 					$_value = $get_meta[ $name ][0] ?? '';
 					if ( ! is_array( $_value ) ) {
-						$custom_meta[ 'custom_meta:' . $name ] = $_value;
+						$custom_meta[ 'custom_meta:' . $name ] = esc_attr( $_value );
 					}
 				}
 			}
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'url'            => wp_get_attachment_url( $post->ID ),
-				'post_title'     => $post->post_title,
+				'post_title'     => esc_attr( $post->post_title ),
 				'post_parents'   => [
-					'title'     => $parent_title ,
+					'title'     => esc_attr( $parent_title ) ,
 					'permalink' => $parent_permalink,
 				],
-				'post_excerpt'   => $post->post_excerpt,
-				'post_content'   => $post->post_content,
-				'post_name'      => $post->post_name,
+				'post_excerpt'   => esc_attr( $post->post_excerpt ),
+				'post_content'   => esc_attr( $post->post_content ),
+				'post_name'      => esc_attr( $post->post_name ),
 				'guid'           => $post->guid,
 				'uploaddir'      => $uploaddir,
-				'alt_text'       => get_post_meta( $post->ID, '_wp_attachment_image_alt', true ),
+				'alt_text'       => esc_attr( get_post_meta( $post->ID, '_wp_attachment_image_alt', true ) ),
 				'categories'     => wp_json_encode( $tsmlt_category ),
 				'metadata'       => $metadata,
 				'thefile'        => $thefile,
