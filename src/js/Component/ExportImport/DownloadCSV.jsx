@@ -36,13 +36,32 @@ const escapeValues = (obj) => {
 function DownloadCSV() {
     const [stateValue] = useStateValue();
     const [csvData, setCsvData] = useState('');
+    const media = stateValue.mediaData?.posts || [];
+    const selectedIds = stateValue.bulkSubmitData?.ids || [];
+
+    const filteredData = media.filter(item => selectedIds.includes(item.ID));
+
+    const getAllKeysFromFirstItem = () => {
+        if (!filteredData?.length) return [];
+        const skipKeys = [
+            'custom_meta',
+            'thefile',
+            'metadata',
+            'post_mime_type',
+            'guid',
+            'uploaddir'
+        ]; // Add the 3 additional keys here
+
+        const firstItem = filteredData[0];
+        const topLevelKeys = Object.keys(firstItem);
+        const metaKeys = Object.keys(firstItem.custom_meta || {});
+
+        // Combine and deduplicate keys
+        const Itemkeys = [...topLevelKeys, ...metaKeys.filter(k => !topLevelKeys.includes(k))];
+        return Itemkeys.filter(k => !skipKeys.includes(k));
+    };
 
     const generateCSVStructure = () => {
-        const media = stateValue.mediaData?.posts || [];
-        if (!media.length) return;
-
-        const selectedIds = stateValue.bulkSubmitData?.ids || [];
-        const filteredData = media.filter(item => selectedIds.includes(item.ID));
 
         const updatedData = filteredData.map(
             ({ ID, url, post_title, post_name, post_excerpt, post_content, alt_text, custom_meta }) => {
@@ -81,9 +100,17 @@ function DownloadCSV() {
         link.click();
         document.body.removeChild(link);
     };
+    console.log('getAllKeysFromFirstItem', getAllKeysFromFirstItem() );
+
+    const keys = getAllKeysFromFirstItem();
 
     return (
         <>
+            <ul>
+                {keys.map((key) => (
+                    <li key={key}>{key}</li>
+                ))}
+            </ul>
             {csvData && (
                 <button onClick={downloadCSV} style={buttonStyle}>
                     Download CSV
