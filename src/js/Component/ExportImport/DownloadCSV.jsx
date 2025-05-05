@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStateValue } from '../../Utils/StateProvider';
 import Papa from 'papaparse';
-
+import { Checkbox } from 'antd';
 const buttonStyle = {
     gap: '5px',
     width: '200px',
@@ -41,25 +41,27 @@ function DownloadCSV() {
 
     const filteredData = media.filter(item => selectedIds.includes(item.ID));
 
-    const getAllKeysFromFirstItem = () => {
-        if (!filteredData?.length) return [];
-        const skipKeys = [
-            'custom_meta',
-            'thefile',
-            'metadata',
-            'post_mime_type',
-            'guid',
-            'uploaddir'
-        ]; // Add the 3 additional keys here
-
-        const firstItem = filteredData[0];
-        const topLevelKeys = Object.keys(firstItem);
-        const metaKeys = Object.keys(firstItem.custom_meta || {});
-
-        // Combine and deduplicate keys
-        const Itemkeys = [...topLevelKeys, ...metaKeys.filter(k => !topLevelKeys.includes(k))];
-        return Itemkeys.filter(k => !skipKeys.includes(k));
-    };
+    function getSelectedKeysWithMeta() {
+        const item = filteredData[0];
+        const selectedKeys = [
+            'ID', 'post_name', 'url', 'post_title', 'post_excerpt', 'post_content', 'alt_text'
+        ];
+        const keys = [];
+        // Loop through selected keys and add them to the list
+        selectedKeys.forEach((key) => {
+            if (item.hasOwnProperty(key)) {
+                keys.push(key);
+            }
+        });
+        // Add custom_meta keys (flattened)
+        if (item.custom_meta) {
+            const meta = item.custom_meta || {};
+            for (const metaKey in meta) {
+                keys.push(metaKey);
+            }
+        }
+        return keys;
+    }
 
     const generateCSVStructure = () => {
 
@@ -100,17 +102,31 @@ function DownloadCSV() {
         link.click();
         document.body.removeChild(link);
     };
-    console.log('getAllKeysFromFirstItem', getAllKeysFromFirstItem() );
+    console.log('getAllKeysFromFirstItem', getSelectedKeysWithMeta() );
 
-    const keys = getAllKeysFromFirstItem();
+    const keys = getSelectedKeysWithMeta();
 
     return (
         <>
-            <ul>
-                {keys.map((key) => (
-                    <li key={key}>{key}</li>
-                ))}
-            </ul>
+            <div style={{
+                maxHeight: '300px',
+                overflowY: 'auto',
+                border: '1px solid #d9d9d9',
+                borderRadius: '8px',
+                padding: '12px',
+                background: '#fafafa',
+            }}>
+                <Checkbox.Group
+                    style={{ width: '100%' }}
+                >
+                    {keys.map((key) => (
+                        <div key={key} style={{ marginBottom: 8 }}>
+                            <Checkbox value={key}>{key}</Checkbox>
+                        </div>
+                    ))}
+                </Checkbox.Group>
+            </div>
+            <br/>
             {csvData && (
                 <button onClick={downloadCSV} style={buttonStyle}>
                     Download CSV
