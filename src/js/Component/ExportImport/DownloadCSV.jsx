@@ -36,6 +36,8 @@ const escapeValues = (obj) => {
 function DownloadCSV() {
     const [stateValue] = useStateValue();
     const [csvData, setCsvData] = useState('');
+    const [selectedKeys, setSelectedKeys] = useState(['ID','post_name']);
+
     const media = stateValue.mediaData?.posts || [];
     const selectedIds = stateValue.bulkSubmitData?.ids || [];
 
@@ -102,12 +104,13 @@ function DownloadCSV() {
         link.click();
         document.body.removeChild(link);
     };
-    console.log('getAllKeysFromFirstItem', getSelectedKeysWithMeta() );
+    console.log('selectedKeys', selectedKeys );
 
     const keys = getSelectedKeysWithMeta();
 
     return (
         <>
+            <h2> Select which data will be exported to CSV </h2>
             <div style={{
                 maxHeight: '300px',
                 overflowY: 'auto',
@@ -117,7 +120,9 @@ function DownloadCSV() {
                 background: '#fafafa',
             }}>
                 <Checkbox.Group
+                    value={selectedKeys}
                     style={{ width: '100%' }}
+                    onChange={setSelectedKeys}
                 >
                     {keys.map((key) => (
                         <div key={key} style={{ marginBottom: 8 }}>
