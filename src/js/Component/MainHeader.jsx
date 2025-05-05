@@ -39,6 +39,8 @@ function MainHeader() {
     const iconStyle = {
         fontSize: '18px',
     }
+    const pat = ['/export', '/import'].includes(String(pathname)) ? '/exportImport' : pathname;
+
     const menuItems = [
         {
             key: '/',
@@ -105,7 +107,7 @@ function MainHeader() {
                 }}
                 theme="dark"
                 mode="horizontal"
-                defaultSelectedKeys={[ pathname ]}
+                defaultSelectedKeys={[ pat ]}
                 items={menuItems}
                 onSelect={ ({ item, key, keyPath, selectedKeys, domEvent }) => {
                    if( '/rubbishFile' == key ){
