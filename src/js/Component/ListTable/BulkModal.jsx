@@ -254,30 +254,6 @@ function BulkModal() {
                         value={bulkSubmitData.data.post_description}
                         placeholder={`Description`}
                     />
-                    <Title style={{marginTop:'10px'}} level={5}> Categories </Title>
-                    <Select
-                        onChange={ (value) => {
-                                dispatch({
-                                    type: Types.BULK_SUBMIT,
-                                    bulkSubmitData: {
-                                        ...stateValue.bulkSubmitData,
-                                        'post_categories': value
-                                    },
-                                });
-                                const isDisable = ! value.length;
-                                setIsButtonDisabled( isDisable );
-                            }
-                        }
-                        name={`post_description`}
-                        allowClear = {true}
-                        placeholder={'Categories'}
-                        size="large"
-                        mode="multiple"
-                        style={{
-                            width: '100%',
-                        }}
-                        options={ filteredOptions }
-                    />
                 </Content>
                 }
             <Divider />

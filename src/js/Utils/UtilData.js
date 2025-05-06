@@ -278,10 +278,10 @@ export function columns(){
         {
             title: <Space wrap> { `Title` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
             key: 'Title',
-            dataIndex: 'post_title',
+            dataIndex: 'title',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a style={{ width: '200px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a style={{ width: '200px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
         },
         {
             title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
@@ -294,16 +294,16 @@ export function columns(){
         {
             title: <Space wrap> { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
             key: 'Caption',
-            dataIndex: 'post_excerpt',
+            dataIndex: 'caption',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_excerpt`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`caption`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <Space wrap> { `Description` } <Button size={`small`} onClick={  ( event ) => handleSortClick('description') }> Sort </Button> </Space>,
             key: 'Description',
-            dataIndex: 'post_content',
+            dataIndex: 'description',
             width: '350px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_content`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`description`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
             title: <Space wrap> { `Category` } </Space>,
@@ -443,7 +443,7 @@ export function renamerColumns(){
         {
             title: <Space wrap> { `Title` } </Space>,
             key: 'Title',
-            dataIndex: 'post_title',
+            dataIndex: 'title',
             align: 'top',
             render:  ( text, record, i ) => <Text type="secondary" > {text} </Text>,
         }

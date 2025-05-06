@@ -20,7 +20,7 @@ function BulkModalForCSV() {
 
     const media = stateValue.mediaData?.posts || [];
     const selectedIds = stateValue.bulkSubmitData?.ids || [];
-    const REQUIRED_KEYS = ['ID', 'post_name'];
+    const REQUIRED_KEYS = ['ID', 'slug'];
     const filteredData = media.filter(item => selectedIds.includes(item.ID));
 
     function getSelectedKeysWithMeta() {

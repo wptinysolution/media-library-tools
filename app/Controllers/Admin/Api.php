@@ -422,7 +422,6 @@ class Api {
 			}
 
 			$submit = [];
-
 			// Process each field that requires updating.
 			if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
 				$submit['post_title'] = $new_text;
@@ -654,14 +653,14 @@ class Api {
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'url'            => wp_get_attachment_url( $post->ID ),
-				'post_title'     => esc_attr( $post->post_title ),
+				'title'          => esc_attr( $post->post_title ),
 				'post_parents'   => [
 					'title'     => esc_attr( $parent_title ) ,
 					'permalink' => $parent_permalink,
 				],
-				'post_excerpt'   => esc_attr( $post->post_excerpt ),
-				'post_content'   => esc_attr( $post->post_content ),
-				'post_name'      => esc_attr( $post->post_name ),
+				'caption'        => esc_attr( $post->post_excerpt ),
+				'description'    => esc_attr( $post->post_content ),
+				'slug'           => esc_attr( $post->post_name ),
 				'guid'           => $post->guid,
 				'uploaddir'      => $uploaddir,
 				'alt_text'       => esc_attr( get_post_meta( $post->ID, '_wp_attachment_image_alt', true ) ),

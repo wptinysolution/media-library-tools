@@ -38,16 +38,16 @@ function DownloadCSV() {
             const flatMeta = item.custom_meta || {};
             const fullRow = {
                 ID: item.ID,
-                post_name: item.post_name,
+                slug: item.post_name,
                 url: item.url,
-                post_title: item.post_title,
-                post_excerpt: item.post_excerpt,
-                post_content: item.post_content,
+                title: item.post_title,
+                caption: item.post_excerpt,
+                description: item.post_content,
                 alt_text: item.alt_text,
                 ...flatMeta,
             };
 
-            const finalKeys = Array.from(new Set(['ID', 'post_name', ...selectedKeys]));
+            const finalKeys = Array.from(new Set(['ID', 'slug', ...selectedKeys]));
             const filteredRow = {};
 
             finalKeys.forEach(key => {
