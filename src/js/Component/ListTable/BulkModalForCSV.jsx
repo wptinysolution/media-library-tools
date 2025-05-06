@@ -75,10 +75,7 @@ function BulkModalForCSV() {
         <Modal
             title={`Download CSV`}
             open={bulkExportData.isModalOpen}
-            onOk={handleBulkModalOk}
             onCancel={handleBulkModalCancel}
-            okButtonProps={{disabled: IsButtonDisabled}}
-            okText="Done"
             footer={[
                 <Button key="cancel" onClick={handleBulkModalCancel}> Cancel </Button>,
                 <DownloadCSV key="download"/>
@@ -88,6 +85,7 @@ function BulkModalForCSV() {
             }}
             width="100%"
         >
+            <hr/>
             <h2> Select which data will be exported to CSV </h2>
             <div style={{
                 maxHeight: '300px',
@@ -114,9 +112,6 @@ function BulkModalForCSV() {
                     ))}
                 </Checkbox.Group>
             </div>
-            <br/>
-
-            <Divider/>
         </Modal>
     )
 }

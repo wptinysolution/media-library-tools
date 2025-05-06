@@ -281,7 +281,7 @@ export function columns(){
             dataIndex: 'post_title',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`post_title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a style={{ width: '200px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
         },
         {
             title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
@@ -289,7 +289,7 @@ export function columns(){
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text } </>
+            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : <span style={{ width: '200px', display: 'flex', overflowX: 'auto' }} > {text} </span>  } </>
         },
         {
             title: <Space wrap> { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
@@ -398,7 +398,7 @@ export function renamerColumns(){
                         name={`filebasename`}
                         placeholder={`The name Shouldn't leave empty`}
                         current={i}
-                        style={{ maxWidth: 'calc( 100% - 50px)' }}
+                        style={{ width: '350px' }}
                         onBlur={
                             () => dispatch({
                                 ...stateValue,
@@ -427,7 +427,7 @@ export function renamerColumns(){
                         value={ record.thefile.filebasename }
                     />
                     {`.${record.thefile.fileextension}`}
-                </Layout> : <a style={{ width: '100px', display: 'inline-flex' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
+                </Layout> : <a style={{ maxWidth: '300px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
 
             </>,
         },
@@ -445,7 +445,7 @@ export function renamerColumns(){
             key: 'Title',
             dataIndex: 'post_title',
             align: 'top',
-
+            render:  ( text, record, i ) => <Text type="secondary" > {text} </Text>,
         }
     ];
 }
