@@ -677,6 +677,7 @@ class Api {
 			'posts_per_page' => absint( $limit ),
 			'total_post'     => $_posts_query->found_posts,
 			'paged'          => absint( $paged ),
+			'total_page'     => $_posts_query->max_num_pages,
 		];
 		wp_reset_postdata();
 		remove_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );

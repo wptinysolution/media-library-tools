@@ -1,8 +1,6 @@
 import React, {useState} from "react";
 
-import {Layout, Button, Spin, Space, Typography, Progress} from 'antd';
-
-const { Title, Text } = Typography;
+import {Layout, Button, Typography, Progress} from 'antd';
 
 const { Content } = Layout;
 
@@ -12,11 +10,11 @@ import {
 
 import {useStateValue} from "../../Utils/StateProvider";
 
-import ImportInfo from "./ImportInfo";
-
 import * as Types from "../../Utils/actionType";
 
-import UploadCsv from "./UploadCsv";
+import {
+    getMedia
+} from "../../Utils/Data";
 
 import MainHeader from "../MainHeader";
 
@@ -38,8 +36,8 @@ function ExportButton() {
 
     const isExport = stateValue.exportImport.isExport;
 
-    const handleExport = async ( type ) => {
-        if ( ! tsmltParams.hasExtended ){
+    const handleExport = async (type) => {
+        if (!tsmltParams.hasExtended) {
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -49,6 +47,8 @@ function ExportButton() {
             });
             return;
         }
+
+        // Reset export state
         let exportImport = {
             ...stateValue.exportImport,
             isExport: 'export' === type,
@@ -56,15 +56,53 @@ function ExportButton() {
             runImporter: false,
             runExporter: false,
             mediaFiles: [],
-            fileCount : 0,
-            percent : 0,
-            totalPage: 0
+            fileCount: 0,
+            percent: 0,
+            totalPage: 0,
+        };
+
+        await dispatch({ type: Types.EXPORT_IMPORT, exportImport });
+
+        let allMedia = [];
+        let page = 1;
+        let totalPages = 1;
+
+        try {
+            do {
+                const query = {
+                    ...stateValue.mediaData.postQuery,
+                    paged: page,
+                };
+
+                const res = await getMedia(query);
+
+                const data = res?.posts || [];
+                totalPages = res?.total_page || 1;
+
+                allMedia = [...allMedia, ...data];
+
+                console.log('allMedia', allMedia );
+
+                // Update progress
+                const progress = Math.round((page / totalPages) * 100);
+                setPercent(progress);
+
+                page++;
+            } while (page <= totalPages);
+            dispatch({
+                type: Types.EXPORT_IMPORT,
+                exportImport: {
+                    ...exportImport,
+                    mediaFiles: allMedia,
+                    fileCount: allMedia.length,
+                    percent: 100,
+                    totalPage: totalPages,
+                },
+            });
+        } catch (error) {
+            console.error('Export failed:', error);
         }
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: exportImport,
-        });
-    }
+    };
     
     return (
         <>
