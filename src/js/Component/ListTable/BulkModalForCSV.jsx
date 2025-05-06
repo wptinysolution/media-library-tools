@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import {Divider, Modal, Button, Checkbox} from 'antd';
 
-import DownloadCSV from "../ExportImport/DownloadCSV";
+import DownloadCSV from "./DownloadCSV";
 
 import {useStateValue} from "../../Utils/StateProvider";
 
@@ -12,7 +12,6 @@ import {initialState} from "../../Utils/reducer";
 function BulkModalForCSV() {
 
     const [stateValue, dispatch] = useStateValue();
-    const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const bulkExportData = stateValue.bulkExport;
     const defaultKeys = initialState.bulkExport.selectedKeys;

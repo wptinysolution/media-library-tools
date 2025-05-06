@@ -36,7 +36,6 @@ function ExportImportRoot() {
     useEffect(() => {
         resetExportImport();
     }, [] );
-    // console.log('stateValue.exportImport', stateValue.exportImport );
 
     return (
         <>
