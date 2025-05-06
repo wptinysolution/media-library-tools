@@ -813,6 +813,7 @@ class Fns {
 				'_wp_old_slug',
 				'_edit_lock',
 				'_edit_last',
+				'_original_file_url',
 			]
 		);
 		if ( empty( $skip_key ) || ! is_array( $skip_key ) ) {

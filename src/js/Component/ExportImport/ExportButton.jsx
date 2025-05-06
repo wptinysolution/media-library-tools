@@ -18,6 +18,8 @@ import {
 
 import MainHeader from "../MainHeader";
 
+import ExportModalCSV from "./ExportModalCSV";
+
 const buttonStyle = {
     width: '200px',
     height: '70px',
@@ -33,6 +35,8 @@ function ExportButton() {
     const [stateValue, dispatch] = useStateValue();
 
     const [percent, setPercent] = useState(0);
+
+    const [isModalOpen, setModalOpen] = useState(false);
 
     const isExport = stateValue.exportImport.isExport;
 
@@ -80,8 +84,6 @@ function ExportButton() {
                 totalPages = res?.total_page || 1;
 
                 allMedia = [...allMedia, ...data];
-
-                console.log('allMedia', allMedia );
 
                 // Update progress
                 const progress = Math.round((page / totalPages) * 100);
@@ -142,15 +144,7 @@ function ExportButton() {
                                     <Button
                                         type="primary"
                                         size="large"
-                                        onClick={ ()=> dispatch({
-                                            ...stateValue,
-                                            type: Types.EXPORT_CSV,
-                                            saveType: Types.EXPORT_CSV,
-                                            bulkExport: {
-                                                ...stateValue.bulkExport,
-                                                isModalOpen : true,
-                                            },
-                                        }) }
+                                        onClick={ ()=> setModalOpen(true) }
                                     > Download Csv </Button>
                                 </>
                                 : <Button
@@ -166,6 +160,7 @@ function ExportButton() {
                     </Layout>
                 </Content>
             </Layout>
+            { isModalOpen ? <ExportModalCSV isModalOpen={isModalOpen}/> : null }
         </> )
 }
 export default ExportButton;
