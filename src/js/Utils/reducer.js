@@ -101,6 +101,9 @@ export const initialState = {
     },
     bulkExport: {
         isModalOpen: false,
+		selectedKeys:  [
+			'ID', 'post_name', 'url', 'post_title', 'post_excerpt', 'post_content', 'alt_text'
+		]
     },
     searchUses: {
         isModalOpen: false,
