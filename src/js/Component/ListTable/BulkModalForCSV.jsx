@@ -7,6 +7,7 @@ import DownloadCSV from "../ExportImport/DownloadCSV";
 import {useStateValue} from "../../Utils/StateProvider";
 
 import * as Types from "../../Utils/actionType";
+import {initialState} from "../../Utils/reducer";
 
 function BulkModalForCSV() {
 
@@ -14,7 +15,7 @@ function BulkModalForCSV() {
     const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const bulkExportData = stateValue.bulkExport;
-    const defaultKeys = stateValue.bulkExport.selectedKeys;
+    const defaultKeys = initialState.bulkExport.selectedKeys;
 
     const [selectedKeys, setSelectedKeys] = useState(defaultKeys);
 

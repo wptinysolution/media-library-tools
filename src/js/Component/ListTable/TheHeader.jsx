@@ -18,7 +18,7 @@ import {useSearchDebounce} from "../../Utils/Hooks";
 import * as Types from "../../Utils/actionType";
 
 import {notifications} from "../../Utils/Data";
-import {SEARCH_USES, SEARCHUSES} from "../../Utils/actionType";
+
 import Loader from "../../Utils/Loader";
 
 const { Header } = Layout;

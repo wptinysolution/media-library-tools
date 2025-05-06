@@ -38,11 +38,11 @@ function DownloadCSV() {
             const flatMeta = item.custom_meta || {};
             const fullRow = {
                 ID: item.ID,
-                slug: item.post_name,
+                slug: item.slug,
                 url: item.url,
-                title: item.post_title,
-                caption: item.post_excerpt,
-                description: item.post_content,
+                title: item.title,
+                caption: item.caption,
+                description: item.description,
                 alt_text: item.alt_text,
                 ...flatMeta,
             };

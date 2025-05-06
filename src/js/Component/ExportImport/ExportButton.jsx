@@ -103,7 +103,7 @@ function ExportButton() {
             console.error('Export failed:', error);
         }
     };
-    
+
     return (
         <>
             <MainHeader/>
@@ -136,14 +136,32 @@ function ExportButton() {
                             gap: '15px'
                         } }
                     >
-                        <Button
-                            type="primary"
-                            size={`large`}
-                            style={ buttonStyle }
-                            onClick={ () => handleExport( 'export' ) }
-                        >
-                            <ImportOutlined/> Run Exporter
-                        </Button>
+                        {
+                            percent >= 100 ?
+                                <>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        onClick={ ()=> dispatch({
+                                            ...stateValue,
+                                            type: Types.EXPORT_CSV,
+                                            saveType: Types.EXPORT_CSV,
+                                            bulkExport: {
+                                                ...stateValue.bulkExport,
+                                                isModalOpen : true,
+                                            },
+                                        }) }
+                                    > Download Csv </Button>
+                                </>
+                                : <Button
+                                type="primary"
+                                size={`large`}
+                                style={ buttonStyle }
+                                onClick={ () => handleExport( 'export' ) }
+                            >
+                                <ImportOutlined/> Run Exporter
+                            </Button>
+                        }
 
                     </Layout>
                 </Content>

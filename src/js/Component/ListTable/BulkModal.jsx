@@ -152,8 +152,6 @@ function BulkModal() {
         setIsButtonDisabled( isDisable );
     };
 
-    const filteredOptions = stateValue.generalData.termsList.filter( ( item ) => ! stateValue.bulkSubmitData.post_categories.includes( item.value ) );
-
     return (
         <Modal
             title={ 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ? `Bulk Assign` : `Bulk Edit` }
