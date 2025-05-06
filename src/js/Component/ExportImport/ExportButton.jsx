@@ -39,7 +39,6 @@ function ExportButton() {
     const isExport = stateValue.exportImport.isExport;
 
     const handleExport = async ( type ) => {
-
         if ( ! tsmltParams.hasExtended ){
             dispatch({
                 type: Types.GENERAL_DATA,
@@ -50,7 +49,6 @@ function ExportButton() {
             });
             return;
         }
-
         let exportImport = {
             ...stateValue.exportImport,
             isExport: 'export' === type,
@@ -62,16 +60,12 @@ function ExportButton() {
             percent : 0,
             totalPage: 0
         }
-
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: exportImport,
         });
     }
-
-   // console.log('stateValue.exportImport', stateValue.exportImport );
-
-
+    
     return (
         <>
             <MainHeader/>
