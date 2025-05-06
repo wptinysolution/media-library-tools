@@ -369,7 +369,7 @@ export function renamerColumns(){
             title: 'File',
             key: 'Image',
             dataIndex: 'guid',
-            width: '130px',
+            width: '100px',
             align: 'top',
             render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
@@ -427,7 +427,7 @@ export function renamerColumns(){
                         value={ record.thefile.filebasename }
                     />
                     {`.${record.thefile.fileextension}`}
-                </Layout> : <a target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
+                </Layout> : <a style={{ width: '100px', display: 'inline-flex' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
 
             </>,
         },
@@ -436,8 +436,8 @@ export function renamerColumns(){
             key: 'Image',
             dataIndex: 'guid',
             align: 'top',
-            width: '300px',
-            render:  ( text, record, i ) => <Paragraph  copyable={{ text: `${record.uploaddir + '/' + record.thefile.file}` }} > <Text type="secondary" code style={{ fontSize: '15px', maxWidth:'calc( 100% - 50px)', display: 'inline-flex' }} > { record.uploaddir + '/' + record.thefile.file } </Text> </Paragraph>,
+            minWidth: 300,
+            render:  ( text, record, i ) => <Paragraph  copyable={{ text: `${record.uploaddir + '/' + record.thefile.file}` }} > <Text type="secondary" code style={{ fontSize: '15px', width: '300px', display: 'inline-flex' }} > { record.uploaddir + '/' + record.thefile.file } </Text> </Paragraph>,
         },
 
         {
