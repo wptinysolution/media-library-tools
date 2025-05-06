@@ -22,7 +22,7 @@ function ExportModalCSV(props) {
     const REQUIRED_KEYS = ['ID', 'slug'];
 
     function getSelectedKeysWithMeta() {
-        const item = filteredData[0];
+        const item = filteredData[0] || [];
         const keys = [];
         // Loop through selected keys and add them to the list
         defaultKeys.forEach((key) => {
@@ -44,13 +44,7 @@ function ExportModalCSV(props) {
      * @param event
      */
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.EXPORT_CSV,
-            bulkExport: {
-                ...bulkExportData,
-                isModalOpen: false,
-            },
-        });
+        props.setModalOpen(false);
     };
     useEffect(() => {
         dispatch({

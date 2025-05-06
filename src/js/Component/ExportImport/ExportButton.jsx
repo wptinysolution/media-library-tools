@@ -144,6 +144,7 @@ function ExportButton() {
                                     <Button
                                         type="primary"
                                         size="large"
+                                        style={ buttonStyle }
                                         onClick={ ()=> setModalOpen(true) }
                                     > Download Csv </Button>
                                 </>
@@ -160,7 +161,7 @@ function ExportButton() {
                     </Layout>
                 </Content>
             </Layout>
-            { isModalOpen ? <ExportModalCSV isModalOpen={isModalOpen}/> : null }
+            { isModalOpen ? <ExportModalCSV isModalOpen={isModalOpen} setModalOpen={setModalOpen}/> : null }
         </> )
 }
 export default ExportButton;

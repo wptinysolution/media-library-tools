@@ -31,7 +31,9 @@ function ExportCSV() {
     const filteredData = bulkExportData?.mediaFiles || [];
 
     const generateCSVStructure = () => {
-
+        if ( filteredData.length < 1 ){
+            return;
+        }
         const updatedData = filteredData.map(item => {
             const flatMeta = item.custom_meta || {};
             const fullRow = {
@@ -44,16 +46,13 @@ function ExportCSV() {
                 alt_text: item.alt_text,
                 ...flatMeta,
             };
-
             const finalKeys = Array.from(new Set(['ID', 'slug', ...selectedKeys]));
             const filteredRow = {};
-
             finalKeys.forEach(key => {
                 if (key in fullRow) {
                     filteredRow[key] = fullRow[key];
                 }
             });
-
             return escapeValues(filteredRow);
         });
 
