@@ -4,18 +4,6 @@ import { Button} from 'antd';
 import { useStateValue } from '../../Utils/StateProvider';
 import Papa from 'papaparse';
 
-const buttonStyle = {
-    gap: '5px',
-    width: '200px',
-    height: '40px',
-    fontSize: '20px',
-    cursor: 'pointer',
-    border: 0,
-    color: '#fff',
-    borderRadius: '8px',
-    background: '#1677ff',
-};
-
 /**
  * Escapes non-primitive values (e.g. objects, arrays) into JSON strings.
  */
@@ -38,40 +26,16 @@ const escapeValues = (obj) => {
 function DownloadCSV() {
     const [stateValue] = useStateValue();
     const [csvData, setCsvData] = useState('');
-    // const defaultKeys = [
-    //     'ID', 'post_name', 'url', 'post_title', 'post_excerpt', 'post_content', 'alt_text'
-    // ];
-    // const [selectedKeys, setSelectedKeys] = useState(defaultKeys);
+
     const selectedKeys = stateValue.bulkExport.selectedKeys;
     const media = stateValue.mediaData?.posts || [];
     const selectedIds = stateValue.bulkSubmitData?.ids || [];
-   // const REQUIRED_KEYS = ['ID', 'post_name'];
     const filteredData = media.filter(item => selectedIds.includes(item.ID));
-
-    // function getSelectedKeysWithMeta() {
-    //     const item = filteredData[0];
-    //     const keys = [];
-    //     // Loop through selected keys and add them to the list
-    //     defaultKeys.forEach((key) => {
-    //         if (item.hasOwnProperty(key)) {
-    //             keys.push(key);
-    //         }
-    //     });
-    //     // Add custom_meta keys (flattened)
-    //     if (item.custom_meta) {
-    //         const meta = item.custom_meta || {};
-    //         for (const metaKey in meta) {
-    //             keys.push(metaKey);
-    //         }
-    //     }
-    //     return keys;
-    // }
 
     const generateCSVStructure = () => {
 
         const updatedData = filteredData.map(item => {
             const flatMeta = item.custom_meta || {};
-
             const fullRow = {
                 ID: item.ID,
                 post_name: item.post_name,
@@ -95,8 +59,6 @@ function DownloadCSV() {
             return escapeValues(filteredRow);
         });
 
-        console.log('updatedData', updatedData );
-
         const csv = Papa.unparse(updatedData, {
             quotes: true,
         });
@@ -117,9 +79,6 @@ function DownloadCSV() {
         link.click();
         document.body.removeChild(link);
     };
-    console.log('selectedKeys', selectedKeys );
-
-   // const keys = getSelectedKeysWithMeta();
 
     return (
         <>
