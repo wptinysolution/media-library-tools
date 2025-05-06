@@ -48,32 +48,32 @@ export const defaultBulkSubmitData = {
 
 export const bulkOprions = [
     {
-        value: 'searchUses',
-        label: 'Search Used Images (Attached Post)',
-    },
-    {
         value: 'bulkedit',
         label: 'Bulk Edit',
+    },
+    {
+        value: 'csv_export',
+        label: 'CSV Export',
     },
     {
         value: 'bulkEditPostTitle',
         label: 'Edit Based on Attached Post Title',
     },
     {
-        value: 'trash',
-        label: 'Move to Trash',
-    },
-    {
         value: 'inherit',
         label: 'Restore',
     },
     {
-        value: 'delete',
-        label: 'Delete Permanently ',
+        value: 'searchUses',
+        label: 'Search Used Images (Attached Post)',
     },
     {
-        value: 'csv_export',
-        label: 'CSV Export',
+        value: 'trash',
+        label: 'Move to Trash',
+    },
+    {
+        value: 'delete',
+        label: 'Delete Permanently ',
     }
 ];
 
