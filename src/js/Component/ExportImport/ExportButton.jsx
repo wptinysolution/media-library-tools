@@ -5,7 +5,7 @@ import {Layout, Button, Typography, Progress} from 'antd';
 const { Content } = Layout;
 
 import {
-    ImportOutlined
+    ExportOutlined
 } from '@ant-design/icons';
 
 import {useStateValue} from "../../Utils/StateProvider";
@@ -154,7 +154,7 @@ function ExportButton() {
                                 style={ buttonStyle }
                                 onClick={ () => handleExport( 'export' ) }
                             >
-                                <ImportOutlined/> Run Exporter
+                                    <ExportOutlined />  Run Exporter
                             </Button>
                         }
 
