@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export import, media, file, rename
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.8
+Stable tag: 1.6.9
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -170,6 +170,10 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.6.9 ( May 07, 2025 ) =
+* Added: Export Selected Column For CSV
+* Added: Export All Media Item 
 
 = 1.6.8 ( Apr 21, 2025 ) =
 * Added: Update Support Url
