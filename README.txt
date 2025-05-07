@@ -173,7 +173,7 @@ To search for images by categories, users can find the categories box near the F
 
 = 1.6.9 ( May 07, 2025 ) =
 * Added: Export Selected Column For CSV
-* Added: Export All Media Item 
+* Added: Export All Media Item With Selected Column
 
 = 1.6.8 ( Apr 21, 2025 ) =
 * Added: Update Support Url
