@@ -36,7 +36,7 @@ class RegisterPostAndTax {
 		do_action( 'tsmlt_register_taxonomy' );
 
 		$args = [
-			'label'                 => esc_html__( 'Category', 'tsmlt-media-tools' ),
+			'label'                 => esc_html__( 'Category', 'media-library-tools' ),
 			'public'                => true,
 			'rewrite'               => [ 'slug' => 'tsmlt-category' ],
 			'update_count_callback' => '_update_generic_term_count',

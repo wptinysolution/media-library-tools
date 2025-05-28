@@ -48,72 +48,72 @@ class SubMenu {
 
 		wp_enqueue_style( 'tsmlt-settings-style' );
 
-		$tab_title = apply_filters( 'tsmlt/add/get-pro/submenu/label', esc_html__( 'Get license', 'tsmlt-media-tools' ) );
+		$tab_title = apply_filters( 'tsmlt/add/get-pro/submenu/label', esc_html__( 'Get license', 'media-library-tools' ) );
 
 		$title = '<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . $tab_title . '</span>';
 
-		$menu_link_part = admin_url( 'upload.php?page=tsmlt-media-tools' );
+		$menu_link_part = admin_url( 'upload.php?page=media-library-tools' );
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" >' . esc_html__( 'Media Tools Settings', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Media Tools Settings', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" >' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
-			'tsmlt-media-tools',
+			'media-library-tools',
 			[ $this, 'wp_media_page_callback' ]
 		);
 		// add_submenu_page(
 		// self::MENU_PAGE_SLUG,
-		// esc_html__( 'Media Settings', 'tsmlt-media-tools' ),
-		// esc_html__( 'Media Settings', 'tsmlt-media-tools' ),
+		// esc_html__( 'Media Settings', 'media-library-tools' ),
+		// esc_html__( 'Media Settings', 'media-library-tools' ),
 		// self::MENU_CAPABILITY,
 		// $menu_link_part . '#/'
 		// );
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Table', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Table', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Media Table', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Table', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/mediaTable'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Rename', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Rename', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Media Rename', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Rename', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/mediaRename'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'CSV Export/Import', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Export Import', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'CSV Export/Import', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Export Import', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/exportImport'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Rubbish files', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Rubbish files', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Rubbish files', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Rubbish files', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/rubbishFile'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Image Size', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Image Size', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Image Size', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Image Size', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/imageSize'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Useful Plugins', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Useful Plugins ', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Useful Plugins', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Useful Plugins ', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/plugins'
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Get Support', 'tsmlt-media-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Get Support', 'tsmlt-media-tools' ) . '</span>',
+			esc_html__( 'Get Support', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Get Support', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,
 			$menu_link_part . '#/support'
 		);

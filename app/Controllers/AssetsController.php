@@ -81,7 +81,7 @@ class AssetsController {
 
 		if ( 'upload.php' === $pagenow ) {
 
-			if ( ! empty( $_GET['page'] ) && 'tsmlt-media-tools' === $_GET['page'] ) {
+			if ( ! empty( $_GET['page'] ) && 'media-library-tools' === $_GET['page'] ) {
 				// Enqueue ThickBox scripts and styles.
 				wp_enqueue_script( 'thickbox' );
 				wp_enqueue_style( 'thickbox' );

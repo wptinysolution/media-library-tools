@@ -100,7 +100,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 * Load Text Domain
 		 */
 		public function language() {
-			load_plugin_textdomain( 'tsmlt-media-tools', false, TSMLT_ABSPATH . '/languages/' );
+			load_plugin_textdomain( 'media-library-tools', false, TSMLT_ABSPATH . '/languages/' );
 		}
 
 		/**

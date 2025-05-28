@@ -224,7 +224,7 @@ class FilterHooks {
 		if ( $file['size'] > $max_file_size ) {
 			$file['error'] = sprintf(
 			/* translators: file size */
-				esc_html__( 'The uploaded SVG exceeds the maximum allowed file size of %s.', 'tsmlt-media-tools' ),
+				esc_html__( 'The uploaded SVG exceeds the maximum allowed file size of %s.', 'media-library-tools' ),
 				esc_html( $size_message )
 			);
 			return $file;
@@ -239,7 +239,7 @@ class FilterHooks {
 		$clean_svg   = $sanitizer->sanitize( $svg_content );
 		// If the file is not safe, return an error.
 		if ( false === $clean_svg ) {
-			$file['error'] = esc_html__( 'This SVG file contains unsafe content and cannot be uploaded.', 'tsmlt-media-tools' );
+			$file['error'] = esc_html__( 'This SVG file contains unsafe content and cannot be uploaded.', 'media-library-tools' );
 			return $file;
 		}
 		// Write sanitized SVG content back to the file.
@@ -482,13 +482,13 @@ class FilterHooks {
 	 */
 	public static function plugins_setting_links( $links ) {
 		$new_links                       = [];
-		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=tsmlt-media-tools' ) . '">' . esc_html__( 'Settings', 'tsmlt-media-tools' ) . '</a>';
+		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=media-library-tools' ) . '">' . esc_html__( 'Settings', 'media-library-tools' ) . '</a>';
 		/*
 		 * TODO:: Next Version
 		 *
 		 */
 		if ( ! tsmlt()->has_pro() ) {
-			$links['tsmlt_pro'] = '<a href="' . esc_url( tsmlt()->pro_version_link() ) . '" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'tsmlt-media-tools' ) . '</a>';
+			$links['tsmlt_pro'] = '<a href="' . esc_url( tsmlt()->pro_version_link() ) . '" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'media-library-tools' ) . '</a>';
 		}
 
 		return array_merge( $new_links, $links );
@@ -502,8 +502,8 @@ class FilterHooks {
 	 */
 	public static function plugin_row_meta( $links, $file ) {
 		if ( $file == TSMLT_BASENAME ) {
-			$report_url         = 'https://www.wptinysolutions.com/contact';// home_url( '/wp-admin/upload.php?page=tsmlt-media-tools' );
-			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'tsmlt-media-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'tsmlt-media-tools' ) . '</span>' );
+			$report_url         = 'https://www.wptinysolutions.com/contact';// home_url( '/wp-admin/upload.php?page=media-library-tools' );
+			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'media-library-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'media-library-tools' ) . '</span>' );
 
 			return array_merge( $links, $row_meta );
 		}

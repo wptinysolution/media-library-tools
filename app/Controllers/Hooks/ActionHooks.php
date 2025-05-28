@@ -40,7 +40,7 @@ class ActionHooks {
 	 */
 	public function remove_all_notices() {
 		$screen = get_current_screen();
-		if ( in_array( $screen->base, [ 'media_page_tsmlt-media-tools', 'media_page_tsmlt-get-pro', 'media_page_tsmlt-pricing-pro' ] ) ) {
+		if ( in_array( $screen->base, [ 'media_page_media-library-tools', 'media_page_tsmlt-get-pro', 'media_page_tsmlt-pricing-pro' ], true ) ) {
 			remove_all_actions( 'admin_notices' );
 			remove_all_actions( 'all_admin_notices' );
 		}
@@ -53,10 +53,8 @@ class ActionHooks {
 	public function add_image_info_to( $attachment_ID ) {
 		$options     = Fns::get_options();
 		$image_title = get_the_title( $attachment_ID );
-
+		// phpcs:ignore  WordPress.Security.NonceVerification.Recommended
 		$post_id = absint( $_REQUEST['post_id'] ?? 0 );
-		// TODO::  Auto Add Alt text is not working.
-
 		if ( ! $post_id || empty( $options['alt_text_by_post_title'] ) ) {
 			if ( ! empty( $options['default_alt_text'] ) && 'image_name_to_alt' === $options['default_alt_text'] ) {
 				update_post_meta( $attachment_ID, '_wp_attachment_image_alt', $image_title );

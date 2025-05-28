@@ -257,7 +257,7 @@ class Api {
 	 */
 	public function update_option( $request_data ) {
 		$result     = [
-			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'media-library-tools' ),
 		];
 		$parameters = $request_data->get_params();
 
@@ -295,7 +295,7 @@ class Api {
 
 		$result['updated'] = boolval( $options );
 
-		$result['message'] = ! $result['updated'] ? $result['message'] . esc_html__( 'Please try to fix', 'tsmlt-media-tools' ) : esc_html__( 'Updated. Be happy', 'tsmlt-media-tools' );
+		$result['message'] = ! $result['updated'] ? $result['message'] . esc_html__( 'Please try to fix', 'media-library-tools' ) : esc_html__( 'Updated. Be happy', 'media-library-tools' );
 
 		return $result;
 	}
@@ -367,7 +367,7 @@ class Api {
 		$parameters = $request_data->get_params();
 		$result     = [
 			'updated' => false,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
 		];
 		if ( empty( $parameters['ID'] ) ) {
 			return $result;
@@ -392,10 +392,10 @@ class Api {
 	private function handle_rename( $parameters ) {
 		$result = [
 			'updated' => false,
-			'message' => esc_html__( 'Rename failed. Please try to fix', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Rename failed. Please try to fix', 'media-library-tools' ),
 		];
 		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
-			$result['message'] = esc_html__( 'Please activate the license key.', 'tsmlt-media-tools' );
+			$result['message'] = esc_html__( 'Please activate the license key.', 'media-library-tools' );
 			return $result;
 		}
 		$attachment = get_post( $parameters['ID'] );
@@ -413,9 +413,9 @@ class Api {
 		}
 		if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $parameters['ID'], $rename_to ) ) {
 			$result['updated'] = true;
-			$result['message'] = esc_html__( 'Renamed.', 'tsmlt-media-tools' );
+			$result['message'] = esc_html__( 'Renamed.', 'media-library-tools' );
 		} else {
-			$result['message'] = esc_html__( 'Rename failed. Maybe file permission mismatch or the file doesn’t exist.', 'tsmlt-media-tools' );
+			$result['message'] = esc_html__( 'Rename failed. Maybe file permission mismatch or the file doesn’t exist.', 'media-library-tools' );
 		}
 		return $result;
 	}
@@ -428,7 +428,7 @@ class Api {
 	private function handle_bulk_edit( $parameters ) {
 		$result     = [
 			'updated' => false,
-			'message' => esc_html__( 'Update failed.', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Update failed.', 'media-library-tools' ),
 		];
 		$attachment = get_post( $parameters['ID'] );
 		$new_text   = '';
@@ -444,7 +444,7 @@ class Api {
 		}
 		if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
 			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
-			$result['message'] = esc_html__( 'Saved.', 'tsmlt-media-tools' );
+			$result['message'] = esc_html__( 'Saved.', 'media-library-tools' );
 		}
 		if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
 			$submit['post_excerpt'] = $new_text;
@@ -455,7 +455,7 @@ class Api {
 		if ( ! empty( $submit ) ) {
 			$submit['ID']      = $parameters['ID'];
 			$result['updated'] = wp_update_post( $submit );
-			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
 		}
 		return $result;
 	}
@@ -468,10 +468,10 @@ class Api {
 	 */
 	private function handle_single_updates( $parameters, $result ) {
 		$post_fields = [
-			'post_title'   => esc_html__( 'The Title has been saved.', 'tsmlt-media-tools' ),
-			'post_excerpt' => esc_html__( 'The Caption has been saved.', 'tsmlt-media-tools' ),
-			'post_content' => esc_html__( 'Content has been saved.', 'tsmlt-media-tools' ),
-			'alt_text'     => esc_html__( 'Saved.', 'tsmlt-media-tools' ),
+			'post_title'   => esc_html__( 'The Title has been saved.', 'media-library-tools' ),
+			'post_excerpt' => esc_html__( 'The Caption has been saved.', 'media-library-tools' ),
+			'post_content' => esc_html__( 'Content has been saved.', 'media-library-tools' ),
+			'alt_text'     => esc_html__( 'Saved.', 'media-library-tools' ),
 		];
 		if ( isset( $parameters['title'] ) ) {
 			$parameters['post_title'] = sanitize_text_field( $parameters['title'] );
@@ -501,7 +501,7 @@ class Api {
 			$result['updated'] = wp_update_post( $submit );
 			$result['message'] = $result['updated']
 				? $result['message']
-				: esc_html__( 'Update failed. Please try to fix.', 'tsmlt-media-tools' );
+				: esc_html__( 'Update failed. Please try to fix.', 'media-library-tools' );
 		}
 		return $result;
 	}
@@ -720,7 +720,7 @@ class Api {
 		$parameters = $request_data->get_params();
 		$result     = [
 			'updated' => false,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
 		];
 		if ( empty( $parameters['type'] ) || empty( $parameters['ids'] ) ) {
 			return $result;
@@ -733,7 +733,7 @@ class Api {
 					Fns::set_thumbnail_parent_id( $id );
 				}
 				$result['updated'] = true;
-				$result['message'] = $result['updated'] ? esc_html__( 'Updated. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+				$result['message'] = $result['updated'] ? esc_html__( 'Updated. Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
 				break;
 			case 'trash':
 			case 'inherit':
@@ -748,7 +748,7 @@ class Api {
 					wp_cache_set( md5( $query ), $updated, 'attachment-query' );
 				}
 				$result['updated'] = (bool) $updated;
-				$result['message'] = $updated ? esc_html__( 'Done. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Failed. Please try to fix', 'tsmlt-media-tools' );
+				$result['message'] = $updated ? esc_html__( 'Done. Be happy.', 'media-library-tools' ) : esc_html__( 'Failed. Please try to fix', 'media-library-tools' );
 				break;
 			case 'delete':
 				$delete = [];
@@ -757,7 +757,7 @@ class Api {
 				}
 
 				$result['updated'] = count( $delete ) === count( $ids );
-				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'tsmlt-media-tools' );
+				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'media-library-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'media-library-tools' );
 				break;
 			case 'bulkedit':
 				$data       = $parameters['data'];
@@ -796,7 +796,7 @@ class Api {
 					}
 				}
 				$result['updated'] = (bool) $update;
-				$result['message'] = $update ? esc_html__( 'Updated. Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+				$result['message'] = $update ? esc_html__( 'Updated. Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
 
 				break;
 				$result = apply_filters( 'tsmlt/bulk/rename', $result, $parameters );
@@ -843,10 +843,10 @@ class Api {
 		$parameters     = $request_data->get_params();
 		$dir            = $parameters['dir'] ?? 'all';
 		$directory_list = [];
-		$message        = esc_html__( 'Schedule Will Execute Soon.', 'tsmlt-media-tools' );
+		$message        = esc_html__( 'Schedule Will Execute Soon.', 'media-library-tools' );
 		if ( 'all' === $dir ) {
 			Fns::get_directory_list_cron_job( true );
-			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'tsmlt-media-tools' );
+			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'media-library-tools' );
 		} elseif ( empty( $directory_list[ $dir ] ) ) {
 			$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 			if ( ! empty( $directory_list[ $dir ] ) ) {
@@ -874,7 +874,7 @@ class Api {
 		$result     = [
 			'updated' => false,
 			'data'    => [],
-			'message' => esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
 		];
 
 		$directory = $parameters['directory'] ?? '';
@@ -893,7 +893,7 @@ class Api {
 		$result['updated'] = (bool) $updated;
 		$result['nextDir'] = $directory;
 		$result['dirlist'] = $dirlist;
-		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'tsmlt-media-tools' ) : esc_html__( 'Update failed. Please try to fix', 'tsmlt-media-tools' );
+		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
 		return $result;
 	}
 
@@ -906,7 +906,7 @@ class Api {
 		return [
 			'updated' => true,
 			'dirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'tsmlt-media-tools' ),
+			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'media-library-tools' ),
 		];
 	}
 
