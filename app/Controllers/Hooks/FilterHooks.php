@@ -337,7 +337,7 @@ class FilterHooks {
 			'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
 			wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
 			/* translators: %s: Attachment title. */
-			esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+			esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash', 'media-library-tools' ), $att_title ) ),
 			_x( 'Trash', 'verb' )
 		);
 		$delete_ays        = " onclick='return showNotice.warn();'";
@@ -347,7 +347,7 @@ class FilterHooks {
 			$delete_ays,
 			/* translators: %s: Attachment title. */
 			esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-			__( 'Delete Permanently' )
+			__( 'Delete Permanently', 'media-library-tools' )
 		);
 
 		return $actions;
@@ -414,10 +414,10 @@ class FilterHooks {
 		unset( $columns['date'] );
 		unset( $columns['comments'] );
 		unset( $columns['parent'] );
-		$columns['alt']         = __( 'Alt', 'media-library-helper' );
-		$columns['caption']     = __( 'Caption', 'media-library-helper' );
-		$columns['description'] = __( 'Description', 'media-library-helper' );
-		$columns['category']    = __( 'Category', 'media-library-helper' );
+		$columns['alt']         = __( 'Alt', 'media-library-tools' );
+		$columns['caption']     = __( 'Caption', 'media-library-tools' );
+		$columns['description'] = __( 'Description', 'media-library-tools' );
+		$columns['category']    = __( 'Category', 'media-library-tools' );
 		$columns['parent']      = $parent;
 		$columns['author']      = $author;
 		$columns['comments']    = $comments;

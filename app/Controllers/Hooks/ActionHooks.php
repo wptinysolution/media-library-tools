@@ -126,7 +126,7 @@ class ActionHooks {
 					}
 
 					/* translators: used between list items, there is a space after the comma */
-					echo join( __( ', ' ), $out );
+					echo esc_html( join( ', ', $out ) );
 				}
 				break;
 			default:

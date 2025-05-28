@@ -50,7 +50,7 @@ class CronJobHooks {
 	public function add_custom_cron_schedules( $schedules ) {
 		$schedules['every_six_hours'] = [
 			'interval' => 6 * 3600,
-			'display'  => __( 'Every 6 Hours' ),
+			'display'  => __( 'Every 6 Hours', 'media-library-tools' ),
 		];
 		return $schedules;
 	}
