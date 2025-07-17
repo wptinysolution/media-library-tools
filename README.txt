@@ -171,7 +171,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.6.11 ( May 27, 2025 ) =
+= 1.6.11 ( Jul 17, 2025 ) =
 * Fixed: Cron Error
 * Fixed: Load Text Domain Fixed
 
