@@ -28,6 +28,8 @@ class CronJobHooks {
 	 * @return void
 	 */
 	private function __construct() {
+		// Add custom interval for 5 times a day.
+		add_filter( 'cron_schedules', [ $this, 'add_custom_cron_schedules' ] );
 		// Hook the function to a cron job.
 		add_action( 'init', [ $this, 'schedule_directory_cron_job' ] );
 		add_action( 'tsmlt_upload_dir_scan', [ Fns::class, 'get_directory_list_cron_job' ] );
@@ -37,8 +39,6 @@ class CronJobHooks {
 		// Thumbnail Cron Job (5 times a day).
 		add_action( 'init', [ $this, 'schedule_thumbnail_cron_job' ] );
 		add_action( 'tsmlt_five_times_thumbnail_event', [ $this, 'execute_thumbnail_cron_job' ] );
-		// Add custom interval for 5 times a day.
-		add_filter( 'cron_schedules', [ $this, 'add_custom_cron_schedules' ] );
 	}
 
 	/**
