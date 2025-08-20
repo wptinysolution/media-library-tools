@@ -34,6 +34,10 @@ function ProModal() {
             desc: 'All features available in the free version are included.',
         },
         {
+            title: 'Search And Find Used Images (Attached Post)',
+            desc: 'Identify where the media file is used and display the corresponding page link.',
+        },
+        {
             title: 'Media File CSV Export/Import',
             desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.',
         },
