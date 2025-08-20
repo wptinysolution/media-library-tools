@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export import, media, file, rename
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.11
+Stable tag: 1.6.12
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -53,6 +53,7 @@ And also allows to Search Rubbish File, SVG Support,  of your media files can im
 * Bulk Add Alt Text, Caption, and Description Based on Associated Post Title
 * Assign Post Title to Alt Text, Caption, and Description Upon Image Upload
 * Auto Rename By Custom Name
+* Search Used Images (Attached Post) ( Unused Image will Remine Empty )
 * Find And Delete Unnecessary / Rubbish File Bulk Mode
 
 
@@ -170,6 +171,10 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.6.12 ( Aug 20, 2025 ) =
+* Fixed: Broken Url remove
+* Added: Proper Support Url Added
 
 = 1.6.11 ( Jul 17, 2025 ) =
 * Fixed: Cron Error
