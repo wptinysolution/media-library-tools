@@ -328,7 +328,7 @@ class Review {
 			<div class="modal-content">
 				<div id="feedback-form-body-<?php echo esc_attr( $this->textdomain ); ?>">
 					<p style="margin: 0 0 15px 0;">
-						Email: <span style="color: green; font-size:"> support@tinysolutions.freshdesk.com </span>
+						Contact: <span style="color: green; font-size:20px;"> <a class="contact-link" target="_blank" data-subject="pre_sale_question" href="https://help.wptinysolutions.com/">To Our Support</a> </span>
 					</p>
 					<p style="font-size: 20px;margin: 0 0 15px 0;">
 						OR

@@ -302,12 +302,14 @@ class SubMenu {
 							</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Media file CSV Export Import</li>
+							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Register/Add new custom image sizes as needed.</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
-							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Name</li>
+							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Text</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
 							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
-
+							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Rename Based on Woo Product SKU </li>
+							<li class="item"> <span class="dashicons dashicons-yes-alt"></span> Search Used Images (Attached Post) </li>
 							<li class="footer-text" style="display: flex;justify-content: space-between;">
 								<div class="footer text">
 									<a style="margin-top:30px;color: #1677ff;display: flex;align-items: center;gap: 5px;font-weight: 600;" target="_blank" href="https://checkout.freemius.com/plugin/13159/plan/22377/licenses/5/"> Buy Now <span class="dashicons dashicons-arrow-right-alt"></span></a>
@@ -343,7 +345,7 @@ class SubMenu {
 				<div id="tsmlt-pro-page-footer" class="tsmlt-pro-page-footer" >
 					<div class="container" style="max-width: 915px;margin-bottom: 20px;font-size: 20px;margin: 50px auto;line-height: 1.4;">
 						<span style="color: #6bc406;">Are you enjoying the free version? Have you got some valuable feedback to share? Have you encountered a bug and found a solution? If so, we might have a special <span style="color: red; font-weight: bold;"> discount </span> waiting for you!</span>
-						Contact us via email to receive assistance and get the offer: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="mailto:support@tinysolutions.freshdesk.com"><strong> support@tinysolutions.freshdesk.com </strong></a>
+						Contact us via email to receive assistance and get the offer: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="https://help.wptinysolutions.com/"><strong>  https://help.wptinysolutions.com/ </strong></a>
 					</div>
 
 					<div class="container" style="max-width: 915px;">
@@ -390,7 +392,7 @@ class SubMenu {
 									</li>
 									<li>
 										<h3>I have other pre-sale questions, can you help?</h3>
-										<p>Yes! You can ask us any question through our <a class="contact-link" data-subject="pre_sale_question" href="mailto:support@tinysolutions.freshdesk.com">support@tinysolutions.freshdesk.com</a>.</p>
+										<p>Yes! You can ask us any question through our <a class="contact-link" data-subject="pre_sale_question" href="https://help.wptinysolutions.com/">Our Website</a>.</p>
 									</li>
 								</ul>
 
