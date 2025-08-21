@@ -177,10 +177,11 @@ function RegisterSize() {
                                             unCheckedChildren="Soft Crop"
                                             onChange={ ( checked ) => registerImageSize( index, 'hardCrop', checked ) }
                                         />
+
                                         <DeleteOutlined
                                             style={{
                                                 position: 'absolute',
-                                                right: '50px',
+                                                right: '10px',
                                                 margin: 'auto',
                                                 height: '20px',
                                                 color: deleteIconColor
