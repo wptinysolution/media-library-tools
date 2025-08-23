@@ -268,7 +268,7 @@ export function columns(){
             render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Attached Post (Parent)` } </Space>,
+            title: <Space wrap> { `Attached Post (Parent)` } <Button size={`small`} onClick={ ( event ) => handleSortClick('post_parents') }> {`Sort`} </Button> </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',

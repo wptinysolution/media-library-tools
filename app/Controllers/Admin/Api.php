@@ -559,6 +559,9 @@ class Api {
 				case 'title':
 					$orderby = 'post_title';
 					break;
+				case 'post_parents':
+					$orderby = 'post_parent';
+					break;
 				case 'description':
 					$orderby = 'post_content';
 					break;
