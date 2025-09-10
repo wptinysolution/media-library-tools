@@ -107,7 +107,7 @@ export const columnList = [
         key: 'Description',
     },
     {
-        title: `Category`,
+        title: `Groups`,
         key: 'Category',
     },
 ];
@@ -306,7 +306,7 @@ export function columns(){
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`description`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <Space wrap> { `Category` } </Space>,
+            title: <Space wrap> { `Groups` } </Space>,
             key: 'Category',
             dataIndex: 'categories',
             width: '250px',

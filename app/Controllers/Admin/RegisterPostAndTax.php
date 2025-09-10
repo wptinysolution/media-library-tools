@@ -36,7 +36,19 @@ class RegisterPostAndTax {
 		do_action( 'tsmlt_register_taxonomy' );
 
 		$args = [
-			'label'                 => esc_html__( 'Category', 'media-library-tools' ),
+			'labels'                => [
+				'name'              => esc_html__( 'Groups', 'media-library-tools' ),
+				'singular_name'     => esc_html__( 'Group', 'media-library-tools' ),
+				'search_items'      => esc_html__( 'Search Groups', 'media-library-tools' ),
+				'all_items'         => esc_html__( 'All Groups', 'media-library-tools' ),
+				'parent_item'       => esc_html__( 'Parent Group', 'media-library-tools' ),
+				'parent_item_colon' => esc_html__( 'Parent Group:', 'media-library-tools' ),
+				'edit_item'         => esc_html__( 'Edit Group', 'media-library-tools' ),
+				'update_item'       => esc_html__( 'Update Group', 'media-library-tools' ),
+				'add_new_item'      => esc_html__( 'Add New Group', 'media-library-tools' ),
+				'new_item_name'     => esc_html__( 'New Group Name', 'media-library-tools' ),
+				'menu_name'         => esc_html__( 'Groups', 'media-library-tools' ),
+			],
 			'public'                => true,
 			'rewrite'               => [ 'slug' => 'tsmlt-category' ],
 			'update_count_callback' => '_update_generic_term_count',
