@@ -1,11 +1,13 @@
-1. Auto Image Attributes From Filename ( Alt, Caption, Description )
-2. Remove Register Image Size
-3. Download Media Library
-https://wordpress.org/plugins/file-renaming-on-upload/
-https://wordpress.org/plugins/force-regenerate-thumbnails/#description
-https://wordpress.org/plugins/image-sizes/
-https://wordpress.org/plugins/export-media-library/advanced/
-https://wordpress.org/plugins/media-download/
+
+* https://wordpress.org/plugins/easy-media-download/
+* Download Media Library
+* Image Upload Limit
+* Convert Images to WebP And Compress Images
+* https://wordpress.org/plugins/file-renaming-on-upload/
+* https://wordpress.org/plugins/force-regenerate-thumbnails/#description
+* https://wordpress.org/plugins/image-sizes/
+* https://wordpress.org/plugins/export-media-library/advanced/
+
 
 
 
