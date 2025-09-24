@@ -172,6 +172,10 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.6.13 ( XX XX, 2025 ) =
+* Added: Sort By Attached Post (Parent)
+* Fix: Image Group Name
+
 = 1.6.12 ( Aug 20, 2025 ) =
 * Fixed: Broken Url remove
 * Added: Proper Support Url Added

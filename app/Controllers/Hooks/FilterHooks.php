@@ -31,8 +31,6 @@ class FilterHooks {
 		add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
 		add_filter( 'plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2 );
-		// Remove Srcset. TODO: WIll Remove.
-		// add_filter( 'wp_calculate_image_srcset', [ __CLASS__, 'remove_srcset_for_svg' ], 10, 3 );
 		// Image Size.
 		add_filter( 'intermediate_image_sizes_advanced', [ __CLASS__, 'custom_image_sizes' ] );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
@@ -41,9 +39,6 @@ class FilterHooks {
 			add_filter( 'wp_check_filetype_and_ext', [ __CLASS__, 'allow_svg_upload' ], 10, 4 );
 			// Sanitize the SVG file before it is uploaded to the server.
 			add_filter( 'wp_handle_upload_prefilter', [ __CLASS__, 'sanitize_svg' ] );
-			// Cron Interval for check image file.
-			// TODO: WIll Remove.
-			// add_filter( 'image_downsize', [ __CLASS__, 'fix_svg_size_attributes' ], 10, 2 );
 			// SVG size.
 			add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'svgs_generate_svg_attachment_metadata' ], 10, 3 );
 		}
@@ -417,7 +412,7 @@ class FilterHooks {
 		$columns['alt']         = __( 'Alt', 'media-library-tools' );
 		$columns['caption']     = __( 'Caption', 'media-library-tools' );
 		$columns['description'] = __( 'Description', 'media-library-tools' );
-		$columns['category']    = __( 'Category', 'media-library-tools' );
+		$columns['category']    = __( 'Groups', 'media-library-tools' );
 		$columns['parent']      = $parent;
 		$columns['author']      = $author;
 		$columns['comments']    = $comments;
@@ -483,10 +478,6 @@ class FilterHooks {
 	public static function plugins_setting_links( $links ) {
 		$new_links                       = [];
 		$new_links['mediaedit_settings'] = '<a href="' . admin_url( 'upload.php?page=media-library-tools' ) . '">' . esc_html__( 'Settings', 'media-library-tools' ) . '</a>';
-		/*
-		 * TODO:: Next Version
-		 *
-		 */
 		if ( ! tsmlt()->has_pro() ) {
 			$links['tsmlt_pro'] = '<a href="' . esc_url( tsmlt()->pro_version_link() ) . '" style="color: #39b54a; font-weight: bold;" target="_blank">' . esc_html__( 'Go Pro', 'media-library-tools' ) . '</a>';
 		}
@@ -502,7 +493,7 @@ class FilterHooks {
 	 */
 	public static function plugin_row_meta( $links, $file ) {
 		if ( $file == TSMLT_BASENAME ) {
-			$report_url         = 'https://www.wptinysolutions.com/contact';// home_url( '/wp-admin/upload.php?page=media-library-tools' );
+			$report_url         = 'https://www.wptinysolutions.com/contact';
 			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'media-library-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'media-library-tools' ) . '</span>' );
 
 			return array_merge( $links, $row_meta );
