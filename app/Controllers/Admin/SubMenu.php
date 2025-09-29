@@ -105,6 +105,13 @@ class SubMenu {
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
+			esc_html__( 'Media Download', 'media-library-tools' ),
+			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Download', 'media-library-tools' ) . '</span>',
+			self::MENU_CAPABILITY,
+			$menu_link_part . '#/mediaDownload'
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
 			esc_html__( 'Useful Plugins', 'media-library-tools' ),
 			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Useful Plugins ', 'media-library-tools' ) . '</span>',
 			self::MENU_CAPABILITY,

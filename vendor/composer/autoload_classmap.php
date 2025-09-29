@@ -21,6 +21,8 @@ return array(
     'TinySolutions\\mlt\\Controllers\\Notice\\Review' => $baseDir . '/app/Controllers/Notice/Review.php',
     'TinySolutions\\mlt\\Controllers\\Notice\\SpecialDiscount' => $baseDir . '/app/Controllers/Notice/SpecialDiscount.php',
     'TinySolutions\\mlt\\Helpers\\Fns' => $baseDir . '/app/Helpers/Fns.php',
+    'TinySolutions\\mlt\\Modules\\DownloadMedia' => $baseDir . '/app/Modules/DownloadMedia.php',
+    'TinySolutions\\mlt\\Modules\\ModuleInit' => $baseDir . '/app/Modules/ModuleInit.php',
     'TinySolutions\\mlt\\Traits\\SingletonTrait' => $baseDir . '/app/Traits/SingletonTrait.php',
     'enshrined\\svgSanitize\\ElementReference\\Resolver' => $vendorDir . '/enshrined/svg-sanitize/src/ElementReference/Resolver.php',
     'enshrined\\svgSanitize\\ElementReference\\Subject' => $vendorDir . '/enshrined/svg-sanitize/src/ElementReference/Subject.php',

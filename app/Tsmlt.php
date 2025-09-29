@@ -24,6 +24,7 @@ use TinySolutions\mlt\Controllers\Hooks\Ajax;
 use TinySolutions\mlt\Controllers\Installation;
 use TinySolutions\mlt\Controllers\Notice\Review;
 use TinySolutions\mlt\Controllers\Notice\SpecialDiscount;
+use TinySolutions\mlt\Modules\ModuleInit;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 if ( ! class_exists( Tsmlt::class ) ) {
@@ -116,6 +117,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			do_action( 'tsmlt/before_loaded' );
 			Ajax::instance();
 			Api::instance();
+			ModuleInit::instance();
 			FilterHooks::init_hooks();
 			ActionHooks::instance();
 			CronJobHooks::instance();

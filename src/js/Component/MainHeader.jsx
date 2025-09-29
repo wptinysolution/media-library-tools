@@ -79,6 +79,12 @@ function MainHeader() {
             style: menuItemStyle,
         },
         {
+            key: '/mediaDownload',
+            label: <Link to={`/mediaDownload`}> Media Download </Link>,
+            icon: <ScissorOutlined style={iconStyle} />,
+            style: menuItemStyle,
+        },
+        {
             key: '/plugins',
             label: <Link to={`/plugins`}> Useful Plugins </Link>,
             icon: <LikeOutlined style={iconStyle}/>,

@@ -44,6 +44,8 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
         'TinySolutions\\mlt\\Controllers\\Notice\\Review' => __DIR__ . '/../..' . '/app/Controllers/Notice/Review.php',
         'TinySolutions\\mlt\\Controllers\\Notice\\SpecialDiscount' => __DIR__ . '/../..' . '/app/Controllers/Notice/SpecialDiscount.php',
         'TinySolutions\\mlt\\Helpers\\Fns' => __DIR__ . '/../..' . '/app/Helpers/Fns.php',
+        'TinySolutions\\mlt\\Modules\\DownloadMedia' => __DIR__ . '/../..' . '/app/Modules/DownloadMedia.php',
+        'TinySolutions\\mlt\\Modules\\ModuleInit' => __DIR__ . '/../..' . '/app/Modules/ModuleInit.php',
         'TinySolutions\\mlt\\Traits\\SingletonTrait' => __DIR__ . '/../..' . '/app/Traits/SingletonTrait.php',
         'enshrined\\svgSanitize\\ElementReference\\Resolver' => __DIR__ . '/..' . '/enshrined/svg-sanitize/src/ElementReference/Resolver.php',
         'enshrined\\svgSanitize\\ElementReference\\Subject' => __DIR__ . '/..' . '/enshrined/svg-sanitize/src/ElementReference/Subject.php',

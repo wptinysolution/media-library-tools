@@ -38,6 +38,7 @@ import PluginList from "./PluginList";
 import ImageSize from "./ImageSize/ImageSize";
 import ExportImportRoot from "./ExportImport/ExportImportRoot";
 import ExportButton from "./ExportImport/ExportButton";
+import MediaDownload from "./MediaDownload/MediaDownload";
 
 
 function App() {
@@ -212,6 +213,7 @@ function App() {
                         <Route path="/import" element={<ImportButton/>}/>
                         <Route path="/export" element={<ExportButton/>}/>
                         <Route path="/imageSize" element={<ImageSize/>}/>
+                        <Route path="/mediaDownload" element={<MediaDownload/>}/>
                         <Route path="/rubbishFile" element={<RubbishFile/>}/>
                         <Route path="/plugins" element={<PluginList/>}/>
                         <Route path="/support" element={<NeedSupport/>}/>
