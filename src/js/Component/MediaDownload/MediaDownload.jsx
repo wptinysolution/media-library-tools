@@ -47,6 +47,7 @@ function MediaDownload() {
                             <Paragraph copyable={{ text: "[tsmlt_download_button id='11393'/]" }} >  <Text type="secondary" code style={{ fontSize: '20px' }} > [tsmlt_download_button id='11393' /] </Text> </Paragraph>
                         </Col>
                     </Row>
+                    <Divider />
                     <Row gutter={16}>
                         <Col className="gutter-row" span={6}>
                             <Paragraph style={{ margin:0, fontSize:'16px' }} > Download By URL: </Paragraph>
