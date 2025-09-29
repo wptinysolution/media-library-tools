@@ -253,7 +253,7 @@ export function columns(){
             render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
         },
         {
-            title: <Space wrap> { `ID` } <Button size={`small`} onClick={ ( event ) => handleSortClick('id') }> {`Sort`} </Button> </Space>,
+            title: <Space wrap style={{gap:2}} > { `ID` } <Button size={`small`} onClick={ ( event ) => handleSortClick('id') }> {`Sort`} </Button> </Space>,
             key: 'ID',
             dataIndex: 'ID',
             width: '150px',
@@ -265,10 +265,10 @@ export function columns(){
             dataIndex: 'guid',
             width: '150px',
             align: 'top',
-            render: ( text, record, i ) => <Space> { theImage( record ) }</Space>,
+            render: ( text, record, i ) => <Space style={{gap:2}} > { theImage( record ) }</Space>,
         },
         {
-            title: <Space wrap> { `Attached Post (Parent)` } <Button size={`small`} onClick={ ( event ) => handleSortClick('post_parents') }> {`Sort`} </Button> </Space>,
+            title: <Space wrap style={{gap:2}} > { `Attached Post (Parent)` } <Button size={`small`} onClick={ ( event ) => handleSortClick('post_parents') }> {`Sort`} </Button> </Space>,
             key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',
@@ -276,7 +276,7 @@ export function columns(){
             render: ( text, record, i ) => <> { text['title'] ? <a target={'_blank'} href={ text['permalink'] }> { text['title'] } </a> : '' }</>
         },
         {
-            title: <Space wrap> { `Title` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
+            title: <Space wrap style={{gap:2}} > { `Title` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
             key: 'Title',
             dataIndex: 'title',
             align: 'top',
@@ -284,7 +284,7 @@ export function columns(){
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a style={{ width: '200px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
         },
         {
-            title: <Space wrap> { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
+            title: <Space wrap style={{gap:2}}  > { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
@@ -292,14 +292,14 @@ export function columns(){
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : <span style={{ width: '200px', display: 'flex', overflowX: 'auto' }} > {text} </span>  } </>
         },
         {
-            title: <Space wrap> { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
+            title: <Space wrap style={{gap:2}}  > { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
             key: 'Caption',
             dataIndex: 'caption',
             width: '300px',
             render: ( text, record, i ) => <> { formEdited ? <TextArea name={`caption`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
         },
         {
-            title: <Space wrap> { `Description` } <Button size={`small`} onClick={  ( event ) => handleSortClick('description') }> Sort </Button> </Space>,
+            title: <Space wrap style={{gap:2}} > { `Description` } <Button size={`small`} onClick={  ( event ) => handleSortClick('description') }> Sort </Button> </Space>,
             key: 'Description',
             dataIndex: 'description',
             width: '350px',
