@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export import, media, file, rename
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.12
+Stable tag: 1.6.13
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -172,7 +172,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 1.6.13 ( XX XX, 2025 ) =
+= 1.6.13 ( Sep 29, 2025 ) =
 * Added: Sort By Attached Post (Parent)
 * Fix: Image Group Name
 
