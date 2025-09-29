@@ -53,7 +53,7 @@ function MediaDownload() {
                             <Paragraph style={{ margin:0, fontSize:'16px' }} > Download By URL: </Paragraph>
                         </Col>
                         <Col className="gutter-row" span={18}>
-                            <Paragraph copyable={{ text: "[tsmlt_download_button url='http://examole.local/volleyball_1756704187918.webp' /]" }} >  <Text type="secondary" code style={{ fontSize: '20px' }} > [tsmlt_download_button url='http://examole.local/volleyball_1756704187918.webp' /]</Text> </Paragraph>
+                            <Paragraph copyable={{ text: "[tsmlt_download_button url='http://examole.local/image.jpg' /]" }} >  <Text type="secondary" code style={{ fontSize: '20px' }} > [tsmlt_download_button url='http://examole.local/image.jpg' /]</Text> </Paragraph>
                         </Col>
                     </Row>
                 </Content>
