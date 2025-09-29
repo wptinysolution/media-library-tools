@@ -1,11 +1,9 @@
 
-* https://wordpress.org/plugins/easy-media-download/
 * Download Media Library
 * Image Upload Limit
 * Convert Images to WebP And Compress Images
 * https://wordpress.org/plugins/file-renaming-on-upload/
 * https://wordpress.org/plugins/force-regenerate-thumbnails/#description
-* https://wordpress.org/plugins/image-sizes/
 * https://wordpress.org/plugins/export-media-library/advanced/
 
 
