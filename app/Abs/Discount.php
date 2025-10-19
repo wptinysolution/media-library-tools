@@ -40,14 +40,15 @@ abstract class Discount {
 	 */
 	public function show_notice() {
 		$defaults      = [
-			'download_link'  => tsmlt()->pro_version_link(),
-			'plugin_name'    => 'Media Library Tools Pro',
-			'image_url'      => tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ),
-			'option_name'    => '',
-			'start_date'     => '',
-			'end_date'       => '',
-			'notice_for'     => 'Black Friday Cyber Monday Deal!!',
-			'notice_message' => '',
+			'download_link'        => tsmlt()->pro_version_link(),
+			'plugin_name'          => 'Media Library Tools Pro',
+			'image_url'            => tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ),
+			'option_name'          => '',
+			'start_date'           => '',
+			'end_date'             => '',
+			'download_button_text' => 'Buy Now',
+			'notice_for'           => 'Black Friday Cyber Monday Deal!!',
+			'notice_message'       => '',
 		];
 		$options       = apply_filters( 'tsmlt_offer_notice', $this->the_options() );
 		$this->options = wp_parse_args( $options, $defaults );
@@ -165,7 +166,7 @@ abstract class Discount {
 					</p>
 					<p>
 						<a class="button button-primary"
-						   href="<?php echo esc_url( $this->options['download_link'] ); ?>" target="_blank">Buy Now</a>
+						   href="<?php echo esc_url( $this->options['download_link'] ); ?>" target="_blank"> <?php echo esc_html( $this->options['download_button_text'] ); ?></a>
 						<a class="button button-dismiss" href="#">Dismiss</a>
 					</p>
 				</div>

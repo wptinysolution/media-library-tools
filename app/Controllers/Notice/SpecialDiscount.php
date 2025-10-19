@@ -30,14 +30,14 @@ class SpecialDiscount extends Discount {
 	 */
 	public function the_options(): array {
 		return [
-			'option_name'      => 'tsmlt_special_offer_2024',
-			'prev_option_name' => 'tsmlt_special_offer_2023',
-			'start_date'       => '19 November 2024',
-			'end_date'         => '10 December 2024',
-			'notice_for'       => 'Black Friday + Cyber Monday Deal!!',
-			'notice_message'   => "Don't miss out on our biggest sale of the year! Get your
-						<b>Media Library Tools Pro plan</b> with <b>UP TO 30% OFF</b>! Limited time
-						offer!!",
+			'option_name'          => 'tsmlt_special_offer_2025',
+			'prev_option_name'     => 'tsmlt_special_offer_2024',
+			'start_date'           => '19 October 2025',
+			'end_date'             => '15 November 2025',
+			'notice_for'           => '🎉 Claim Your Free 1-Year Pro License!',
+			'download_link'        => 'https://www.wptinysolutions.com/get-pro-version-for-free/',
+			'download_button_text' => 'Get My 1-Year Pro License',
+			'notice_message'       => "Don't miss this limited-time opportunity!",
 		];
 	}
 }
