@@ -27,7 +27,14 @@ abstract class Discount {
 	 * @return void
 	 */
 	public function __construct() {
-		add_action( 'admin_init', [ $this, 'show_notice' ] );
+		$install_time = get_option( 'tsmlt_plugin_activation_time' );
+		$current_time = time();
+		// Calculate days since activation.
+		$days_since_activation = ( $current_time - $install_time ) / DAY_IN_SECONDS;
+		// Show notice only if between 3 and 30 days.
+		if ( $days_since_activation >= 3 && $days_since_activation <= 30 ) {
+			add_action( 'admin_init', [ $this, 'show_notice' ] );
+		}
 	}
 
 	/**
