@@ -27,14 +27,7 @@ abstract class Discount {
 	 * @return void
 	 */
 	public function __construct() {
-		$install_time = get_option( 'tsmlt_plugin_activation_time' );
-		$current_time = time();
-		// Calculate days since activation.
-		$days_since_activation = ( $current_time - $install_time ) / DAY_IN_SECONDS;
-		// Show notice only if between 3 and 30 days.
-		if ( $days_since_activation >= 3 && $days_since_activation <= 30 ) {
-			add_action( 'admin_init', [ $this, 'show_notice' ] );
-		}
+		add_action( 'admin_init', [ $this, 'show_notice' ] );
 	}
 
 	/**
@@ -46,22 +39,33 @@ abstract class Discount {
 	 * @return void
 	 */
 	public function show_notice() {
-		$defaults      = [
-			'download_link'        => tsmlt()->pro_version_link(),
-			'plugin_name'          => 'Media Library Tools Pro',
-			'image_url'            => tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ),
-			'option_name'          => '',
-			'start_date'           => '',
-			'end_date'             => '',
-			'download_button_text' => 'Buy Now',
-			'notice_for'           => 'Black Friday Cyber Monday Deal!!',
-			'notice_message'       => '',
+		$defaults              = [
+			'download_link'           => tsmlt()->pro_version_link(),
+			'plugin_name'             => 'Media Library Tools Pro',
+			'image_url'               => tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ),
+			'option_name'             => '',
+			'start_date'              => '',
+			'end_date'                => '',
+			'minimum_activation_days' => false,
+			'maximum_activation_days' => false,
+			'download_button_text'    => 'Buy Now',
+			'notice_for'              => 'Black Friday Cyber Monday Deal!!',
+			'notice_message'          => '',
 		];
-		$options       = apply_filters( 'tsmlt_offer_notice', $this->the_options() );
-		$this->options = wp_parse_args( $options, $defaults );
-		$current       = time();
-		$start         = strtotime( $this->options['start_date'] );
-		$end           = strtotime( $this->options['end_date'] );
+		$options               = apply_filters( 'tsmlt_offer_notice', $this->the_options() );
+		$this->options         = wp_parse_args( $options, $defaults );
+		$current               = time();
+		$install_time          = get_option( 'tsmlt_plugin_activation_time' );
+		$days_since_activation = ( $current - $install_time ) / DAY_IN_SECONDS;
+		if ( $this->options['minimum_activation_days'] && $days_since_activation <= $this->options['minimum_activation_days'] ) {
+			return;
+		}
+		if ( $this->options['maximum_activation_days'] && $days_since_activation > $this->options['maximum_activation_days'] ) {
+			return;
+		}
+
+		$start = strtotime( $this->options['start_date'] );
+		$end   = strtotime( $this->options['end_date'] );
 		// Black Friday Notice.
 		if ( ! tsmlt()->has_pro() && $start <= $current && $current <= $end ) {
 			if ( get_option( $this->options['option_name'] ) != '1' ) {
@@ -160,8 +164,11 @@ abstract class Discount {
 						background: #fff;
 					}
 				</style>
-				<div class="tsmlt-offer-notice notice notice-info is-dismissible"
-					 data-tsmltdismissable="tsmlt_offer">
+				<div
+					class="tsmlt-offer-notice notice notice-info is-dismissible"
+					data-tsmltdismissable="tsmlt_offer"
+					style="padding: 12px 15px;"
+				>
 					<img alt="<?php echo esc_attr( $this->options['plugin_name'] ); ?>"
 						 src="<?php echo esc_url( $this->options['image_url'] ); ?>"
 						 width="100px"
