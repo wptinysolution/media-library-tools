@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.14
+Stable tag: 1.6.14.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
