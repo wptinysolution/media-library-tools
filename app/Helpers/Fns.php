@@ -677,12 +677,12 @@ class Fns {
 		}
 
 		global $wpdb;
-		$query     = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
-		$parent_id = $wpdb->get_var( $query );
-		$post_ids  = [];
+		$query          = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
+		$parent_id      = $wpdb->get_var( $query );
+		$post_ids       = [];
+		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		if ( ! $parent_id ) {
-			$orig_image_url = wp_get_attachment_url( $attachment_id );
-			$post_ids       = self::search_image_at_content( $orig_image_url );
+			$post_ids = self::search_image_at_content( $orig_image_url );
 		}
 		if ( empty( $post_ids ) ) {
 			$post_ids = self::search_elementor_metadata( $orig_image_url );
