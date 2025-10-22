@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.13
+Stable tag: 1.6.14
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -171,6 +171,9 @@ To search for images by categories, users can find the categories box near the F
 08. Settings
 
 == Changelog ==
+
+= 1.6.14 ( Oct 23, 2025 ) =
+* Added: Media File Download Shortcode Provided
 
 = 1.6.13 ( Sep 29, 2025 ) =
 * Added: Sort By Attached Post (Parent)
