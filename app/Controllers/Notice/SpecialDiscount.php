@@ -35,7 +35,6 @@ class SpecialDiscount extends Discount {
 			'start_date'              => '19 October 2025',
 			'end_date'                => '05 November 2025',
 			'minimum_activation_days' => 365,
-			'maximum_activation_days' => 730,
 			'notice_for'              => '🎉 Claim Your Free 1-Year Pro License!',
 			'download_link'           => 'https://www.wptinysolutions.com/get-mlt-pro-version-for-free/',
 			'download_button_text'    => 'Get My 1-Year Pro License',
