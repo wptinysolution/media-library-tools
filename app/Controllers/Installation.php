@@ -6,7 +6,11 @@ namespace TinySolutions\mlt\Controllers;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
+use TinySolutions\mlt\Helpers\Fns;
 
+/**
+ * Installation class.
+ */
 class Installation {
 	/**
 	 * @return void
@@ -37,9 +41,7 @@ class Installation {
 	 * @return void
 	 */
 	public static function deactivation() {
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_five_times_thumbnail_event' );
+		Fns::clear_scheduled_events();
 	}
 
 	/**
