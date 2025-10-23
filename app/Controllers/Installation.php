@@ -39,6 +39,7 @@ class Installation {
 	public static function deactivation() {
 		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
 		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
+		wp_clear_scheduled_hook( 'tsmlt_five_times_thumbnail_event' );
 	}
 
 	/**
