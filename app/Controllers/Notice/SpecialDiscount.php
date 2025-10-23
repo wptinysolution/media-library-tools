@@ -39,7 +39,7 @@ class SpecialDiscount extends Discount {
 			'notice_for'              => '🎉 Claim Your Free 1-Year Pro License!',
 			'download_link'           => 'https://www.wptinysolutions.com/get-mlt-pro-version-for-free/',
 			'download_button_text'    => 'Get My 1-Year Pro License',
-			'notice_message'          => "This offer will close in 3 days. Don't miss this limited-time opportunity!",
+			'notice_message'          => "This offer will close soon. Don't miss this limited-time opportunity!",
 		];
 	}
 }
