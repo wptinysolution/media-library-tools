@@ -10,8 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
-require_once TSMLT_PATH . 'vendor/autoload.php';
-
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\Admin\RegisterPostAndTax;
 use TinySolutions\mlt\Controllers\Admin\SubMenu;
@@ -165,7 +163,3 @@ if ( ! class_exists( Tsmlt::class ) ) {
 	tsmlt();
 }
 
-// Register Plugin Active Hook.
-register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
-// Register Plugin Deactivate Hook.
-register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );

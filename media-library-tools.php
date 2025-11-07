@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+
 /**
  * Define media edit Constant.
  */
@@ -34,6 +35,15 @@ define( 'TSMLT_URL', plugins_url( '', TSMLT_FILE ) );
 define( 'TSMLT_ABSPATH', dirname( TSMLT_FILE ) );
 
 define( 'TSMLT_PATH', plugin_dir_path( __FILE__ ) );
+
+require_once TSMLT_PATH . 'vendor/autoload.php';
+
+use TinySolutions\mlt\Controllers\Installation;
+
+// Register Plugin Active Hook.
+register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
+// Register Plugin Deactivate Hook.
+register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
 
 /**
  * App Init.

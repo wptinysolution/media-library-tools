@@ -40,7 +40,7 @@ class Review {
 		if ( isset( $GLOBALS['tsmlt__notice'] ) ) {
 			 return;
 		}
-		// Added Lines Start
+		// Added Lines Start.
 		$nobug = get_option( 'tsmlt_spare_me' );
 
 		$rated = get_option( 'tsmlt_rated' );
@@ -61,7 +61,7 @@ class Review {
 			$remind_time = $install_date;
 		}
 
-		$remind_due = strtotime( '+20 days', $remind_time );
+		$remind_due = strtotime( '+10 days', $remind_time );
 
 		if ( ! $now > $past_date || $now < $remind_due ) {
 			return;
