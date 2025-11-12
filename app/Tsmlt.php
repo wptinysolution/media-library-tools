@@ -60,9 +60,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		 */
 		private function __construct() {
 			$this->current_theme = wp_get_theme()->get( 'TextDomain' );
-			// add_action( 'init', [ $this, 'language' ] );
 			add_action( 'plugins_loaded', [ $this, 'init' ], 100 );
-			add_action( 'plugins_loaded', [ Installation::class, 'migration' ], 100 );
 		}
 
 		/**

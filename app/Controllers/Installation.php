@@ -30,7 +30,7 @@ class Installation {
 				];
 			}
 			// Create table.
-			self::migration();
+			self::create_tables();
 			update_option( 'tsmlt_settings', $tsmlt_media );
 			update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 			update_option( 'tsmlt_plugin_activation_time', strtotime( 'now' ) );
@@ -43,18 +43,7 @@ class Installation {
 	public static function deactivation() {
 		Fns::clear_scheduled_events();
 	}
-
-	/**
-	 * @return void
-	 */
-	public static function migration() {
-		$prev_version = get_option( 'tsmlt_plugin_version' );
-		if ( ! $prev_version || version_compare( TSMLT_VERSION, $prev_version, '>' ) ) {
-			self::create_tables();
-			update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
-		}
-	}
-
+	
 	/**
 	 * @return void
 	 */

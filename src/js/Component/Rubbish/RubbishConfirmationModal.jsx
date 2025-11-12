@@ -138,7 +138,13 @@ function RubbishConfirmationModal() {
                         No Item selected { 'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete' }
                     </Paragraph >
                 }
-                <Space wrap> { total && theFile.length > 0 ? <> <Spin size="small" /> { theFile } </> : '' } </Space>
+                <Space
+                    style={{
+                        alignItems: 'self-start',
+                        overflow: 'hidden',
+                        maxWidth: '100%'
+                    }}
+                > { total && theFile.length > 0 ? <> <Spin size="small" /> { theFile } </> : '' } </Space>
             </Content>
             <Divider />
 
