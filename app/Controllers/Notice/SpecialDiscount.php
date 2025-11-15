@@ -31,7 +31,7 @@ class SpecialDiscount extends Discount {
 	public function the_options(): array {
 		return [
 			'option_name'      => 'tsmlt_special_offer_2025',
-			'prev_option_name' => ['tsmlt_special_offer_2024', 'tsmlt_special_offer_2027'],
+			'prev_option_name' => [ 'tsmlt_special_offer_2024', 'tsmlt_special_offer_2027' ],
 			'start_date'       => '10 November 2025',
 			'end_date'         => '10 December 2025',
 			'notice_for'       => '🥳 Cyber Savings extended: 30% off',
