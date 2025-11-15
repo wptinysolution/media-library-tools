@@ -63,20 +63,28 @@ abstract class Discount {
 		if ( $this->options['maximum_activation_days'] && $days_since_activation > $this->options['maximum_activation_days'] ) {
 			return;
 		}
-
 		$start = strtotime( $this->options['start_date'] );
 		$end   = strtotime( $this->options['end_date'] );
 		// Black Friday Notice.
-		if ( ! tsmlt()->has_pro() && $start <= $current && $current <= $end ) {
-			if ( get_option( $this->options['option_name'] ) != '1' ) {
-				if ( ! isset( $GLOBALS['tsmlt__notice'] ) ) {
-					$GLOBALS['tsmlt__notice'] = 'tsmlt__notice';
-					$this->offer_notice();
-					if ( ! empty( $this->options['prev_option_name'] ) ) {
-						delete_option( $this->options['prev_option_name'] );
-					}
-				}
-			}
+		if ( tsmlt()->has_pro() ) {
+			return;
+		}
+		if ( $current < $start || $current > $end ) {
+			return;
+		}
+		if ( get_option( $this->options['option_name'] ) === '1' ) {
+			return;
+		}
+		$this->offer_notice();
+		// Handle previous options.
+		$prev = $this->options['prev_option_name'] ?? '';
+		if ( empty( $prev ) ) {
+			return;
+		}
+		if ( is_array( $prev ) ) {
+			array_map( 'delete_option', $prev );
+		} else {
+			delete_option( $prev );
 		}
 	}
 
