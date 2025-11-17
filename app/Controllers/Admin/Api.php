@@ -198,7 +198,7 @@ class Api {
 	 * @return true
 	 */
 	public function login_permission_callback() {
-		return current_user_can( 'upload_files' );
+		return current_user_can( 'manage_options' );
 	}
 	/**
 	 * @return false|string
@@ -713,9 +713,8 @@ class Api {
 		return wp_json_encode( $query_data );
 	}
 
-	/***
+	/**
 	 * @param $request_data
-	 *
 	 * @return array|WP_Error
 	 */
 	public function media_submit_bulk_action( $request_data ) {
@@ -728,88 +727,121 @@ class Api {
 		if ( empty( $parameters['type'] ) || empty( $parameters['ids'] ) ) {
 			return $result;
 		}
-
-		$ids = $parameters['ids'] ?? [];
+		// Sanitize IDs.
+		$ids = array_map( 'absint', (array) $parameters['ids'] );
 		switch ( $parameters['type'] ) {
+			/**
+			 * Search Uses
+			 */
 			case 'searchUses':
 				foreach ( $ids as $id ) {
 					Fns::set_thumbnail_parent_id( $id );
 				}
 				$result['updated'] = true;
-				$result['message'] = $result['updated'] ? esc_html__( 'Updated. Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
+				$result['message'] = esc_html__( 'Updated. Be happy.', 'media-library-tools' );
 				break;
+			/**
+			 * Trash or Inherit
+			 */
 			case 'trash':
 			case 'inherit':
-				$query   = $wpdb->prepare(
-					"UPDATE $wpdb->posts SET post_status = %s WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ')',
-					$parameters['type'],
-					...$ids
-				);
-				$updated = wp_cache_get( md5( $query ), 'attachment-query' );
-				if ( false === $updated ) {
-					$updated = $wpdb->query( $query );
-					wp_cache_set( md5( $query ), $updated, 'attachment-query' );
-				}
-				$result['updated'] = (bool) $updated;
-				$result['message'] = $updated ? esc_html__( 'Done. Be happy.', 'media-library-tools' ) : esc_html__( 'Failed. Please try to fix', 'media-library-tools' );
-				break;
-			case 'delete':
-				$delete = [];
+				$status = sanitize_key( $parameters['type'] );
 				foreach ( $ids as $id ) {
-					$delete[] = wp_delete_attachment( $id, true );
+					$wpdb->update(
+						$wpdb->posts,
+						[ 'post_status' => $status ],
+						[
+							'ID'        => $id,
+							'post_type' => 'attachment',
+						],
+						[ '%s' ],
+						[ '%d', '%s' ]
+					);
 				}
-
-				$result['updated'] = count( $delete ) === count( $ids );
-				$result['message'] = $result['updated'] ? esc_html__( 'Deleted. Be happy.', 'media-library-tools' ) : esc_html__( 'Deleted failed. Please try to fix', 'media-library-tools' );
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Done. Be happy.', 'media-library-tools' );
 				break;
+			/**
+			 * Delete attachments
+			 */
+			case 'delete':
+				$deleted = 0;
+				foreach ( $ids as $id ) {
+					if ( wp_delete_attachment( $id, true ) ) {
+						$deleted++;
+					}
+				}
+				$result['updated'] = ( $deleted === count( $ids ) );
+				$result['message'] = $result['updated']
+					? esc_html__( 'Deleted. Be happy.', 'media-library-tools' )
+					: esc_html__( 'Deleted failed. Please try to fix', 'media-library-tools' );
+				break;
+			/**
+			 * BULK EDIT (The vulnerable part — fully fixed)
+			 */
 			case 'bulkedit':
-				$data       = $parameters['data'];
-				$categories = $parameters['post_categories'];
-				$set_data   = '';
+				$data       = isset( $parameters['data'] ) ? (array) $parameters['data'] : [];
+				$categories = isset( $parameters['post_categories'] ) ? (array) $parameters['post_categories'] : [];
+				// Prepare safe fields.
+				$update_fields = [];
+				$update_format = [];
 				if ( ! empty( $data['post_title'] ) ) {
-					$set_data .= "post_title= '{$data['post_title']}', ";
+					$update_fields['post_title'] = sanitize_text_field( $data['post_title'] );
+					$update_format[]             = '%s';
 				}
 				if ( ! empty( $data['caption'] ) ) {
-					$set_data .= "post_excerpt='{$data['caption']}', ";
+					$update_fields['post_excerpt'] = sanitize_text_field( $data['caption'] );
+					$update_format[]               = '%s';
 				}
 				if ( ! empty( $data['post_description'] ) ) {
-					$set_data .= "post_content ='{$data['post_description']}', ";
+					$update_fields['post_content'] = wp_kses_post( $data['post_description'] );
+					$update_format[]               = '%s';
 				}
-				$update   = false;
-				$set_data = rtrim( $set_data, ', ' );
-				if ( ! empty( $set_data ) ) {
-					$query  = $wpdb->prepare(
-						"UPDATE $wpdb->posts SET $set_data WHERE post_type = 'attachment' AND ID IN (" . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ')',
-						...$ids
-					);
-					$update = wp_cache_get( md5( $query ), 'attachment-query' );
-					if ( false === $update ) {
-						$update = $wpdb->query( $query );
-						wp_cache_set( md5( $query ), $update, 'attachment-query' );
+				$updated = false;
+				// Safe SQL updates.
+				if ( ! empty( $update_fields ) ) {
+					foreach ( $ids as $id ) {
+						$res = $wpdb->update(
+							$wpdb->posts,
+							$update_fields,
+							[
+								'ID'        => $id,
+								'post_type' => 'attachment',
+							],
+							$update_format,
+							[ '%d', '%s' ]
+						);
+						if ( $res !== false ) {
+							$updated = true;
+						}
 					}
 				}
-
-				$alt = ! empty( $data['alt_text'] ) ? $data['alt_text'] : null;
-				foreach ( $ids as $id ) {
-					if ( $alt ) {
-						$update = update_post_meta( $id, '_wp_attachment_image_alt', trim( $alt ) );
+				// ALT TEXT update.
+				if ( ! empty( $data['alt_text'] ) ) {
+					$alt_text = sanitize_text_field( $data['alt_text'] );
+					foreach ( $ids as $id ) {
+						update_post_meta( $id, '_wp_attachment_image_alt', $alt_text );
 					}
-					if ( ! empty( $categories ) ) {
-						$update = wp_set_object_terms( $id, $categories, tsmlt()->category );
-					}
+					$updated = true;
 				}
-				$result['updated'] = (bool) $update;
-				$result['message'] = $update ? esc_html__( 'Updated. Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
-
-				break;
-				$result = apply_filters( 'tsmlt/bulk/rename', $result, $parameters );
+				// Categories.
+				if ( ! empty( $categories ) ) {
+					foreach ( $ids as $id ) {
+						wp_set_object_terms( $id, $categories, tsmlt()->category );
+					}
+					$updated = true;
+				}
+				$result['updated'] = $updated;
+				$result['message'] = $updated
+					? esc_html__( 'Updated. Be happy.', 'media-library-tools' )
+					: esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
 				break;
 			default:
+				// Unknown operation.
+				break;
 		}
-
 		return $result;
 	}
-
 	/**
 	 * @return false|string
 	 */
