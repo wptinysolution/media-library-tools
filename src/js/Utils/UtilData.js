@@ -250,7 +250,7 @@ export function columns(){
             dataIndex: 'ID',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+            render:  ( id, record ) => <> <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} /> </>
         },
         {
             title: <Space wrap style={{gap:2}} > { `ID` } <Button size={`small`} onClick={ ( event ) => handleSortClick('id') }> {`Sort`} </Button> </Space>,

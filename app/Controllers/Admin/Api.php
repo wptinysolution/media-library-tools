@@ -771,7 +771,7 @@ class Api {
 						$deleted++;
 					}
 				}
-				$result['updated'] = ( $deleted === count( $ids ) );
+				$result['updated'] = ( count( $ids ) === $deleted );
 				$result['message'] = $result['updated']
 					? esc_html__( 'Deleted. Be happy.', 'media-library-tools' )
 					: esc_html__( 'Deleted failed. Please try to fix', 'media-library-tools' );
