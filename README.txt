@@ -3,7 +3,7 @@ Contributors: tinysolution
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.8
-Stable tag: 1.6.15
+Stable tag: 1.7.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -179,16 +179,20 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 1.7.0 ( Nov 25, 2025 ) =
+* Improvement: Rubbish File Bulk Delete Functionality Make More Faster
+* Improvement: Improvement Security Issue For Bulk Discount
+
 = 1.6.15 ( Nov 16, 2025 ) =
-* Fix: Activation Time Hooks Fire
-* Fix: Migration Issue Resolved
+* Fixed: Activation Time Hooks Fire
+* Fixed: Migration Issue Resolved
 
 = 1.6.14 ( Oct 23, 2025 ) =
 * Added: Media File Download Shortcode Provided
 
 = 1.6.13 ( Sep 29, 2025 ) =
 * Added: Sort By Attached Post (Parent)
-* Fix: Image Group Name
+* Fixed: Image Group Name
 
 = 1.6.12 ( Aug 20, 2025 ) =
 * Fixed: Broken Url remove
