@@ -767,7 +767,7 @@ class Fns {
 	 * @return int
 	 */
 	public static function maximum_media_per_page() {
-		return absint( apply_filters( 'tsmlt_maximum_media_per_page', 500 ) );
+		return absint( apply_filters( 'tsmlt_maximum_media_per_page', 1000 ) );
 	}
 
 	/**
