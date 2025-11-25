@@ -44,7 +44,7 @@ function MediaDownload() {
                             <Paragraph style={{ margin:0, fontSize:'16px' }} > Download By Id: </Paragraph>
                         </Col>
                         <Col className="gutter-row" span={18}>
-                            <Paragraph copyable={{ text: "[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]" }} >
+                            <Paragraph style={{ marginBottom: 0 }} copyable={{ text: "[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]" }} >
                                 <Text type="secondary" code style={{ fontSize: '20px' }} >
                                     [tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]
                                 </Text>
@@ -57,7 +57,7 @@ function MediaDownload() {
                             <Paragraph style={{ margin:0, fontSize:'16px' }} > Download By URL: </Paragraph>
                         </Col>
                         <Col className="gutter-row" span={18}>
-                            <Paragraph copyable={{ text: "[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]" }} >  <Text type="secondary" code style={{ fontSize: '20px' }} > [tsmlt_download_button url='http://examole.local/image.jpg'  text='Download Now' class='my-custom-btn'  /]</Text> </Paragraph>
+                            <Paragraph style={{ marginBottom: 0 }} copyable={{ text: "[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]" }} >  <Text type="secondary" code style={{ fontSize: '20px' }} > [tsmlt_download_button url='http://examole.local/image.jpg'  text='Download Now' class='my-custom-btn'  /]</Text> </Paragraph>
                         </Col>
                     </Row>
                 </Content>
