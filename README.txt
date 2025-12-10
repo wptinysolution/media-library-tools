@@ -2,7 +2,7 @@
 Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
-Tested up to: 6.8
+Tested up to: 6.9
 Stable tag: 1.7.0
 Requires PHP: 7.4
 License: GPLv3
