@@ -92,14 +92,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		public function plugin_path() {
 			return untrailingslashit( plugin_dir_path( TSMLT_FILE ) );
 		}
-
-		/**
-		 * Load Text Domain
-		 */
-		public function language() {
-			load_plugin_textdomain( 'media-library-tools', false, TSMLT_ABSPATH . '/languages/' );
-		}
-
+		
 		/**
 		 * Init
 		 *

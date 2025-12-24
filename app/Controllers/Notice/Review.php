@@ -159,14 +159,14 @@ class Review {
 			$dont_disturb = add_query_arg( $args + [ 'tsmlt_spare_me' => '1' ], $this->tsmlt_current_admin_url() );
 			$remind_me    = add_query_arg( $args + [ 'tsmlt_remind_me' => '1' ], $this->tsmlt_current_admin_url() );
 			$rated        = add_query_arg( $args + [ 'tsmlt_rated' => '1' ], $this->tsmlt_current_admin_url() );
-			$reviewurl    = 'https://wordpress.org/support/plugin/media-library-tools/reviews/?filter=5#new-post';
+			$reviewurl    = 'https://wordpress.org/support/plugin/media-library-tools/reviews/#new-post';
 			$plugin_name  = 'Media Library Tools';
 			?>
 			<div class="notice tsmlt-review-notice tsmlt-review-notice--extended">
 				<div class="tsmlt-review-notice_content">
-					<h3>Enjoying "<?php echo $plugin_name; ?>"? </h3>
+					<h3>Enjoying "<?php echo esc_html( $plugin_name ); ?>"? </h3>
 					<p>
-						Thank you for choosing " <strong><?php echo $plugin_name; ?></strong>". If you have indeed benefited from our services, we kindly request that you, please consider giving us a 5-star rating on WordPress.org.
+						Thank you for choosing " <strong><?php echo esc_html( $plugin_name ); ?></strong>". If you have indeed benefited from our services, we kindly request that you, please consider giving us a 5-star rating on WordPress.org.
 					</p>
 					<div class="tsmlt-review-notice_actions">
 						<a href="<?php echo esc_url( $reviewurl ); ?>"

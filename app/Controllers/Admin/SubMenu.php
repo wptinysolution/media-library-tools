@@ -61,13 +61,6 @@ class SubMenu {
 			'media-library-tools',
 			[ $this, 'wp_media_page_callback' ]
 		);
-		// add_submenu_page(
-		// self::MENU_PAGE_SLUG,
-		// esc_html__( 'Media Settings', 'media-library-tools' ),
-		// esc_html__( 'Media Settings', 'media-library-tools' ),
-		// self::MENU_CAPABILITY,
-		// $menu_link_part . '#/'
-		// );
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'Media Table', 'media-library-tools' ),
@@ -331,7 +324,7 @@ class SubMenu {
 					</div>
 					<div  class="columns" >
 						<section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
-							<img style="max-width: 100%;" src="<?php echo tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ); ?>" alt="">
+							<img style="max-width: 100%;" src="<?php echo esc_url( tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ) ); ?>" alt="">
 							<h1 style="font-size: 20px;">
 								<b class="stars"> <i class="last">⋆</i> <i class="middle">⋆</i>  <i class="first">⋆</i> </b>
 								<span>30-Days Money Back Guarantee</span>

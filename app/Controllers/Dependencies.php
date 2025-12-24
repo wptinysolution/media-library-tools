@@ -45,12 +45,15 @@ class Dependencies {
 	public function minimum_php_version() {
 		$message = sprintf(
 		/* translators: 1: Plugin name 2: PHP 3: Required PHP version */
-			esc_html__( '"%1$s" requires "%2$s" version %3$s or greater.', 'media-library-tools' ),
+			__( '"%1$s" requires "%2$s" version %3$s or greater.', 'media-library-tools' ),
 			'<strong>' . esc_html__( 'Media Library Tools', 'media-library-tools' ) . '</strong>',
 			'<strong>' . esc_html__( 'PHP', 'media-library-tools' ) . '</strong>',
-			self::MINIMUM_PHP_VERSION
+			esc_html( self::MINIMUM_PHP_VERSION )
 		);
-		printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
+		printf(
+			'<div class="notice notice-warning is-dismissible"><p>%s</p></div>',
+			wp_kses_post( $message )
+		);
 	}
 
 
