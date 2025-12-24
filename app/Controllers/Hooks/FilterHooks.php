@@ -315,11 +315,12 @@ class FilterHooks {
 
 		return 'upload.php' === $pagenow && 'attachment' === $typenow;
 	}
-
+	
 	/**
-	 * @param $actions
+	 * @param array   $actions
+	 * @param \WP_Post $post
 	 *
-	 * @return mixed
+	 * @return array
 	 */
 	public static function filter_post_row_actions( $actions, $post ) {
 
@@ -333,7 +334,7 @@ class FilterHooks {
 			wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
 			/* translators: %s: Attachment title. */
 			esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash', 'media-library-tools' ), $att_title ) ),
-			_x( 'Trash', 'verb' )
+			_x( 'Trash', 'verb', 'media-library-tools' )
 		);
 		$delete_ays        = " onclick='return showNotice.warn();'";
 		$actions['delete'] = sprintf(
@@ -341,7 +342,7 @@ class FilterHooks {
 			wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
 			$delete_ays,
 			/* translators: %s: Attachment title. */
-			esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
+			esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently', 'media-library-tools' ), $att_title ) ),
 			__( 'Delete Permanently', 'media-library-tools' )
 		);
 

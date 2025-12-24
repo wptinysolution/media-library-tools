@@ -76,8 +76,8 @@ class Review {
 	 * @return void
 	 */
 	public function tsmlt_spare_me() {
-
-		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'tsmlt_notice_nonce' ) ) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'tsmlt_notice_nonce' ) ) {
 			return;
 		}
 
@@ -104,6 +104,9 @@ class Review {
 		}
 	}
 
+	/**
+	 * @return false|string
+	 */
 	protected function tsmlt_current_admin_url() {
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$uri = preg_replace( '|^.*/wp-admin/|i', '', $uri );
@@ -131,7 +134,7 @@ class Review {
 	 * Display Admin Notice, asking for a review
 	 **/
 	public function tsmlt_display_admin_notice() {
-		// WordPress global variable
+		// WordPress global variable.
 		global $pagenow;
 		$exclude = [
 			'themes.php',
@@ -152,8 +155,7 @@ class Review {
 			'erase-personal-data.php',
 		];
 
-		if ( ! in_array( $pagenow, $exclude ) ) {
-
+		if ( ! in_array( $pagenow, $exclude, true ) ) {
 			$args = [ '_wpnonce' => wp_create_nonce( 'tsmlt_notice_nonce' ) ];
 
 			$dont_disturb = add_query_arg( $args + [ 'tsmlt_spare_me' => '1' ], $this->tsmlt_current_admin_url() );
@@ -306,11 +308,8 @@ class Review {
 			<?php
 		}
 	}
-
-	// Servay
-
+ 
 	/***
-	 * @param $mimes
 	 *
 	 * @return mixed
 	 */
@@ -387,7 +386,6 @@ class Review {
 	}
 
 	/***
-	 * @param $mimes
 	 *
 	 * @return mixed
 	 */
@@ -581,7 +579,6 @@ class Review {
 	}
 
 	/***
-	 * @param $mimes
 	 *
 	 * @return mixed
 	 */

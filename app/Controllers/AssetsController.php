@@ -49,8 +49,7 @@ class AssetsController {
 	 *
 	 * @return void
 	 */
-	public function backend_assets( $hook ) {
-
+	public function backend_assets() {
 		$scripts = [
 			[
 				'handle' => 'tsmlt-settings',
@@ -59,58 +58,51 @@ class AssetsController {
 				'footer' => true,
 			],
 		];
-
 		// Register public scripts.
 		foreach ( $scripts as $script ) {
 			wp_register_script( $script['handle'], $script['src'], $script['deps'], $this->version, $script['footer'] );
 		}
-
 		$styles = [
 			[
 				'handle' => 'tsmlt-settings-style',
 				'src'    => tsmlt()->get_assets_uri( 'css/backend/admin-settings.css' ),
 			],
 		];
-
 		// Register public styles.
 		foreach ( $styles as $style ) {
 			wp_register_style( $style['handle'], $style['src'], [], $this->version );
 		}
-
 		global $pagenow;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce needed for page check.
+		if ( 'upload.php' === $pagenow && 'media-library-tools' === sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) ) ) {
+			// Enqueue ThickBox scripts and styles.
+			wp_enqueue_script( 'thickbox' );
+			wp_enqueue_style( 'thickbox' );
+			wp_enqueue_script( 'tsmlt-settings' );
 
-		if ( 'upload.php' === $pagenow ) {
+			// WPml Create Issue.
+			wp_dequeue_style( 'wpml-tm-styles' );
+			wp_dequeue_script( 'wpml-tm-scripts' );
 
-			if ( ! empty( $_GET['page'] ) && 'media-library-tools' === $_GET['page'] ) {
-				// Enqueue ThickBox scripts and styles.
-				wp_enqueue_script( 'thickbox' );
-				wp_enqueue_style( 'thickbox' );
-				wp_enqueue_script( 'tsmlt-settings' );
-
-				// WPml Create Issue.
-				wp_dequeue_style( 'wpml-tm-styles' );
-				wp_dequeue_script( 'wpml-tm-scripts' );
-
-				$upload_dir = wp_upload_dir(); // Get the upload directory path.
-				wp_localize_script(
-					'tsmlt-settings',
-					'tsmltParams',
-					[
-						'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
-						'adminUrl'       => esc_url( admin_url() ),
-						'hasExtended'    => tsmlt()->has_pro(),
-						'proVersion'     => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
-						'proLink'        => tsmlt()->pro_version_link(),
-						'includesUrl'    => esc_url( includes_url() ),
-						'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
-						'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-						'hasWoo'         => function_exists( 'WC' ),
-						'restApiUrl'     => esc_url_raw( rest_url() ),
-						'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
-						tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
-					]
-				);
-			}
+			$upload_dir = wp_upload_dir(); // Get the upload directory path.
+			wp_localize_script(
+				'tsmlt-settings',
+				'tsmltParams',
+				[
+					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
+					'adminUrl'       => esc_url( admin_url() ),
+					'hasExtended'    => tsmlt()->has_pro(),
+					'proVersion'     => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
+					'proLink'        => tsmlt()->pro_version_link(),
+					'includesUrl'    => esc_url( includes_url() ),
+					'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
+					'uploadBasedir'  => $upload_dir['basedir'] ?? '',
+					'hasWoo'         => function_exists( 'WC' ),
+					'restApiUrl'     => esc_url_raw( rest_url() ),
+					'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
+					tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
+				]
+			);
 		}
 	}
 }

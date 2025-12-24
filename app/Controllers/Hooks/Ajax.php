@@ -20,7 +20,7 @@ class Ajax {
 	 * Singleton
 	 */
 	use SingletonTrait;
-	
+
 	/**
 	 * Class Constructor
 	 */
@@ -34,11 +34,11 @@ class Ajax {
 	 * @return void
 	 */
 	public function search_rubbish_file() {
-		check_ajax_referer(tsmlt()->nonceId, 'nonce'); // Security check
-		$skip =  !empty($_POST['skip']) && is_array( $_POST['skip'] ) ? array_map( 'sanitize_text_field', $_POST['skip'] ) : [];
-		Fns::scan_rubbish_file_cron_job($skip);
+		check_ajax_referer( tsmlt()->nonceId, 'nonce' ); // Security check.
+		$skip = ! empty( $_POST['skip'] ) && is_array( $_POST['skip'] ) ? array_map( 'sanitize_text_field', $_POST['skip'] ) : [];
+		Fns::scan_rubbish_file_cron_job( $skip );
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
-		$dir = [];
+		$dir     = [];
 		if ( ! empty( $dirlist ) ) {
 			foreach ( $dirlist as $key => $item ) {
 				if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
@@ -47,15 +47,17 @@ class Ajax {
 				if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
 					continue;
 				}
-				if (in_array($key, $skip, true)) {
+				if ( in_array( $key, $skip, true ) ) {
 					continue;
 				}
-				$dir[$key] = $item;
+				$dir[ $key ] = $item;
 			}
 		}
-		wp_send_json_success( [
-			'dirList' => $dir,
-			'dirStatusList' => $dirlist
-		] );
+		wp_send_json_success(
+			[
+				'dirList'       => $dir,
+				'dirStatusList' => $dirlist,
+			]
+		);
 	}
 }
