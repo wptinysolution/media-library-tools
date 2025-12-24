@@ -1,4 +1,4 @@
-=== Media File Rename, Unused File Cleaner & CSV Export Import – Add Alt for Image SEO - Media Library Tools ===
+=== Media Library Tools - Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
