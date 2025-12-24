@@ -370,7 +370,7 @@ class FilterHooks {
 			$vars,
 			[
 				'orderby'    => 'meta_value',
-				'meta_query' => [
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary query.
 					'relation' => 'OR',
 					[
 						'key'     => '_wp_attachment_image_alt',

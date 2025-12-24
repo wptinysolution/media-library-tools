@@ -105,9 +105,9 @@ class Fns {
 			'element_id'   => $attachment_id,
 			'element_type' => 'attachment',
 		];
-		$info = apply_filters( 'wpml_element_language_details', null, $args );
+		$info = apply_filters( 'wpml_element_language_details', null, $args ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		if ( ! empty( $info->trid ) ) {
-			$translations = apply_filters( 'wpml_get_element_translations', null, $info->trid, 'post_attachment' );
+			$translations = apply_filters( 'wpml_get_element_translations', null, $info->trid, 'post_attachment' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			foreach ( $translations as $translation ) {
 				if ( $attachment_id != $translation->element_id ) {
 					update_post_meta(

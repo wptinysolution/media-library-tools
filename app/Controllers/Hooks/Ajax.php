@@ -35,7 +35,7 @@ class Ajax {
 	 */
 	public function search_rubbish_file() {
 		check_ajax_referer( tsmlt()->nonceId, 'nonce' ); // Security check.
-		$skip = ! empty( $_POST['skip'] ) && is_array( $_POST['skip'] ) ? array_map( 'sanitize_text_field', $_POST['skip'] ) : [];
+		$skip = ! empty( $_POST['skip'] ) && is_array( $_POST['skip'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['skip'] ) ) : [];
 		Fns::scan_rubbish_file_cron_job( $skip );
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 		$dir     = [];

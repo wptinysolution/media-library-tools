@@ -145,10 +145,6 @@ class SubMenu {
 	public function pro_pages() {
 		?>
 		<div class="wrap tsmlt-license-wrap">
-			<?php
-				wp_enqueue_style( 'freemius-pricing', 'https://wcss.freemius.com/wordpress/pages/pricing.css?v=180' );
-				wp_enqueue_style( 'freemius-css', 'https://wcss.freemius.com/wordpress/common.css?v=180' );
-			?>
 			<style>
 				.current .tsmlt-submenu,
 				.current .dashicons{
@@ -164,7 +160,9 @@ class SubMenu {
 					justify-content: center;
 					flex-wrap: wrap;
 				}
-
+				#tsmlt-pro-page-wrapper a{
+					text-decoration: none;
+				}
 				.tsmlt-pro-page-header #header {
 					width: 915px;
 					margin-left: auto;
@@ -280,20 +278,6 @@ class SubMenu {
 			</style>
 
 			<div class="tsmlt-pro-page-wrapper" >
-				<div class="tsmlt-pro-page-header" >
-					<header id="header" class="card clearfix" >
-						<div class="product-header">
-							<div class="product-icon">
-								<img src="https://www.wptinysolutions.com/wp-content/uploads/2024/06/media-library-tools-con-256x256-1.gif" alt="">
-							</div>
-							<div class="product-header-body" style="padding-top: 0;">
-								<h1 class="page-title">Plans and Pricing</h1>
-								<h2 class="plugin-title">Media library Tools Pro</h2>
-								<h3>Choose your plan and upgrade in minutes!</h3>
-							</div>
-						</div>
-					</header>
-				</div>
 				<div id="tsmlt-pro-page-wrapper" >
 					<div class="columns">
 						<ul class="price">
@@ -323,7 +307,7 @@ class SubMenu {
 						
 					</div>
 					<div  class="columns" >
-						<section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;">
+						<section id="money_back_guarantee" style="margin: 0;height: 100%;box-sizing: border-box;padding: 10px 30px;">
 							<img style="max-width: 100%;" src="<?php echo esc_url( tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ) ); ?>" alt="">
 							<h1 style="font-size: 20px;">
 								<b class="stars"> <i class="last">⋆</i> <i class="middle">⋆</i>  <i class="first">⋆</i> </b>
@@ -348,9 +332,9 @@ class SubMenu {
 						Contact us via email to receive assistance and get the offer: <a style="color: #1677ff;font-weight: 600;" target="_blank" href="https://help.wptinysolutions.com/"><strong>  https://help.wptinysolutions.com/ </strong></a>
 					</div>
 
-					<div class="container" style="max-width: 915px;">
+					<div class="container" style="max-width: 915px;margin: auto;">
 
-						<div id="faq" style="max-width: 915px;margin: 0;" >
+						<div id="faq" style="max-width: 915px;margin: 0;padding: 15px 20px;" >
 							<h2 style="margin-bottom: 30px;margin-top: 10px; line-height: 1.2;">Frequently Asked Questions</h2>
 								<ul>
 									<li>

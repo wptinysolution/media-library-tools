@@ -589,7 +589,7 @@ class Api {
 		}
 
 		if ( 'meta_query' === $orderby ) {
-			$args['meta_query'] = [
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary query.
 				'relation' => 'OR',
 				[
 					'key'     => '_wp_attachment_image_alt',
@@ -603,7 +603,7 @@ class Api {
 			$args['orderby']    = 'meta_value'; // Order by meta value.
 		}
 		if ( ! empty( $parameters['categories'] ) ) {
-			$args['tax_query'] = [
+			$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary query.
 				[
 					'taxonomy' => tsmlt()->category,
 					'field'    => 'term_id',
@@ -622,14 +622,6 @@ class Api {
 			if ( $post->post_parent ) {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
-			} else {
-				/*
-				$parent_id = Fns::set_thumbnail_parent_id( $post->ID );
-				if ( $parent_id ) {
-					$parent_title     = get_the_title( $parent_id );
-					$parent_permalink = get_the_permalink( $parent_id );
-				}
-				*/
 			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
