@@ -334,19 +334,19 @@ class Api {
 	 */
 	public function get_dates() {
 		global $wpdb;
-		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT( post_date, '%Y-%m') AS YearMonth FROM $wpdb->posts WHERE post_type = %s", 'attachment' );
-		$key        = 'tsmlt_date_query_' . date( '_m_Y' );
+		$date_query = $wpdb->prepare( "SELECT DISTINCT DATE_FORMAT(post_date, '%%Y-%%m') AS YearMonth FROM {$wpdb->posts} WHERE post_type = %s", 'attachment' );
+		$key        = 'tsmlt_date_query_' . gmdate( '_m_Y' );
 		$dates      = get_transient( $key );
 
 		if ( empty( $dates ) ) {
 			delete_transient( $key );
-			$get_date = $wpdb->get_col( $date_query );
+			$get_date = $wpdb->get_col( $date_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 			if ( $get_date ) {
 				$dates = [];
 				foreach ( $get_date as $date ) {
 					$dates[] = [
 						'value' => $date,
-						'label' => date( 'M Y', strtotime( $date ) ),
+						'label' => gmdate( 'M Y', strtotime( $date ) ),
 					];
 				}
 			}
