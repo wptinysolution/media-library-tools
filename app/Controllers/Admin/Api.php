@@ -340,7 +340,7 @@ class Api {
 
 		if ( empty( $dates ) ) {
 			delete_transient( $key );
-			$get_date = $wpdb->get_col( $date_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$get_date = $wpdb->get_col( $date_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- Prepared above.
 			if ( $get_date ) {
 				$dates = [];
 				foreach ( $get_date as $date ) {
@@ -739,7 +739,7 @@ class Api {
 			case 'inherit':
 				$status = sanitize_key( $parameters['type'] );
 				foreach ( $ids as $id ) {
-					$wpdb->update(
+					$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 						$wpdb->posts,
 						[ 'post_status' => $status ],
 						[
@@ -793,7 +793,7 @@ class Api {
 				// Safe SQL updates.
 				if ( ! empty( $update_fields ) ) {
 					foreach ( $ids as $id ) {
-						$res = $wpdb->update(
+						$res = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 							$wpdb->posts,
 							$update_fields,
 							[
@@ -803,7 +803,7 @@ class Api {
 							$update_format,
 							[ '%d', '%s' ]
 						);
-						if ( $res !== false ) {
+						if ( false !== $res ) {
 							$updated = true;
 						}
 					}
@@ -947,7 +947,8 @@ class Api {
 		// Check if the file_path already exists in the table using cached data.
 		$types = wp_cache_get( $cache_key );
 		if ( ! $types ) {
-			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM $table_name" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe query.
+			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM {$table_name}" ); // Safe query.
 			// Cache the query result.
 			wp_cache_set( $cache_key, $types );
 		}
@@ -962,74 +963,46 @@ class Api {
 	 */
 	public function get_rubbish_file( $request_data ) {
 		global $wpdb;
-		$parameters = $request_data->get_params();
-
-		$options = get_option( 'tsmlt_settings' );
-		$limit   = absint( $options['rubbish_per_page'] ?? 20 );
-
-		$status = $parameters['fileStatus'] ?? 'show';
-
-		$extensions = ! empty( $parameters['filterExtension'] ) ? [ $parameters['filterExtension'] ] : Fns::default_file_extensions();
-
-		// Add single quotes around each status value.
-		$extensions = array_map(
-			function ( $extension ) {
-				return "'" . esc_sql( $extension ) . "'";
-			},
-			$extensions
-		);
-
-		$extensions = implode( ', ', $extensions );
-
-		$page   = $parameters['paged'] ?? 1;
-		$offset = ( $page - 1 ) * $limit; // Calculate the offset based on the page number.
-
-		$cache_key   = 'tsmlt_unlisted_file';
-		$table_name  = $wpdb->prefix . 'tsmlt_unlisted_file';
-		$in_statuses = [ $status ]; // Add the status values to exclude.
-
-		// Add single quotes around each status value.
-		$in_statuses = array_map(
-			function ( $status ) {
-				return "'" . esc_sql( $status ) . "'";
-			},
-			$in_statuses
-		);
-
-		$placeholders_status = implode( ', ', $in_statuses );
-
-		// Check if the file_path already exists in the table using cached data.
+		$parameters   = $request_data->get_params();
+		$options      = get_option( 'tsmlt_settings' );
+		$limit        = absint( $options['rubbish_per_page'] ?? 20 );
+		$page         = max( 1, absint( $parameters['paged'] ?? 1 ) );
+		$offset       = ( $page - 1 ) * $limit;
+		$status       = $parameters['fileStatus'] ?? 'show';
+		$statuses     = [ $status ];
+		$extensions   = ! empty( $parameters['filterExtension'] )
+			? [ $parameters['filterExtension'] ]
+			: Fns::default_file_extensions();
+		$table_name   = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$cache_key    = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
 		$existing_row = wp_cache_get( $cache_key );
-		if ( ! $existing_row ) {
-			$query        = $wpdb->prepare(
-				"SELECT * FROM $table_name WHERE status IN ( $placeholders_status ) AND file_type IN ( $extensions ) LIMIT %d OFFSET %d",
-				$limit,
-				$offset
-			);
-			$existing_row = $wpdb->get_results( $query );
-			// Cache the query result.
+		if ( false === $existing_row ) {
+			$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+			$type_placeholders   = implode( ',', array_fill( 0, count( $extensions ), '%s' ) );
+			$sql                 = "SELECT * FROM {$table_name} WHERE status IN ($status_placeholders) AND file_type IN ($type_placeholders) LIMIT %d OFFSET %d ";
+			$existing_row        = $wpdb->get_results( $wpdb->prepare( $sql, array_merge( $statuses, $extensions, [ $limit, $offset ] ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 			wp_cache_set( $cache_key, $existing_row );
 		}
 
-		// Media File Count.
-		$total_file_cache = $cache_key . '_total';
-		// Check if the file_path already exists in the table using cached data.
-		$total_file = wp_cache_get( $total_file_cache );
-		if ( ! $total_file ) {
-			// Query to retrieve total number of posts.
-			$total_query = $wpdb->prepare( "SELECT COUNT(*) as total_count FROM $table_name WHERE status IN ( $placeholders_status ) AND file_type IN ( $extensions )", $table_name );
-			$total_file  = $wpdb->get_var( $total_query );
-			wp_cache_set( $total_file_cache, $total_file );
+		/* ---------- COUNT QUERY ---------- */
+
+		$total_cache_key = $cache_key . '_total';
+		$total_file      = wp_cache_get( $total_cache_key );
+
+		if ( false === $total_file ) {
+			$count_sql = "SELECT COUNT(*) FROM {$table_name} WHERE status IN ($status_placeholders) AND file_type IN ($type_placeholders)";
+			$total_file = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, array_merge( $statuses, $extensions ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			wp_cache_set( $total_cache_key, $total_file );
 		}
 
-		$rubbish_data = [
-			'mediaFile'    => is_array( $existing_row ) ? $existing_row : [],
-			'paged'        => absint( $page ),
-			'totalPost'    => absint( $total_file ),
-			'postsPerPage' => absint( $limit ),
-		];
-
-		return wp_json_encode( $rubbish_data );
+		return wp_json_encode(
+			[
+				'mediaFile'    => is_array( $existing_row ) ? $existing_row : [],
+				'paged'        => $page,
+				'totalPost'    => $total_file,
+				'postsPerPage' => $limit,
+			]
+		);
 	}
 
 	/**
@@ -1056,10 +1029,13 @@ class Api {
 		// Get the table name with prefix.
 		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 		// Ensure the table exists before deleting rows.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching  -- Prepared above.
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
 			// Execute the DELETE query to remove all rows.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct query for truncation.
 			$result = $wpdb->query( "DELETE FROM `$table_name`" );
-			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" ); // Reset auto-increment.
 			// Return true if the query succeeded, false otherwise.
 		}
 		update_option( 'tsmlt_get_directory_list', [] );
