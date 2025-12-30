@@ -942,21 +942,22 @@ class Api {
 	 */
 	public function get_rubbish_filetype() {
 		global $wpdb;
-		$cache_key  = 'tsmlt_unlisted_filetypes';
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Check if the file_path already exists in the table using cached data.
+		$cache_key = 'tsmlt_unlisted_filetypes';
+		// Table name is fully controlled by the plugin.
+		$table_name = esc_sql( $wpdb->prefix . 'tsmlt_unlisted_file' );
 		$types = wp_cache_get( $cache_key );
-		if ( ! $types ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe query.
-			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM {$table_name}" ); // Safe query.
-			// Cache the query result.
+		if ( false === $types ) {
+			$types = $wpdb->get_col(
+				"SELECT DISTINCT file_type FROM {$table_name}" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			);
 			wp_cache_set( $cache_key, $types );
 		}
-		$rubbish_data = [
-			'fileTypes' => is_array( $types ) ? $types : [],
-		];
+		$rubbish_data = array(
+			'fileTypes' => is_array( $types ) ? $types : array(),
+		);
 		return wp_json_encode( $rubbish_data );
 	}
+
 
 	/**
 	 * @return false|string
