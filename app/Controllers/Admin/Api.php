@@ -390,35 +390,44 @@ class Api {
 	 * @return array
 	 */
 	private function handle_rename( $parameters ) {
-		$result = [
+		$result     = [
 			'updated' => false,
-			'message' => esc_html__( 'Rename failed. Please try to fix', 'media-library-tools' ),
+			'message' => esc_html__( 'Rename failed. Please try again.', 'media-library-tools' ),
 		];
-		if ( ! tsmlt()->has_pro() && in_array( $parameters['newname'], [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
-			$result['message'] = esc_html__( 'Please activate the license key.', 'media-library-tools' );
+		$attachment = get_post( (int) $parameters['ID'] );
+		if ( ! $attachment || empty( $parameters['newname'] ) ) {
 			return $result;
 		}
-		$attachment = get_post( $parameters['ID'] );
-		$new_name   = $parameters['newname'];
-		$rename_to  = '';
-		if ( $attachment ) {
-			$post_id = $attachment->post_parent ?: Fns::set_thumbnail_parent_id( $parameters['ID'] );
-			if ( $post_id && 'bulkRenameByPostTitle' === $new_name ) {
-				$rename_to = Fns::add_filename_prefix_suffix( get_the_title( $post_id ) );
-			} elseif ( $post_id && 'bulkRenameBySKU' === $new_name ) {
-				$rename_to = Fns::add_filename_prefix_suffix( get_post_meta( $post_id, '_sku', true ) );
-			} elseif ( ! in_array( $new_name, [ 'bulkRenameByPostTitle', 'bulkRenameBySKU' ], true ) ) {
-				$rename_to = $new_name;
-			}
-		}
-		if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $parameters['ID'], $rename_to ) ) {
+		$new_name  = sanitize_text_field( $parameters['newname'] );
+		$rename_to = $new_name; // default behavior (direct rename).
+		$post_id   = $attachment->post_parent ?: Fns::set_thumbnail_parent_id( $attachment->ID );
+		/**
+		 * Filter rename target filename.
+		 *
+		 * @param string   $rename_to  Final filename to rename to.
+		 * @param string   $new_name   Rename action or raw filename.
+		 * @param int      $post_id    Parent post ID (if exists).
+		 * @param \WP_Post  $attachment Attachment object.
+		 */
+		$rename_to = apply_filters(
+			'tsmlt_attachment_rename_to',
+			$rename_to,
+			$new_name,
+			$post_id,
+			$attachment
+		);
+		if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $attachment->ID, $rename_to ) ) {
 			$result['updated'] = true;
 			$result['message'] = esc_html__( 'Renamed.', 'media-library-tools' );
 		} else {
-			$result['message'] = esc_html__( 'Rename failed. Maybe file permission mismatch or the file doesn’t exist.', 'media-library-tools' );
+			$result['message'] = esc_html__(
+				'Rename failed. The file may not exist or file permissions may be incorrect.',
+				'media-library-tools'
+			);
 		}
 		return $result;
 	}
+
 
 	/**
 	 * @param $parameters
@@ -945,16 +954,16 @@ class Api {
 		$cache_key = 'tsmlt_unlisted_filetypes';
 		// Table name is fully controlled by the plugin.
 		$table_name = esc_sql( $wpdb->prefix . 'tsmlt_unlisted_file' );
-		$types = wp_cache_get( $cache_key );
+		$types      = wp_cache_get( $cache_key );
 		if ( false === $types ) {
 			$types = $wpdb->get_col(
 				"SELECT DISTINCT file_type FROM {$table_name}" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			);
 			wp_cache_set( $cache_key, $types );
 		}
-		$rubbish_data = array(
-			'fileTypes' => is_array( $types ) ? $types : array(),
-		);
+		$rubbish_data = [
+			'fileTypes' => is_array( $types ) ? $types : [],
+		];
 		return wp_json_encode( $rubbish_data );
 	}
 
@@ -991,7 +1000,7 @@ class Api {
 		$total_file      = wp_cache_get( $total_cache_key );
 
 		if ( false === $total_file ) {
-			$count_sql = "SELECT COUNT(*) FROM {$table_name} WHERE status IN ($status_placeholders) AND file_type IN ($type_placeholders)";
+			$count_sql  = "SELECT COUNT(*) FROM {$table_name} WHERE status IN ($status_placeholders) AND file_type IN ($type_placeholders)";
 			$total_file = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, array_merge( $statuses, $extensions ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 			wp_cache_set( $total_cache_key, $total_file );
 		}
