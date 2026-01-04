@@ -149,71 +149,45 @@ class Fns {
 			'%' . $orig_image_url . '%',
 			'%' . $orig_image_url . '%'
 		);
-		$ids   = $wpdb->get_col( $query );
+		$ids   = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		if ( empty( $ids ) ) {
 			return [];
 		}
 
 		return $ids;
 	}
-
+	
 	/**
-	 * @param $field
-	 * @param $orig_image_url
-	 * @param $new_image_url
+	 * Replace an image URL inside post content or excerpt.
 	 *
-	 * @return array
+	 * @param string $field          Database field name (post_content or post_excerpt).
+	 * @param string $orig_image_url Original image URL.
+	 * @param string $new_image_url  New image URL.
+	 *
+	 * @return int Number of affected rows.
 	 */
 	private static function replace_image_at_content( $field, $orig_image_url, $new_image_url ) {
 		global $wpdb;
-		// replace_image_at_content() ;
-		// Validate the field to prevent SQL injection.
+		// Strict whitelist to prevent SQL injection.
 		if ( ! in_array( $field, [ 'post_content', 'post_excerpt' ], true ) ) {
-			return [];
+			return 0;
 		}
 		$useless_types_conditions = self::$useless_types_conditions;
-		// Get the IDs that require an update.
-		$query = $wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts
-        WHERE {$field} LIKE '%s'
-        AND {$useless_types_conditions}",
-			'%' . $orig_image_url . '%'
+		return (int) $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Prepared below.
+			$wpdb->prepare(
+				"
+			UPDATE {$wpdb->posts}
+			SET {$field} = REPLACE({$field}, %s, %s)
+			WHERE {$field} LIKE %s
+			  AND {$useless_types_conditions}
+			",
+				$orig_image_url,
+				$new_image_url,
+				'%' . $orig_image_url . '%'
+			)
 		);
-		$ids   = $wpdb->get_col( $query );
-		if ( empty( $ids ) ) {
-			return [];
-		}
-
-		// Prepare SQL (WHERE IN).
-		$ids_to_update = array_map(
-			function ( $id ) {
-				return "'" . esc_sql( $id ) . "'";
-			},
-			$ids
-		);
-		$ids_to_update = implode( ',', $ids_to_update );
-
-		// Execute updates.
-		$query = $wpdb->prepare(
-			"UPDATE $wpdb->posts
-        SET {$field} = REPLACE({$field}, '%s', '%s')
-        WHERE ID IN (" . $ids_to_update . ')',
-			$orig_image_url,
-			$new_image_url
-		);
-		$wpdb->query( $query );
-
-		// Reverse updates.
-		$query_revert = $wpdb->prepare(
-			"UPDATE $wpdb->posts
-        SET {$field} = REPLACE({$field}, '%s', '%s')
-        WHERE ID IN (" . $ids_to_update . ')',
-			$orig_image_url,
-			$new_image_url
-		);
-
-		return $ids;
 	}
+
 	/**
 	 * Search for occurrences of the original image URL in Elementor metadata.
 	 *
@@ -240,7 +214,7 @@ class Fns {
 		AND {$useless_types_conditions}",
 			$searchValue
 		);
-		return $wpdb->get_col( $query );
+		return $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 	}
 	/**
 	 * @param $orig_image_url
@@ -600,7 +574,7 @@ class Fns {
 			// Check if the file_path already exists in the table using cached data
 			$existing_row = wp_cache_get( $cache_key );
 			if ( ! $existing_row ) {
-				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) );
+				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
 				// Cache the query result
 				if ( $existing_row ) {
 					continue;
