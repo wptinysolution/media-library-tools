@@ -2,11 +2,18 @@
 
 namespace TinySolutions\mlt\Controllers\Admin;
 
+// Do not allow directly accessing this file.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 'This script cannot be accessed directly.' );
+}
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 use WP_Query;
 
+/**
+ * Class Api
+ */
 class Api {
 
 	/**
@@ -427,10 +434,9 @@ class Api {
 		}
 		return $result;
 	}
-
-
+	
 	/**
-	 * @param $parameters
+	 * @param array $parameters pram.
 	 *
 	 * @return array
 	 */
@@ -470,10 +476,12 @@ class Api {
 	}
 
 	/**
-	 * @param $parameters
-	 * @param $result
+	 * Handles a single update operation and processes the result.
 	 *
-	 * @return mixed
+	 * @param array $parameters Data required to perform the update.
+	 * @param mixed $result     Result returned from the update process.
+	 *
+	 * @return mixed Modified or original result after processing.
 	 */
 	private function handle_single_updates( $parameters, $result ) {
 		$post_fields = [

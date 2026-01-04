@@ -7,6 +7,10 @@
 
 namespace TinySolutions\mlt\Controllers\Hooks;
 
+// Do not allow directly accessing this file.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 'This script cannot be accessed directly.' );
+}
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
