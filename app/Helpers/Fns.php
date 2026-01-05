@@ -217,8 +217,11 @@ class Fns {
 		return $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 	}
 	/**
-	 * @param $orig_image_url
-	 * @param $new_image_url
+	 * Update Elementor post meta data by replacing image URLs
+	 * and force Elementor to regenerate CSS and cache.
+	 *
+	 * @param string $orig_image_url Original image URL.
+	 * @param string $new_image_url  New image URL.
 	 *
 	 * @return void
 	 */
@@ -228,29 +231,34 @@ class Fns {
 		}
 		global $wpdb;
 		$table_meta = $wpdb->postmeta;
-
-		$orig_image_url = esc_sql( $orig_image_url );
-		$new_image_url  = esc_sql( $new_image_url );
+		// Prepare values for safe SQL usage.
 		$orig_image_url = str_replace( '/', '\/', $orig_image_url );
 		$new_image_url  = str_replace( '/', '\/', $new_image_url );
-		$searchValue    = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-
-		$query = $wpdb->prepare(
+		$search_value   = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
+		// Update Elementor data.
+		$update_query = $wpdb->prepare(
 			"UPDATE {$table_meta}
-		  SET meta_value = REPLACE(meta_value, %s, %s)
-		  WHERE meta_key = '_elementor_data'
-		  AND meta_value LIKE %s",
+		 SET meta_value = REPLACE( meta_value, %s, %s )
+		 WHERE meta_key = '_elementor_data'
+		 AND meta_value LIKE %s",
 			$orig_image_url,
 			$new_image_url,
-			$searchValue
+			$search_value
 		);
-		$wpdb->query( $query );
-
-		// Elementor to regenerate
-		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_css'";
-		$wpdb->query( $query );
-		$query = "DELETE FROM $wpdb->postmeta WHERE meta_key = '_elementor_element_cache'";
-		$wpdb->query( $query );
+		$wpdb->query( $update_query );
+		// Force Elementor to regenerate CSS and cache.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table_meta} WHERE meta_key = %s",
+				'_elementor_css'
+			)
+		);
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table_meta} WHERE meta_key = %s",
+				'_elementor_element_cache'
+			)
+		);
 	}
 
 	/**
