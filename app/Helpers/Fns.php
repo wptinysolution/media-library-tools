@@ -245,20 +245,10 @@ class Fns {
 			$new_image_url,
 			$search_value
 		);
-		$wpdb->query( $update_query );
+		$wpdb->query( $update_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		// Force Elementor to regenerate CSS and cache.
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$table_meta} WHERE meta_key = %s",
-				'_elementor_css'
-			)
-		);
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$table_meta} WHERE meta_key = %s",
-				'_elementor_element_cache'
-			)
-		);
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_css' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_element_cache' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
 	}
 
 	/**
@@ -331,7 +321,7 @@ class Fns {
 		$path_being_saved_to = dirname( $file_path );
 		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
 
-		$renamed          = rename( $file_path, $unique_filename );
+		$renamed          = rename( $file_path, $unique_filename ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Using rename function to rename the file.
 		$new_file_name    = basename( $unique_filename );
 		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
 
@@ -453,7 +443,7 @@ class Fns {
 	/**
 	 * Get the WP_Filesystem instance
 	 *
-	 * @return WP_Filesystem|WP_Filesystem_Direct The WP_Filesystem instance
+	 * @return \WP_Filesystem|WP_Filesystem_Direct The WP_Filesystem instance
 	 */
 	public static function get_wp_filesystem_instance() {
 		global $wp_filesystem;
@@ -466,7 +456,7 @@ class Fns {
 		// Check if WP_Filesystem_Direct is already instantiated.
 		if ( $wp_filesystem instanceof WP_Filesystem_Base && $wp_filesystem instanceof WP_Filesystem_Direct ) {
 			if ( method_exists( $wp_filesystem, 'request_filesystem_credentials' ) ) {
-				$wp_filesystem = new WP_Filesystem_Direct( null );
+				$wp_filesystem = new WP_Filesystem_Direct( null ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride -- Overriding global variable intentionally.
 			}
 		}
 
@@ -555,7 +545,7 @@ class Fns {
 			}
 			if ( ! $attachment_id ) {
 				$search_basename = basename( $search_string );
-				$attachment_id   = $wpdb->get_var(
+				$attachment_id   = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared below.
 					$wpdb->prepare(
 						"SELECT post_id FROM {$wpdb->postmeta}
 				            WHERE meta_key = '_wp_attachment_metadata'
