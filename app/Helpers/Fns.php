@@ -133,30 +133,31 @@ class Fns {
 		}
 	}
 	/**
-	 * @param $field
-	 * @param $orig_image_url
-	 * @param $new_image_url
+	 * Search post IDs where an image URL exists in content or excerpt.
 	 *
-	 * @return array
+	 * @param string $orig_image_url Original image URL.
+	 *
+	 * @return array<int> List of post IDs.
 	 */
 	public static function search_image_at_content( $orig_image_url ) {
 		global $wpdb;
+		/**
+		 * This condition is internally defined, static,
+		 * and does not contain user input.
+		 *
+		 * Example: post_type NOT IN ('revision','nav_menu_item')
+		 */
 		$useless_types_conditions = self::$useless_types_conditions;
-		// Get the IDs that require an update.
-		$query = $wpdb->prepare(
-			"SELECT ID FROM $wpdb->posts WHERE (post_content LIKE %s OR post_excerpt LIKE %s)
-    				AND {$useless_types_conditions}",
-			'%' . $orig_image_url . '%',
-			'%' . $orig_image_url . '%'
+		$sql                      = "SELECT ID FROM {$wpdb->posts} WHERE ( post_content LIKE %s OR post_excerpt LIKE %s ) AND {$useless_types_conditions} ";
+		$query                    = $wpdb->prepare(
+			$sql, // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
+			'%' . $wpdb->esc_like( $orig_image_url ) . '%',
+			'%' . $wpdb->esc_like( $orig_image_url ) . '%'
 		);
-		$ids   = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
-		if ( empty( $ids ) ) {
-			return [];
-		}
-
-		return $ids;
+		$ids                      = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		return empty( $ids ) ? [] : $ids;
 	}
-	
+
 	/**
 	 * Replace an image URL inside post content or excerpt.
 	 *
@@ -169,21 +170,26 @@ class Fns {
 	private static function replace_image_at_content( $field, $orig_image_url, $new_image_url ) {
 		global $wpdb;
 		// Strict whitelist to prevent SQL injection.
-		if ( ! in_array( $field, [ 'post_content', 'post_excerpt' ], true ) ) {
+		$allowed_fields = [
+			'post_content',
+			'post_excerpt',
+		];
+		if ( ! in_array( $field, $allowed_fields, true ) ) {
 			return 0;
 		}
+		/**
+		 * Static, internal SQL fragment.
+		 * Contains no user input.
+		 */
 		$useless_types_conditions = self::$useless_types_conditions;
+		$sql                      = " UPDATE {$wpdb->posts} SET {$field} = REPLACE( {$field}, %s, %s ) WHERE {$field} LIKE %s AND {$useless_types_conditions} ";
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Column name is strictly whitelisted.
 		return (int) $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Prepared below.
 			$wpdb->prepare(
-				"
-			UPDATE {$wpdb->posts}
-			SET {$field} = REPLACE({$field}, %s, %s)
-			WHERE {$field} LIKE %s
-			  AND {$useless_types_conditions}
-			",
+				$sql, // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
 				$orig_image_url,
 				$new_image_url,
-				'%' . $orig_image_url . '%'
+				'%' . $wpdb->esc_like( $orig_image_url ) . '%'
 			)
 		);
 	}
@@ -385,7 +391,7 @@ class Fns {
 	public static function permalink_to_post_guid( $post_id ) {
 		global $wpdb;
 		$guid    = wp_get_attachment_url( $post_id );
-		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID' => $post_id ] );
+		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID' => $post_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		clean_post_cache( $post_id );
 
 		return $updated;
@@ -563,7 +569,7 @@ class Fns {
 			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
 			if ( $instantDeletion && in_array( $fileextension, self::default_file_extensions(), true ) ) {
 				wp_delete_file( $file_path );
-				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] );
+				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 				continue;
 			}
 
@@ -573,7 +579,7 @@ class Fns {
 			$existing_row = wp_cache_get( $cache_key );
 			if ( ! $existing_row ) {
 				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
-				// Cache the query result
+				// Cache the query result.
 				if ( $existing_row ) {
 					continue;
 				}
@@ -583,7 +589,7 @@ class Fns {
 					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
 					'meta_data'     => serialize( [] ),
 				];
-				$wpdb->insert( $table_name, $save_data );
+				$wpdb->insert( $table_name, $save_data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 				wp_cache_set( $cache_key, $existing_row );
 			}
@@ -677,7 +683,7 @@ class Fns {
 
 		global $wpdb;
 		$query          = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
-		$parent_id      = $wpdb->get_var( $query );
+		$parent_id      = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		$post_ids       = [];
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		if ( ! $parent_id ) {
@@ -829,7 +835,7 @@ class Fns {
 			return self::$cache[ $keys_attachment ];
 		}
 		global $wpdb;
-		$meta_keys = $wpdb->get_col(
+		$meta_keys = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				"  SELECT DISTINCT pm.meta_key  FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s",
 				'attachment'
