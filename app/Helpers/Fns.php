@@ -208,25 +208,18 @@ class Fns {
 			return;
 		}
 		global $wpdb;
-		$table_meta = $wpdb->postmeta;
-		// Prepare values for safe SQL usage.
-		$orig_image_url = str_replace( '/', '\/', $orig_image_url );
-		$new_image_url  = str_replace( '/', '\/', $new_image_url );
-		$search_value   = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-		// Update Elementor data.
-		$update_query = $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
-			"UPDATE {$table_meta}
-		 SET meta_value = REPLACE( meta_value, %s, %s )
-		 WHERE meta_key = '_elementor_data'
-		 AND meta_value LIKE %s",
-			$orig_image_url,
-			$new_image_url,
-			$search_value
-		);
-		$wpdb->query( $update_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		/**
+		 * Trusted core table name.
+		 * Provided by $wpdb, contains no user input.
+		 */
+		$table_meta   = $wpdb->postmeta;
+		$search_value = '%' . $wpdb->esc_like( $orig_image_url ) . '%';
+		$sql          = "UPDATE {$table_meta} SET meta_value = REPLACE( meta_value, %s, %s ) WHERE meta_key = '_elementor_data' AND meta_value LIKE %s";
+		$query        = $wpdb->prepare( $sql, $orig_image_url, $new_image_url, $search_value ); // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
+		$wpdb->query( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		// Force Elementor to regenerate CSS and cache.
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_css' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_element_cache' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_css' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is trusted ($wpdb->postmeta).
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_element_cache' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is trusted ($wpdb->postmeta).
 	}
 
 	/**
