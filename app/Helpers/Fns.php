@@ -195,34 +195,6 @@ class Fns {
 	}
 
 	/**
-	 * Search for occurrences of the original image URL in Elementor metadata.
-	 *
-	 * @param string $orig_image_url
-	 * @return array List of post IDs where the URL is found.
-	 */
-	private static function search_elementor_metadata( $orig_image_url ) {
-		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
-			return [];
-		}
-		global $wpdb;
-		$table_meta               = $wpdb->postmeta;
-		$table_posts              = $wpdb->posts;
-		$useless_types_conditions = self::$useless_types_conditions;
-		$orig_image_url           = esc_sql( $orig_image_url );
-		$orig_image_url           = str_replace( '/', '\/', $orig_image_url );
-		$searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-
-		$query = $wpdb->prepare(
-			"SELECT m.post_id FROM {$table_meta} AS m
-		JOIN {$table_posts} AS p ON m.post_id = p.ID
-		WHERE m.meta_key = '_elementor_data'
-		AND m.meta_value LIKE %s
-		AND {$useless_types_conditions}",
-			$searchValue
-		);
-		return $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
-	}
-	/**
 	 * Update Elementor post meta data by replacing image URLs
 	 * and force Elementor to regenerate CSS and cache.
 	 *
@@ -242,7 +214,7 @@ class Fns {
 		$new_image_url  = str_replace( '/', '\/', $new_image_url );
 		$search_value   = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
 		// Update Elementor data.
-		$update_query = $wpdb->prepare(
+		$update_query = $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
 			"UPDATE {$table_meta}
 		 SET meta_value = REPLACE( meta_value, %s, %s )
 		 WHERE meta_key = '_elementor_data'
@@ -368,7 +340,11 @@ class Fns {
 						}
 					}
 				} catch ( \Exception $e ) {
-					error_log( 'Error reading data: ' . $e->getMessage() );
+					wp_trigger_error(
+						__METHOD__,
+						'Error reading data: ' . $e->getMessage(),
+						E_USER_WARNING
+					);
 				}
 			} else {
 				// For non-image files, just update the attached file path.
@@ -533,7 +509,7 @@ class Fns {
 
 		$upload_dir      = wp_upload_dir();
 		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
-		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === ( $_REQUEST['instantDeletion'] ?? '' );
+		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
