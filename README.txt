@@ -12,7 +12,7 @@ Media Rename, CSV export import, find unused media, search rubbish files, suppor
 
 == Description ==
 
-Media Library  Tools allows users to quickly Rename Media File and update image titles, ALT text, captions, descriptions and categories for individual or bulk images in the media library.
+Media Library Tools allows users to quickly Rename Media File and update image titles, ALT text, captions, descriptions and categories for individual or bulk images in the media library.
 
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
