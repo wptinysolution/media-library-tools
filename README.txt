@@ -180,10 +180,10 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 2.0.1 ( Jan 09, 2025 ) =
+= 2.0.1 ( Jan 08, 2026 ) =
 * Fix: Search Attached Post Issue resolved
 
-= 2.0.0 ( Jan 09, 2025 ) =
+= 2.0.0 ( Jan 08, 2026 ) =
 * Updated: Display name and branding for clarity and compliance.
 * Updated: Removed license checks, trial logic, and locked features.
 * Updated: Removed Freemius code and remote assets; bundled all required files locally.
