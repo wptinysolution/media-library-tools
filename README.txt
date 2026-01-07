@@ -16,10 +16,7 @@ Media Library Tools allows users to quickly Rename Media File and update image t
 
 And also allows to Search Rubbish File, SVG Support,  of your media files can improve the organization and SEO score.
 
-
 👉 [Documentation](https://docs.wptinysolutions.com/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
-
-👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
 
 [youtube https://www.youtube.com/watch?v=L7F33DYnsZU]
 
@@ -179,7 +176,18 @@ To search for images by categories, users can find the categories box near the F
 07. Media Table Bulk Edit Mode
 08. Settings
 
+👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
+
 == Changelog ==
+
+= 2.0.0 ( Jan 09, 2025 ) =
+* Updated: Display name and branding for clarity and compliance.
+* Updated: Removed license checks, trial logic, and locked features.
+* Updated: Removed Freemius code and remote assets; bundled all required files locally.
+* Updated: Added composer.json and included readable JS/CSS source files.
+* Updated: Fixed sanitization, validation, escaping, and nonce handling.
+* Updated: Standardized prefixes across codebase to avoid conflicts.
+* Updated: General code quality improvements and directory guideline compliance.
 
 = 1.7.0 ( Nov 25, 2025 ) =
 * Improvement: Rubbish File Bulk Delete Functionality Make More Faster
