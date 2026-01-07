@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -179,6 +179,9 @@ To search for images by categories, users can find the categories box near the F
 
 
 == Changelog ==
+
+= 2.0.1 ( Jan 09, 2025 ) =
+* Fix: Search Attached Post Issue resolved
 
 = 2.0.0 ( Jan 09, 2025 ) =
 * Updated: Display name and branding for clarity and compliance.
