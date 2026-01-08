@@ -17,7 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Fns class
+ * Fns Helpers class
+ *
+ * Provides utility helpers for media operations, attachment renaming,
+ * scanning directories, Elementor cleanup, WPML sync, and scheduled tasks.
+ *
+ * @package TinySolutions\WM
  */
 class Fns {
 	/**
