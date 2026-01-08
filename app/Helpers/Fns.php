@@ -193,7 +193,7 @@ class Fns {
 			)
 		);
 	}
-	
+
 	/**
 	 * Search for occurrences of the original image URL in Elementor metadata.
 	 *
@@ -211,16 +211,18 @@ class Fns {
 		$orig_image_url           = esc_sql( $orig_image_url );
 		$orig_image_url           = str_replace( '/', '\/', $orig_image_url );
 		$searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-		return $wpdb->get_col( $wpdb->prepare(
-			"SELECT m.post_id FROM {$table_meta} AS m
+		return $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT m.post_id FROM {$table_meta} AS m
 		JOIN {$table_posts} AS p ON m.post_id = p.ID
 		WHERE m.meta_key = '_elementor_data'
 		AND m.meta_value LIKE %s
 		AND {$useless_types_conditions}",
-			$searchValue
-		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+				$searchValue
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 	}
-	
+
 	/**
 	 * Update Elementor post meta data by replacing image URLs
 	 * and force Elementor to regenerate CSS and cache.
@@ -571,7 +573,7 @@ class Fns {
 
 			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-			// Check if the file_path already exists in the table using cached data
+			// Check if the file_path already exists in the table using cached data.
 			$existing_row = wp_cache_get( $cache_key );
 			if ( ! $existing_row ) {
 				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
