@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -150,6 +150,7 @@ Use this plugin to register the new image size needed for your project.
 == 🏆 Download Media Shortcode ==
 Create quick, free downloads for all file types—including audio, video, documents, Office files, scripts, archives, images, and e-books—with customizable download buttons, browser prompt support, large file handling, and optional new-tab opening.
 
+== 🏆 Development Source Code ==
 👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
 
 == Frequently Asked Questions ==
