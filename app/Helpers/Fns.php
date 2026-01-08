@@ -529,10 +529,10 @@ class Fns {
 		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
 		global $wpdb;
 
-		$upload_dir      = wp_upload_dir();
-		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
-		$instantDeletion = tsmlt()->has_pro() && wp_doing_ajax() && 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$upload_dir    = wp_upload_dir();
+		$uploaddir     = $upload_dir['basedir'] ?? 'wp-content/uploads/';
+		$instantDeletion = 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$table_name    = $wpdb->prefix . 'tsmlt_unlisted_file';
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
 				continue;
@@ -565,12 +565,12 @@ class Fns {
 
 			$metadata_file = basename( $file_path );
 			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-			if ( $instantDeletion && in_array( $fileextension, self::default_file_extensions(), true ) ) {
-				wp_delete_file( $file_path );
-				$wpdb->delete( $table_name, [ 'file_path' => $file_path ], [ '%s' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+			$matchFileExtension = in_array( $fileextension, self::default_file_extensions(), true );
+			if ( $instantDeletion && wp_doing_ajax() && $matchFileExtension ) {
+				do_action( 'tsmlt_do_ajax_instant_action', $file_path, $table_name );
 				continue;
 			}
-
 			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
 			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			// Check if the file_path already exists in the table using cached data.
@@ -585,7 +585,7 @@ class Fns {
 					'file_path'     => $search_string,
 					'attachment_id' => 0,
 					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
-					'meta_data'     => serialize( [] ),
+					'meta_data'     => serialize( [] ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Using serialize to store array data.
 				];
 				$wpdb->insert( $table_name, $save_data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
