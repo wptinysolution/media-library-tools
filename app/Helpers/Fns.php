@@ -23,7 +23,10 @@ class Fns {
 	/**
 	 * @var array
 	 */
-	private static $cache                    = [];
+	private static $cache = [];
+	/**
+	 * @var string
+	 */
 	private static $useless_types_conditions = "
 		post_status NOT IN ('inherit', 'trash', 'auto-draft')
 		AND post_type NOT IN ('attachment', 'shop_order', 'shop_order_refund', 'nav_menu_item', 'revision', 'auto-draft', 'wphb_minify_group', 'customize_changeset', 'oembed_cache', 'nf_sub', 'jp_img_sitemap')
@@ -34,7 +37,7 @@ class Fns {
 	";
 
 	/**
-	 * @param $plugin_file_path
+	 * @param string $plugin_file_path string.
 	 *
 	 * @return bool
 	 */
@@ -74,7 +77,7 @@ class Fns {
 	/**
 	 * Image attachment details
 	 *
-	 * @param init $attachment_id image id.
+	 * @param int $attachment_id image id.
 	 *
 	 * @return array
 	 */
@@ -529,10 +532,10 @@ class Fns {
 		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
 		global $wpdb;
 
-		$upload_dir    = wp_upload_dir();
-		$uploaddir     = $upload_dir['basedir'] ?? 'wp-content/uploads/';
+		$upload_dir      = wp_upload_dir();
+		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
 		$instantDeletion = 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$table_name    = $wpdb->prefix . 'tsmlt_unlisted_file';
+		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
 		foreach ( $found_files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
 				continue;
