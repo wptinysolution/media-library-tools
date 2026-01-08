@@ -219,16 +219,7 @@ class Fns {
 		$orig_image_url           = esc_sql( $orig_image_url );
 		$orig_image_url           = str_replace( '/', '\/', $orig_image_url );
 		$searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-		return $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT m.post_id FROM {$table_meta} AS m
-		JOIN {$table_posts} AS p ON m.post_id = p.ID
-		WHERE m.meta_key = '_elementor_data'
-		AND m.meta_value LIKE %s
-		AND {$useless_types_conditions}",
-				$searchValue
-			)
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		return $wpdb->get_col( $wpdb->prepare( "SELECT m.post_id FROM {$table_meta} AS m JOIN {$table_posts} AS p ON m.post_id = p.ID WHERE m.meta_key = '_elementor_data' AND m.meta_value LIKE %s AND {$useless_types_conditions}", $searchValue ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
 	}
 
 	/**

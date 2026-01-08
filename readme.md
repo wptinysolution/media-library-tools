@@ -1,4 +1,4 @@
-Requirements
+### Requirements
 
 Node + npm (for asset builds)
 
@@ -8,27 +8,30 @@ WordPress (runtime)
 
 Optionally WP-CLI for POT extraction
 
-Setup
+### Setup
 
 ```npm install```
 
 ```composer install```
 
 
-Development
+### Development
 
 `npm run watch`
-
 
 Build for Release
 
 `npm run zip`
 
-Directory Conventions
+
+### Directory Conventions
+
 
 /app — PHP classes (autoloaded)
 
-/assets — source JS/SASS
+/src — source JS/SASS
+
+/assets — compiled JS/SASS and images
 
 /dist — compiled assets
 

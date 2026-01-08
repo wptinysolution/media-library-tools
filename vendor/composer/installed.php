@@ -3,7 +3,7 @@
         'name' => 'tinysolutions/media-library-tools',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '930d0f8afd5e7040648f069cf76a79ab9517cf57',
+        'reference' => 'f42c15968d1d7a0a1519d53a05939878b588ca26',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'tinysolutions/media-library-tools' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '930d0f8afd5e7040648f069cf76a79ab9517cf57',
+            'reference' => 'f42c15968d1d7a0a1519d53a05939878b588ca26',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

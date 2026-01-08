@@ -36,7 +36,7 @@ class AssetsController {
 	 * Class Constructor
 	 */
 	public function __construct() {
-		$this->version = time(); // ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? time() : TSMLT_VERSION;
+		$this->version = ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? time() : TSMLT_VERSION;
 		/**
 		 * Admin scripts.
 		 */

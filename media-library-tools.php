@@ -1,10 +1,10 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       Media Library Tools
+ * Plugin Name:       Media Library Tools - Rename, Clean & CSV Import/Export
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
  * Description:       Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
- * Version:           2.0.1
+ * Version:           2.0.2
  * Author:            Tiny Solutions
  * Author URI:        https://www.wptinysolutions.com/
  * Text Domain:       media-library-tools
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Define media edit Constant.
  */
 
-define( 'TSMLT_VERSION', '2.0.1' );
+define( 'TSMLT_VERSION', '2.0.2' );
 
 define( 'TSMLT_FILE', __FILE__ );
 
