@@ -150,7 +150,7 @@ Use this plugin to register the new image size needed for your project.
 == 🏆 Download Media Shortcode ==
 Create quick, free downloads for all file types—including audio, video, documents, Office files, scripts, archives, images, and e-books—with customizable download buttons, browser prompt support, large file handling, and optional new-tab opening.
 
-== 🏆 Development Source Code ==
+== 🏆 Development Source ==
 👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
 
 == Frequently Asked Questions ==
