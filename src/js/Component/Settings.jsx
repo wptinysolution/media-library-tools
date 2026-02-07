@@ -92,7 +92,7 @@ function Settings() {
                             {/* Media Table Settings */}
                             <div className="bg-white rounded-lg border border-gray-200">
                                 <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl font-semibold text-gray-900">Media Table Settings</h3>
+                                    <h3 className="text-xl m-0! font-semibold text-gray-900">Media Table Settings</h3>
                                 </div>
 
                                 <div className="p-6 space-y-6">
@@ -128,12 +128,8 @@ function Settings() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* File Support */}
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="p-6 space-y-6">
-                                    <div className="flex items-start gap-8">
+                                <div className="p-6 space-y-6 border-t border-gray-200 ">
+                                    <div className="flex items-start gap-8 ">
                                         <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
                                             Others File Support:
                                         </label>
@@ -151,11 +147,7 @@ function Settings() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Alt Text Settings */}
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="p-6 space-y-6">
+                                <div className="p-6 space-y-6 border-t border-gray-200">
                                     {/* Use Post Title as Alt Text */}
                                     <div className="flex items-start gap-8">
                                         <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
@@ -240,11 +232,7 @@ function Settings() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Caption Settings */}
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="p-6 space-y-6">
+                                <div className="p-6 space-y-6 border-t border-gray-200">
                                     {/* Use Post Title as Caption */}
                                     <div className="flex items-start gap-8">
                                         <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
@@ -329,11 +317,7 @@ function Settings() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Description Settings */}
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="p-6 space-y-6">
+                                <div className="p-6 space-y-6 border-t border-gray-200">
                                     {/* Use Post Title as Description */}
                                     <div className="flex items-start gap-8">
                                         <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
@@ -423,7 +407,7 @@ function Settings() {
                             {/* Media Renamer Settings */}
                             <div className="bg-white rounded-lg border border-gray-200">
                                 <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl font-semibold text-gray-900">Media Renamer Settings</h3>
+                                    <h3 className="text-xl m-0! font-semibold text-gray-900">Media Renamer Settings</h3>
                                 </div>
 
                                 <div className="p-6 space-y-6">

@@ -4,6 +4,8 @@ import App from '@/js/Component/App';
 import { StateProvider } from '@/js/Utils/StateProvider';
 import reducer, { initialState } from '@/js/Utils/reducer';
 import {setupNavigation} from "@/js/navigation";
+import '@/css/index.css';
+import '@/scss/admin-settings.scss';
 
 const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 

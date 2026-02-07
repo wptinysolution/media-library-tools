@@ -48,9 +48,8 @@ export default defineConfig({
         chunkSizeWarningLimit: 5000, // Increase from default 500 kB
         rollupOptions: {
             input: {
-                'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.jsx'),
-                'css/backend/admin-settings': path.resolve(__dirname, 'src/scss/admin-settings.scss'),
-            },
+                'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.jsx')
+             },
             output: {
                 entryFileNames: "[name].js",
                 assetFileNames: (assetInfo) => {
