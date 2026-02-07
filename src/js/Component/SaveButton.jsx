@@ -13,28 +13,23 @@ function SaveButton({
     const [isLoading, setIsLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
-    const baseClasses = position === 'fixed'
-        ? 'fixed bottom-8 right-8 z-50'
-        : '';
+    const baseClasses = position === 'fixed' ? 'fixed bottom-8 right-8 z-50' : '';
 
     const onClick = async () => {
         setIsLoading(true);
         setIsSaved(false);
-
         // Trigger save
         await dispatch({
             ...stateValue,
             type: Types.UPDATE_OPTIONS,
             saveType: Types.UPDATE_OPTIONS,
         });
-
-        setIsLoading(false);
         setIsSaved(true);
-
         // Reset saved state after 2 seconds
         setTimeout(() => {
             setIsSaved(false);
-        }, 2000);
+            setIsLoading(false);
+        }, 1000);
     };
 
     return (
