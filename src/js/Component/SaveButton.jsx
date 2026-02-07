@@ -39,27 +39,78 @@ function SaveButton({
 
     return (
         <button
-            className={`${baseClasses} px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl focus:ring-4 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
             onClick={onClick}
             disabled={disabled || isLoading}
+            className={`
+                ${baseClasses}
+                group
+                cursor-pointer
+                ${isSaved
+                ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+            }
+                disabled:from-blue-400
+                disabled:to-blue-500
+                disabled:cursor-not-allowed
+                text-white
+                font-semibold
+                py-3.5
+                px-7
+                min-w-[180px]
+                justify-center
+                rounded-xl
+                text-base
+                shadow-lg
+                ${isSaved ? 'shadow-green-500/30' : 'shadow-blue-500/30'}
+                hover:shadow-xl
+                hover:scale-105
+                active:scale-100
+                transition-all
+                duration-200
+                flex
+                items-center
+                gap-2.5
+                ${className}
+            `.trim()}
         >
             {isLoading ? (
-                <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <>
+                    <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <circle
+                            className="opacity-30"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                        />
+                        <path
+                            d="M22 12a10 10 0 00-10-10"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                        />
                     </svg>
-                    {loadingText}
-                </span>
+                    <span>{loadingText}</span>
+                </>
             ) : isSaved ? (
-                <span className="flex items-center gap-2">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
-                    Saved!
-                </span>
+                    <span>Saved!</span>
+                </>
             ) : (
-                defaultText
+                <>
+                    <svg className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    <span>{defaultText}</span>
+                </>
             )}
         </button>
     );
