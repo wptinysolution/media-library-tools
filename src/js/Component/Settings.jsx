@@ -4,6 +4,7 @@ import Loader from '@/js/Utils/Loader';
 import { columnList } from '@/js/Utils/UtilData';
 import * as Types from "@/js/Utils/actionType";
 import MainHeader from "@/js/Component/MainHeader";
+import SaveButton from '@/js/Component/SaveButton';
 
 function Settings() {
     const [stateValue, dispatch] = useStateValue();
@@ -552,18 +553,7 @@ function Settings() {
                     )}
 
                     {/* Save Button */}
-                    <button
-                        className="fixed bottom-8 right-8 px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl focus:ring-4 focus:ring-blue-500 focus:ring-offset-2 transition-all"
-                        onClick={() =>
-                            dispatch({
-                                ...stateValue,
-                                type: Types.UPDATE_OPTIONS,
-                                saveType: Types.UPDATE_OPTIONS,
-                            })
-                        }
-                    >
-                        Save Settings
-                    </button>
+                    <SaveButton />
                 </div>
             </div>
         </>
