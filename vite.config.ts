@@ -45,7 +45,7 @@ export default defineConfig({
     ],
     build: {
         outDir: 'assets', // compiled files output
-        chunkSizeWarningLimit: 1000, // Increase from default 500 kB
+        chunkSizeWarningLimit: 5000, // Increase from default 500 kB
         rollupOptions: {
             input: {
                 'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.jsx'),
