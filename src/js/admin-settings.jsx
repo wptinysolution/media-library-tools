@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './Component/App';
-import { StateProvider } from './Utils/StateProvider';
-import reducer, { initialState } from './Utils/reducer';
-import {setupNavigation} from "./navigation";
+import App from '@/js/Component/App';
+import { StateProvider } from '@/js/Utils/StateProvider';
+import reducer, { initialState } from '@/js/Utils/reducer';
+import {setupNavigation} from "@/js/navigation";
 
 const root = ReactDOM.createRoot( document.getElementById( 'media_root' ) );
 

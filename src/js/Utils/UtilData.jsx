@@ -7,9 +7,8 @@ const {
     Paragraph
 } = Typography;
 
-import {useStateValue} from "./StateProvider";
-
-import * as Types from "./actionType";
+import {useStateValue} from "@/js/Utils/StateProvider";
+import * as Types from "@/js/Utils/actionType";
 
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction } from "./Data";
 

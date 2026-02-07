@@ -1,8 +1,8 @@
 /* global rtsbParams */
 
-import * as Types from "./actionType";
+import * as Types from "@/js/Utils/actionType";
 
-import {defaultBulkSubmitData, localRetrieveData } from "./UtilData";
+import {defaultBulkSubmitData, localRetrieveData } from "@/js/Utils/UtilData";
 
 export const initialState = {
 	saveType: null,

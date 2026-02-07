@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-
-import {Layout} from 'antd';
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import {
     getTerms,
@@ -10,43 +9,30 @@ import {
     updateOptins,
     upDateSingleMedia,
     submitBulkMediaAction
-} from "../Utils/Data";
+} from "@/js/Utils/Data";
 
-import {HashRouter, Navigate, Route, Routes} from "react-router-dom";
-
-import ProModal from "./ProModal";
-
-import ImportButton from "./ExportImport/ImportButton";
-
-import Settings from "./Settings";
-
-import NeedSupport from "./NeedSupport";
-
-import * as Types from "../Utils/actionType";
-
-import Datatable from "./ListTable/Datatable";
-
-import { useStateValue } from "../Utils/StateProvider";
-
-import { defaultBulkSubmitData } from "../Utils/UtilData";
-
-import RenamerTableData from "./Renamer/RenamerTableData";
-
-import RubbishFile from "./Rubbish/RubbishFile";
-
-import PluginList from "./PluginList";
-import ImageSize from "./ImageSize/ImageSize";
-import ExportImportRoot from "./ExportImport/ExportImportRoot";
-import ExportButton from "./ExportImport/ExportButton";
-import MediaDownload from "./MediaDownload/MediaDownload";
-
+import ProModal from "@/js/Component/ProModal";
+import ImportButton from "@/js/Component/ExportImport/ImportButton";
+import Settings from "@/js/Component/Settings";
+import NeedSupport from "@/js/Component/NeedSupport";
+import * as Types from "@/js/Utils/actionType";
+import Datatable from "@/js/Component/ListTable/Datatable";
+import { useStateValue } from "@/js/Utils/StateProvider";
+import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
+import RenamerTableData from "@/js/Component/Renamer/RenamerTableData";
+import RubbishFile from "@/js/Component/Rubbish/RubbishFile";
+import PluginList from "@/js/Component/PluginList";
+import ImageSize from "@/js/Component/ImageSize/ImageSize";
+import ExportImportRoot from "@/js/Component/ExportImport/ExportImportRoot";
+import ExportButton from "@/js/Component/ExportImport/ExportButton";
+import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 
 function App() {
+    const [stateValue, dispatch] = useStateValue();
 
-    const [ stateValue, dispatch ] = useStateValue();
     const getTheOptins = async () => {
         const response = await getOptions();
-        const preparedData =  await JSON.parse( response.data );
+        const preparedData = await JSON.parse(response.data);
         await dispatch({
             type: Types.UPDATE_OPTIONS,
             options: {
@@ -55,25 +41,25 @@ function App() {
             }
         });
     }
-    
+
     const getDateAndTermsList = async () => {
         const responseDate = await getDates();
-        const preparedDate =  await JSON.parse( responseDate.data );
+        const preparedDate = await JSON.parse(responseDate.data);
         const responseTerms = await getTerms();
-        const preparedTerms =  await JSON.parse( responseTerms.data );
+        const preparedTerms = await JSON.parse(responseTerms.data);
         await dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
                 ...stateValue.generalData,
-                dateList : preparedDate,
-                termsList : preparedTerms,
-                isLoading : false,
+                dateList: preparedDate,
+                termsList: preparedTerms,
+                isLoading: false,
             },
         })
     }
 
     const getTheMedia = async () => {
-        const response = await getMedia( stateValue.mediaData.postQuery );
+        const response = await getMedia(stateValue.mediaData.postQuery);
         await dispatch({
             type: Types.GET_MEDIA_LIST,
             mediaData: {
@@ -84,48 +70,47 @@ function App() {
         });
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkSubmitData:{
+            bulkSubmitData: {
                 ...stateValue.bulkSubmitData,
-                bulkChecked : false,
+                bulkChecked: false,
                 ids: []
             }
         });
     }
 
     const handleUpdateOption = async () => {
-       const response = await updateOptins( stateValue.options );
-       if( 200 === parseInt( response.status ) ){
-           await getTheOptins();
-           await dispatch({
-               type: Types.GET_MEDIA_LIST,
-               mediaData: {
-                   ...stateValue.mediaData,
-                   postQuery: {
-                       ...stateValue.mediaData.postQuery,
-                       media_per_page: stateValue.options.media_per_page,
-                   },
-               },
-           });
-       }
+        const response = await updateOptins(stateValue.options);
+        if (200 === parseInt(response.status)) {
+            await getTheOptins();
+            await dispatch({
+                type: Types.GET_MEDIA_LIST,
+                mediaData: {
+                    ...stateValue.mediaData,
+                    postQuery: {
+                        ...stateValue.mediaData.postQuery,
+                        media_per_page: stateValue.options.media_per_page,
+                    },
+                },
+            });
+        }
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
-        const  currentItemEdited = stateValue.rename;
-        let edited =  stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare( stateValue.rename.newname );
-        if( edited ){
-            const response = await upDateSingleMedia( currentItemEdited );
-            if( 200 === parseInt( response.status ) ) {
+        const currentItemEdited = stateValue.rename;
+        let edited = stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare(stateValue.rename.newname);
+        if (edited) {
+            const response = await upDateSingleMedia(currentItemEdited);
+            if (200 === parseInt(response.status)) {
                 await getTheMedia()
             }
         }
     }
 
-    const singleMediaUpdateContent = async ( event ) => {
-        const response = await upDateSingleMedia( stateValue.singleMedia );
-        if( 200 === parseInt( response.status ) ) {
-           // await getTheMedia()
+    const singleMediaUpdateContent = async (event) => {
+        const response = await upDateSingleMedia(stateValue.singleMedia);
+        if (200 === parseInt(response.status)) {
+            // await getTheMedia()
         }
-
     }
 
     const handleBulkModalDataSave = async () => {
@@ -136,8 +121,8 @@ function App() {
                 isLoading: true
             },
         });
-        const response = await submitBulkMediaAction( stateValue.bulkSubmitData );
-        if( 200 === parseInt( response.status ) && response.data.updated ){
+        const response = await submitBulkMediaAction(stateValue.bulkSubmitData);
+        if (200 === parseInt(response.status) && response.data.updated) {
             await dispatch({
                 type: Types.GET_MEDIA_LIST,
                 mediaData: {
@@ -145,7 +130,7 @@ function App() {
                     isLoading: false,
                     postQuery: {
                         ...stateValue.mediaData.postQuery,
-                        isUpdate: ! stateValue.mediaData.postQuery.isUpdate,
+                        isUpdate: !stateValue.mediaData.postQuery.isUpdate,
                     },
                 },
             });
@@ -158,71 +143,63 @@ function App() {
                     type: stateValue.bulkSubmitData.type,
                 },
             });
-            console.log( 'stateValue', stateValue )
+            console.log('stateValue', stateValue)
         }
-        console.log( 'submitBulkMediaAction' );
+        console.log('submitBulkMediaAction');
     };
 
     const handleSave = () => {
-        switch ( stateValue.saveType ) {
+        switch (stateValue.saveType) {
             case Types.UPDATE_OPTIONS:
-                    handleUpdateOption();
+                handleUpdateOption();
                 break;
             case Types.UPDATE_RENAMER_MEDIA:
-                    fileRenamerUpdateSingleMedia();
+                fileRenamerUpdateSingleMedia();
                 break;
             case Types.UPDATE_SINGLE_MEDIA:
-                    singleMediaUpdateContent();
+                singleMediaUpdateContent();
                 break;
             case Types.BULK_SUBMIT:
-                    handleBulkModalDataSave();
+                handleBulkModalDataSave();
                 break;
-
             default:
         }
     }
 
     useEffect(() => {
         handleSave();
-    }, [ stateValue.saveType ] );
-    
+    }, [stateValue.saveType]);
+
     useEffect(() => {
         getTheOptins();
         getDateAndTermsList();
-    }, [] );
+    }, []);
 
     useEffect(() => {
         getTheMedia();
-    }, [ stateValue.mediaData.postQuery ] );
+    }, [stateValue.mediaData.postQuery]);
 
     return (
-            <Layout className="tttme-App" style={{
-                padding: '10px',
-                background: '#fff',
-                borderRadius: '5px',
-                boxShadow: '0 4px 40px rgb(0 0 0 / 5%)',
-                minHeight: '100vh',
-                // height: 'calc( 100vh - 50px )',
-            }}>
-                <HashRouter>
-                    <Routes>
-                        <Route path="/" element={<Settings/>}/>
-                        <Route path="/mediaTable" element={<Datatable/>}/>
-                        <Route path="/mediaRename" element={<RenamerTableData/>}/>
-                        <Route path="/exportImport" element={<ExportImportRoot/>}/>
-                        <Route path="/import" element={<ImportButton/>}/>
-                        <Route path="/export" element={<ExportButton/>}/>
-                        <Route path="/imageSize" element={<ImageSize/>}/>
-                        <Route path="/mediaDownload" element={<MediaDownload/>}/>
-                        <Route path="/rubbishFile" element={<RubbishFile/>}/>
-                        <Route path="/plugins" element={<PluginList/>}/>
-                        <Route path="/support" element={<NeedSupport/>}/>
-                        <Route path="*" element={<Navigate to="/" replace/>}/>
-                    </Routes>
-                </HashRouter>
-                <ProModal/>
-            </Layout>
+        <div className="p-2.5 bg-white rounded-lg shadow-[0_4px_40px_rgba(0,0,0,0.05)] min-h-screen">
+            <HashRouter>
+                <Routes>
+                    <Route path="/" element={<Settings />} />
+                    <Route path="/mediaTable" element={<Datatable />} />
+                    <Route path="/mediaRename" element={<RenamerTableData />} />
+                    <Route path="/exportImport" element={<ExportImportRoot />} />
+                    <Route path="/import" element={<ImportButton />} />
+                    <Route path="/export" element={<ExportButton />} />
+                    <Route path="/imageSize" element={<ImageSize />} />
+                    <Route path="/mediaDownload" element={<MediaDownload />} />
+                    <Route path="/rubbishFile" element={<RubbishFile />} />
+                    <Route path="/plugins" element={<PluginList />} />
+                    <Route path="/support" element={<NeedSupport />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </HashRouter>
+            <ProModal />
+        </div>
     );
 }
 
-export default App
+export default App;

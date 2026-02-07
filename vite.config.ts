@@ -67,10 +67,6 @@ export default defineConfig({
                     }
                     return "[name][extname]";
                 },
-                // Code splitting for better performance
-                manualChunks: {
-                    'react-vendor': ['react', 'react-dom'],
-                },
             },
         },
     },

@@ -1,81 +1,51 @@
 import React from 'react';
-
-import { useStateValue } from '../Utils/StateProvider';
-
-import Loader from '../Utils/Loader';
-
-import {
-    Form,
-    Input,
-    Layout,
-    Button,
-    Divider,
-    Checkbox,
-    Typography
-} from 'antd';
-
-const { TextArea } = Input;
-
-const { Title, Text } = Typography;
-
-const { Content } = Layout;
-
-import { columnList } from '../Utils/UtilData'
-
-import * as Types from "../Utils/actionType";
-
-import MainHeader from "./MainHeader";
-
-const CheckboxGroup = Checkbox.Group;
-
-const columns = columnList.map( ( currentValue) => {
-    return {
-        label: currentValue.title,
-        value: currentValue.key
-    }
-} );
-
-const plainOptions = columnList.map( ( currentValue) => {
-    return currentValue.key;
-} );
+import { useStateValue } from '@/js/Utils/StateProvider';
+import Loader from '@/js/Utils/Loader';
+import { columnList } from '@/js/Utils/UtilData';
+import * as Types from "@/js/Utils/actionType";
+import MainHeader from "@/js/Component/MainHeader";
 
 function Settings() {
-
     const [stateValue, dispatch] = useStateValue();
 
-    const isCheckedDiff = Object.keys( plainOptions ).length === Object.keys( stateValue.options.media_table_column ).length;
+    const plainOptions = columnList.map((currentValue) => currentValue.key);
+    const isCheckedDiff = Object.keys(plainOptions).length === Object.keys(stateValue.options.media_table_column).length;
 
-    const onChangeColumnList = (list) => {
+    const onChangeColumnList = (key) => {
+        const currentColumn = stateValue.options.media_table_column;
+        const newColumn = currentColumn.includes(key)
+            ? currentColumn.filter(item => item !== key)
+            : [...currentColumn, key];
+
         dispatch({
             type: Types.UPDATE_OPTIONS,
-            options : {
+            options: {
                 ...stateValue.options,
-                media_table_column: list,
+                media_table_column: newColumn,
             }
         });
-
     };
 
     const onCheckAllColumn = (e) => {
         dispatch({
             type: Types.UPDATE_OPTIONS,
-            options : {
+            options: {
                 ...stateValue.options,
                 media_table_column: e.target.checked ? plainOptions : [],
             }
         });
     };
-  
+
     const setDefaultText = (e) => {
-        if ( ! tsmltParams.hasExtended ){
+        if (!tsmltParams.hasExtended) {
             const fields = [
-                'enable_auto_rename' ,
+                'enable_auto_rename',
                 'alt_text_by_post_title',
                 'auto_rename_by_post_title',
                 'caption_text_by_post_title',
                 'desc_text_by_post_title',
             ];
-            if( fields.indexOf( e.target.name ) !== -1 ) {
+            if (fields.indexOf(e.target.name) !== -1) {
                 dispatch({
                     type: Types.GENERAL_DATA,
                     generalData: {
@@ -88,394 +58,479 @@ function Settings() {
         }
         dispatch({
             type: Types.UPDATE_OPTIONS,
-            options : {
+            options: {
                 ...stateValue.options,
                 [e.target.name]: stateValue.options[e.target.name] !== e.target.value ? e.target.value : '',
             }
         });
+    };
 
-    }
+    const onChangeOthersFileList = (value) => {
+        const currentList = stateValue.options.others_file_support || [];
+        const newList = currentList.includes(value)
+            ? currentList.filter(item => item !== value)
+            : [...currentList, value];
 
-    const onChangeOthersFileList = (list) => {
         dispatch({
             type: Types.UPDATE_OPTIONS,
-            options : {
+            options: {
                 ...stateValue.options,
-                others_file_support: list,
+                others_file_support: newList,
             }
         });
     };
 
-    return (<>
-        <MainHeader/>
-        <Layout className="layout" style={{ overflowY: 'auto' }} >
-        <Layout style={{ position: 'relative' }}>
-            <Form
-                labelCol={{
-                    span: 7,
-                    offset: 0,
-                    style:{
-                        textAlign: 'left',
-                    }
-                }}
-                wrapperCol={{ span: 19 }}
-                layout="horizontal"
-                style={{
-                    height: '100%'
-                }}
-            >
-                { stateValue.options.isLoading ? <Loader/> :
-                    <Content style={{
-                        padding: '25px',
-                        background: 'rgb(255 255 255 / 35%)',
-                        borderRadius: '5px',
-                        boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-                    }}>
-                        <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Media Table Column </Title>} >
-                            <Checkbox indeterminate={ ! isCheckedDiff } onChange={onCheckAllColumn} checked={isCheckedDiff}>Check all </Checkbox>
-                            <Divider style={ { margin: '10px 0' } }/>
-                            <CheckboxGroup options={columns} value={stateValue.options.media_table_column} onChange={onChangeColumnList} />
-                        </Form.Item>
-                        <Divider />
+    return (
+        <>
+            <MainHeader />
+            <div className="overflow-y-auto">
+                <div className="relative">
+                    {stateValue.options.isLoading ? (
+                        <Loader />
+                    ) : (
+                        <div className="p-6 bg-white/35 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.01)]">
+                            {/* Media Table Settings */}
+                            <h3 className="text-2xl font-semibold m-0">Media Table Settings</h3>
+                            <hr className="my-4 border-gray-200" />
 
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Others File Support </Title>} >
-                            <CheckboxGroup options={
-                                [
-                                    {
-                                        label: 'SVG',
-                                        value: 'svg'
-                                    }
-                                ]
-                            } value={stateValue.options.others_file_support} onChange={ onChangeOthersFileList } />
-                            <br/>
-                            <Text  type="secondary"  >
-                                Svg And Others File Upload.
-                            </Text>
-                        </Form.Item>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Alt Text </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`alt_text_by_post_title`}
-                                value={`alt_text_by_post_title`}
-                                checked={ 'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title }>
-                                Default Alt Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
-                            </Checkbox>
-                            <br/>
-                            <br/>
-                            <Text type="secondary" >
-                                Alt Text will add automatically when upload Media as attached posts.
-                            </Text>
-                            <Divider style={ { margin: '10px 0' } }/>
-                        </Form.Item>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Media Table Column</label>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            indeterminate={!isCheckedDiff}
+                                            onChange={onCheckAllColumn}
+                                            checked={isCheckedDiff}
+                                        />
+                                        <span className="text-sm">Check all</span>
+                                    </label>
+                                    <hr className="my-2.5 border-gray-200" />
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {columnList.map((column) => (
+                                            <label key={column.key} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    checked={stateValue.options.media_table_column.includes(column.key)}
+                                                    onChange={() => onChangeColumnList(column.key)}
+                                                />
+                                                <span className="text-sm">{column.title}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
 
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Images Alt Text</Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_alt_text`}
-                                value={`image_name_to_alt`}
-                                checked={ 'image_name_to_alt' === stateValue.options.default_alt_text }>
-                                Image name use as alt text
-                            </Checkbox>
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_alt_text`}
-                                value={`custom_text_to_alt`}
-                                checked={ 'custom_text_to_alt' === stateValue.options.default_alt_text } >
-                                Custom text
-                            </Checkbox>
-                            { 'custom_text_to_alt' === stateValue.options.default_alt_text &&
-                                <>
-                                    <Divider style={ { margin: '10px 0' } }/>
-                                    <TextArea
-                                        type="primary"
-                                        size="large"
-                                        onChange={
-                                            (event) => dispatch({
-                                                type: Types.UPDATE_OPTIONS,
-                                                options : {
-                                                    ...stateValue.options,
-                                                    media_default_alt: event.target.value,
-                                                }
-                                            })
-                                        }
-                                        value={stateValue.options.media_default_alt}
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Others File Support */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Others File Support</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        checked={(stateValue.options.others_file_support || []).includes('svg')}
+                                        onChange={() => onChangeOthersFileList('svg')}
                                     />
+                                    <span className="text-sm">SVG</span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">Svg And Others File Upload.</p>
+                            </div>
 
-                                </>
-                            }
-                            <br/>
-                            <br/>
-                            <Text  type="secondary">
-                                Alt Text Will add automatically when upload Media file
-                            </Text>
+                            <hr className="my-4 border-gray-200" />
 
-                        </Form.Item>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Caption </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`caption_text_by_post_title`}
-                                value={`caption_text_by_post_title`}
-                                checked={ 'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title }>
-                                Default Caption Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
-                            </Checkbox>
-                            <br/>
-                            <br/>
-                            <Text type="secondary" >
-                                Caption Text will add automatically when upload Media as attached posts.
-                            </Text>
-                            <Divider style={ { margin: '10px 0' } }/>
-                        </Form.Item>
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}>Default Caption Text </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_caption_text`}
-                                value={`image_name_to_caption`}
-                                checked={ 'image_name_to_caption' === stateValue.options.default_caption_text }>
-                                Image name use as caption
-                            </Checkbox>
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_caption_text`}
-                                value={`custom_text_to_caption`}
-                                checked={ 'custom_text_to_caption' === stateValue.options.default_caption_text } >
-                                Custom text
-                            </Checkbox>
-                            { 'custom_text_to_caption' === stateValue.options.default_caption_text &&
-                                <>
-                                    <Divider style={ { margin: '10px 0' } }/>
-                                    <TextArea
-                                        type="primary"
-                                        size="large"
-                                        onChange={
-                                            (event) => dispatch({
-                                                type: Types.UPDATE_OPTIONS,
-                                                options : {
-                                                    ...stateValue.options,
-                                                    media_default_caption: event.target.value,
-                                                }
-                                            })
-                                        }
-                                        value={stateValue.options.media_default_caption}
+                            {/* Use Post Title as Alt Text */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Use Post Title as Alt Text</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        onChange={setDefaultText}
+                                        name="alt_text_by_post_title"
+                                        value="alt_text_by_post_title"
+                                        checked={'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title}
                                     />
-                                </>
-                            }
-                            <br/>
-                            <br/>
-                            <Text  type="secondary" >
-                                Caption text will add automatically when upload Media file
-                            </Text>
+                                    <span className="text-sm">
+                                        Default Alt Text Base On Post Title
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Alt Text will add automatically when upload Media as attached posts.
+                                </p>
+                            </div>
 
-                        </Form.Item>
-                        <Divider />
+                            <hr className="my-4 border-gray-200" />
 
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Use Post Title as Description </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`desc_text_by_post_title`}
-                                value={`desc_text_by_post_title`}
-                                checked={ 'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title }>
-                                Default Description Text Base On Post Title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
-                            </Checkbox>
-                            <br/>
-                            <br/>
-                            <Text type="secondary" >
-                                Description Text will add automatically when upload Media as attached posts.
-                            </Text>
-                            <Divider style={ { margin: '10px 0' } }/>
-                        </Form.Item>
-
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Default Description Text </Title>} >
-
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_desc_text`}
-                                value={`image_name_to_desc`}
-                                checked={ 'image_name_to_desc' === stateValue.options.default_desc_text }>
-                                Image name use as description
-                            </Checkbox>
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`default_desc_text`}
-                                value={`custom_text_to_desc`}
-                                checked={ 'custom_text_to_desc' === stateValue.options.default_desc_text } >
-                                Custom text
-                            </Checkbox>
-                            { 'custom_text_to_desc' === stateValue.options.default_desc_text &&
-                                <>
-                                    <Divider style={ { margin: '10px 0' } }/>
-                                    <TextArea
-                                        type="primary"
-                                        size="large"
-                                        onChange={
-                                            (event) => dispatch({
-                                                type: Types.UPDATE_OPTIONS,
-                                                options : {
-                                                    ...stateValue.options,
-                                                    media_default_desc: event.target.value,
+                            {/* Default Images Alt Text */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Default Images Alt Text</label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_alt_text"
+                                            value="image_name_to_alt"
+                                            checked={'image_name_to_alt' === stateValue.options.default_alt_text}
+                                        />
+                                        <span className="text-sm">Image name use as alt text</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_alt_text"
+                                            value="custom_text_to_alt"
+                                            checked={'custom_text_to_alt' === stateValue.options.default_alt_text}
+                                        />
+                                        <span className="text-sm">Custom text</span>
+                                    </label>
+                                    {'custom_text_to_alt' === stateValue.options.default_alt_text && (
+                                        <>
+                                            <hr className="my-2.5 border-gray-200" />
+                                            <textarea
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                rows="4"
+                                                onChange={(event) =>
+                                                    dispatch({
+                                                        type: Types.UPDATE_OPTIONS,
+                                                        options: {
+                                                            ...stateValue.options,
+                                                            media_default_alt: event.target.value,
+                                                        },
+                                                    })
                                                 }
-                                            })
-                                        }
-                                        value={stateValue.options.media_default_desc}
+                                                value={stateValue.options.media_default_alt}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Alt Text Will add automatically when upload Media file
+                                </p>
+                            </div>
+
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Use Post Title as Caption */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Use Post Title as Caption</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        onChange={setDefaultText}
+                                        name="caption_text_by_post_title"
+                                        value="caption_text_by_post_title"
+                                        checked={'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title}
                                     />
+                                    <span className="text-sm">
+                                        Default Caption Text Base On Post Title
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Caption Text will add automatically when upload Media as attached posts.
+                                </p>
+                            </div>
 
-                                </>
-                            }
-                            <br/>
-                            <br/>
-                            <Text  type="secondary"  >
-                                Description text will add automatically when upload Media file
-                            </Text>
+                            <hr className="my-4 border-gray-200" />
 
-                        </Form.Item>
-                        <Divider />
-                        <Title level={3} style={{ margin:0 }}> Media Renamer Settings </Title>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{margin: 0, fontSize: '14px'}}> File Rename Prefix And
-                            Suffix </Title>}>
-                            <Title level={5} style={{ marginTop: 0, fontSize: '14px'}}> Rename
-                                prefix {!tsmltParams.hasExtended &&
-                                    <span style={{color: '#ff0000', fontWeight: 'bold'}}> - PRO</span>} </Title>
-                            <Input
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    width: '300px'
-                                }}
-                                type="primary"
-                                size="large"
-                                placeholder="Prefix"
-                                onChange={
-                                    (event) => dispatch({
-                                        type: Types.UPDATE_OPTIONS,
-                                        options: {
-                                            ...stateValue.options,
-                                            media_rename_prefix: event.target.value,
-                                        }
-                                    })
-                                }
-                                value={stateValue.options.media_rename_prefix}
-                            />
-                            <br/>
-                            <Text type="secondary">
-                                A file rename prefix is a set of characters, words, or numbers added at the beginning of
-                                a filename when renaming it. This helps in organizing files, improving SEO, or
-                                maintaining a consistent naming convention.
-                            </Text>
+                            {/* Default Caption Text */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Default Caption Text</label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_caption_text"
+                                            value="image_name_to_caption"
+                                            checked={'image_name_to_caption' === stateValue.options.default_caption_text}
+                                        />
+                                        <span className="text-sm">Image name use as caption</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_caption_text"
+                                            value="custom_text_to_caption"
+                                            checked={'custom_text_to_caption' === stateValue.options.default_caption_text}
+                                        />
+                                        <span className="text-sm">Custom text</span>
+                                    </label>
+                                    {'custom_text_to_caption' === stateValue.options.default_caption_text && (
+                                        <>
+                                            <hr className="my-2.5 border-gray-200" />
+                                            <textarea
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                rows="4"
+                                                onChange={(event) =>
+                                                    dispatch({
+                                                        type: Types.UPDATE_OPTIONS,
+                                                        options: {
+                                                            ...stateValue.options,
+                                                            media_default_caption: event.target.value,
+                                                        },
+                                                    })
+                                                }
+                                                value={stateValue.options.media_default_caption}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Caption text will add automatically when upload Media file
+                                </p>
+                            </div>
 
-                            <Divider />
-                            <Title level={5} style={{ fontSize:'14px' }}> Rename suffix { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> } </Title>
-                            <Input
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    width: '300px'
-                                }}
-                                type="primary"
-                                size="large"
-                                placeholder="Suffix"
-                                onChange={
-                                    (event) => dispatch({
-                                        type: Types.UPDATE_OPTIONS,
-                                        options: {
-                                            ...stateValue.options,
-                                            media_rename_suffix: event.target.value,
-                                        }
-                                    })
-                                }
-                                value={stateValue.options.media_rename_suffix}
+                            <hr className="my-4 border-gray-200" />
 
-                            />
-                            <br/>
-                            <Text type="secondary">
-                                A file rename suffix is a set of characters, words, or numbers added at the end of a filename when renaming it. This helps differentiate files, improve SEO, or maintain a structured naming convention.
-                            </Text>
+                            {/* Use Post Title as Description */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Use Post Title as Description</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        onChange={setDefaultText}
+                                        name="desc_text_by_post_title"
+                                        value="desc_text_by_post_title"
+                                        checked={'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title}
+                                    />
+                                    <span className="text-sm">
+                                        Default Description Text Base On Post Title
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Description Text will add automatically when upload Media as attached posts.
+                                </p>
+                            </div>
 
-                        </Form.Item>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Rename based on attached posts </Title>} >
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`auto_rename_by_post_title`}
-                                value={`auto_rename_by_post_title`}
-                                checked={ 'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title } >
-                                Auto Rename by post title { ! tsmltParams.hasExtended && <span style={ { color: '#ff0000', fontWeight: 'bold' } }> - PRO</span> }
-                            </Checkbox>
-                            <br/>
-                            <br/>
-                            <Text type="secondary" >
-                                When you edit a post and upload an image, it will be renamed automatically based on the post title.
-                            </Text>
-                        </Form.Item>
-                        <Divider />
-                        <Form.Item label={<Title level={5} style={{margin: 0, fontSize: '14px'}}> Others Media Auto
-                            Rename </Title>}>
-                            <Checkbox
-                                onChange={setDefaultText}
-                                name={`enable_auto_rename`}
-                                value={`enable_auto_rename`}
-                                checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}>
-                                Custom text {!tsmltParams.hasExtended &&
-                                <span style={{color: '#ff0000', fontWeight: 'bold'}}> - PRO</span>}
-                            </Checkbox>
-                            <br/>
-                            <br/>
-                            <Text type="secondary">
-                                Auto rename will apply automatically when upload Media file. File name will be unique by
-                                incremental number. Example: file-name.jpg next one file-name-1.jpg
-                            </Text>
-                            {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename &&
-                                <>
-                                    <Divider style={{margin: '10px 0'}}/>
-                                    <Input
-                                        type="primary"
-                                        size="large"
-                                        placeholder="file name"
-                                        onChange={
-                                            (event) => dispatch({
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Default Description Text */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Default Description Text</label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_desc_text"
+                                            value="image_name_to_desc"
+                                            checked={'image_name_to_desc' === stateValue.options.default_desc_text}
+                                        />
+                                        <span className="text-sm">Image name use as description</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            onChange={setDefaultText}
+                                            name="default_desc_text"
+                                            value="custom_text_to_desc"
+                                            checked={'custom_text_to_desc' === stateValue.options.default_desc_text}
+                                        />
+                                        <span className="text-sm">Custom text</span>
+                                    </label>
+                                    {'custom_text_to_desc' === stateValue.options.default_desc_text && (
+                                        <>
+                                            <hr className="my-2.5 border-gray-200" />
+                                            <textarea
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                rows="4"
+                                                onChange={(event) =>
+                                                    dispatch({
+                                                        type: Types.UPDATE_OPTIONS,
+                                                        options: {
+                                                            ...stateValue.options,
+                                                            media_default_desc: event.target.value,
+                                                        },
+                                                    })
+                                                }
+                                                value={stateValue.options.media_default_desc}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Description text will add automatically when upload Media file
+                                </p>
+                            </div>
+
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Media Renamer Settings */}
+                            <h3 className="text-2xl font-semibold m-0">Media Renamer Settings</h3>
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* File Rename Prefix And Suffix */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">File Rename Prefix And Suffix</label>
+
+                                <div className="mb-4">
+                                    <h5 className="text-sm font-medium mt-0 mb-2">
+                                        Rename prefix
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </h5>
+                                    <input
+                                        type="text"
+                                        className="inline-flex items-center w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Prefix"
+                                        onChange={(event) =>
+                                            dispatch({
                                                 type: Types.UPDATE_OPTIONS,
                                                 options: {
                                                     ...stateValue.options,
-                                                    media_auto_rename_text: event.target.value,
-                                                }
+                                                    media_rename_prefix: event.target.value,
+                                                },
                                             })
                                         }
-                                        value={stateValue.options.media_auto_rename_text}
+                                        value={stateValue.options.media_rename_prefix}
                                     />
-                                    <Text type="secondary">
-                                        <span style={{color: '#ff0000'}}>Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br/> Example: File Name </span>
-                                    </Text>
-                                </>
-                            }
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        A file rename prefix is a set of characters, words, or numbers added at the beginning of
+                                        a filename when renaming it. This helps in organizing files, improving SEO, or
+                                        maintaining a consistent naming convention.
+                                    </p>
+                                </div>
 
-                        </Form.Item>
-                        <Divider style={{margin: '10px 0'}}/>
-                    </Content>
-                }
+                                <hr className="my-4 border-gray-200" />
 
-            </Form>
-            <Button
-                type="primary"
-                size="large"
-                style={{
-                    position: 'fixed',
-                    bottom: '100px',
-                    right: '100px'
-                }}
-                onClick={ () => dispatch({
-                    ...stateValue,
-                    type: Types.UPDATE_OPTIONS,
-                    saveType: Types.UPDATE_OPTIONS,
-                }) } >
-                Save Settings
-            </Button>
-        </Layout>
-        </Layout>
-    </>
+                                <div>
+                                    <h5 className="text-sm font-medium mb-2">
+                                        Rename suffix
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </h5>
+                                    <input
+                                        type="text"
+                                        className="inline-flex items-center w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Suffix"
+                                        onChange={(event) =>
+                                            dispatch({
+                                                type: Types.UPDATE_OPTIONS,
+                                                options: {
+                                                    ...stateValue.options,
+                                                    media_rename_suffix: event.target.value,
+                                                },
+                                            })
+                                        }
+                                        value={stateValue.options.media_rename_suffix}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        A file rename suffix is a set of characters, words, or numbers added at the end of a
+                                        filename when renaming it. This helps differentiate files, improve SEO, or maintain a
+                                        structured naming convention.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Rename based on attached posts */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Rename based on attached posts</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        onChange={setDefaultText}
+                                        name="auto_rename_by_post_title"
+                                        value="auto_rename_by_post_title"
+                                        checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
+                                    />
+                                    <span className="text-sm">
+                                        Auto Rename by post title
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    When you edit a post and upload an image, it will be renamed automatically based on the post
+                                    title.
+                                </p>
+                            </div>
+
+                            <hr className="my-4 border-gray-200" />
+
+                            {/* Others Media Auto Rename */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium mb-2">Others Media Auto Rename</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        onChange={setDefaultText}
+                                        name="enable_auto_rename"
+                                        value="enable_auto_rename"
+                                        checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                                    />
+                                    <span className="text-sm">
+                                        Custom text
+                                        {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                                    </span>
+                                </label>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Auto rename will apply automatically when upload Media file. File name will be unique by
+                                    incremental number. Example: file-name.jpg next one file-name-1.jpg
+                                </p>
+                                {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
+                                    <>
+                                        <hr className="my-2.5 border-gray-200" />
+                                        <input
+                                            type="text"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="file name"
+                                            onChange={(event) =>
+                                                dispatch({
+                                                    type: Types.UPDATE_OPTIONS,
+                                                    options: {
+                                                        ...stateValue.options,
+                                                        media_auto_rename_text: event.target.value,
+                                                    },
+                                                })
+                                            }
+                                            value={stateValue.options.media_auto_rename_text}
+                                        />
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            <span className="text-red-600">
+                                                Required Field. Write file name without extension. Remember !! Empty Value will not
+                                                apply. <br /> Example: File Name
+                                            </span>
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        className="fixed bottom-[100px] right-[100px] px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                        onClick={() =>
+                            dispatch({
+                                ...stateValue,
+                                type: Types.UPDATE_OPTIONS,
+                                saveType: Types.UPDATE_OPTIONS,
+                            })
+                        }
+                    >
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </>
     );
 }
 
