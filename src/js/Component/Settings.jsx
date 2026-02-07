@@ -6,6 +6,90 @@ import * as Types from "@/js/Utils/actionType";
 import MainHeader from "@/js/Component/MainHeader";
 import SaveButton from '@/js/Component/SaveButton';
 
+function CheckboxField({ label, name, value, checked, onChange, text, description, isPro, className, children }) {
+    return (
+        <div className={`flex items-start gap-8 ${className || ''}`}>
+            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+                {label}
+            </label>
+            <div className="flex-1 space-y-2">
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        onChange={onChange}
+                        name={name}
+                        value={value}
+                        checked={checked}
+                    />
+                    <span className="text-base text-gray-900">
+                        {text}
+                        {isPro && !tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
+                    </span>
+                </label>
+                {description && <p className="text-sm text-gray-500">{description}</p>}
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function DefaultTextField({ label, optionName, imageNameValue, imageNameLabel, customTextValue, currentValue, textareaValue, textareaPlaceholder, textareaOptionKey, description, onChange, dispatch, stateValue, className }) {
+    return (
+        <div className={`flex items-start gap-8 ${className || ''}`}>
+            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+                {label}
+            </label>
+            <div className="flex-1 space-y-2">
+                <div className="flex flex-wrap gap-6">
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            onChange={onChange}
+                            name={optionName}
+                            value={imageNameValue}
+                            checked={imageNameValue === currentValue}
+                        />
+                        <span className="text-base text-gray-900">{imageNameLabel}</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            onChange={onChange}
+                            name={optionName}
+                            value={customTextValue}
+                            checked={customTextValue === currentValue}
+                        />
+                        <span className="text-base text-gray-900">Custom text</span>
+                    </label>
+                </div>
+                {customTextValue === currentValue && (
+                    <div className="pt-4">
+                        <textarea
+                            className="w-full max-w-2xl px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                            rows="3"
+                            placeholder={textareaPlaceholder}
+                            onChange={(event) =>
+                                dispatch({
+                                    type: Types.UPDATE_OPTIONS,
+                                    options: {
+                                        ...stateValue.options,
+                                        [textareaOptionKey]: event.target.value,
+                                    },
+                                })
+                            }
+                            value={textareaValue}
+                        />
+                    </div>
+                )}
+                <p className="text-sm text-gray-500">{description}</p>
+            </div>
+        </div>
+    );
+}
+
 function Settings() {
     const [stateValue, dispatch] = useStateValue();
 
@@ -96,8 +180,8 @@ function Settings() {
                                     <h3 className="text-xl m-0! font-semibold text-gray-900">Media Table Settings</h3>
                                 </div>
 
+                                {/* Media Table Column */}
                                 <div className="p-6 space-y-6">
-                                    {/* Media Table Column */}
                                     <div className="flex items-start gap-8">
                                         <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
                                             Media Table Column:
@@ -112,7 +196,6 @@ function Settings() {
                                                 />
                                                 <span className="text-base text-gray-900">Check all</span>
                                             </label>
-
                                             <div className="flex flex-wrap gap-x-6 gap-y-3">
                                                 {columnList.map((column) => (
                                                     <label key={column.key} className="inline-flex items-center gap-2 cursor-pointer">
@@ -129,279 +212,106 @@ function Settings() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="p-6 space-y-6 border-t border-gray-200 ">
-                                    <div className="flex items-start gap-8 ">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Others File Support:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    checked={(stateValue.options.others_file_support || []).includes('svg')}
-                                                    onChange={() => onChangeOthersFileList('svg')}
-                                                />
-                                                <span className="text-base text-gray-900">SVG</span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">Svg And Others File Upload.</p>
-                                        </div>
-                                    </div>
-                                </div>
+
+                                {/* Others File Support */}
                                 <div className="p-6 space-y-6 border-t border-gray-200">
-                                    {/* Use Post Title as Alt Text */}
-                                    <div className="flex items-start gap-8">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Use Post Title as Alt Text:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    onChange={setDefaultText}
-                                                    name="alt_text_by_post_title"
-                                                    value="alt_text_by_post_title"
-                                                    checked={'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title}
-                                                />
-                                                <span className="text-base text-gray-900">
-                                                    Default Alt Text Base On Post Title
-                                                    {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                                                </span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">
-                                                Alt Text will add automatically when upload Media as attached posts.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Default Images Alt Text */}
-                                    <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Default Images Alt Text:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="flex flex-wrap gap-6">
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_alt_text"
-                                                        value="image_name_to_alt"
-                                                        checked={'image_name_to_alt' === stateValue.options.default_alt_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Image name use as alt text</span>
-                                                </label>
-
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_alt_text"
-                                                        value="custom_text_to_alt"
-                                                        checked={'custom_text_to_alt' === stateValue.options.default_alt_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Custom text</span>
-                                                </label>
-                                            </div>
-
-                                            {'custom_text_to_alt' === stateValue.options.default_alt_text && (
-                                                <div className="pt-4">
-                                                    <textarea
-                                                        className="w-full max-w-2xl px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                        rows="3"
-                                                        placeholder="Enter your custom alt text..."
-                                                        onChange={(event) =>
-                                                            dispatch({
-                                                                type: Types.UPDATE_OPTIONS,
-                                                                options: {
-                                                                    ...stateValue.options,
-                                                                    media_default_alt: event.target.value,
-                                                                },
-                                                            })
-                                                        }
-                                                        value={stateValue.options.media_default_alt}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <p className="text-sm text-gray-500">
-                                                Alt Text Will add automatically when upload Media file
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <CheckboxField
+                                        label="Others File Support:"
+                                        checked={(stateValue.options.others_file_support || []).includes('svg')}
+                                        onChange={() => onChangeOthersFileList('svg')}
+                                        text="SVG"
+                                        description="Svg And Others File Upload."
+                                    />
                                 </div>
+
+                                {/* Alt Text Settings */}
                                 <div className="p-6 space-y-6 border-t border-gray-200">
-                                    {/* Use Post Title as Caption */}
-                                    <div className="flex items-start gap-8">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Use Post Title as Caption:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    onChange={setDefaultText}
-                                                    name="caption_text_by_post_title"
-                                                    value="caption_text_by_post_title"
-                                                    checked={'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title}
-                                                />
-                                                <span className="text-base text-gray-900">
-                                                    Default Caption Text Base On Post Title
-                                                    {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                                                </span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">
-                                                Caption Text will add automatically when upload Media as attached posts.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Default Caption Text */}
-                                    <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Default Caption Text:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="flex flex-wrap gap-6">
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_caption_text"
-                                                        value="image_name_to_caption"
-                                                        checked={'image_name_to_caption' === stateValue.options.default_caption_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Image name use as caption</span>
-                                                </label>
-
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_caption_text"
-                                                        value="custom_text_to_caption"
-                                                        checked={'custom_text_to_caption' === stateValue.options.default_caption_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Custom text</span>
-                                                </label>
-                                            </div>
-
-                                            {'custom_text_to_caption' === stateValue.options.default_caption_text && (
-                                                <div className="pt-4">
-                                                    <textarea
-                                                        className="w-full max-w-2xl px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                        rows="3"
-                                                        placeholder="Enter your custom caption..."
-                                                        onChange={(event) =>
-                                                            dispatch({
-                                                                type: Types.UPDATE_OPTIONS,
-                                                                options: {
-                                                                    ...stateValue.options,
-                                                                    media_default_caption: event.target.value,
-                                                                },
-                                                            })
-                                                        }
-                                                        value={stateValue.options.media_default_caption}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <p className="text-sm text-gray-500">
-                                                Caption text will add automatically when upload Media file
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <CheckboxField
+                                        label="Use Post Title as Alt Text:"
+                                        name="alt_text_by_post_title"
+                                        value="alt_text_by_post_title"
+                                        checked={'alt_text_by_post_title' === stateValue.options.alt_text_by_post_title}
+                                        onChange={setDefaultText}
+                                        text="Default Alt Text Base On Post Title"
+                                        description="Alt Text will add automatically when upload Media as attached posts."
+                                        isPro
+                                    />
+                                    <DefaultTextField
+                                        label="Default Images Alt Text:"
+                                        optionName="default_alt_text"
+                                        imageNameValue="image_name_to_alt"
+                                        imageNameLabel="Image name use as alt text"
+                                        customTextValue="custom_text_to_alt"
+                                        currentValue={stateValue.options.default_alt_text}
+                                        textareaOptionKey="media_default_alt"
+                                        textareaValue={stateValue.options.media_default_alt}
+                                        textareaPlaceholder="Enter your custom alt text..."
+                                        description="Alt Text Will add automatically when upload Media file"
+                                        onChange={setDefaultText}
+                                        dispatch={dispatch}
+                                        stateValue={stateValue}
+                                        className="pt-6 border-t border-gray-200"
+                                    />
                                 </div>
+
+                                {/* Caption Settings */}
                                 <div className="p-6 space-y-6 border-t border-gray-200">
-                                    {/* Use Post Title as Description */}
-                                    <div className="flex items-start gap-8">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Use Post Title as Description:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    onChange={setDefaultText}
-                                                    name="desc_text_by_post_title"
-                                                    value="desc_text_by_post_title"
-                                                    checked={'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title}
-                                                />
-                                                <span className="text-base text-gray-900">
-                                                    Default Description Text Base On Post Title
-                                                    {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                                                </span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">
-                                                Description Text will add automatically when upload Media as attached posts.
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <CheckboxField
+                                        label="Use Post Title as Caption:"
+                                        name="caption_text_by_post_title"
+                                        value="caption_text_by_post_title"
+                                        checked={'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title}
+                                        onChange={setDefaultText}
+                                        text="Default Caption Text Base On Post Title"
+                                        description="Caption Text will add automatically when upload Media as attached posts."
+                                        isPro
+                                    />
+                                    <DefaultTextField
+                                        label="Default Caption Text:"
+                                        optionName="default_caption_text"
+                                        imageNameValue="image_name_to_caption"
+                                        imageNameLabel="Image name use as caption"
+                                        customTextValue="custom_text_to_caption"
+                                        currentValue={stateValue.options.default_caption_text}
+                                        textareaOptionKey="media_default_caption"
+                                        textareaValue={stateValue.options.media_default_caption}
+                                        textareaPlaceholder="Enter your custom caption..."
+                                        description="Caption text will add automatically when upload Media file"
+                                        onChange={setDefaultText}
+                                        dispatch={dispatch}
+                                        stateValue={stateValue}
+                                        className="pt-6 border-t border-gray-200"
+                                    />
+                                </div>
 
-                                    {/* Default Description Text */}
-                                    <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Default Description Text:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="flex flex-wrap gap-6">
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_desc_text"
-                                                        value="image_name_to_desc"
-                                                        checked={'image_name_to_desc' === stateValue.options.default_desc_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Image name use as description</span>
-                                                </label>
-
-                                                <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                        onChange={setDefaultText}
-                                                        name="default_desc_text"
-                                                        value="custom_text_to_desc"
-                                                        checked={'custom_text_to_desc' === stateValue.options.default_desc_text}
-                                                    />
-                                                    <span className="text-base text-gray-900">Custom text</span>
-                                                </label>
-                                            </div>
-
-                                            {'custom_text_to_desc' === stateValue.options.default_desc_text && (
-                                                <div className="pt-4">
-                                                    <textarea
-                                                        className="w-full max-w-2xl px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                        rows="3"
-                                                        placeholder="Enter your custom description..."
-                                                        onChange={(event) =>
-                                                            dispatch({
-                                                                type: Types.UPDATE_OPTIONS,
-                                                                options: {
-                                                                    ...stateValue.options,
-                                                                    media_default_desc: event.target.value,
-                                                                },
-                                                            })
-                                                        }
-                                                        value={stateValue.options.media_default_desc}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <p className="text-sm text-gray-500">
-                                                Description text will add automatically when upload Media file
-                                            </p>
-                                        </div>
-                                    </div>
+                                {/* Description Settings */}
+                                <div className="p-6 space-y-6 border-t border-gray-200">
+                                    <CheckboxField
+                                        label="Use Post Title as Description:"
+                                        name="desc_text_by_post_title"
+                                        value="desc_text_by_post_title"
+                                        checked={'desc_text_by_post_title' === stateValue.options.desc_text_by_post_title}
+                                        onChange={setDefaultText}
+                                        text="Default Description Text Base On Post Title"
+                                        description="Description Text will add automatically when upload Media as attached posts."
+                                        isPro
+                                    />
+                                    <DefaultTextField
+                                        label="Default Description Text:"
+                                        optionName="default_desc_text"
+                                        imageNameValue="image_name_to_desc"
+                                        imageNameLabel="Image name use as description"
+                                        customTextValue="custom_text_to_desc"
+                                        currentValue={stateValue.options.default_desc_text}
+                                        textareaOptionKey="media_default_desc"
+                                        textareaValue={stateValue.options.media_default_desc}
+                                        textareaPlaceholder="Enter your custom description..."
+                                        description="Description text will add automatically when upload Media file"
+                                        onChange={setDefaultText}
+                                        dispatch={dispatch}
+                                        stateValue={stateValue}
+                                        className="pt-6 border-t border-gray-200"
+                                    />
                                 </div>
                             </div>
 
@@ -412,9 +322,9 @@ function Settings() {
                                 </div>
 
                                 <div className="p-6 space-y-6">
-                                    {/* Prefix */}
+                                    {/* Prefix & Suffix */}
                                     <div className="flex items-start gap-8">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-2 min-w-[200px]">
+                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
                                             File Rename Prefix And Suffix:
                                         </label>
                                         <div className="flex-1 space-y-6">
@@ -444,7 +354,6 @@ function Settings() {
                                                     A file rename prefix is a set of characters, words, or numbers added at the beginning of a filename when renaming it. This helps in organizing files, improving SEO, or maintaining a consistent naming convention.
                                                 </p>
                                             </div>
-
                                             <div className="space-y-2 pt-4 border-t border-gray-200">
                                                 <div className="flex items-center gap-2">
                                                     <label className="text-base font-medium text-gray-900">
@@ -475,78 +384,53 @@ function Settings() {
                                     </div>
 
                                     {/* Rename based on attached posts */}
-                                    <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Rename based on attached posts:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    onChange={setDefaultText}
-                                                    name="auto_rename_by_post_title"
-                                                    value="auto_rename_by_post_title"
-                                                    checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
-                                                />
-                                                <span className="text-base text-gray-900">
-                                                    Auto Rename by post title
-                                                    {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                                                </span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">
-                                                When you edit a post and upload an image, it will be renamed automatically based on the post title.
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <CheckboxField
+                                        label="Rename based on attached posts:"
+                                        name="auto_rename_by_post_title"
+                                        value="auto_rename_by_post_title"
+                                        checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
+                                        onChange={setDefaultText}
+                                        text="Auto Rename by post title"
+                                        description="When you edit a post and upload an image, it will be renamed automatically based on the post title."
+                                        isPro
+                                        className="pt-6 border-t border-gray-200"
+                                    />
 
                                     {/* Others Media Auto Rename */}
-                                    <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                                        <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                                            Others Media Auto Rename:
-                                        </label>
-                                        <div className="flex-1 space-y-2">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                    <CheckboxField
+                                        label="Others Media Auto Rename:"
+                                        name="enable_auto_rename"
+                                        value="enable_auto_rename"
+                                        checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                                        onChange={setDefaultText}
+                                        text="Custom text"
+                                        description="Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg"
+                                        isPro
+                                        className="pt-6 border-t border-gray-200"
+                                    >
+                                        {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
+                                            <div className="pt-4 space-y-2">
                                                 <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    onChange={setDefaultText}
-                                                    name="enable_auto_rename"
-                                                    value="enable_auto_rename"
-                                                    checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                                                    type="text"
+                                                    className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="file name"
+                                                    onChange={(event) =>
+                                                        dispatch({
+                                                            type: Types.UPDATE_OPTIONS,
+                                                            options: {
+                                                                ...stateValue.options,
+                                                                media_auto_rename_text: event.target.value,
+                                                            },
+                                                        })
+                                                    }
+                                                    value={stateValue.options.media_auto_rename_text}
                                                 />
-                                                <span className="text-base text-gray-900">
-                                                    Custom text
-                                                    {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                                                </span>
-                                            </label>
-                                            <p className="text-sm text-gray-500">
-                                                Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
-                                            </p>
-                                            {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
-                                                <div className="pt-4 space-y-2">
-                                                    <input
-                                                        type="text"
-                                                        className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="file name"
-                                                        onChange={(event) =>
-                                                            dispatch({
-                                                                type: Types.UPDATE_OPTIONS,
-                                                                options: {
-                                                                    ...stateValue.options,
-                                                                    media_auto_rename_text: event.target.value,
-                                                                },
-                                                            })
-                                                        }
-                                                        value={stateValue.options.media_auto_rename_text}
-                                                    />
-                                                    <p className="text-sm text-red-600">
-                                                        Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br /> Example: File Name
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                                <p className="text-sm text-red-600">
+                                                    Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br /> Example: File Name
+                                                </p>
+                                            </div>
+                                        )}
+                                    </CheckboxField>
                                 </div>
                             </div>
                         </div>
