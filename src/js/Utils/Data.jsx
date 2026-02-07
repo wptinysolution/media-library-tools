@@ -1,7 +1,6 @@
 /*
  * Import local dependencies
  */
-
 import Axios from 'axios';
 
 import {notification} from 'antd';
@@ -38,6 +37,32 @@ export const notifications = ( isTrue, text ) => {
         notification.error(message);
     }
 }
+
+/**
+ * Safely parse malformed / double-encoded JSON (object or array)
+ */
+export const safeParseJSON = (data) => {
+    if (!data) return [];
+    try {
+        let cleaned = typeof data === 'string'
+            ? data.replace(/^`|`$/g, '')
+            : data;
+
+        // First parse
+        if (typeof cleaned === 'string') {
+            cleaned = JSON.parse(cleaned);
+        }
+        // Second parse (if still string)
+        if (typeof cleaned === 'string') {
+            cleaned = JSON.parse(cleaned);
+        }
+        return cleaned;
+    } catch (error) {
+        console.error('JSON parse failed:', error);
+        return [];
+    }
+};
+
 /**
  *
  * @param prams

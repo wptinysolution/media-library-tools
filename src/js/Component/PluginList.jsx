@@ -1,89 +1,83 @@
-import React, { useEffect, useState } from 'react';
-
-import Loader from '../Utils/Loader';
-import { Avatar, Card } from 'antd';
-const { Meta } = Card;
-import {
-    Button,
-    Layout
-} from 'antd';
-
-import {getPluginList} from "../Utils/Data";
-
-import MainHeader from "./MainHeader";
+import { useEffect, useState } from 'react';
+import Loader from '@/js/Utils/Loader';
+import { getPluginList, safeParseJSON } from '@/js/Utils/Data';
+import MainHeader from '@/js/Component/MainHeader';
+import PluginCard from '@/js/Component/PluginCard';
 
 function PluginList() {
-
-    const [ pluginList, setPluginList ] = useState( [] );
+    const [pluginList, setPluginList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const getThePluginList = async () => {
-        const response = await getPluginList();
-        const preparedData =  await JSON.parse( response.data );
-        await setPluginList( preparedData );
-    }
+        setIsLoading(true);
+        try {
+            const response = await getPluginList();
+            const preparedData = safeParseJSON(response.data);
+            setPluginList(preparedData || []);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const decodeHTMLEntities = (text) => {
+        if (typeof window === 'undefined') {
+            return text;
+        }
         const textArea = document.createElement('textarea');
         textArea.innerHTML = text;
         return textArea.value;
     };
 
     useEffect(() => {
-        getThePluginList();
-    }, [] );
+        void getThePluginList();
+    }, []);
 
     return (
         <>
-            <MainHeader/>
+            <MainHeader />
 
-            <Layout style={{
-                position: 'relative',
-                height:'85vh',
-                padding: '30px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                flexDirection: 'row',
-                gap: '15px',
-                overflowY: 'auto',
+            <div className="p-6 md:p-10 min-h-[85vh]">
+                {/* Page Header */}
+                <div className="mb-8">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                        Our Plugins
+                    </h1>
+                    <p className="text-gray-500">
+                        Explore our collection of powerful WordPress plugins to enhance your website.
+                    </p>
+                </div>
 
-            }}>
-            { pluginList.length > 0 ?
-                pluginList.map( ( plugin, index) => {
-                    const iframeUrl = decodeHTMLEntities(plugin.TB_iframe);
-                    return (
-                        <Card
-                            className={`plugin-list-wrapper`}
-                            key={index}
-
-                            actions={[
-                                <a target={`_blank`} className="thickbox open-plugin-details-modal"
-                                   href={iframeUrl}>
-                                    <Button type="link" size={`large`}>Details</Button>
-                                </a>,
-                                <a target={`_blank`} href={`https://www.wptinysolutions.com/tiny-products/${plugin.slug}`}>
-                                    <Button type="link" size={`large`}>  Visit Website </Button>
-                                </a>
-                            ]}
-                        >
-                            <Meta
-                                avatar={<a style={{
-                                    display: 'block',
-                                    lineHeight: 0
-                                }} target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
-                                    <Avatar shape="square" size={130} src={plugin?.icons['2x']}/>
-                                </a>}
-                                title={<a target={`_blank`} className="thickbox open-plugin-details-modal" href={plugin.TB_iframe}>
-                                    <span dangerouslySetInnerHTML={{__html: plugin.plugin_name}}/>
-                                </a>}
-                                description={<span dangerouslySetInnerHTML={{__html: plugin.short_description}}/>}
-                            />
-                        </Card>
-                    )}) :  <Loader/>
-            }
-
-        </Layout>
-    </>
+                {isLoading ? (
+                    <div className="flex flex-col justify-center items-center min-h-[50vh] bg-white rounded-xl border border-gray-100">
+                        <Loader />
+                        <p className="mt-4 text-gray-500">Loading plugins...</p>
+                    </div>
+                ) : pluginList.length > 0 ? (
+                    <>
+                        {/* Plugin Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {pluginList.map((plugin, index) => (
+                                <PluginCard
+                                    key={index}
+                                    plugin={plugin}
+                                    iframeUrl={decodeHTMLEntities(plugin.TB_iframe)}
+                                />
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex flex-col justify-center items-center min-h-[50vh] bg-white rounded-xl border border-gray-100">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-500">No plugins found</p>
+                    </div>
+                )}
+            </div>
+        </>
     );
-};
+}
 
 export default PluginList;
