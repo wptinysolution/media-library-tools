@@ -1,5 +1,5 @@
-@import './abstracts/_abstracts-dir';
-@import './licence';
+@use './abstracts/_abstracts-dir';
+@use './licence';
 
 :root {
 	--tsmlt-admin-color-secondary: #d80e0e;
