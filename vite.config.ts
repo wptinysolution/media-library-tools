@@ -27,7 +27,9 @@ export function wrapSpecificFilesInIIFE(targetFiles: string | string[]): Plugin 
 
 export default defineConfig({
     plugins: [
-        react(),
+        react({
+            include: '**/*.{jsx,js}', // Handle JSX in both .jsx and .js files
+        }),
         tailwindcss(),
         viteStaticCopy({
             targets: [
@@ -43,6 +45,7 @@ export default defineConfig({
     ],
     build: {
         outDir: 'assets', // compiled files output
+        chunkSizeWarningLimit: 1000, // Increase from default 500 kB
         rollupOptions: {
             input: {
                 'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.jsx'),
@@ -57,12 +60,16 @@ export default defineConfig({
                     if (firstName.endsWith(".css")) {
                         if (firstName.includes("settings")) {
                             // Force this CSS to admin/css folder
-                           return "css/backend/admin-settings.css";
+                            return "css/backend/admin-settings.css";
                         }
                         // Preserve original output structure
                         return "[name].css";
                     }
                     return "[name][extname]";
+                },
+                // Code splitting for better performance
+                manualChunks: {
+                    'react-vendor': ['react', 'react-dom'],
                 },
             },
         },
