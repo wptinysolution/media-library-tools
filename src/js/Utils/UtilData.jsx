@@ -1,18 +1,10 @@
 import React, { useState } from "react";
 
-import {Button, Checkbox, Space, Input, Layout, Typography, Spin } from "antd";
-
-const {
-    Text,
-    Paragraph
-} = Typography;
-
 import {useStateValue} from "@/js/Utils/StateProvider";
 import * as Types from "@/js/Utils/actionType";
 
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction } from "./Data";
-
-const { TextArea } = Input;
+import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 
 export const headerStyle = {
     height: 'auto',
@@ -119,7 +111,6 @@ const theImage = ( record ) => {
     switch ( type ) {
         case 'image':
             url = record.uploaddir + '/' + record.thefile.file;
-           // width = 80;
             break;
         case 'audio':
             url = `${tsmltParams.includesUrl}/images/media/audio.png`
@@ -241,18 +232,35 @@ export function columns(){
     }
 
     const formEdited = stateValue.singleMedia.formEdited;
+    const hasIds = stateValue.bulkSubmitData.ids.length > 0;
 
     return [
         {
-            title: <Checkbox indeterminate={ ! stateValue.bulkSubmitData.bulkChecked} checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
+            title: <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                ref={(el) => { if (el) el.indeterminate = hasIds && !stateValue.bulkSubmitData.bulkChecked; }}
+                checked={ stateValue.bulkSubmitData.bulkChecked }
+                onChange={onBulkCheck}
+            />,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <> <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} /> </>
+            render:  ( id, record ) => <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) }
+                name="item_id"
+                value={id}
+                onChange={onCheckboxChange}
+            />
         },
         {
-            title: <Space wrap style={{gap:2}} > { `ID` } <Button size={`small`} onClick={ ( event ) => handleSortClick('id') }> {`Sort`} </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                ID
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('id') }>Sort</button>
+            </span>,
             key: 'ID',
             dataIndex: 'ID',
             width: '150px',
@@ -264,10 +272,13 @@ export function columns(){
             dataIndex: 'guid',
             width: '150px',
             align: 'top',
-            render: ( text, record, i ) => <Space style={{gap:2}} > { theImage( record ) }</Space>,
+            render: ( text, record, i ) => <span className="inline-flex items-center">{ theImage( record ) }</span>,
         },
         {
-            title: <Space wrap style={{gap:2}} > { `Attached Post (Parent)` } <Button size={`small`} onClick={ ( event ) => handleSortClick('post_parents') }> {`Sort`} </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                Attached Post (Parent)
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('post_parents') }>Sort</button>
+            </span>,
             key: 'Parents',
             dataIndex: 'post_parents',
             align: 'top',
@@ -275,43 +286,57 @@ export function columns(){
             render: ( text, record, i ) => <> { text['title'] ? <a target={'_blank'} href={ text['permalink'] }> { text['title'] } </a> : '' }</>
         },
         {
-            title: <Space wrap style={{gap:2}} > { `Title` } <Button size={`small`} onClick={ ( event ) => handleSortClick('title') }> Sort </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                Title
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('title') }>Sort</button>
+            </span>,
             key: 'Title',
             dataIndex: 'title',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`title`} placeholder={`Title Shouldn't leave empty`} current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a style={{ width: '200px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> }   </>
+            render: ( text, record, i ) => <> { formEdited ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows="2" name="title" placeholder="Title Shouldn't leave empty" current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <a className="w-[200px] flex overflow-x-auto" target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { text } </a> } </>
         },
         {
-            title: <Space wrap style={{gap:2}}  > { `Alt` } <Button size={`small`} onClick={ ( event ) => handleSortClick('alt') }> Sort </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                Alt
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('alt') }>Sort</button>
+            </span>,
             key: 'Alt',
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`alt_text`} placeholder={`Alt Text Shouldn't leave empty`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : <span style={{ width: '200px', display: 'flex', overflowX: 'auto' }} > {text} </span>  } </>
+            render: ( text, record, i ) => <> { formEdited ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows="2" name="alt_text" placeholder="Alt Text Shouldn't leave empty" current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : <span className="w-[200px] flex overflow-x-auto">{text}</span> } </>
         },
         {
-            title: <Space wrap style={{gap:2}}  > { `Caption` } <Button size={`small`} onClick={ ( event ) => handleSortClick('caption') }> Sort </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                Caption
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('caption') }>Sort</button>
+            </span>,
             key: 'Caption',
             dataIndex: 'caption',
             width: '300px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`caption`} placeholder={`Caption Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows="2" name="caption" placeholder="Caption Text" current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : text } </>
         },
         {
-            title: <Space wrap style={{gap:2}} > { `Description` } <Button size={`small`} onClick={  ( event ) => handleSortClick('description') }> Sort </Button> </Space>,
+            title: <span className="inline-flex items-center gap-2 flex-wrap">
+                Description
+                <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={ () => handleSortClick('description') }>Sort</button>
+            </span>,
             key: 'Description',
             dataIndex: 'description',
             width: '350px',
-            render: ( text, record, i ) => <> { formEdited ? <TextArea name={`description`} placeholder={`Description Text`} current={i} onBlur={handleFocusout}  onChange={handleChange} value={ text } /> : text }   </>
+            render: ( text, record, i ) => <> { formEdited ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows="2" name="description" placeholder="Description Text" current={i} onBlur={handleFocusout} onChange={handleChange} value={ text } /> : text } </>
         },
         {
-            title: <Space wrap> { `Groups` } </Space>,
+            title: <span className="inline-flex items-center">Groups</span>,
             key: 'Category',
             dataIndex: 'categories',
             width: '250px',
             render: ( text, record, i ) => {
                 const items = JSON.parse(record.categories)
-                return  items.map( item => item.id && <Button key={Math.random().toString(36).substr(2, 9)} size={`small`} > {  item.name } </Button>  )
+                return <span className="flex flex-wrap gap-1">
+                    { items.map( item => item.id && <span key={Math.random().toString(36).substr(2, 9)} className="inline-flex px-2 py-0.5 text-xs font-medium border border-gray-300 rounded bg-gray-50 text-gray-700">{ item.name }</span> ) }
+                </span>
             }
         },
     ];
@@ -355,14 +380,29 @@ export function renamerColumns(){
         });
     };
 
+    const hasIds = stateValue.bulkSubmitData.ids.length > 0;
+
     return [
         {
-            title: <Checkbox indeterminate={ ! stateValue.bulkSubmitData.bulkChecked} checked={ stateValue.bulkSubmitData.bulkChecked } onChange={onBulkCheck}/>,
+            title: <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                ref={(el) => { if (el) el.indeterminate = hasIds && !stateValue.bulkSubmitData.bulkChecked; }}
+                checked={ stateValue.bulkSubmitData.bulkChecked }
+                onChange={onBulkCheck}
+            />,
             key: 'CheckboxID',
             dataIndex: 'ID',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) } name="item_id" value={id} onChange={onCheckboxChange} />
+            render:  ( id, record ) => <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) }
+                name="item_id"
+                value={id}
+                onChange={onCheckboxChange}
+            />
         },
         {
             title: 'File',
@@ -370,10 +410,10 @@ export function renamerColumns(){
             dataIndex: 'guid',
             width: '100px',
             align: 'top',
-            render:  ( text, record, i ) => <Space> { theImage( record ) }</Space>,
+            render:  ( text, record, i ) => <span className="inline-flex items-center">{ theImage( record ) }</span>,
         },
         {
-            title: <Space wrap> { `Attached Post (Parent)` } </Space>,
+            title: <span className="inline-flex items-center">Attached Post (Parent)</span>,
             key: 'Parents',
             dataIndex: 'post_parents',
             width: '150px',
@@ -386,18 +426,13 @@ export function renamerColumns(){
             width: '350px',
             align: 'top',
             render:  ( text, record, i ) =>  <>
-                { stateValue.rename.formEdited ?  <Layout style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    background: 'transparent'
-                }}>
-                    <Input
-                        size="large"
-                        name={`filebasename`}
-                        placeholder={`The name Shouldn't leave empty`}
+                { stateValue.rename.formEdited ? <div className="flex items-center gap-1 bg-transparent">
+                    <input
+                        type="text"
+                        className="w-[350px] h-[38px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        name="filebasename"
+                        placeholder="The name Shouldn't leave empty"
                         current={i}
-                        style={{ width: '350px' }}
                         onBlur={
                             () => dispatch({
                                 ...stateValue,
@@ -425,8 +460,8 @@ export function renamerColumns(){
                         }
                         value={ record.thefile.filebasename }
                     />
-                    {`.${record.thefile.fileextension}`}
-                </Layout> : <a style={{ maxWidth: '300px', display: 'flex', overflowX: 'auto' }} target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
+                    <span className="text-sm text-gray-600">{`.${record.thefile.fileextension}`}</span>
+                </div> : <a className="max-w-[300px] flex overflow-x-auto" target={'_blank'} href={ `${record.uploaddir}/${record.thefile.file}` }> { record.thefile.mainfilename } </a>}
 
             </>,
         },
@@ -436,15 +471,18 @@ export function renamerColumns(){
             dataIndex: 'guid',
             align: 'top',
             minWidth: 300,
-            render:  ( text, record, i ) => <Paragraph  copyable={{ text: `${record.uploaddir + '/' + record.thefile.file}` }} > <Text type="secondary" code style={{ fontSize: '15px', width: '300px', display: 'inline-flex' }} > { record.uploaddir + '/' + record.thefile.file } </Text> </Paragraph>,
+            render:  ( text, record, i ) => <span className="inline-flex items-center gap-1">
+                <code className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-[300px] inline-flex overflow-x-auto">{ record.uploaddir + '/' + record.thefile.file }</code>
+                <CopyToClipboard text={`${record.uploaddir + '/' + record.thefile.file}`} />
+            </span>,
         },
 
         {
-            title: <Space wrap> { `Title` } </Space>,
+            title: <span className="inline-flex items-center">Title</span>,
             key: 'Title',
             dataIndex: 'title',
             align: 'top',
-            render:  ( text, record, i ) => <Text type="secondary" > {text} </Text>,
+            render:  ( text, record, i ) => <span className="text-sm text-gray-500">{text}</span>,
         }
     ];
 }
@@ -475,7 +513,6 @@ export function RubbishFileColumns(){
                 progressTotal: files.length
             },
         });
-        console.log( 'files', files )
     };
     /**
      *
@@ -511,8 +548,6 @@ export function RubbishFileColumns(){
             },
         });
 
-        console.log( changeData, changePath );
-
     };
     /**
      *
@@ -543,7 +578,6 @@ export function RubbishFileColumns(){
                 setIgnoreCurrentItem( null );
                 setDeleteCurrentItem( null );
             }
-            console.log( 'rubbishSingleAction' );
             return ;
         }
 
@@ -559,12 +593,24 @@ export function RubbishFileColumns(){
 
     const rubbishHead = [
         {
-            title: <Checkbox checked={ stateValue.bulkRubbishData.bulkChecked } onChange={onRubbishBulkCheck}/>,
+            title: <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={ stateValue.bulkRubbishData.bulkChecked }
+                onChange={onRubbishBulkCheck}
+            />,
             key: 'CheckboxID',
             dataIndex: 'id',
             width: '50px',
             align: 'center',
-            render:  ( id, record ) => <Checkbox checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) } name="item_id" value={id} onChange={ ( event ) => onCheckboxChange(event, record) } />
+            render:  ( id, record ) => <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) }
+                name="item_id"
+                value={id}
+                onChange={ ( event ) => onCheckboxChange(event, record) }
+            />
         },
         {
             title: 'File',
@@ -572,14 +618,14 @@ export function RubbishFileColumns(){
             dataIndex: 'file_path',
             width: '150px',
             align: 'top',
-            render: ( file_path, record, i ) => <Space> <img width={ 50 } src={`${tsmltParams.uploadUrl}/${file_path}`} /> </Space>,
+            render: ( file_path, record, i ) => <span className="inline-flex items-center"><img width={ 50 } src={`${tsmltParams.uploadUrl}/${file_path}`} /></span>,
         },
         {
             title: 'File URL',
             key: 'FileType',
             dataIndex: 'file_path',
             align: 'top',
-            render: ( file_path, record, i ) => <Space> { `${tsmltParams.uploadUrl}/${file_path}` } </Space>,
+            render: ( file_path, record, i ) => <span className="text-sm">{ `${tsmltParams.uploadUrl}/${file_path}` }</span>,
         },
         {
             title: 'Actions',
@@ -587,19 +633,37 @@ export function RubbishFileColumns(){
             dataIndex: 'file_path',
             align: 'top',
             width: '450px',
-            render: ( text, record, i ) => <Space wrap>
+            render: ( text, record, i ) => <span className="flex flex-wrap gap-2">
                 {
                     'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ? (
-                        <Button onClick={ () => onRubbishSingleAction( record, 'show' ) } loading={ record.id === deleteCurrentItem } > Mark As Unnecessary File </Button>
+                        <button
+                            className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
+                            onClick={ () => onRubbishSingleAction( record, 'show' ) }
+                            disabled={ record.id === deleteCurrentItem }
+                        >
+                            { record.id === deleteCurrentItem ? 'Processing...' : 'Mark As Unnecessary File' }
+                        </button>
                     ) :
                     (
                         <>
-                            <Button onClick={ () => onRubbishSingleAction( record, 'delete' ) } loading={ record.id === deleteCurrentItem } danger > Delete Unnecessary File  </Button>
-                            <Button onClick={ () => onRubbishSingleAction( record, 'ignore' ) } loading={ record.id === ignoreCurrentItem } > Ignore Important File </Button>
+                            <button
+                                className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
+                                onClick={ () => onRubbishSingleAction( record, 'delete' ) }
+                                disabled={ record.id === deleteCurrentItem }
+                            >
+                                { record.id === deleteCurrentItem ? 'Deleting...' : 'Delete Unnecessary File' }
+                            </button>
+                            <button
+                                className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
+                                onClick={ () => onRubbishSingleAction( record, 'ignore' ) }
+                                disabled={ record.id === ignoreCurrentItem }
+                            >
+                                { record.id === ignoreCurrentItem ? 'Processing...' : 'Ignore Important File' }
+                            </button>
                         </>
                     )
                 }
-            </Space>
+            </span>
         }
     ];
 
