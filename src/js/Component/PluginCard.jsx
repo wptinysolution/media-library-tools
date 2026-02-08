@@ -30,12 +30,8 @@ function PluginCard({ plugin, iframeUrl }) {
                                 rel="noopener noreferrer"
                                 className="thickbox open-plugin-details-modal block mb-2"
                                 >
-                                <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-                                            <span
-                                                dangerouslySetInnerHTML={{
-                                                    __html: plugin.plugin_name,
-                                                }}
-                                            />
+                                <h3 className="text-lg m-0! font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                                    <span dangerouslySetInnerHTML={{ __html: plugin.plugin_name, }} />
                                 </h3>
                             </a>
                             <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed">

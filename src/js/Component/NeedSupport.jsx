@@ -15,7 +15,6 @@ function NeedSupport() {
 
                 {/* Cards Grid */}
                 <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    {/* Support Center Card */}
                     <a
                         href="https://help.wptinysolutions.com/"
                         target="_blank"
@@ -39,7 +38,7 @@ function NeedSupport() {
                                 </svg>
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+                                <h3 className="text-xl m-0! font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
                                     Support Center
                                 </h3>
                                 <p className="text-gray-500 mb-4">
@@ -89,7 +88,7 @@ function NeedSupport() {
                                 </svg>
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">
+                                <h3 className="text-xl m-0! font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
                                     Our Plugins
                                 </h3>
                                 <p className="text-gray-500 mb-4">
@@ -136,10 +135,10 @@ function NeedSupport() {
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="font-semibold text-gray-800 mb-1">
+                                <h4 className="font-semibold m-0! text-gray-800 ">
                                     Quick Tip
                                 </h4>
-                                <p className="text-gray-600 text-sm">
+                                <p className="m-0! text-gray-600 text-sm">
                                     For faster support, please include details about your issue, WordPress version, and any error messages you've encountered.
                                 </p>
                             </div>

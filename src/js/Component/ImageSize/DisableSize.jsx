@@ -56,7 +56,7 @@ function DisableSize() {
                 Disable Registered Image Size:
             </label>
             <div className="flex-1 space-y-4">
-                <h5 className="text-base font-medium text-gray-900 m-0!">Image Size</h5>
+                <h5 className="text-base! font-medium text-gray-900 mt-0!">Image Size</h5>
                 <div className="flex flex-col gap-3">
                     {
                         Object.keys(sizes).map((item, index) => {
