@@ -1,27 +1,16 @@
 import React from 'react';
 
-import {useStateValue} from "../../Utils/StateProvider";
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import MainHeader from "../MainHeader";
+import MainHeader from "@/js/Component/MainHeader";
 
-import {
-    Divider,
-    Layout,
-    Typography,
-    Button
-} from 'antd';
-
-import * as Types from "../../Utils/actionType";
-
-import Loader from "../../Utils/Loader";
+import Loader from "@/js/Utils/Loader";
 
 import RegisterSize from "./RegisterSize";
 
 import DisableSize from "./DisableSize";
 
-const { Title } = Typography;
-
-const { Content } = Layout;
+import SaveButton from '@/js/Component/SaveButton';
 
 /**
  *
@@ -36,32 +25,24 @@ function ImageSize() {
         <>
             <MainHeader/>
             { stateValue.generalData.isLoading ? <Loader/> :
-                <Content style={{
-                    padding: '25px',
-                    background: 'rgb(255 255 255 / 35%)',
-                    borderRadius: '5px',
-                    boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-                }}>
-                    <Title level={3} style={{ margin:0 }}> Media Table Settings </Title>
-                    <Divider />
-                    <RegisterSize/>
-                    <DisableSize/>
-                    <Button
-                        type="primary"
-                        size="large"
-                        style={{
-                            position: 'fixed',
-                            bottom: '100px',
-                            right: '100px'
-                        }}
-                        onClick={ () => dispatch({
-                            ...stateValue,
-                            type: Types.UPDATE_OPTIONS,
-                            saveType: Types.UPDATE_OPTIONS,
-                        }) } >
-                        Save Settings
-                    </Button>
-                </Content>
+                <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
+                    <div className="max-w-7xl mx-auto px-6 py-8">
+                        <div className="space-y-8">
+                            <div className="bg-white rounded-lg border border-gray-200">
+                                <div className="px-6 py-5 border-b border-gray-200">
+                                    <h3 className="text-xl m-0! font-semibold text-gray-900">Image Size Settings</h3>
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    <RegisterSize/>
+                                </div>
+                                <div className="p-6 space-y-6 border-t border-gray-200">
+                                    <DisableSize/>
+                                </div>
+                            </div>
+                        </div>
+                        <SaveButton />
+                    </div>
+                </div>
             }
         </>
     );

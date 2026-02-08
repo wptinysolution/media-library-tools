@@ -1,20 +1,9 @@
 import React, { useEffect } from 'react';
 
-import {useStateValue} from "../../Utils/StateProvider";
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import {
-    Checkbox,
-    Col,
-    Flex,
-    Row,
-    Typography
-} from 'antd';
-
-import { getRegisteredImageSizes} from "../../Utils/Data";
-import * as Types from "../../Utils/actionType";
-
-const { Title, Text } = Typography;
-
+import { getRegisteredImageSizes } from "@/js/Utils/Data";
+import * as Types from "@/js/Utils/actionType";
 
 /**
  *
@@ -62,42 +51,35 @@ function DisableSize() {
     }, [stateValue?.saveType] );
 
     return (
-        <>
-            <Row>
-                <Col span={6}>
-                    <Title level={5} style={{ margin:0 }}> Disable Registered Image Size </Title>
-                </Col>
-                <Col span={14}>
-                    <Title level={5} style={{ margin:0 }}> Image Size </Title>
-                    <br/>
-                    <Flex gap={'small'} vertical={true}>
-                        {
-                            Object.keys(sizes).map((item, index) => {
-                                // console.log( item, `(${sizes[item]})` )
-                                return (
-                                    <div  key={index} >
-                                        { sizes[item].length > 0 ?
-                                            <Checkbox
-                                                key={index}
-                                                checked={ checkedList.includes( item ) }
-                                                onChange={ (e) => onCheckbox(e, item ) }
-                                            >
-                                                {sizes[item]}
-                                            </Checkbox> : null
-                                        }
-                                    </div>
-
-                                );
-                            })
-                        }
-                    </Flex>
-                    <br/>
-                    <Text style={{ color:'red'}}>
-                        The selected image size will be deregistered and the image will not be generated. This will save server space. Please select only unnecessary image sizes.
-                    </Text>
-                </Col>
-            </Row>
-        </>
+        <div className="flex items-start gap-8">
+            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+                Disable Registered Image Size:
+            </label>
+            <div className="flex-1 space-y-4">
+                <h5 className="text-base font-medium text-gray-900 m-0!">Image Size</h5>
+                <div className="flex flex-col gap-3">
+                    {
+                        Object.keys(sizes).map((item, index) => {
+                            if ( sizes[item].length === 0 ) return null;
+                            return (
+                                <label key={index} className="inline-flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                        checked={ checkedList.includes( item ) }
+                                        onChange={ (e) => onCheckbox(e, item ) }
+                                    />
+                                    <span className="text-base text-gray-900">{sizes[item]}</span>
+                                </label>
+                            );
+                        })
+                    }
+                </div>
+                <p className="text-sm text-red-600">
+                    The selected image size will be deregistered and the image will not be generated. This will save server space. Please select only unnecessary image sizes.
+                </p>
+            </div>
+        </div>
     );
 }
 
