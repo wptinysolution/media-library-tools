@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button} from 'antd';
-import { useStateValue } from '../../Utils/StateProvider';
+import { useStateValue } from '@/js/Utils/StateProvider';
 import Papa from 'papaparse';
 
 /**
@@ -83,9 +82,13 @@ function DownloadCSV() {
     return (
         <>
             {csvData && (
-                <Button type={'primary'} onClick={downloadCSV} >
+                <button
+                    type="button"
+                    onClick={downloadCSV}
+                    className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md cursor-pointer transition-colors"
+                >
                     Download CSV
-                </Button>
+                </button>
             )}
         </>
     );

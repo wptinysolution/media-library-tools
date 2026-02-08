@@ -1,27 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-import {Divider, Input, Modal, Select, Layout, Typography, Form, Checkbox, Progress} from 'antd';
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import {useStateValue} from "../../Utils/StateProvider";
+import * as Types from "@/js/Utils/actionType";
 
-import * as Types from "../../Utils/actionType";
+import { getMedia, singleUpDateApi } from "@/js/Utils/Data";
 
-import {getMedia, singleUpDateApi} from "../../Utils/Data";
-
-const {  Content } = Layout;
-
-const { Title, Text } = Typography;
-
-const { TextArea } = Input;
-
-const CheckboxGroup = Checkbox.Group;
+const checkboxOptions = [
+    { label: 'File Title Based on Attached Post', value: 'post_title' },
+    { label: 'Alt Text Based on Attached Post', value: 'alt_text' },
+    { label: 'Caption Based on Attached Post', value: 'caption' },
+    { label: 'Description Based on Attached Post', value: 'post_description' },
+];
 
 function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
     const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
+    const modalRef = useRef(null);
 
     const bulkSubmitData = stateValue.bulkSubmitData;
+    const isOpen = bulkSubmitData.isModalOpen;
+    const isBulkAssign = 'bulkEditPostTitle' === stateValue.bulkSubmitData.type;
+
+    /**
+     * Re-evaluate button disabled state when modal opens
+     */
+    useEffect(() => {
+        if (isOpen) {
+            isTheButtonDisabled();
+        }
+    }, [isOpen]);
+
+    /**
+     * Close on Escape key
+     */
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                handleBulkModalCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [isOpen]);
+
     /**
      * @param event
      */
@@ -87,7 +110,7 @@ function BulkModal() {
         setIsButtonDisabled( true );
         const response = await addDataRecursively( stateValue.bulkSubmitData );
         if( 200 === response?.status ){
-            // Close the modal after 2 seconds
+            // Close the modal after 1 second
             setTimeout(() => {
                 dispatch({
                     type: Types.BULK_SUBMIT,
@@ -114,7 +137,6 @@ function BulkModal() {
      */
     const handleBulkModalOk = () => {
         if( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ){
-            //console.log( stateValue.bulkSubmitData )
             mediaHandleBulkModalOk();
         }else {
             dispatch({
@@ -138,9 +160,14 @@ function BulkModal() {
         });
     };
     /**
-     * @param event
+     * @param value
+     * @param checked
      */
-    const onChangeAddTextByPostTitle = ( list ) => {
+    const onToggleCheckbox = (value, checked) => {
+        const current = bulkSubmitData.will_attached_post_title || [];
+        const list = checked
+            ? [...current, value]
+            : current.filter(v => v !== value);
         dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
@@ -148,114 +175,156 @@ function BulkModal() {
                 will_attached_post_title: list
             },
         });
-        const isDisable = ! list.length;
-        setIsButtonDisabled( isDisable );
+        setIsButtonDisabled( !list.length );
     };
 
+    if (!isOpen) return null;
+
     return (
-        <Modal
-            title={ 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ? `Bulk Assign` : `Bulk Edit` }
-            open={ bulkSubmitData.isModalOpen }
-            onOk={handleBulkModalOk}
-            onCancel={handleBulkModalCancel}
-            okButtonProps={{ disabled: IsButtonDisabled }}
-            okText="Done"
-            style={{
-                maxWidth: "650px"
-            }}
-            width="100%"
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-black/45"
+                onClick={handleBulkModalCancel}
+            />
 
-            afterOpenChange={ isTheButtonDisabled }
-        >
-            <Divider />
-            { 'bulkEditPostTitle' === stateValue.bulkSubmitData.type ?
-                <Content>
-                    <Text >
-                        Are you certain about performing a bulk assignment based on the associated post title?
-                    </Text>
-                    <Divider style={{  margin: '20px 0' }}/>
-                    <Form
-                        labelCol={{
-                            span:7,
-                            offset: 0,
-                            style:{
-                                textAlign: 'left',
-                            }
-                        }}
-                        layout="horizontal"
-                        style={{
-                            height: '100%'
-                        }}
+            {/* Modal */}
+            <div
+                ref={modalRef}
+                className="relative bg-white rounded-lg shadow-xl w-full max-w-[650px] mx-4"
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 m-0!">
+                        { isBulkAssign ? 'Bulk Assign' : 'Bulk Edit' }
+                    </h3>
+                    <button
+                        type="button"
+                        className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                        onClick={handleBulkModalCancel}
                     >
-                        <Form.Item label={<Title level={5} style={{ margin:0, fontSize:'14px' }}> Select the checkbox</Title>} >
-                            <CheckboxGroup
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px'
-                                }}
-                                options={
-                                    [
-                                        {
-                                            label: 'File Title Based on Attached Post',
-                                            value: 'post_title'
-                                        },
-                                        {
-                                            label: 'Alt Text Based on Attached Post',
-                                            value: 'alt_text'
-                                        },
-                                        {
-                                            label: 'Caption Based on Attached Post',
-                                            value: 'caption'
-                                        },
-                                        {
-                                            label: 'Description Based on Attached Post',
-                                            value: 'post_description'
-                                        },
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-                                    ]
-                                }
-                                onChange={ onChangeAddTextByPostTitle }
-                            />
+                {/* Body */}
+                <div className="px-6 py-5">
+                    { isBulkAssign ? (
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Are you certain about performing a bulk assignment based on the associated post title?
+                            </p>
+                            <div className="border-t border-gray-200 my-5"></div>
+                            <div className="flex items-start gap-6">
+                                <h5 className="text-sm font-semibold text-gray-900 m-0! whitespace-nowrap pt-1">
+                                    Select the checkbox
+                                </h5>
+                                <div className="flex flex-col gap-3">
+                                    { checkboxOptions.map((option) => (
+                                        <label key={option.value} className="inline-flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                checked={(bulkSubmitData.will_attached_post_title || []).includes(option.value)}
+                                                onChange={(e) => onToggleCheckbox(option.value, e.target.checked)}
+                                            />
+                                            <span className="text-sm text-gray-900">{option.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            { stateValue.bulkSubmitData.progressBar >= 0 && (
+                                <div className="mt-5">
+                                    <h5 className="text-sm font-semibold text-gray-900 mb-2">Progress:</h5>
+                                    <div className="w-full bg-gray-200 rounded-full h-5 overflow-hidden">
+                                        <div
+                                            className="bg-blue-600 h-5 rounded-full transition-all duration-300 flex items-center justify-center"
+                                            style={{ width: `${stateValue.bulkSubmitData.progressBar}%` }}
+                                        >
+                                            <span className="text-xs font-medium text-white">
+                                                {stateValue.bulkSubmitData.progressBar}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div>
+                                <h5 className="text-sm font-semibold text-gray-900 m-0! mb-1.5">Title</h5>
+                                <textarea
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    rows="2"
+                                    onChange={balkModalDataChange}
+                                    name="post_title"
+                                    value={bulkSubmitData.data.post_title}
+                                    placeholder="Title"
+                                />
+                            </div>
+                            <div>
+                                <h5 className="text-sm font-semibold text-gray-900 m-0! mb-1.5">Alt Text</h5>
+                                <textarea
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    rows="2"
+                                    onChange={balkModalDataChange}
+                                    name="alt_text"
+                                    value={bulkSubmitData.data.alt_text}
+                                    placeholder="Alt text"
+                                />
+                            </div>
+                            <div>
+                                <h5 className="text-sm font-semibold text-gray-900 m-0! mb-1.5">Caption</h5>
+                                <textarea
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    rows="2"
+                                    onChange={balkModalDataChange}
+                                    name="caption"
+                                    value={bulkSubmitData.data.caption}
+                                    placeholder="Caption"
+                                />
+                            </div>
+                            <div>
+                                <h5 className="text-sm font-semibold text-gray-900 m-0! mb-1.5">Description</h5>
+                                <textarea
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    rows="2"
+                                    onChange={balkModalDataChange}
+                                    name="post_description"
+                                    value={bulkSubmitData.data.post_description}
+                                    placeholder="Description"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-                        </Form.Item>
-                    </Form>
-                    { stateValue.bulkSubmitData.progressBar >= 0 && <> <Title level={5}> Progress:  </Title> <Progress showInfo={true} percent={stateValue.bulkSubmitData.progressBar} /> </> }
-                </Content>
-                :
-                <Content>
-                    <Title style={{marginTop:'0px'}} level={5}> Title </Title>
-                    <TextArea
-                        onChange={ balkModalDataChange }
-                        name={`post_title`}
-                        value={bulkSubmitData.data.post_title}
-                        placeholder={`Title`}
-                    />
-                    <Title style={{marginTop:'10px'}} level={5}> Alt Text </Title>
-                    <TextArea
-                        onChange={balkModalDataChange}
-                        name={`alt_text`}
-                        value={bulkSubmitData.data.alt_text}
-                        placeholder={`Alt text`}
-                    />
-                    <Title style={{marginTop:'10px'}} level={5}> Caption </Title>
-                    <TextArea
-                        onChange={balkModalDataChange}
-                        name={`caption`}
-                        value={bulkSubmitData.data.caption}
-                        placeholder={`Caption`}
-                    />
-                    <Title style={{marginTop:'10px'}} level={5}> Description </Title>
-                    <TextArea
-                        onChange={balkModalDataChange}
-                        name={`post_description`}
-                        value={bulkSubmitData.data.post_description}
-                        placeholder={`Description`}
-                    />
-                </Content>
-                }
-            <Divider />
-        </Modal>
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                    <button
+                        type="button"
+                        className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={handleBulkModalCancel}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className={`px-5 py-2 text-sm font-medium text-white rounded-md transition-colors ${
+                            IsButtonDisabled
+                                ? 'bg-blue-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                        }`}
+                        disabled={IsButtonDisabled}
+                        onClick={handleBulkModalOk}
+                    >
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
     )
 }
 export default BulkModal;
