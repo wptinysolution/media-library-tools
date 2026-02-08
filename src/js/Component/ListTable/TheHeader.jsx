@@ -1,27 +1,27 @@
-import React, {useEffect, useRef} from "react";
-
-import {  Input, Select, Layout, Button, Space } from 'antd';
-
-import { SearchOutlined } from '@ant-design/icons';
+import React, { useEffect, useRef } from "react";
 
 import {
-    headerStyle,
-    selectStyle,
-    bulkOprions,
     defaultBulkSubmitData
-} from '../../Utils/UtilData'
+} from '@/js/Utils/UtilData';
 
-import {useStateValue} from "../../Utils/StateProvider";
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import {useSearchDebounce} from "../../Utils/Hooks";
+import { useSearchDebounce } from "@/js/Utils/Hooks";
 
-import * as Types from "../../Utils/actionType";
+import * as Types from "@/js/Utils/actionType";
 
-import {notifications} from "../../Utils/Data";
+import { notifications } from "@/js/Utils/Data";
 
-import Loader from "../../Utils/Loader";
-
-const { Header } = Layout;
+const bulkOptions = [
+    { value: 'csv_export', label: 'Export CSV' },
+    { value: 'trash', label: 'Move to Trash' },
+    { value: 'inherit', label: 'Restore' },
+    { value: 'update', label: 'Update' },
+    { value: 'delete', label: 'Delete Permanently' },
+    { value: 'searchUses', label: 'Search Uses' },
+    { value: 'bulkedit', label: 'Bulk Edit' },
+    { value: 'bulkEditPostTitle', label: 'Bulk Edit Post Title' },
+];
 
 function TheHeader() {
 
@@ -29,12 +29,7 @@ function TheHeader() {
 
     const [search, setSearch] = useSearchDebounce();
 
-    // paged
     const inputRef = useRef(null);
-
-    const sharedProps = {
-        ref: inputRef,
-    };
 
     const handleSelectChange = (value, fieldName) => {
         dispatch({
@@ -42,9 +37,9 @@ function TheHeader() {
             mediaData: {
                 ...stateValue.mediaData,
                 isLoading: true,
-                postQuery : {
+                postQuery: {
                     ...stateValue.mediaData.postQuery,
-                    filtering : true,
+                    filtering: true,
                     paged: 1,
                     [fieldName]: value
                 }
@@ -55,7 +50,6 @@ function TheHeader() {
             type: Types.BULK_SUBMIT,
             bulkSubmitData: defaultBulkSubmitData,
         });
-
     };
 
     const handleChangeBulkType = (value) => {
@@ -72,7 +66,7 @@ function TheHeader() {
 
     const handleBulkSubmit = () => {
 
-        if ( 'bulkEditPostTitle' === stateValue.bulkSubmitData.type && ! tsmltParams.hasExtended ){
+        if ('bulkEditPostTitle' === stateValue.bulkSubmitData.type && !tsmltParams.hasExtended) {
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -83,11 +77,11 @@ function TheHeader() {
             return;
         }
 
-        if( ! stateValue.bulkSubmitData.ids.length ){
-            notifications( false, 'No checkboxes are checked. Please select at least one item.' );
+        if (!stateValue.bulkSubmitData.ids.length) {
+            notifications(false, 'No checkboxes are checked. Please select at least one item.');
             return;
         }
-        switch( stateValue.bulkSubmitData.type ){
+        switch (stateValue.bulkSubmitData.type) {
             case 'csv_export':
                 dispatch({
                     ...stateValue,
@@ -95,7 +89,7 @@ function TheHeader() {
                     saveType: Types.EXPORT_CSV,
                     bulkExport: {
                         ...stateValue.bulkExport,
-                        isModalOpen : true,
+                        isModalOpen: true,
                     },
                 });
                 break;
@@ -118,164 +112,181 @@ function TheHeader() {
                     saveType: null,
                     bulkSubmitData: {
                         ...stateValue.bulkSubmitData,
-                        isModalOpen : true,
+                        isModalOpen: true,
                     },
                 });
                 break;
             default:
-                notifications( false, 'No Actions are selected. Please select one.' );
+                notifications(false, 'No Actions are selected. Please select one.');
         }
-
     };
 
     const upDateQuery = async () => {
-        if( stateValue.mediaData.postQuery.searchKeyWords === search ){
+        if (stateValue.mediaData.postQuery.searchKeyWords === search) {
             return;
         }
         await dispatch({
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
-                postQuery : {
+                postQuery: {
                     ...stateValue.mediaData.postQuery,
-                    searchKeyWords : search
+                    searchKeyWords: search
                 }
             },
         });
-        console.log( search )
+        console.log(search);
     };
 
-    const postQuery =  stateValue.mediaData.postQuery;
+    const postQuery = stateValue.mediaData.postQuery;
 
     useEffect(() => {
         upDateQuery();
-    }, [ search ]);
+    }, [search]);
+
+    const filteredBulkOptions = postQuery.filtering && 'trash' === postQuery.status
+        ? bulkOptions.filter(item => 'trash' !== item.value)
+        : bulkOptions.filter(item => 'inherit' !== item.value);
+
+    // console.log('stateValue.generalData?.dateList', stateValue.generalData?.dateList );
 
     return (
-        <Header style={headerStyle}>
-            <Space wrap>
-                <Select
-                    allowClear={true}
-                    size="large"
-                    placeholder={'Bulk Apply'}
-                    style={ { ...selectStyle, minWidth: '280px', width: 'inherit' } }
-                    onChange={handleChangeBulkType}
-                    options={
-                        postQuery.filtering && 'trash' === postQuery.status ? [...bulkOprions.filter(item => 'trash' !== item.value)] : [...bulkOprions.filter(item => 'inherit' !== item.value)]
-                    }
-                />
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex flex-wrap items-center gap-3">
+                {/* Bulk Actions Select */}
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[280px] bg-white"
+                    onChange={(e) => handleChangeBulkType(e.target.value)}
+                    defaultValue=""
+                >
+                    <option value="" disabled>Bulk Apply</option>
+                    {filteredBulkOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
 
-                <Button
-                    type="primary"
-                    size="large"
+                {/* Bulk Apply Button */}
+                <button
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
                     onClick={handleBulkSubmit}
-                > { stateValue.mediaData.isLoading ? <Loader/> : `Bulk Apply` } </Button>
+                >
+                     Bulk Apply
+                </button>
 
-                <Select
-                    size="large"
-                    allowClear = {true}
-                    placeholder={'Status'}
-                    style={selectStyle}
-                    defaultValue={ stateValue.mediaData.postQuery.status || null }
-                    options={[
-                        {
-                            value: 'trash',
-                            label: 'Trash',
-                        },
-                    ]}
-                    onChange={(value) => handleSelectChange(value, 'status')}
-                />
+                {/* Status Select */}
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    onChange={(e) => handleSelectChange(e.target.value || null, 'status')}
+                    defaultValue={stateValue.mediaData.postQuery.status || ""}
+                >
+                    <option value="">Status</option>
+                    <option value="trash">Trash</option>
+                </select>
 
-                <Select
-                    size="large"
-                    allowClear = { true }
-                    placeholder={ 'All dates' }
-                    style={ selectStyle }
-                    defaultValue={ stateValue.mediaData.postQuery.date || null  }
-                    options={ stateValue.generalData.dateList }
-                    onChange={(value) => handleSelectChange(value, 'date')}
-                />
+                {/* Date Select */}
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    onChange={(e) => handleSelectChange(e.target.value || null, 'date')}
+                    defaultValue={stateValue.mediaData.postQuery.date || ""}
+                >
+                    <option value="">All dates</option>
+                    {stateValue.generalData?.dateList ? stateValue.generalData?.dateList?.map(date => (
+                        <option key={date.value} value={date.value}>
+                            {date.label}
+                        </option>
+                    )) : null}
+                </select>
 
-                <Select
-                    allowClear = {true}
-                    size="large"
-                    placeholder={'Categories'}
-                    style={selectStyle}
-                    options={stateValue.generalData.termsList}
-                    defaultValue={ stateValue.mediaData.postQuery.categories || null }
-                    onChange={(value) => handleSelectChange(value, 'categories')}
-                />
+                {/* Categories Select */}
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    onChange={(e) => handleSelectChange(e.target.value || null, 'categories')}
+                    defaultValue={stateValue.mediaData.postQuery.categories || ""}
+                >
+                    <option value="">Categories</option>
+                    {stateValue.generalData.termsList?.map(term => (
+                        <option key={term.value} value={term.value}>
+                            {term.label}
+                        </option>
+                    ))}
+                </select>
 
-                <Input
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                    }}
-                    type="primary"
-                    size="large"
-                    addonAfter={<SearchOutlined />}
-                    placeholder="Keywords..."
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+                {/* Search Input */}
+                <div className="relative">
+                    <input
+                        type="text"
+                        className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Keywords..."
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    <svg
+                        className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                    </svg>
+                </div>
 
-                <Button
-                    style={{  width: '180px', borderColor: '#d9d9d9' }}
-                    type="primary"
-                    size="large"
-                    onClick={
-                        (event) => dispatch({
-                            type: Types.UPDATE_SINGLE_MEDIA,
-                            singleMedia : {
-                                ...stateValue.singleMedia,
-                                formEdited: ! stateValue.singleMedia.formEdited,
-                            }
-                        })
-                    }
-                    ghost={ ! stateValue.singleMedia.formEdited }>  { stateValue.singleMedia.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode' }
-                </Button>
+                {/* Edit Mode Toggle Button */}
+                <button
+                    className={`px-6 py-2 border rounded-lg transition-colors font-medium w-[180px] ${
+                        stateValue.singleMedia.formEdited
+                            ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                            : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'
+                    }`}
+                    onClick={() => dispatch({
+                        type: Types.UPDATE_SINGLE_MEDIA,
+                        singleMedia: {
+                            ...stateValue.singleMedia,
+                            formEdited: !stateValue.singleMedia.formEdited,
+                        }
+                    })}
+                >
+                    {stateValue.singleMedia.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
+                </button>
 
-                <Button
-                    type="text"
-                    size="large"
+                {/* Items Per Page Label */}
+                <button
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
                     onClick={() => {
-                        inputRef.current.focus({
-                            cursor: 'start',
-                        });
+                        inputRef.current?.focus();
                     }}
                 >
                     Items Per page
-                </Button>
+                </button>
 
-                <Input
-                    {...sharedProps}
-                    type="primary"
-                    size="large"
-                    style={{
-                        width: '80px'
-                    }}
-                    onBlur={ (event) => dispatch({
+                {/* Items Per Page Input */}
+                <input
+                    ref={inputRef}
+                    type="number"
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={() => dispatch({
                         ...stateValue,
                         type: Types.UPDATE_OPTIONS,
                         saveType: Types.UPDATE_OPTIONS,
-                    }) }
-                    onChange={
-                        (event) => {
-                            dispatch({
-                                type: Types.UPDATE_OPTIONS,
-                                options : {
-                                    ...stateValue.options,
-                                    media_per_page: event.target.value,
-                                }
-                            });
-
-                        }
-                    }
+                    })}
+                    onChange={(event) => {
+                        dispatch({
+                            type: Types.UPDATE_OPTIONS,
+                            options: {
+                                ...stateValue.options,
+                                media_per_page: event.target.value,
+                            }
+                        });
+                    }}
                     value={stateValue.options.media_per_page}
                 />
-
-            </Space>
-
-        </Header>
+            </div>
+        </header>
     );
 }
 
