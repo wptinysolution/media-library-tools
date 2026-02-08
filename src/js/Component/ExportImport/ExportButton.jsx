@@ -1,34 +1,14 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 
-import {Layout, Button, Typography, Progress} from 'antd';
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-const { Content } = Layout;
+import * as Types from "@/js/Utils/actionType";
 
-import {
-    ExportOutlined
-} from '@ant-design/icons';
+import { getMedia } from "@/js/Utils/Data";
 
-import {useStateValue} from "../../Utils/StateProvider";
-
-import * as Types from "../../Utils/actionType";
-
-import {
-    getMedia
-} from "../../Utils/Data";
-
-import MainHeader from "../MainHeader";
+import MainHeader from "@/js/Component/MainHeader";
 
 import ExportModalCSV from "./ExportModalCSV";
-
-const buttonStyle = {
-    width: '200px',
-    height: '70px',
-    fontSize: '25px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '5px'
-}
 
 function ExportButton() {
 
@@ -52,7 +32,6 @@ function ExportButton() {
             return;
         }
 
-        // Reset export state
         let exportImport = {
             ...stateValue.exportImport,
             isExport: 'export' === type,
@@ -85,7 +64,6 @@ function ExportButton() {
 
                 allMedia = [...allMedia, ...data];
 
-                // Update progress
                 const progress = Math.round((page / totalPages) * 100);
                 setPercent(progress);
 
@@ -109,59 +87,46 @@ function ExportButton() {
     return (
         <>
             <MainHeader/>
-            <Layout className="layout" style={{
-                padding: '100px',
-                borderRadius: '5px',
-                boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-            }} >
-
-                <Content style={ {
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '15px'
-                } } >
-                    {
-                        isExport ? <Progress
-                            className={`progressbar-height`}
-                            style={{
-                                height: '30px',
-                                marginTop: 'auto'
-                            }}
-                            showInfo={true} percent={percent}
-                        /> : null
-                    }
-                    <Layout
-                        style={ {
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '15px'
-                        } }
-                    >
-                        {
-                            percent >= 100 ?
-                                <>
-                                    <Button
-                                        type="primary"
-                                        size="large"
-                                        style={ buttonStyle }
-                                        onClick={ ()=> setModalOpen(true) }
-                                    > Download Csv </Button>
-                                </>
-                                : <Button
-                                type="primary"
-                                size={`large`}
-                                style={ buttonStyle }
-                                onClick={ () => handleExport( 'export' ) }
-                            >
-                                    <ExportOutlined />  Run Exporter
-                            </Button>
-                        }
-
-                    </Layout>
-                </Content>
-            </Layout>
-            { isModalOpen ? <ExportModalCSV isModalOpen={isModalOpen} setModalOpen={setModalOpen}/> : null }
-        </> )
+            <div className="min-h-screen bg-gray-50">
+                <div className="p-24 rounded-md shadow-sm">
+                    <div className="flex items-center flex-wrap gap-4">
+                        {isExport && (
+                            <div className="w-full bg-gray-200 rounded-full h-[30px] overflow-hidden">
+                                <div
+                                    className="bg-blue-600 h-full rounded-full transition-all duration-300 flex items-center justify-center text-white text-xs font-medium"
+                                    style={{ width: `${percent}%` }}
+                                >
+                                    {percent}%
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-4 w-full justify-center">
+                            {percent >= 100 ? (
+                                <button
+                                    type="button"
+                                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    onClick={() => setModalOpen(true)}
+                                >
+                                    Download Csv
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    onClick={() => handleExport('export')}
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    Run Exporter
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {isModalOpen ? <ExportModalCSV isModalOpen={isModalOpen} setModalOpen={setModalOpen}/> : null}
+        </>
+    );
 }
 export default ExportButton;

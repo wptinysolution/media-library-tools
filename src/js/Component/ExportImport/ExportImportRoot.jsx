@@ -1,26 +1,11 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 
-import { Layout, Button } from 'antd';
+import * as Types from "@/js/Utils/actionType";
 
-const { Content } = Layout;
+import MainHeader from "@/js/Component/MainHeader";
 
-import * as Types from "../../Utils/actionType";
-
-import MainHeader from "../MainHeader";
-
-import {initialState} from "../../Utils/reducer";
-import {useStateValue} from "../../Utils/StateProvider";
-
-const buttonStyle = {
-    width: '200px',
-    height: '70px',
-    fontSize: '25px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '5px',
-    border:'1px solid #1677ff'
-}
+import { initialState } from "@/js/Utils/reducer";
+import { useStateValue } from "@/js/Utils/StateProvider";
 
 function ExportImportRoot() {
 
@@ -31,52 +16,34 @@ function ExportImportRoot() {
             type: Types.EXPORT_IMPORT,
             exportImport: initialState.exportImport,
         });
-    }
+    };
 
     useEffect(() => {
         resetExportImport();
-    }, [] );
+    }, []);
 
     return (
         <>
             <MainHeader/>
-            <Layout className="layout">
-                <Content style={{
-                    padding: '100px',
-                    borderRadius: '5px',
-                    boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-                    display: 'flex',
-                    alignItems: 'center'
-                }}>
-                    <Layout
-                        style={ {
-                            padding: '50px',
-                            display: 'flex',
-                            flexDirection:'row',
-                            flexWrap: 'wrap',
-                            gap: '15px',
-                            justifyContent: 'center'
-                        } }
-                    >
-                        <Button
-                            type="link"
-                            size={`large`}
-                            style={ buttonStyle }
-                            href={ '#/export' }
+            <div className="min-h-screen bg-gray-50">
+                <div className="flex items-center justify-center p-24">
+                    <div className="flex flex-wrap gap-4 justify-center p-12">
+                        <a
+                            href="#/export"
+                            className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
                         >
                             Export
-                        </Button>
-                        <Button
-                            type="link"
-                            size={`large`}
-                            style={ buttonStyle }
-                            href={ '#/import' }
+                        </a>
+                        <a
+                            href="#/import"
+                            className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
                         >
                             Import
-                        </Button>
-                    </Layout>
-                </Content>
-            </Layout>
-        </> )
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 }
 export default ExportImportRoot;

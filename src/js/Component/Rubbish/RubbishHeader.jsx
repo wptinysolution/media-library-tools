@@ -1,66 +1,41 @@
-import React, {useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import {Typography, Layout, Button, Space, Select, Input} from 'antd';
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import {  headerStyle, selectStyle} from "../../Utils/UtilData";
+import * as Types from "@/js/Utils/actionType";
 
-import { useStateValue } from "../../Utils/StateProvider";
-
-import * as Types from "../../Utils/actionType";
-
-import {getDirList, getRubbishFileType, notifications} from "../../Utils/Data";
+import { getDirList, getRubbishFileType, notifications } from "@/js/Utils/Data";
 
 import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
-const { Header } = Layout;
-
-const { Title } = Typography;
-
 function RubbishHeader() {
 
-    const [ stateValue, dispatch ] = useStateValue();
+    const [stateValue, dispatch] = useStateValue();
 
-    const [ filterItems, setFilterItems ] = useState( [] );
-
-    // paged
-    const statusFilterRef = useRef(null);
+    const [filterItems, setFilterItems] = useState([]);
 
     const perPageRef = useRef(null);
-
-    const fileTypeFilterRef = useRef(null);
-
-    const sharedProps = {
-        ref: statusFilterRef,
-    };
-
-    const perPageProps = {
-        ref: perPageRef,
-    };
-
-    const fileTypeFilterRefProps = {
-        ref: fileTypeFilterRef,
-    };
 
     const getTheRubbishFileType = async () => {
         const rubbishFile = await getRubbishFileType();
         const types = await rubbishFile.fileTypes.map(
-           ( item ) => ( {
+            (item) => ({
                 value: item,
                 label: item
             })
         );
-        await setFilterItems( [
+        await setFilterItems([
             { value: '', label: 'Default' },
             ...types
-        ] );
-    }
+        ]);
+    };
 
     const handleDirForModal = async () => {
-        if( ! stateValue.generalData.isDirModalOpen ){
+        if (!stateValue.generalData.isDirModalOpen) {
             return;
         }
         const responseDate = await getDirList();
-        const preparedDate =  await JSON.parse( responseDate.data );
+        const preparedDate = await JSON.parse(responseDate.data);
         await dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
@@ -71,22 +46,18 @@ function RubbishHeader() {
             },
         });
 
-        // console.log( preparedDate.dirList.length )
-        // Get object keys from the data
         await dispatch({
             type: Types.BULK_SUBMIT,
             bulkSubmitData: {
                 ...stateValue.bulkSubmitData,
-                progressTotal: Object.entries( preparedDate.dirList ).length
+                progressTotal: Object.entries(preparedDate.dirList).length
             },
         });
 
-
-        console.log( 'getDirList' )
+        console.log('getDirList');
     };
 
     const openDirModal = () => {
-
         dispatch({
             type: Types.GENERAL_DATA,
             generalData: {
@@ -104,26 +75,22 @@ function RubbishHeader() {
                 type: value
             },
         });
-
     };
 
     const statusFilterApply = (value) => {
-
-        handleChangeBulkType( 'default' );
-
+        handleChangeBulkType('default');
         dispatch({
             type: Types.RUBBISH_MEDIA,
             rubbishMedia: {
                 ...stateValue.rubbishMedia,
                 isLoading: true,
-                postQuery:{
+                postQuery: {
                     ...stateValue.rubbishMedia.postQuery,
                     fileStatus: value,
                     paged: 1,
                 }
             },
         });
-
     };
 
     const fileTypeFilterApply = (value) => {
@@ -132,7 +99,7 @@ function RubbishHeader() {
             rubbishMedia: {
                 ...stateValue.rubbishMedia,
                 isLoading: true,
-                postQuery:{
+                postQuery: {
                     ...stateValue.rubbishMedia.postQuery,
                     filterExtension: value,
                     paged: 1,
@@ -142,7 +109,7 @@ function RubbishHeader() {
     };
 
     const handleBulkSubmit = async () => {
-        if ( ! tsmltParams.hasExtended ){
+        if (!tsmltParams.hasExtended) {
             await dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -152,13 +119,13 @@ function RubbishHeader() {
             });
             return;
         }
-        if( ! stateValue.bulkRubbishData.ids.length ){
-            notifications( false, 'No checkboxes are checked. Please select at least one item.' );
+        if (!stateValue.bulkRubbishData.ids.length) {
+            notifications(false, 'No checkboxes are checked. Please select at least one item.');
             return;
         }
 
-        if( ! stateValue.bulkRubbishData.type || `default` ===  stateValue.bulkRubbishData.type ){
-            notifications( false, 'No Actions are selected. Please select one.' );
+        if (!stateValue.bulkRubbishData.type || 'default' === stateValue.bulkRubbishData.type) {
+            notifications(false, 'No Actions are selected. Please select one.');
             return;
         }
 
@@ -169,7 +136,6 @@ function RubbishHeader() {
                 isModalOpen: true,
             },
         });
-
     };
 
     let options = [
@@ -177,7 +143,7 @@ function RubbishHeader() {
         { value: 'ignore', label: 'Ignore' },
     ];
 
-    if( 'ignore' === stateValue.rubbishMedia.postQuery.fileStatus ){
+    if ('ignore' === stateValue.rubbishMedia.postQuery.fileStatus) {
         options = [
             { value: 'show', label: 'Make Deletable' },
         ];
@@ -185,115 +151,86 @@ function RubbishHeader() {
 
     useEffect(() => {
         getTheRubbishFileType();
-    }, [] );
+    }, []);
 
     useEffect(() => {
         handleDirForModal();
-    }, [ stateValue.generalData.isDirModalOpen ] );
+    }, [stateValue.generalData.isDirModalOpen]);
 
     return (
-        <Header style={{...headerStyle, height: 'inherit'}}>
-            <Title level={5} style={{
-                border: '1px solid #f0f0f0',
-                padding: '10px 15px',
-                margin: '10px 0',
-                fontSize:'13px',
-                color: 'red'
-            }}>
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="border border-gray-200 px-4 py-3 mb-4 text-[13px] text-red-600 font-medium rounded">
                 Rubbish File Note: A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database.
                 Before making any changes it is highly recommended to take a backup. Item Per page maximum allowed 1000 for ignoring server capacity issue.
-            </Title>
-            <Space>
-                <Select
-                    allowClear={true}
-                    style={{ width: '150px' }}
-                    placeholder={'Bulk Action'}
-                    size="large"
-                    onChange={handleChangeBulkType}
-                    options={ options }
-                />
-                <Button
-                    type="primary"
-                    size="large"
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+                {/* Bulk Action Select */}
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-[150px] bg-white"
+                    onChange={(e) => handleChangeBulkType(e.target.value)}
+                    defaultValue=""
+                >
+                    <option value="" disabled>Bulk Action</option>
+                    {options.map(option => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Bulk Actions Button */}
+                <button
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium cursor-pointer"
                     onClick={handleBulkSubmit}
-                > Bulk Actions </Button>
-
-                <Button
-                    type="text"
-                    size="large"
-                    onClick={() => {
-                        statusFilterRef.current.focus({
-                            cursor: 'start',
-                        });
-                    }}
                 >
-                    Status
-                </Button>
-                <Select
-                    {...sharedProps}
-                    allowClear={true}
-                    size="large"
-                    placeholder={'Show'}
-                    defaultValue={ stateValue.rubbishMedia.postQuery.fileStatus }
-                    style={ { ...selectStyle, width: 150 } }
-                    options={ [
-                        { value: 'show', label: 'Default' },
-                        { value: 'ignore', label: 'Ignored Filte' }
-                    ] }
-                    onChange={statusFilterApply}
-                />
+                    Bulk Actions
+                </button>
 
-                <Button
-                    type="text"
-                    size="large"
-                    onClick={() => {
-                        fileTypeFilterRef.current.focus({
-                            cursor: 'start',
-                        });
-                    }}
+                {/* Status Label + Select */}
+                <span className="px-4 py-2 text-gray-700 font-medium">Status</span>
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-[150px] bg-white"
+                    onChange={(e) => statusFilterApply(e.target.value || 'show')}
+                    defaultValue={stateValue.rubbishMedia.postQuery.fileStatus || "show"}
                 >
-                    Extension
-                </Button>
-                <Select
-                    allowClear
-                    {...fileTypeFilterRefProps}
-                    size="large"
-                    placeholder={'Default'}
-                    style={ { ...selectStyle, width: 150 } }
-                    options={ filterItems }
-                    onChange={fileTypeFilterApply}
-                />
-                <Button
-                    style={{
-                        width: '150px',
-                        borderColor: '#d9d9d9'
-                    }}
+                    <option value="show">Default</option>
+                    <option value="ignore">Ignored File</option>
+                </select>
 
-                    type="primary"
-                    size="large"
-                    onClick={openDirModal}>
-                    { `Scan Directory` }
-                </Button>
-                <Button
-                    type="text"
-                    size="large"
-                    onClick={() => {
-                        perPageRef.current.focus({
-                            cursor: 'start',
-                        });
-                    }}
+                {/* Extension Label + Select */}
+                <span className="px-4 py-2 text-gray-700 font-medium">Extension</span>
+                <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-[150px] bg-white"
+                    onChange={(e) => fileTypeFilterApply(e.target.value || null)}
+                    defaultValue=""
+                >
+                    {filterItems.map(item => (
+                        <option key={item.value} value={item.value}>
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Scan Directory Button */}
+                <button
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium w-[150px] cursor-pointer"
+                    onClick={openDirModal}
+                >
+                    Scan Directory
+                </button>
+
+                {/* Items Per Page */}
+                <button
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                    onClick={() => perPageRef.current?.focus()}
                 >
                     Items Per page
-                </Button>
-
-                <Input
-                    {...perPageProps}
-                    type="primary"
-                    size="large"
-                    style={{
-                        width: '80px'
-                    }}
-                    onBlur={ async (event) => {
+                </button>
+                <input
+                    ref={perPageRef}
+                    type="number"
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={async () => {
                         await dispatch({
                             ...stateValue,
                             type: Types.UPDATE_OPTIONS,
@@ -306,24 +243,21 @@ function RubbishHeader() {
                                 isLoading: true,
                             },
                         });
-                    }  }
-                    onChange={
-                        (event) => {
-                            dispatch({
-                                type: Types.UPDATE_OPTIONS,
-                                options : {
-                                    ...stateValue.options,
-                                    rubbish_per_page: event.target.value,
-                                }
-                            });
-                        }
-                    }
+                    }}
+                    onChange={(event) => {
+                        dispatch({
+                            type: Types.UPDATE_OPTIONS,
+                            options: {
+                                ...stateValue.options,
+                                rubbish_per_page: event.target.value,
+                            }
+                        });
+                    }}
                     value={stateValue.options.rubbish_per_page}
                 />
-
-            </Space>
+            </div>
             <RubbishConfirmationModal/>
-        </Header>
+        </header>
     );
 }
 

@@ -1,18 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-import { Divider, Button, Modal, List, Layout, Typography } from 'antd';
+import { useStateValue } from "@/js/Utils/StateProvider";
 
-import {
-    CheckSquareOutlined
-} from '@ant-design/icons';
-
-import {useStateValue} from "../Utils/StateProvider";
-
-import * as Types from "../Utils/actionType";
-
-const {  Content } = Layout;
-
-const { Title, Paragraph  } = Typography;
+import * as Types from "@/js/Utils/actionType";
 
 function ProModal() {
 
@@ -25,89 +15,88 @@ function ProModal() {
                 ...stateValue.generalData,
                 openProModal: false,
             },
-        })
-    }
+        });
+    };
 
     const data = [
-        {
-            title: 'All free Features Included',
-            desc: 'All features available in the free version are included.',
-        },
-        {
-            title: 'Search And Find Used Images (Attached Post)',
-            desc: 'Identify where the media file is used and display the corresponding page link.',
-        },
-        {
-            title: 'Media File CSV Export/Import',
-            desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.',
-        },
-        {
-            title: 'Bulk Renaming File Based on Associated Post Title',
-                desc: 'Automatic renaming of media files bulk mode.',
-        },
-        {
-            title: 'Renaming File Prior to Uploading Based on Attached Posts Title',
-            desc: 'Automatic renaming of media files prior to uploading based on attached posts.',
-        },
-        {
-            title: 'Auto Rename Based on Custom Name',
-            desc: 'Implement automatic renaming of media files based on custom text.',
-        },
-        {
-            title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title',
-            desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.',
-        },
-        {
-            "title": "Register Custom Image Sizes",
-            "desc": "Easily register custom image sizes as needed."
-        },
-        {
-            title: 'Find And Bulk Delete Unnecessary / Rubbish File',
-            desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.',
-        }
+        { title: 'All free Features Included', desc: 'All features available in the free version are included.' },
+        { title: 'Search And Find Used Images (Attached Post)', desc: 'Identify where the media file is used and display the corresponding page link.' },
+        { title: 'Media File CSV Export/Import', desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.' },
+        { title: 'Bulk Renaming File Based on Associated Post Title', desc: 'Automatic renaming of media files bulk mode.' },
+        { title: 'Renaming File Prior to Uploading Based on Attached Posts Title', desc: 'Automatic renaming of media files prior to uploading based on attached posts.' },
+        { title: 'Auto Rename Based on Custom Name', desc: 'Implement automatic renaming of media files based on custom text.' },
+        { title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title', desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.' },
+        { title: 'Register Custom Image Sizes', desc: 'Easily register custom image sizes as needed.' },
+        { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
     ];
 
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && stateValue.generalData.openProModal) {
+                handleBulkModalCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+        return () => document.removeEventListener('keydown', handleEsc);
+    }, [stateValue.generalData.openProModal]);
+
+    if (!stateValue.generalData.openProModal) return null;
+
     return (
-        <Modal
-            style={{
-                maxWidth: "630px"
-            }}
-            width="100%"
-            title={ <Title level={5} style={{ margin:'0', fontSize: '18px', color:'#ff0000'}}>No Pro version or expired license. Please purchase or renew to access features.</Title> }
-            open={ stateValue.generalData.openProModal }
-            onCancel={handleBulkModalCancel}
-            footer={[
-                <Button key="rescan" onClick={ handleBulkModalCancel }> Cancel </Button>,
-                <Button key="prourl" type="primary">
-                    <a className={'ant-btn'} target={`_blank`} href={ `${tsmltParams.proLink}#tiny-pricing-plan` }>Get Pro Version</a>
-                </Button>,
-                <a key="weburl" className={'ant-btn'} target={`_blank`} href={ tsmltParams.proLink }>Visit Websites</a>
-            ]}
-        >
-            <Content style={{ height: "550px", position:'relative', 'overflowY': 'auto' }}>
-                <Paragraph type="secondary" style={{ fontSize: '13px', color:'#333'}}>
-                    Pro Feature offers a range of enhanced functionalities and benefits...
-                </Paragraph >
-                <Divider style={{  margin: '5px 0' }}/>
-                <List
-                    itemLayout="horizontal"
-                    dataSource={data}
-                    renderItem={(item, index) => (
-                        <List.Item key={index} style={{ padding: '5px 0' }} >
-                            <List.Item.Meta
-                                avatar={<CheckSquareOutlined style={{ fontSize: '40px', color: '#1677ff' }} />}
-                                title={<span style={{ color:'#1677ff', fontSize: '15px' }}> { item.title } </span>}
-                                description={<span style={{ color:'#333' }}> { item.desc } </span>}
-                            />
-                        </List.Item>
-                    )}
-                />
-                <Paragraph type="secondary" style={{ fontSize: '14px', color:'#ff0000'}}>
-                    Support our development efforts for the WordPress community by purchasing the Pro version, enabling us to create more innovative products.
-                </Paragraph >
-            </Content>
-            <Divider style={{  margin: '10px 0' }}/>
-        </Modal>
-    )
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/45" onClick={handleBulkModalCancel} />
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-[630px] mx-4">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h5 className="text-lg font-semibold text-red-600 m-0!">
+                        No Pro version or expired license. Please purchase or renew to access features.
+                    </h5>
+                    <button type="button" className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" onClick={handleBulkModalCancel}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 h-[550px] overflow-y-auto">
+                    <p className="text-sm text-gray-700 mb-2">
+                        Pro Feature offers a range of enhanced functionalities and benefits...
+                    </p>
+                    <hr className="border-gray-200 my-2" />
+                    <div className="space-y-1">
+                        {data.map((item, index) => (
+                            <div key={index} className="flex items-start gap-3 py-2">
+                                <svg className="w-10 h-10 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                </svg>
+                                <div>
+                                    <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
+                                    <p className="text-sm text-gray-700 mt-0.5">{item.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-sm text-red-600 mt-3">
+                        Support our development efforts for the WordPress community by purchasing the Pro version, enabling us to create more innovative products.
+                    </p>
+                    <hr className="border-gray-200 my-3" />
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                    <button type="button" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors" onClick={handleBulkModalCancel}>
+                        Cancel
+                    </button>
+                    <a target="_blank" href={`${tsmltParams.proLink}#tiny-pricing-plan`} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline">
+                        Get Pro Version
+                    </a>
+                    <a target="_blank" href={tsmltParams.proLink} className="px-5 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline">
+                        Visit Websites
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
 }
 export default ProModal;

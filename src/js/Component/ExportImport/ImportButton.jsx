@@ -1,34 +1,14 @@
 import React from "react";
 
-import { Layout, Button, Spin, Space, Typography} from 'antd';
-
-const { Title, Text } = Typography;
-
-const { Content } = Layout;
-
-import {
-    ImportOutlined
-} from '@ant-design/icons';
-
-import {useStateValue} from "../../Utils/StateProvider";
+import { useStateValue } from "@/js/Utils/StateProvider";
 
 import ImportInfo from "./ImportInfo";
 
-import * as Types from "../../Utils/actionType";
+import * as Types from "@/js/Utils/actionType";
 
 import UploadCsv from "./UploadCsv";
 
-import MainHeader from "../MainHeader";
-
-const buttonStyle = {
-    width: '200px',
-    height: '70px',
-    fontSize: '25px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '5px'
-}
+import MainHeader from "@/js/Component/MainHeader";
 
 function ImportButton() {
 
@@ -36,9 +16,8 @@ function ImportButton() {
 
     const isImport = stateValue.exportImport.isImport;
 
-    const handleImport = async ( type ) => {
-
-        if ( ! tsmltParams.hasExtended ){
+    const handleImport = async (type) => {
+        if (!tsmltParams.hasExtended) {
             dispatch({
                 type: Types.GENERAL_DATA,
                 generalData: {
@@ -54,80 +33,55 @@ function ImportButton() {
             runImporter: false,
             runExporter: false,
             mediaFiles: [],
-            fileCount : 0,
-            percent : 0,
-            totalPage: 0
-        }
+            fileCount: 0,
+            percent: 0,
+            totalPage: 0,
+        };
 
         await dispatch({
             type: Types.EXPORT_IMPORT,
             exportImport: exportImport,
         });
-    }
+    };
 
     return (
         <>
             <MainHeader/>
-            <Layout className="layout">
-            <Content style={{
-                padding: '100px',
-                borderRadius: '5px',
-                boxShadow: 'rgb(0 0 0 / 1%) 0px 0 20px',
-                display: 'flex',
-                alignItems: 'center'
-            }}>
-                    <Layout
-                        style={ {
-                            padding: '50px',
-                        } }
-                    >
-
-                        <Title level={5} style={{
-                            border: '1px solid #f0f0f0',
-                            padding: '10px 15px',
-                            margin: '0 0 10px 0px',
-                            fontSize:'13px',
-                            color: 'red',
-                            textAlign: 'center'
-                        }}>
+            <div className="min-h-screen bg-gray-50">
+                <div className="p-24 rounded-md shadow-sm flex items-center">
+                    <div className="p-12 w-full">
+                        <h5 className="border border-gray-200 px-4 py-3 mb-3 text-[13px] text-red-600 text-center rounded">
                             If file import fails, Try importing in small batches at a time. Its depend in your server capacity.
                             <br/>
-                           CSV File Accepted Column Header <Text strong>( ID, slug, url, rename_to, title, caption, description, alt_text, custom_meta:_custom_meta_key, custom_meta:_meta_key_2, custom_meta:_meta_key_3  )</Text>
-                        </Title>
+                            CSV File Accepted Column Header <strong>( ID, slug, url, rename_to, title, caption, description, alt_text, custom_meta:_custom_meta_key, custom_meta:_meta_key_2, custom_meta:_meta_key_3 )</strong>
+                        </h5>
 
-                        { isImport &&
+                        {isImport && (
                             <>
-                            { stateValue.exportImport.runImporter ? <ImportInfo/> : '' }
-                            <Space wrap
-                                style={ {
-                                    justifyContent: 'center'
-                                } }
-                            >
-                                <UploadCsv/>
-                            </Space>
+                                {stateValue.exportImport.runImporter ? <ImportInfo/> : ''}
+                                <div className="flex flex-wrap justify-center">
+                                    <UploadCsv/>
+                                </div>
                             </>
-                        }
-                        { ! isImport ?
-                            <Content className={`csv-export-import-btn-wrapper`}
-                                     style={ {
-                                         display: 'flex',
-                                         justifyContent: 'center',
-                                         gap: '15px'
-                                     } }
-                            >
-                                <Button
-                                    type="primary"
-                                    size={`large`}
-                                    style={ buttonStyle }
-                                    onClick={ () => handleImport( 'import' ) }
+                        )}
+                        {!isImport && (
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    type="button"
+                                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    onClick={() => handleImport('import')}
                                 >
-                                    <ImportOutlined/> CSV Import
-                                </Button>
-                            </Content> : null
-                        }
-                    </Layout>
-            </Content>
-            </Layout>
-       </> )
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    CSV Import
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 }
 export default ImportButton;

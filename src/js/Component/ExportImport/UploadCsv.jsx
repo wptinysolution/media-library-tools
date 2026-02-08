@@ -1,51 +1,36 @@
-import React, { useState } from 'react';
-import { useStateValue } from "../../Utils/StateProvider";
-import { Button, Checkbox, Divider, Typography, Upload } from "antd";
-import { ImportOutlined, UploadOutlined } from "@ant-design/icons";
-import Papa from 'papaparse'; // Import Papa
+import React, { useState, useRef } from 'react';
+import { useStateValue } from "@/js/Utils/StateProvider";
+import Papa from 'papaparse';
 
-import * as Types from "../../Utils/actionType";
+import * as Types from "@/js/Utils/actionType";
 
-const { Title, Text, Paragraph } = Typography;
-
-const buttonStyle = {
-    width: '280px',
-    height: '70px',
-    fontSize: '25px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '5px'
-}
-
-/**
- *
- * @returns {JSX.Element}
- * @constructor
- */
 function UploadCsv() {
     const [stateValue, dispatch] = useStateValue();
     const [filename, setFilename] = useState('');
+    const fileInputRef = useRef(null);
 
-    const uploadProps = {
-        name: 'file',
-        action: `${tsmltParams.restApiUrl}wp/v2/media`, // Replace with your API endpoint
-        headers: {
-            'X-WP-Nonce': tsmltParams.rest_nonce // You can add any custom headers here
-        },
-        onChange(info) {
-            if (info.file.status === 'done') {
-                const { response, name } = info.file;
+    const handleFileUpload = (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch(`${tsmltParams.restApiUrl}wp/v2/media`, {
+            method: 'POST',
+            headers: {
+                'X-WP-Nonce': tsmltParams.rest_nonce,
+            },
+            body: formData,
+        })
+            .then((res) => res.json())
+            .then((response) => {
                 const { source_url } = response;
-                setFilename(name);
+                setFilename(file.name);
 
-                // Fetch the CSV file from the source URL and parse it
                 fetch(source_url)
-                    .then((res) => res.text())  // Get the file content as text
+                    .then((res) => res.text())
                     .then((csvText) => {
                         Papa.parse(csvText, {
-                            header: true, // Treat the first row as header
-                            dynamicTyping: true, // Automatically parse numeric values
+                            header: true,
+                            dynamicTyping: true,
                             complete: (results) => {
                                 dispatch({
                                     type: Types.EXPORT_IMPORT,
@@ -61,82 +46,96 @@ function UploadCsv() {
                         });
                     })
                     .catch((err) => console.error('Error fetching or parsing CSV:', err));
-            }
-        },
+            })
+            .catch((err) => console.error('Upload failed:', err));
+    };
+
+    const onFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleFileUpload(file);
+        }
     };
 
     return (
         <>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={onFileChange}
+            />
+
             {stateValue.exportImport.fileCount && !stateValue.exportImport.runImporter ? (
                 <>
-                    <Checkbox
-                        checked={stateValue.exportImport.settings.importUpdateContent}
-                        onChange={(event) =>
-                            dispatch({
-                                type: Types.EXPORT_IMPORT,
-                                exportImport: {
-                                    ...stateValue.exportImport,
-                                    settings: {
-                                        ...stateValue.exportImport.settings,
-                                        importUpdateContent: event.target.checked ? 'update' : false,
+                    <label className="inline-flex items-center gap-2 cursor-pointer mb-2">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={stateValue.exportImport.settings.importUpdateContent}
+                            onChange={(event) =>
+                                dispatch({
+                                    type: Types.EXPORT_IMPORT,
+                                    exportImport: {
+                                        ...stateValue.exportImport,
+                                        settings: {
+                                            ...stateValue.exportImport.settings,
+                                            importUpdateContent: event.target.checked ? 'update' : false,
+                                        },
                                     },
-                                },
-                            })
-                        }
-                    >
-                        Existing media file that match by <Text strong>ID</Text> or <Text strong>slug</Text> will be updated.
-                    </Checkbox>
+                                })
+                            }
+                        />
+                        <span className="text-sm text-gray-900">
+                            Existing media file that match by <strong>ID</strong> or <strong>slug</strong> will be updated.
+                        </span>
+                    </label>
                     <br />
-                    Media that do not exist will be skipped and missing column data will remain unchanged.
-                    <Divider style={{ margin: '10px' }} />
+                    <span className="text-sm text-gray-600">
+                        Media that do not exist will be skipped and missing column data will remain unchanged.
+                    </span>
+                    <hr className="border-gray-200 my-3" />
                     {stateValue.exportImport.settings.importUpdateContent ? (
                         <>
-                            <Checkbox
-                                checked={stateValue.exportImport.settings.importRename}
-                                onChange={(event) =>
-                                    dispatch({
-                                        type: Types.EXPORT_IMPORT,
-                                        exportImport: {
-                                            ...stateValue.exportImport,
-                                            settings: {
-                                                ...stateValue.exportImport.settings,
-                                                importRename: event.target.checked ? 'importRename' : false,
+                            <label className="inline-flex items-center gap-2 cursor-pointer mb-2">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    checked={stateValue.exportImport.settings.importRename}
+                                    onChange={(event) =>
+                                        dispatch({
+                                            type: Types.EXPORT_IMPORT,
+                                            exportImport: {
+                                                ...stateValue.exportImport,
+                                                settings: {
+                                                    ...stateValue.exportImport.settings,
+                                                    importRename: event.target.checked ? 'importRename' : false,
+                                                },
                                             },
-                                        },
-                                    })
-                                }
-                            >
-                                Rename using the value located in the <Text strong>( rename_to )</Text> column.
-                            </Checkbox>
+                                        })
+                                    }
+                                />
+                                <span className="text-sm text-gray-900">
+                                    Rename using the value located in the <strong>( rename_to )</strong> column.
+                                </span>
+                            </label>
                             <br />
-                            Note: Rename media file that match by <Text strong>ID</Text> or <Text strong>slug</Text> And Any missing column data will be left unchanged.
-                            <Title
-                                level={5}
-                                style={{
-                                    border: '1px solid #f0f0f0',
-                                    padding: '10px 15px',
-                                    margin: '0 0 10px 0px',
-                                    fontSize: '13px',
-                                    color: 'red',
-                                    textAlign: 'center',
-                                }}
-                            >
+                            <span className="text-sm text-gray-600">
+                                Note: Rename media file that match by <strong>ID</strong> or <strong>slug</strong> And Any missing column data will be left unchanged.
+                            </span>
+                            <h5 className="border border-gray-200 px-4 py-3 my-3 text-[13px] text-red-600 text-center rounded">
                                 We suggest you before renaming at first you should practice in your staging site.
-                            </Title>
-                            <Divider style={{ margin: '10px' }} />
+                            </h5>
+                            <hr className="border-gray-200 my-3" />
                         </>
                     ) : (
                         ''
                     )}
 
-                    <Button
-                        icon={<ImportOutlined />}
-                        type="primary"
-                        style={{
-                            ...buttonStyle,
-                            marginLeft: 'auto',
-                            marginRight: 'auto',
-                        }}
+                    <button
+                        type="button"
+                        className="w-[280px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto"
                         onClick={() =>
                             dispatch({
                                 type: Types.EXPORT_IMPORT,
@@ -147,30 +146,31 @@ function UploadCsv() {
                             })
                         }
                     >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
                         Run the importer
-                    </Button>
-                    <Divider style={{ margin: '5px 0' }} />
-                    <Paragraph style={{ textAlign: 'center' }}>
-                        {filename && <Text>{filename}</Text>}
-                    </Paragraph>
+                    </button>
+                    <hr className="border-gray-200 my-2" />
+                    <p className="text-center text-sm text-gray-700">
+                        {filename && <span>{filename}</span>}
+                    </p>
                 </>
             ) : (
                 ''
             )}
 
             {!stateValue.exportImport.fileCount ? (
-                <Upload {...uploadProps} multiple={false} accept=".csv">
-                    <Button
-                        icon={<UploadOutlined />}
-                        style={{
-                            ...buttonStyle,
-                            marginLeft: 'auto',
-                            marginRight: 'auto',
-                        }}
-                    >
-                        Upload CSV File
-                    </Button>
-                </Upload>
+                <button
+                    type="button"
+                    className="w-[280px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 cursor-pointer transition-colors font-medium mx-auto"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Upload CSV File
+                </button>
             ) : (
                 ''
             )}
