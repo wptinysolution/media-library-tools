@@ -4,13 +4,13 @@ import { columns, defaultBulkSubmitData } from '@/js/Utils/UtilData';
 
 import Loader from "@/js/Utils/Loader";
 
-import TheHeader from "./TheHeader";
+import TheHeader from "@/js/Component/ListTable/TheHeader";
 
 import { useStateValue } from "@/js/Utils/StateProvider";
 
-import BulkModal from "./BulkModal";
+import BulkModal from "@/js/Component/ListTable/BulkModal";
 
-import BulkModalForCSV from "./BulkModalForCSV";
+import BulkModalForCSV from "@/js/Component/ListTable/BulkModalForCSV";
 
 import MainHeader from "@/js/Component/MainHeader";
 

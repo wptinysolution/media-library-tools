@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import DownloadCSV from "./DownloadCSV";
+import DownloadCSV from "@/js/Component/ListTable/DownloadCSV";
 
 import { useStateValue } from "@/js/Utils/StateProvider";
 
