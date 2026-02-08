@@ -112,12 +112,12 @@ function RegisterSize() {
                                 <div className="flex items-center gap-3 flex-wrap">
                                     {/* Size Key Input */}
                                     <div className="flex items-center">
-                                        <span className="px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600 whitespace-nowrap">
+                                        <span className="h-[35px] px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600 whitespace-nowrap">
                                             tsmlt_
                                         </span>
                                         <input
                                             type="text"
-                                            className="w-40 px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="h-[35px] w-40 px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             value={ sizeKey }
                                             placeholder="size-name"
                                             title={fullKey}
@@ -130,13 +130,13 @@ function RegisterSize() {
 
                                     {/* Width Input */}
                                     <div className="flex items-center">
-                                        <span className="px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
+                                        <span className="px-3 py-2 text-sm h-[35px] bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
                                             Width
                                         </span>
                                         <input
                                             type="number"
                                             min={0}
-                                            className="w-20 px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-20 h-[35px] px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             value={sizes[index]?.width || ''}
                                             onChange={ ( event ) => registerImageSize( index, 'width', Number(event.target.value) ) }
                                         />
@@ -147,13 +147,13 @@ function RegisterSize() {
 
                                     {/* Height Input */}
                                     <div className="flex items-center">
-                                        <span className="px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
+                                        <span className="px-3 py-2 h-[35px] text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
                                             Height
                                         </span>
                                         <input
                                             type="number"
                                             min={0}
-                                            className="w-20 px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-20 h-[35px] px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             value={sizes[index]?.height || ''}
                                             onChange={ (event) => registerImageSize( index, 'height', Number(event.target.value) ) }
                                         />
