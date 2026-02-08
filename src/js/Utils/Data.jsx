@@ -2,8 +2,7 @@
  * Import local dependencies
  */
 import Axios from 'axios';
-
-import {notification} from 'antd';
+import toast from 'react-hot-toast';
 
 const apibaseUrl = `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`;
 
@@ -23,20 +22,18 @@ const Api = Axios.create({
  * @param isTrue
  * @param text
  */
-export const notifications = ( isTrue, text ) => {
-    const message = {
-        message: text, //response.data.message,
-        placement: 'topRight',
-        style: {
-            marginTop: '10px',
-        },
-    }
+export const notifications = (isTrue, text) => {
     if (isTrue) {
-        notification.success(message);
+        toast.success( text || "Success", {
+            iconTheme: {
+                primary: "#fff",   // icon color
+                secondary: "#4CAF50", // icon background
+            },
+        });
     } else {
-        notification.error(message);
+        toast.error(text || 'Error' );
     }
-}
+};
 
 /**
  * Safely parse malformed / double-encoded JSON (object or array)
@@ -80,16 +77,6 @@ export const getMedia = async (prams = {}) => {
  */
 export const singleUpDateApi = async (prams) => {
     return await Api.post(`/update`, prams);
-}
-
-/**
- *
- * @param prams
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-export const searchFileBySingleDir = async (prams) => {
-   // return await Api.post(`/searchFileBySingleDir`, prams);
-    return await Api.get(`/searchFileBySingleDir`, {params: prams});
 }
 
 /**

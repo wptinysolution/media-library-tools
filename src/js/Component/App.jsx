@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
 
 import {
     getTerms,
@@ -198,6 +199,19 @@ function App() {
                 </Routes>
             </HashRouter>
             <ProModal />
+            <Toaster
+                position="bottom-center"
+                containerStyle={{
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    position: 'fixed',
+                }}
+                toastOptions={{
+                    style: { fontSize: '1rem', color: '#fff', backgroundColor: 'var(--color-blue-600)' },
+                    duration: 3000,
+                }}
+            />
         </div>
     );
 }
