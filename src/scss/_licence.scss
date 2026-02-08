@@ -1,7 +1,364 @@
-ul#adminmenu{
-    span.dashicons-icons:before {
-        content: "↳";
-        padding: 0 2px;
-        font-size: 13px;
-    }
+// Admin menu icon styles
+ul#adminmenu {
+	span.dashicons-icons:before {
+		content: "↳";
+		padding: 0 2px;
+		font-size: 13px;
+	}
+}
+
+// Active submenu highlight
+.current .tsmlt-submenu,
+.current .dashicons {
+	color: #1677ff !important;
+}
+
+// Pro page background
+.media_page_tsmlt-get-pro #wpwrap {
+	background: #f9faff;
+}
+
+// ── Pro Page Layout ──────────────────────────────────────────────
+$pro-primary: #1677ff;
+$pro-primary-dark: #0958d9;
+$pro-primary-light: #4096ff;
+$pro-accent: #fe0467;
+$pro-success: #6bc406;
+$pro-gold: #d4a017;
+$pro-radius: 12px;
+$pro-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+$pro-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+$pro-transition: all 0.3s ease;
+
+#tsmlt-pro-page-wrapper {
+	display: flex;
+	gap: 20px;
+	justify-content: center;
+	flex-wrap: wrap;
+	max-width: 960px;
+	margin: 0 auto;
+
+	a {
+		text-decoration: none;
+	}
+}
+
+// ── Pricing Card ─────────────────────────────────────────────────
+.tsmlt-pro-card {
+	width: 450px;
+	background: #fff;
+	border-radius: $pro-radius;
+	box-shadow: $pro-shadow;
+	overflow: hidden;
+	transition: $pro-transition;
+
+	&:hover {
+		box-shadow: $pro-shadow-hover;
+	}
+}
+
+.tsmlt-pro-price-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	padding-bottom: 24px;
+}
+
+.tsmlt-pro-card-header {
+	padding: 28px 24px;
+	font-size: 28px;
+	font-weight: 700;
+	background: linear-gradient(135deg, $pro-primary 0%, $pro-primary-light 100%);
+	color: #fff;
+	line-height: 1.4;
+	margin-bottom: 24px;
+	text-align: center;
+
+	span {
+		color: #fff;
+		font-size: 18px;
+	}
+
+	.price-for {
+		display: none;
+
+		&.active-plan {
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+		}
+
+		> span {
+			display: none;
+		}
+
+		&.active-plan .active-cycle {
+			display: flex;
+		}
+	}
+}
+
+.tsmlt-pro-feature-item {
+	padding: 10px 28px;
+	display: flex;
+	gap: 12px;
+	font-size: 15px;
+	line-height: 1.5;
+	align-items: flex-start;
+
+	.dashicons {
+		color: $pro-primary;
+		background: rgba($pro-primary, 0.1);
+		border-radius: 50%;
+		width: 22px;
+		height: 22px;
+		font-size: 22px;
+		flex-shrink: 0;
+	}
+}
+
+.tsmlt-pro-card-footer {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 28px;
+	margin-top: 24px;
+}
+
+.tsmlt-pro-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+	font-size: 15px;
+	padding: 10px 22px;
+	border-radius: 8px;
+	transition: $pro-transition;
+	text-decoration: none !important;
+	cursor: pointer;
+	border: 0;
+	line-height: 1;
+
+	.dashicons {
+		font-size: 18px;
+		width: 18px;
+		height: 18px;
+	}
+}
+
+.tsmlt-pro-btn--primary {
+	background: $pro-primary;
+	color: #fff !important;
+	box-shadow: 0 2px 0 rgba($pro-primary, 0.2);
+
+	&:hover {
+		background: $pro-accent;
+		color: #fff !important;
+		box-shadow: 0 4px 12px rgba($pro-accent, 0.3);
+		transform: translateY(-1px);
+	}
+}
+
+.tsmlt-pro-btn--outline {
+	background: transparent;
+	color: $pro-primary !important;
+	border: 2px solid $pro-primary;
+
+	&:hover {
+		background: $pro-primary;
+		color: #fff !important;
+		transform: translateY(-1px);
+	}
+}
+
+// ── Money-Back Guarantee ─────────────────────────────────────────
+.tsmlt-pro-guarantee {
+	margin: 0;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 24px 32px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.tsmlt-pro-guarantee__image {
+	max-width: 320px;
+	width: 100%;
+	height: auto;
+	margin-bottom: 8px;
+}
+
+.tsmlt-pro-guarantee__title {
+	font-size: 20px;
+	margin: 12px 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.tsmlt-pro-stars {
+	color: $pro-gold;
+	font-style: normal;
+	font-size: 18px;
+	letter-spacing: 2px;
+
+	i {
+		font-style: normal;
+	}
+}
+
+.tsmlt-pro-guarantee__text {
+	font-size: 15px;
+	line-height: 1.7;
+	color: #444;
+	max-width: 400px;
+}
+
+.tsmlt-pro-guarantee__note {
+	color: $pro-success;
+}
+
+// ── Discount / Contact Banner ────────────────────────────────────
+.tsmlt-pro-page-footer {
+	padding-top: 30px;
+}
+
+.tsmlt-pro-banner {
+	max-width: 960px;
+	margin: 50px auto 30px;
+	background: #fff;
+	border-radius: $pro-radius;
+	padding: 24px 32px;
+	box-shadow: $pro-shadow;
+	border-left: 4px solid $pro-primary;
+	font-size: 16px;
+	line-height: 1.6;
+}
+
+.tsmlt-pro-banner__highlight {
+	color: $pro-success;
+}
+
+.tsmlt-pro-banner__discount {
+	color: red;
+	font-weight: bold;
+}
+
+.tsmlt-pro-banner__link {
+	color: $pro-primary !important;
+	font-weight: 600;
+	text-decoration: none;
+
+	&:hover {
+		color: $pro-accent !important;
+	}
+}
+
+// ── FAQ Section ──────────────────────────────────────────────────
+.tsmlt-pro-faq-container {
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+.tsmlt-pro-faq {
+	background: #fff;
+	border-radius: $pro-radius;
+	padding: 32px;
+	box-shadow: $pro-shadow;
+}
+
+.tsmlt-pro-faq__title {
+	margin-bottom: 24px;
+	margin-top: 0;
+	font-size: 24px;
+	line-height: 1.2;
+}
+
+.tsmlt-pro-faq__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 16px;
+}
+
+.tsmlt-pro-faq__item {
+	background: #fafbff;
+	border: 1px solid #e8ecf4;
+	border-radius: 8px;
+	padding: 20px 24px;
+	transition: $pro-transition;
+
+	&:hover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+		border-color: rgba($pro-primary, 0.3);
+	}
+}
+
+.tsmlt-pro-faq__question {
+	font-size: 15px;
+	font-weight: 600;
+	color: $pro-primary;
+	margin: 0 0 8px;
+}
+
+.tsmlt-pro-faq__answer {
+	font-size: 14px;
+	line-height: 1.6;
+	color: #555;
+	margin: 0;
+
+	a {
+		color: $pro-primary;
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover {
+			color: $pro-accent;
+		}
+	}
+}
+
+.tsmlt-pro-faq__answer--highlight {
+	color: $pro-success;
+}
+
+// ── Responsive ───────────────────────────────────────────────────
+@media only screen and (max-width: 768px) {
+	#tsmlt-pro-page-wrapper {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.tsmlt-pro-card {
+		width: 100%;
+		max-width: 500px;
+	}
+
+	.tsmlt-pro-faq__list {
+		grid-template-columns: 1fr;
+	}
+
+	.tsmlt-pro-banner {
+		margin: 30px 10px 20px;
+		padding: 20px 24px;
+	}
+
+	.tsmlt-pro-faq {
+		padding: 20px;
+	}
+
+	.tsmlt-pro-card-footer {
+		flex-direction: column;
+		gap: 12px;
+		align-items: stretch;
+		text-align: center;
+	}
+
+	.tsmlt-pro-btn {
+		justify-content: center;
+	}
 }
