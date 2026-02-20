@@ -124,8 +124,8 @@ function MainHeader() {
                     onClick={() => onMenuSelect(item.key)}
                     className={`inline-flex items-center gap-2 px-6 h-full text-[15px] whitespace-nowrap transition-colors no-underline ${
                         pat === item.key
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                            ? 'bg-blue-600 text-white!'
+                            : 'text-gray-300! hover:text-white! hover:bg-gray-800!'
                     }`}
                 >
                     {item.icon}
