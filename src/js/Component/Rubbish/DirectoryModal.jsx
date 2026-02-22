@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
+
 import { useStateValue } from "@/js/Utils/StateProvider";
+
 import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
+
 import Axios from 'axios';
+
 import * as Types from "@/js/Utils/actionType";
+
+import Modal from "@/js/Component/Common/Modal";
+
+import ProgressBar from "@/js/Component/Common/ProgressBar";
+
+import DirectoryList from "@/js/Component/Rubbish/DirectoryList";
 
 function DirectoryModal() {
     const [stateValue, dispatch] = useStateValue();
@@ -19,10 +29,7 @@ function DirectoryModal() {
     const handleDirModalCancel = () => {
         dispatch({
             type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                isDirModalOpen: false,
-            },
+            generalData: { ...stateValue.generalData, isDirModalOpen: false },
         });
     };
 
@@ -37,10 +44,7 @@ function DirectoryModal() {
     };
 
     const exclude_from_bulk_scan = (dir = "") => {
-        setSkip([
-            ...skip,
-            dir
-        ]);
+        setSkip([...skip, dir]);
     };
 
     const processDirectory = () => {
@@ -99,102 +103,15 @@ function DirectoryModal() {
         }
     }, [scanRubbishDirList]);
 
-    useEffect(() => {
-        const handleEsc = (e) => {
-            if (e.key === 'Escape' && stateValue.generalData.isDirModalOpen) {
-                handleDirModalCancel();
-            }
-        };
-        document.addEventListener('keydown', handleEsc);
-        return () => document.removeEventListener('keydown', handleEsc);
-    }, [stateValue.generalData.isDirModalOpen]);
-
-    if (!stateValue.generalData.isDirModalOpen) return null;
-
     const dirEntries = Object.entries(scanRubbishDirList);
 
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/45" onClick={handleDirModalCancel} />
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-[950px] mx-4">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 m-0!">Directory List</h3>
-                    <button type="button" className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" onClick={handleDirModalCancel}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* Body */}
-                <hr className="border-gray-200" />
-                <div className="px-4 py-4 h-[450px] overflow-y-auto border-b border-gray-100">
-                    {scanRubbishDirLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <svg className="w-8 h-8 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                        </div>
-                    ) : dirEntries.length === 0 ? (
-                        <h5 className="text-[15px] font-semibold text-red-600 text-center py-8">
-                            Directory will search in the next schedule. Please be patient
-                        </h5>
-                    ) : (
-                        <div className="space-y-2">
-                            {dirEntries.map(([key, item]) => {
-                                const skippedItem = skip.includes(key);
-                                return (
-                                    <div key={key} className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 last:border-0 ${skippedItem ? 'opacity-20' : ''}`}>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{key}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {item.total_items === 0
-                                                    ? "This directory will be scanned again according to the schedule."
-                                                    : <span className="text-blue-600">Scanned {item.counted} items of {item.total_items} items</span>
-                                                }
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                                            <button
-                                                type="button"
-                                                className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 cursor-pointer transition-colors"
-                                                onClick={() => exclude_from_bulk_scan(key)}
-                                            >
-                                                Exclude from Bulk Scan
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 cursor-pointer transition-colors"
-                                                onClick={() => handleDirRescan(key)}
-                                            >
-                                                Re-Execute in Schedule
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-
-                {/* Progress */}
-                {progressBar > 0 && (
-                    <div className="px-6 py-3">
-                        <h5 className="text-base font-semibold text-gray-900 mb-2">Directory Scanning Progress:</h5>
-                        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                            <div
-                                className="bg-blue-600 h-full rounded-full transition-all duration-300 flex items-center justify-center text-white text-[10px] font-medium"
-                                style={{ width: `${progressBar}%` }}
-                            >
-                                {progressBar}%
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Footer */}
+        <Modal
+            isOpen={stateValue.generalData.isDirModalOpen}
+            onClose={handleDirModalCancel}
+            title="Directory List"
+            maxWidth="max-w-[950px]"
+            footer={
                 <div className="px-6 py-4 border-t border-gray-200">
                     {tsmltParams.hasExtended && (
                         <div className="mb-3">
@@ -249,8 +166,26 @@ function DirectoryModal() {
                         </button>
                     </div>
                 </div>
+            }
+        >
+            <hr className="border-gray-200" />
+            <div className="px-4 py-4 h-[450px] overflow-y-auto border-b border-gray-100">
+                <DirectoryList
+                    dirEntries={dirEntries}
+                    skip={skip}
+                    onExclude={exclude_from_bulk_scan}
+                    onRescan={handleDirRescan}
+                    loading={scanRubbishDirLoading}
+                />
             </div>
-        </div>
+
+            {progressBar > 0 && (
+                <div className="px-6 py-3">
+                    <h5 className="text-base font-semibold text-gray-900 mb-2">Directory Scanning Progress:</h5>
+                    <ProgressBar percent={progressBar} />
+                </div>
+            )}
+        </Modal>
     );
 }
 

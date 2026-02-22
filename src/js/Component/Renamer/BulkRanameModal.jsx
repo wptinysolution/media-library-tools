@@ -6,6 +6,10 @@ import * as Types from "@/js/Utils/actionType";
 
 import { getMedia, singleUpDateApi } from "@/js/Utils/Data";
 
+import Modal from "@/js/Component/Common/Modal";
+
+import ProgressBar from "@/js/Component/Common/ProgressBar";
+
 function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
@@ -19,12 +23,8 @@ function BulkModal() {
         };
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                data
-            },
+            bulkSubmitData: { ...stateValue.bulkSubmitData, data },
         });
-
         setIsButtonDisabled(!stateValue.bulkSubmitData.ids.length || !data.file_name.length > 0);
     };
 
@@ -65,20 +65,13 @@ function BulkModal() {
             setTimeout(() => {
                 dispatch({
                     type: Types.BULK_SUBMIT,
-                    bulkSubmitData: {
-                        ...stateValue.bulkSubmitData,
-                        isModalOpen: false,
-                    },
+                    bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: false },
                 });
             }, 1000);
             const response = await getMedia(stateValue.mediaData.postQuery);
             await dispatch({
                 type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    ...response,
-                    isLoading: false
-                },
+                mediaData: { ...stateValue.mediaData, ...response, isLoading: false },
             });
             setIsButtonDisabled(false);
         }
@@ -87,10 +80,7 @@ function BulkModal() {
     const handleBulkModalCancel = () => {
         dispatch({
             type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                isModalOpen: false,
-            },
+            bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: false },
         });
     };
 
@@ -109,89 +99,14 @@ function BulkModal() {
         }
     }, [stateValue.bulkSubmitData.isModalOpen]);
 
-    useEffect(() => {
-        const handleEsc = (e) => {
-            if (e.key === 'Escape' && stateValue.bulkSubmitData.isModalOpen) {
-                handleBulkModalCancel();
-            }
-        };
-        document.addEventListener('keydown', handleEsc);
-        return () => document.removeEventListener('keydown', handleEsc);
-    }, [stateValue.bulkSubmitData.isModalOpen]);
-
-    if (!stateValue.bulkSubmitData.isModalOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/45" />
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-[520px] mx-4">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 m-0!">Bulk Rename</h3>
-                    <button type="button" className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" onClick={handleBulkModalCancel}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div className="px-6 py-5">
-                    <hr className="border-gray-200 mb-4" />
-                    {stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
-                        <h5 className="text-base font-semibold text-gray-900 mb-4">
-                            Are You Sure Bulk Rename Based on Associated Post Title?
-                        </h5>
-                    ) : stateValue.bulkSubmitData.type === 'bulkRenameBySKU' ? (
-                        <h5 className="text-base font-semibold text-gray-900 mb-4">
-                            Are You Sure Bulk Rename Based on Product SKU?
-                        </h5>
-                    ) : (
-                        <>
-                            <h5 className="text-base font-semibold text-gray-900 mb-4">File name</h5>
-                            <p className="text-sm text-red-600 mb-3">
-                                Prefix and suffix will not apply here.
-                            </p>
-                            <input
-                                type="text"
-                                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
-                                onChange={balkModalDataChange}
-                                name="file_name"
-                                value={stateValue.bulkSubmitData.data.file_name}
-                                placeholder="File Name"
-                            />
-                            {!stateValue.bulkSubmitData.ids.length && (
-                                <p className="text-sm text-red-600 mb-2">
-                                    No Item selected for rename
-                                </p>
-                            )}
-                            {!stateValue.bulkSubmitData.data.file_name.length && (
-                                <p className="text-sm text-red-600 mb-2">
-                                    Empty value not allowed.
-                                </p>
-                            )}
-                        </>
-                    )}
-                    <hr className="border-gray-200 my-4" />
-
-                    {/* Progress */}
-                    {stateValue.bulkSubmitData.progressBar >= 0 && (
-                        <>
-                            <h5 className="text-base font-semibold text-gray-900 mb-2">Progress:</h5>
-                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-3">
-                                <div
-                                    className="bg-blue-600 h-full rounded-full transition-all duration-300 flex items-center justify-center text-white text-[10px] font-medium"
-                                    style={{ width: `${stateValue.bulkSubmitData.progressBar}%` }}
-                                >
-                                    {stateValue.bulkSubmitData.progressBar}%
-                                </div>
-                            </div>
-                        </>
-                    )}
-                    <hr className="border-gray-200" />
-                </div>
-
-                {/* Footer */}
+        <Modal
+            isOpen={stateValue.bulkSubmitData.isModalOpen}
+            onClose={handleBulkModalCancel}
+            title="Bulk Rename"
+            maxWidth="max-w-[520px]"
+            closeOnBackdrop={false}
+            footer={
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
                     <button
                         type="button"
@@ -210,8 +125,55 @@ function BulkModal() {
                         Rename
                     </button>
                 </div>
+            }
+        >
+            <div className="px-6 py-5">
+                <hr className="border-gray-200 mb-4" />
+                {stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
+                    <h5 className="text-base font-semibold text-gray-900 mb-4">
+                        Are You Sure Bulk Rename Based on Associated Post Title?
+                    </h5>
+                ) : stateValue.bulkSubmitData.type === 'bulkRenameBySKU' ? (
+                    <h5 className="text-base font-semibold text-gray-900 mb-4">
+                        Are You Sure Bulk Rename Based on Product SKU?
+                    </h5>
+                ) : (
+                    <>
+                        <h5 className="text-base font-semibold text-gray-900 mb-4">File name</h5>
+                        <p className="text-sm text-red-600 mb-3">
+                            Prefix and suffix will not apply here.
+                        </p>
+                        <input
+                            type="text"
+                            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+                            onChange={balkModalDataChange}
+                            name="file_name"
+                            value={stateValue.bulkSubmitData.data.file_name}
+                            placeholder="File Name"
+                        />
+                        {!stateValue.bulkSubmitData.ids.length && (
+                            <p className="text-sm text-red-600 mb-2">
+                                No Item selected for rename
+                            </p>
+                        )}
+                        {!stateValue.bulkSubmitData.data.file_name.length && (
+                            <p className="text-sm text-red-600 mb-2">
+                                Empty value not allowed.
+                            </p>
+                        )}
+                    </>
+                )}
+                <hr className="border-gray-200 my-4" />
+
+                {stateValue.bulkSubmitData.progressBar >= 0 && (
+                    <>
+                        <h5 className="text-base font-semibold text-gray-900 mb-2">Progress:</h5>
+                        <ProgressBar percent={stateValue.bulkSubmitData.progressBar} />
+                    </>
+                )}
+                <hr className="border-gray-200 mt-4" />
             </div>
-        </div>
+        </Modal>
     );
 }
 export default BulkModal;

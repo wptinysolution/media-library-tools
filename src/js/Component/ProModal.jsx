@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import { useStateValue } from "@/js/Utils/StateProvider";
 
 import * as Types from "@/js/Utils/actionType";
+
+import Modal from "@/js/Component/Common/Modal";
 
 function ProModal() {
 
@@ -11,10 +13,7 @@ function ProModal() {
     const handleBulkModalCancel = () => {
         dispatch({
             type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                openProModal: false,
-            },
+            generalData: { ...stateValue.generalData, openProModal: false },
         });
     };
 
@@ -30,73 +29,66 @@ function ProModal() {
         { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
     ];
 
-    useEffect(() => {
-        const handleEsc = (e) => {
-            if (e.key === 'Escape' && stateValue.generalData.openProModal) {
-                handleBulkModalCancel();
-            }
-        };
-        document.addEventListener('keydown', handleEsc);
-        return () => document.removeEventListener('keydown', handleEsc);
-    }, [stateValue.generalData.openProModal]);
-
-    if (!stateValue.generalData.openProModal) return null;
-
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/45" onClick={handleBulkModalCancel} />
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-[630px] mx-4">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h5 className="text-lg font-semibold text-red-600 m-0!">
-                        No Pro version or expired license. Please purchase or renew to access features.
-                    </h5>
-                    <button type="button" className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" onClick={handleBulkModalCancel}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div className="px-6 py-5 h-[550px] overflow-y-auto">
-                    <p className="text-sm text-gray-700 mb-2">
-                        Pro Feature offers a range of enhanced functionalities and benefits...
-                    </p>
-                    <hr className="border-gray-200 my-2" />
-                    <div className="space-y-1">
-                        {data.map((item, index) => (
-                            <div key={index} className="flex items-start gap-3 py-2">
-                                <svg className="w-10 h-10 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                                </svg>
-                                <div>
-                                    <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
-                                    <p className="text-sm text-gray-700 mt-0.5">{item.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <p className="text-sm text-red-600 mt-3">
-                        Support our development efforts for the WordPress community by purchasing the Pro version, enabling us to create more innovative products.
-                    </p>
-                    <hr className="border-gray-200 my-3" />
-                </div>
-
-                {/* Footer */}
+        <Modal
+            isOpen={stateValue.generalData.openProModal}
+            onClose={handleBulkModalCancel}
+            maxWidth="max-w-[630px]"
+            title={
+                <h5 className="text-lg font-semibold text-red-600 m-0!">
+                    No Pro version or expired license. Please purchase or renew to access features.
+                </h5>
+            }
+            footer={
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                    <button type="button" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors" onClick={handleBulkModalCancel}>
+                    <button
+                        type="button"
+                        className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={handleBulkModalCancel}
+                    >
                         Cancel
                     </button>
-                    <a target="_blank" href={`${tsmltParams.proLink}#tiny-pricing-plan`} className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline">
+                    <a
+                        target="_blank"
+                        href={`${tsmltParams.proLink}#tiny-pricing-plan`}
+                        className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline"
+                    >
                         Get Pro Version
                     </a>
-                    <a target="_blank" href={tsmltParams.proLink} className="px-5 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline">
+                    <a
+                        target="_blank"
+                        href={tsmltParams.proLink}
+                        className="px-5 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline"
+                    >
                         Visit Websites
                     </a>
                 </div>
+            }
+        >
+            <div className="px-6 py-5 h-[550px] overflow-y-auto">
+                <p className="text-sm text-gray-700 mb-2">
+                    Pro Feature offers a range of enhanced functionalities and benefits...
+                </p>
+                <hr className="border-gray-200 my-2" />
+                <div className="space-y-1">
+                    {data.map((item, index) => (
+                        <div key={index} className="flex items-start gap-3 py-2">
+                            <svg className="w-10 h-10 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                            </svg>
+                            <div>
+                                <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
+                                <p className="text-sm text-gray-700 mt-0.5">{item.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-sm text-red-600 mt-3">
+                    Support our development efforts for the WordPress community by purchasing the Pro version, enabling us to create more innovative products.
+                </p>
+                <hr className="border-gray-200 my-3" />
             </div>
-        </div>
+        </Modal>
     );
 }
 export default ProModal;

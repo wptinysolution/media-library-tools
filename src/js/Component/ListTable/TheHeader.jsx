@@ -1,8 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-import {
-    defaultBulkSubmitData
-} from '@/js/Utils/UtilData';
+import { defaultBulkSubmitData } from '@/js/Utils/UtilData';
 
 import { useStateValue } from "@/js/Utils/StateProvider";
 
@@ -11,6 +9,8 @@ import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
 
 import { notifications } from "@/js/Utils/Data";
+
+import SearchInput from "@/js/Component/Common/SearchInput";
 
 const bulkOptions = [
     { value: 'csv_export', label: 'Export CSV' },
@@ -69,10 +69,7 @@ function TheHeader() {
         if ('bulkEditPostTitle' === stateValue.bulkSubmitData.type && !tsmltParams.hasExtended) {
             dispatch({
                 type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
+                generalData: { ...stateValue.generalData, openProModal: true },
             });
             return;
         }
@@ -87,10 +84,7 @@ function TheHeader() {
                     ...stateValue,
                     type: Types.EXPORT_CSV,
                     saveType: Types.EXPORT_CSV,
-                    bulkExport: {
-                        ...stateValue.bulkExport,
-                        isModalOpen: true,
-                    },
+                    bulkExport: { ...stateValue.bulkExport, isModalOpen: true },
                 });
                 break;
             case 'trash':
@@ -98,11 +92,7 @@ function TheHeader() {
             case 'update':
             case 'delete':
             case 'searchUses':
-                dispatch({
-                    ...stateValue,
-                    type: Types.BULK_SUBMIT,
-                    saveType: Types.BULK_SUBMIT,
-                });
+                dispatch({ ...stateValue, type: Types.BULK_SUBMIT, saveType: Types.BULK_SUBMIT });
                 break;
             case 'bulkedit':
             case 'bulkEditPostTitle':
@@ -110,10 +100,7 @@ function TheHeader() {
                     ...stateValue,
                     type: Types.BULK_SUBMIT,
                     saveType: null,
-                    bulkSubmitData: {
-                        ...stateValue.bulkSubmitData,
-                        isModalOpen: true,
-                    },
+                    bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: true },
                 });
                 break;
             default:
@@ -129,10 +116,7 @@ function TheHeader() {
             type: Types.GET_MEDIA_LIST,
             mediaData: {
                 ...stateValue.mediaData,
-                postQuery: {
-                    ...stateValue.mediaData.postQuery,
-                    searchKeyWords: search
-                }
+                postQuery: { ...stateValue.mediaData.postQuery, searchKeyWords: search }
             },
         });
         console.log(search);
@@ -147,8 +131,6 @@ function TheHeader() {
     const filteredBulkOptions = postQuery.filtering && 'trash' === postQuery.status
         ? bulkOptions.filter(item => 'trash' !== item.value)
         : bulkOptions.filter(item => 'inherit' !== item.value);
-
-    // console.log('stateValue.generalData?.dateList', stateValue.generalData?.dateList );
 
     return (
         <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -214,27 +196,10 @@ function TheHeader() {
                 </select>
 
                 {/* Search Input */}
-                <div className="relative">
-                    <input
-                        type="text"
-                        className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Keywords..."
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <svg
-                        className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                    </svg>
-                </div>
+                <SearchInput
+                    placeholder="Keywords..."
+                    onChange={(e) => setSearch(e.target.value)}
+                />
 
                 {/* Edit Mode Toggle Button */}
                 <button
@@ -277,10 +242,7 @@ function TheHeader() {
                     onChange={(event) => {
                         dispatch({
                             type: Types.UPDATE_OPTIONS,
-                            options: {
-                                ...stateValue.options,
-                                media_per_page: event.target.value,
-                            }
+                            options: { ...stateValue.options, media_per_page: event.target.value },
                         });
                     }}
                     value={stateValue.options.media_per_page}
