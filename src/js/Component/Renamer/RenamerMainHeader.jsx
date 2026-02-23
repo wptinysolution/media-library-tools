@@ -88,7 +88,7 @@ function RenamerMainHeader() {
             <div className="flex flex-wrap items-center gap-3">
                 {/* Bulk Apply Select */}
                 <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[285px] bg-white"
+                    className="!px-4 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none min-w-[285px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
                     onChange={(e) => handleChangeBulkType(e.target.value)}
                     defaultValue=""
                 >
@@ -138,7 +138,7 @@ function RenamerMainHeader() {
                 <input
                     ref={inputRef}
                     type="number"
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-20 !px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
                     onBlur={() => setSaveType(Types.UPDATE_OPTIONS)}
                     onChange={(event) => setOptions({ media_per_page: event.target.value })}
                     value={options.media_per_page}

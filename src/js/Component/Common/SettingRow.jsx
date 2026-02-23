@@ -1,10 +1,10 @@
 export default function SettingRow({ label, children, bordered = false }) {
     return (
-        <div className={`flex items-start gap-8 ${bordered ? 'pt-6 border-t border-gray-200' : ''}`}>
-            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+        <div className={`flex items-start gap-8 ${bordered ? 'pt-6 border-t border-gray-100' : ''}`}>
+            <label className="text-sm font-semibold text-gray-700 whitespace-nowrap pt-1 min-w-[200px]">
                 {label}
             </label>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-3">
                 {children}
             </div>
         </div>
