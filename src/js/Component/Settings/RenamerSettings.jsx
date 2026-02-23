@@ -4,6 +4,10 @@ import { useStateValue } from '@/js/Utils/StateProvider';
 
 import * as Types from "@/js/Utils/actionType";
 
+import CheckboxField from "@/js/Component/Common/CheckboxField";
+import TextInput from "@/js/Component/Common/TextInput";
+import SettingRow from "@/js/Component/Common/SettingRow";
+
 export default function RenamerSettings() {
     const [stateValue, dispatch] = useStateValue();
 
@@ -43,9 +47,7 @@ export default function RenamerSettings() {
                                 <label className="text-base font-medium text-gray-900">Rename prefix</label>
                                 {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
                             </div>
-                            <input
-                                type="text"
-                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            <TextInput
                                 placeholder="Prefix"
                                 onChange={(event) =>
                                     dispatch({
@@ -65,9 +67,7 @@ export default function RenamerSettings() {
                                 <label className="text-base font-medium text-gray-900">Rename suffix</label>
                                 {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
                             </div>
-                            <input
-                                type="text"
-                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            <TextInput
                                 placeholder="Suffix"
                                 onChange={(event) =>
                                     dispatch({
@@ -85,75 +85,51 @@ export default function RenamerSettings() {
                 </div>
 
                 {/* Rename based on attached posts */}
-                <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                        Rename based on attached posts:
-                    </label>
-                    <div className="flex-1 space-y-2">
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                onChange={setDefaultText}
-                                name="auto_rename_by_post_title"
-                                value="auto_rename_by_post_title"
-                                checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
-                            />
-                            <span className="text-base text-gray-900">
-                                Auto Rename by post title
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                            </span>
-                        </label>
-                        <p className="text-sm text-gray-500">
-                            When you edit a post and upload an image, it will be renamed automatically based on the post title.
-                        </p>
-                    </div>
-                </div>
+                <SettingRow label="Rename based on attached posts:" bordered>
+                    <CheckboxField
+                        name="auto_rename_by_post_title"
+                        value="auto_rename_by_post_title"
+                        checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
+                        onChange={setDefaultText}
+                        label="Auto Rename by post title"
+                        isPro={!tsmltParams.hasExtended}
+                    />
+                    <p className="text-sm text-gray-500">
+                        When you edit a post and upload an image, it will be renamed automatically based on the post title.
+                    </p>
+                </SettingRow>
 
                 {/* Others Media Auto Rename */}
-                <div className="flex items-start gap-8 pt-6 border-t border-gray-200">
-                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
-                        Others Media Auto Rename:
-                    </label>
-                    <div className="flex-1 space-y-2">
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                onChange={setDefaultText}
-                                name="enable_auto_rename"
-                                value="enable_auto_rename"
-                                checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                <SettingRow label="Others Media Auto Rename:" bordered>
+                    <CheckboxField
+                        name="enable_auto_rename"
+                        value="enable_auto_rename"
+                        checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                        onChange={setDefaultText}
+                        label="Custom text"
+                        isPro={!tsmltParams.hasExtended}
+                    />
+                    <p className="text-sm text-gray-500">
+                        Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
+                    </p>
+                    {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
+                        <div className="pt-4 space-y-2">
+                            <TextInput
+                                placeholder="file name"
+                                onChange={(event) =>
+                                    dispatch({
+                                        type: Types.UPDATE_OPTIONS,
+                                        options: { ...stateValue.options, media_auto_rename_text: event.target.value },
+                                    })
+                                }
+                                value={stateValue.options.media_auto_rename_text}
                             />
-                            <span className="text-base text-gray-900">
-                                Custom text
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
-                            </span>
-                        </label>
-                        <p className="text-sm text-gray-500">
-                            Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
-                        </p>
-                        {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
-                            <div className="pt-4 space-y-2">
-                                <input
-                                    type="text"
-                                    className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="file name"
-                                    onChange={(event) =>
-                                        dispatch({
-                                            type: Types.UPDATE_OPTIONS,
-                                            options: { ...stateValue.options, media_auto_rename_text: event.target.value },
-                                        })
-                                    }
-                                    value={stateValue.options.media_auto_rename_text}
-                                />
-                                <p className="text-sm text-red-600">
-                                    Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br /> Example: File Name
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                            <p className="text-sm text-red-600">
+                                Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br /> Example: File Name
+                            </p>
+                        </div>
+                    )}
+                </SettingRow>
             </div>
         </div>
     );

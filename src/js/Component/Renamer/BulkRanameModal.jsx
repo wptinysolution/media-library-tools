@@ -10,6 +10,8 @@ import Modal from "@/js/Component/Common/Modal";
 
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 
+import TextInput from "@/js/Component/Common/TextInput";
+
 function BulkModal() {
 
     const [stateValue, dispatch] = useStateValue();
@@ -143,13 +145,12 @@ function BulkModal() {
                         <p className="text-sm text-red-600 mb-3">
                             Prefix and suffix will not apply here.
                         </p>
-                        <input
-                            type="text"
-                            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+                        <TextInput
                             onChange={balkModalDataChange}
                             name="file_name"
                             value={stateValue.bulkSubmitData.data.file_name}
                             placeholder="File Name"
+                            className="mb-4"
                         />
                         {!stateValue.bulkSubmitData.ids.length && (
                             <p className="text-sm text-red-600 mb-2">

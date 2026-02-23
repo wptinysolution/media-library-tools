@@ -1,6 +1,7 @@
 import React from "react";
 
 import ProgressBar from "@/js/Component/Common/ProgressBar";
+import CheckboxField from "@/js/Component/Common/CheckboxField";
 
 const checkboxOptions = [
     { label: 'File Title Based on Attached Post', value: 'post_title' },
@@ -22,15 +23,13 @@ export default function BulkAssignForm({ selectedValues, onToggle, progressBar }
                 </h5>
                 <div className="flex flex-col gap-3">
                     {checkboxOptions.map((option) => (
-                        <label key={option.value} className="inline-flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                checked={(selectedValues || []).includes(option.value)}
-                                onChange={(e) => onToggle(option.value, e.target.checked)}
-                            />
-                            <span className="text-sm text-gray-900">{option.label}</span>
-                        </label>
+                        <CheckboxField
+                            key={option.value}
+                            value={option.value}
+                            checked={(selectedValues || []).includes(option.value)}
+                            onChange={(e) => onToggle(option.value, e.target.checked)}
+                            label={option.label}
+                        />
                     ))}
                 </div>
             </div>
