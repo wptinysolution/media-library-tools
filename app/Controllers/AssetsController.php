@@ -74,7 +74,14 @@ class AssetsController {
 		}
 		global $pagenow;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce needed for page check.
-		if ( 'upload.php' === $pagenow && 'media-library-tools' === sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) ) ) {
+		$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
+		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro' ];
+
+		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) ) {
+			wp_enqueue_style( 'tsmlt-settings-style' );
+		}
+
+		if ( 'upload.php' === $pagenow && 'media-library-tools' === $current_page ) {
 			// Enqueue ThickBox scripts and styles.
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
