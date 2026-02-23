@@ -145,7 +145,7 @@ function RenamerMainHeader() {
 
                 {/* Items Per Page Label */}
                 <button
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium cursor-pointer"
                     onClick={() => inputRef.current?.focus()}
                 >
                     Items Per page (Max-1000)

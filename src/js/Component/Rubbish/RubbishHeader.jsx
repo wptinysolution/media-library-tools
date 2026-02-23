@@ -221,7 +221,7 @@ function RubbishHeader() {
 
                 {/* Items Per Page */}
                 <button
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium cursor-pointer"
                     onClick={() => perPageRef.current?.focus()}
                 >
                     Items Per page
