@@ -18,7 +18,7 @@ import Settings from "@/js/Component/Settings";
 import NeedSupport from "@/js/Component/NeedSupport";
 import * as Types from "@/js/Utils/actionType";
 import Datatable from "@/js/Component/ListTable/Datatable";
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
 import RenamerTableData from "@/js/Component/Renamer/RenamerTableData";
 import RubbishFile from "@/js/Component/Rubbish/RubbishFile";
@@ -29,18 +29,20 @@ import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 
 function App() {
-    const [stateValue, dispatch] = useStateValue();
+    const {
+        saveType, setSaveType,
+        mediaData, setMediaData,
+        options, setOptions,
+        generalData, setGeneralData,
+        singleMedia,
+        rename,
+        bulkSubmitData, setBulkSubmitData,
+    } = useStore();
 
     const getTheOptins = async () => {
         const response = await getOptions();
         const preparedData = await JSON.parse(response.data);
-        await dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: {
-                ...preparedData,
-                isLoading: false,
-            }
-        });
+        setOptions({ ...preparedData, isLoading: false });
     }
 
     const getDateAndTermsList = async () => {
@@ -48,57 +50,31 @@ function App() {
         const preparedDate = await JSON.parse(responseDate.data);
         const responseTerms = await getTerms();
         const preparedTerms = await JSON.parse(responseTerms.data);
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                dateList: preparedDate,
-                termsList: preparedTerms,
-                isLoading: false,
-            },
-        })
+        setGeneralData({ dateList: preparedDate, termsList: preparedTerms, isLoading: false });
     }
 
     const getTheMedia = async () => {
-        const response = await getMedia(stateValue.mediaData.postQuery);
-        await dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                ...response,
-                isLoading: false
-            },
-        });
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                bulkChecked: false,
-                ids: []
-            }
-        });
+        const response = await getMedia(mediaData.postQuery);
+        setMediaData({ ...response, isLoading: false });
+        setBulkSubmitData({ bulkChecked: false, ids: [] });
     }
 
     const handleUpdateOption = async () => {
-        const response = await updateOptins(stateValue.options);
+        const response = await updateOptins(options);
         if (200 === parseInt(response.status)) {
             await getTheOptins();
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    postQuery: {
-                        ...stateValue.mediaData.postQuery,
-                        media_per_page: stateValue.options.media_per_page,
-                    },
+            setMediaData({
+                postQuery: {
+                    ...mediaData.postQuery,
+                    media_per_page: options.media_per_page,
                 },
             });
         }
     }
 
     const fileRenamerUpdateSingleMedia = async () => {
-        const currentItemEdited = stateValue.rename;
-        let edited = stateValue.rename.postsdata.originalname && stateValue.rename.postsdata.originalname.localeCompare(stateValue.rename.newname);
+        const currentItemEdited = rename;
+        let edited = rename.postsdata && rename.postsdata.originalname && rename.postsdata.originalname.localeCompare(rename.newname);
         if (edited) {
             const response = await upDateSingleMedia(currentItemEdited);
             if (200 === parseInt(response.status)) {
@@ -107,50 +83,30 @@ function App() {
         }
     }
 
-    const singleMediaUpdateContent = async (event) => {
-        const response = await upDateSingleMedia(stateValue.singleMedia);
-        if (200 === parseInt(response.status)) {
-            // await getTheMedia()
-        }
+    const singleMediaUpdateContent = async () => {
+        await upDateSingleMedia(singleMedia);
     }
 
     const handleBulkModalDataSave = async () => {
-        await dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                isLoading: true
-            },
-        });
-        const response = await submitBulkMediaAction(stateValue.bulkSubmitData);
+        setMediaData({ isLoading: true });
+        const response = await submitBulkMediaAction(bulkSubmitData);
         if (200 === parseInt(response.status) && response.data.updated) {
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: {
-                    ...stateValue.mediaData,
-                    isLoading: false,
-                    postQuery: {
-                        ...stateValue.mediaData.postQuery,
-                        isUpdate: !stateValue.mediaData.postQuery.isUpdate,
-                    },
+            setMediaData({
+                isLoading: false,
+                postQuery: {
+                    ...mediaData.postQuery,
+                    isUpdate: !mediaData.postQuery.isUpdate,
                 },
             });
-            await dispatch({
-                ...stateValue,
-                type: Types.BULK_SUBMIT,
-                saveType: null,
-                bulkSubmitData: {
-                    ...defaultBulkSubmitData,
-                    type: stateValue.bulkSubmitData.type,
-                },
-            });
-            console.log('stateValue', stateValue)
+            setBulkSubmitData({ ...defaultBulkSubmitData, type: bulkSubmitData.type });
+            setSaveType(null);
+            console.log('bulkSubmitData', bulkSubmitData)
         }
         console.log('submitBulkMediaAction');
     };
 
     const handleSave = () => {
-        switch (stateValue.saveType) {
+        switch (saveType) {
             case Types.UPDATE_OPTIONS:
                 handleUpdateOption();
                 break;
@@ -169,7 +125,7 @@ function App() {
 
     useEffect(() => {
         handleSave();
-    }, [stateValue.saveType]);
+    }, [saveType]);
 
     useEffect(() => {
         getTheOptins();
@@ -178,7 +134,7 @@ function App() {
 
     useEffect(() => {
         getTheMedia();
-    }, [stateValue.mediaData.postQuery]);
+    }, [mediaData.postQuery]);
 
     return (
         <div className="p-2.5 bg-white rounded-lg shadow-[0_4px_40px_rgba(0,0,0,0.05)] min-h-screen">

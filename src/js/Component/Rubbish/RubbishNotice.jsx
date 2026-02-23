@@ -1,8 +1,6 @@
 import React from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import { localStoreData } from "@/js/Utils/UtilData";
 
@@ -10,18 +8,15 @@ import Modal from "@/js/Component/Common/Modal";
 
 function RubbishNotice() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { rubbishMedia, setRubbishMedia } = useStore();
 
     const handleNoticeModalHide = () => {
-        dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: { ...stateValue.rubbishMedia, showRubbishNotice: false },
-        });
+        setRubbishMedia({ showRubbishNotice: false });
     };
 
     return (
         <Modal
-            isOpen={stateValue.rubbishMedia.showRubbishNotice}
+            isOpen={rubbishMedia.showRubbishNotice}
             onClose={handleNoticeModalHide}
             title="Notice"
             maxWidth="max-w-[950px]"

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import * as Types from "@/js/Utils/actionType";
 
@@ -10,7 +10,14 @@ import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
 function RubbishHeader() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const {
+        options, setOptions,
+        generalData, setGeneralData,
+        rubbishMedia, setRubbishMedia,
+        bulkRubbishData, setBulkRubbishData,
+        bulkSubmitData, setBulkSubmitData,
+        setSaveType,
+    } = useStore();
 
     const [filterItems, setFilterItems] = useState([]);
 
@@ -31,120 +38,80 @@ function RubbishHeader() {
     };
 
     const handleDirForModal = async () => {
-        if (!stateValue.generalData.isDirModalOpen) {
+        if (!generalData.isDirModalOpen) {
             return;
         }
         const responseDate = await getDirList();
         const preparedDate = await JSON.parse(responseDate.data);
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                scanRubbishDirList: preparedDate.dirList,
-                scanDirNextSchedule: preparedDate.nextSchedule,
-                scanRubbishDirLoading: false,
-            },
+        setGeneralData({
+            scanRubbishDirList: preparedDate.dirList,
+            scanDirNextSchedule: preparedDate.nextSchedule,
+            scanRubbishDirLoading: false,
         });
 
-        await dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                progressTotal: Object.entries(preparedDate.dirList).length
-            },
+        setBulkSubmitData({
+            progressTotal: Object.entries(preparedDate.dirList).length
         });
 
         console.log('getDirList');
     };
 
     const openDirModal = () => {
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                isDirModalOpen: true
-            },
-        });
+        setGeneralData({ isDirModalOpen: true });
     };
 
     const handleChangeBulkType = (value) => {
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                type: value
-            },
-        });
+        setBulkRubbishData({ type: value });
     };
 
     const statusFilterApply = (value) => {
         handleChangeBulkType('default');
-        dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                isLoading: true,
-                postQuery: {
-                    ...stateValue.rubbishMedia.postQuery,
-                    fileStatus: value,
-                    paged: 1,
-                }
-            },
+        setRubbishMedia({
+            isLoading: true,
+            postQuery: {
+                ...rubbishMedia.postQuery,
+                fileStatus: value,
+                paged: 1,
+            }
         });
     };
 
     const fileTypeFilterApply = (value) => {
-        dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                isLoading: true,
-                postQuery: {
-                    ...stateValue.rubbishMedia.postQuery,
-                    filterExtension: value,
-                    paged: 1,
-                }
-            },
+        setRubbishMedia({
+            isLoading: true,
+            postQuery: {
+                ...rubbishMedia.postQuery,
+                filterExtension: value,
+                paged: 1,
+            }
         });
     };
 
     const handleBulkSubmit = async () => {
         if (!tsmltParams.hasExtended) {
-            await dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
-        if (!stateValue.bulkRubbishData.ids.length) {
+        if (!bulkRubbishData.ids.length) {
             notifications(false, 'No checkboxes are checked. Please select at least one item.');
             return;
         }
 
-        if (!stateValue.bulkRubbishData.type || 'default' === stateValue.bulkRubbishData.type) {
+        if (!bulkRubbishData.type || 'default' === bulkRubbishData.type) {
             notifications(false, 'No Actions are selected. Please select one.');
             return;
         }
 
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                isModalOpen: true,
-            },
-        });
+        setBulkRubbishData({ isModalOpen: true });
     };
 
-    let options = [
+    let options_list = [
         { value: 'delete', label: 'Delete' },
         { value: 'ignore', label: 'Ignore' },
     ];
 
-    if ('ignore' === stateValue.rubbishMedia.postQuery.fileStatus) {
-        options = [
+    if ('ignore' === rubbishMedia.postQuery.fileStatus) {
+        options_list = [
             { value: 'show', label: 'Make Deletable' },
         ];
     }
@@ -155,7 +122,7 @@ function RubbishHeader() {
 
     useEffect(() => {
         handleDirForModal();
-    }, [stateValue.generalData.isDirModalOpen]);
+    }, [generalData.isDirModalOpen]);
 
     return (
         <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -171,7 +138,7 @@ function RubbishHeader() {
                     defaultValue=""
                 >
                     <option value="" disabled>Bulk Action</option>
-                    {options.map(option => (
+                    {options_list.map(option => (
                         <option key={option.value} value={option.value}>
                             {option.label}
                         </option>
@@ -191,7 +158,7 @@ function RubbishHeader() {
                 <select
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-[150px] bg-white"
                     onChange={(e) => statusFilterApply(e.target.value || 'show')}
-                    defaultValue={stateValue.rubbishMedia.postQuery.fileStatus || "show"}
+                    defaultValue={rubbishMedia.postQuery.fileStatus || "show"}
                 >
                     <option value="show">Default</option>
                     <option value="ignore">Ignored File</option>
@@ -231,29 +198,13 @@ function RubbishHeader() {
                     type="number"
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     onBlur={async () => {
-                        await dispatch({
-                            ...stateValue,
-                            type: Types.UPDATE_OPTIONS,
-                            saveType: Types.UPDATE_OPTIONS,
-                        });
-                        await dispatch({
-                            type: Types.RUBBISH_MEDIA,
-                            rubbishMedia: {
-                                ...stateValue.rubbishMedia,
-                                isLoading: true,
-                            },
-                        });
+                        setSaveType(Types.UPDATE_OPTIONS);
+                        setRubbishMedia({ isLoading: true });
                     }}
                     onChange={(event) => {
-                        dispatch({
-                            type: Types.UPDATE_OPTIONS,
-                            options: {
-                                ...stateValue.options,
-                                rubbish_per_page: event.target.value,
-                            }
-                        });
+                        setOptions({ rubbish_per_page: event.target.value });
                     }}
-                    value={stateValue.options.rubbish_per_page}
+                    value={options.rubbish_per_page}
                 />
             </div>
             <RubbishConfirmationModal/>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import {useStateValue} from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
 
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction } from "./Data";
@@ -138,62 +138,48 @@ const theImage = ( record ) => {
 
 export function columns(){
 
-    const [stateValue, dispatch] = useStateValue();
+    const { mediaData, setMediaData, singleMedia, setSingleMedia, bulkSubmitData, setBulkSubmitData, setSaveType } = useStore();
 
     const onCheckboxChange = (event) => {
         const value = parseInt(event.target.value, 10);
         const changeData = event.target.checked ? [
-            ...stateValue.bulkSubmitData.ids,
+            ...bulkSubmitData.ids,
             value
-        ] : stateValue.bulkSubmitData.ids.filter( item => item !== value );
+        ] : bulkSubmitData.ids.filter( item => item !== value );
 
         const checkedCount = Object.keys( changeData ).length;
-        const postCount = Object.keys( stateValue.mediaData.posts ).length;
+        const postCount = Object.keys( mediaData.posts ).length;
 
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData:{
-                ...stateValue.bulkSubmitData,
-                bulkChecked : checkedCount && checkedCount === postCount,
-                ids: changeData
-            }
-
+        setBulkSubmitData({
+            bulkChecked : checkedCount && checkedCount === postCount,
+            ids: changeData
         });
-
     };
 
     const onBulkCheck = (event) => {
-        const postsId = event.target.checked ? stateValue.mediaData.posts.map( item => item.ID ) : [];
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                bulkChecked : ! ! postsId.length,
-                progressTotal: postsId.length,
-                ids: postsId
-            },
+        const postsId = event.target.checked ? mediaData.posts.map( item => item.ID ) : [];
+        setBulkSubmitData({
+            bulkChecked : ! ! postsId.length,
+            progressTotal: postsId.length,
+            ids: postsId
         });
     };
 
     const handleSortClick = ( odrby ) => {
-        const { orderby, order } = stateValue.mediaData.postQuery;
-        dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                postQuery : {
-                    ...stateValue.mediaData.postQuery,
-                    orderby: odrby,
-                    paged: 1,
-                    order: odrby === orderby && 'DESC' === order ? 'ASC' : 'DESC',
-                }
-            },
+        const { orderby, order } = mediaData.postQuery;
+        setMediaData({
+            postQuery : {
+                ...mediaData.postQuery,
+                orderby: odrby,
+                paged: 1,
+                order: odrby === orderby && 'DESC' === order ? 'ASC' : 'DESC',
+            }
         });
     };
 
     const handleChange = ( event ) => {
         const currentItem = parseInt( event.target.getAttribute('current') );
-        let posts = stateValue.mediaData.posts;
+        let posts = mediaData.posts;
         let currentData = {
             ID: posts[currentItem].ID,
             [event.target.name] : event.target.value.trim()
@@ -201,46 +187,31 @@ export function columns(){
 
         posts[currentItem][event.target.name] = event.target.value;
 
-        dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                posts: posts,
-                isLoading: false
-            },
-        });
+        setMediaData({ posts: posts, isLoading: false });
 
-        dispatch({
-            type: Types.UPDATE_SINGLE_MEDIA,
-            singleMedia: {
-                ...stateValue.singleMedia,
-                alt_text : null,
-                post_content: null,
-                post_excerpt: null,
-                post_title: null,
-                ...currentData,
-            }
-        });
-
-    }
-    const handleFocusout = ( event ) => {
-        dispatch({
-            ...stateValue,
-            type: Types.UPDATE_SINGLE_MEDIA,
-            saveType: Types.UPDATE_SINGLE_MEDIA,
+        setSingleMedia({
+            alt_text : null,
+            post_content: null,
+            post_excerpt: null,
+            post_title: null,
+            ...currentData,
         });
     }
 
-    const formEdited = stateValue.singleMedia.formEdited;
-    const hasIds = stateValue.bulkSubmitData.ids.length > 0;
+    const handleFocusout = () => {
+        setSaveType(Types.UPDATE_SINGLE_MEDIA);
+    }
+
+    const formEdited = singleMedia.formEdited;
+    const hasIds = bulkSubmitData.ids.length > 0;
 
     return [
         {
             title: <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                ref={(el) => { if (el) el.indeterminate = hasIds && !stateValue.bulkSubmitData.bulkChecked; }}
-                checked={ stateValue.bulkSubmitData.bulkChecked }
+                ref={(el) => { if (el) el.indeterminate = hasIds && !bulkSubmitData.bulkChecked; }}
+                checked={ bulkSubmitData.bulkChecked }
                 onChange={onBulkCheck}
             />,
             key: 'CheckboxID',
@@ -250,7 +221,7 @@ export function columns(){
             render:  ( id, record ) => <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) }
+                checked={ -1 !== bulkSubmitData.ids.indexOf( id ) }
                 name="item_id"
                 value={id}
                 onChange={onCheckboxChange}
@@ -344,51 +315,43 @@ export function columns(){
 
 export function renamerColumns(){
 
-    const [stateValue, dispatch] = useStateValue();
+    const { mediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType } = useStore();
 
     const onCheckboxChange = (event) => {
         const value = parseInt(event.target.value, 10);
         const changeData = event.target.checked ? [
-            ...stateValue.bulkSubmitData.ids,
+            ...bulkSubmitData.ids,
             value
-        ] : stateValue.bulkSubmitData.ids.filter( item => item !== value );
+        ] : bulkSubmitData.ids.filter( item => item !== value );
 
         const checkedCount = Object.keys( changeData ).length;
-        const postCount = Object.keys( stateValue.mediaData.posts ).length;
+        const postCount = Object.keys( mediaData.posts ).length;
 
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData:{
-                ...stateValue.bulkSubmitData,
-                bulkChecked : checkedCount && checkedCount === postCount,
-                ids: changeData,
-                progressTotal: checkedCount
-            }
+        setBulkSubmitData({
+            bulkChecked : checkedCount && checkedCount === postCount,
+            ids: changeData,
+            progressTotal: checkedCount
         });
     };
 
     const onBulkCheck = (event) => {
-        const postsId = event.target.checked ? stateValue.mediaData.posts.map( item => item.ID ) : [];
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                bulkChecked : ! ! postsId.length,
-                progressTotal: postsId.length,
-                ids: postsId
-            },
+        const postsId = event.target.checked ? mediaData.posts.map( item => item.ID ) : [];
+        setBulkSubmitData({
+            bulkChecked : ! ! postsId.length,
+            progressTotal: postsId.length,
+            ids: postsId
         });
     };
 
-    const hasIds = stateValue.bulkSubmitData.ids.length > 0;
+    const hasIds = bulkSubmitData.ids.length > 0;
 
     return [
         {
             title: <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                ref={(el) => { if (el) el.indeterminate = hasIds && !stateValue.bulkSubmitData.bulkChecked; }}
-                checked={ stateValue.bulkSubmitData.bulkChecked }
+                ref={(el) => { if (el) el.indeterminate = hasIds && !bulkSubmitData.bulkChecked; }}
+                checked={ bulkSubmitData.bulkChecked }
                 onChange={onBulkCheck}
             />,
             key: 'CheckboxID',
@@ -398,7 +361,7 @@ export function renamerColumns(){
             render:  ( id, record ) => <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                checked={ -1 !== stateValue.bulkSubmitData.ids.indexOf( id ) }
+                checked={ -1 !== bulkSubmitData.ids.indexOf( id ) }
                 name="item_id"
                 value={id}
                 onChange={onCheckboxChange}
@@ -426,34 +389,25 @@ export function renamerColumns(){
             width: '350px',
             align: 'top',
             render:  ( text, record, i ) =>  <>
-                { stateValue.rename.formEdited ? <div className="flex items-center gap-1 bg-transparent">
+                { rename.formEdited ? <div className="flex items-center gap-1 bg-transparent">
                     <input
                         type="text"
                         className="w-[350px] h-[38px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         name="filebasename"
                         placeholder="The name Shouldn't leave empty"
                         current={i}
-                        onBlur={
-                            () => dispatch({
-                                ...stateValue,
-                                type: Types.UPDATE_RENAMER_MEDIA,
-                                saveType: Types.UPDATE_RENAMER_MEDIA
-                            })
-                        }
+                        onBlur={() => setSaveType(Types.UPDATE_RENAMER_MEDIA)}
                         onChange={
                             ( event ) => {
+                                const { setMediaData, setRename } = useStore.getState();
                                 const currentItem = parseInt( event.target.getAttribute('current') );
                                 if( 'filebasename' ===  event.target.name ){
-                                    const pnlname = stateValue.mediaData.posts[currentItem].thefile;
-                                    stateValue.mediaData.posts[currentItem].thefile.filebasename = event.target.value;
-                                    dispatch({
-                                        type: Types.UPDATE_RENAMER_MEDIA,
-                                        rename : {
-                                            ...stateValue.rename,
-                                            postsdata: pnlname,
-                                            ID: stateValue.mediaData.posts[currentItem].ID,
-                                            newname: event.target.value
-                                        }
+                                    const pnlname = mediaData.posts[currentItem].thefile;
+                                    mediaData.posts[currentItem].thefile.filebasename = event.target.value;
+                                    setRename({
+                                        postsdata: pnlname,
+                                        ID: mediaData.posts[currentItem].ID,
+                                        newname: event.target.value
                                     });
                                 }
                             }
@@ -489,71 +443,52 @@ export function renamerColumns(){
 
 export function RubbishFileColumns(){
 
-    const [stateValue, dispatch] = useStateValue();
+    const { rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData, generalData, setGeneralData } = useStore();
 
     const [ deleteCurrentItem, setDeleteCurrentItem ] = useState(null );
     const [ ignoreCurrentItem, setIgnoreCurrentItem ] = useState(null );
-    /**
-     *
-     * @param event
-     */
+
     const onRubbishBulkCheck = (event) => {
-        const postsId = event.target.checked ? stateValue.rubbishMedia.mediaFile.map( item => item.id ) : [];
-        const files = event.target.checked ? stateValue.rubbishMedia.mediaFile.map(item => ({
+        const postsId = event.target.checked ? rubbishMedia.mediaFile.map( item => item.id ) : [];
+        const files = event.target.checked ? rubbishMedia.mediaFile.map(item => ({
                 id: item.id,
                 path: item.file_path,
             })) : [];
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                bulkChecked : ! ! postsId.length,
-                ids: postsId,
-                files: files,
-                progressTotal: files.length
-            },
+        setBulkRubbishData({
+            bulkChecked : ! ! postsId.length,
+            ids: postsId,
+            files: files,
+            progressTotal: files.length
         });
     };
-    /**
-     *
-     * @param event
-     */
+
     const onCheckboxChange = (event, record) => {
 
         const value = event.target.value ;
         const changeData = event.target.checked ? [
-            ...stateValue.bulkRubbishData.ids,
+            ...bulkRubbishData.ids,
             value
-        ] : stateValue.bulkRubbishData.ids.filter( item => item !== value );
+        ] : bulkRubbishData.ids.filter( item => item !== value );
 
         const changePath = event.target.checked ? [
-            ...stateValue.bulkRubbishData.files,
+            ...bulkRubbishData.files,
             {
                 id: record.id,
                 path: record.file_path,
             }
-        ] : stateValue.bulkRubbishData.files.filter( item => item.id !== record.id );
+        ] : bulkRubbishData.files.filter( item => item.id !== record.id );
 
         const checkedCount = Object.keys( changeData ).length;
-        const postCount = Object.keys( stateValue.rubbishMedia.mediaFile ).length;
+        const postCount = Object.keys( rubbishMedia.mediaFile ).length;
 
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                bulkChecked: ! ! checkedCount && checkedCount === postCount,
-                ids: changeData,
-                files: changePath,
-                progressTotal: checkedCount
-            },
+        setBulkRubbishData({
+            bulkChecked: ! ! checkedCount && checkedCount === postCount,
+            ids: changeData,
+            files: changePath,
+            progressTotal: checkedCount
         });
-
     };
-    /**
-     *
-     * @param data
-     * @returns {Promise<void>}
-     */
+
     const onRubbishSingleAction = async (data, action ) => {
         if ( tsmltParams.hasExtended ){
             let response;
@@ -567,28 +502,15 @@ export function RubbishFileColumns(){
                 response = await rubbishSingleShowAction( data );
             }
             if( 200 === parseInt( response?.status ) ) {
-                const mediaFile = response.data.updated ? stateValue.rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : stateValue.rubbishMedia.mediaFile;
-                await dispatch({
-                    type: Types.RUBBISH_MEDIA,
-                    rubbishMedia:{
-                        ...stateValue.rubbishMedia,
-                        mediaFile: mediaFile
-                    }
-                });
+                const mediaFile = response.data.updated ? rubbishMedia.mediaFile.filter( ( item ) => data.id !=  item.id ) : rubbishMedia.mediaFile;
+                await setRubbishMedia({ mediaFile });
                 setIgnoreCurrentItem( null );
                 setDeleteCurrentItem( null );
             }
             return ;
         }
 
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                openProModal: true,
-            },
-        });
-
+        setGeneralData({ openProModal: true });
     };
 
     const rubbishHead = [
@@ -596,7 +518,7 @@ export function RubbishFileColumns(){
             title: <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                checked={ stateValue.bulkRubbishData.bulkChecked }
+                checked={ bulkRubbishData.bulkChecked }
                 onChange={onRubbishBulkCheck}
             />,
             key: 'CheckboxID',
@@ -606,7 +528,7 @@ export function RubbishFileColumns(){
             render:  ( id, record ) => <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                checked={ -1 !== stateValue.bulkRubbishData.ids.indexOf( id ) }
+                checked={ -1 !== bulkRubbishData.ids.indexOf( id ) }
                 name="item_id"
                 value={id}
                 onChange={ ( event ) => onCheckboxChange(event, record) }
@@ -635,7 +557,7 @@ export function RubbishFileColumns(){
             width: '450px',
             render: ( text, record, i ) => <span className="flex flex-wrap gap-2">
                 {
-                    'ignore' == stateValue.rubbishMedia.postQuery.fileStatus ? (
+                    'ignore' == rubbishMedia.postQuery.fileStatus ? (
                         <button
                             className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
                             onClick={ () => onRubbishSingleAction( record, 'show' ) }

@@ -1,8 +1,6 @@
 import React from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import { clearSchedule } from "@/js/Utils/Data";
 
@@ -12,7 +10,7 @@ function MainHeader() {
 
     let { pathname } = useLocation();
 
-    const [stateValue, dispatch] = useStateValue();
+    const { setBulkSubmitData } = useStore();
 
     const pat = ['/export', '/import'].includes(String(pathname)) ? '/exportImport' : pathname;
 
@@ -105,14 +103,7 @@ function MainHeader() {
         if (key === '/rubbishFile') {
             clearSchedule();
         }
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                bulkChecked: false,
-                ids: [],
-            },
-        });
+        setBulkSubmitData({ bulkChecked: false, ids: [] });
     };
 
     return (

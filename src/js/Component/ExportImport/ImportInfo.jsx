@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import { importOneByOne } from "@/js/Utils/Data";
 
@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 
 function ImportInfo() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { exportImport } = useStore();
 
     const [percent, setPercent] = useState(0);
 
@@ -16,7 +16,7 @@ function ImportInfo() {
 
     const [currentFile, setCurrentFile] = useState(null);
 
-    const totalMedia = stateValue.exportImport.totalPage;
+    const totalMedia = exportImport.totalPage;
 
     const getFileNameFromURL = (url) => {
         if (!url) {
@@ -40,9 +40,9 @@ function ImportInfo() {
         }
 
         const firstObject = mediaFiles.shift();
-        if (firstObject['url']?.length || stateValue.exportImport.settings.importUpdateContent) {
+        if (firstObject['url']?.length || exportImport.settings.importUpdateContent) {
             setCurrentFile(firstObject['url']);
-            const importedItem = await importOneByOne({ media: firstObject, settings: stateValue.exportImport.settings });
+            const importedItem = await importOneByOne({ media: firstObject, settings: exportImport.settings });
             await setUploadedFile((prevState) => [
                 ...prevState,
                 importedItem.data
@@ -54,7 +54,7 @@ function ImportInfo() {
     };
 
     useEffect(() => {
-        uploadMediaRecursively(stateValue.exportImport.mediaFiles);
+        uploadMediaRecursively(exportImport.mediaFiles);
     }, []);
 
     return (

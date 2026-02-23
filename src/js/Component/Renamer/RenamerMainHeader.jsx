@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 
 import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import * as Types from "@/js/Utils/actionType";
 
@@ -16,34 +16,30 @@ import SearchInput from "@/js/Component/Common/SearchInput";
 
 function RenamerMainHeader() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const {
+        mediaData, setMediaData,
+        options, setOptions,
+        generalData, setGeneralData,
+        rename, setRename,
+        bulkSubmitData, setBulkSubmitData,
+        setSaveType,
+    } = useStore();
 
     const [search, setSearch] = useSearchDebounce();
 
     const inputRef = useRef(null);
 
     const handleChangeBulkType = (value) => {
-        const data = 'bulkRename' === value ? stateValue.bulkSubmitData.data : defaultBulkSubmitData.data;
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                type: value,
-                data,
-            },
-        });
+        const data = 'bulkRename' === value ? bulkSubmitData.data : defaultBulkSubmitData.data;
+        setBulkSubmitData({ type: value, data });
     };
 
     const upDateQuery = async () => {
-        if (stateValue.mediaData.postQuery.searchKeyWords === search) {
+        if (mediaData.postQuery.searchKeyWords === search) {
             return;
         }
-        await dispatch({
-            type: Types.GET_MEDIA_LIST,
-            mediaData: {
-                ...stateValue.mediaData,
-                postQuery: { ...stateValue.mediaData.postQuery, searchKeyWords: search }
-            },
+        setMediaData({
+            postQuery: { ...mediaData.postQuery, searchKeyWords: search }
         });
         console.log('search', search);
     };
@@ -53,41 +49,34 @@ function RenamerMainHeader() {
     }, [search]);
 
     const handleBulkSubmit = () => {
-        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(stateValue.bulkSubmitData.type) && !tsmltParams.hasExtended) {
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: { ...stateValue.generalData, openProModal: true },
-            });
+        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
+            setGeneralData({ openProModal: true });
             return;
         }
 
-        if (!stateValue.bulkSubmitData.ids.length) {
+        if (!bulkSubmitData.ids.length) {
             notifications(false, 'No checkboxes are checked. Please select at least one item.');
             return;
         }
 
-        switch (stateValue.bulkSubmitData.type) {
+        switch (bulkSubmitData.type) {
             case 'bulkRename':
             case 'bulkRenameBySKU':
             case 'bulkRenameByPostTitle':
-                dispatch({
-                    ...stateValue,
-                    type: Types.BULK_SUBMIT,
-                    saveType: null,
-                    bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: true },
-                });
+                setBulkSubmitData({ isModalOpen: true });
+                setSaveType(null);
                 break;
             default:
                 notifications(false, 'No Actions are selected. Please select one.');
         }
     };
 
-    const options = [
+    const options_list = [
         { value: 'bulkRename', label: 'Bulk Rename' },
         { value: 'bulkRenameByPostTitle', label: 'Rename Based on Attached Post Title' },
     ];
     if (tsmltParams?.hasWoo) {
-        options.push({ value: 'bulkRenameBySKU', label: 'Rename Based on Product SKU' });
+        options_list.push({ value: 'bulkRenameBySKU', label: 'Rename Based on Product SKU' });
     }
 
     return (
@@ -104,7 +93,7 @@ function RenamerMainHeader() {
                     defaultValue=""
                 >
                     <option value="" disabled>Bulk Apply</option>
-                    {options.map(option => (
+                    {options_list.map(option => (
                         <option key={option.value} value={option.value}>
                             {option.label}
                         </option>
@@ -128,19 +117,13 @@ function RenamerMainHeader() {
                 {/* Edit Mode Toggle Button */}
                 <button
                     className={`px-6 py-2 border rounded-lg transition-colors font-medium w-[180px] cursor-pointer ${
-                        stateValue.rename.formEdited
+                        rename.formEdited
                             ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
                             : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'
                     }`}
-                    onClick={() => dispatch({
-                        type: Types.UPDATE_RENAMER_MEDIA,
-                        rename: {
-                            ...stateValue.rename,
-                            formEdited: !stateValue.rename.formEdited,
-                        }
-                    })}
+                    onClick={() => setRename({ formEdited: !rename.formEdited })}
                 >
-                    {stateValue.rename.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
+                    {rename.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
                 </button>
 
                 {/* Items Per Page Label */}
@@ -156,17 +139,9 @@ function RenamerMainHeader() {
                     ref={inputRef}
                     type="number"
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onBlur={() => dispatch({
-                        ...stateValue,
-                        type: Types.UPDATE_OPTIONS,
-                        saveType: Types.UPDATE_OPTIONS,
-                    })}
-                    onChange={(event) => dispatch({
-                        ...stateValue,
-                        type: Types.UPDATE_OPTIONS,
-                        options: { ...stateValue.options, media_per_page: event.target.value },
-                    })}
-                    value={stateValue.options.media_per_page}
+                    onBlur={() => setSaveType(Types.UPDATE_OPTIONS)}
+                    onChange={(event) => setOptions({ media_per_page: event.target.value })}
+                    value={options.media_per_page}
                 />
             </div>
             <BulkRanameModal />

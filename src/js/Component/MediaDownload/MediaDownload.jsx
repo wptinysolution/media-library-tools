@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useStateValue } from "@/js/Utils/StateProvider";
+import React from 'react';
+import { useStore } from "@/js/Utils/store";
 import MainHeader from "@/js/Component/MainHeader";
 import Loader from "@/js/Utils/Loader";
 import {CopyToClipboard} from "@/js/Component/CopyToClipboard.jsx";
 
 function MediaDownload() {
-    const [stateValue, dispatch] = useStateValue();
+    const { generalData } = useStore();
     const ShortcodeCard = ( props ) => {
         const {
             label,
@@ -99,7 +99,7 @@ function MediaDownload() {
     return (
         <>
             <MainHeader />
-            {stateValue.generalData.isLoading ? (
+            {generalData.isLoading ? (
                 <Loader />
             ) : (
                 <div className="p-6 bg-white/35 rounded-lg shadow-sm">

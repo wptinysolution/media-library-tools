@@ -1,12 +1,10 @@
 import React, { useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import RubbishHeader from "./RubbishHeader";
 
 import Loader from "@/js/Utils/Loader";
-
-import * as Types from "@/js/Utils/actionType";
 
 import { RubbishFileColumns } from "@/js/Utils/UtilData";
 
@@ -24,44 +22,32 @@ import Pagination from "@/js/Component/Common/Pagination";
 
 function RubbishFile() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { saveType, rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData } = useStore();
 
     const getTheRubbishFile = async () => {
-        const rubbishFile = await getRubbishFile(stateValue.rubbishMedia.postQuery);
-        await dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                isLoading: false,
-                mediaFile: rubbishFile.mediaFile,
-                paged: rubbishFile.paged,
-                totalPost: rubbishFile.totalPost,
-                postsPerPage: rubbishFile.postsPerPage
-            }
+        const rubbishFile = await getRubbishFile(rubbishMedia.postQuery);
+        setRubbishMedia({
+            isLoading: false,
+            mediaFile: rubbishFile.mediaFile,
+            paged: rubbishFile.paged,
+            totalPost: rubbishFile.totalPost,
+            postsPerPage: rubbishFile.postsPerPage
         });
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                bulkChecked: false,
-                files: [],
-                ids: [],
-            },
+        setBulkRubbishData({
+            bulkChecked: false,
+            files: [],
+            ids: [],
         });
         console.log('getTheRubbishFile');
     };
 
     const handlePagination = (current) => {
-        dispatch({
-            type: Types.RUBBISH_MEDIA,
-            rubbishMedia: {
-                ...stateValue.rubbishMedia,
-                postQuery: {
-                    ...stateValue.rubbishMedia.postQuery,
-                    paged: current,
-                    isQueryUpdate: true
-                }
-            },
+        setRubbishMedia({
+            postQuery: {
+                ...rubbishMedia.postQuery,
+                paged: current,
+                isQueryUpdate: true
+            }
         });
     };
 
@@ -69,20 +55,20 @@ function RubbishFile() {
 
     useEffect(() => {
         getTheRubbishFile();
-    }, [stateValue.rubbishMedia.postQuery, stateValue.saveType]);
+    }, [rubbishMedia.postQuery, saveType]);
 
-    const totalPosts = stateValue.rubbishMedia.totalPost || 0;
-    const postsPerPage = stateValue.rubbishMedia.postsPerPage || 20;
-    const currentPage = stateValue.rubbishMedia.paged || 1;
+    const totalPosts = rubbishMedia.totalPost || 0;
+    const postsPerPage = rubbishMedia.postsPerPage || 20;
+    const currentPage = rubbishMedia.paged || 1;
     const totalPages = Math.ceil(totalPosts / postsPerPage);
-    const posts = stateValue.rubbishMedia.mediaFile || [];
+    const posts = rubbishMedia.mediaFile || [];
 
     return (
         <>
             <MainHeader />
             <div className="min-h-screen bg-gray-50">
                 <RubbishHeader />
-                {stateValue.rubbishMedia.isLoading ? <Loader /> : (
+                {rubbishMedia.isLoading ? <Loader /> : (
                     <>
                         <DataTable
                             columns={rubbishColumns}

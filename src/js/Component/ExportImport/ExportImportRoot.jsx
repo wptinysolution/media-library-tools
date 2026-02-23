@@ -1,21 +1,15 @@
 import React, { useEffect } from "react";
 
-import * as Types from "@/js/Utils/actionType";
+import { useStore, initialExportImport } from "@/js/Utils/store";
 
 import MainHeader from "@/js/Component/MainHeader";
 
-import { initialState } from "@/js/Utils/reducer";
-import { useStateValue } from "@/js/Utils/StateProvider";
-
 function ExportImportRoot() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { setExportImport } = useStore();
 
-    const resetExportImport = async () => {
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: initialState.exportImport,
-        });
+    const resetExportImport = () => {
+        setExportImport(initialExportImport);
     };
 
     useEffect(() => {

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import { rubbishBulkDeleteApi, singleDeleteApi, singleIgnoreApi, singleShowApi } from "@/js/Utils/Data";
 
@@ -12,7 +10,7 @@ import ProgressBar from "@/js/Component/Common/ProgressBar";
 
 function RubbishConfirmationModal() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData } = useStore();
 
     const [buttonDisabled, setButtonDisabled] = useState(true);
 
@@ -22,12 +20,8 @@ function RubbishConfirmationModal() {
 
     const rubbishBulkActionRecursively = async (prams) => {
         let response = {};
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: {
-                ...stateValue.bulkRubbishData,
-                progressBar: Math.floor(100 * (stateValue.bulkRubbishData.progressTotal - prams.files.length) / stateValue.bulkRubbishData.progressTotal),
-            },
+        setBulkRubbishData({
+            progressBar: Math.floor(100 * (bulkRubbishData.progressTotal - prams.files.length) / bulkRubbishData.progressTotal),
         });
         setTotal(prams.files.length);
         if (prams.files.length === 0) {
@@ -36,12 +30,12 @@ function RubbishConfirmationModal() {
         }
         const file = prams.files[0];
 
-        if ('ignore' === stateValue.bulkRubbishData.type) {
+        if ('ignore' === bulkRubbishData.type) {
             response = await singleIgnoreApi({ file_path: file.path });
-        } else if (tsmltParams?.proVersion && 'delete' === stateValue.bulkRubbishData.type) {
+        } else if (tsmltParams?.proVersion && 'delete' === bulkRubbishData.type) {
             response = await rubbishBulkDeleteApi({ file_paths: prams.files });
             prams.files = [];
-        } else if ('show' === stateValue.bulkRubbishData.type) {
+        } else if ('show' === bulkRubbishData.type) {
             response = await singleShowApi({ file_path: file.path });
         }
         setTheFile(prevState => file.path);
@@ -54,54 +48,43 @@ function RubbishConfirmationModal() {
 
     const handleBulkModalOk = async () => {
         setButtonDisabled(true);
-        const response = await rubbishBulkActionRecursively(stateValue.bulkRubbishData);
+        const response = await rubbishBulkActionRecursively(bulkRubbishData);
         if (200 === response?.status) {
             setTimeout(() => {
-                dispatch({
-                    type: Types.BALK_RUBBISH,
-                    bulkRubbishData: {
-                        ...stateValue.bulkRubbishData,
-                        bulkChecked: false,
-                        progressBar: false,
-                        progressTotal: 0,
-                        isModalOpen: false,
-                        files: [],
-                        ids: []
-                    },
+                setBulkRubbishData({
+                    bulkChecked: false,
+                    progressBar: false,
+                    progressTotal: 0,
+                    isModalOpen: false,
+                    files: [],
+                    ids: []
                 });
             }, 1000);
 
-            await dispatch({
-                type: Types.RUBBISH_MEDIA,
-                rubbishMedia: {
-                    ...stateValue.rubbishMedia,
-                    postQuery: {
-                        ...stateValue.rubbishMedia.postQuery,
-                        isQueryUpdate: !stateValue.rubbishMedia.postQuery.isQueryUpdate
-                    }
-                },
+            setRubbishMedia({
+                postQuery: {
+                    ...rubbishMedia.postQuery,
+                    isQueryUpdate: !rubbishMedia.postQuery.isQueryUpdate
+                }
             });
         }
     };
 
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.BALK_RUBBISH,
-            bulkRubbishData: { ...stateValue.bulkRubbishData, isModalOpen: false },
-        });
+        setBulkRubbishData({ isModalOpen: false });
     };
 
     useEffect(() => {
-        if (stateValue.bulkRubbishData.isModalOpen) {
-            setButtonDisabled(!stateValue.bulkRubbishData.ids.length);
+        if (bulkRubbishData.isModalOpen) {
+            setButtonDisabled(!bulkRubbishData.ids.length);
         }
-    }, [stateValue.bulkRubbishData.isModalOpen]);
+    }, [bulkRubbishData.isModalOpen]);
 
     return (
         <Modal
-            isOpen={stateValue.bulkRubbishData.isModalOpen}
+            isOpen={bulkRubbishData.isModalOpen}
             onClose={handleBulkModalCancel}
-            title={`Bulk ${'ignore' === stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete'} Action`}
+            title={`Bulk ${'ignore' === bulkRubbishData.type ? 'Ignore' : 'Delete'} Action`}
             maxWidth="max-w-[520px]"
             closeOnBackdrop={false}
             footer={
@@ -120,7 +103,7 @@ function RubbishConfirmationModal() {
                         onClick={handleBulkModalOk}
                         disabled={buttonDisabled}
                     >
-                        {'ignore' === stateValue.bulkRubbishData.type ? 'Ignore' : 'Delete'}
+                        {'ignore' === bulkRubbishData.type ? 'Ignore' : 'Delete'}
                     </button>
                 </div>
             }
@@ -130,7 +113,7 @@ function RubbishConfirmationModal() {
                 <h5 className="text-base font-semibold text-gray-900 mb-4">
                     {!buttonDisabled ? (
                         <>
-                            Are You Confirm {'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'show' === stateValue.bulkRubbishData.type ? 'To Make Deletable' : 'To Delete'}?
+                            Are You Confirm {'ignore' === bulkRubbishData.type ? 'To Ignore' : 'show' === bulkRubbishData.type ? 'To Make Deletable' : 'To Delete'}?
                         </>
                     ) : (
                         <span className="inline-flex items-center gap-2 flex-wrap">
@@ -139,14 +122,14 @@ function RubbishConfirmationModal() {
                     )}
                 </h5>
 
-                {stateValue.bulkRubbishData.progressBar >= 0 && (
+                {bulkRubbishData.progressBar >= 0 && (
                     <div className="mb-3">
-                        <ProgressBar percent={stateValue.bulkRubbishData.progressBar} />
+                        <ProgressBar percent={bulkRubbishData.progressBar} />
                     </div>
                 )}
-                {!stateValue.bulkRubbishData.ids.length && (
+                {!bulkRubbishData.ids.length && (
                     <p className="text-sm text-red-600">
-                        No Item selected {'ignore' === stateValue.bulkRubbishData.type ? 'To Ignore' : 'To Delete'}
+                        No Item selected {'ignore' === bulkRubbishData.type ? 'To Ignore' : 'To Delete'}
                     </p>
                 )}
                 <div className="flex items-start gap-2 overflow-hidden max-w-full text-sm text-gray-600">

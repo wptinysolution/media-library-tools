@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import { getMedia } from "@/js/Utils/Data";
 
@@ -12,28 +10,21 @@ import ExportModalCSV from "./ExportModalCSV";
 
 function ExportButton() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { exportImport, setExportImport, mediaData, setGeneralData } = useStore();
 
     const [percent, setPercent] = useState(0);
 
     const [isModalOpen, setModalOpen] = useState(false);
 
-    const isExport = stateValue.exportImport.isExport;
+    const isExport = exportImport.isExport;
 
     const handleExport = async (type) => {
         if (!tsmltParams.hasExtended) {
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
 
-        let exportImport = {
-            ...stateValue.exportImport,
+        setExportImport({
             isExport: 'export' === type,
             isImport: false,
             runImporter: false,
@@ -42,9 +33,7 @@ function ExportButton() {
             fileCount: 0,
             percent: 0,
             totalPage: 0,
-        };
-
-        await dispatch({ type: Types.EXPORT_IMPORT, exportImport });
+        });
 
         let allMedia = [];
         let page = 1;
@@ -53,7 +42,7 @@ function ExportButton() {
         try {
             do {
                 const query = {
-                    ...stateValue.mediaData.postQuery,
+                    ...mediaData.postQuery,
                     paged: page,
                 };
 
@@ -69,15 +58,11 @@ function ExportButton() {
 
                 page++;
             } while (page <= totalPages);
-            dispatch({
-                type: Types.EXPORT_IMPORT,
-                exportImport: {
-                    ...exportImport,
-                    mediaFiles: allMedia,
-                    fileCount: allMedia.length,
-                    percent: 100,
-                    totalPage: totalPages,
-                },
+            setExportImport({
+                mediaFiles: allMedia,
+                fileCount: allMedia.length,
+                percent: 100,
+                totalPage: totalPages,
             });
         } catch (error) {
             console.error('Export failed:', error);

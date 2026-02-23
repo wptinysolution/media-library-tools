@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import MainHeader from "@/js/Component/MainHeader";
 
@@ -19,12 +19,12 @@ import SaveButton from '@/js/Component/SaveButton';
  */
 function ImageSize() {
 
-    const [ stateValue, dispatch ] = useStateValue();
+    const { generalData } = useStore();
 
     return (
         <>
             <MainHeader/>
-            { stateValue.generalData.isLoading ? <Loader/> :
+            { generalData.isLoading ? <Loader/> :
                 <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
                     <div className="max-w-7xl mx-auto px-6 py-8">
                         <div className="space-y-8">

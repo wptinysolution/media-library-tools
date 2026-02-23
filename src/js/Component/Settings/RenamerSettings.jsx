@@ -1,31 +1,22 @@
 import React from 'react';
 
-import { useStateValue } from '@/js/Utils/StateProvider';
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from '@/js/Utils/store';
 
 import CheckboxField from "@/js/Component/Common/CheckboxField";
 import TextInput from "@/js/Component/Common/TextInput";
 import SettingRow from "@/js/Component/Common/SettingRow";
 
 export default function RenamerSettings() {
-    const [stateValue, dispatch] = useStateValue();
+    const { options, setOptions, setGeneralData } = useStore();
 
     const setDefaultText = (e) => {
         const proFields = ['enable_auto_rename', 'auto_rename_by_post_title'];
         if (!tsmltParams.hasExtended && proFields.includes(e.target.name)) {
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: { ...stateValue.generalData, openProModal: true },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: {
-                ...stateValue.options,
-                [e.target.name]: stateValue.options[e.target.name] !== e.target.value ? e.target.value : '',
-            },
+        setOptions({
+            [e.target.name]: options[e.target.name] !== e.target.value ? e.target.value : '',
         });
     };
 
@@ -49,13 +40,8 @@ export default function RenamerSettings() {
                             </div>
                             <TextInput
                                 placeholder="Prefix"
-                                onChange={(event) =>
-                                    dispatch({
-                                        type: Types.UPDATE_OPTIONS,
-                                        options: { ...stateValue.options, media_rename_prefix: event.target.value },
-                                    })
-                                }
-                                value={stateValue.options.media_rename_prefix}
+                                onChange={(event) => setOptions({ media_rename_prefix: event.target.value })}
+                                value={options.media_rename_prefix}
                             />
                             <p className="text-sm text-gray-500">
                                 A file rename prefix is a set of characters, words, or numbers added at the beginning of a filename when renaming it. This helps in organizing files, improving SEO, or maintaining a consistent naming convention.
@@ -69,13 +55,8 @@ export default function RenamerSettings() {
                             </div>
                             <TextInput
                                 placeholder="Suffix"
-                                onChange={(event) =>
-                                    dispatch({
-                                        type: Types.UPDATE_OPTIONS,
-                                        options: { ...stateValue.options, media_rename_suffix: event.target.value },
-                                    })
-                                }
-                                value={stateValue.options.media_rename_suffix}
+                                onChange={(event) => setOptions({ media_rename_suffix: event.target.value })}
+                                value={options.media_rename_suffix}
                             />
                             <p className="text-sm text-gray-500">
                                 A file rename suffix is a set of characters, words, or numbers added at the end of a filename when renaming it. This helps differentiate files, improve SEO, or maintain a structured naming convention.
@@ -89,7 +70,7 @@ export default function RenamerSettings() {
                     <CheckboxField
                         name="auto_rename_by_post_title"
                         value="auto_rename_by_post_title"
-                        checked={'auto_rename_by_post_title' === stateValue.options.auto_rename_by_post_title}
+                        checked={'auto_rename_by_post_title' === options.auto_rename_by_post_title}
                         onChange={setDefaultText}
                         label="Auto Rename by post title"
                         isPro={!tsmltParams.hasExtended}
@@ -104,7 +85,7 @@ export default function RenamerSettings() {
                     <CheckboxField
                         name="enable_auto_rename"
                         value="enable_auto_rename"
-                        checked={'enable_auto_rename' === stateValue.options.enable_auto_rename}
+                        checked={'enable_auto_rename' === options.enable_auto_rename}
                         onChange={setDefaultText}
                         label="Custom text"
                         isPro={!tsmltParams.hasExtended}
@@ -112,17 +93,12 @@ export default function RenamerSettings() {
                     <p className="text-sm text-gray-500">
                         Auto rename will apply automatically when upload Media file. File name will be unique by incremental number. Example: file-name.jpg next one file-name-1.jpg
                     </p>
-                    {tsmltParams.hasExtended && 'enable_auto_rename' === stateValue.options.enable_auto_rename && (
+                    {tsmltParams.hasExtended && 'enable_auto_rename' === options.enable_auto_rename && (
                         <div className="pt-4 space-y-2">
                             <TextInput
                                 placeholder="file name"
-                                onChange={(event) =>
-                                    dispatch({
-                                        type: Types.UPDATE_OPTIONS,
-                                        options: { ...stateValue.options, media_auto_rename_text: event.target.value },
-                                    })
-                                }
-                                value={stateValue.options.media_auto_rename_text}
+                                onChange={(event) => setOptions({ media_auto_rename_text: event.target.value })}
+                                value={options.media_auto_rename_text}
                             />
                             <p className="text-sm text-red-600">
                                 Required Field. Write file name without extension. Remember !! Empty Value will not apply. <br /> Example: File Name

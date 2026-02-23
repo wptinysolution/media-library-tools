@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStateValue } from '@/js/Utils/StateProvider';
+import { useStore } from '@/js/Utils/store';
 
 import Loader from '@/js/Utils/Loader';
 
@@ -19,14 +19,14 @@ import DescriptionSettings from '@/js/Component/Settings/DescriptionSettings';
 import RenamerSettings from '@/js/Component/Settings/RenamerSettings';
 
 function Settings() {
-    const [stateValue] = useStateValue();
+    const { options } = useStore();
 
     return (
         <>
             <MainHeader />
             <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
                 <div className="max-w-7xl mx-auto px-6 py-8">
-                    {stateValue.options.isLoading ? (
+                    {options.isLoading ? (
                         <Loader fullScreen />
                     ) : (
                         <div className="space-y-8">

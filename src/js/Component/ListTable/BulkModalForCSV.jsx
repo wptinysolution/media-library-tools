@@ -2,25 +2,22 @@ import React, { useState, useEffect } from "react";
 
 import DownloadCSV from "@/js/Component/ListTable/DownloadCSV";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
-import * as Types from "@/js/Utils/actionType";
-
-import { initialState } from "@/js/Utils/reducer";
+import { initialBulkExport } from "@/js/Utils/store";
 
 import Modal from "@/js/Component/Common/Modal";
 
 function BulkModalForCSV() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { mediaData, bulkSubmitData, bulkExport, setBulkExport } = useStore();
 
-    const bulkExportData = stateValue.bulkExport;
-    const defaultKeys = initialState.bulkExport.selectedKeys;
+    const defaultKeys = initialBulkExport.selectedKeys;
 
     const [selectedKeys, setSelectedKeys] = useState(defaultKeys);
 
-    const media = stateValue.mediaData?.posts || [];
-    const selectedIds = stateValue.bulkSubmitData?.ids || [];
+    const media = mediaData?.posts || [];
+    const selectedIds = bulkSubmitData?.ids || [];
     const REQUIRED_KEYS = ['ID', 'slug'];
     const filteredData = media.filter(item => selectedIds.includes(item.ID));
 
@@ -42,10 +39,7 @@ function BulkModalForCSV() {
     }
 
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.EXPORT_CSV,
-            bulkExport: { ...bulkExportData, isModalOpen: false },
-        });
+        setBulkExport({ isModalOpen: false });
     };
 
     const onToggleKey = (key, checked) => {
@@ -56,17 +50,14 @@ function BulkModalForCSV() {
     };
 
     useEffect(() => {
-        dispatch({
-            type: Types.EXPORT_CSV,
-            bulkExport: { ...bulkExportData, selectedKeys },
-        });
+        setBulkExport({ selectedKeys });
     }, [selectedKeys]);
 
-    const keys = bulkExportData.isModalOpen && filteredData.length > 0 ? getSelectedKeysWithMeta() : [];
+    const keys = bulkExport.isModalOpen && filteredData.length > 0 ? getSelectedKeysWithMeta() : [];
 
     return (
         <Modal
-            isOpen={bulkExportData.isModalOpen}
+            isOpen={bulkExport.isModalOpen}
             onClose={handleBulkModalCancel}
             title="Download CSV"
             footer={

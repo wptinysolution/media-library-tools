@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
 
 import Axios from 'axios';
-
-import * as Types from "@/js/Utils/actionType";
 
 import Modal from "@/js/Component/Common/Modal";
 
@@ -15,7 +13,7 @@ import ProgressBar from "@/js/Component/Common/ProgressBar";
 import DirectoryList from "@/js/Component/Rubbish/DirectoryList";
 
 function DirectoryModal() {
-    const [stateValue, dispatch] = useStateValue();
+    const { generalData, setGeneralData } = useStore();
     const [dirListExist, setDirListExist] = useState([]);
     const [scanRubbishDirList, setScanRubbishDirList] = useState([]);
     const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
@@ -27,10 +25,7 @@ function DirectoryModal() {
     const [skip, setSkip] = useState([]);
 
     const handleDirModalCancel = () => {
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: { ...stateValue.generalData, isDirModalOpen: false },
-        });
+        setGeneralData({ isDirModalOpen: false });
     };
 
     const handleDirRescan = async (dir = "all") => {
@@ -89,8 +84,8 @@ function DirectoryModal() {
     };
 
     useEffect(() => {
-        setScanRubbishDirList(stateValue.generalData.scanRubbishDirList);
-    }, [stateValue.generalData.scanRubbishDirList]);
+        setScanRubbishDirList(generalData.scanRubbishDirList);
+    }, [generalData.scanRubbishDirList]);
 
     useEffect(() => {
         const list = Object.entries(scanRubbishDirList).map(([key]) => key);
@@ -107,7 +102,7 @@ function DirectoryModal() {
 
     return (
         <Modal
-            isOpen={stateValue.generalData.isDirModalOpen}
+            isOpen={generalData.isDirModalOpen}
             onClose={handleDirModalCancel}
             title="Directory List"
             maxWidth="max-w-[950px]"

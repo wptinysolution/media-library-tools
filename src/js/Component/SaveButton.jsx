@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStateValue } from '@/js/Utils/StateProvider';
+import { useStore } from '@/js/Utils/store';
 import * as Types from "@/js/Utils/actionType";
 
 function SaveButton({
@@ -9,7 +9,7 @@ function SaveButton({
                         className = '',
                         disabled = false
                     }) {
-    const [stateValue, dispatch] = useStateValue();
+    const { setSaveType } = useStore();
     const [isLoading, setIsLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
@@ -18,14 +18,8 @@ function SaveButton({
     const onClick = async () => {
         setIsLoading(true);
         setIsSaved(false);
-        // Trigger save
-        await dispatch({
-            ...stateValue,
-            type: Types.UPDATE_OPTIONS,
-            saveType: Types.UPDATE_OPTIONS,
-        });
+        setSaveType(Types.UPDATE_OPTIONS);
         setIsSaved(true);
-        // Reset saved state after 2 seconds
         setTimeout(() => {
             setIsSaved(false);
             setIsLoading(false);

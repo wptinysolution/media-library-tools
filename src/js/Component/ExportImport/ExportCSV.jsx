@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { useStateValue } from '@/js/Utils/StateProvider';
+import { useStore } from '@/js/Utils/store';
 import Papa from 'papaparse';
 
 /**
@@ -23,11 +23,10 @@ const escapeValues = (obj) => {
  * @returns {JSX.Element}
  */
 function ExportCSV() {
-    const [stateValue] = useStateValue();
+    const { exportImport, bulkExport } = useStore();
     const [csvData, setCsvData] = useState('');
-    const bulkExportData = stateValue.exportImport;
-    const selectedKeys = stateValue.bulkExport.selectedKeys;
-    const filteredData = bulkExportData?.mediaFiles || [];
+    const filteredData = exportImport?.mediaFiles || [];
+    const selectedKeys = bulkExport.selectedKeys;
 
     const generateCSVStructure = () => {
         if ( filteredData.length < 1 ){

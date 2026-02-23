@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
-
-import * as Types from "@/js/Utils/actionType";
 
 const defaultSize = [
     {
@@ -19,57 +17,33 @@ const defaultSize = [
  * @constructor
  */
 function RegisterSize() {
-    const [ stateValue, dispatch ] = useStateValue();
-    let sizes  = stateValue.options?.custom_image_sizes || defaultSize;
+    const { options, setOptions, setGeneralData } = useStore();
+    let sizes  = options?.custom_image_sizes || defaultSize;
     sizes = sizes.length > 0 ? sizes : defaultSize;
     /**
      * @returns {Promise<void>}
      */
     const registerImageSize = (index, key, value) => {
         if ( ! tsmltParams.hasExtended ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
         let val = 'sizeKey' === key ? value.replace(/\s+/g, '_') : value ;
         const updatedSizes = sizes.map((size, i) => {
             return i === index ? { ...size, [key]: val } : size;
         } );
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options : {
-                ...stateValue.options,
-                custom_image_sizes: updatedSizes,
-            }
-        });
+        setOptions({ custom_image_sizes: updatedSizes });
     }
     /**
      * Add New Image Size
      */
     const addNewImageSize = () => {
         if ( ! tsmltParams.hasExtended ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
         const validSizes = sizes.filter( size => size?.sizeKey );
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options : {
-                ...stateValue.options,
-                custom_image_sizes: [ ...validSizes, ...defaultSize],
-            }
-        });
+        setOptions({ custom_image_sizes: [ ...validSizes, ...defaultSize] });
     }
 
     /**
@@ -77,23 +51,11 @@ function RegisterSize() {
      */
     const deleteImageSize = ( sizeKey ) => {
         if ( ! tsmltParams.hasExtended ){
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
         const validSizes = sizes.filter( size => sizeKey !== size?.sizeKey );
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options : {
-                ...stateValue.options,
-                custom_image_sizes: validSizes,
-            }
-        });
+        setOptions({ custom_image_sizes: validSizes });
     }
 
     return (

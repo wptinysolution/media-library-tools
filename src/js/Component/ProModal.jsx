@@ -1,20 +1,15 @@
 import React from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import Modal from "@/js/Component/Common/Modal";
 
 function ProModal() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { generalData, setGeneralData } = useStore();
 
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: { ...stateValue.generalData, openProModal: false },
-        });
+        setGeneralData({ openProModal: false });
     };
 
     const data = [
@@ -31,7 +26,7 @@ function ProModal() {
 
     return (
         <Modal
-            isOpen={stateValue.generalData.openProModal}
+            isOpen={generalData.openProModal}
             onClose={handleBulkModalCancel}
             maxWidth="max-w-[630px]"
             title={

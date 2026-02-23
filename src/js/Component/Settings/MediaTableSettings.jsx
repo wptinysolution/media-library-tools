@@ -1,44 +1,33 @@
 import React from 'react';
 
-import { useStateValue } from '@/js/Utils/StateProvider';
+import { useStore } from '@/js/Utils/store';
 
 import { columnList } from '@/js/Utils/UtilData';
 
-import * as Types from "@/js/Utils/actionType";
-
 export default function MediaTableSettings() {
-    const [stateValue, dispatch] = useStateValue();
+    const { options, setOptions } = useStore();
 
     const plainOptions = columnList.map((currentValue) => currentValue.key);
-    const isCheckedDiff = Object.keys(plainOptions).length === Object.keys(stateValue.options.media_table_column).length;
+    const isCheckedDiff = Object.keys(plainOptions).length === Object.keys(options.media_table_column).length;
 
     const onChangeColumnList = (key) => {
-        const currentColumn = stateValue.options.media_table_column;
+        const currentColumn = options.media_table_column;
         const newColumn = currentColumn.includes(key)
             ? currentColumn.filter(item => item !== key)
             : [...currentColumn, key];
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: { ...stateValue.options, media_table_column: newColumn },
-        });
+        setOptions({ media_table_column: newColumn });
     };
 
     const onCheckAllColumn = (e) => {
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: { ...stateValue.options, media_table_column: e.target.checked ? plainOptions : [] },
-        });
+        setOptions({ media_table_column: e.target.checked ? plainOptions : [] });
     };
 
     const onChangeOthersFileList = (value) => {
-        const currentList = stateValue.options.others_file_support || [];
+        const currentList = options.others_file_support || [];
         const newList = currentList.includes(value)
             ? currentList.filter(item => item !== value)
             : [...currentList, value];
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: { ...stateValue.options, others_file_support: newList },
-        });
+        setOptions({ others_file_support: newList });
     };
 
     return (
@@ -64,7 +53,7 @@ export default function MediaTableSettings() {
                                     <input
                                         type="checkbox"
                                         className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                        checked={stateValue.options.media_table_column.includes(column.key)}
+                                        checked={options.media_table_column.includes(column.key)}
                                         onChange={() => onChangeColumnList(column.key)}
                                     />
                                     <span className="text-base text-gray-900">{column.title}</span>
@@ -85,7 +74,7 @@ export default function MediaTableSettings() {
                             <input
                                 type="checkbox"
                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                checked={(stateValue.options.others_file_support || []).includes('svg')}
+                                checked={(options.others_file_support || []).includes('svg')}
                                 onChange={() => onChangeOthersFileList('svg')}
                             />
                             <span className="text-base text-gray-900">SVG</span>

@@ -1,10 +1,8 @@
 import React from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import ImportInfo from "./ImportInfo";
-
-import * as Types from "@/js/Utils/actionType";
 
 import UploadCsv from "./UploadCsv";
 
@@ -12,23 +10,16 @@ import MainHeader from "@/js/Component/MainHeader";
 
 function ImportButton() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { exportImport, setExportImport, setGeneralData } = useStore();
 
-    const isImport = stateValue.exportImport.isImport;
+    const isImport = exportImport.isImport;
 
-    const handleImport = async (type) => {
+    const handleImport = (type) => {
         if (!tsmltParams.hasExtended) {
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: {
-                    ...stateValue.generalData,
-                    openProModal: true,
-                },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
-        let exportImport = {
-            ...stateValue.exportImport,
+        setExportImport({
             isImport: 'import' === type,
             runImporter: false,
             runExporter: false,
@@ -36,11 +27,6 @@ function ImportButton() {
             fileCount: 0,
             percent: 0,
             totalPage: 0,
-        };
-
-        await dispatch({
-            type: Types.EXPORT_IMPORT,
-            exportImport: exportImport,
         });
     };
 
@@ -58,7 +44,7 @@ function ImportButton() {
 
                         {isImport && (
                             <>
-                                {stateValue.exportImport.runImporter ? <ImportInfo/> : ''}
+                                {exportImport.runImporter ? <ImportInfo/> : ''}
                                 <div className="flex flex-wrap justify-center">
                                     <UploadCsv/>
                                 </div>

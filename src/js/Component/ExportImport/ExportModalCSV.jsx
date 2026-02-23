@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore, initialBulkExport } from "@/js/Utils/store";
 
-import * as Types from "@/js/Utils/actionType";
-import { initialState } from "@/js/Utils/reducer";
 import ExportCSV from "./ExportCSV";
 
 function ExportModalCSV(props) {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { exportImport, setBulkExport } = useStore();
 
-    const bulkExportData = stateValue.exportImport;
-    const defaultKeys = initialState.bulkExport.selectedKeys;
+    const filteredData = exportImport?.mediaFiles || [];
+    const defaultKeys = initialBulkExport.selectedKeys;
 
     const [selectedKeys, setSelectedKeys] = useState(defaultKeys);
-
-    const filteredData = bulkExportData?.mediaFiles || [];
 
     const REQUIRED_KEYS = ['ID', 'slug'];
 
@@ -48,13 +44,7 @@ function ExportModalCSV(props) {
     };
 
     useEffect(() => {
-        dispatch({
-            type: Types.EXPORT_CSV,
-            bulkExport: {
-                ...bulkExportData,
-                selectedKeys: selectedKeys
-            },
-        });
+        setBulkExport({ selectedKeys });
     }, [selectedKeys]);
 
     useEffect(() => {

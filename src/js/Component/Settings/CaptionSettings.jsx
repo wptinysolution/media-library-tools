@@ -1,30 +1,21 @@
 import React from 'react';
 
-import { useStateValue } from '@/js/Utils/StateProvider';
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from '@/js/Utils/store';
 
 import CheckboxField from "@/js/Component/Common/CheckboxField";
 import Textarea from "@/js/Component/Common/Textarea";
 import SettingRow from "@/js/Component/Common/SettingRow";
 
 export default function CaptionSettings() {
-    const [stateValue, dispatch] = useStateValue();
+    const { options, setOptions, setGeneralData } = useStore();
 
     const setDefaultText = (e) => {
         if (!tsmltParams.hasExtended && e.target.name === 'caption_text_by_post_title') {
-            dispatch({
-                type: Types.GENERAL_DATA,
-                generalData: { ...stateValue.generalData, openProModal: true },
-            });
+            setGeneralData({ openProModal: true });
             return;
         }
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options: {
-                ...stateValue.options,
-                [e.target.name]: stateValue.options[e.target.name] !== e.target.value ? e.target.value : '',
-            },
+        setOptions({
+            [e.target.name]: options[e.target.name] !== e.target.value ? e.target.value : '',
         });
     };
 
@@ -35,7 +26,7 @@ export default function CaptionSettings() {
                 <CheckboxField
                     name="caption_text_by_post_title"
                     value="caption_text_by_post_title"
-                    checked={'caption_text_by_post_title' === stateValue.options.caption_text_by_post_title}
+                    checked={'caption_text_by_post_title' === options.caption_text_by_post_title}
                     onChange={setDefaultText}
                     label="Default Caption Text Base On Post Title"
                     isPro={!tsmltParams.hasExtended}
@@ -51,7 +42,7 @@ export default function CaptionSettings() {
                     <CheckboxField
                         name="default_caption_text"
                         value="image_name_to_caption"
-                        checked={'image_name_to_caption' === stateValue.options.default_caption_text}
+                        checked={'image_name_to_caption' === options.default_caption_text}
                         onChange={setDefaultText}
                         label="Image name use as caption"
                     />
@@ -59,23 +50,18 @@ export default function CaptionSettings() {
                     <CheckboxField
                         name="default_caption_text"
                         value="custom_text_to_caption"
-                        checked={'custom_text_to_caption' === stateValue.options.default_caption_text}
+                        checked={'custom_text_to_caption' === options.default_caption_text}
                         onChange={setDefaultText}
                         label="Custom text"
                     />
                 </div>
 
-                {'custom_text_to_caption' === stateValue.options.default_caption_text && (
+                {'custom_text_to_caption' === options.default_caption_text && (
                     <div className="pt-4">
                         <Textarea
                             placeholder="Enter your custom caption..."
-                            onChange={(event) =>
-                                dispatch({
-                                    type: Types.UPDATE_OPTIONS,
-                                    options: { ...stateValue.options, media_default_caption: event.target.value },
-                                })
-                            }
-                            value={stateValue.options.media_default_caption}
+                            onChange={(event) => setOptions({ media_default_caption: event.target.value })}
+                            value={options.media_default_caption}
                         />
                     </div>
                 )}

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
-
-import * as Types from "@/js/Utils/actionType";
+import { useStore } from "@/js/Utils/store";
 
 import { getMedia, singleUpDateApi } from "@/js/Utils/Data";
 
@@ -14,29 +12,22 @@ import TextInput from "@/js/Component/Common/TextInput";
 
 function BulkModal() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData } = useStore();
 
     const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const balkModalDataChange = (event) => {
         const data = {
-            ...stateValue.bulkSubmitData.data,
+            ...bulkSubmitData.data,
             [event.target.name]: event.target.value
         };
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: { ...stateValue.bulkSubmitData, data },
-        });
-        setIsButtonDisabled(!stateValue.bulkSubmitData.ids.length || !data.file_name.length > 0);
+        setBulkSubmitData({ data });
+        setIsButtonDisabled(!bulkSubmitData.ids.length || !data.file_name.length > 0);
     };
 
     const renameIdsRecursively = async (prams) => {
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                progressBar: Math.floor(100 * (stateValue.bulkSubmitData.progressTotal - prams.ids.length) / stateValue.bulkSubmitData.progressTotal),
-            },
+        setBulkSubmitData({
+            progressBar: Math.floor(100 * (bulkSubmitData.progressTotal - prams.ids.length) / bulkSubmitData.progressTotal),
         });
         if (prams.ids.length === 0) {
             return;
@@ -44,9 +35,9 @@ function BulkModal() {
         const id = prams.ids[0];
         let newName;
 
-        if (stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle') {
+        if (bulkSubmitData.type === 'bulkRenameByPostTitle') {
             newName = 'bulkRenameByPostTitle';
-        } else if (stateValue.bulkSubmitData.type === 'bulkRenameBySKU') {
+        } else if (bulkSubmitData.type === 'bulkRenameBySKU') {
             newName = 'bulkRenameBySKU';
         } else {
             newName = prams.data.file_name;
@@ -62,48 +53,39 @@ function BulkModal() {
 
     const handleBulkModalOk = async () => {
         setIsButtonDisabled(true);
-        const response = await renameIdsRecursively(stateValue.bulkSubmitData);
+        const response = await renameIdsRecursively(bulkSubmitData);
         if (200 === response?.status) {
             setTimeout(() => {
-                dispatch({
-                    type: Types.BULK_SUBMIT,
-                    bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: false },
-                });
+                setBulkSubmitData({ isModalOpen: false });
             }, 1000);
-            const response = await getMedia(stateValue.mediaData.postQuery);
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: { ...stateValue.mediaData, ...response, isLoading: false },
-            });
+            const res = await getMedia(mediaData.postQuery);
+            setMediaData({ ...res, isLoading: false });
             setIsButtonDisabled(false);
         }
     };
 
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: false },
-        });
+        setBulkSubmitData({ isModalOpen: false });
     };
 
     const isTheButtonDisabled = () => {
-        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(stateValue.bulkSubmitData.type)) {
+        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(bulkSubmitData.type)) {
             setIsButtonDisabled(false);
         } else {
-            const isDisable = !stateValue.bulkSubmitData.ids.length || !stateValue.bulkSubmitData.data.file_name.length;
+            const isDisable = !bulkSubmitData.ids.length || !bulkSubmitData.data.file_name.length;
             setIsButtonDisabled(isDisable);
         }
     };
 
     useEffect(() => {
-        if (stateValue.bulkSubmitData.isModalOpen) {
+        if (bulkSubmitData.isModalOpen) {
             isTheButtonDisabled();
         }
-    }, [stateValue.bulkSubmitData.isModalOpen]);
+    }, [bulkSubmitData.isModalOpen]);
 
     return (
         <Modal
-            isOpen={stateValue.bulkSubmitData.isModalOpen}
+            isOpen={bulkSubmitData.isModalOpen}
             onClose={handleBulkModalCancel}
             title="Bulk Rename"
             maxWidth="max-w-[520px]"
@@ -131,11 +113,11 @@ function BulkModal() {
         >
             <div className="px-6 py-5">
                 <hr className="border-gray-200 mb-4" />
-                {stateValue.bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
+                {bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
                     <h5 className="text-base font-semibold text-gray-900 mb-4">
                         Are You Sure Bulk Rename Based on Associated Post Title?
                     </h5>
-                ) : stateValue.bulkSubmitData.type === 'bulkRenameBySKU' ? (
+                ) : bulkSubmitData.type === 'bulkRenameBySKU' ? (
                     <h5 className="text-base font-semibold text-gray-900 mb-4">
                         Are You Sure Bulk Rename Based on Product SKU?
                     </h5>
@@ -148,16 +130,16 @@ function BulkModal() {
                         <TextInput
                             onChange={balkModalDataChange}
                             name="file_name"
-                            value={stateValue.bulkSubmitData.data.file_name}
+                            value={bulkSubmitData.data.file_name}
                             placeholder="File Name"
                             className="mb-4"
                         />
-                        {!stateValue.bulkSubmitData.ids.length && (
+                        {!bulkSubmitData.ids.length && (
                             <p className="text-sm text-red-600 mb-2">
                                 No Item selected for rename
                             </p>
                         )}
-                        {!stateValue.bulkSubmitData.data.file_name.length && (
+                        {!bulkSubmitData.data.file_name.length && (
                             <p className="text-sm text-red-600 mb-2">
                                 Empty value not allowed.
                             </p>
@@ -166,10 +148,10 @@ function BulkModal() {
                 )}
                 <hr className="border-gray-200 my-4" />
 
-                {stateValue.bulkSubmitData.progressBar >= 0 && (
+                {bulkSubmitData.progressBar >= 0 && (
                     <>
                         <h5 className="text-base font-semibold text-gray-900 mb-2">Progress:</h5>
-                        <ProgressBar percent={stateValue.bulkSubmitData.progressBar} />
+                        <ProgressBar percent={bulkSubmitData.progressBar} />
                     </>
                 )}
                 <hr className="border-gray-200 mt-4" />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import * as Types from "@/js/Utils/actionType";
 
@@ -14,12 +14,11 @@ import BulkAssignForm from "@/js/Component/ListTable/BulkAssignForm";
 
 function BulkModal() {
 
-    const [stateValue, dispatch] = useStateValue();
+    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, setSaveType } = useStore();
     const [IsButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const bulkSubmitData = stateValue.bulkSubmitData;
     const isOpen = bulkSubmitData.isModalOpen;
-    const isBulkAssign = 'bulkEditPostTitle' === stateValue.bulkSubmitData.type;
+    const isBulkAssign = 'bulkEditPostTitle' === bulkSubmitData.type;
 
     useEffect(() => {
         if (isOpen) {
@@ -32,37 +31,30 @@ function BulkModal() {
             ...bulkSubmitData.data,
             [event.target.name]: event.target.value
         };
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: { ...bulkSubmitData, data },
-        });
+        setBulkSubmitData({ data });
         const changeDetected = Object.values(data).some(value => value !== '');
-        setIsButtonDisabled(!stateValue.bulkSubmitData.ids.length || !changeDetected);
+        setIsButtonDisabled(!bulkSubmitData.ids.length || !changeDetected);
     };
 
     const isTheButtonDisabled = () => {
         let changeDetected = false;
-        if ('bulkEditPostTitle' === stateValue.bulkSubmitData.type) {
-            changeDetected = stateValue.bulkSubmitData.will_attached_post_title.length;
+        if ('bulkEditPostTitle' === bulkSubmitData.type) {
+            changeDetected = bulkSubmitData.will_attached_post_title.length;
         } else {
-            changeDetected = Object.values(stateValue.bulkSubmitData.data).some(value => value !== '');
+            changeDetected = Object.values(bulkSubmitData.data).some(value => value !== '');
         }
-        setIsButtonDisabled(!stateValue.bulkSubmitData.ids.length || !changeDetected);
+        setIsButtonDisabled(!bulkSubmitData.ids.length || !changeDetected);
     };
 
     const addDataRecursively = async (prams) => {
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: {
-                ...stateValue.bulkSubmitData,
-                progressBar: Math.floor(100 * (stateValue.bulkSubmitData.progressTotal - prams.ids.length) / stateValue.bulkSubmitData.progressTotal),
-            },
+        setBulkSubmitData({
+            progressBar: Math.floor(100 * (bulkSubmitData.progressTotal - prams.ids.length) / bulkSubmitData.progressTotal),
         });
         if (prams.ids.length === 0) {
             return;
         }
         const id = prams.ids[0];
-        const response = await singleUpDateApi({ bulkEditPostTitle: stateValue.bulkSubmitData.will_attached_post_title, ID: id });
+        const response = await singleUpDateApi({ bulkEditPostTitle: bulkSubmitData.will_attached_post_title, ID: id });
         if (prams.ids.length && response.status) {
             await addDataRecursively({ ...prams, ids: prams.ids.slice(1) });
         }
@@ -71,45 +63,33 @@ function BulkModal() {
 
     const mediaHandleBulkModalOk = async () => {
         setIsButtonDisabled(true);
-        const response = await addDataRecursively(stateValue.bulkSubmitData);
+        const response = await addDataRecursively(bulkSubmitData);
         if (200 === response?.status) {
             setTimeout(() => {
-                dispatch({
-                    type: Types.BULK_SUBMIT,
-                    bulkSubmitData: { ...stateValue.bulkSubmitData, isModalOpen: false },
-                });
+                setBulkSubmitData({ isModalOpen: false });
             }, 1000);
-            const response = await getMedia(stateValue.mediaData.postQuery);
-            await dispatch({
-                type: Types.GET_MEDIA_LIST,
-                mediaData: { ...stateValue.mediaData, ...response, isLoading: false },
-            });
+            const res = await getMedia(mediaData.postQuery);
+            setMediaData({ ...res, isLoading: false });
             setIsButtonDisabled(false);
         }
     };
 
     const handleBulkModalOk = () => {
-        if ('bulkEditPostTitle' === stateValue.bulkSubmitData.type) {
+        if ('bulkEditPostTitle' === bulkSubmitData.type) {
             mediaHandleBulkModalOk();
         } else {
-            dispatch({ ...stateValue, type: Types.BULK_SUBMIT, saveType: Types.BULK_SUBMIT });
+            setSaveType(Types.BULK_SUBMIT);
         }
     };
 
     const handleBulkModalCancel = () => {
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: { ...bulkSubmitData, isModalOpen: false },
-        });
+        setBulkSubmitData({ isModalOpen: false });
     };
 
     const onToggleCheckbox = (value, checked) => {
         const current = bulkSubmitData.will_attached_post_title || [];
         const list = checked ? [...current, value] : current.filter(v => v !== value);
-        dispatch({
-            type: Types.BULK_SUBMIT,
-            bulkSubmitData: { ...bulkSubmitData, will_attached_post_title: list },
-        });
+        setBulkSubmitData({ will_attached_post_title: list });
         setIsButtonDisabled(!list.length);
     };
 
@@ -147,7 +127,7 @@ function BulkModal() {
                     <BulkAssignForm
                         selectedValues={bulkSubmitData.will_attached_post_title}
                         onToggle={onToggleCheckbox}
-                        progressBar={stateValue.bulkSubmitData.progressBar}
+                        progressBar={bulkSubmitData.progressBar}
                     />
                 ) : (
                     <BulkEditForm

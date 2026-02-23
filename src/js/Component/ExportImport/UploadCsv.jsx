@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 import Papa from 'papaparse';
 
-import * as Types from "@/js/Utils/actionType";
-
 function UploadCsv() {
-    const [stateValue, dispatch] = useStateValue();
+    const { exportImport, setExportImport } = useStore();
     const [filename, setFilename] = useState('');
     const fileInputRef = useRef(null);
 
@@ -32,15 +30,11 @@ function UploadCsv() {
                             header: true,
                             dynamicTyping: true,
                             complete: (results) => {
-                                dispatch({
-                                    type: Types.EXPORT_IMPORT,
-                                    exportImport: {
-                                        ...stateValue.exportImport,
-                                        mediaFiles: results.data,
-                                        fileCount: results.data.length,
-                                        percent: 0,
-                                        totalPage: results.data.length,
-                                    },
+                                setExportImport({
+                                    mediaFiles: results.data,
+                                    fileCount: results.data.length,
+                                    percent: 0,
+                                    totalPage: results.data.length,
                                 });
                             },
                         });
@@ -67,22 +61,18 @@ function UploadCsv() {
                 onChange={onFileChange}
             />
 
-            {stateValue.exportImport.fileCount && !stateValue.exportImport.runImporter ? (
+            {exportImport.fileCount && !exportImport.runImporter ? (
                 <>
                     <label className="inline-flex items-center gap-2 cursor-pointer mb-2">
                         <input
                             type="checkbox"
                             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            checked={stateValue.exportImport.settings.importUpdateContent}
+                            checked={exportImport.settings.importUpdateContent}
                             onChange={(event) =>
-                                dispatch({
-                                    type: Types.EXPORT_IMPORT,
-                                    exportImport: {
-                                        ...stateValue.exportImport,
-                                        settings: {
-                                            ...stateValue.exportImport.settings,
-                                            importUpdateContent: event.target.checked ? 'update' : false,
-                                        },
+                                setExportImport({
+                                    settings: {
+                                        ...exportImport.settings,
+                                        importUpdateContent: event.target.checked ? 'update' : false,
                                     },
                                 })
                             }
@@ -96,22 +86,18 @@ function UploadCsv() {
                         Media that do not exist will be skipped and missing column data will remain unchanged.
                     </span>
                     <hr className="border-gray-200 my-3" />
-                    {stateValue.exportImport.settings.importUpdateContent ? (
+                    {exportImport.settings.importUpdateContent ? (
                         <>
                             <label className="inline-flex items-center gap-2 cursor-pointer mb-2">
                                 <input
                                     type="checkbox"
                                     className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                    checked={stateValue.exportImport.settings.importRename}
+                                    checked={exportImport.settings.importRename}
                                     onChange={(event) =>
-                                        dispatch({
-                                            type: Types.EXPORT_IMPORT,
-                                            exportImport: {
-                                                ...stateValue.exportImport,
-                                                settings: {
-                                                    ...stateValue.exportImport.settings,
-                                                    importRename: event.target.checked ? 'importRename' : false,
-                                                },
+                                        setExportImport({
+                                            settings: {
+                                                ...exportImport.settings,
+                                                importRename: event.target.checked ? 'importRename' : false,
                                             },
                                         })
                                     }
@@ -136,15 +122,7 @@ function UploadCsv() {
                     <button
                         type="button"
                         className="w-[280px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto"
-                        onClick={() =>
-                            dispatch({
-                                type: Types.EXPORT_IMPORT,
-                                exportImport: {
-                                    ...stateValue.exportImport,
-                                    runImporter: true,
-                                },
-                            })
-                        }
+                        onClick={() => setExportImport({ runImporter: true })}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -160,7 +138,7 @@ function UploadCsv() {
                 ''
             )}
 
-            {!stateValue.exportImport.fileCount ? (
+            {!exportImport.fileCount ? (
                 <button
                     type="button"
                     className="w-[280px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 cursor-pointer transition-colors font-medium mx-auto"

@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 
-import { useStateValue } from "@/js/Utils/StateProvider";
+import { useStore } from "@/js/Utils/store";
 
 import { getRegisteredImageSizes } from "@/js/Utils/Data";
-import * as Types from "@/js/Utils/actionType";
 
 /**
  *
@@ -12,22 +11,16 @@ import * as Types from "@/js/Utils/actionType";
  */
 function DisableSize() {
 
-    const [ stateValue, dispatch ] = useStateValue();
+    const { options, setOptions, generalData, setGeneralData, saveType } = useStore();
 
-    const checkedList =  stateValue.options?.deregistered_image_sizes || [];
-    const sizes = stateValue.generalData?.allImageSizes || [];
+    const checkedList = options?.deregistered_image_sizes || [];
+    const sizes = generalData?.allImageSizes || [];
     /**
      * @returns {Promise<void>}
      */
     const getTheSizes = async () => {
         const response = await getRegisteredImageSizes();
-        await dispatch({
-            type: Types.GENERAL_DATA,
-            generalData: {
-                ...stateValue.generalData,
-                allImageSizes: response.data,
-            },
-        })
+        setGeneralData({ allImageSizes: response.data });
     }
     /**
      * @param e
@@ -36,19 +29,12 @@ function DisableSize() {
     const onCheckbox = (e, value) => {
         let val = e.target.checked ? [...checkedList, value] : checkedList.filter(i => i !== value) ;
         val = [...new Set(val)];
-        dispatch({
-            type: Types.UPDATE_OPTIONS,
-            options : {
-                ...stateValue.options,
-                deregistered_image_sizes: val,
-            }
-        });
-
+        setOptions({ deregistered_image_sizes: val });
     };
 
     useEffect(() => {
         getTheSizes();
-    }, [stateValue?.saveType] );
+    }, [saveType] );
 
     return (
         <div className="flex items-start gap-8">
