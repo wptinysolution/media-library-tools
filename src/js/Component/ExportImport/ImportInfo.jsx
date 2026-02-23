@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import { useStore } from "@/js/Utils/store";
 
@@ -31,31 +31,31 @@ function ImportInfo() {
         location.reload();
     };
 
-    const uploadMediaRecursively = async (mediaFiles) => {
-        const countPercent = Math.floor(100 * (totalMedia - mediaFiles?.length) / totalMedia);
-        await setPercent((prevState) => countPercent);
+    const uploadMediaSequentially = async () => {
+        const mediaFiles = [...exportImport.mediaFiles]; // copy — never mutate store data
+        const total = mediaFiles.length;
 
-        if (mediaFiles?.length <= 0) {
-            return;
+        for (let i = 0; i < total; i++) {
+            const item = mediaFiles[i];
+            setPercent(Math.floor(100 * i / total));
+
+            if (item['url']?.length || exportImport.settings.importUpdateContent) {
+                setCurrentFile(item['url']);
+                const importedItem = await importOneByOne({ media: item, settings: exportImport.settings });
+                setUploadedFile(prev => [...prev, importedItem.data]);
+                setCurrentFile(null);
+            }
         }
 
-        const firstObject = mediaFiles.shift();
-        if (firstObject['url']?.length || exportImport.settings.importUpdateContent) {
-            setCurrentFile(firstObject['url']);
-            const importedItem = await importOneByOne({ media: firstObject, settings: exportImport.settings });
-            await setUploadedFile((prevState) => [
-                ...prevState,
-                importedItem.data
-            ]);
-            setCurrentFile(null);
-        }
-
-        await uploadMediaRecursively(mediaFiles);
+        setPercent(100);
     };
 
     useEffect(() => {
-        uploadMediaRecursively(exportImport.mediaFiles);
+        uploadMediaSequentially();
     }, []);
+
+    // Memoize reversed list — avoid creating a new array on every render
+    const reversedFiles = useMemo(() => [...uploadedFile].reverse(), [uploadedFile]);
 
     return (
         <div className="max-w-[1500px] mx-auto w-full">
@@ -95,9 +95,9 @@ function ImportInfo() {
             )}
             <hr className="border-gray-200 my-4" />
 
-            {uploadedFile.length ? (
+            {reversedFiles.length ? (
                 <div className="h-[400px] overflow-auto px-4 border border-gray-300 rounded-lg">
-                    {uploadedFile.slice().reverse().map((item) => (
+                    {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             <img
                                 src={item.url}

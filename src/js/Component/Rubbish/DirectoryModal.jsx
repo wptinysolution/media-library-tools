@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { useStore } from "@/js/Utils/store";
 
@@ -12,6 +12,8 @@ import ProgressBar from "@/js/Component/Common/ProgressBar";
 
 import DirectoryList from "@/js/Component/Rubbish/DirectoryList";
 
+const MAX_RETRIES = 3;
+
 function DirectoryModal() {
     const { generalData, setGeneralData } = useStore();
     const [dirListExist, setDirListExist] = useState([]);
@@ -21,8 +23,17 @@ function DirectoryModal() {
     const [progressTotal, setProgressTotal] = useState(0);
     const [buttonSpain, setButtonSpain] = useState(null);
     const [instantDeletion, setInstantDeletion] = useState('not-instant');
-
     const [skip, setSkip] = useState([]);
+
+    // Refs to always read the latest values inside async callbacks — avoids stale closures
+    const retryCount = useRef(0);
+    const instantDeletionRef = useRef(instantDeletion);
+    const skipRef = useRef(skip);
+    const progressTotalRef = useRef(progressTotal);
+
+    useEffect(() => { instantDeletionRef.current = instantDeletion; }, [instantDeletion]);
+    useEffect(() => { skipRef.current = skip; }, [skip]);
+    useEffect(() => { progressTotalRef.current = progressTotal; }, [progressTotal]);
 
     const handleDirModalCancel = () => {
         setGeneralData({ isDirModalOpen: false });
@@ -39,29 +50,30 @@ function DirectoryModal() {
     };
 
     const exclude_from_bulk_scan = (dir = "") => {
-        setSkip([...skip, dir]);
+        setSkip(prev => [...prev, dir]);
     };
 
     const processDirectory = () => {
-        var params = new URLSearchParams();
+        const params = new URLSearchParams();
         params.append('action', 'immediately_search_rubbish_file');
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
-        params.append('instantDeletion', instantDeletion);
-        skip.forEach((value) => {
+        // Read from refs to get fresh values — no stale closure issues
+        params.append('instantDeletion', instantDeletionRef.current);
+        skipRef.current.forEach((value) => {
             params.append('skip[]', value);
         });
-        console.log('skip', skip);
+
         Axios
             .post(tsmltParams.ajaxUrl, params)
             .then((response) => {
                 if (response && response.data) {
+                    retryCount.current = 0; // reset on success
                     const { dirList, dirStatusList } = response.data.data;
                     setScanRubbishDirList(dirStatusList);
                     const list = Object.entries(dirList).map(([key]) => key);
-                    const percent = Math.floor((100 * (progressTotal - list.length)) / progressTotal);
+                    const percent = Math.floor((100 * (progressTotalRef.current - list.length)) / progressTotalRef.current);
                     setProgressBar(percent);
                     setDirListExist(list);
-                    console.log('percent', percent);
                     if (percent >= 100) {
                         window.location.reload();
                     }
@@ -71,10 +83,15 @@ function DirectoryModal() {
             })
             .catch((error) => {
                 console.error("Request failed:", error);
-                console.log("Retrying directory processing in 1 second...");
-                setTimeout(() => {
-                    processDirectory();
-                }, 2000);
+                if (retryCount.current < MAX_RETRIES) {
+                    retryCount.current++;
+                    console.log(`Retrying... attempt ${retryCount.current} of ${MAX_RETRIES}`);
+                    setTimeout(() => processDirectory(), 2000);
+                } else {
+                    retryCount.current = 0;
+                    console.error("Max retries reached. Stopping.");
+                    setButtonSpain(null);
+                }
             });
     };
 
@@ -92,11 +109,12 @@ function DirectoryModal() {
         setProgressTotal(list.length);
     }, [scanRubbishDirList]);
 
+    // Trigger next batch when the remaining directory list changes
     useEffect(() => {
         if (dirListExist.length > 0) {
             processDirectory();
         }
-    }, [scanRubbishDirList]);
+    }, [dirListExist]); // ✅ was [scanRubbishDirList] — wrong dependency
 
     const dirEntries = Object.entries(scanRubbishDirList);
 

@@ -18,37 +18,43 @@ function RubbishConfirmationModal() {
 
     const [total, setTotal] = useState(0);
 
-    const rubbishBulkActionRecursively = async (prams) => {
-        let response = {};
-        setBulkRubbishData({
-            progressBar: Math.floor(100 * (bulkRubbishData.progressTotal - prams.files.length) / bulkRubbishData.progressTotal),
-        });
-        setTotal(prams.files.length);
-        if (prams.files.length === 0) {
-            response.status = 200;
+    const rubbishBulkActionLoop = async (prams) => {
+        const files = [...prams.files];
+        const progressTotal = bulkRubbishData.progressTotal;
+
+        if ('delete' === bulkRubbishData.type && tsmltParams?.proVersion) {
+            // Bulk delete handles all files in one request
+            setBulkRubbishData({ progressBar: 50 });
+            const response = await rubbishBulkDeleteApi({ file_paths: files });
+            setBulkRubbishData({ progressBar: 100 });
             return response;
         }
-        const file = prams.files[0];
 
-        if ('ignore' === bulkRubbishData.type) {
-            response = await singleIgnoreApi({ file_path: file.path });
-        } else if (tsmltParams?.proVersion && 'delete' === bulkRubbishData.type) {
-            response = await rubbishBulkDeleteApi({ file_paths: prams.files });
-            prams.files = [];
-        } else if ('show' === bulkRubbishData.type) {
-            response = await singleShowApi({ file_path: file.path });
-        }
-        setTheFile(prevState => file.path);
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            let response = {};
 
-        if (prams.ids.length && response?.status) {
-            return await rubbishBulkActionRecursively({ ...prams, files: prams.files.slice(1) });
+            setBulkRubbishData({
+                progressBar: Math.floor(100 * i / progressTotal),
+            });
+            setTotal(files.length - i);
+            setTheFile(file.path);
+
+            if ('ignore' === bulkRubbishData.type) {
+                response = await singleIgnoreApi({ file_path: file.path });
+            } else if ('show' === bulkRubbishData.type) {
+                response = await singleShowApi({ file_path: file.path });
+            }
+
+            if (!prams.ids.length || !response?.status) break;
         }
-        return response;
+
+        return { status: 200 };
     };
 
     const handleBulkModalOk = async () => {
         setButtonDisabled(true);
-        const response = await rubbishBulkActionRecursively(bulkRubbishData);
+        const response = await rubbishBulkActionLoop(bulkRubbishData);
         if (200 === response?.status) {
             setTimeout(() => {
                 setBulkRubbishData({
