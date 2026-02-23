@@ -141,7 +141,7 @@ export function columns(){
     const [stateValue, dispatch] = useStateValue();
 
     const onCheckboxChange = (event) => {
-        const value = event.target.value ;
+        const value = parseInt(event.target.value, 10);
         const changeData = event.target.checked ? [
             ...stateValue.bulkSubmitData.ids,
             value
@@ -347,7 +347,7 @@ export function renamerColumns(){
     const [stateValue, dispatch] = useStateValue();
 
     const onCheckboxChange = (event) => {
-        const value = event.target.value ;
+        const value = parseInt(event.target.value, 10);
         const changeData = event.target.checked ? [
             ...stateValue.bulkSubmitData.ids,
             value
