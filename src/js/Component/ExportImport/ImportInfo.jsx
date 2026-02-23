@@ -84,7 +84,7 @@ function ImportInfo() {
                     className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto mb-4"
                     onClick={() => handleExitImport()}
                 >
-                    <Link to="/mediaTable" className="text-white no-underline">Done !! Exit Now</Link>
+                    <Link to="/mediaTable" className="text-white! no-underline">Done !! Exit Now</Link>
                 </button>
             )}
 
