@@ -75,7 +75,7 @@ class AssetsController {
 		global $pagenow;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce needed for page check.
 		$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
-		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro' ];
+		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro', 'tsmlt-pricing-pro' ];
 
 		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) ) {
 			wp_enqueue_style( 'tsmlt-settings-style' );
