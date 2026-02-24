@@ -28,7 +28,7 @@ export function wrapSpecificFilesInIIFE(targetFiles: string | string[]): Plugin 
 export default defineConfig({
     plugins: [
         react({
-            include: '**/*.{jsx,js}', // Handle JSX in both .jsx and .js files
+            include: '**/*.{jsx,tsx,js,ts}',
         }),
         tailwindcss(),
         viteStaticCopy({
@@ -48,7 +48,7 @@ export default defineConfig({
         chunkSizeWarningLimit: 5000, // Increase from default 500 kB
         rollupOptions: {
             input: {
-                'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.jsx')
+                'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.tsx')
              },
             output: {
                 entryFileNames: "[name].js",
