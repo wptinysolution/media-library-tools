@@ -156,20 +156,26 @@ class Fns {
 	 */
 	public static function search_image_at_content( $orig_image_url ) {
 		global $wpdb;
-		/**
-		 * This condition is internally defined, static,
-		 * and does not contain user input.
-		 *
-		 * Example: post_type NOT IN ('revision','nav_menu_item')
-		 */
+		$like                     = '%' . $wpdb->esc_like( $orig_image_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
-		$sql                      = "SELECT ID FROM {$wpdb->posts} WHERE ( post_content LIKE %s OR post_excerpt LIKE %s ) AND {$useless_types_conditions} ";
-		$query                    = $wpdb->prepare(
-			$sql, // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
-			'%' . $wpdb->esc_like( $orig_image_url ) . '%',
-			'%' . $wpdb->esc_like( $orig_image_url ) . '%'
-		);
-		$ids                      = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+
+		$result_content = Fns::DB()->select( 'ID' )
+			->from( 'posts' )
+			->where( 'post_content', 'LIKE', $like )
+			->raw( "AND {$useless_types_conditions}" )
+			->get();
+
+		$result_excerpt = Fns::DB()->select( 'ID' )
+			->from( 'posts' )
+			->where( 'post_excerpt', 'LIKE', $like )
+			->raw( "AND {$useless_types_conditions}" )
+			->get();
+
+		$ids = array_values( array_unique( array_merge(
+			array_column( $result_content ?: [], 'ID' ),
+			array_column( $result_excerpt ?: [], 'ID' )
+		) ) );
+
 		return empty( $ids ) ? [] : $ids;
 	}
 
