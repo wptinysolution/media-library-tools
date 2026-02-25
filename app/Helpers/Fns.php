@@ -7,6 +7,7 @@
 
 namespace TinySolutions\mlt\Helpers;
 
+use CodesVault\Howdyqb\DB;
 use WP_Filesystem;
 use WP_Filesystem_Direct;
 use WP_Filesystem_Base;
@@ -25,6 +26,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package TinySolutions\WM
  */
 class Fns {
+	/**
+	 * @return DB
+	 */
+	public static function DB() {
+		return new DB( 'wpdb' );
+	}
 	/**
 	 * @var array
 	 */
