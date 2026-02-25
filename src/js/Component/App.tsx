@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
@@ -33,7 +33,7 @@ function App() {
         saveType, setSaveType,
         mediaData, setMediaData,
         options, setOptions,
-        generalData, setGeneralData,
+        setGeneralData,
         singleMedia,
         rename,
         bulkSubmitData, setBulkSubmitData,
@@ -54,7 +54,7 @@ function App() {
     };
 
     const getTheMedia = async () => {
-        const response = await getMedia(mediaData.postQuery as Record<string, unknown>);
+        const response = await getMedia(mediaData.postQuery);
         setMediaData({ ...response, isLoading: false });
         setBulkSubmitData({ bulkChecked: false, ids: [] });
     };
@@ -76,7 +76,7 @@ function App() {
         const currentItemEdited = rename;
         const edited = rename.postsdata && rename.postsdata.originalname && rename.postsdata.originalname.localeCompare(rename.newname ?? '');
         if (edited) {
-            const response = await upDateSingleMedia(currentItemEdited as Record<string, unknown>) as { status: number | string };
+            const response = await upDateSingleMedia(currentItemEdited) as { status: number | string };
             if (200 === parseInt(String(response.status))) {
                 await getTheMedia();
             }
@@ -84,12 +84,12 @@ function App() {
     };
 
     const singleMediaUpdateContent = async () => {
-        await upDateSingleMedia(singleMedia as Record<string, unknown>);
+        await upDateSingleMedia(singleMedia);
     };
 
     const handleBulkModalDataSave = async () => {
         setMediaData({ isLoading: true });
-        const response = await submitBulkMediaAction(bulkSubmitData as Record<string, unknown>) as {
+        const response = await submitBulkMediaAction(bulkSubmitData) as {
             status: number | string;
             data: { updated: boolean };
         };

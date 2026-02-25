@@ -51,7 +51,7 @@ function BulkModal() {
             setTimeout(() => {
                 setBulkSubmitData({ isModalOpen: false });
             }, 1000);
-            const res = await getMedia(mediaData.postQuery as Record<string, unknown>);
+            const res = await getMedia(mediaData.postQuery);
             setMediaData({ ...res, isLoading: false });
             setIsButtonDisabled(false);
         }

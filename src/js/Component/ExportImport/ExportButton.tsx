@@ -41,7 +41,7 @@ function ExportButton() {
                     paged: page,
                 };
 
-                const res = await getMedia(query as Record<string, unknown>) as {
+                const res = await getMedia(query) as {
                     posts?: MediaPost[];
                     total_page?: number;
                 };

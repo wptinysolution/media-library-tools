@@ -15,7 +15,7 @@ function RubbishFile() {
     const { saveType, rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData } = useStore();
 
     const getTheRubbishFile = async () => {
-        const rubbishFile = await getRubbishFile(rubbishMedia.postQuery as Record<string, unknown>) as {
+        const rubbishFile = await getRubbishFile(rubbishMedia.postQuery) as {
             mediaFile: RubbishMediaFile[];
             paged: number;
             totalPost: number;

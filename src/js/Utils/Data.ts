@@ -1,4 +1,5 @@
-import Axios, { AxiosResponse } from 'axios';
+import Axios from 'axios';
+import type { AxiosResponse } from 'axios';
 import toast from 'react-hot-toast';
 
 const apibaseUrl = `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`;
@@ -44,7 +45,7 @@ export const safeParseJSON = <T = unknown>(data: unknown): T | [] => {
     }
 };
 
-export const getMedia = async (prams: Record<string, unknown> = {}): Promise<Record<string, unknown>> => {
+export const getMedia = async (prams: object = {}): Promise<Record<string, unknown>> => {
     const result = await Api.get(`/`, { params: prams });
     return JSON.parse(result.data);
 };
@@ -87,7 +88,7 @@ export const getDirList = async (): Promise<AxiosResponse> => {
     return await Api.get(`/getDirList`);
 };
 
-export const getRubbishFile = async (prams: Record<string, unknown> = {}): Promise<Record<string, unknown>> => {
+export const getRubbishFile = async (prams: object = {}): Promise<Record<string, unknown>> => {
     const result = await Api.get(`/getRubbishFile`, { params: prams });
     return JSON.parse(result.data);
 };
