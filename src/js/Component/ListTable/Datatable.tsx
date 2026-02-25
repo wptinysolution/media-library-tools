@@ -1,4 +1,3 @@
-import React from "react";
 import { columns, defaultBulkSubmitData } from '@/js/Utils/UtilData';
 import Loader from "@/js/Utils/Loader";
 import TheHeader from "@/js/Component/ListTable/TheHeader";

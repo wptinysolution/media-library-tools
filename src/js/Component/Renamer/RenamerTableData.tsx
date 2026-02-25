@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { renamerColumns } from '@/js/Utils/UtilData';
 import RenamerMainHeader from "./RenamerMainHeader";
 import { useStore } from "@/js/Utils/store";
@@ -29,6 +29,8 @@ function RenamerTableData() {
                 postQuery: {
                     status: null,
                     filtering: false,
+                    media_per_page: mediaData.postQuery.media_per_page,
+                    searchKeyWords: null,
                     order: 'DESC',
                     orderby: 'id',
                     paged: 1,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { defaultBulkSubmitData } from '@/js/Utils/UtilData';
 import { useStore } from "@/js/Utils/store";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
@@ -23,8 +23,7 @@ function TheHeader() {
         options, setOptions,
         generalData, setGeneralData,
         singleMedia, setSingleMedia,
-        bulkSubmitData, setBulkSubmitData,
-        bulkExport, setBulkExport,
+        bulkSubmitData, setBulkSubmitData,setBulkExport,
         setSaveType,
     } = useStore();
 

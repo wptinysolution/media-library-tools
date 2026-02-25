@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useStore } from "@/js/Utils/store";
 import RubbishHeader from "./RubbishHeader";
 import Loader from "@/js/Utils/Loader";
@@ -12,7 +12,7 @@ import Pagination from "@/js/Component/Common/Pagination";
 import type { RubbishMediaFile } from "@/js/Utils/store";
 
 function RubbishFile() {
-    const { saveType, rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData } = useStore();
+    const { saveType, rubbishMedia, setRubbishMedia, setBulkRubbishData } = useStore();
 
     const getTheRubbishFile = async () => {
         const rubbishFile = await getRubbishFile(rubbishMedia.postQuery) as {
