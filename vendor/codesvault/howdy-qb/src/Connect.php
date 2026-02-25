@@ -1,0 +1,66 @@
+<?php
+
+namespace CodesVault\Howdyqb;
+
+final class Connect
+{
+    private static $configs;
+    private static $pdo;
+
+    public static function config($configs)
+    {
+        static::$configs = $configs;
+    }
+
+    public static function pdo()
+    {
+		if (static::$pdo !== null) {
+			return static::$pdo;
+		}
+
+		$configs = static::$configs ? (object)static::$configs : false;
+		if (! $configs) {
+			global $wpdb;
+			$configs = $wpdb;
+		}
+		if (! $configs) {
+			throw new \Exception('Database configuration not found');
+		}
+
+        $host = htmlspecialchars($configs->dbhost, ENT_QUOTES);
+        $dbname = htmlspecialchars($configs->dbname, ENT_QUOTES);
+        $user = htmlspecialchars($configs->dbuser, ENT_QUOTES);
+        $password = $configs->dbpassword;
+        $dns =  "mysql:host=$host;dbname=$dbname";
+
+        try {
+            static::$pdo = new \PDO($dns, $user, $password);
+            return static::$pdo;
+        } catch (\PDOException $exception) {
+            Utilities::throughException($exception);
+        }
+    }
+
+	public static function setManualConnection(array $configs = [])
+	{
+		$configurations = [];
+		if (! defined('DB_HOST')) {
+			$path = explode('/wp-content', dirname(__DIR__));
+			if (! empty($path) && ! file_exists($path[0] . '/wp-config.php')) {
+				throw new \Exception('wp-config.php file not found');
+			}
+			require $path[0] . '/wp-config.php';
+
+			$configurations = [
+				"dbhost"        => DB_HOST,
+				"dbname"        => DB_NAME,
+				"dbuser"        => DB_USER,
+				"dbpassword"    => DB_PASSWORD,
+				"prefix"        => $table_prefix,
+			];
+		}
+
+		$configurations = array_merge($configurations, $configs);
+        static::$configs = (object)$configurations;
+	}
+}
