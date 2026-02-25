@@ -728,7 +728,6 @@ class Api {
 	 * @return array|WP_Error
 	 */
 	public function media_submit_bulk_action( $request_data ) {
-		global $wpdb;
 		$parameters = $request_data->get_params();
 		$result     = [
 			'updated' => false,
@@ -757,16 +756,10 @@ class Api {
 			case 'inherit':
 				$status = sanitize_key( $parameters['type'] );
 				foreach ( $ids as $id ) {
-					$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-						$wpdb->posts,
-						[ 'post_status' => $status ],
-						[
-							'ID'        => $id,
-							'post_type' => 'attachment',
-						],
-						[ '%s' ],
-						[ '%d', '%s' ]
-					);
+					Fns::DB()->update( 'posts', [ 'post_status' => $status ] )
+						->where( 'ID', '=', $id )
+						->andWhere( 'post_type', '=', 'attachment' )
+						->execute();
 				}
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Done. Be happy.', 'media-library-tools' );
@@ -794,36 +787,24 @@ class Api {
 				$categories = isset( $parameters['post_categories'] ) ? (array) $parameters['post_categories'] : [];
 				// Prepare safe fields.
 				$update_fields = [];
-				$update_format = [];
 				if ( ! empty( $data['post_title'] ) ) {
 					$update_fields['post_title'] = sanitize_text_field( $data['post_title'] );
-					$update_format[]             = '%s';
 				}
 				if ( ! empty( $data['caption'] ) ) {
 					$update_fields['post_excerpt'] = sanitize_text_field( $data['caption'] );
-					$update_format[]               = '%s';
 				}
 				if ( ! empty( $data['post_description'] ) ) {
 					$update_fields['post_content'] = wp_kses_post( $data['post_description'] );
-					$update_format[]               = '%s';
 				}
 				$updated = false;
 				// Safe SQL updates.
 				if ( ! empty( $update_fields ) ) {
 					foreach ( $ids as $id ) {
-						$res = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-							$wpdb->posts,
-							$update_fields,
-							[
-								'ID'        => $id,
-								'post_type' => 'attachment',
-							],
-							$update_format,
-							[ '%d', '%s' ]
-						);
-						if ( false !== $res ) {
-							$updated = true;
-						}
+						Fns::DB()->update( 'posts', $update_fields )
+							->where( 'ID', '=', $id )
+							->andWhere( 'post_type', '=', 'attachment' )
+							->execute();
+						$updated = true;
 					}
 				}
 				// ALT TEXT update.
@@ -959,13 +940,11 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_rubbish_filetype() {
-		global $wpdb;
 		$cache_key = 'tsmlt_unlisted_filetypes';
-		// Table name is fully controlled by the plugin.
-		$table_name = esc_sql( $wpdb->prefix . 'tsmlt_unlisted_file' );
-		$types      = wp_cache_get( $cache_key );
+		$types     = wp_cache_get( $cache_key );
 		if ( false === $types ) {
-			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM {$table_name}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$result = Fns::DB()->select( 'file_type' )->distinct()->from( 'tsmlt_unlisted_file' )->get();
+			$types  = array_column( $result ?: [], 'file_type' );
 			wp_cache_set( $cache_key, $types );
 		}
 		$rubbish_data = [
@@ -982,7 +961,6 @@ class Api {
 	 * @return false|string JSON-encoded response.
 	 */
 	public function get_rubbish_file( $request_data ) {
-		global $wpdb;
 		$parameters = $request_data->get_params();
 		$options    = get_option( 'tsmlt_settings' );
 		$limit      = absint( $options['rubbish_per_page'] ?? 20 );
@@ -993,23 +971,19 @@ class Api {
 		$extensions = ! empty( $parameters['filterExtension'] )
 			? [ sanitize_text_field( $parameters['filterExtension'] ) ]
 			: Fns::default_file_extensions();
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Build placeholders once (must exist for both queries).
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-		$type_placeholders   = implode( ',', array_fill( 0, count( $extensions ), '%s' ) );
 
-		$cache_key = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
-
+		$cache_key    = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
 		$existing_row = wp_cache_get( $cache_key );
 
 		if ( false === $existing_row ) {
-			$sql = "
-			SELECT *
-			FROM {$table_name}
-			WHERE status IN ($status_placeholders)
-			  AND file_type IN ($type_placeholders)
-			LIMIT %d OFFSET %d";
-			$existing_row = $wpdb->get_results( $wpdb->prepare( $sql, array_merge( $statuses, $extensions, [ $limit, $offset ] ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$existing_row = Fns::DB()->select( '*' )
+				->from( 'tsmlt_unlisted_file' )
+				->whereIn( 'status', ...$statuses )
+				->andIn( 'file_type', ...$extensions )
+				->limit( $limit )
+				->offset( $offset )
+				->get();
+			$existing_row = $existing_row ?: [];
 			wp_cache_set( $cache_key, $existing_row );
 		}
 
@@ -1019,13 +993,13 @@ class Api {
 		$total_file      = wp_cache_get( $total_cache_key );
 
 		if ( false === $total_file ) {
-			$count_sql = "
-			SELECT COUNT(*)
-			FROM {$table_name}
-			WHERE status IN ($status_placeholders)
-			  AND file_type IN ($type_placeholders)
-		";
-			$total_file = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, array_merge( $statuses, $extensions ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$count_result = Fns::DB()->select()
+				->count( '*', 'total' )
+				->from( 'tsmlt_unlisted_file' )
+				->whereIn( 'status', ...$statuses )
+				->andIn( 'file_type', ...$extensions )
+				->get();
+			$total_file   = (int) ( $count_result[0]['total'] ?? 0 );
 			wp_cache_set( $total_cache_key, $total_file );
 		}
 
@@ -1065,12 +1039,9 @@ class Api {
 		// Ensure the table exists before deleting rows.
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching  -- Prepared above.
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
-			// Execute the DELETE query to remove all rows.
-			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct query for truncation.
-			$result = $wpdb->query( "DELETE FROM `$table_name`" );
-			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" ); // Reset auto-increment.
-			// Return true if the query succeeded, false otherwise.
+			Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE `{$table_name}` AUTO_INCREMENT = 1" ); // Reset auto-increment.
 		}
 		update_option( 'tsmlt_get_directory_list', [] );
 		// Table does not exist, return false.

@@ -219,14 +219,17 @@ class Fns {
 		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
 			return [];
 		}
-		global $wpdb;
-		$table_meta               = $wpdb->postmeta;
-		$table_posts              = $wpdb->posts;
+		$escaped_url              = str_replace( '/', '\/', $orig_image_url );
+		$searchValue              = '%' . str_replace( '\/', '\\\/', $escaped_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
-		$orig_image_url           = esc_sql( $orig_image_url );
-		$orig_image_url           = str_replace( '/', '\/', $orig_image_url );
-		$searchValue              = '%' . str_replace( '\/', '\\\/', $orig_image_url ) . '%';
-		return $wpdb->get_col( $wpdb->prepare( "SELECT m.post_id FROM {$table_meta} AS m JOIN {$table_posts} AS p ON m.post_id = p.ID WHERE m.meta_key = '_elementor_data' AND m.meta_value LIKE %s AND {$useless_types_conditions}", $searchValue ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
+		$result                   = Fns::DB()->select( 'm.post_id' )
+			->from( 'postmeta m' )
+			->join( 'posts p', 'p.ID', 'm.post_id' )
+			->where( 'm.meta_key', '=', '_elementor_data' )
+			->andWhere( 'm.meta_value', 'LIKE', $searchValue )
+			->raw( "AND {$useless_types_conditions}" )
+			->get();
+		return array_column( $result ?: [], 'post_id' );
 	}
 
 	/**
@@ -253,8 +256,8 @@ class Fns {
 		$query        = $wpdb->prepare( $sql, $orig_image_url, $new_image_url, $search_value ); // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
 		$wpdb->query( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		// Force Elementor to regenerate CSS and cache.
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_css' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is trusted ($wpdb->postmeta).
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table_meta} WHERE meta_key = %s", '_elementor_element_cache' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is trusted ($wpdb->postmeta).
+		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
+		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
 	}
 
 	/**
@@ -390,15 +393,14 @@ class Fns {
 	/**
 	 * @param $post_id
 	 *
-	 * @return bool|int|\mysqli_result|resource|null
+	 * @return void
 	 */
 	public static function permalink_to_post_guid( $post_id ) {
-		global $wpdb;
-		$guid    = wp_get_attachment_url( $post_id );
-		$updated = $wpdb->update( $wpdb->posts, [ 'guid' => $guid ], [ 'ID' => $post_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		$guid = wp_get_attachment_url( $post_id );
+		Fns::DB()->update( 'posts', [ 'guid' => $guid ] )
+			->where( 'ID', '=', $post_id )
+			->execute();
 		clean_post_cache( $post_id );
-
-		return $updated;
 	}
 
 	/**
@@ -555,14 +557,12 @@ class Fns {
 			}
 			if ( ! $attachment_id ) {
 				$search_basename = basename( $search_string );
-				$attachment_id   = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared below.
-					$wpdb->prepare(
-						"SELECT post_id FROM {$wpdb->postmeta}
-				            WHERE meta_key = '_wp_attachment_metadata'
-				            AND meta_value LIKE %s",
-						'%' . $wpdb->esc_like( $search_basename ) . '%'
-					)
-				);
+				$result          = Fns::DB()->select( 'post_id' )
+					->from( 'postmeta' )
+					->where( 'meta_key', '=', '_wp_attachment_metadata' )
+					->andWhere( 'meta_value', 'LIKE', '%' . $wpdb->esc_like( $search_basename ) . '%' )
+					->get();
+				$attachment_id   = ! empty( $result ) ? (int) $result[0]['post_id'] : 0;
 			}
 
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
@@ -578,11 +578,14 @@ class Fns {
 				continue;
 			}
 			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
-			$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
 			// Check if the file_path already exists in the table using cached data.
 			$existing_row = wp_cache_get( $cache_key );
 			if ( ! $existing_row ) {
-				$existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM $table_name WHERE file_path = %s", $search_string ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL -- Prepared above.
+				$result       = Fns::DB()->select( 'id' )
+					->from( 'tsmlt_unlisted_file' )
+					->where( 'file_path', '=', $search_string )
+					->get();
+				$existing_row = ! empty( $result ) ? $result[0] : null;
 				// Cache the query result.
 				if ( $existing_row ) {
 					continue;
@@ -593,7 +596,7 @@ class Fns {
 					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
 					'meta_data'     => serialize( [] ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Using serialize to store array data.
 				];
-				$wpdb->insert( $table_name, $save_data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				Fns::DB()->insert( 'tsmlt_unlisted_file', [ $save_data ] )->execute();
 
 				wp_cache_set( $cache_key, $existing_row );
 			}
@@ -685,9 +688,12 @@ class Fns {
 			return false;
 		}
 
-		global $wpdb;
-		$query          = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value = %d", '_thumbnail_id', $attachment_id );
-		$parent_id      = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		$result    = Fns::DB()->select( 'post_id' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'meta_value', '=', $attachment_id )
+			->get();
+		$parent_id = ! empty( $result ) ? $result[0]['post_id'] : null;
 		$post_ids       = [];
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		if ( ! $parent_id ) {
@@ -838,13 +844,13 @@ class Fns {
 		if ( isset( self::$cache[ $keys_attachment ] ) ) {
 			return self::$cache[ $keys_attachment ];
 		}
-		global $wpdb;
-		$meta_keys = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->prepare(
-				"  SELECT DISTINCT pm.meta_key  FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s",
-				'attachment'
-			)
-		);
+		$result    = Fns::DB()->select( 'pm.meta_key' )
+			->distinct()
+			->from( 'postmeta pm' )
+			->innerJoin( 'posts p', 'p.ID', 'pm.post_id' )
+			->where( 'p.post_type', '=', 'attachment' )
+			->get();
+		$meta_keys = array_column( $result ?: [], 'meta_key' );
 		// List of meta keys to remove.
 		$remove_keys = self::skip_meta_keys();
 		// Remove by value.
