@@ -28,11 +28,11 @@ export default function DataTable<T extends Record<string, unknown>>({ columns, 
     };
 
     return (
-        <div className="bg-white border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-sm" style={{ minWidth }}>
                     <thead>
-                        <tr className="bg-gray-50 border-b-2 border-gray-200">
+                        <tr className="bg-gray-50 border-1 border-gray-200">
                             {columns.map((col) => (
                                 <th
                                     key={col.key + (col.dataIndex || '')}

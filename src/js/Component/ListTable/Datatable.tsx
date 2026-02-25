@@ -50,7 +50,7 @@ export default function Datatable() {
                 <TheHeader />
                 {generalData.isLoading || mediaData.isLoading ? <Loader /> : (
                     <>
-                        <div className="my-6 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                        <div className="my-6 rounded-lg overflow-hidden">
                             <DataTable
                                 columns={tablecolumn}
                                 data={posts}

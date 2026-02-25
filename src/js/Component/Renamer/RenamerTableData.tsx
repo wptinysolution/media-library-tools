@@ -54,7 +54,7 @@ function RenamerTableData() {
             <div className="min-h-screen bg-gray-50">
                 <RenamerMainHeader />
                 {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
-                    <div className="my-5 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                    <div className="my-5 rounded-lg overflow-hidden ">
                         <DataTable
                             columns={RenameTableColumns}
                             data={posts}
