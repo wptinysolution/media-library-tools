@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useParams } from 'react-router-dom';
 import { useStore } from "@/js/Utils/store";
 import RubbishHeader from "./RubbishHeader";
 import Loader from "@/js/Utils/Loader";
@@ -13,6 +14,7 @@ import type { RubbishMediaFile } from "@/js/Utils/store";
 
 function RubbishFile() {
     const { saveType, rubbishMedia, setRubbishMedia, setBulkRubbishData } = useStore();
+    const { page: pageParam } = useParams<{ page?: string }>();
 
     const getTheRubbishFile = async () => {
         const rubbishFile = await getRubbishFile(rubbishMedia.postQuery) as {
@@ -45,6 +47,13 @@ function RubbishFile() {
             }
         });
     };
+
+    useEffect(() => {
+        const pageFromUrl = parseInt(pageParam || '1', 10);
+        if (pageFromUrl !== (rubbishMedia.postQuery.paged || 1)) {
+            handlePagination(pageFromUrl);
+        }
+    }, [pageParam]);
 
     const rubbishColumns = RubbishFileColumns();
 

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useParams } from 'react-router-dom';
 import { renamerColumns } from '@/js/Utils/UtilData';
 import RenamerMainHeader from "./RenamerMainHeader";
 import { useStore } from "@/js/Utils/store";
@@ -9,6 +10,7 @@ import Pagination from "@/js/Component/Common/Pagination";
 
 function RenamerTableData() {
     const { mediaData, setMediaData } = useStore();
+    const { page: pageParam } = useParams<{ page?: string }>();
 
     const RenameTableColumns = renamerColumns();
 
@@ -22,6 +24,13 @@ function RenamerTableData() {
             }
         });
     };
+
+    useEffect(() => {
+        const pageFromUrl = parseInt(pageParam || '1', 10);
+        if (pageFromUrl !== (mediaData.postQuery.paged || 1)) {
+            handlePagination(pageFromUrl);
+        }
+    }, [pageParam]);
 
     const setRenamerMainQuery = () => {
         if (mediaData.postQuery.filtering) {

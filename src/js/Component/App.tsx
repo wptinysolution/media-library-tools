@@ -145,13 +145,16 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />
+                    <Route path="/mediaTable/page/:page" element={<Datatable />} />
                     <Route path="/mediaRename" element={<RenamerTableData />} />
+                    <Route path="/mediaRename/page/:page" element={<RenamerTableData />} />
                     <Route path="/exportImport" element={<ExportImportRoot />} />
                     <Route path="/import" element={<ImportButton />} />
                     <Route path="/export" element={<ExportButton />} />
                     <Route path="/imageSize" element={<ImageSize />} />
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
+                    <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />

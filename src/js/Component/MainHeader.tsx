@@ -13,7 +13,8 @@ function MainHeader() {
     const { pathname } = useLocation();
     const { setBulkSubmitData } = useStore();
 
-    const pat = ['/export', '/import'].includes(String(pathname)) ? '/exportImport' : pathname;
+    const basePath = pathname.replace(/\/page\/\d+$/, '');
+    const pat = ['/export', '/import'].includes(basePath) ? '/exportImport' : basePath;
 
     const menuItems: MenuItem[] = [
         {

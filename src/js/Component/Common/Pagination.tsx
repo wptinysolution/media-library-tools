@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 
 interface PaginationProps {
     currentPage: number;
@@ -10,11 +11,22 @@ interface PaginationProps {
 
 export default function Pagination({ currentPage, totalPages, totalPosts, postsPerPage, onPageChange }: PaginationProps) {
     const [jumpPage, setJumpPage] = useState('');
+    const navigate = useNavigate();
+    const { pathname } = useLocation();
+    useParams(); // ensure re-render on param change
+
+    // Strip any existing /page/N suffix to get the base route path
+    const basePath = pathname.replace(/\/page\/\d+$/, '');
 
     if (totalPages <= 0) return null;
 
     const rangeStart = totalPosts === 0 ? 0 : (currentPage - 1) * postsPerPage + 1;
     const rangeEnd = Math.min(currentPage * postsPerPage, totalPosts);
+
+    const changePage = (page: number) => {
+        navigate(page === 1 ? basePath : `${basePath}/page/${page}`);
+        onPageChange(page);
+    };
 
     const getPageNumbers = (): number[] => {
         const pages: number[] = [];
@@ -34,7 +46,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
         if (e.key === 'Enter') {
             const page = parseInt(jumpPage);
             if (page >= 1 && page <= totalPages) {
-                onPageChange(page);
+                changePage(page);
             }
             setJumpPage('');
         }
@@ -57,7 +69,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
                     type="button"
                     className={`${navBtnBase} ${navBtnDefault}`}
                     disabled={currentPage <= 1}
-                    onClick={() => onPageChange(currentPage - 1)}
+                    onClick={() => changePage(currentPage - 1)}
                     title="Previous page"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +82,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
                         <button
                             type="button"
                             className={`${navBtnBase} ${navBtnDefault}`}
-                            onClick={() => onPageChange(1)}
+                            onClick={() => changePage(1)}
                         >
                             1
                         </button>
@@ -83,7 +95,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
                         key={page}
                         type="button"
                         className={`${navBtnBase} ${page === currentPage ? navBtnActive : navBtnDefault}`}
-                        onClick={() => onPageChange(page)}
+                        onClick={() => changePage(page)}
                     >
                         {page}
                     </button>
@@ -97,7 +109,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
                         <button
                             type="button"
                             className={`${navBtnBase} ${navBtnDefault}`}
-                            onClick={() => onPageChange(totalPages)}
+                            onClick={() => changePage(totalPages)}
                         >
                             {totalPages}
                         </button>
@@ -108,7 +120,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
                     type="button"
                     className={`${navBtnBase} ${navBtnDefault}`}
                     disabled={currentPage >= totalPages}
-                    onClick={() => onPageChange(currentPage + 1)}
+                    onClick={() => changePage(currentPage + 1)}
                     title="Next page"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
