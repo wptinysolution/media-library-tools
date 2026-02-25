@@ -159,6 +159,12 @@ export function columns(): ColumnDef<MediaPost>[] {
     const formEdited = singleMedia.formEdited;
     const hasIds = bulkSubmitData.ids.length > 0;
 
+    const SortIcon = () => (
+        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+    );
+
     return [
         {
             title: (
@@ -174,6 +180,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             dataIndex: 'ID',
             width: '50px',
             align: 'center',
+            fixed: true,
             render: (id) => (
                 <input
                     type="checkbox"
@@ -187,10 +194,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    ID
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('id')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('id')}>
+                    ID <SortIcon />
+                </button>
             ),
             key: 'ID',
             dataIndex: 'ID',
@@ -207,10 +213,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    Attached Post (Parent)
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('post_parents')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('post_parents')}>
+                    Attached Post (Parent) <SortIcon />
+                </button>
             ),
             key: 'Parents',
             dataIndex: 'post_parents',
@@ -223,10 +228,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    Title
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('title')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('title')}>
+                    Title <SortIcon />
+                </button>
             ),
             key: 'Title',
             dataIndex: 'title',
@@ -243,10 +247,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    Alt
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('alt')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('alt')}>
+                    Alt <SortIcon />
+                </button>
             ),
             key: 'Alt',
             dataIndex: 'alt_text',
@@ -263,10 +266,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    Caption
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('caption')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('caption')}>
+                    Caption <SortIcon />
+                </button>
             ),
             key: 'Caption',
             dataIndex: 'caption',
@@ -282,10 +284,9 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
         {
             title: (
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                    Description
-                    <button className="px-2 py-0.5 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 cursor-pointer transition-colors" onClick={() => handleSortClick('description')}>Sort</button>
-                </span>
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('description')}>
+                    Description <SortIcon />
+                </button>
             ),
             key: 'Description',
             dataIndex: 'description',
@@ -300,7 +301,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             ),
         },
         {
-            title: <span className="inline-flex items-center">Groups</span>,
+            title: 'Groups',
             key: 'Category',
             dataIndex: 'categories',
             width: '250px',
@@ -309,7 +310,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                 return (
                     <span className="flex flex-wrap gap-1">
                         {items.map(item => item.id && (
-                            <span key={Math.random().toString(36).substr(2, 9)} className="inline-flex px-2 py-0.5 text-xs font-medium border border-gray-300 rounded bg-gray-50 text-gray-700">
+                            <span key={Math.random().toString(36).substr(2, 9)} className="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
                                 {item.name}
                             </span>
                         ))}
@@ -365,6 +366,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             dataIndex: 'ID',
             width: '50px',
             align: 'center',
+            fixed: true,
             render: (id) => (
                 <input
                     type="checkbox"
@@ -544,6 +546,7 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
             dataIndex: 'id',
             width: '50px',
             align: 'center',
+            fixed: true,
             render: (id, record) => (
                 <input
                     type="checkbox"

@@ -114,75 +114,92 @@ function RubbishHeader() {
     }, [generalData.isDirModalOpen]);
 
     return (
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="border border-gray-200 px-4 py-3 mb-4 text-[13px] text-red-600 font-medium rounded">
-                Rubbish File Note: A "Rubbish File" refers to a file that exists within a directory but is not included in the media library or database.
-                Before making any changes it is highly recommended to take a backup. Item Per page maximum allowed 1000 for ignoring server capacity issue.
+        <header className="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
+            <div className="flex items-start gap-2 px-4 py-2.5 mb-3 text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md">
+                <svg className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span><strong>Note:</strong> A "Rubbish File" exists in the directory but is not in the media library. Back up before making changes. Max 1000 items per page.</span>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-                <select
-                    className="!px-4 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none w-[150px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
-                    onChange={(e) => handleChangeBulkType(e.target.value)}
-                    defaultValue=""
-                >
-                    <option value="" disabled>Bulk Action</option>
-                    {options_list.map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                </select>
 
-                <button
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium cursor-pointer"
-                    onClick={handleBulkSubmit}
-                >
-                    Bulk Actions
-                </button>
+            <div className="flex flex-wrap items-center gap-2">
+                {/* Bulk Actions group */}
+                <div className="flex items-center gap-2">
+                    <select
+                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[150px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        onChange={(e) => handleChangeBulkType(e.target.value)}
+                        defaultValue=""
+                    >
+                        <option value="" disabled>Bulk Action</option>
+                        {options_list.map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
 
-                <span className="px-4 py-2 text-gray-700 font-medium">Status</span>
-                <select
-                    className="!px-4 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none w-[150px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
-                    onChange={(e) => statusFilterApply(e.target.value || 'show')}
-                    defaultValue={rubbishMedia.postQuery.fileStatus || "show"}
-                >
-                    <option value="show">Default</option>
-                    <option value="ignore">Ignored File</option>
-                </select>
+                    <button
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors font-medium cursor-pointer whitespace-nowrap"
+                        onClick={handleBulkSubmit}
+                    >
+                        Apply
+                    </button>
+                </div>
 
-                <span className="px-4 py-2 text-gray-700 font-medium">Extension</span>
-                <select
-                    className="!px-4 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none w-[150px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
-                    onChange={(e) => fileTypeFilterApply(e.target.value || null)}
-                    defaultValue=""
-                >
-                    {filterItems.map(item => (
-                        <option key={item.value} value={item.value}>{item.label}</option>
-                    ))}
-                </select>
+                {/* Divider */}
+                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
 
-                <button
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium w-[150px] cursor-pointer"
-                    onClick={openDirModal}
-                >
-                    Scan Directory
-                </button>
+                {/* Filters group */}
+                <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
+                    <select
+                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[140px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        onChange={(e) => statusFilterApply(e.target.value || 'show')}
+                        defaultValue={rubbishMedia.postQuery.fileStatus || "show"}
+                    >
+                        <option value="show">Default</option>
+                        <option value="ignore">Ignored File</option>
+                    </select>
 
-                <button
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium cursor-pointer"
-                    onClick={() => perPageRef.current?.focus()}
-                >
-                    Items Per page
-                </button>
-                <input
-                    ref={perPageRef}
-                    type="number"
-                    className="w-20 !px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
-                    onBlur={async () => {
-                        setSaveType(Types.UPDATE_OPTIONS);
-                        setRubbishMedia({ isLoading: true });
-                    }}
-                    onChange={(event) => setOptions({ rubbish_per_page: event.target.value })}
-                    value={options.rubbish_per_page as number | string | undefined}
-                />
+                    <label className="text-sm text-gray-600 whitespace-nowrap">Extension:</label>
+                    <select
+                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[130px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        onChange={(e) => fileTypeFilterApply(e.target.value || null)}
+                        defaultValue=""
+                    >
+                        {filterItems.map(item => (
+                            <option key={item.value} value={item.value}>{item.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Divider */}
+                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
+
+                {/* Controls group */}
+                <div className="flex items-center gap-2">
+                    <button
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors font-medium cursor-pointer whitespace-nowrap"
+                        onClick={openDirModal}
+                    >
+                        Scan Directory
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                        <label className="text-sm text-gray-600 whitespace-nowrap cursor-pointer" onClick={() => perPageRef.current?.focus()}>
+                            Per page:
+                        </label>
+                        <input
+                            ref={perPageRef}
+                            type="number"
+                            className="w-16 !px-2 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                            onBlur={async () => {
+                                setSaveType(Types.UPDATE_OPTIONS);
+                                setRubbishMedia({ isLoading: true });
+                            }}
+                            onChange={(event) => setOptions({ rubbish_per_page: event.target.value })}
+                            value={options.rubbish_per_page as number | string | undefined}
+                        />
+                    </div>
+                </div>
             </div>
             <RubbishConfirmationModal />
         </header>
