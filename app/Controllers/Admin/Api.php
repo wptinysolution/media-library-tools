@@ -554,7 +554,6 @@ class Api {
 	public function get_media( $request_data ) {
 
 		$parameters = $request_data->get_params();
-
 		$options = get_option( 'tsmlt_settings' );
 		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
 		$limit   = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
@@ -629,8 +628,18 @@ class Api {
 				],
 			];
 		}
+		if ( ! empty( $parameters['date'] ) ) {
+			$date_parts = explode( '-', sanitize_text_field( $parameters['date'] ) );
+			if ( count( $date_parts ) === 2 ) {
+				$args['date_query'] = [
+					[
+						'year'  => (int) $date_parts[0],
+						'month' => (int) $date_parts[1],
+					],
+				];
+			}
+		}
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
-
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
