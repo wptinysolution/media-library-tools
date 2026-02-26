@@ -554,9 +554,9 @@ class Api {
 	public function get_media( $request_data ) {
 
 		$parameters = $request_data->get_params();
-		$options = get_option( 'tsmlt_settings' );
-		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
-		$limit   = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
+		$options    = get_option( 'tsmlt_settings' );
+		$limit      = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
+		$limit      = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
@@ -1021,7 +1021,7 @@ class Api {
 			]
 		);
 	}
-	
+
 	/**
 	 * @return array
 	 */
