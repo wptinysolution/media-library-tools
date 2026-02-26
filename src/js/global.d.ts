@@ -1,5 +1,7 @@
 // Global variables injected by WordPress via wp_localize_script
 declare const tsmltParams: {
+    ajaxUrl: string;
+    tsmlt_wpnonce: string;
     restApiUrl: string;
     rest_nonce: string;
     includesUrl: string;

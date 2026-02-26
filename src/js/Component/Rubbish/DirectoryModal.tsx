@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useStore } from "@/js/Utils/store";
 import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
 import Axios from 'axios';
