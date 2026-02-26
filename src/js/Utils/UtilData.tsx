@@ -384,7 +384,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             dataIndex: 'guid',
             width: '100px',
             align: 'top',
-            render: (text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
+            render: (_text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
         },
         {
             title: <span className="inline-flex items-center">Attached Post (Parent)</span>,
@@ -618,7 +618,7 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
                                 disabled={record.id === restoreCurrentItem}
                                 title="Import this file into the WordPress media library"
                             >
-                                {record.id === restoreCurrentItem ? 'Restoring...' : 'Restore to Media'}
+                                {record.id === restoreCurrentItem ? 'Restoring...' : 'Restore to Library'}
                             </button>
                             <button
                                 className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
