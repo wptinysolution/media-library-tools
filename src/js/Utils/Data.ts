@@ -137,6 +137,16 @@ export const rubbishSingleShowAction = async (prams: unknown): Promise<AxiosResp
     return response;
 };
 
+export const singleRestoreApi = async (prams: unknown): Promise<AxiosResponse> => {
+    return await Api.post(`/rubbish/single/restore/action`, prams);
+};
+
+export const rubbishSingleRestoreAction = async (prams: unknown): Promise<AxiosResponse> => {
+    const response = await singleRestoreApi(prams);
+    notifications(200 === response.status && response.data.updated, response.data.message);
+    return response;
+};
+
 export const getRubbishFileType = async (): Promise<{ fileTypes: string[] }> => {
     const result = await Api.get(`/getRubbishFileType`);
     return JSON.parse(result.data);

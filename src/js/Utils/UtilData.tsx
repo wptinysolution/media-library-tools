@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import type { MediaPost, RubbishMediaFile, BulkSubmitData } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
-import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction } from "./Data";
+import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction, rubbishSingleRestoreAction } from "./Data";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 import type { ColumnDef } from "@/js/Component/Common/DataTable";
 
@@ -470,8 +470,9 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
 export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
     const { rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData, setGeneralData } = useStore();
 
-    const [deleteCurrentItem, setDeleteCurrentItem] = useState<string | number | null>(null);
-    const [ignoreCurrentItem, setIgnoreCurrentItem] = useState<string | number | null>(null);
+    const [deleteCurrentItem,  setDeleteCurrentItem]  = useState<string | number | null>(null);
+    const [ignoreCurrentItem,  setIgnoreCurrentItem]  = useState<string | number | null>(null);
+    const [restoreCurrentItem, setRestoreCurrentItem] = useState<string | number | null>(null);
 
     const onRubbishBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
         const postsId = event.target.checked ? rubbishMedia.mediaFile.map(item => item.id) : [];
@@ -508,6 +509,20 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
     };
 
     const onRubbishSingleAction = async (data: RubbishMediaFile, action: string) => {
+        // "Restore to Library" is a free feature — no pro check needed.
+        if ('restore' === action) {
+            setRestoreCurrentItem(data.id);
+            try {
+                const response = await rubbishSingleRestoreAction(data) as { status: number | string; data: { updated: boolean } };
+                if (200 === parseInt(String(response?.status)) && response?.data.updated) {
+                    setRubbishMedia({ mediaFile: rubbishMedia.mediaFile.filter(item => data.id !== item.id) });
+                }
+            } finally {
+                setRestoreCurrentItem(null);
+            }
+            return;
+        }
+
         if (tsmltParams.hasExtended) {
             let response: { status: number | string; data: { updated: boolean } } | undefined;
             if ('ignore' === action) {
@@ -585,7 +600,7 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
             dataIndex: 'file_path',
             align: 'top',
             width: '450px',
-            render: (text, record) => (
+            render: (_text, record) => (
                 <span className="flex flex-wrap gap-2">
                     {'ignore' === rubbishMedia.postQuery.fileStatus ? (
                         <button
@@ -598,12 +613,21 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
                     ) : (
                         <>
                             <button
+                                className="px-3 py-1.5 text-sm font-medium text-green-600 border border-green-300 rounded-md hover:bg-green-50 cursor-pointer transition-colors disabled:opacity-50"
+                                onClick={() => onRubbishSingleAction(record, 'restore')}
+                                disabled={record.id === restoreCurrentItem}
+                                title="Import this file into the WordPress media library"
+                            >
+                                {record.id === restoreCurrentItem ? 'Restoring...' : 'Restore to Media'}
+                            </button>
+                            <button
                                 className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
                                 onClick={() => onRubbishSingleAction(record, 'delete')}
                                 disabled={record.id === deleteCurrentItem}
                             >
                                 {record.id === deleteCurrentItem ? 'Deleting...' : 'Delete Unnecessary File'}
                             </button>
+
                             <button
                                 className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
                                 onClick={() => onRubbishSingleAction(record, 'ignore')}

@@ -200,6 +200,15 @@ class Api {
 				'permission_callback' => [ $this, 'login_permission_callback' ],
 			]
 		);
+		register_rest_route(
+			$this->namespace,
+			$this->resource_name . '/rubbish/single/restore/action',
+			[
+				'methods'             => 'POST',
+				'callback'            => [ $this, 'restore_rubbish_file' ],
+				'permission_callback' => [ $this, 'login_permission_callback' ],
+			]
+		);
 	}
 
 	/**
@@ -1047,5 +1056,109 @@ class Api {
 		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->primary()->execute();
 		update_option( 'tsmlt_get_directory_list', [] );
 		return true;
+	}
+
+	/**
+	 * Restore a rubbish file to the WordPress media library.
+	 *
+	 * Validates the file path, checks the file type is supported by WordPress,
+	 * registers it as an attachment, generates metadata, and removes the rubbish
+	 * record from the database.
+	 *
+	 * @param \WP_REST_Request $request_data REST request.
+	 *
+	 * @return false|string JSON response with { updated: bool, message: string }.
+	 */
+	public function restore_rubbish_file( $request_data ) {
+		$result = [
+			'updated' => false,
+			'message' => esc_html__( 'Failed to restore file.', 'media-library-tools' ),
+		];
+
+		$parameters = $request_data->get_params();
+		$row_id     = absint( $parameters['id'] ?? 0 );
+
+		if ( ! $row_id ) {
+			$result['message'] = esc_html__( 'Invalid file ID.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		// Fetch the record.
+		global $wpdb;
+		$table = $wpdb->prefix . 'tsmlt_unlisted_file';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is constructed from trusted wpdb prefix.
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `{$table}` WHERE `id` = %d LIMIT 1", $row_id ), ARRAY_A );
+
+		if ( empty( $row ) || empty( $row['file_path'] ) ) {
+			$result['message'] = esc_html__( 'File record not found.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		$rel_path   = $row['file_path'];
+		$upload_dir = wp_upload_dir();
+		$file_path  = trailingslashit( $upload_dir['basedir'] ) . ltrim( $rel_path, '/' );
+
+		// Path-traversal guard — the resolved path must be inside the uploads directory.
+		$real_basedir = realpath( $upload_dir['basedir'] );
+		$real_path    = realpath( $file_path );
+
+		if ( false === $real_basedir || false === $real_path ) {
+			$result['message'] = esc_html__( 'File path could not be resolved.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		if ( 0 !== strpos( $real_path, $real_basedir . DIRECTORY_SEPARATOR ) ) {
+			$result['message'] = esc_html__( 'File is outside the uploads directory.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		if ( ! file_exists( $real_path ) ) {
+			$result['message'] = esc_html__( 'File does not exist on disk.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		// Verify the file type is natively supported by the WordPress media library.
+		$filetype = wp_check_filetype( basename( $real_path ) );
+		if ( empty( $filetype['type'] ) ) {
+			$result['message'] = esc_html__( 'This file type is not supported by the WordPress media library.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		// Build and insert the attachment post.
+		$guid       = trailingslashit( $upload_dir['baseurl'] ) . ltrim( $rel_path, '/' );
+		$post_title = sanitize_file_name( pathinfo( basename( $real_path ), PATHINFO_FILENAME ) );
+
+		$attachment = [
+			'guid'           => $guid,
+			'post_mime_type' => $filetype['type'],
+			'post_title'     => $post_title,
+			'post_content'   => '',
+			'post_status'    => 'inherit',
+		];
+
+		$attachment_id = wp_insert_attachment( $attachment, $real_path );
+
+		if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+			$result['message'] = esc_html__( 'Failed to register file in the media library.', 'media-library-tools' );
+			return wp_json_encode( $result );
+		}
+
+		// Generate attachment metadata (image dimensions, thumbnails, etc.).
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+		if ( ! function_exists( 'wp_read_video_metadata' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+		}
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $real_path );
+		wp_update_attachment_metadata( $attachment_id, $metadata );
+
+		// Remove from rubbish table — it is now in the media library.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Required for targeted single-row deletion.
+		$wpdb->delete( $table, [ 'id' => $row_id ], [ '%d' ] );
+
+		$result['updated'] = true;
+		$result['message'] = esc_html__( 'File successfully restored to the media library.', 'media-library-tools' );
+		return wp_json_encode( $result );
 	}
 }
