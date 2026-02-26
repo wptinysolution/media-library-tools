@@ -107,9 +107,9 @@ class ActionHooks {
 				echo esc_html( $image['description'] );
 				break;
 			case 'category':
-				$taxonomy_object = get_taxonomy( tsmlt()->category );
+				$taxonomy_object = get_taxonomy( Fns::CATEGORY );
 
-				if ( $terms = get_the_terms( $post_id, tsmlt()->category ) ) {
+				if ( $terms = get_the_terms( $post_id, Fns::CATEGORY ) ) {
 					$out = [];
 					foreach ( $terms as $t ) {
 						$posts_in_term_qv              = [];
@@ -118,14 +118,14 @@ class ActionHooks {
 						if ( $taxonomy_object->query_var ) {
 							$posts_in_term_qv[ $taxonomy_object->query_var ] = $t->slug;
 						} else {
-							$posts_in_term_qv['taxonomy'] = tsmlt()->category;
+							$posts_in_term_qv['taxonomy'] = Fns::CATEGORY;
 							$posts_in_term_qv['term']     = $t->slug;
 						}
 
 						$out[] = sprintf(
 							'<a href="%s">%s</a>',
 							esc_url( add_query_arg( $posts_in_term_qv, 'upload.php' ) ),
-							esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, tsmlt()->category, 'display' ) )
+							esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, Fns::CATEGORY, 'display' ) )
 						);
 					}
 

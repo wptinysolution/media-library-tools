@@ -14,10 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 class Dependencies {
-    /**
-     * Singleton
-     */
-    use SingletonTrait;
+	/**
+	 * Singleton
+	 */
+	use SingletonTrait;
 
 	const MINIMUM_PHP_VERSION = '7.4';
 
@@ -55,6 +55,4 @@ class Dependencies {
 			wp_kses_post( $message )
 		);
 	}
-
-
 }

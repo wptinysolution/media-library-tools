@@ -26,6 +26,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package TinySolutions\WM
  */
 class Fns {
+
+	/**
+	 * Nonce ID used across admin and AJAX requests.
+	 */
+	const NONCE_ID = 'tsmlt_wpnonce';
+
+	/**
+	 * Taxonomy slug for media categories.
+	 */
+	const CATEGORY = 'tsmlt_category';
+
 	/**
 	 * @return DB
 	 */

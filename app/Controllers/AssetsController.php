@@ -2,6 +2,7 @@
 
 namespace TinySolutions\mlt\Controllers;
 
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
@@ -96,18 +97,18 @@ class AssetsController {
 				'tsmlt-settings',
 				'tsmltParams',
 				[
-					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
-					'adminUrl'       => esc_url( admin_url() ),
-					'hasExtended'    => tsmlt()->has_pro(),
-					'proVersion'     => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
-					'proLink'        => tsmlt()->pro_version_link(),
-					'includesUrl'    => esc_url( includes_url() ),
-					'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
-					'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-					'hasWoo'         => function_exists( 'WC' ),
-					'restApiUrl'     => esc_url_raw( rest_url() ),
-					'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
-					tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
+					'ajaxUrl'       => esc_url( admin_url( 'admin-ajax.php' ) ),
+					'adminUrl'      => esc_url( admin_url() ),
+					'hasExtended'   => tsmlt()->has_pro(),
+					'proVersion'    => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
+					'proLink'       => tsmlt()->pro_version_link(),
+					'includesUrl'   => esc_url( includes_url() ),
+					'uploadUrl'     => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
+					'uploadBasedir' => $upload_dir['basedir'] ?? '',
+					'hasWoo'        => function_exists( 'WC' ),
+					'restApiUrl'    => esc_url_raw( rest_url() ),
+					'rest_nonce'    => wp_create_nonce( 'wp_rest' ),
+					Fns::NONCE_ID   => wp_create_nonce( Fns::NONCE_ID ),
 				]
 			);
 		}

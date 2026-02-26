@@ -34,10 +34,14 @@ class SpecialDiscount extends Discount {
 	 */
 	public function the_options(): array {
 		return [
-			'option_name'      => 'tsmlt_bf_offer_2025',
-			'prev_option_name' => [ 'tsmlt_special_offer_2024', 'tsmlt_special_offer_2025' ],
+			'option_name'      => 'tsmlt_bf_offer_202999',
+			'prev_option_name' => [
+				'tsmlt_special_offer_2024',
+				'tsmlt_special_offer_2025',
+				'tsmlt_bf_offer_2025',
+			],
 			'start_date'       => '10 November 2025',
-			'end_date'         => '10 December 2025',
+			'end_date'         => '10 December 2027',
 			'notice_for'       => '🥳 Black Friday Cyber Savings extended: 30% off',
 			'notice_message'   => "Don't miss out on our biggest sale of the year! Get your <b> Media Library Tools Pro plan</b> with <b>UP TO 30% OFF</b>! Limited time offer!!",
 		];

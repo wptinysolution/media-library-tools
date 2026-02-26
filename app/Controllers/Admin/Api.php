@@ -321,7 +321,7 @@ class Api {
 	public function get_terms() {
 		$terms       = get_terms(
 			[
-				'taxonomy'   => tsmlt()->category,
+				'taxonomy'   => Fns::CATEGORY,
 				'hide_empty' => false,
 			]
 		);
@@ -623,7 +623,7 @@ class Api {
 		if ( ! empty( $parameters['categories'] ) ) {
 			$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary query.
 				[
-					'taxonomy' => tsmlt()->category,
+					'taxonomy' => Fns::CATEGORY,
 					'field'    => 'term_id',
 					'terms'    => $parameters['categories'],
 				],
@@ -662,7 +662,7 @@ class Api {
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 
-			$terms          = get_the_terms( $post->ID, tsmlt()->category );
+			$terms          = get_the_terms( $post->ID, Fns::CATEGORY );
 			$tsmlt_category = [];
 			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
@@ -818,7 +818,7 @@ class Api {
 				// Categories.
 				if ( ! empty( $categories ) ) {
 					foreach ( $ids as $id ) {
-						wp_set_object_terms( $id, $categories, tsmlt()->category );
+						wp_set_object_terms( $id, $categories, Fns::CATEGORY );
 					}
 					$updated = true;
 				}
