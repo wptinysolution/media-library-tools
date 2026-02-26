@@ -81,7 +81,7 @@ export default function Datatable() {
                                 </label>
                             ))}
                         </div>
-                        <div className="my-6 rounded-lg overflow-hidden">
+                        <div className="my-6 mx-2 rounded-lg overflow-hidden">
                             <DataTable
                                 columns={tablecolumn}
                                 data={posts}

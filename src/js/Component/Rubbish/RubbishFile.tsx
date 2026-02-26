@@ -73,7 +73,7 @@ function RubbishFile() {
             <div className="min-h-screen bg-gray-50">
                 <RubbishHeader />
                 {rubbishMedia.isLoading ? <Loader /> : (
-                    <div className="my-6 rounded-lg overflow-hidden">
+                    <div className="my-6 mx-2 rounded-lg overflow-hidden">
                         <DataTable
                             columns={rubbishColumns}
                             data={posts}
