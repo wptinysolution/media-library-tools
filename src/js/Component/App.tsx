@@ -70,6 +70,7 @@ function App() {
                 },
             });
         }
+        setSaveType(null);
     };
 
     const fileRenamerUpdateSingleMedia = async () => {
