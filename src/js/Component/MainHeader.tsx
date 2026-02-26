@@ -109,13 +109,13 @@ function MainHeader() {
     };
 
     return (
-        <nav className="bg-gray-900 h-[65px] flex items-center overflow-x-auto">
+        <nav className="bg-gray-900 h-15 flex items-center overflow-x-auto">
             {menuItems.map((item) => (
                 <Link
                     key={item.key}
                     to={item.key}
                     onClick={() => onMenuSelect(item.key)}
-                    className={`inline-flex items-center gap-2 px-6 h-full text-[15px] whitespace-nowrap transition-colors no-underline ${
+                    className={`inline-flex items-center gap-2 px-4 h-full text-[14px] whitespace-nowrap transition-colors no-underline ${
                         pat === item.key
                             ? 'bg-blue-600 text-white!'
                             : 'text-gray-300! hover:text-white! hover:bg-gray-800!'

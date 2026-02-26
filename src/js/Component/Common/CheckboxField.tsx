@@ -12,14 +12,14 @@ interface CheckboxFieldProps {
 export default function CheckboxField({ name, value, checked, onChange, label, isPro = false }: CheckboxFieldProps) {
     return (
         <label className={`inline-flex items-center gap-3 group ${isPro ? 'cursor-pointer opacity-75' : 'cursor-pointer'}`}>
-            <span className={`relative flex-shrink-0 w-[18px] h-[18px] !rounded border-2 transition-all duration-150 ${
+            <span className={`relative shrink-0 w-4.5 h-4.5 rounded! border-2 transition-all duration-150 ${
                 checked
-                    ? '!bg-blue-600 !border-blue-600 shadow-sm'
-                    : '!bg-white !border-gray-300 group-hover:!border-blue-400'
+                    ? 'bg-blue-600! border-blue-600! shadow-sm'
+                    : 'bg-white! border-gray-300! group-hover:border-blue-400!'
             }`}>
                 {checked && (
                     <svg
-                        className="absolute inset-0 w-full h-full p-[2px] text-white"
+                        className="absolute inset-0 w-full h-full p-0.5 text-white"
                         viewBox="0 0 12 12"
                         fill="none"
                     >
@@ -34,7 +34,7 @@ export default function CheckboxField({ name, value, checked, onChange, label, i
                 )}
                 <input
                     type="checkbox"
-                    className="!absolute !inset-0 !w-full !h-full !opacity-0 !m-0 !p-0 !border-0 cursor-pointer"
+                    className="absolute! inset-0! w-full! h-full! opacity-0! m-0! p-0! border-0! cursor-pointer"
                     onChange={onChange}
                     name={name}
                     value={value}
