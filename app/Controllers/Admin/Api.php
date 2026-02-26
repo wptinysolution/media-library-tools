@@ -1033,18 +1033,10 @@ class Api {
 	 * @return bool True if the query succeeds, false otherwise.
 	 */
 	public function delete_all_rows_in_unlisted_file() {
-		global $wpdb;
-		// Get the table name with prefix.
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Ensure the table exists before deleting rows.
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching  -- Prepared above.
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
-			Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-			$wpdb->query( "ALTER TABLE `{$table_name}` AUTO_INCREMENT = 1" ); // Reset auto-increment.
-		}
+		Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
+		// MODIFY COLUMN resets the AUTO_INCREMENT counter once all rows are deleted.
+		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->primary()->execute();
 		update_option( 'tsmlt_get_directory_list', [] );
-		// Table does not exist, return false.
 		return true;
 	}
 }
