@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DownloadCSV from '@/js/Component/ListTable/DownloadCSV';
 import { useStore } from '@/js/Utils/store';
 import { initialBulkExport } from '@/js/Utils/store';

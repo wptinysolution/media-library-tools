@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { defaultBulkSubmitData } from '@/js/Utils/UtilData';
 import { useStore } from "@/js/Utils/store";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
 import { notifications } from "@/js/Utils/Data";
 import SearchInput from "@/js/Component/Common/SearchInput";
+import Modal from "@/js/Component/Common/Modal";
 
 const bulkOptions = [
     { value: 'bulkedit', label: 'Bulk Edit' },
@@ -29,6 +30,7 @@ function TheHeader() {
 
     const [search, setSearch] = useSearchDebounce();
     const inputRef = useRef<HTMLInputElement>(null);
+    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | null>(null);
 
     const handleSelectChange = (value: string | null, fieldName: string) => {
         setMediaData({
@@ -64,9 +66,11 @@ function TheHeader() {
                 setBulkExport({ isModalOpen: true });
                 break;
             case 'trash':
+            case 'delete':
+                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete');
+                break;
             case 'inherit':
             case 'update':
-            case 'delete':
             case 'searchUses':
                 setSaveType(Types.BULK_SUBMIT);
                 break;
@@ -101,6 +105,7 @@ function TheHeader() {
         : bulkOptions.filter(item => 'inherit' !== item.value);
 
     return (
+        <>
         <header className="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
             <div className="flex flex-wrap items-center gap-2">
 
@@ -184,7 +189,7 @@ function TheHeader() {
                     </button>
 
                     <div className="flex items-center gap-1.5">
-                        <label className="text-sm text-gray-600 whitespace-nowrap cursor-pointer" onClick={() => inputRef.current?.focus()}>
+                        <label className="text-sm! text-gray-600 whitespace-nowrap cursor-pointer" onClick={() => inputRef.current?.focus()}>
                             Per page:
                         </label>
                         <input
@@ -199,6 +204,52 @@ function TheHeader() {
                 </div>
             </div>
         </header>
+
+        <Modal
+            isOpen={!!confirmAction}
+            onClose={() => setConfirmAction(null)}
+            title={confirmAction === 'delete' ? 'Delete Permanently?' : 'Move to Trash?'}
+            maxWidth="max-w-md"
+            closeOnBackdrop={false}
+            footer={
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                    <button
+                        type="button"
+                        className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => setConfirmAction(null)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className={`px-5 py-2 text-sm font-medium text-white rounded-md cursor-pointer transition-colors ${
+                            confirmAction === 'delete'
+                                ? 'bg-red-600 hover:bg-red-700'
+                                : 'bg-orange-500 hover:bg-orange-600'
+                        }`}
+                        onClick={() => {
+                            setSaveType(Types.BULK_SUBMIT);
+                            setConfirmAction(null);
+                        }}
+                    >
+                        {confirmAction === 'delete' ? 'Yes, Delete' : 'Yes, Move to Trash'}
+                    </button>
+                </div>
+            }
+        >
+            <div className="px-6 py-5">
+                {confirmAction === 'delete' ? (
+                    <p className="text-sm! text-gray-600 m-0!">
+                        You are about to <strong className="text-red-600">permanently delete</strong> {bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}. This action <strong>cannot be undone</strong>.
+                    </p>
+                ) : (
+                    <p className="text-sm! text-gray-600">
+                        You are about to move <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong> to the trash. You can restore them later.
+                    </p>
+                )}
+            </div>
+        </Modal>
+        </>
     );
 }
 
