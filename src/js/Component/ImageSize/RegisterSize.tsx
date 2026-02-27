@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStore } from "@/js/Utils/store";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 
@@ -53,36 +52,36 @@ function RegisterSize() {
                 {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
             </label>
             <div className="flex-1 space-y-4">
-                {Object.keys(sizes).map((item, index) => {
+                {Object.keys(sizes).map((_item, index) => {
                     const sizeKey = sizes[index]?.sizeKey || '';
                     const fullKey = `tsmlt_${sizeKey}`;
                     return (
                         <div key={index}>
                             <div className="flex items-center gap-3 flex-wrap">
                                 <div className="flex items-center">
-                                    <span className="h-[35px] px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600 whitespace-nowrap">
+                                    <span className="h-8.75 px-3 py-2 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600 whitespace-nowrap">
                                         tsmlt_
                                     </span>
                                     <input
                                         type="text"
-                                        className="h-[35px] w-40 px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="h-8.75 w-40 px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         value={String(sizeKey)}
                                         placeholder="size-name"
                                         title={fullKey}
                                         onChange={(event) => registerImageSize(index, 'sizeKey', event.target.value)}
                                     />
+                                    <CopyToClipboard text={fullKey} />
                                 </div>
 
-                                <CopyToClipboard text={fullKey} />
 
                                 <div className="flex items-center">
-                                    <span className="px-3 py-2 text-sm h-[35px] bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
+                                    <span className="px-3 py-2 text-sm h-8.75 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
                                         Width
                                     </span>
                                     <input
                                         type="number"
                                         min={0}
-                                        className="w-20 h-[35px] px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-20 h-8.75 px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         value={sizes[index]?.width || ''}
                                         onChange={(event) => registerImageSize(index, 'width', Number(event.target.value))}
                                     />
@@ -92,13 +91,13 @@ function RegisterSize() {
                                 </div>
 
                                 <div className="flex items-center">
-                                    <span className="px-3 py-2 h-[35px] text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
+                                    <span className="px-3 py-2 h-8.75 text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-600">
                                         Height
                                     </span>
                                     <input
                                         type="number"
                                         min={0}
-                                        className="w-20 h-[35px] px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-20 h-8.75 px-3 py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         value={sizes[index]?.height || ''}
                                         onChange={(event) => registerImageSize(index, 'height', Number(event.target.value))}
                                     />

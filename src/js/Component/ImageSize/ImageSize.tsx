@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStore } from "@/js/Utils/store";
 import Loader from "@/js/Utils/Loader";
 import RegisterSize from "./RegisterSize";
