@@ -77,7 +77,7 @@ class SubMenu {
 	 * @return void
 	 */
 	public function wp_media_page_callback() {
-		echo '<div class="wrap"><div id="media_root"></div></div>';
+		echo '<div id="media_root" style="margin-left: -20px;"></div>';
 	}
 
 
