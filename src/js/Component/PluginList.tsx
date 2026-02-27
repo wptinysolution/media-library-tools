@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Loader from '@/js/Utils/Loader';
 import { getPluginList, safeParseJSON } from '@/js/Utils/Data';
-import PluginCard, { Plugin } from '@/js/Component/PluginCard';
+import PluginCard from '@/js/Component/PluginCard';
+import type { Plugin } from '@/js/Component/PluginCard';
 
 function PluginList() {
     const [pluginList, setPluginList] = useState<Plugin[]>([]);

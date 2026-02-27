@@ -1,6 +1,5 @@
 import React from "react";
 import { useStore } from "@/js/Utils/store";
-import { useWpMenuWidth } from "@/js/Utils/Hooks";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
 
@@ -17,7 +16,6 @@ interface MenuItem {
 function MainHeader() {
     const { pathname } = useLocation();
     const { setBulkSubmitData, generalData, setGeneralData } = useStore();
-    const wpMenuWidth = useWpMenuWidth();
     const isCollapsed = generalData.sidebarCollapsed;
 
     const basePath = pathname.replace(/\/page\/\d+$/, '');
@@ -124,12 +122,11 @@ function MainHeader() {
     return (
         <nav
             style={{
-                left: wpMenuWidth,
                 top: SIDEBAR_TOP,
                 height: `calc(100vh - ${SIDEBAR_TOP}px)`,
                 width: isCollapsed ? 48 : 200,
             }}
-            className="fixed z-[9000] bg-white border-r border-gray-200 flex flex-col overflow-x-hidden shadow-sm transition-[width] duration-200 ease-in-out"
+            className="sticky self-start shrink-0 z-[9000] bg-white border-r border-gray-200 flex flex-col overflow-x-hidden shadow-sm transition-[width] duration-200 ease-in-out"
         >
             {/* Navigation items */}
             <div className="flex flex-col py-2 flex-1 overflow-y-auto overflow-x-hidden">

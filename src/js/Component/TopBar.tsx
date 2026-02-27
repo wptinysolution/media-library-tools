@@ -1,14 +1,6 @@
-import React from 'react';
-import { useWpMenuWidth } from '@/js/Utils/Hooks';
-
 function TopBar() {
-    const wpMenuWidth = useWpMenuWidth();
-
     return (
-        <div
-            style={{ left: wpMenuWidth, top: 32 }}
-            className="fixed right-0 z-9100 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm"
-        >
+        <div className="sticky top-8 z-[9100] h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
             {/* Left: Logo + Plugin name */}
             <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-sm ring-1 ring-gray-100">
