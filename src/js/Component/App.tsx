@@ -36,6 +36,7 @@ function App() {
         mediaData, setMediaData,
         options, setOptions,
         setGeneralData,
+        generalData,
         singleMedia,
         rename,
         bulkSubmitData, setBulkSubmitData,
@@ -142,11 +143,14 @@ function App() {
         getTheMedia();
     }, [mediaData.postQuery]);
 
+    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 210;
+
     return (
         <HashRouter>
+            <MainHeader />
+            <div style={{ marginLeft: sidebarWidth, transition: 'margin-left 200ms ease-in-out' }}>
             <TopBar />
             <div className="flex" style={{ height: 'calc(100vh - 88px)' }}>
-                <MainHeader />
                 <div className="flex-1 min-w-0 bg-white overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Settings />} />
@@ -166,6 +170,7 @@ function App() {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
                 </div>
+            </div>
             </div>
             <ProModal />
             <Toaster
