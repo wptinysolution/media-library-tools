@@ -117,7 +117,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                                         width: col.width || 'auto',
                                                         minWidth: col.minWidth,
                                                         textAlign: textAlign(col.align),
-                                                        verticalAlign: verticalAlign(col.align),
+                                                        verticalAlign: 'middle',
                                                         ...stickyStyle(col.fixed, isOdd),
                                                     }}
                                                 >
