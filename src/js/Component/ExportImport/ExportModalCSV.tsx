@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useStore, initialBulkExport } from "@/js/Utils/store";
 import ExportCSV from "./ExportCSV";
 
@@ -63,8 +64,8 @@ function ExportModalCSV({ isModalOpen, setModalOpen }: ExportModalCSVProps) {
 
     const keys = getSelectedKeysWithMeta();
 
-    return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+    return createPortal(
+        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 999999 }}>
             <div className="absolute inset-0 bg-black/45" onClick={handleBulkModalCancel} />
             <div className="relative bg-white rounded-lg shadow-xl w-full max-w-[650px] mx-4">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
@@ -106,7 +107,8 @@ function ExportModalCSV({ isModalOpen, setModalOpen }: ExportModalCSVProps) {
                     <ExportCSV />
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
