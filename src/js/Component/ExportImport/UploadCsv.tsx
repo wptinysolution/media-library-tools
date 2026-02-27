@@ -130,7 +130,6 @@ function UploadCsv() {
                         </svg>
                         Run the importer
                     </button>
-                    <hr className="border-gray-200 my-2" />
                     <p className="text-center text-sm text-gray-700">
                         {filename && <span>{filename}</span>}
                     </p>
@@ -140,7 +139,7 @@ function UploadCsv() {
             {!exportImport.fileCount ? (
                 <button
                     type="button"
-                    className="w-70 h-17.5 text-2xl flex items-center justify-center gap-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 cursor-pointer transition-colors font-medium mx-auto"
+                    className="w-70 h-17.5 text-2xl! flex items-center justify-center gap-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 cursor-pointer transition-colors font-medium mx-auto"
                     onClick={() => fileInputRef.current?.click()}
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

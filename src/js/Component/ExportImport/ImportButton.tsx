@@ -46,7 +46,7 @@ function ImportButton() {
                             {exportImport.runImporter ? (
                                 <ImportInfo />
                             ) : (
-                                <div className="flex flex-wrap justify-center">
+                                <div className="flex flex-col justify-center">
                                     <UploadCsv />
                                 </div>
                             )}
