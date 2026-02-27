@@ -56,7 +56,7 @@ function SaveButton({
                 min-w-[180px]
                 justify-center
                 rounded-xl
-                text-base
+                text-base!
                 shadow-lg
                 ${isSaved ? 'shadow-green-500/30' : 'shadow-blue-500/30'}
                 hover:shadow-xl
