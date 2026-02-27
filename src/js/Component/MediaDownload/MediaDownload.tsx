@@ -98,7 +98,7 @@ function MediaDownload() {
         <Loader />
     ) : (
         <div className="p-6 bg-white/35 rounded-lg shadow-sm">
-            <h3 className="text-2xl font-semibold m-0 mb-6">
+            <h3 className="text-2xl font-semibold m-0! mb-6">
                 Button For Download Media File
             </h3>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import * as Types from '@/js/Utils/actionType';
 
