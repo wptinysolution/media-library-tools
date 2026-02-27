@@ -69,7 +69,7 @@ export default function DataTable<T extends Record<string, unknown>>({ columns, 
                                             style={{
                                                 width: col.width || 'auto',
                                                 textAlign: col.align === 'center' ? 'center' : 'left',
-                                                verticalAlign: col.align === 'top' ? 'top' : 'middle',
+                                                verticalAlign: 'middle',
                                                 ...(col.fixed ? {
                                                     position: 'sticky',
                                                     left: 0,
