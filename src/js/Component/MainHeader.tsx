@@ -12,16 +12,16 @@ interface MenuItem {
 function MainHeader() {
     const { pathname } = useLocation();
     const { setBulkSubmitData } = useStore();
-    const [isFolded, setIsFolded] = useState(
-        () => document.body.classList.contains('folded') || document.body.classList.contains('auto-fold')
-    );
+    const [leftPos, setLeftPos] = useState(() => {
+        const wrap = document.getElementById('adminmenuwrap');
+        return wrap ? wrap.offsetWidth : 160;
+    });
 
     useEffect(() => {
-        const update = () => {
-            setIsFolded(document.body.classList.contains('folded') || document.body.classList.contains('auto-fold'));
-        };
-        const observer = new MutationObserver(update);
-        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        const wrap = document.getElementById('adminmenuwrap');
+        if (!wrap) return;
+        const observer = new ResizeObserver(() => setLeftPos(wrap.offsetWidth));
+        observer.observe(wrap);
         return () => observer.disconnect();
     }, []);
 
@@ -122,7 +122,7 @@ function MainHeader() {
 
     return (
         <nav
-            style={{ left: isFolded ? 36 : 160 }}
+            style={{ left: leftPos }}
             className="fixed top-8 z-[9000] w-[200px] h-[calc(100vh-32px)] bg-gray-900 flex flex-col overflow-y-auto"
         >
             {menuItems.map((item) => (
