@@ -55,7 +55,7 @@ function RubbishFile() {
         }
     }, [pageParam]);
 
-    const rubbishColumns = RubbishFileColumns();
+    const { columns: rubbishColumns, confirmModal } = RubbishFileColumns();
 
     useEffect(() => {
         getTheRubbishFile();
@@ -88,6 +88,7 @@ function RubbishFile() {
                 )}
                 <DirectoryModal />
                 <RubbishNotice />
+                {confirmModal}
         </div>
     );
 }

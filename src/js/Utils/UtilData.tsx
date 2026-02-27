@@ -5,6 +5,7 @@ import * as Types from "@/js/Utils/actionType";
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction, rubbishSingleRestoreAction } from "./Data";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 import type { ColumnDef } from "@/js/Component/Common/DataTable";
+import Modal from "@/js/Component/Common/Modal";
 
 export const headerStyle: React.CSSProperties = {
     height: 'auto',
@@ -456,12 +457,42 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
     ];
 }
 
-export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
+type ConfirmState = { record: RubbishMediaFile; action: string } | null;
+
+const actionConfig: Record<string, { title: string; message: string; confirmLabel: string; confirmClass: string }> = {
+    delete: {
+        title: 'Delete Unnecessary File',
+        message: 'Are you sure you want to permanently delete this file? This cannot be undone.',
+        confirmLabel: 'Delete',
+        confirmClass: 'bg-red-600 hover:bg-red-700 text-white',
+    },
+    restore: {
+        title: 'Restore to Library',
+        message: 'Are you sure you want to restore this file to the WordPress media library?',
+        confirmLabel: 'Restore',
+        confirmClass: 'bg-green-600 hover:bg-green-700 text-white',
+    },
+    ignore: {
+        title: 'Ignore Important File',
+        message: 'Are you sure you want to mark this as an important file? It will be excluded from the rubbish file list.',
+        confirmLabel: 'Ignore',
+        confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+    },
+    show: {
+        title: 'Mark As Unnecessary File',
+        message: 'Are you sure you want to mark this file as unnecessary?',
+        confirmLabel: 'Confirm',
+        confirmClass: 'bg-gray-600 hover:bg-gray-700 text-white',
+    },
+};
+
+export function RubbishFileColumns(): { columns: ColumnDef<RubbishMediaFile>[]; confirmModal: React.ReactElement } {
     const { rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData, setGeneralData } = useStore();
 
     const [deleteCurrentItem,  setDeleteCurrentItem]  = useState<string | number | null>(null);
     const [ignoreCurrentItem,  setIgnoreCurrentItem]  = useState<string | number | null>(null);
     const [restoreCurrentItem, setRestoreCurrentItem] = useState<string | number | null>(null);
+    const [confirmState, setConfirmState] = useState<ConfirmState>(null);
 
     const onRubbishBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
         const postsId = event.target.checked ? rubbishMedia.mediaFile.map(item => item.id) : [];
@@ -533,7 +564,49 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
         setGeneralData({ openProModal: true });
     };
 
-    return [
+    const config = confirmState ? actionConfig[confirmState.action] : null;
+
+    const confirmModal = (
+        <Modal
+            isOpen={!!confirmState}
+            onClose={() => setConfirmState(null)}
+            title={config?.title ?? ''}
+            maxWidth="max-w-[480px]"
+            footer={
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                    <button
+                        type="button"
+                        className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => setConfirmState(null)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className={`px-5 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors ${config?.confirmClass ?? ''}`}
+                        onClick={() => {
+                            if (!confirmState) return;
+                            onRubbishSingleAction(confirmState.record, confirmState.action);
+                            setConfirmState(null);
+                        }}
+                    >
+                        {config?.confirmLabel}
+                    </button>
+                </div>
+            }
+        >
+            <div className="px-6 py-5">
+                <p className="text-sm mt-0! text-gray-700 mb-3">{config?.message}</p>
+                {confirmState && (
+                    <p className="text-xs mb-0! text-gray-500 bg-gray-50 border border-gray-200 rounded px-3 py-2 break-all">
+                        {`${tsmltParams.uploadUrl}/${confirmState.record.file_path}`}
+                    </p>
+                )}
+            </div>
+        </Modal>
+    );
+
+    const columns: ColumnDef<RubbishMediaFile>[] = [
         {
             title: (
                 <input
@@ -591,7 +664,7 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
                     {'ignore' === rubbishMedia.postQuery.fileStatus ? (
                         <button
                             className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
-                            onClick={() => onRubbishSingleAction(record, 'show')}
+                            onClick={() => setConfirmState({ record, action: 'show' })}
                             disabled={record.id === deleteCurrentItem}
                         >
                             {record.id === deleteCurrentItem ? 'Processing...' : 'Mark As Unnecessary File'}
@@ -600,7 +673,7 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
                         <>
                             <button
                                 className="px-3 py-1.5 text-sm font-medium text-green-600 border border-green-300 rounded-md hover:bg-green-50 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => onRubbishSingleAction(record, 'restore')}
+                                onClick={() => setConfirmState({ record, action: 'restore' })}
                                 disabled={record.id === restoreCurrentItem}
                                 title="Import this file into the WordPress media library"
                             >
@@ -608,15 +681,14 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
                             </button>
                             <button
                                 className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => onRubbishSingleAction(record, 'delete')}
+                                onClick={() => setConfirmState({ record, action: 'delete' })}
                                 disabled={record.id === deleteCurrentItem}
                             >
                                 {record.id === deleteCurrentItem ? 'Deleting...' : 'Delete Unnecessary File'}
                             </button>
-
                             <button
                                 className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => onRubbishSingleAction(record, 'ignore')}
+                                onClick={() => setConfirmState({ record, action: 'ignore' })}
                                 disabled={record.id === ignoreCurrentItem}
                             >
                                 {record.id === ignoreCurrentItem ? 'Processing...' : 'Ignore Important File'}
@@ -627,6 +699,8 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
             ),
         },
     ];
+
+    return { columns, confirmModal };
 }
 
 export const functionDebounce = (func: (...args: unknown[]) => void, delay: number) => {
