@@ -147,9 +147,9 @@ function App() {
 
     return (
         <HashRouter>
+            <TopBar />
             <MainHeader />
             <div style={{ marginLeft: sidebarWidth, transition: 'margin-left 200ms ease-in-out' }}>
-            <TopBar />
             <div className="flex" style={{ height: 'calc(100vh - 88px)' }}>
                 <div className="flex-1 min-w-0 bg-white overflow-y-auto">
                 <Routes>

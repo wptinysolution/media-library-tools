@@ -33,7 +33,7 @@ function TopBar() {
                             rel="noopener noreferrer"
                             className="text-gray-400 hover:text-blue-600 no-underline transition-colors"
                         >
-                            WP Tiny Solutions
+                            Tiny Solutions
                         </a>
                     </p>
                 </div>
