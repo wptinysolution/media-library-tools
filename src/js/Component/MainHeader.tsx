@@ -126,7 +126,7 @@ function MainHeader() {
 
     return (
         <nav
-            style={{ width: isCollapsed ? 48 : 210 }}
+            style={{ width: isCollapsed ? 48 : 200 }}
             className="fixed h-full shrink-0 z-9000 bg-white border-r border-gray-200 flex flex-col transition-[width] duration-200 ease-in-out"
         >
             {/* Navigation items */}

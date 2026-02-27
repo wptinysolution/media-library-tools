@@ -140,7 +140,7 @@ function App() {
         getTheMedia();
     }, [mediaData.postQuery]);
 
-    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 210;
+    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
 
     return (
         <HashRouter>
