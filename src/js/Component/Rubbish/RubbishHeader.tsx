@@ -1,17 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@/js/Utils/store";
-import * as Types from "@/js/Utils/actionType";
 import { getDirList, getRubbishFileType, notifications } from "@/js/Utils/Data";
 import RubbishConfirmationModal from "./RubbishConfirmationModal";
 
 function RubbishHeader() {
     const {
         options, setOptions,
-        generalData, setGeneralData,
-        rubbishMedia, setRubbishMedia,
-        bulkRubbishData, setBulkRubbishData,
-        bulkSubmitData, setBulkSubmitData,
-        setSaveType,
+        generalData,
+        setGeneralData,
+        rubbishMedia,
+        setRubbishMedia,
+        bulkRubbishData,
+        setBulkRubbishData,
+        setBulkSubmitData,
     } = useStore();
 
     const [filterItems, setFilterItems] = useState<Array<{ value: string; label: string }>>([]);
@@ -181,8 +182,18 @@ function RubbishHeader() {
                     >
                         Scan Directory
                     </button>
-
                 </div>
+                <div className="flex items-center gap-1.5">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Per page:</label>
+                    <input
+                        type="number"
+                        className="w-16 px-2! py-1.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        value={options.rubbish_per_page as number | string}
+                        onChange={(event) => { localStorage.setItem('mlt_rubbish_per_page', event.target.value); setOptions({ rubbish_per_page: event.target.value }); }}
+                        onBlur={() => setRubbishMedia({ isLoading: true, postQuery: { ...rubbishMedia.postQuery, postsPerPage: parseInt(String(options.rubbish_per_page || 20), 10), paged: 1, isQueryUpdate: true } })}
+                    />
+                </div>
+
             </div>
             <RubbishConfirmationModal />
         </header>

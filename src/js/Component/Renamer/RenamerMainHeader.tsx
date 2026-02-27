@@ -1,8 +1,7 @@
-import React, { useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
 import { useStore } from "@/js/Utils/store";
-import * as Types from "@/js/Utils/actionType";
-import BulkRanameModal from "./BulkRanameModal";
+import BulkRenameModal from "@/js/Component/Renamer/BulkRenameModal";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
 import { notifications } from "@/js/Utils/Data";
 import SearchInput from "@/js/Component/Common/SearchInput";
@@ -10,8 +9,7 @@ import SearchInput from "@/js/Component/Common/SearchInput";
 function RenamerMainHeader() {
     const {
         mediaData, setMediaData,
-        options, setOptions,
-        generalData, setGeneralData,
+        options, setOptions,setGeneralData,
         rename, setRename,
         bulkSubmitData, setBulkSubmitData,
         setSaveType,
@@ -127,8 +125,20 @@ function RenamerMainHeader() {
                     </button>
 
                 </div>
+
+                <div className="flex items-center gap-1.5">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Per page:</label>
+                    <input
+                        type="number"
+                        className="w-16 px-2! py-1.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        value={options.media_per_page as number | string}
+                        onChange={(event) => { localStorage.setItem('mlt_media_per_page', event.target.value); setOptions({ media_per_page: event.target.value }); }}
+                        onBlur={() => setMediaData({ postQuery: { ...mediaData.postQuery, media_per_page: parseInt(String(options.media_per_page || 20), 10), paged: 1 } })}
+                    />
+                </div>
+
             </div>
-            <BulkRanameModal />
+            <BulkRenameModal />
         </header>
     );
 }

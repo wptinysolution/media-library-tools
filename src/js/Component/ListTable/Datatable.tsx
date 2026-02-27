@@ -63,23 +63,11 @@ export default function Datatable() {
     return (
         <div className="min-h-screen bg-gray-50">
                 <TheHeader />
-                {generalData.isLoading || mediaData.isLoading ? <Loader /> : (
+                {generalData.isLoading ? <Loader /> : (
                     <>
-                        <div className="mx-6 mt-6 px-4 py-3 bg-white border border-gray-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
-                            <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Media Table Column:</span>
-                            {columnList.map((column) => (
-                                <label key={column.key} className="inline-flex items-center gap-1.5 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                        checked={options.media_table_column.includes(column.key)}
-                                        onChange={() => onChangeColumnList(column.key)}
-                                    />
-                                    <span className="text-sm text-gray-700">{column.title}</span>
-                                </label>
-                            ))}
-                            <div className="flex items-center gap-1.5">
-                                <label className="text-sm text-gray-500 whitespace-nowrap">Per page:</label>
+                        <div className="mx-6 mt-6 px-4 py-3 bg-white border border-gray-200 rounded-lg flex flex-wrap items-center gap-x-3 gap-y-2">
+                            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Per page:</span>
                                 <input
                                     type="number"
                                     className="w-16 px-2! py-1.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
@@ -87,22 +75,38 @@ export default function Datatable() {
                                     onChange={(event) => { localStorage.setItem('mlt_media_per_page', event.target.value); setOptions({ media_per_page: event.target.value }); }}
                                     onBlur={() => setMediaData({ postQuery: { ...mediaData.postQuery, media_per_page: parseInt(String(options.media_per_page || 20), 10), paged: 1 } })}
                                 />
+                            </label>
+                            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Table Column:</span>
+                                {columnList.map((column) => (
+                                    <>
+                                        <input
+                                            type="checkbox"
+                                            className="w-3.5 h-3.5 m-0! rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            checked={options.media_table_column.includes(column.key)}
+                                            onChange={() => onChangeColumnList(column.key)}
+                                        />
+                                        <span className="text-sm text-gray-700">{column.title}</span>
+                                    </>
+                                ))}
+                            </label>
+                        </div>
+                        {mediaData.isLoading ? <Loader /> : (
+                            <div className="my-6 mx-2 rounded-lg overflow-hidden">
+                                <DataTable
+                                    columns={tablecolumn}
+                                    data={posts}
+                                    rowKey="ID"
+                                />
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    totalPosts={totalPosts}
+                                    postsPerPage={postsPerPage}
+                                    onPageChange={handlePagination}
+                                />
                             </div>
-                        </div>
-                        <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                            <DataTable
-                                columns={tablecolumn}
-                                data={posts}
-                                rowKey="ID"
-                            />
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                totalPosts={totalPosts}
-                                postsPerPage={postsPerPage}
-                                onPageChange={handlePagination}
-                            />
-                        </div>
+                        )}
                         {renderModal()}
                     </>
                 )}

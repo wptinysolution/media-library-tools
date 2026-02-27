@@ -62,6 +62,7 @@ function App() {
     };
 
     const getTheMedia = async () => {
+        setMediaData({ isLoading: true });
         const response = await getMedia(mediaData.postQuery);
         setMediaData({ ...response, isLoading: false });
         setBulkSubmitData({ bulkChecked: false, ids: [] });

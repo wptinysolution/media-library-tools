@@ -1,4 +1,3 @@
-import React from "react";
 
 interface DirectoryItem {
     total_items: number;
