@@ -176,8 +176,7 @@ function TheHeader() {
                 <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
 
                 {/* Controls group */}
-                <div className="flex items-center gap-2">
-                    <button
+                <button
                         className={`px-4 py-2 text-sm border rounded-md transition-colors font-medium whitespace-nowrap cursor-pointer ${
                             singleMedia.formEdited
                                 ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
@@ -201,7 +200,7 @@ function TheHeader() {
                             value={options.media_per_page as number | string}
                         />
                     </div>
-                </div>
+
             </div>
         </header>
 
