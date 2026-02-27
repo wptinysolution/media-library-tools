@@ -41,7 +41,7 @@ export const defaultBulkSubmitData: BulkSubmitData = {
 export const columnList: Array<{ title: string; key: string }> = [
     { title: 'ID', key: 'ID' },
     { title: 'File', key: 'Image' },
-    { title: 'Attached Post (Parent)', key: 'Parents' },
+    { title: 'Attached Post', key: 'Parents' },
     { title: 'Title', key: 'Title' },
     { title: 'Alt', key: 'Alt' },
     { title: 'Caption', key: 'Caption' },
@@ -204,7 +204,7 @@ export function columns(): ColumnDef<MediaPost>[] {
         {
             title: (
                 <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('post_parents')}>
-                    Attached Post (Parent) <SortIcon />
+                    Attached Post<SortIcon />
                 </button>
             ),
             key: 'Parents',
@@ -377,7 +377,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             render: (_text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
         },
         {
-            title: <span className="inline-flex items-center">Attached Post (Parent)</span>,
+            title: <span className="inline-flex items-center">Attached Post</span>,
             key: 'Parents',
             dataIndex: 'post_parents',
             width: '150px',

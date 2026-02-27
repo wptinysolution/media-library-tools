@@ -76,10 +76,10 @@ export default function Datatable() {
                                     onBlur={() => setMediaData({ postQuery: { ...mediaData.postQuery, media_per_page: parseInt(String(options.media_per_page || 20), 10), paged: 1 } })}
                                 />
                             </label>
-                            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                            <div className="inline-flex items-center gap-3 flex-wrap">
                                 <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Table Column:</span>
                                 {columnList.map((column) => (
-                                    <>
+                                    <label key={column.key} className="inline-flex items-center gap-1.5 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             className="w-3.5 h-3.5 m-0! rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -87,9 +87,9 @@ export default function Datatable() {
                                             onChange={() => onChangeColumnList(column.key)}
                                         />
                                         <span className="text-sm text-gray-700">{column.title}</span>
-                                    </>
+                                    </label>
                                 ))}
-                            </label>
+                            </div>
                         </div>
                         <div className="my-2 mx-2 rounded-lg overflow-hidden">
                             <DataTable
