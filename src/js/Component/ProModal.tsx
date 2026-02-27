@@ -22,6 +22,7 @@ function ProModal() {
         { title: 'Auto Rename Based on Custom Name', desc: 'Implement automatic renaming of media files based on custom text.' },
         { title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title', desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.' },
         { title: 'Register Custom Image Sizes', desc: 'Easily register custom image sizes as needed.' },
+        { title: 'Find Rubbish And Restore File', desc: 'Easily Restore necessary File.' },
         { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
     ];
 
@@ -74,7 +75,7 @@ function ProModal() {
                             </svg>
                             <div>
                                 <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
-                                <p className="text-sm text-gray-700 mt-0.5">{item.desc}</p>
+                                <p className="text-sm text-gray-700 mt-0.5!">{item.desc}</p>
                             </div>
                         </div>
                     ))}

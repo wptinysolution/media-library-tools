@@ -37,16 +37,6 @@ export const defaultBulkSubmitData: BulkSubmitData = {
     post_categories: [],
 };
 
-export const bulkOprions: Array<{ value: string; label: string }> = [
-    { value: 'bulkedit', label: 'Bulk Edit' },
-    { value: 'csv_export', label: 'CSV Export' },
-    { value: 'bulkEditPostTitle', label: 'Edit Based on Attached Post Title' },
-    { value: 'inherit', label: 'Restore' },
-    { value: 'searchUses', label: 'Search Used Images (Attached Post)' },
-    { value: 'trash', label: 'Move to Trash' },
-    { value: 'delete', label: 'Delete Permanently ' },
-];
-
 export const columnList: Array<{ title: string; key: string }> = [
     { title: 'ID', key: 'ID' },
     { title: 'File', key: 'Image' },
@@ -209,7 +199,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             dataIndex: 'guid',
             width: '150px',
             align: 'top',
-            render: (text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
+            render: (_text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
         },
         {
             title: (
@@ -240,7 +230,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                 <>
                     {formEdited
                         ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
-                        : <a className="w-[200px] flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{text as string}</a>
+                        : <a className="w-50 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{text as string}</a>
                     }
                 </>
             ),
@@ -255,7 +245,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: (text, record, i) => (
+            render: (text, _record, i) => (
                 <>
                     {formEdited
                         ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
@@ -273,7 +263,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Caption',
             dataIndex: 'caption',
             width: '300px',
-            render: (text, record, i) => (
+            render: (text, _record, i) => (
                 <>
                     {formEdited
                         ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
@@ -291,7 +281,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Description',
             dataIndex: 'description',
             width: '350px',
-            render: (text, record, i) => (
+            render: (text, _record, i) => (
                 <>
                     {formEdited
                         ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
@@ -305,7 +295,7 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Category',
             dataIndex: 'categories',
             width: '250px',
-            render: (text, record) => {
+            render: (_text, record) => {
                 const items = JSON.parse(record.categories) as Array<{ id?: string | number; name?: string }>;
                 return (
                     <span className="flex flex-wrap gap-1">
@@ -402,14 +392,14 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             dataIndex: 'guid',
             width: '350px',
             align: 'top',
-            render: (text, record, i) => (
+            render: (_text, record, i) => (
                 <>
                     {rename.formEdited
                         ? (
                             <div className="flex items-center gap-1 bg-transparent">
                                 <input
                                     type="text"
-                                    className="w-[350px] h-[38px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-87.5 h-9.5 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     name="filebasename"
                                     placeholder="The name Shouldn't leave empty"
                                     data-current={i}
@@ -437,7 +427,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
                                 <span className="text-sm text-gray-600">{`.${record.thefile.fileextension}`}</span>
                             </div>
                         )
-                        : <a className="max-w-[300px] flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{record.thefile.mainfilename}</a>
+                        : <a className="max-w-75 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{record.thefile.mainfilename}</a>
                     }
                 </>
             ),
@@ -448,7 +438,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             dataIndex: 'guid',
             align: 'top',
             minWidth: 300,
-            render: (text, record) => (
+            render: (_text, record) => (
                 <span className="inline-flex items-center gap-1">
                     <code className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-[300px] inline-flex overflow-x-auto">
                         {record.uploaddir + '/' + record.thefile.file}
