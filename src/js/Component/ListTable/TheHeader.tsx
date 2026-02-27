@@ -7,14 +7,14 @@ import { notifications } from "@/js/Utils/Data";
 import SearchInput from "@/js/Component/Common/SearchInput";
 
 const bulkOptions = [
-    { value: 'csv_export', label: 'Export CSV' },
-    { value: 'trash', label: 'Move to Trash' },
-    { value: 'inherit', label: 'Restore' },
-    // { value: 'update', label: 'Update' },
-    { value: 'delete', label: 'Delete Permanently' },
-    { value: 'searchUses', label: 'Search Uses' },
     { value: 'bulkedit', label: 'Bulk Edit' },
     { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
+    { value: 'csv_export', label: 'Export CSV' },
+    { value: 'inherit', label: 'Restore' },
+    { value: 'searchUses', label: 'Search Uses' },
+    { value: 'delete', label: 'Delete Permanently' },
+    { value: 'trash', label: 'Move to Trash' },
+
 ];
 
 function TheHeader() {
