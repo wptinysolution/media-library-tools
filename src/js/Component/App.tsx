@@ -13,6 +13,7 @@ import {
 } from "@/js/Utils/Data";
 
 import MainHeader from "@/js/Component/MainHeader";
+import TopBar from "@/js/Component/TopBar";
 import ProModal from "@/js/Component/ProModal";
 import ImportButton from "@/js/Component/ExportImport/ImportButton";
 import Settings from "@/js/Component/Settings";
@@ -145,6 +146,7 @@ function App() {
         <HashRouter>
             <MainHeader />
             <div className="ml-[200px] bg-white min-h-screen">
+                <TopBar />
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />

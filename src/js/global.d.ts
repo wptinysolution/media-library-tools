@@ -10,6 +10,7 @@ declare const tsmltParams: {
     hasExtended: boolean;
     hasWoo: boolean;
     proVersion?: boolean;
+    iconUrl: string;
 };
 
 declare const cptwoointParams: {
