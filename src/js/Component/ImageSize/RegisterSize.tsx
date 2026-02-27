@@ -106,17 +106,15 @@ function RegisterSize() {
                                     </span>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    className={`px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors ${
-                                        sizes[index]?.hardCrop
-                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                    onClick={() => registerImageSize(index, 'hardCrop', !sizes[index]?.hardCrop)}
-                                >
-                                    {sizes[index]?.hardCrop ? 'Hard Crop' : 'Soft Crop'}
-                                </button>
+                                <label className="inline-flex items-center gap-2 cursor-pointer">
+                                    <div
+                                        className={`relative w-10 h-5.5 rounded-full transition-colors ${sizes[index]?.hardCrop ? 'bg-blue-600' : 'bg-gray-300'}`}
+                                        onClick={() => registerImageSize(index, 'hardCrop', !sizes[index]?.hardCrop)}
+                                    >
+                                        <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${sizes[index]?.hardCrop ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                                    </div>
+                                    <span className="text-sm text-gray-700">Hard Crop</span>
+                                </label>
 
                                 <button
                                     type="button"
