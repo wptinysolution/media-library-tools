@@ -145,9 +145,9 @@ function App() {
     return (
         <HashRouter>
             <TopBar />
-            <div className="flex min-h-screen">
+            <div className="flex" style={{ height: 'calc(100vh - 88px)' }}>
                 <MainHeader />
-                <div className="flex-1 min-w-0 bg-white">
+                <div className="flex-1 min-w-0 bg-white overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />

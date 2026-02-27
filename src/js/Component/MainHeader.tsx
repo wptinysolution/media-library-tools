@@ -3,9 +3,6 @@ import { useStore } from "@/js/Utils/store";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
 
-const TOPBAR_HEIGHT = 56; // px — must match TopBar h-14
-const WP_ADMINBAR_HEIGHT = 32; // px
-const SIDEBAR_TOP = WP_ADMINBAR_HEIGHT + TOPBAR_HEIGHT; // 80px
 
 interface MenuItem {
     key: string;
@@ -121,12 +118,8 @@ function MainHeader() {
 
     return (
         <nav
-            style={{
-                top: SIDEBAR_TOP,
-                height: `calc(100vh - ${SIDEBAR_TOP}px)`,
-                width: isCollapsed ? 48 : 200,
-            }}
-            className="sticky self-start shrink-0 z-[9000] bg-white border-r border-gray-200 flex flex-col overflow-x-hidden shadow-sm transition-[width] duration-200 ease-in-out"
+            style={{ width: isCollapsed ? 48 : 200 }}
+            className="relative h-full shrink-0 z-[9000] bg-white border-r border-gray-200 flex flex-col shadow-sm transition-[width] duration-200 ease-in-out"
         >
             {/* Navigation items */}
             <div className="flex flex-col py-2 flex-1 overflow-y-auto overflow-x-hidden">
@@ -150,23 +143,21 @@ function MainHeader() {
                 ))}
             </div>
 
-            {/* Collapse toggle */}
+            {/* Collapse toggle — right-edge tab, vertically centered, icon only */}
             <button
                 type="button"
                 onClick={toggleCollapse}
-                className={`flex items-center gap-2 py-3 w-full text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-t border-gray-100 text-[13px] transition-colors shrink-0 cursor-pointer ${
-                    isCollapsed ? 'justify-center px-0' : 'px-4'
-                }`}
+                title={isCollapsed ? 'Expand Menu' : 'Collapse Menu'}
+                className="absolute -right-5 top-1/2 -translate-y-1/2 w-5 h-10 bg-white border border-l-0 border-gray-200 rounded-r-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer shadow-sm transition-colors z-10"
             >
                 <svg
-                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`}
+                    className={`w-3 h-3 shrink-0 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                {!isCollapsed && <span className="whitespace-nowrap">Collapse Menu</span>}
             </button>
         </nav>
     );
