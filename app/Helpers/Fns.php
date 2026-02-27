@@ -250,6 +250,60 @@ class Fns {
 	}
 
 	/**
+	 * Search WooCommerce product gallery and variation thumbnail for an attachment ID.
+	 *
+	 * Covers:
+	 *  - Product gallery images stored in `_product_image_gallery` (comma-separated IDs).
+	 *  - Variation thumbnails stored in `_thumbnail_id` on variation posts.
+	 *
+	 * @param int $attachment_id Attachment ID to search for.
+	 *
+	 * @return array<int> List of post IDs that use this attachment.
+	 */
+	private static function search_woocommerce_gallery( $attachment_id ) {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return [];
+		}
+		$id = absint( $attachment_id );
+
+		// Gallery: _product_image_gallery stores comma-separated IDs like "12,34,56".
+		// REGEXP matches exact ID at start, end, or between commas.
+		// $id is always an integer from absint(), safe to interpolate.
+		$gallery_result = self::DB()->select( 'post_id' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_product_image_gallery' )
+			->raw( "AND meta_value REGEXP '(^|,)" . $id . "(,|$)'" )
+			->get();
+
+		// Variation thumbnail: _thumbnail_id on product_variation posts.
+		$variation_result = self::DB()->select( 'pm.post_id' )
+			->from( 'postmeta pm' )
+			->join( 'posts p', 'p.ID', 'pm.post_id' )
+			->where( 'pm.meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'pm.meta_value', '=', $id )
+			->andWhere( 'p.post_type', '=', 'product_variation' )
+			->get();
+
+		$ids = array_values( array_unique( array_merge(
+			array_column( $gallery_result ?: [], 'post_id' ),
+			array_column( $variation_result ?: [], 'post_id' )
+		) ) );
+
+		// For variation posts, resolve to the parent product ID.
+		$resolved = [];
+		foreach ( $ids as $post_id ) {
+			if ( 'product_variation' === get_post_type( $post_id ) ) {
+				$parent = wp_get_post_parent_id( $post_id );
+				$resolved[] = $parent ?: $post_id;
+			} else {
+				$resolved[] = absint( $post_id );
+			}
+		}
+
+		return array_values( array_unique( array_filter( $resolved ) ) );
+	}
+
+	/**
 	 * Update Elementor post meta data by replacing image URLs
 	 * and force Elementor to regenerate CSS and cache.
 	 *
@@ -733,6 +787,9 @@ class Fns {
 					}
 				}
 			}
+		}
+		if ( empty( $post_ids ) ) {
+			$post_ids = self::search_woocommerce_gallery( $attachment_id );
 		}
 		if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
 			$parent_id = reset( $post_ids );
