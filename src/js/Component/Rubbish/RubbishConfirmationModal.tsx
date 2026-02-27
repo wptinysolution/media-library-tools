@@ -108,7 +108,6 @@ function RubbishConfirmationModal() {
             }
         >
             <div className="px-6 py-5">
-                <hr className="border-gray-200 mb-4" />
                 <h5 className="text-base font-semibold text-gray-900 mb-4">
                     {!buttonDisabled ? (
                         <>

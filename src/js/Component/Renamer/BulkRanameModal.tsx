@@ -105,18 +105,17 @@ function BulkModal() {
             }
         >
             <div className="px-6 py-5">
-                <hr className="border-gray-200 mb-4" />
                 {bulkSubmitData.type === 'bulkRenameByPostTitle' ? (
-                    <h5 className="text-base font-semibold text-gray-900 mb-4">
+                    <h5 className="text-base! font-semibold text-gray-900 m-0!">
                         Are You Sure Bulk Rename Based on Associated Post Title?
                     </h5>
                 ) : bulkSubmitData.type === 'bulkRenameBySKU' ? (
-                    <h5 className="text-base font-semibold text-gray-900 mb-4">
+                    <h5 className="text-base! font-semibold text-gray-900 m-0!">
                         Are You Sure Bulk Rename Based on Product SKU?
                     </h5>
                 ) : (
                     <>
-                        <h5 className="text-base font-semibold text-gray-900 mb-4">File name</h5>
+                        <h5 className="text-base! font-semibold text-gray-900 m-0!">File name</h5>
                         <p className="text-sm text-red-600 mb-3">Prefix and suffix will not apply here.</p>
                         <TextInput
                             onChange={balkModalDataChange}
@@ -136,7 +135,7 @@ function BulkModal() {
                 <hr className="border-gray-200 my-4" />
                 {bulkSubmitData.progressBar >= 0 && (
                     <>
-                        <h5 className="text-base font-semibold text-gray-900 mb-2">Progress:</h5>
+                        <h5 className="text-base! font-semibold text-gray-900 mb-2">Progress:</h5>
                         <ProgressBar percent={bulkSubmitData.progressBar as number} />
                     </>
                 )}

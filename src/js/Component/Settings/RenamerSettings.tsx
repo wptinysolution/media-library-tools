@@ -95,7 +95,7 @@ export default function RenamerSettings() {
                                 onChange={(event) => setOptions({ media_auto_rename_text: event.target.value })}
                                 value={options.media_auto_rename_text || ''}
                             />
-                            <p className="text-sm text-red-600">
+                            <p className="text-sm! text-red-600">
                                 Required Field. Write file name without extension.
                             </p>
                         </div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import ProgressBar from '@/js/Component/Common/ProgressBar';
 import CheckboxField from '@/js/Component/Common/CheckboxField';
 
@@ -18,12 +17,12 @@ interface BulkAssignFormProps {
 export default function BulkAssignForm({ selectedValues, onToggle, progressBar }: BulkAssignFormProps) {
     return (
         <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm! text-gray-700 m-0!">
                 Are you certain about performing a bulk assignment based on the associated post title?
             </p>
             <div className="border-t border-gray-200 my-5"></div>
             <div className="flex items-start gap-6">
-                <h5 className="text-sm font-semibold text-gray-900 m-0! whitespace-nowrap pt-1">
+                <h5 className="text-sm! font-semibold text-gray-900 m-0! whitespace-nowrap pt-1">
                     Select the checkbox
                 </h5>
                 <div className="flex flex-col gap-3">
@@ -40,7 +39,7 @@ export default function BulkAssignForm({ selectedValues, onToggle, progressBar }
             </div>
             {progressBar >= 0 && (
                 <div className="mt-5">
-                    <h5 className="text-sm font-semibold text-gray-900 mb-2">Progress:</h5>
+                    <h5 className="text-sm! font-semibold text-gray-900 mb-2">Progress:</h5>
                     <ProgressBar percent={progressBar} />
                 </div>
             )}

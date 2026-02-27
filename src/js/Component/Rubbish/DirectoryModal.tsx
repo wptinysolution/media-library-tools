@@ -193,7 +193,7 @@ function DirectoryModal() {
 
             {progressBar > 0 && (
                 <div className="px-6 py-3">
-                    <h5 className="text-base font-semibold text-gray-900 mb-2">Directory Scanning Progress:</h5>
+                    <h5 className="text-base! font-semibold text-gray-900 mb-2">Directory Scanning Progress:</h5>
                     <ProgressBar percent={progressBar} />
                 </div>
             )}

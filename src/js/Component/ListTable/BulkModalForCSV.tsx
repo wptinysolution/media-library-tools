@@ -68,8 +68,8 @@ function BulkModalForCSV() {
             }
         >
             <div className="px-6 py-5">
-                <h4 className="text-base font-semibold text-gray-900 mb-4">Select which data will be exported to CSV</h4>
-                <div className="max-h-[300px] overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <h4 className="text-base! font-semibold text-gray-900 mt-0! mb-4">Select which data will be exported to CSV</h4>
+                <div className="max-h-75 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
                     {keys.map((key) => {
                         const isRequired = REQUIRED_KEYS.includes(key);
                         return (
