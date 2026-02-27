@@ -70,7 +70,7 @@ function ExportButton() {
     return (
         <>
             <div className="min-h-screen bg-gray-50">
-                <div className="p-24 rounded-md shadow-sm">
+                <div className="p-24 rounded-md">
                     <div className="flex items-center flex-wrap gap-4">
                         {isExport && (
                             <div className="w-full bg-gray-200 rounded-full h-7.5 overflow-hidden">

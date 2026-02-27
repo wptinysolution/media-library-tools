@@ -122,7 +122,7 @@ function UploadCsv() {
 
                     <button
                         type="button"
-                        className="w-70 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto"
+                        className="w-70 h-17.5 text-2xl! flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto"
                         onClick={() => setExportImport({ runImporter: true })}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
