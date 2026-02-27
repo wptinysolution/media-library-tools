@@ -49,7 +49,7 @@ function BulkModal() {
         const response = await renameIdsRecursively(bulkSubmitData);
         if (200 === response?.status) {
             setTimeout(() => {
-                setBulkSubmitData({ isModalOpen: false });
+                setBulkSubmitData({ isModalOpen: false, progressBar: 0 });
             }, 1000);
             const res = await getMedia(mediaData.postQuery);
             setMediaData({ ...res, isLoading: false });
@@ -58,7 +58,7 @@ function BulkModal() {
     };
 
     const handleBulkModalCancel = () => {
-        setBulkSubmitData({ isModalOpen: false });
+        setBulkSubmitData({ isModalOpen: false, progressBar: 0 });
     };
 
     const isTheButtonDisabled = () => {

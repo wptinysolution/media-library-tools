@@ -54,7 +54,7 @@ function RenamerMainHeader() {
             case 'bulkRename':
             case 'bulkRenameBySKU':
             case 'bulkRenameByPostTitle':
-                setBulkSubmitData({ isModalOpen: true });
+                setBulkSubmitData({ isModalOpen: true, progressBar: 0 });
                 setSaveType(null);
                 break;
             default:

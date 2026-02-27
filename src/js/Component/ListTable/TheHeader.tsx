@@ -76,7 +76,7 @@ function TheHeader() {
                 break;
             case 'bulkedit':
             case 'bulkEditPostTitle':
-                setBulkSubmitData({ isModalOpen: true });
+                setBulkSubmitData({ isModalOpen: true, progressBar: 0 });
                 setSaveType(null);
                 break;
             default:
