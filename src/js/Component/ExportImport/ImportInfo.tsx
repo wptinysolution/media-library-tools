@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useStore } from "@/js/Utils/store";
 import { importOneByOne } from "@/js/Utils/Data";
 import { Link } from "react-router-dom";
@@ -16,8 +16,6 @@ function ImportInfo() {
     const [percent, setPercent] = useState(0);
     const [uploadedFile, setUploadedFile] = useState<UploadedItem[]>([]);
     const [currentFile, setCurrentFile] = useState<string | null>(null);
-
-    const totalMedia = exportImport.totalPage;
     const settings = exportImport.settings as ExportImportSettings;
 
     const getFileNameFromURL = (url: string): string | false => {
@@ -59,7 +57,7 @@ function ImportInfo() {
     const reversedFiles = useMemo(() => [...uploadedFile].reverse(), [uploadedFile]);
 
     return (
-        <div className="max-w-[1500px] mx-auto w-full">
+        <div className="max-w-375 mx-auto w-full">
             <h3 className="text-2xl font-semibold text-gray-900 mb-1">
                 Import media from CSV file
             </h3>
@@ -81,7 +79,7 @@ function ImportInfo() {
             {100 <= percent && (
                 <button
                     type="button"
-                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto mb-4"
+                    className="w-50 h-17.5 text-2xl! flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto mb-4"
                     onClick={() => handleExitImport()}
                 >
                     <Link to="/mediaTable" className="text-white! no-underline">Done !! Exit Now</Link>
@@ -96,13 +94,13 @@ function ImportInfo() {
             <hr className="border-gray-200 my-4" />
 
             {reversedFiles.length ? (
-                <div className="h-[400px] overflow-auto px-4 border border-gray-300 rounded-lg">
+                <div className="h-100 overflow-auto px-4 border border-gray-300 rounded-lg">
                     {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             <img
                                 src={item.url}
                                 alt=""
-                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                className="w-10 h-10 rounded-full object-cover shrink-0"
                             />
                             <div className="min-w-0">
                                 <a

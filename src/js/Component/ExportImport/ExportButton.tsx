@@ -86,7 +86,7 @@ function ExportButton() {
                             {percent >= 100 ? (
                                 <button
                                     type="button"
-                                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    className="w-50 h-17.5 text-2xl! flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
                                     onClick={() => setModalOpen(true)}
                                 >
                                     Download Csv
@@ -94,7 +94,7 @@ function ExportButton() {
                             ) : (
                                 <button
                                     type="button"
-                                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    className="w-50 h-17.5 text-2xl! flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
                                     onClick={() => handleExport('export')}
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
