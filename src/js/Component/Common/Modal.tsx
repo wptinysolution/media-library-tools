@@ -24,7 +24,7 @@ export default function Modal({ isOpen, onClose, title, maxWidth = 'max-w-[650px
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+        <div className="fixed inset-0 z-1000 flex items-center justify-center">
             <div
                 className="absolute inset-0 bg-black/45"
                 onClick={closeOnBackdrop ? onClose : undefined}

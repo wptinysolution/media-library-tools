@@ -32,7 +32,7 @@ export default function DataTable<T extends Record<string, unknown>>({ columns, 
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-sm" style={{ minWidth }}>
                     <thead>
-                        <tr className="bg-gray-50 border-1 border-gray-200">
+                        <tr className="bg-gray-50 border border-gray-200">
                             {columns.map((col) => (
                                 <th
                                     key={col.key + (col.dataIndex || '')}

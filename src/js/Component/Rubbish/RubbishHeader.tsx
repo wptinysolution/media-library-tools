@@ -126,7 +126,7 @@ function RubbishHeader() {
                 {/* Bulk Actions group */}
                 <div className="flex items-center gap-2">
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[150px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! w-[150px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleChangeBulkType(e.target.value)}
                         defaultValue=""
                     >
@@ -151,7 +151,7 @@ function RubbishHeader() {
                 <div className="flex items-center gap-2">
                     <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[140px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! w-[140px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => statusFilterApply(e.target.value || 'show')}
                         defaultValue={rubbishMedia.postQuery.fileStatus || "show"}
                     >
@@ -161,7 +161,7 @@ function RubbishHeader() {
 
                     <label className="text-sm text-gray-600 whitespace-nowrap">Extension:</label>
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none w-[130px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! w-[130px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => fileTypeFilterApply(e.target.value || null)}
                         defaultValue=""
                     >
@@ -190,7 +190,7 @@ function RubbishHeader() {
                         <input
                             ref={perPageRef}
                             type="number"
-                            className="w-16 !px-2 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                            className="w-16 px-2! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                             onBlur={async () => {
                                 setSaveType(Types.UPDATE_OPTIONS);
                                 setRubbishMedia({ isLoading: true });

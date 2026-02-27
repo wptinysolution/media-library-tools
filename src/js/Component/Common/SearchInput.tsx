@@ -15,7 +15,7 @@ export default function SearchInput({ placeholder = 'Keywords...', onChange }: S
             </div>
             <input
                 type="text"
-                className="!pl-9 !pr-4 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-lg !shadow-none placeholder-gray-400 transition-all duration-150 focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                className="pl-9! pr-4! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-lg! shadow-none! placeholder-gray-400 transition-all duration-150 focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                 placeholder={placeholder}
                 onChange={onChange}
             />
