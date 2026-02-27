@@ -1,8 +1,14 @@
 import React from 'react';
+import { useWpMenuWidth } from '@/js/Utils/Hooks';
 
 function TopBar() {
+    const wpMenuWidth = useWpMenuWidth();
+
     return (
-        <div className="sticky top-0 z-[100] bg-white border-b border-gray-200 px-5 py-2 flex items-center justify-between shadow-sm">
+        <div
+            style={{ left: wpMenuWidth, top: 32 }}
+            className="fixed right-0 z-[9100] h-12 bg-white border-b border-gray-200 px-5 flex items-center justify-between shadow-sm"
+        >
             {/* Plugin name */}
             <div className="flex items-center gap-2.5">
                 <img
@@ -10,7 +16,7 @@ function TopBar() {
                     alt="Media Library Tools"
                     className="w-6 h-6 rounded"
                 />
-                <span className="font-semibold text-gray-900 text-[14px]">Media Library Tools</span>
+                <span className="font-semibold text-gray-900 text-sm">Media Library Tools</span>
                 {tsmltParams.hasExtended && (
                     <span className="px-1.5 py-0.5 text-[10px] font-bold text-white bg-blue-600 rounded uppercase tracking-wide leading-none">
                         Pro

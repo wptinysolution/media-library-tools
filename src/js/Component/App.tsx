@@ -35,7 +35,7 @@ function App() {
         saveType, setSaveType,
         mediaData, setMediaData,
         options, setOptions,
-        setGeneralData,
+        generalData, setGeneralData,
         singleMedia,
         rename,
         bulkSubmitData, setBulkSubmitData,
@@ -142,11 +142,13 @@ function App() {
         getTheMedia();
     }, [mediaData.postQuery]);
 
+    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
+
     return (
         <HashRouter>
+            <TopBar />
             <MainHeader />
-            <div className="ml-[200px] bg-white min-h-screen">
-                <TopBar />
+            <div style={{ marginLeft: sidebarWidth, paddingTop: 48 }} className="bg-white min-h-screen">
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />

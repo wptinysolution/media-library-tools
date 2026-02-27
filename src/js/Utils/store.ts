@@ -156,6 +156,7 @@ export interface GeneralData {
     isLoading: boolean;
     openProModal: boolean;
     selectedMenu: string;
+    sidebarCollapsed: boolean;
     dateList: Array<{ value: string; label: string }>;
     termsList: Array<{ value: string; label: string }>;
     isDirModalOpen: boolean;
@@ -344,6 +345,7 @@ export const useStore = create<StoreState>((set) => ({
         isLoading: true,
         openProModal: false,
         selectedMenu: '/',
+        sidebarCollapsed: localStorage.getItem('mlt_sidebar_collapsed') === 'true',
         dateList: [],
         termsList: [],
         isDirModalOpen: false,
