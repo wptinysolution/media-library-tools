@@ -53,7 +53,6 @@ const theImage = (record: MediaPost): React.ReactElement => {
     const type = Array.isArray(typeParts) ? typeParts[0] : '';
     const width = 80;
     let url: string;
-
     switch (type) {
         case 'image':
             url = record.uploaddir + '/' + record.thefile.file;
@@ -80,7 +79,7 @@ const theImage = (record: MediaPost): React.ReactElement => {
             url = `${tsmltParams.includesUrl}/images/media/text.png`;
     }
 
-    return <img width={width} src={url} />;
+    return <img width={width} src={url} alt={record.post_mime_type} />;
 };
 
 export function columns(): ColumnDef<MediaPost>[] {
