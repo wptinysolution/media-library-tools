@@ -30,7 +30,7 @@ function TheHeader() {
 
     const [search, setSearch] = useSearchDebounce();
     const inputRef = useRef<HTMLInputElement>(null);
-    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | null>(null);
 
     const handleSelectChange = (value: string | null, fieldName: string) => {
         setMediaData({
@@ -67,11 +67,11 @@ function TheHeader() {
                 break;
             case 'trash':
             case 'delete':
-                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete');
+            case 'searchUses':
+                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete' | 'searchUses');
                 break;
             case 'inherit':
             case 'update':
-            case 'searchUses':
                 setSaveType(Types.BULK_SUBMIT);
                 break;
             case 'bulkedit':
@@ -208,7 +208,7 @@ function TheHeader() {
         <Modal
             isOpen={!!confirmAction}
             onClose={() => setConfirmAction(null)}
-            title={confirmAction === 'delete' ? 'Delete Permanently?' : 'Move to Trash?'}
+            title={confirmAction === 'delete' ? 'Delete Permanently?' : confirmAction === 'trash' ? 'Move to Trash?' : 'Search Uses?'}
             maxWidth="max-w-md"
             closeOnBackdrop={false}
             footer={
@@ -225,14 +225,16 @@ function TheHeader() {
                         className={`px-5 py-2 text-sm font-medium text-white rounded-md cursor-pointer transition-colors ${
                             confirmAction === 'delete'
                                 ? 'bg-red-600 hover:bg-red-700'
-                                : 'bg-orange-500 hover:bg-orange-600'
+                                : confirmAction === 'trash'
+                                ? 'bg-orange-500 hover:bg-orange-600'
+                                : 'bg-blue-600 hover:bg-blue-700'
                         }`}
                         onClick={() => {
                             setSaveType(Types.BULK_SUBMIT);
                             setConfirmAction(null);
                         }}
                     >
-                        {confirmAction === 'delete' ? 'Yes, Delete' : 'Yes, Move to Trash'}
+                        {confirmAction === 'delete' ? 'Yes, Delete' : confirmAction === 'trash' ? 'Yes, Move to Trash' : 'Yes, Search Uses'}
                     </button>
                 </div>
             }
@@ -242,9 +244,13 @@ function TheHeader() {
                     <p className="text-sm! text-gray-600 m-0!">
                         You are about to <strong className="text-red-600">permanently delete</strong> {bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}. This action <strong>cannot be undone</strong>.
                     </p>
-                ) : (
-                    <p className="text-sm! text-gray-600">
+                ) : confirmAction === 'trash' ? (
+                    <p className="text-sm! text-gray-600 m-0!">
                         You are about to move <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong> to the trash. You can restore them later.
+                    </p>
+                ) : (
+                    <p className="text-sm! text-gray-600 m-0!">
+                        This will search the parent post for <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong>. Do you want to continue?
                     </p>
                 )}
             </div>
