@@ -77,7 +77,7 @@ function ExportModalCSV({ isModalOpen, setModalOpen }: ExportModalCSVProps) {
                 </div>
 
                 <div className="px-6 py-5">
-                    <h4 className="text-base font-semibold text-gray-900 mt-0! mb-4">Select which data will be exported to CSV</h4>
+                    <h4 className="text-base font-semibold text-gray-900 mt-0! mb-4">What data would you like to export to CSV?</h4>
                     <div className="max-h-75 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
                         {keys.map((key) => {
                             const isRequired = REQUIRED_KEYS.includes(key);

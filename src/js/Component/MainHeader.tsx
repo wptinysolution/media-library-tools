@@ -4,7 +4,7 @@ import { useWpMenuWidth } from "@/js/Utils/Hooks";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
 
-const TOPBAR_HEIGHT = 48; // px — must match TopBar h-12
+const TOPBAR_HEIGHT = 56; // px — must match TopBar h-14
 const WP_ADMINBAR_HEIGHT = 32; // px
 const SIDEBAR_TOP = WP_ADMINBAR_HEIGHT + TOPBAR_HEIGHT; // 80px
 
@@ -131,20 +131,6 @@ function MainHeader() {
             }}
             className="fixed z-[9000] bg-white border-r border-gray-200 flex flex-col overflow-x-hidden shadow-sm transition-[width] duration-200 ease-in-out"
         >
-            {/* Logo header */}
-            <div className={`flex items-center border-b border-gray-100 shrink-0 ${isCollapsed ? 'justify-center px-0 py-3.5' : 'gap-2.5 px-4 py-3.5'}`}>
-                <img
-                    src={tsmltParams.iconUrl}
-                    alt=""
-                    className="w-7 h-7 rounded-lg shrink-0"
-                />
-                {!isCollapsed && (
-                    <span className="font-semibold text-[12.5px] text-gray-900 leading-snug whitespace-nowrap overflow-hidden">
-                        Media Library Tools
-                    </span>
-                )}
-            </div>
-
             {/* Navigation items */}
             <div className="flex flex-col py-2 flex-1 overflow-y-auto overflow-x-hidden">
                 {menuItems.map((item) => (

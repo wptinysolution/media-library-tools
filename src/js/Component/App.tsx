@@ -148,7 +148,7 @@ function App() {
         <HashRouter>
             <TopBar />
             <MainHeader />
-            <div style={{ marginLeft: sidebarWidth, paddingTop: 48 }} className="bg-white min-h-screen">
+            <div style={{ marginLeft: sidebarWidth, paddingTop: 56 }} className="bg-white min-h-screen">
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />
