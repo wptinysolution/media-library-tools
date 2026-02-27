@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import { getMedia } from "@/js/Utils/Data";
 import ExportModalCSV from "./ExportModalCSV";
@@ -73,7 +73,7 @@ function ExportButton() {
                 <div className="p-24 rounded-md shadow-sm">
                     <div className="flex items-center flex-wrap gap-4">
                         {isExport && (
-                            <div className="w-full bg-gray-200 rounded-full h-[30px] overflow-hidden">
+                            <div className="w-full bg-gray-200 rounded-full h-7.5 overflow-hidden">
                                 <div
                                     className="bg-blue-600 h-full rounded-full transition-all duration-300 flex items-center justify-center text-white text-xs font-medium"
                                     style={{ width: `${percent}%` }}
@@ -86,7 +86,7 @@ function ExportButton() {
                             {percent >= 100 ? (
                                 <button
                                     type="button"
-                                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
                                     onClick={() => setModalOpen(true)}
                                 >
                                     Download Csv
@@ -94,7 +94,7 @@ function ExportButton() {
                             ) : (
                                 <button
                                     type="button"
-                                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
+                                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium"
                                     onClick={() => handleExport('export')}
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

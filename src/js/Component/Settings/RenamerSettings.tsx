@@ -26,7 +26,7 @@ export default function RenamerSettings() {
 
             <div className="p-6 space-y-6">
                 <div className="flex items-start gap-8">
-                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-2 min-w-[200px]">
+                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-2 min-w-50">
                         File Rename Prefix And Suffix:
                     </label>
                     <div className="flex-1 space-y-6">

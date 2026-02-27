@@ -35,7 +35,7 @@ function RubbishFile() {
             files: [],
             ids: [],
         });
-        console.log('getTheRubbishFile');
+
     };
 
     const handlePagination = (current: number) => {
@@ -70,24 +70,22 @@ function RubbishFile() {
     return (
         <div className="min-h-screen bg-gray-50">
                 <RubbishHeader />
-                <>
-                    {rubbishMedia.isLoading ? <Loader /> : (
-                        <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                            <DataTable
-                                columns={rubbishColumns}
-                                data={posts}
-                                rowKey={() => (Math.random() + 1).toString(36).substring(7)}
-                            />
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                totalPosts={totalPosts}
-                                postsPerPage={postsPerPage}
-                                onPageChange={handlePagination}
-                            />
-                        </div>
-                    )}
-                </>
+                {rubbishMedia.isLoading ? <Loader /> : (
+                    <div className="my-6 mx-2 rounded-lg overflow-hidden">
+                        <DataTable
+                            columns={rubbishColumns}
+                            data={posts}
+                            rowKey={() => (Math.random() + 1).toString(36).substring(7)}
+                        />
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalPosts={totalPosts}
+                            postsPerPage={postsPerPage}
+                            onPageChange={handlePagination}
+                        />
+                    </div>
+                )}
                 <DirectoryModal />
                 <RubbishNotice />
         </div>

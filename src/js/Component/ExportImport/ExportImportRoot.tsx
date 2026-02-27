@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useStore, initialExportImport } from "@/js/Utils/store";
 
 function ExportImportRoot() {
@@ -18,13 +18,13 @@ function ExportImportRoot() {
                     <div className="flex flex-wrap gap-4 justify-center p-12">
                         <a
                             href="#/export"
-                            className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
+                            className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
                         >
                             Export
                         </a>
                         <a
                             href="#/import"
-                            className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
+                            className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors no-underline font-medium"
                         >
                             Import
                         </a>

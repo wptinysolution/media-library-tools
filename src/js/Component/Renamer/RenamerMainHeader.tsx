@@ -30,7 +30,7 @@ function RenamerMainHeader() {
         setMediaData({
             postQuery: { ...mediaData.postQuery, searchKeyWords: search }
         });
-        console.log('search', search);
+
     };
 
     useEffect(() => {

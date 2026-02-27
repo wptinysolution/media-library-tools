@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { defaultBulkSubmitData } from '@/js/Utils/UtilData';
 import { useStore } from "@/js/Utils/store";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
@@ -91,7 +91,7 @@ function TheHeader() {
         setMediaData({
             postQuery: { ...mediaData.postQuery, searchKeyWords: search }
         });
-        console.log(search);
+
     };
 
     const postQuery = mediaData.postQuery;

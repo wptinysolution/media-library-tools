@@ -248,7 +248,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                 <>
                     {formEdited
                         ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
-                        : <span className="w-[200px] flex overflow-x-auto">{text as string}</span>
+                        : <span className="w-50 flex overflow-x-auto">{text as string}</span>
                     }
                 </>
             ),

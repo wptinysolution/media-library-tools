@@ -15,7 +15,7 @@ export default function MediaTableSettings() {
         <>
             <div className="p-6 space-y-6 border-t border-gray-200">
                 <div className="flex items-start gap-8">
-                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+                    <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-50">
                         Others File Support:
                     </label>
                     <div className="flex-1 space-y-2">

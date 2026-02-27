@@ -107,9 +107,7 @@ function App() {
             });
             setBulkSubmitData({ ...defaultBulkSubmitData, type: bulkSubmitData.type });
             setSaveType(null);
-            console.log('bulkSubmitData', bulkSubmitData);
         }
-        console.log('submitBulkMediaAction');
     };
 
     const handleSave = () => {

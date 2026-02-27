@@ -42,7 +42,7 @@ function RubbishHeader() {
             progressTotal: Object.entries(preparedDate.dirList).length,
         });
 
-        console.log('getDirList');
+
     };
 
     const openDirModal = () => {

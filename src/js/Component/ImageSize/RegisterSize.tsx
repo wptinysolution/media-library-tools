@@ -48,7 +48,7 @@ function RegisterSize() {
 
     return (
         <div className="flex items-start gap-8">
-            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-[200px]">
+            <label className="text-base font-medium text-gray-900 whitespace-nowrap pt-1 min-w-50">
                 Register New Image Size:
                 {!tsmltParams.hasExtended && <span className="text-red-600 font-bold"> - PRO</span>}
             </label>

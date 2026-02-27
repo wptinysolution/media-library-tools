@@ -61,24 +61,22 @@ function RenamerTableData() {
     return (
         <div className="min-h-screen bg-gray-50">
                 <RenamerMainHeader />
-                <>
-                    {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
-                        <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                            <DataTable
-                                columns={RenameTableColumns}
-                                data={posts}
-                                rowKey="ID"
-                            />
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                totalPosts={totalPosts}
-                                postsPerPage={postsPerPage}
-                                onPageChange={handlePagination}
-                            />
-                        </div>
-                    )}
-                </>
+                {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
+                    <div className="my-6 mx-2 rounded-lg overflow-hidden">
+                        <DataTable
+                            columns={RenameTableColumns}
+                            data={posts}
+                            rowKey="ID"
+                        />
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalPosts={totalPosts}
+                            postsPerPage={postsPerPage}
+                            onPageChange={handlePagination}
+                        />
+                    </div>
+                )}
         </div>
     );
 }

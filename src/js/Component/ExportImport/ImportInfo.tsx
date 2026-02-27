@@ -68,7 +68,7 @@ function ImportInfo() {
             </p>
             <hr className="border-gray-200 my-4" />
 
-            <div className="w-full bg-gray-200 rounded-full h-[30px] overflow-hidden mb-4">
+            <div className="w-full bg-gray-200 rounded-full h-7.5 overflow-hidden mb-4">
                 <div
                     className="bg-blue-600 h-full rounded-full transition-all duration-300 flex items-center justify-center text-white text-xs font-medium"
                     style={{ width: `${percent}%` }}
@@ -81,7 +81,7 @@ function ImportInfo() {
             {100 <= percent && (
                 <button
                     type="button"
-                    className="w-[200px] h-[70px] text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto mb-4"
+                    className="w-50 h-17.5 text-2xl flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors font-medium mx-auto mb-4"
                     onClick={() => handleExitImport()}
                 >
                     <Link to="/mediaTable" className="text-white! no-underline">Done !! Exit Now</Link>
