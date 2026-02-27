@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStore } from '@/js/Utils/store';
 import Modal from '@/js/Component/Common/Modal';
 
@@ -48,7 +47,7 @@ function ProModal() {
                     <a
                         target="_blank"
                         href={`${tsmltParams.proLink}#tiny-pricing-plan`}
-                        className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline"
+                        className="px-5 py-2 text-sm! font-medium text-white! bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline"
                     >
                         Get Pro Version
                     </a>
@@ -63,7 +62,7 @@ function ProModal() {
             }
         >
             <div className="px-6 py-5 h-[550px] overflow-y-auto">
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-gray-700 mb-2 mt-0!">
                     Pro Feature offers a range of enhanced functionalities and benefits...
                 </p>
                 <hr className="border-gray-200 my-2" />

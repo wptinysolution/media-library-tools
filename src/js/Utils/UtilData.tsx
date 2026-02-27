@@ -509,23 +509,20 @@ export function RubbishFileColumns(): ColumnDef<RubbishMediaFile>[] {
     };
 
     const onRubbishSingleAction = async (data: RubbishMediaFile, action: string) => {
-        // "Restore to Library" is a free feature — no pro check needed.
-        if ('restore' === action) {
-            setRestoreCurrentItem(data.id);
-            try {
-                const response = await rubbishSingleRestoreAction(data) as { status: number | string; data: { updated: boolean } };
-                if (200 === parseInt(String(response?.status)) && response?.data.updated) {
-                    setRubbishMedia({ mediaFile: rubbishMedia.mediaFile.filter(item => data.id !== item.id) });
-                }
-            } finally {
-                setRestoreCurrentItem(null);
-            }
-            return;
-        }
-
         if (tsmltParams.hasExtended) {
             let response: { status: number | string; data: { updated: boolean } } | undefined;
-            if ('ignore' === action) {
+            if ('restore' === action) {
+                setRestoreCurrentItem(data.id);
+                try {
+                    response = await rubbishSingleRestoreAction(data) as typeof response;
+                    if (200 === parseInt(String(response?.status)) && response?.data.updated) {
+                        setRubbishMedia({ mediaFile: rubbishMedia.mediaFile.filter(item => data.id !== item.id) });
+                    }
+                } finally {
+                    setRestoreCurrentItem(null);
+                }
+                return;
+            } else if ('ignore' === action) {
                 setIgnoreCurrentItem(data.id);
                 response = await rubbishSingleIgnoreAction(data) as typeof response;
             } else if ('delete' === action) {
