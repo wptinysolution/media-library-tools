@@ -26,7 +26,6 @@ import RenamerTableData from "@/js/Component/Renamer/RenamerTableData";
 import RubbishFile from "@/js/Component/Rubbish/RubbishFile";
 import PluginList from "@/js/Component/PluginList";
 import ImageSize from "@/js/Component/ImageSize/ImageSize";
-import ExportImportRoot from "@/js/Component/ExportImport/ExportImportRoot";
 import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 
@@ -156,9 +155,9 @@ function App() {
                     <Route path="/mediaTable/page/:page" element={<Datatable />} />
                     <Route path="/mediaRename" element={<RenamerTableData />} />
                     <Route path="/mediaRename/page/:page" element={<RenamerTableData />} />
-                    <Route path="/exportImport" element={<ExportImportRoot />} />
-                    <Route path="/import" element={<ImportButton />} />
+                    <Route path="/exportImport" element={<Navigate to="/export" replace />} />
                     <Route path="/export" element={<ExportButton />} />
+                    <Route path="/import" element={<ImportButton />} />
                     <Route path="/imageSize" element={<ImageSize />} />
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
