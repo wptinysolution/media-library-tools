@@ -1,5 +1,6 @@
 import React from 'react';
 import Textarea from '@/js/Component/Common/Textarea';
+import type { BulkSubmitDataItem } from '@/js/Utils/store';
 
 const fields = [
     { name: 'post_title', label: 'Title', placeholder: 'Title' },
@@ -9,7 +10,7 @@ const fields = [
 ];
 
 interface BulkEditFormProps {
-    data: Record<string, string>;
+    data: BulkSubmitDataItem;
     onChange: React.ChangeEventHandler<HTMLTextAreaElement>;
 }
 

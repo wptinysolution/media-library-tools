@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { columns, columnList, defaultBulkSubmitData } from '@/js/Utils/UtilData';
+import { columns, columnList, defaultBulkSubmitData, localStoreData } from '@/js/Utils/UtilData';
 import Loader from "@/js/Utils/Loader";
 import TheHeader from "@/js/Component/ListTable/TheHeader";
 import { useStore } from "@/js/Utils/store";
@@ -52,6 +52,7 @@ export default function Datatable() {
             ? currentColumn.filter((item: string) => item !== key)
             : [...currentColumn, key];
         setOptions({ media_table_column: newColumn });
+        localStoreData('media_table_column', newColumn);
     };
 
     const totalPosts = mediaData.total_post || 0;

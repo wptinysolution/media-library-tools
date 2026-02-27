@@ -299,7 +299,7 @@ export const useStore = create<StoreState>((set) => ({
 
     options: {
         isLoading: true,
-        media_table_column: ['Image', 'Parents', 'Title', 'Alt', 'Caption'],
+        media_table_column: (localRetrieveData('media_table_column') as string[]) || ['Image', 'Title', 'Alt', 'Caption', 'Group'],
         default_alt_text: 'image_name_to_alt',
         default_caption_text: 'none',
         default_desc_text: 'none',

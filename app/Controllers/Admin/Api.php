@@ -279,8 +279,6 @@ class Api {
 
 		$tsmlt_media['rubbish_per_page'] = Fns::maximum_media_per_page() < $total_rabbis_count ? Fns::maximum_media_per_page() : $total_rabbis_count;
 
-		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
-
 		$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'] ?? '';
 
 		$tsmlt_media['default_caption_text'] = $parameters['default_caption_text'] ?? '';

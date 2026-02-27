@@ -14,7 +14,7 @@ const bulkOptions = [
     { value: 'delete', label: 'Delete Permanently' },
     { value: 'searchUses', label: 'Search Uses' },
     { value: 'bulkedit', label: 'Bulk Edit' },
-    { value: 'bulkEditPostTitle', label: 'Bulk Edit Post Title' },
+    { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
 ];
 
 function TheHeader() {
@@ -107,7 +107,7 @@ function TheHeader() {
                 {/* Bulk Actions group */}
                 <div className="flex items-center gap-2">
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none min-w-[200px] focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! min-w-50 focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleChangeBulkType(e.target.value)}
                         defaultValue=""
                     >
@@ -131,7 +131,7 @@ function TheHeader() {
                 {/* Filter group */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'status')}
                         defaultValue={mediaData.postQuery.status || ""}
                     >
@@ -140,7 +140,7 @@ function TheHeader() {
                     </select>
 
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'date')}
                         defaultValue={mediaData.postQuery.date || ""}
                     >
@@ -151,7 +151,7 @@ function TheHeader() {
                     </select>
 
                     <select
-                        className="!px-3 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'categories')}
                         defaultValue={mediaData.postQuery.categories || ""}
                     >
@@ -190,7 +190,7 @@ function TheHeader() {
                         <input
                             ref={inputRef}
                             type="number"
-                            className="w-16 !px-2 !py-2 !text-sm !text-gray-900 !bg-white !border !border-gray-300 !rounded-md !shadow-none focus:!outline-none focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 focus:!shadow-none hover:!border-gray-400"
+                            className="w-16 px-2! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                             onBlur={() => setSaveType(Types.UPDATE_OPTIONS)}
                             onChange={(event) => setOptions({ media_per_page: event.target.value })}
                             value={options.media_per_page as number | string}
