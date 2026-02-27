@@ -106,7 +106,7 @@ function TheHeader() {
 
     return (
         <>
-        <header className="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-3 py-3 shadow-sm">
             <div className="flex flex-wrap items-center gap-2">
 
                 {/* Bulk Actions group */}

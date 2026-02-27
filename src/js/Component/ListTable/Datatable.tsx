@@ -65,7 +65,7 @@ export default function Datatable() {
                 <TheHeader />
                 {generalData.isLoading ? <Loader /> : (
                     <>
-                        <div className="mx-6 mt-6 px-4 py-3 bg-white border border-gray-200 rounded-lg flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <div className="mx-3 mt-3 px-4 py-3 bg-white border border-gray-200 rounded-lg flex flex-wrap items-center gap-x-3 gap-y-2">
                             <label className="inline-flex items-center gap-1.5 cursor-pointer">
                                 <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Per page:</span>
                                 <input

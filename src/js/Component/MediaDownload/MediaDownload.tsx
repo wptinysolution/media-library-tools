@@ -24,7 +24,7 @@ function MediaDownload() {
 
         return (
             <div
-                className={`bg-white rounded-xl border transition-all duration-300 overflow-hidden ${
+                className={`bg-white mb-3 rounded-xl border transition-all duration-300 overflow-hidden ${
                     isLocked
                         ? 'border-gray-200 opacity-75 cursor-pointer hover:border-amber-300 hover:shadow-md'
                         : 'border-gray-100 hover:border-blue-200 hover:shadow-md'
