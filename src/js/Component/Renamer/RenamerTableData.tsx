@@ -4,7 +4,6 @@ import { renamerColumns } from '@/js/Utils/UtilData';
 import RenamerMainHeader from "./RenamerMainHeader";
 import { useStore } from "@/js/Utils/store";
 import Loader from "@/js/Utils/Loader";
-import MainHeader from "@/js/Component/MainHeader";
 import DataTable from "@/js/Component/Common/DataTable";
 import Pagination from "@/js/Component/Common/Pagination";
 
@@ -60,9 +59,7 @@ function RenamerTableData() {
     const posts = mediaData.posts || [];
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
                 <RenamerMainHeader />
                 {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
                     <div className="my-6 mx-2 rounded-lg overflow-hidden ">
@@ -80,8 +77,7 @@ function RenamerTableData() {
                         />
                     </div>
                 )}
-            </div>
-        </>
+        </div>
     );
 }
 

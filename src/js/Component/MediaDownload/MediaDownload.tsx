@@ -1,6 +1,5 @@
 import React from 'react';
 import { useStore } from "@/js/Utils/store";
-import MainHeader from "@/js/Component/MainHeader";
 import Loader from "@/js/Utils/Loader";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 
@@ -96,32 +95,27 @@ function MediaDownload() {
         );
     };
 
-    return (
-        <>
-            <MainHeader />
-            {generalData.isLoading ? (
-                <Loader />
-            ) : (
-                <div className="p-6 bg-white/35 rounded-lg shadow-sm">
-                    <h3 className="text-2xl font-semibold m-0 mb-6">
-                        Button For Download Media File
-                    </h3>
+    return generalData.isLoading ? (
+        <Loader />
+    ) : (
+        <div className="p-6 bg-white/35 rounded-lg shadow-sm">
+            <h3 className="text-2xl font-semibold m-0 mb-6">
+                Button For Download Media File
+            </h3>
 
-                    <div className="border-t border-gray-200 my-6"></div>
-                    <ShortcodeCard
-                        label="Download By Id"
-                        shortcode="[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]"
-                        phpCode={`<?php echo shortcode_exists('tsmlt_download_button') ? do_shortcode( "[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]" ) : '' ; ?>`}
-                    />
+            <div className="border-t border-gray-200 my-6"></div>
+            <ShortcodeCard
+                label="Download By Id"
+                shortcode="[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]"
+                phpCode={`<?php echo shortcode_exists('tsmlt_download_button') ? do_shortcode( "[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]" ) : '' ; ?>`}
+            />
 
-                    <ShortcodeCard
-                        label="Download By URL"
-                        shortcode="[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]"
-                        phpCode={`<?php echo shortcode_exists('tsmlt_download_button') ? do_shortcode( "[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]" ) : '' ; ?>`}
-                    />
-                </div>
-            )}
-        </>
+            <ShortcodeCard
+                label="Download By URL"
+                shortcode="[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]"
+                phpCode={`<?php echo shortcode_exists('tsmlt_download_button') ? do_shortcode( "[tsmlt_download_button url='http://examole.local/image.jpg' text='Download Now' class='my-custom-btn' /]" ) : '' ; ?>`}
+            />
+        </div>
     );
 }
 

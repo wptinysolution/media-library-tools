@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Loader from '@/js/Utils/Loader';
 import { getPluginList, safeParseJSON } from '@/js/Utils/Data';
-import MainHeader from '@/js/Component/MainHeader';
 import PluginCard, { Plugin } from '@/js/Component/PluginCard';
 
 function PluginList() {
@@ -33,9 +32,7 @@ function PluginList() {
     }, []);
 
     return (
-        <>
-            <MainHeader />
-            <div className="p-6 md:p-10 min-h-[85vh]">
+        <div className="p-6 md:p-10 min-h-[85vh]">
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">Our Plugins</h1>
                     <p className="text-gray-500">Explore our collection of powerful WordPress plugins to enhance your website.</p>
@@ -67,7 +64,6 @@ function PluginList() {
                     </div>
                 )}
             </div>
-        </>
     );
 }
 

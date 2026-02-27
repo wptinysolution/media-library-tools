@@ -1,11 +1,8 @@
 import React from 'react';
-import MainHeader from '@/js/Component/MainHeader';
 
 function NeedSupport() {
     return (
-        <>
-            <MainHeader/>
-            <div className="p-6 md:p-10">
+        <div className="p-6 md:p-10">
                 <div className="text-center mb-10">
                     <h1 className="text-3xl font-bold text-gray-800 mb-3">
                         Need Help?
@@ -90,7 +87,6 @@ function NeedSupport() {
                     </div>
                 </div>
             </div>
-        </>
     );
 }
 

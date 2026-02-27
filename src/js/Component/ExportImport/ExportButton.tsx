@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import { getMedia } from "@/js/Utils/Data";
-import MainHeader from "@/js/Component/MainHeader";
 import ExportModalCSV from "./ExportModalCSV";
 import type { MediaPost } from "@/js/Utils/store";
 
@@ -70,7 +69,6 @@ function ExportButton() {
 
     return (
         <>
-            <MainHeader />
             <div className="min-h-screen bg-gray-50">
                 <div className="p-24 rounded-md shadow-sm">
                     <div className="flex items-center flex-wrap gap-4">

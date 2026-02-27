@@ -1,7 +1,6 @@
 import React from 'react';
 import { useStore } from '@/js/Utils/store';
 import Loader from '@/js/Utils/Loader';
-import MainHeader from '@/js/Component/MainHeader';
 import SaveButton from '@/js/Component/SaveButton';
 import MediaTableSettings from '@/js/Component/Settings/MediaTableSettings';
 import AltTextSettings from '@/js/Component/Settings/AltTextSettings';
@@ -13,9 +12,7 @@ function Settings() {
     const { options } = useStore();
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
+        <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
                 <div className="max-w-7xl mx-auto px-6 py-8">
                     {options.isLoading ? (
                         <Loader fullScreen />
@@ -36,7 +33,6 @@ function Settings() {
                     <SaveButton />
                 </div>
             </div>
-        </>
     );
 }
 

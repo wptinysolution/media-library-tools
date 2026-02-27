@@ -7,7 +7,6 @@ import { RubbishFileColumns } from "@/js/Utils/UtilData";
 import { getRubbishFile } from "@/js/Utils/Data";
 import DirectoryModal from "./DirectoryModal";
 import RubbishNotice from "./RubbishNotice";
-import MainHeader from "@/js/Component/MainHeader";
 import DataTable from "@/js/Component/Common/DataTable";
 import Pagination from "@/js/Component/Common/Pagination";
 import type { RubbishMediaFile } from "@/js/Utils/store";
@@ -68,9 +67,7 @@ function RubbishFile() {
     const posts = rubbishMedia.mediaFile || [];
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
                 <RubbishHeader />
                 {rubbishMedia.isLoading ? <Loader /> : (
                     <div className="my-6 mx-2 rounded-lg overflow-hidden">
@@ -90,8 +87,7 @@ function RubbishFile() {
                 )}
                 <DirectoryModal />
                 <RubbishNotice />
-            </div>
-        </>
+        </div>
     );
 }
 

@@ -6,7 +6,6 @@ import TheHeader from "@/js/Component/ListTable/TheHeader";
 import { useStore } from "@/js/Utils/store";
 import BulkModal from "@/js/Component/ListTable/BulkModal";
 import BulkModalForCSV from "@/js/Component/ListTable/BulkModalForCSV";
-import MainHeader from "@/js/Component/MainHeader";
 import DataTable from "@/js/Component/Common/DataTable";
 import Pagination from "@/js/Component/Common/Pagination";
 
@@ -62,9 +61,7 @@ export default function Datatable() {
     const posts = mediaData.posts || [];
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
                 <TheHeader />
                 {generalData.isLoading || mediaData.isLoading ? <Loader /> : (
                     <>
@@ -99,7 +96,6 @@ export default function Datatable() {
                         {renderModal()}
                     </>
                 )}
-            </div>
-        </>
+        </div>
     );
 }

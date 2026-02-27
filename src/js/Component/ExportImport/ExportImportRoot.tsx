@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useStore, initialExportImport } from "@/js/Utils/store";
-import MainHeader from "@/js/Component/MainHeader";
 
 function ExportImportRoot() {
     const { setExportImport } = useStore();
@@ -14,9 +13,7 @@ function ExportImportRoot() {
     }, []);
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
                 <div className="flex items-center justify-center p-24">
                     <div className="flex flex-wrap gap-4 justify-center p-12">
                         <a
@@ -33,8 +30,7 @@ function ExportImportRoot() {
                         </a>
                     </div>
                 </div>
-            </div>
-        </>
+        </div>
     );
 }
 

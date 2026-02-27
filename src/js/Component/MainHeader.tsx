@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useStore } from "@/js/Utils/store";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
@@ -12,6 +12,18 @@ interface MenuItem {
 function MainHeader() {
     const { pathname } = useLocation();
     const { setBulkSubmitData } = useStore();
+    const [isFolded, setIsFolded] = useState(
+        () => document.body.classList.contains('folded') || document.body.classList.contains('auto-fold')
+    );
+
+    useEffect(() => {
+        const update = () => {
+            setIsFolded(document.body.classList.contains('folded') || document.body.classList.contains('auto-fold'));
+        };
+        const observer = new MutationObserver(update);
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
 
     const basePath = pathname.replace(/\/page\/\d+$/, '');
     const pat = ['/export', '/import'].includes(basePath) ? '/exportImport' : basePath;
@@ -21,7 +33,7 @@ function MainHeader() {
             key: '/',
             label: 'Media Settings',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -31,7 +43,7 @@ function MainHeader() {
             key: '/mediaTable',
             label: 'Media Table',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             ),
@@ -40,7 +52,7 @@ function MainHeader() {
             key: '/mediaRename',
             label: 'Media Rename',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
             ),
@@ -49,7 +61,7 @@ function MainHeader() {
             key: '/exportImport',
             label: 'CSV Export / Import',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
             ),
@@ -58,7 +70,7 @@ function MainHeader() {
             key: '/rubbishFile',
             label: 'Rubbish files',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             ),
@@ -67,7 +79,7 @@ function MainHeader() {
             key: '/imageSize',
             label: 'Image Size',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
                 </svg>
             ),
@@ -76,7 +88,7 @@ function MainHeader() {
             key: '/mediaDownload',
             label: 'Media Download',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
             ),
@@ -85,7 +97,7 @@ function MainHeader() {
             key: '/plugins',
             label: 'Useful Plugins',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                 </svg>
             ),
@@ -94,7 +106,7 @@ function MainHeader() {
             key: '/support',
             label: 'Get Support',
             icon: (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
             ),
@@ -109,13 +121,16 @@ function MainHeader() {
     };
 
     return (
-        <nav className="bg-gray-900 h-15 flex items-center overflow-x-auto">
+        <nav
+            style={{ left: isFolded ? 36 : 160 }}
+            className="fixed top-8 z-[9000] w-[200px] h-[calc(100vh-32px)] bg-gray-900 flex flex-col overflow-y-auto"
+        >
             {menuItems.map((item) => (
                 <Link
                     key={item.key}
                     to={item.key}
                     onClick={() => onMenuSelect(item.key)}
-                    className={`inline-flex items-center gap-2 px-4 h-full text-[14px] whitespace-nowrap transition-colors no-underline ${
+                    className={`flex items-center gap-3 px-4 py-3 text-[13px] transition-colors no-underline ${
                         pat === item.key
                             ? 'bg-blue-600 text-white!'
                             : 'text-gray-300! hover:text-white! hover:bg-gray-800!'

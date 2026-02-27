@@ -12,6 +12,7 @@ import {
     submitBulkMediaAction,
 } from "@/js/Utils/Data";
 
+import MainHeader from "@/js/Component/MainHeader";
 import ProModal from "@/js/Component/ProModal";
 import ImportButton from "@/js/Component/ExportImport/ImportButton";
 import Settings from "@/js/Component/Settings";
@@ -141,8 +142,9 @@ function App() {
     }, [mediaData.postQuery]);
 
     return (
-        <div className="p-2.5 bg-white rounded-lg shadow-[0_4px_40px_rgba(0,0,0,0.05)] min-h-screen">
-            <HashRouter>
+        <HashRouter>
+            <MainHeader />
+            <div className="ml-[200px] bg-white min-h-screen">
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />
@@ -160,7 +162,7 @@ function App() {
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-            </HashRouter>
+            </div>
             <ProModal />
             <Toaster
                 position="bottom-center"
@@ -175,7 +177,7 @@ function App() {
                     duration: 3000,
                 }}
             />
-        </div>
+        </HashRouter>
     );
 }
 

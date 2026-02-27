@@ -2,7 +2,6 @@ import React from "react";
 import { useStore } from "@/js/Utils/store";
 import ImportInfo from "./ImportInfo";
 import UploadCsv from "./UploadCsv";
-import MainHeader from "@/js/Component/MainHeader";
 
 function ImportButton() {
     const { exportImport, setExportImport, setGeneralData } = useStore();
@@ -26,9 +25,7 @@ function ImportButton() {
     };
 
     return (
-        <>
-            <MainHeader />
-            <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
                 <div className="p-24 rounded-md shadow-sm flex items-center">
                     <div className="p-12 w-full">
                         <h5 className="border border-gray-200 px-4 py-3 mb-3 text-[13px] text-red-600 text-center rounded">
@@ -61,8 +58,7 @@ function ImportButton() {
                         )}
                     </div>
                 </div>
-            </div>
-        </>
+        </div>
     );
 }
 
