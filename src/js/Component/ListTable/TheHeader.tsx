@@ -21,7 +21,6 @@ const bulkOptions = [
 function TheHeader() {
     const {
         mediaData, setMediaData,
-        options, setOptions,
         generalData, setGeneralData,
         singleMedia, setSingleMedia,
         bulkSubmitData, setBulkSubmitData,setBulkExport,
@@ -134,7 +133,7 @@ function TheHeader() {
                 <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
 
                 {/* Filter group */}
-                <div className="flex items-center gap-2 flex-wrap">
+                {/*<div className="flex items-center gap-2 flex-wrap">*/}
                     <select
                         className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'status')}
@@ -160,7 +159,7 @@ function TheHeader() {
                         onChange={(e) => handleSelectChange(e.target.value || null, 'categories')}
                         defaultValue={mediaData.postQuery.categories || ""}
                     >
-                        <option value="">All Categories</option>
+                        <option value="">All Groups</option>
                         {generalData.termsList?.map(term => (
                             <option key={term.value} value={term.value}>{term.label}</option>
                         ))}
@@ -172,7 +171,7 @@ function TheHeader() {
                         onChange={(e) => setSearch(e.target.value)}
                         onClear={() => setSearch('')}
                     />
-                </div>
+                {/*</div>*/}
 
                 {/* Divider */}
                 <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
