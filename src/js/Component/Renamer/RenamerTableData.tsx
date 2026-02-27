@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { renamerColumns } from '@/js/Utils/UtilData';
 import RenamerMainHeader from "./RenamerMainHeader";
 import { useStore } from "@/js/Utils/store";
-import Loader from "@/js/Utils/Loader";
 import DataTable from "@/js/Component/Common/DataTable";
 import Pagination from "@/js/Component/Common/Pagination";
 
@@ -61,22 +60,21 @@ function RenamerTableData() {
     return (
         <div className="min-h-screen bg-gray-50">
                 <RenamerMainHeader />
-                {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
-                    <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                        <DataTable
-                            columns={RenameTableColumns}
-                            data={posts}
-                            rowKey="ID"
-                        />
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalPosts={totalPosts}
-                            postsPerPage={postsPerPage}
-                            onPageChange={handlePagination}
-                        />
-                    </div>
-                )}
+                <div className="my-2 mx-2 rounded-lg overflow-hidden">
+                    <DataTable
+                        columns={RenameTableColumns}
+                        data={posts}
+                        rowKey="ID"
+                        loading={mediaData.isLoading || mediaData.total_post < 0}
+                    />
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalPosts={totalPosts}
+                        postsPerPage={postsPerPage}
+                        onPageChange={handlePagination}
+                    />
+                </div>
         </div>
     );
 }

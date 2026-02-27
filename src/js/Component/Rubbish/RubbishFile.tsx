@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useParams } from 'react-router-dom';
 import { useStore } from "@/js/Utils/store";
 import RubbishHeader from "./RubbishHeader";
-import Loader from "@/js/Utils/Loader";
 import { RubbishFileColumns } from "@/js/Utils/UtilData";
 import { getRubbishFile } from "@/js/Utils/Data";
 import DirectoryModal from "./DirectoryModal";
@@ -70,22 +69,21 @@ function RubbishFile() {
     return (
         <div className="min-h-screen bg-gray-50">
                 <RubbishHeader />
-                {rubbishMedia.isLoading ? <Loader /> : (
-                    <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                        <DataTable
-                            columns={rubbishColumns}
-                            data={posts}
-                            rowKey={() => (Math.random() + 1).toString(36).substring(7)}
-                        />
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalPosts={totalPosts}
-                            postsPerPage={postsPerPage}
-                            onPageChange={handlePagination}
-                        />
-                    </div>
-                )}
+                <div className="my-2 mx-2 rounded-lg overflow-hidden">
+                    <DataTable
+                        columns={rubbishColumns}
+                        data={posts}
+                        rowKey={() => (Math.random() + 1).toString(36).substring(7)}
+                        loading={rubbishMedia.isLoading}
+                    />
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalPosts={totalPosts}
+                        postsPerPage={postsPerPage}
+                        onPageChange={handlePagination}
+                    />
+                </div>
                 <DirectoryModal />
                 <RubbishNotice />
                 {confirmModal}

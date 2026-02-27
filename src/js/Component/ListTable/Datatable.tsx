@@ -91,22 +91,21 @@ export default function Datatable() {
                                 ))}
                             </label>
                         </div>
-                        {mediaData.isLoading ? <Loader /> : (
-                            <div className="my-6 mx-2 rounded-lg overflow-hidden">
-                                <DataTable
-                                    columns={tablecolumn}
-                                    data={posts}
-                                    rowKey="ID"
-                                />
-                                <Pagination
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    totalPosts={totalPosts}
-                                    postsPerPage={postsPerPage}
-                                    onPageChange={handlePagination}
-                                />
-                            </div>
-                        )}
+                        <div className="my-2 mx-2 rounded-lg overflow-hidden">
+                            <DataTable
+                                columns={tablecolumn}
+                                data={posts}
+                                rowKey="ID"
+                                loading={mediaData.isLoading}
+                            />
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalPosts={totalPosts}
+                                postsPerPage={postsPerPage}
+                                onPageChange={handlePagination}
+                            />
+                        </div>
                         {renderModal()}
                     </>
                 )}
