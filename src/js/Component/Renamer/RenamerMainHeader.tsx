@@ -15,7 +15,7 @@ function RenamerMainHeader() {
         setSaveType,
     } = useStore();
 
-    const [search, setSearch] = useSearchDebounce();
+    const [search, searchQuery, setSearch] = useSearchDebounce();
 
 
     const handleChangeBulkType = (value: string) => {
@@ -83,7 +83,7 @@ function RenamerMainHeader() {
                     <select
                         className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! min-w-[220px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleChangeBulkType(e.target.value)}
-                        defaultValue=""
+                        value={bulkSubmitData.type || ""}
                     >
                         <option value="" disabled>Bulk Actions</option>
                         {options_list.map(option => (
@@ -105,7 +105,9 @@ function RenamerMainHeader() {
                 {/* Search */}
                 <SearchInput
                     placeholder="Search keywords..."
+                    value={searchQuery}
                     onChange={(e) => setSearch(e.target.value)}
+                    onClear={() => setSearch('')}
                 />
 
                 {/* Divider */}

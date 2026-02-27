@@ -28,7 +28,7 @@ function TheHeader() {
         setSaveType,
     } = useStore();
 
-    const [search, setSearch] = useSearchDebounce();
+    const [search, searchQuery, setSearch] = useSearchDebounce();
 
     const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | null>(null);
 
@@ -114,7 +114,7 @@ function TheHeader() {
                     <select
                         className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! min-w-50 focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleChangeBulkType(e.target.value)}
-                        defaultValue=""
+                        value={bulkSubmitData.type || ""}
                     >
                         <option value="" disabled>Bulk Actions</option>
                         {filteredBulkOptions.map(option => (
@@ -168,7 +168,9 @@ function TheHeader() {
 
                     <SearchInput
                         placeholder="Search keywords..."
+                        value={searchQuery}
                         onChange={(e) => setSearch(e.target.value)}
+                        onClear={() => setSearch('')}
                     />
                 </div>
 
