@@ -1,6 +1,6 @@
 <?php
 /**
- * Main Ajax class.
+ * Ajax action handlers.
  *
  * @package TinySolutions\mlt
  */
@@ -19,7 +19,7 @@ use TinySolutions\mlt\Controllers\Admin\Api;
 defined( 'ABSPATH' ) || exit();
 
 /**
- * Ajax action handlers.
+ * WordPress AJAX action handlers.
  */
 class Ajax {
 	/**
@@ -35,53 +35,78 @@ class Ajax {
 		add_action( 'wp_ajax_immediately_search_rubbish_file', [ $this, 'search_rubbish_file' ] );
 
 		// Media list / counts.
-		add_action( 'wp_ajax_tsmlt_get_media', [ $this, 'get_media' ] );
-		add_action( 'wp_ajax_tsmlt_media_count', [ $this, 'media_count' ] );
+		add_action( 'wp_ajax_tsmlt_get_media',          [ $this, 'get_media' ] );
+		add_action( 'wp_ajax_tsmlt_media_count',         [ $this, 'media_count' ] );
 		add_action( 'wp_ajax_tsmlt_update_single_media', [ $this, 'update_single_media' ] );
-		add_action( 'wp_ajax_tsmlt_bulk_submit', [ $this, 'media_submit_bulk_action' ] );
+		add_action( 'wp_ajax_tsmlt_bulk_submit',         [ $this, 'media_submit_bulk_action' ] );
 
 		// Filters / options.
-		add_action( 'wp_ajax_tsmlt_get_dates', [ $this, 'get_dates' ] );
-		add_action( 'wp_ajax_tsmlt_get_terms', [ $this, 'get_terms' ] );
-		add_action( 'wp_ajax_tsmlt_get_options', [ $this, 'get_options' ] );
+		add_action( 'wp_ajax_tsmlt_get_dates',    [ $this, 'get_dates' ] );
+		add_action( 'wp_ajax_tsmlt_get_terms',    [ $this, 'get_terms' ] );
+		add_action( 'wp_ajax_tsmlt_get_options',  [ $this, 'get_options' ] );
 		add_action( 'wp_ajax_tsmlt_update_option', [ $this, 'update_option' ] );
 
 		// Rubbish / unlisted files.
-		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype', [ $this, 'get_rubbish_filetype' ] );
-		add_action( 'wp_ajax_tsmlt_get_rubbish_file', [ $this, 'get_rubbish_file' ] );
-		add_action( 'wp_ajax_tsmlt_get_dir_list', [ $this, 'get_dir_list' ] );
-		add_action( 'wp_ajax_tsmlt_rescan_dir', [ $this, 'rescan_dir' ] );
-		add_action( 'wp_ajax_tsmlt_search_file_by_dir', [ $this, 'search_file_by_dir' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype',   [ $this, 'get_rubbish_filetype' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_file',       [ $this, 'get_rubbish_file' ] );
+		add_action( 'wp_ajax_tsmlt_get_dir_list',           [ $this, 'get_dir_list' ] );
+		add_action( 'wp_ajax_tsmlt_rescan_dir',             [ $this, 'rescan_dir' ] );
+		add_action( 'wp_ajax_tsmlt_search_file_by_dir',     [ $this, 'search_file_by_dir' ] );
 		add_action( 'wp_ajax_tsmlt_truncate_unlisted_file', [ $this, 'truncate_unlisted_file' ] );
 
 		// Schedule / image sizes / plugins.
-		add_action( 'wp_ajax_tsmlt_clear_schedule', [ $this, 'clear_schedule' ] );
+		add_action( 'wp_ajax_tsmlt_clear_schedule',             [ $this, 'clear_schedule' ] );
 		add_action( 'wp_ajax_tsmlt_get_registered_image_sizes', [ $this, 'get_registered_image_sizes' ] );
-		add_action( 'wp_ajax_tsmlt_get_plugin_list', [ $this, 'get_plugin_list' ] );
+		add_action( 'wp_ajax_tsmlt_get_plugin_list',            [ $this, 'get_plugin_list' ] );
 	}
 
 	// -------------------------------------------------------------------------
-	// Helpers
+	// Security helpers
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Verify nonce + capability, then return decoded params from POST body.
+	 * Enforce that this is a genuine, POST-only, admin AJAX request made by a
+	 * logged-in user with the manage_options capability.
 	 *
-	 * Terminates execution on failure (wp_send_json_error / check_ajax_referer).
+	 * Returns the decoded params array on success.
+	 * Terminates with wp_die() on any failure — no code path continues after a
+	 * failed check.
 	 *
 	 * @return array
 	 */
 	private function verify_and_get_params(): array {
-		check_ajax_referer( Fns::NONCE_ID, 'nonce' );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized.', 'media-library-tools' ) ] );
+		// Must be an actual AJAX request routed through admin-ajax.php.
+		if ( ! wp_doing_ajax() ) {
+			wp_die( esc_html__( 'Invalid request.', 'media-library-tools' ), 400 );
 		}
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Bulk JSON, sanitized per-field inside each method.
-		return json_decode( wp_unslash( $_POST['params'] ?? '{}' ), true ) ?: [];
+
+		// Must be a POST request — reject GET/HEAD/etc.
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+			wp_die( esc_html__( 'Method not allowed.', 'media-library-tools' ), 405 );
+		}
+
+		// Verify the nonce — dies with 403 on failure.
+		check_ajax_referer( Fns::NONCE_ID, 'nonce' );
+
+		// Verify the user capability.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized.', 'media-library-tools' ) ], 403 );
+		}
+
+		// Decode the JSON params payload.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON blob; each field sanitized inside handler methods.
+		$raw    = isset( $_POST['params'] ) ? wp_unslash( $_POST['params'] ) : '{}';
+		$params = json_decode( $raw, true );
+
+		if ( ! is_array( $params ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Malformed request payload.', 'media-library-tools' ) ], 400 );
+		}
+
+		return $params;
 	}
 
 	/**
-	 * Send AJAX success response.
+	 * Wrap the result from an Api method and send as AJAX success response.
 	 *
 	 * @param mixed $result Data returned by an Api method.
 	 *
@@ -92,7 +117,7 @@ class Ajax {
 	}
 
 	// -------------------------------------------------------------------------
-	// Legacy handler (DirectoryModal directory scan)
+	// Legacy handler — DirectoryModal directory scan
 	// -------------------------------------------------------------------------
 
 	/**
@@ -101,10 +126,22 @@ class Ajax {
 	 * @return void
 	 */
 	public function search_rubbish_file(): void {
+		if ( ! wp_doing_ajax() ) {
+			wp_die( esc_html__( 'Invalid request.', 'media-library-tools' ), 400 );
+		}
+
 		check_ajax_referer( Fns::NONCE_ID, 'nonce' );
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized below.
-		$skip = ! empty( $_POST['skip'] ) && is_array( $_POST['skip'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['skip'] ) ) : [];
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized.', 'media-library-tools' ) ], 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized via array_map below.
+		$raw_skip = isset( $_POST['skip'] ) ? wp_unslash( $_POST['skip'] ) : [];
+		$skip     = is_array( $raw_skip ) ? array_map( 'sanitize_text_field', $raw_skip ) : [];
+
 		Fns::scan_rubbish_file_cron_job( $skip );
+
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 		$dir     = [];
 		if ( ! empty( $dirlist ) ) {
