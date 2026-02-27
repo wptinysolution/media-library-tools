@@ -8,9 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
-use WP_Error;
 use WP_Query;
-use WP_REST_Request;
 
 /**
  * Class Api
@@ -23,190 +21,19 @@ class Api {
 	use SingletonTrait;
 
 	/**
-	 * @var string
-	 */
-	private $namespace = 'TinySolutions/mlt/v1';
-	/**
-	 * @var string
-	 */
-	private $resource_name = '/media';
-	/**
 	 * Construct
 	 */
-	private function __construct() {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-	}
+	private function __construct() {}
 
 	/**
-	 * Register our routes.
+	 * Accept a plain parameter array (all callers pass arrays via AJAX).
 	 *
-	 * @return void
+	 * @param array $request_data Plain parameter array.
+	 *
+	 * @return array
 	 */
-	public function register_routes() {
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name,
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_media' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/mediaCount',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'media_count' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/update',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'update_single_media' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/bulk/submit',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'media_submit_bulk_action' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/filter/getdates',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_dates' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getterms',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_terms' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getoptions',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_options' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/updateoptins',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'update_option' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRubbishFileType',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_rubbish_filetype' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRubbishFile',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_rubbish_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getDirList',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_dir_list' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/rescanDir',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'rescan_dir' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/searchFileBySingleDir',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'immediately_search_rubbish_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/clearSchedule',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'clear_schedule' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRegisteredImageSizes',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_registered_image_size' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getPluginList',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_plugin_list' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/truncateUnlistedFile',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'delete_all_rows_in_unlisted_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-	}
-
-	/**
-	 * @return true
-	 */
-	public function login_permission_callback() {
-		return current_user_can( 'manage_options' );
+	private function parse_params( array $request_data ): array {
+		return $request_data;
 	}
 	/**
 	 * @return false|string
@@ -263,11 +90,11 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function update_option( $request_data ) {
+	public function update_option( array $request_data ) {
 		$result     = [
 			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'media-library-tools' ),
 		];
-		$parameters = $request_data->get_params();
+		$parameters = $this->parse_params( $request_data );
 
 		$total_count = absint( $parameters['media_per_page'] ?? 20 );
 
@@ -365,12 +192,12 @@ class Api {
 	}
 
 	/**
-	 * @param $request_data
+	 * @param array $request_data
 	 *
 	 * @return array
 	 */
-	public function update_single_media( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function update_single_media( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
@@ -545,13 +372,13 @@ class Api {
 
 
 	/**
-	 * @param $request_data
+	 * @param array $request_data
 	 *
-	 * @return false|string|WP_Error
+	 * @return false|string
 	 */
-	public function get_media( $request_data ) {
+	public function get_media( array $request_data ) {
 
-		$parameters = $request_data->get_params();
+		$parameters = $this->parse_params( $request_data );
 		$options    = get_option( 'tsmlt_settings' );
 		$limit      = absint( ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : ( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 ) );
 		$limit      = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
@@ -731,11 +558,12 @@ class Api {
 	}
 
 	/**
-	 * @param $request_data
-	 * @return array|WP_Error
+	 * @param array $request_data
+	 *
+	 * @return array
 	 */
-	public function media_submit_bulk_action( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function media_submit_bulk_action( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
@@ -872,8 +700,8 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function rescan_dir( $request_data ) {
-		$parameters     = $request_data->get_params();
+	public function rescan_dir( array $request_data ) {
+		$parameters     = $this->parse_params( $request_data );
 		$dir            = $parameters['dir'] ?? 'all';
 		$directory_list = [];
 		$message        = esc_html__( 'Schedule Will Execute Soon.', 'media-library-tools' );
@@ -902,8 +730,8 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function immediately_search_rubbish_file( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function immediately_search_rubbish_file( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'data'    => [],
@@ -963,12 +791,12 @@ class Api {
 	/**
 	 * Retrieve rubbish files with pagination and filtering.
 	 *
-	 * @param WP_REST_Request $request_data REST request object.
+	 * @param array $request_data Parameter array.
 	 *
 	 * @return false|string JSON-encoded response.
 	 */
-	public function get_rubbish_file( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function get_rubbish_file( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$options    = get_option( 'tsmlt_settings' );
 		$limit      = absint( $parameters['postsPerPage'] ?? $options['rubbish_per_page'] ?? 20 );
 		$page       = max( 1, absint( $parameters['paged'] ?? 1 ) );

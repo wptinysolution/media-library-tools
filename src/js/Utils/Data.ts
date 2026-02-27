@@ -2,15 +2,26 @@ import Axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import toast from 'react-hot-toast';
 
-const apibaseUrl = `${tsmltParams.restApiUrl}TinySolutions/mlt/v1/media`;
-
-const Api = Axios.create({
-    baseURL: apibaseUrl,
-    headers: {
-        "Content-Type": "application/json",
-        'X-WP-Nonce': tsmltParams.rest_nonce,
-    },
-});
+/**
+ * Post to WordPress admin-ajax.php.
+ *
+ * Sends `action`, `nonce`, and `params` (JSON string) as URL-encoded POST body.
+ * Unwraps the `{success, data}` envelope added by wp_send_json_success so that
+ * callers receive data in the same shape as the previous REST API responses.
+ */
+const ajaxPost = async (action: string, params: unknown = {}): Promise<AxiosResponse> => {
+    const body = new URLSearchParams({
+        action,
+        nonce: tsmltParams.tsmlt_wpnonce,
+        params: JSON.stringify(params),
+    });
+    const response = await Axios.post(tsmltParams.ajaxUrl, body);
+    // Unwrap wp_send_json_success / wp_send_json_error envelope.
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        return { ...response, data: response.data.data };
+    }
+    return response;
+};
 
 export const notifications = (isTrue: boolean, text?: string): void => {
     if (isTrue) {
@@ -46,12 +57,12 @@ export const safeParseJSON = <T = unknown>(data: unknown): T | [] => {
 };
 
 export const getMedia = async (prams: object = {}): Promise<Record<string, unknown>> => {
-    const result = await Api.get(`/`, { params: prams });
+    const result = await ajaxPost('tsmlt_get_media', prams);
     return JSON.parse(result.data);
 };
 
 export const singleUpDateApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/update`, prams);
+    return await ajaxPost('tsmlt_update_single_media', prams);
 };
 
 export const upDateSingleMedia = async (prams: unknown): Promise<AxiosResponse> => {
@@ -61,40 +72,40 @@ export const upDateSingleMedia = async (prams: unknown): Promise<AxiosResponse> 
 };
 
 export const submitBulkMediaAction = async (prams: unknown): Promise<AxiosResponse> => {
-    const response = await Api.post(`/bulk/submit`, prams);
+    const response = await ajaxPost('tsmlt_bulk_submit', prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 };
 
 export const updateOptins = async (prams: unknown): Promise<AxiosResponse> => {
-    const response = await Api.post(`/updateoptins`, prams);
+    const response = await ajaxPost('tsmlt_update_option', prams);
     notifications(200 === response.status && response.data.updated, response.data.message);
     return response;
 };
 
 export const getDates = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/filter/getdates`);
+    return await ajaxPost('tsmlt_get_dates');
 };
 
 export const getTerms = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/getterms`);
+    return await ajaxPost('tsmlt_get_terms');
 };
 
 export const getOptions = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/getoptions`);
+    return await ajaxPost('tsmlt_get_options');
 };
 
 export const getDirList = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/getDirList`);
+    return await ajaxPost('tsmlt_get_dir_list');
 };
 
 export const getRubbishFile = async (prams: object = {}): Promise<Record<string, unknown>> => {
-    const result = await Api.get(`/getRubbishFile`, { params: prams });
+    const result = await ajaxPost('tsmlt_get_rubbish_file', prams);
     return JSON.parse(result.data);
 };
 
 export const rescanDirApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rescanDir`, prams);
+    return await ajaxPost('tsmlt_rescan_dir', prams);
 };
 
 export const rescanDir = async (prams: unknown): Promise<AxiosResponse> => {
@@ -104,11 +115,11 @@ export const rescanDir = async (prams: unknown): Promise<AxiosResponse> => {
 };
 
 export const singleDeleteApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rubbish/single/delete/action`, prams);
+    return await ajaxPost('tsmlt_rubbish_single_delete', prams);
 };
 
 export const rubbishBulkDeleteApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rubbish/bulk/delete/action`, prams);
+    return await ajaxPost('tsmlt_rubbish_bulk_delete', prams);
 };
 
 export const rubbishSingleDeleteAction = async (prams: unknown): Promise<AxiosResponse> => {
@@ -118,7 +129,7 @@ export const rubbishSingleDeleteAction = async (prams: unknown): Promise<AxiosRe
 };
 
 export const singleIgnoreApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rubbish/single/ignore/action`, prams);
+    return await ajaxPost('tsmlt_rubbish_single_ignore', prams);
 };
 
 export const rubbishSingleIgnoreAction = async (prams: unknown): Promise<AxiosResponse> => {
@@ -128,7 +139,7 @@ export const rubbishSingleIgnoreAction = async (prams: unknown): Promise<AxiosRe
 };
 
 export const singleShowApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rubbish/single/show/action`, prams);
+    return await ajaxPost('tsmlt_rubbish_single_show', prams);
 };
 
 export const rubbishSingleShowAction = async (prams: unknown): Promise<AxiosResponse> => {
@@ -138,7 +149,7 @@ export const rubbishSingleShowAction = async (prams: unknown): Promise<AxiosResp
 };
 
 export const singleRestoreApi = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/rubbish/single/restore/action`, prams);
+    return await ajaxPost('tsmlt_rubbish_single_restore', prams);
 };
 
 export const rubbishSingleRestoreAction = async (prams: unknown): Promise<AxiosResponse> => {
@@ -148,17 +159,17 @@ export const rubbishSingleRestoreAction = async (prams: unknown): Promise<AxiosR
 };
 
 export const getRubbishFileType = async (): Promise<{ fileTypes: string[] }> => {
-    const result = await Api.get(`/getRubbishFileType`);
+    const result = await ajaxPost('tsmlt_get_rubbish_filetype');
     return JSON.parse(result.data);
 };
 
 export const mediaCount = async (): Promise<unknown> => {
-    const result = await Api.get(`/mediaCount`);
+    const result = await ajaxPost('tsmlt_media_count');
     return result.data;
 };
 
 export const clearSchedule = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/clearSchedule`);
+    return await ajaxPost('tsmlt_clear_schedule');
 };
 
 export const actionClearSchedule = async (): Promise<AxiosResponse> => {
@@ -168,17 +179,17 @@ export const actionClearSchedule = async (): Promise<AxiosResponse> => {
 };
 
 export const getPluginList = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/getPluginList`);
+    return await ajaxPost('tsmlt_get_plugin_list');
 };
 
 export const importOneByOne = async (prams: unknown): Promise<AxiosResponse> => {
-    return await Api.post(`/import/attachment/one/by/one`, prams);
+    return await ajaxPost('tsmlt_import_attachment', prams);
 };
 
 export const getRegisteredImageSizes = async (): Promise<AxiosResponse> => {
-    return await Api.get(`/getRegisteredImageSizes`);
+    return await ajaxPost('tsmlt_get_registered_image_sizes');
 };
 
 export const truncateUnlistedFile = async (): Promise<AxiosResponse> => {
-    return await Api.post(`/truncateUnlistedFile`);
+    return await ajaxPost('tsmlt_truncate_unlisted_file');
 };
