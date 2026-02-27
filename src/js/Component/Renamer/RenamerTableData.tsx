@@ -8,7 +8,7 @@ import DataTable from "@/js/Component/Common/DataTable";
 import Pagination from "@/js/Component/Common/Pagination";
 
 function RenamerTableData() {
-    const { mediaData, setMediaData } = useStore();
+    const { mediaData, setMediaData, options, setOptions } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
 
     const RenameTableColumns = renamerColumns();
@@ -62,6 +62,19 @@ function RenamerTableData() {
         <div className="min-h-screen bg-gray-50">
                 <RenamerMainHeader />
                 {mediaData.isLoading || mediaData.total_post < 0 ? <Loader /> : (
+                    <>
+                        <div className="mx-6 mt-6 px-4 py-3 bg-white border border-gray-200 rounded-lg flex items-center">
+                            <div className="flex items-center gap-1.5">
+                                <label className="text-sm text-gray-500 whitespace-nowrap">Per page:</label>
+                                <input
+                                    type="number"
+                                    className="w-16 px-2! py-1.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                                    value={options.media_per_page as number | string}
+                                    onChange={(event) => { localStorage.setItem('mlt_media_per_page', event.target.value); setOptions({ media_per_page: event.target.value }); }}
+                                    onBlur={() => setMediaData({ postQuery: { ...mediaData.postQuery, media_per_page: parseInt(String(options.media_per_page || 20), 10), paged: 1 } })}
+                                />
+                            </div>
+                        </div>
                     <div className="my-6 mx-2 rounded-lg overflow-hidden ">
                         <DataTable
                             columns={RenameTableColumns}
@@ -76,6 +89,7 @@ function RenamerTableData() {
                             onPageChange={handlePagination}
                         />
                     </div>
+                    </>
                 )}
         </div>
     );

@@ -262,7 +262,7 @@ export const useStore = create<StoreState>((set) => ({
         postQuery: {
             status: null,
             filtering: false,
-            media_per_page: 1,
+            media_per_page: parseInt(localStorage.getItem('mlt_media_per_page') || '20', 10),
             searchKeyWords: null,
             order: 'DESC',
             orderby: 'id',
@@ -309,6 +309,8 @@ export const useStore = create<StoreState>((set) => ({
         media_auto_rename_text: '',
         deregistered_image_sizes: [],
         custom_image_sizes: [],
+        media_per_page: parseInt(localStorage.getItem('mlt_media_per_page') || '20', 10),
+        rubbish_per_page: parseInt(localStorage.getItem('mlt_rubbish_per_page') || '20', 10),
     },
     setOptions: (update) => set((state) => ({ options: { ...state.options, ...update } })),
 
@@ -319,7 +321,7 @@ export const useStore = create<StoreState>((set) => ({
         mediaFile: [],
         postQuery: {
             paged: 1,
-            postsPerPage: 10,
+            postsPerPage: parseInt(localStorage.getItem('mlt_rubbish_per_page') || '20', 10),
             isQueryUpdate: false,
             fileStatus: 'show',
             filterExtension: '',

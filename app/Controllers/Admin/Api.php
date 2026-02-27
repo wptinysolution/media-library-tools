@@ -553,7 +553,7 @@ class Api {
 
 		$parameters = $request_data->get_params();
 		$options    = get_option( 'tsmlt_settings' );
-		$limit      = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
+		$limit      = absint( ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : ( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 ) );
 		$limit      = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
 
 		$orderby = 'menu_order';
@@ -970,7 +970,7 @@ class Api {
 	public function get_rubbish_file( $request_data ) {
 		$parameters = $request_data->get_params();
 		$options    = get_option( 'tsmlt_settings' );
-		$limit      = absint( $options['rubbish_per_page'] ?? 20 );
+		$limit      = absint( $parameters['postsPerPage'] ?? $options['rubbish_per_page'] ?? 20 );
 		$page       = max( 1, absint( $parameters['paged'] ?? 1 ) );
 		$offset     = ( $page - 1 ) * $limit;
 		$status     = sanitize_text_field( $parameters['fileStatus'] ?? 'show' );

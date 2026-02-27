@@ -45,7 +45,12 @@ function App() {
     const getTheOptins = async () => {
         const response = await getOptions() as { data: string };
         const preparedData = JSON.parse(response.data);
-        setOptions({ ...preparedData, isLoading: false });
+        setOptions({
+            ...preparedData,
+            isLoading: false,
+            media_per_page: parseInt(localStorage.getItem('mlt_media_per_page') || '20', 10),
+            rubbish_per_page: parseInt(localStorage.getItem('mlt_rubbish_per_page') || '20', 10),
+        });
     };
 
     const getDateAndTermsList = async () => {
@@ -66,12 +71,6 @@ function App() {
         const response = await updateOptins(options) as { status: number | string };
         if (200 === parseInt(String(response.status))) {
             await getTheOptins();
-            setMediaData({
-                postQuery: {
-                    ...mediaData.postQuery,
-                    media_per_page: options.media_per_page as number,
-                },
-            });
         }
         setSaveType(null);
     };

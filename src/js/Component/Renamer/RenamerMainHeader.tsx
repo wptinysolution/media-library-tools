@@ -18,7 +18,7 @@ function RenamerMainHeader() {
     } = useStore();
 
     const [search, setSearch] = useSearchDebounce();
-    const inputRef = useRef<HTMLInputElement>(null);
+
 
     const handleChangeBulkType = (value: string) => {
         const data = 'bulkRename' === value ? bulkSubmitData.data : defaultBulkSubmitData.data;
@@ -126,19 +126,6 @@ function RenamerMainHeader() {
                         {rename.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
                     </button>
 
-                    <div className="flex items-center gap-1.5">
-                        <label className="text-sm text-gray-600 whitespace-nowrap cursor-pointer" onClick={() => inputRef.current?.focus()}>
-                            Per page:
-                        </label>
-                        <input
-                            ref={inputRef}
-                            type="number"
-                            className="w-16 px-2! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
-                            onBlur={() => setSaveType(Types.UPDATE_OPTIONS)}
-                            onChange={(event) => setOptions({ media_per_page: event.target.value })}
-                            value={options.media_per_page as number | string}
-                        />
-                    </div>
                 </div>
             </div>
             <BulkRanameModal />
