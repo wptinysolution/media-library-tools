@@ -61,62 +61,6 @@ class SubMenu {
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Table', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Table', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/mediaTable'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Rename', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Rename', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/mediaRename'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'CSV Export/Import', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Export Import', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/exportImport'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Rubbish files', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Rubbish files', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/rubbishFile'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Image Size', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Image Size', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/imageSize'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Media Download', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Media Download', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/mediaDownload'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Useful Plugins', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Useful Plugins ', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/plugins'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'Get Support', 'media-library-tools' ),
-			'<span class="tsmlt-is-submenu" ><span class="dashicons dashicons-arrow-right-alt" ></span>' . esc_html__( 'Get Support', 'media-library-tools' ) . '</span>',
-			self::MENU_CAPABILITY,
-			$menu_link_part . '#/support'
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
 			$tab_title,
 			$title,
 			self::MENU_CAPABILITY,
