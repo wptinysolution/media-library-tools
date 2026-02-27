@@ -181,6 +181,16 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 2.0.2 ( Feb 28, 2026 ) =
+* Security: Migrated all REST API endpoints to WordPress admin-ajax for improved security compliance
+* Improvement: Added clear (×) button to search keyword input field
+* Fixed: Bulk action select de-syncs visually after filter reset, causing "No Actions selected" error
+* Improvement: Refactored loading states and per-page controls
+* Improvement: Updated Export/Import UI styles and imports
+* Fixed: Text size classes not applying correctly in Garbage file notice
+* Improvement: Refactored checkbox markup and shortened column labels
+* Improvement: Overall UI improvements for better user experience
+
 = 2.0.1 ( Jan 08, 2026 ) =
 * Fix: Search Attached Post Issue resolved
 
