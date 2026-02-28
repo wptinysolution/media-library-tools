@@ -1,6 +1,14 @@
+import { useWpAdminBarHeight, useWpMenuWidth } from "@/js/Utils/Hooks";
+
 function TopBar() {
+    const adminBarHeight = useWpAdminBarHeight();
+    const wpMenuWidth = useWpMenuWidth();
+
     return (
-        <div className="sticky top-8 z-[9100] h-14 bg-white border-b border-gray-200 flex items-center justify-between px-5">
+        <div
+            className="fixed z-[9100] h-14 bg-white border-b border-gray-200 flex items-center justify-between px-5"
+            style={{ top: adminBarHeight, left: wpMenuWidth, right: 0 }}
+        >
             {/* Left: Logo + Plugin name */}
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 ring-1 ring-gray-200">

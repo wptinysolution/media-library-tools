@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useWpAdminBarHeight } from "@/js/Utils/Hooks";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
@@ -140,14 +141,18 @@ function App() {
         getTheMedia();
     }, [mediaData.postQuery]);
 
+    const adminBarHeight = useWpAdminBarHeight();
     const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
+    // TopBar is h-14 = 56px (fixed, out of flow); subtract WP admin bar + TopBar from viewport
+    const contentHeight = `calc(100vh - ${adminBarHeight + 56}px)`;
 
     return (
         <HashRouter>
             <TopBar />
             <MainHeader />
-            <div className={'tsmlt-main-content-section'} style={{ marginLeft: sidebarWidth, transition: 'margin-left 200ms ease-in-out' }}>
-            <div className="flex" style={{ height: 'calc(100vh - 88px)' }}>
+            {/* paddingTop: 56 compensates for the fixed TopBar (h-14) being out of document flow */}
+            <div className={'tsmlt-main-content-section'} style={{ marginLeft: sidebarWidth, paddingTop: 56, transition: 'margin-left 200ms ease-in-out' }}>
+            <div className="flex" style={{ height: contentHeight }}>
                 <div className="flex-1 min-w-0 bg-white overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Settings />} />

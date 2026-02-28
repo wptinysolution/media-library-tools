@@ -1,5 +1,22 @@
 import { useState, useEffect } from "react";
 
+export function useWpAdminBarHeight(): number {
+    const [height, setHeight] = useState(() => {
+        const bar = document.getElementById('wpadminbar');
+        return bar ? bar.offsetHeight : 32;
+    });
+
+    useEffect(() => {
+        const bar = document.getElementById('wpadminbar');
+        if (!bar) return;
+        const observer = new ResizeObserver(() => setHeight(bar.offsetHeight));
+        observer.observe(bar);
+        return () => observer.disconnect();
+    }, []);
+
+    return height;
+}
+
 export function useWpMenuWidth(): number {
     const [width, setWidth] = useState(() => {
         const wrap = document.getElementById('adminmenuwrap');

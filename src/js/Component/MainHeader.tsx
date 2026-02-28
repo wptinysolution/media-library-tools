@@ -2,6 +2,7 @@ import React from "react";
 import { useStore } from "@/js/Utils/store";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
+import { useWpAdminBarHeight } from "@/js/Utils/Hooks";
 
 interface MenuItem {
     key: string;
@@ -13,6 +14,9 @@ function MainHeader() {
     const { pathname } = useLocation();
     const { setBulkSubmitData, generalData, setGeneralData } = useStore();
     const isCollapsed = generalData.sidebarCollapsed;
+    const adminBarHeight = useWpAdminBarHeight();
+    // 56px = TopBar height (h-14); sidebar must start below TopBar
+    const sidebarTop = adminBarHeight + 56;
 
     const basePath = pathname.replace(/\/page\/\d+$/, '');
     const pat = basePath;
@@ -126,8 +130,8 @@ function MainHeader() {
 
     return (
         <nav
-            style={{ width: isCollapsed ? 48 : 200 }}
-            className="fixed h-full shrink-0 z-9000 bg-white border-r border-gray-200 flex flex-col transition-[width] duration-200 ease-in-out"
+            style={{ width: isCollapsed ? 48 : 200, top: sidebarTop, height: `calc(100vh - ${sidebarTop}px)` }}
+            className="fixed shrink-0 z-9000 bg-white border-r border-gray-200 flex flex-col transition-[width] duration-200 ease-in-out"
         >
             {/* Navigation items */}
             <div className="flex flex-col pt-5 flex-1 overflow-y-auto overflow-x-hidden">
