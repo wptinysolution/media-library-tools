@@ -14,11 +14,11 @@ interface PluginCardProps {
 
 function PluginCard({ plugin, iframeUrl }: PluginCardProps) {
     return (
-        <div className="group bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <div className="group block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300">
             <div className="flex flex-col h-full">
                 <div className="p-6">
                     <div className="flex items-start gap-5">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                             <a
                                 href={iframeUrl}
                                 target="_blank"

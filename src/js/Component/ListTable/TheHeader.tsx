@@ -237,7 +237,7 @@ function TheHeader() {
                     </p>
                 ) : (
                     <p className="text-sm! text-gray-600 m-0!">
-                        This will search the parent post for <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong>. Do you want to continue?
+                        This will search Attached Post for <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong>. Do you want to continue?
                     </p>
                 )}
             </div>

@@ -70,14 +70,14 @@ function NeedSupport() {
 
                 <div className="mt-10 max-w-4xl mx-auto">
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-start gap-4">
                             <div className="flex-shrink-0">
                                 <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="font-semibold m-0! text-gray-800">Quick Tip</h4>
+                                <h4 className="font-semibold mt-0! mb-1  text-gray-800">Quick Tip</h4>
                                 <p className="m-0! text-gray-600 text-sm">
                                     For faster support, please include details about your issue, WordPress version, and any error messages you've encountered.
                                 </p>
