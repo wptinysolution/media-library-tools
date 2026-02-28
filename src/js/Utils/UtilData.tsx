@@ -83,6 +83,12 @@ const theImage = (record: MediaPost): React.ReactElement => {
     return <img width={width} src={url} alt={record.post_mime_type} />;
 };
 
+const SortIcon = () => (
+    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+);
+
 export function columns(): ColumnDef<MediaPost>[] {
     const { mediaData, setMediaData, singleMedia, setSingleMedia, bulkSubmitData, setBulkSubmitData, setSaveType } = useStore();
 
@@ -149,11 +155,6 @@ export function columns(): ColumnDef<MediaPost>[] {
     const formEdited = singleMedia.formEdited;
     const hasIds = bulkSubmitData.ids.length > 0;
 
-    const SortIcon = () => (
-        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-        </svg>
-    );
 
     return [
         {
@@ -377,7 +378,11 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
             render: (_text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
         },
         {
-            title: <span className="inline-flex items-center">Attached Post</span>,
+            title: (
+                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('post_parents')}>
+                    Attached Post<SortIcon />
+                </button>
+            ),
             key: 'Parents',
             dataIndex: 'post_parents',
             width: '150px',
