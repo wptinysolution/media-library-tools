@@ -120,7 +120,7 @@ function RubbishConfirmationModal() {
                     )}
                 </h5>
 
-                {(bulkRubbishData.progressBar as number) >= 0 && (
+                {typeof bulkRubbishData.progressBar === 'number' && bulkRubbishData.progressBar > 0 && (
                     <div className="mb-3">
                         <ProgressBar percent={bulkRubbishData.progressBar as number} />
                     </div>
