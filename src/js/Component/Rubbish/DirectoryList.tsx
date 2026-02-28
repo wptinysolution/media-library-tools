@@ -12,6 +12,12 @@ interface DirectoryListProps {
     loading: boolean;
 }
 
+const trimPath = (fullPath: string): string => {
+    const marker = 'wp-content/';
+    const idx = fullPath.indexOf(marker);
+    return idx !== -1 ? fullPath.slice(idx) : fullPath;
+};
+
 export default function DirectoryList({ dirEntries, skip, onExclude, onRescan, loading }: DirectoryListProps) {
     if (loading) {
         return (
@@ -39,7 +45,7 @@ export default function DirectoryList({ dirEntries, skip, onExclude, onRescan, l
                 return (
                     <div key={key} className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 last:border-0 ${skippedItem ? 'opacity-20' : ''}`}>
                         <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 truncate">{key}</p>
+                            <p className="text-sm font-medium text-gray-900 truncate">{trimPath(key)}</p>
                             <p className="text-xs text-gray-500 mt-0.5">
                                 {item.total_items === 0
                                     ? "This directory will be scanned again according to the schedule."
