@@ -12,7 +12,7 @@ import {
     upDateSingleMedia,
     submitBulkMediaAction,
 } from "@/js/Utils/Data";
-
+import * as Types from "@/js/Utils/actionType";
 import MainHeader from "@/js/Component/MainHeader";
 import TopBar from "@/js/Component/TopBar";
 import ProModal from "@/js/Component/ProModal";
@@ -81,7 +81,9 @@ function App() {
         if (edited) {
             const response = await upDateSingleMedia(currentItemEdited) as { status: number | string };
             if (200 === parseInt(String(response.status))) {
-                await getTheMedia();
+                // Silent refresh — no isLoading flag so the table doesn't flash a loader
+                const refreshed = await getMedia(mediaData.postQuery);
+                setMediaData({ ...refreshed, isLoading: false });
             }
         }
         setSaveType(null);
