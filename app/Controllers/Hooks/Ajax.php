@@ -146,7 +146,9 @@ class Ajax {
 		$dir     = [];
 		if ( ! empty( $dirlist ) ) {
 			foreach ( $dirlist as $key => $item ) {
-				if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
+				$fully_scanned = ( absint( $item['total_items'] ) && absint( $item['total_items'] ) <= absint( $item['counted'] ) )
+					|| ( absint( $item['total_items'] ) === 0 && ! empty( $item['scanned'] ) );
+				if ( $fully_scanned ) {
 					continue;
 				}
 				if ( 'available' !== ( $item['status'] ?? 'available' ) ) {

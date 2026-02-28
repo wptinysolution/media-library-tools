@@ -598,9 +598,8 @@ class Fns {
 
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
-		// Skip the files until the offset is reached.
-		// $files = array_slice( $found_files, $last_processed_offset, 50 );.
-		$files = $found_files;
+		// Process files in batches of 50 to avoid timeouts on large directories.
+		$files = array_slice( $found_files, $last_processed_offset, 50 );
 
 		$found_files_count = count( $files );
 
@@ -611,7 +610,7 @@ class Fns {
 		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
 		$instantDeletion = 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
-		foreach ( $found_files as $file_path ) {
+		foreach ( $files as $file_path ) {
 			if ( ! file_exists( $file_path ) ) {
 				continue;
 			}
@@ -671,6 +670,7 @@ class Fns {
 				wp_cache_set( $cache_key, $existing_row );
 			}
 		}
+		$dis_list[ $directory ]['scanned'] = true;
 		return update_option( 'tsmlt_get_directory_list', $dis_list );
 	}
 
@@ -842,7 +842,9 @@ class Fns {
 		}
 		$directory = '';
 		foreach ( $dis_list as $key => $item ) {
-			if ( absint( $item['total_items'] ) && ( absint( $item['total_items'] ) <= absint( $item['counted'] ) ) ) {
+			$fully_scanned = ( absint( $item['total_items'] ) && absint( $item['total_items'] ) <= absint( $item['counted'] ) )
+				|| ( absint( $item['total_items'] ) === 0 && ! empty( $item['scanned'] ) );
+			if ( $fully_scanned ) {
 				continue;
 			}
 			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {

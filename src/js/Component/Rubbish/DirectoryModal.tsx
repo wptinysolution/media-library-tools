@@ -4,7 +4,7 @@ import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
 import Axios from 'axios';
 import Modal from "@/js/Component/Common/Modal";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
-import DirectoryList from "@/js/Component/Rubbish/DirectoryList";
+import DirectoryList, { trimPath } from "@/js/Component/Rubbish/DirectoryList";
 
 const MAX_RETRIES = 3;
 
@@ -23,15 +23,18 @@ function DirectoryModal() {
     const [buttonSpain, setButtonSpain] = useState<string | null>(null);
     const [instantDeletion, setInstantDeletion] = useState('not-instant');
     const [skip, setSkip] = useState<string[]>([]);
+    const [currentScanDir, setCurrentScanDir] = useState<string>('');
 
     const retryCount = useRef(0);
     const instantDeletionRef = useRef(instantDeletion);
     const skipRef = useRef(skip);
     const progressTotalRef = useRef(progressTotal);
+    const dirListExistRef = useRef<string[]>([]);
 
     useEffect(() => { instantDeletionRef.current = instantDeletion; }, [instantDeletion]);
     useEffect(() => { skipRef.current = skip; }, [skip]);
     useEffect(() => { progressTotalRef.current = progressTotal; }, [progressTotal]);
+    useEffect(() => { dirListExistRef.current = dirListExist; }, [dirListExist]);
 
     const handleDirModalCancel = () => {
         setGeneralData({ isDirModalOpen: false });
@@ -52,6 +55,12 @@ function DirectoryModal() {
     };
 
     const processDirectory = () => {
+        const currentList = dirListExistRef.current;
+        if (currentList.length > 0) {
+            // PHP picks the last unfinished directory in the list
+            setCurrentScanDir(currentList[currentList.length - 1]);
+        }
+
         const params = new URLSearchParams();
         params.append('action', 'immediately_search_rubbish_file');
         params.append('nonce', tsmltParams.tsmlt_wpnonce);
@@ -75,6 +84,7 @@ function DirectoryModal() {
                     setProgressBar(percent);
                     setDirListExist(list);
                     if (percent >= 100) {
+                        setCurrentScanDir('');
                         window.location.reload();
                     }
                 } else {
@@ -193,8 +203,13 @@ function DirectoryModal() {
 
             {progressBar > 0 && (
                 <div className="px-6 py-3">
-                    <h5 className="text-base! font-semibold text-gray-900 mb-2">Directory Scanning Progress:</h5>
+                    <h5 className="text-base! font-semibold text-gray-900 mb-2">Progress:</h5>
                     <ProgressBar percent={progressBar} />
+                    {currentScanDir && (
+                        <p className="text-xs text-gray-500 mt-1.5 truncate">
+                            Scanning: <span className="font-medium text-gray-700">{trimPath(currentScanDir)}</span>
+                        </p>
+                    )}
                 </div>
             )}
         </Modal>
