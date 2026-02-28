@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useWpAdminBarHeight } from "@/js/Utils/Hooks";
+import { useWpAdminBarHeight, useWpMenuWidth } from "@/js/Utils/Hooks";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
@@ -142,18 +142,24 @@ function App() {
     }, [mediaData.postQuery]);
 
     const adminBarHeight = useWpAdminBarHeight();
+    const wpMenuWidth = useWpMenuWidth();
     const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
-    // TopBar is h-14 = 56px (fixed, out of flow); subtract WP admin bar + TopBar from viewport
-    const contentHeight = `calc(100vh - ${adminBarHeight + 56}px)`;
 
     return (
         <HashRouter>
             <TopBar />
             <MainHeader />
-            {/* paddingTop: 56 compensates for the fixed TopBar (h-14) being out of document flow */}
-            <div className={'tsmlt-main-content-section'} style={{ marginLeft: sidebarWidth, paddingTop: 56, transition: 'margin-left 200ms ease-in-out' }}>
-            <div className="flex" style={{ height: contentHeight }}>
-                <div className="flex-1 min-w-0 bg-white overflow-y-auto">
+            <div
+                className={'tsmlt-main-content-section z-9 bg-white overflow-y-auto'}
+                style={{
+                    position: 'fixed',
+                    top: adminBarHeight + 56,
+                    left: wpMenuWidth + sidebarWidth,
+                    right: 0,
+                    bottom: 0,
+                    transition: 'left 200ms ease-in-out',
+                }}
+            >
                 <Routes>
                     <Route path="/" element={<Settings />} />
                     <Route path="/mediaTable" element={<Datatable />} />
@@ -171,8 +177,6 @@ function App() {
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-                </div>
-            </div>
             </div>
             <ProModal />
             <Toaster

@@ -6,7 +6,7 @@ function TopBar() {
 
     return (
         <div
-            className="fixed z-[9100] h-14 bg-white border-b border-gray-200 flex items-center justify-between px-5"
+            className="fixed z-9100 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-5"
             style={{ top: adminBarHeight, left: wpMenuWidth, right: 0 }}
         >
             {/* Left: Logo + Plugin name */}
