@@ -313,7 +313,19 @@ export function columns(): ColumnDef<MediaPost>[] {
 }
 
 export function renamerColumns(): ColumnDef<MediaPost>[] {
-    const { mediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType } = useStore();
+    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType } = useStore();
+
+    const handleSortClick = (odrby: string) => {
+        const { orderby, order } = mediaData.postQuery;
+        setMediaData({
+            postQuery: {
+                ...mediaData.postQuery,
+                orderby: odrby,
+                paged: 1,
+                order: odrby === orderby && 'DESC' === order ? 'ASC' : 'DESC',
+            }
+        });
+    };
 
     const onCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(event.target.value, 10);
