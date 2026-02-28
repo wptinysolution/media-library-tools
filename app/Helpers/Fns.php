@@ -624,14 +624,26 @@ class Fns {
 			if ( $search_string ) {
 				$attachment_id = attachment_url_to_postid( $search_string );
 			}
-			if ( ! $attachment_id ) {
+			if ( ! $attachment_id && $search_string ) {
+				// Search by basename so WordPress-generated thumbnails are also matched.
+				// Then verify the matched attachment lives in the same directory to avoid
+				// false positives from custom directories like "ribbish/".
 				$search_basename = basename( $search_string );
+				$search_dir      = dirname( $search_string );
 				$result          = Fns::DB()->select( 'post_id' )
 					->from( 'postmeta' )
 					->where( 'meta_key', '=', '_wp_attachment_metadata' )
 					->andWhere( 'meta_value', 'LIKE', '%' . $wpdb->esc_like( $search_basename ) . '%' )
 					->get();
-				$attachment_id   = ! empty( $result ) ? (int) $result[0]['post_id'] : 0;
+				if ( ! empty( $result ) ) {
+					foreach ( $result as $row ) {
+						$attached_file = get_post_meta( (int) $row['post_id'], '_wp_attached_file', true );
+						if ( $attached_file && dirname( $attached_file ) === $search_dir ) {
+							$attachment_id = (int) $row['post_id'];
+							break;
+						}
+					}
+				}
 			}
 
 			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
