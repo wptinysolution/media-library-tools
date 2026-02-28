@@ -19,7 +19,6 @@ import ProModal from "@/js/Component/ProModal";
 import ImportButton from "@/js/Component/ExportImport/ImportButton";
 import Settings from "@/js/Component/Settings";
 import NeedSupport from "@/js/Component/NeedSupport";
-import * as Types from "@/js/Utils/actionType";
 import Datatable from "@/js/Component/ListTable/Datatable";
 import { useStore } from "@/js/Utils/store";
 import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
@@ -85,10 +84,12 @@ function App() {
                 await getTheMedia();
             }
         }
+        setSaveType(null);
     };
 
     const singleMediaUpdateContent = async () => {
         await upDateSingleMedia(singleMedia);
+        setSaveType(null);
     };
 
     const handleBulkModalDataSave = async () => {
