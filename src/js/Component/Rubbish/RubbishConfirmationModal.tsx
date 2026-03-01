@@ -108,7 +108,7 @@ function RubbishConfirmationModal() {
             }
         >
             <div className="px-6 py-5">
-                <h5 className="text-base font-semibold text-gray-900 mb-4">
+                <h5 className="text-base font-semibold mt-0!  text-gray-900 mb-4">
                     {!buttonDisabled ? (
                         <>
                             Are You Confirm {'ignore' === bulkRubbishData.type ? 'To Ignore' : 'show' === bulkRubbishData.type ? 'To Make Deletable' : 'To Delete'}?
@@ -141,7 +141,10 @@ function RubbishConfirmationModal() {
                         </>
                     ) : ''}
                 </div>
-                <hr className="border-gray-200 mt-4" />
+                {typeof bulkRubbishData.progressBar === 'number' && bulkRubbishData.progressBar > 0 && (
+                    <hr className="border-gray-200 mt-4" />
+                )}
+
             </div>
         </Modal>
     );
