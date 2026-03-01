@@ -60,14 +60,14 @@ export default function DataTable<T extends Record<string, unknown>>({
                 <table className="w-full border-collapse text-sm" style={{ minWidth }}>
                     <thead>
                         <tr className="bg-gray-50 border-b-2 border-gray-200">
-                            {columns.map((col) => (
+                            {columns.map((col, colIndex) => (
                                 <th
                                     key={col.key + col.dataIndex}
                                     className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
                                     style={{
                                         width: col.width || 'auto',
                                         minWidth: col.minWidth,
-                                        textAlign: textAlign(col.align),
+                                        textAlign: colIndex === 0 ? 'left' : textAlign(col.align),
                                         ...(col.fixed ? {
                                             position: 'sticky',
                                             left: 0,
@@ -107,7 +107,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                         key={getRowKey(record, rowIndex)}
                                         className={`border-b border-gray-100 hover:bg-blue-50/40 transition-colors ${isOdd ? 'bg-gray-50/50' : 'bg-white'}`}
                                     >
-                                        {columns.map((col) => {
+                                        {columns.map((col, colIndex) => {
                                             const cellData = record[col.dataIndex];
                                             return (
                                                 <td
@@ -116,7 +116,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                                     style={{
                                                         width: col.width || 'auto',
                                                         minWidth: col.minWidth,
-                                                        textAlign: textAlign(col.align),
+                                                        textAlign: colIndex === 0 ? 'left' : textAlign(col.align),
                                                         verticalAlign: 'middle',
                                                         ...stickyStyle(col.fixed, isOdd),
                                                     }}
