@@ -14,10 +14,11 @@ function RubbishConfirmationModal() {
 
     const rubbishBulkActionLoop = async (prams: BulkRubbishData): Promise<{ status: number } | undefined> => {
         const files = [...prams.files];
-        const progressTotal = bulkRubbishData.progressTotal;
+        const progressTotal = prams.progressTotal || files.length;
+
+        setBulkRubbishData({ progressBar: 0 });
 
         if ('delete' === bulkRubbishData.type && tsmltParams?.proVersion) {
-            setBulkRubbishData({ progressBar: 50 });
             const response = await rubbishBulkDeleteApi({ file_paths: files }) as { status: number };
             setBulkRubbishData({ progressBar: 100 });
             return response;
@@ -27,9 +28,6 @@ function RubbishConfirmationModal() {
             const file = files[i];
             let response: { status: number } | undefined;
 
-            setBulkRubbishData({
-                progressBar: Math.floor(100 * i / progressTotal),
-            });
             setTotal(files.length - i);
             setTheFile(file.path);
 
@@ -38,6 +36,10 @@ function RubbishConfirmationModal() {
             } else if ('show' === bulkRubbishData.type) {
                 response = await singleShowApi({ file_path: file.path }) as { status: number };
             }
+
+            setBulkRubbishData({
+                progressBar: Math.floor(100 * (i + 1) / progressTotal),
+            });
 
             if (!prams.ids.length || !response?.status) break;
         }
@@ -121,7 +123,7 @@ function RubbishConfirmationModal() {
                     )}
                 </h5>
 
-                {typeof bulkRubbishData.progressBar === 'number' && bulkRubbishData.progressBar > 0 && (
+                {typeof bulkRubbishData.progressBar === 'number' && (
                     <div className="mb-3">
                         <ProgressBar percent={bulkRubbishData.progressBar as number} />
                     </div>
@@ -142,7 +144,7 @@ function RubbishConfirmationModal() {
                         </>
                     ) : ''}
                 </div>
-                {typeof bulkRubbishData.progressBar === 'number' && bulkRubbishData.progressBar > 0 && (
+                {typeof bulkRubbishData.progressBar === 'number' && (
                     <hr className="border-gray-200 mt-4" />
                 )}
 
