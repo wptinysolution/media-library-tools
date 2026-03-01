@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 
 export interface ColumnDef<T = Record<string, unknown>> {
     title: React.ReactNode;
@@ -54,9 +54,38 @@ export default function DataTable<T extends Record<string, unknown>>({
         return index;
     };
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeftShadow, setShowLeftShadow] = useState(false);
+    const [showRightShadow, setShowRightShadow] = useState(false);
+
+    const updateShadows = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setShowLeftShadow(el.scrollLeft > 0);
+        setShowRightShadow(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    }, []);
+
+    const initShadows = useCallback((el: HTMLDivElement | null) => {
+        (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+        if (el) updateShadows();
+    }, [updateShadows]);
+
+    useEffect(() => {
+        updateShadows();
+    }, [data, loading]);
+
     return (
         <div className="bg-white border border-gray-200 rounded-t-lg overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            <div className="relative">
+            {showLeftShadow && (
+                <div className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
+                    style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.08), transparent)' }} />
+            )}
+            {showRightShadow && (
+                <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
+                    style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.08), transparent)' }} />
+            )}
+            <div className="overflow-x-auto" ref={initShadows} onScroll={updateShadows}>
                 <table className="w-full border-collapse text-sm" style={{ minWidth }}>
                     <thead>
                         <tr className="bg-gray-50 border-b-2 border-gray-200">
@@ -147,6 +176,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                         )}
                     </tbody>
                 </table>
+            </div>
             </div>
         </div>
     );
