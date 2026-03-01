@@ -47,6 +47,7 @@ function RubbishConfirmationModal() {
 
     const handleBulkModalOk = async () => {
         setButtonDisabled(true);
+        setTotal(bulkRubbishData.ids.length);
         const response = await rubbishBulkActionLoop(bulkRubbishData);
         if (200 === response?.status) {
             setTimeout(() => {

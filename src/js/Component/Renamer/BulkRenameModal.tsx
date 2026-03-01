@@ -135,7 +135,7 @@ function BulkModal() {
                 <hr className="border-gray-200 my-4" />
                 {bulkSubmitData.progressBar >= 0 && (
                     <>
-                        <h5 className="text-base! font-semibold text-gray-900 mb-2">Progress:</h5>
+                        <h5 className="text-base! mt-0! font-semibold text-gray-900 mb-2">Progress:</h5>
                         <ProgressBar percent={bulkSubmitData.progressBar as number} />
                     </>
                 )}
