@@ -67,6 +67,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                     style={{
                                         width: col.width || 'auto',
                                         minWidth: col.minWidth,
+                                        ...(colIndex === 0 && col.width ? { maxWidth: col.width } : {}),
                                         textAlign: colIndex === 0 ? 'left' : textAlign(col.align),
                                         ...(col.fixed ? {
                                             position: 'sticky',
@@ -116,6 +117,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                                     style={{
                                                         width: col.width || 'auto',
                                                         minWidth: col.minWidth,
+                                                        ...(colIndex === 0 && col.width ? { maxWidth: col.width } : {}),
                                                         textAlign: colIndex === 0 ? 'left' : textAlign(col.align),
                                                         verticalAlign: 'middle',
                                                         ...stickyStyle(col.fixed, isOdd),
