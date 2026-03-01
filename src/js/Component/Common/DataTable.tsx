@@ -35,11 +35,6 @@ function stickyStyle(fixed: boolean | undefined, isOdd: boolean): React.CSSPrope
 function textAlign(align?: string): 'left' | 'center' {
     return align === 'center' ? 'center' : 'left';
 }
-
-function verticalAlign(align?: string): 'top' | 'middle' {
-    return align === 'top' ? 'top' : 'middle';
-}
-
 export default function DataTable<T extends Record<string, unknown>>({
     columns, data, rowKey,
     minWidth = '1300px',
