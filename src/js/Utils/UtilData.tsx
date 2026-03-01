@@ -701,14 +701,14 @@ export function RubbishFileColumns(): { columns: ColumnDef<RubbishMediaFile>[]; 
                                 onClick={() => setConfirmState({ record, action: 'delete' })}
                                 disabled={record.id === deleteCurrentItem}
                             >
-                                {record.id === deleteCurrentItem ? 'Deleting...' : 'Delete Unnecessary File'}
+                                {record.id === deleteCurrentItem ? 'Deleting...' : 'Delete'}
                             </button>
                             <button
                                 className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
                                 onClick={() => setConfirmState({ record, action: 'ignore' })}
                                 disabled={record.id === ignoreCurrentItem}
                             >
-                                {record.id === ignoreCurrentItem ? 'Processing...' : 'Ignore Important File'}
+                                {record.id === ignoreCurrentItem ? 'Processing...' : 'Ignore File'}
                             </button>
                         </>
                     )}
