@@ -45,8 +45,7 @@ export default function DataTable<T extends Record<string, unknown>>({
 
     const getRowKey = (record: T, index: number): string | number => {
         if (typeof rowKey === 'function') return rowKey(record, index);
-        if (typeof rowKey === 'string') return record[rowKey] as string | number;
-        return index;
+        return record[rowKey] as string | number;
     };
 
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -60,14 +59,9 @@ export default function DataTable<T extends Record<string, unknown>>({
         setShowRightShadow(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
     }, []);
 
-    const initShadows = useCallback((el: HTMLDivElement | null) => {
-        (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-        if (el) updateShadows();
-    }, [updateShadows]);
-
     useEffect(() => {
         updateShadows();
-    }, [data, loading]);
+    }, [data, loading, updateShadows]);
 
     return (
         <div className="bg-white border border-gray-200 rounded-t-lg overflow-hidden shadow-sm">
@@ -80,7 +74,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                 <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
                     style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.08), transparent)' }} />
             )}
-            <div className="overflow-x-auto" ref={initShadows} onScroll={updateShadows}>
+            <div className="overflow-x-auto" ref={scrollRef} onScroll={updateShadows}>
                 <table className="w-full border-collapse text-sm" style={{ minWidth }}>
                     <thead>
                         <tr className="bg-gray-50 border-b-2 border-gray-200">
