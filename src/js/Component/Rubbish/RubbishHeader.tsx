@@ -144,9 +144,6 @@ function RubbishHeader() {
                     </button>
                 </div>
 
-                {/* Divider */}
-                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
-
                 {/* Filters group */}
                 <div className="flex items-center gap-2">
                     <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
@@ -170,9 +167,6 @@ function RubbishHeader() {
                         ))}
                     </select>
                 </div>
-
-                {/* Divider */}
-                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
 
                 {/* Controls group */}
                 <div className="flex items-center gap-2">

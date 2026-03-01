@@ -99,9 +99,6 @@ function RenamerMainHeader() {
                     </button>
                 </div>
 
-                {/* Divider */}
-                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
-
                 {/* Search */}
                 <SearchInput
                     placeholder="Search keywords..."
@@ -109,9 +106,6 @@ function RenamerMainHeader() {
                     onChange={(e) => setSearch(e.target.value)}
                     onClear={() => setSearch('')}
                 />
-
-                {/* Divider */}
-                <span className="hidden sm:block h-6 w-px bg-gray-300 mx-1" />
 
                 {/* Controls group */}
                 <div className="flex items-center gap-2">
