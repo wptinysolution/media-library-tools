@@ -108,7 +108,7 @@ function RubbishConfirmationModal() {
             }
         >
             <div className="px-6 py-5">
-                <h5 className="text-base font-semibold mt-0!  text-gray-900 mb-4">
+                <h5 className="text-base font-semibold m-0! text-gray-900">
                     {!buttonDisabled ? (
                         <>
                             Are You Confirm {'ignore' === bulkRubbishData.type ? 'To Ignore' : 'show' === bulkRubbishData.type ? 'To Make Deletable' : 'To Delete'}?
