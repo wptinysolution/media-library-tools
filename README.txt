@@ -181,7 +181,7 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
-= 2.1.0 ( Mar 02, 2026 ) =
+= 2.1.0 ( Mar 03, 2026 ) =
 * Security: Migrated all REST API endpoints to WordPress admin-ajax for improved security compliance
 * Improvement: Added clear (×) button to search keyword input field
 * Fixed: Bulk action select de-syncs visually after filter reset, causing "No Actions selected" error
@@ -199,6 +199,7 @@ To search for images by categories, users can find the categories box near the F
 * Added: Horizontal scroll shadow and chevron indicators in data tables to signal hidden columns
 * Improvement: DataTable first column maintains fixed width regardless of visible column count
 * Improvement: Directory scan list displays trimmed wp-content/ path instead of full server path
+* Fixed: Missing text domain on translatable strings in attachment field
 
 = 2.0.1 ( Jan 08, 2026 ) =
 * Fix: Search Attached Post Issue resolved
