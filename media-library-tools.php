@@ -47,4 +47,4 @@ register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] 
 /**
  * App Init.
  */
-require_once 'app/Tsmlt.php';
+require_once TSMLT_PATH . 'app/Tsmlt.php';
