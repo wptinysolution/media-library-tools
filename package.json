@@ -8,7 +8,7 @@
     "build": "vite build",
     "watch": "vite build --watch",
     "clean": "rimraf dist languages",
-    "make-pot": "npm run clean && wp i18n make-pot . languages/review-schema.pot --exclude=node_modules,assets,dist,src,vendor",
+    "make-pot": "npm run clean && wp i18n make-pot . languages/media-library-tools.pot --exclude=node_modules,assets,dist,src,vendor",
     "package": "npm run build && npm run make-pot && cross-env NODE_ENV=package node build.js",
     "zip": "npm run build && npm run make-pot && cross-env NODE_ENV=zip node build.js"
   },
