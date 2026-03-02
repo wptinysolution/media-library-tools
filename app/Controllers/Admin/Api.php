@@ -870,7 +870,7 @@ class Api {
 	public function delete_all_rows_in_unlisted_file() {
 		Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
 		// MODIFY COLUMN resets the AUTO_INCREMENT counter once all rows are deleted.
-		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->primary()->execute();
+		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->execute();
 		update_option( 'tsmlt_get_directory_list', [] );
 		return true;
 	}
