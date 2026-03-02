@@ -200,7 +200,7 @@ To search for images by categories, users can find the categories box near the F
 * Improvement: DataTable first column maintains fixed width regardless of visible column count
 * Improvement: Directory scan list displays trimmed wp-content/ path instead of full server path
 * Fixed: Missing text domain on translatable strings in attachment field
-
+ 
 = 2.0.1 ( Jan 08, 2026 ) =
 * Fix: Search Attached Post Issue resolved
 
