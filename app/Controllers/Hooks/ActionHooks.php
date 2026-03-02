@@ -15,8 +15,6 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 
-defined( 'ABSPATH' ) || exit();
-
 /**
  * Main ActionHooks class.
  */
@@ -45,8 +43,8 @@ class ActionHooks {
 	 */
 	public function add_attachment_field( $form_fields, $post ) {
 		$html                            = $this->get_parent_html( $post );
-		$form_fields['iamb_parent_post'] = [
-			'label' => __( 'Uploaded To' ),
+		$form_fields['tsmlt_parent_post'] = [
+			'label' => __( 'Uploaded To', 'media-library-tools' ),
 			'input' => 'html',
 			'html'  => $html,
 		];
@@ -93,14 +91,17 @@ class ActionHooks {
 				<?php echo esc_html( $parent->post_title ); ?>
 			</a>
 			<div style="margin-top:6px;font-size:11px;color:#8c8f94;">
-				ID: <?php echo absint( $parent->ID ); ?> &nbsp;&middot;&nbsp;
+				ID: <?php echo absint( $parent->ID ); ?>
+				<?php if ( 'publish' === $parent->post_status ) : ?>
+				&nbsp;&middot;&nbsp;
 				<a href="<?php echo esc_url( get_permalink( $parent->ID ) ); ?>"
 				   target="_blank"
 				   style="color:#8c8f94;text-decoration:none;"
 				   onmouseover="this.style.color='#2271b1'"
 				   onmouseout="this.style.color='#8c8f94'">
-					<?php esc_html_e( 'View' ); ?> &nearr;
+					<?php esc_html_e( 'View', 'media-library-tools' ); ?> &nearr;
 				</a>
+				<?php endif; ?>
 			</div>
 		</div>
 		<?php
