@@ -132,7 +132,7 @@ function TheHeader() {
                 {/* Filter group */}
                 {/*<div className="flex items-center gap-2 flex-wrap">*/}
                     <select
-                        className="pl-3! pr-5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        className="pl-3! pr-5.5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'status')}
                         defaultValue={mediaData.postQuery.status || ""}
                     >
@@ -141,7 +141,7 @@ function TheHeader() {
                     </select>
 
                     <select
-                        className="px-3! pr-5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        className="px-3! pr-5.5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'date')}
                         defaultValue={mediaData.postQuery.date || ""}
                     >
@@ -152,7 +152,7 @@ function TheHeader() {
                     </select>
 
                     <select
-                        className="px-3! py-2! pr-5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        className="px-3! py-2! pr-5.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'categories')}
                         defaultValue={mediaData.postQuery.categories || ""}
                     >
