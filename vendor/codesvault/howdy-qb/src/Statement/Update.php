@@ -32,6 +32,9 @@ class Update implements UpdateInterface
     {
         $driver = $this->db;
         if (class_exists('wpdb') && $driver instanceof \wpdb) {
+            if (empty($this->params)) {
+                return $driver->query($sql);
+            }
             return $driver->query($driver->prepare($sql, $this->params));
         }
 
