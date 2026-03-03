@@ -8,9 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
-use WP_Error;
 use WP_Query;
-use WP_REST_Request;
 
 /**
  * Class Api
@@ -23,190 +21,19 @@ class Api {
 	use SingletonTrait;
 
 	/**
-	 * @var string
-	 */
-	private $namespace = 'TinySolutions/mlt/v1';
-	/**
-	 * @var string
-	 */
-	private $resource_name = '/media';
-	/**
 	 * Construct
 	 */
-	private function __construct() {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-	}
+	private function __construct() {}
 
 	/**
-	 * Register our routes.
+	 * Accept a plain parameter array (all callers pass arrays via AJAX).
 	 *
-	 * @return void
+	 * @param array $request_data Plain parameter array.
+	 *
+	 * @return array
 	 */
-	public function register_routes() {
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name,
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_media' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/mediaCount',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'media_count' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/update',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'update_single_media' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/bulk/submit',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'media_submit_bulk_action' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/filter/getdates',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_dates' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getterms',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_terms' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getoptions',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_options' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/updateoptins',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'update_option' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRubbishFileType',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_rubbish_filetype' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRubbishFile',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_rubbish_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getDirList',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_dir_list' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/rescanDir',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'rescan_dir' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/searchFileBySingleDir',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'immediately_search_rubbish_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/clearSchedule',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'clear_schedule' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getRegisteredImageSizes',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_registered_image_size' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/getPluginList',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_plugin_list' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			$this->resource_name . '/truncateUnlistedFile',
-			[
-				'methods'             => 'POST',
-				'callback'            => [ $this, 'delete_all_rows_in_unlisted_file' ],
-				'permission_callback' => [ $this, 'login_permission_callback' ],
-			]
-		);
-	}
-
-	/**
-	 * @return true
-	 */
-	public function login_permission_callback() {
-		return current_user_can( 'manage_options' );
+	private function parse_params( array $request_data ): array {
+		return $request_data;
 	}
 	/**
 	 * @return false|string
@@ -263,11 +90,11 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function update_option( $request_data ) {
+	public function update_option( array $request_data ) {
 		$result     = [
 			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'media-library-tools' ),
 		];
-		$parameters = $request_data->get_params();
+		$parameters = $this->parse_params( $request_data );
 
 		$total_count = absint( $parameters['media_per_page'] ?? 20 );
 
@@ -278,8 +105,6 @@ class Api {
 		$total_rabbis_count = absint( $parameters['rubbish_per_page'] ?? 20 );
 
 		$tsmlt_media['rubbish_per_page'] = Fns::maximum_media_per_page() < $total_rabbis_count ? Fns::maximum_media_per_page() : $total_rabbis_count;
-
-		$tsmlt_media['media_table_column'] = $parameters['media_table_column'] ?? [];
 
 		$tsmlt_media['default_alt_text'] = $parameters['default_alt_text'] ?? '';
 
@@ -321,7 +146,7 @@ class Api {
 	public function get_terms() {
 		$terms       = get_terms(
 			[
-				'taxonomy'   => tsmlt()->category,
+				'taxonomy'   => Fns::CATEGORY,
 				'hide_empty' => false,
 			]
 		);
@@ -367,12 +192,12 @@ class Api {
 	}
 
 	/**
-	 * @param $request_data
+	 * @param array $request_data
 	 *
 	 * @return array
 	 */
-	public function update_single_media( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function update_single_media( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
@@ -547,17 +372,16 @@ class Api {
 
 
 	/**
-	 * @param $request_data
+	 * @param array $request_data
 	 *
-	 * @return false|string|WP_Error
+	 * @return false|string
 	 */
-	public function get_media( $request_data ) {
+	public function get_media( array $request_data ) {
 
-		$parameters = $request_data->get_params();
-
-		$options = get_option( 'tsmlt_settings' );
-		$limit   = absint( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 );
-		$limit   = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
+		$parameters = $this->parse_params( $request_data );
+		$options    = get_option( 'tsmlt_settings' );
+		$limit      = absint( ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : ( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 ) );
+		$limit      = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
@@ -623,14 +447,24 @@ class Api {
 		if ( ! empty( $parameters['categories'] ) ) {
 			$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary query.
 				[
-					'taxonomy' => tsmlt()->category,
+					'taxonomy' => Fns::CATEGORY,
 					'field'    => 'term_id',
 					'terms'    => $parameters['categories'],
 				],
 			];
 		}
+		if ( ! empty( $parameters['date'] ) ) {
+			$date_parts = explode( '-', sanitize_text_field( $parameters['date'] ) );
+			if ( count( $date_parts ) === 2 ) {
+				$args['date_query'] = [
+					[
+						'year'  => (int) $date_parts[0],
+						'month' => (int) $date_parts[1],
+					],
+				];
+			}
+		}
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
-
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
 		foreach ( $_posts_query->posts as $post ) {
@@ -662,7 +496,7 @@ class Api {
 			$uploaddir       = $upload_dir['baseurl'] ?? home_url( '/wp-content/uploads' );
 			$thefile['file'] = _wp_relative_upload_path( $attached_file );
 
-			$terms          = get_the_terms( $post->ID, tsmlt()->category );
+			$terms          = get_the_terms( $post->ID, Fns::CATEGORY );
 			$tsmlt_category = [];
 			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
@@ -724,12 +558,12 @@ class Api {
 	}
 
 	/**
-	 * @param $request_data
-	 * @return array|WP_Error
+	 * @param array $request_data
+	 *
+	 * @return array
 	 */
-	public function media_submit_bulk_action( $request_data ) {
-		global $wpdb;
-		$parameters = $request_data->get_params();
+	public function media_submit_bulk_action( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
@@ -757,16 +591,10 @@ class Api {
 			case 'inherit':
 				$status = sanitize_key( $parameters['type'] );
 				foreach ( $ids as $id ) {
-					$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-						$wpdb->posts,
-						[ 'post_status' => $status ],
-						[
-							'ID'        => $id,
-							'post_type' => 'attachment',
-						],
-						[ '%s' ],
-						[ '%d', '%s' ]
-					);
+					Fns::DB()->update( 'posts', [ 'post_status' => $status ] )
+						->where( 'ID', '=', $id )
+						->andWhere( 'post_type', '=', 'attachment' )
+						->execute();
 				}
 				$result['updated'] = true;
 				$result['message'] = esc_html__( 'Done. Be happy.', 'media-library-tools' );
@@ -794,36 +622,24 @@ class Api {
 				$categories = isset( $parameters['post_categories'] ) ? (array) $parameters['post_categories'] : [];
 				// Prepare safe fields.
 				$update_fields = [];
-				$update_format = [];
 				if ( ! empty( $data['post_title'] ) ) {
 					$update_fields['post_title'] = sanitize_text_field( $data['post_title'] );
-					$update_format[]             = '%s';
 				}
 				if ( ! empty( $data['caption'] ) ) {
 					$update_fields['post_excerpt'] = sanitize_text_field( $data['caption'] );
-					$update_format[]               = '%s';
 				}
 				if ( ! empty( $data['post_description'] ) ) {
 					$update_fields['post_content'] = wp_kses_post( $data['post_description'] );
-					$update_format[]               = '%s';
 				}
 				$updated = false;
 				// Safe SQL updates.
 				if ( ! empty( $update_fields ) ) {
 					foreach ( $ids as $id ) {
-						$res = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-							$wpdb->posts,
-							$update_fields,
-							[
-								'ID'        => $id,
-								'post_type' => 'attachment',
-							],
-							$update_format,
-							[ '%d', '%s' ]
-						);
-						if ( false !== $res ) {
-							$updated = true;
-						}
+						Fns::DB()->update( 'posts', $update_fields )
+							->where( 'ID', '=', $id )
+							->andWhere( 'post_type', '=', 'attachment' )
+							->execute();
+						$updated = true;
 					}
 				}
 				// ALT TEXT update.
@@ -837,7 +653,7 @@ class Api {
 				// Categories.
 				if ( ! empty( $categories ) ) {
 					foreach ( $ids as $id ) {
-						wp_set_object_terms( $id, $categories, tsmlt()->category );
+						wp_set_object_terms( $id, $categories, Fns::CATEGORY );
 					}
 					$updated = true;
 				}
@@ -884,8 +700,8 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function rescan_dir( $request_data ) {
-		$parameters     = $request_data->get_params();
+	public function rescan_dir( array $request_data ) {
+		$parameters     = $this->parse_params( $request_data );
 		$dir            = $parameters['dir'] ?? 'all';
 		$directory_list = [];
 		$message        = esc_html__( 'Schedule Will Execute Soon.', 'media-library-tools' );
@@ -914,8 +730,8 @@ class Api {
 	/**
 	 * @return array
 	 */
-	public function immediately_search_rubbish_file( $request_data ) {
-		$parameters = $request_data->get_params();
+	public function immediately_search_rubbish_file( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$result     = [
 			'updated' => false,
 			'data'    => [],
@@ -959,13 +775,11 @@ class Api {
 	 * @return false|string
 	 */
 	public function get_rubbish_filetype() {
-		global $wpdb;
 		$cache_key = 'tsmlt_unlisted_filetypes';
-		// Table name is fully controlled by the plugin.
-		$table_name = esc_sql( $wpdb->prefix . 'tsmlt_unlisted_file' );
-		$types      = wp_cache_get( $cache_key );
+		$types     = wp_cache_get( $cache_key );
 		if ( false === $types ) {
-			$types = $wpdb->get_col( "SELECT DISTINCT file_type FROM {$table_name}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$result = Fns::DB()->select( 'file_type' )->distinct()->from( 'tsmlt_unlisted_file' )->get();
+			$types  = array_column( $result ?: [], 'file_type' );
 			wp_cache_set( $cache_key, $types );
 		}
 		$rubbish_data = [
@@ -977,15 +791,14 @@ class Api {
 	/**
 	 * Retrieve rubbish files with pagination and filtering.
 	 *
-	 * @param WP_REST_Request $request_data REST request object.
+	 * @param array $request_data Parameter array.
 	 *
 	 * @return false|string JSON-encoded response.
 	 */
-	public function get_rubbish_file( $request_data ) {
-		global $wpdb;
-		$parameters = $request_data->get_params();
+	public function get_rubbish_file( array $request_data ) {
+		$parameters = $this->parse_params( $request_data );
 		$options    = get_option( 'tsmlt_settings' );
-		$limit      = absint( $options['rubbish_per_page'] ?? 20 );
+		$limit      = absint( $parameters['postsPerPage'] ?? $options['rubbish_per_page'] ?? 20 );
 		$page       = max( 1, absint( $parameters['paged'] ?? 1 ) );
 		$offset     = ( $page - 1 ) * $limit;
 		$status     = sanitize_text_field( $parameters['fileStatus'] ?? 'show' );
@@ -993,23 +806,19 @@ class Api {
 		$extensions = ! empty( $parameters['filterExtension'] )
 			? [ sanitize_text_field( $parameters['filterExtension'] ) ]
 			: Fns::default_file_extensions();
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Build placeholders once (must exist for both queries).
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-		$type_placeholders   = implode( ',', array_fill( 0, count( $extensions ), '%s' ) );
 
-		$cache_key = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
-
+		$cache_key    = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
 		$existing_row = wp_cache_get( $cache_key );
 
 		if ( false === $existing_row ) {
-			$sql = "
-			SELECT *
-			FROM {$table_name}
-			WHERE status IN ($status_placeholders)
-			  AND file_type IN ($type_placeholders)
-			LIMIT %d OFFSET %d";
-			$existing_row = $wpdb->get_results( $wpdb->prepare( $sql, array_merge( $statuses, $extensions, [ $limit, $offset ] ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$existing_row = Fns::DB()->select( '*' )
+				->from( 'tsmlt_unlisted_file' )
+				->whereIn( 'status', ...$statuses )
+				->andIn( 'file_type', ...$extensions )
+				->limit( $limit )
+				->offset( $offset )
+				->get();
+			$existing_row = $existing_row ?: [];
 			wp_cache_set( $cache_key, $existing_row );
 		}
 
@@ -1019,13 +828,13 @@ class Api {
 		$total_file      = wp_cache_get( $total_cache_key );
 
 		if ( false === $total_file ) {
-			$count_sql = "
-			SELECT COUNT(*)
-			FROM {$table_name}
-			WHERE status IN ($status_placeholders)
-			  AND file_type IN ($type_placeholders)
-		";
-			$total_file = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, array_merge( $statuses, $extensions ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$count_result = Fns::DB()->select()
+				->count( '*', 'total' )
+				->from( 'tsmlt_unlisted_file' )
+				->whereIn( 'status', ...$statuses )
+				->andIn( 'file_type', ...$extensions )
+				->get();
+			$total_file   = (int) ( $count_result[0]['total'] ?? 0 );
 			wp_cache_set( $total_cache_key, $total_file );
 		}
 
@@ -1038,7 +847,7 @@ class Api {
 			]
 		);
 	}
-	
+
 	/**
 	 * @return array
 	 */
@@ -1059,21 +868,11 @@ class Api {
 	 * @return bool True if the query succeeds, false otherwise.
 	 */
 	public function delete_all_rows_in_unlisted_file() {
-		global $wpdb;
-		// Get the table name with prefix.
-		$table_name = $wpdb->prefix . 'tsmlt_unlisted_file';
-		// Ensure the table exists before deleting rows.
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching  -- Prepared above.
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
-			// Execute the DELETE query to remove all rows.
-			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct query for truncation.
-			$result = $wpdb->query( "DELETE FROM `$table_name`" );
-			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-			$wpdb->query( "ALTER TABLE `$table_name` AUTO_INCREMENT = 1" ); // Reset auto-increment.
-			// Return true if the query succeeded, false otherwise.
-		}
+		Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
+		// MODIFY COLUMN resets the AUTO_INCREMENT counter once all rows are deleted.
+		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->execute();
 		update_option( 'tsmlt_get_directory_list', [] );
-		// Table does not exist, return false.
 		return true;
 	}
+
 }

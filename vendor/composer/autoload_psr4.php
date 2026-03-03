@@ -8,4 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     'enshrined\\svgSanitize\\' => array($vendorDir . '/enshrined/svg-sanitize/src'),
     'TinySolutions\\mlt\\' => array($baseDir . '/app'),
+    'CodesVault\\Howdyqb\\' => array($vendorDir . '/codesvault/howdy-qb/src'),
 );

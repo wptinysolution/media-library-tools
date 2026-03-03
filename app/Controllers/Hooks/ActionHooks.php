@@ -15,8 +15,6 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 
-defined( 'ABSPATH' ) || exit();
-
 /**
  * Main ActionHooks class.
  */
@@ -37,8 +35,78 @@ class ActionHooks {
 		add_action( 'add_attachment', [ $this, 'add_image_info_to' ] );
 		// Hook the function to a cron job.
 		add_action( 'in_admin_header', [ $this, 'remove_all_notices' ], 99 );
+		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
 	}
-	
+
+	/**
+	 * Shows parent info in the media modal / grid view (upload.php?item=ID).
+	 */
+	public function add_attachment_field( $form_fields, $post ) {
+		$html                            = $this->get_parent_html( $post );
+		$form_fields['tsmlt_parent_post'] = [
+			'label' => __( 'Uploaded To', 'media-library-tools' ),
+			'input' => 'html',
+			'html'  => $html,
+		];
+		return $form_fields;
+	}
+
+	/**
+	 * Shared HTML for both metabox and attachment field.
+	 *
+	 * @param $post
+	 *
+	 * @return string
+	 */
+	private function get_parent_html( $post ) {
+		if ( ! $post->post_parent ) {
+			return '<p style="margin:0;padding:8px 10px;background:#f9f9f9;border-left:3px solid #dcdcde;color:#a7aaad;font-size:12px;">Not attached to any post.</p>';
+		}
+
+		$parent = get_post( $post->post_parent );
+
+		if ( ! $parent ) {
+			return '<p style="margin:0;padding:8px 10px;background:#f9f9f9;border-left:3px solid #dcdcde;color:#a7aaad;font-size:12px;">Parent post not found.</p>';
+		}
+
+		$edit_link    = get_edit_post_link( $parent->ID );
+		$post_type    = get_post_type_object( $parent->post_type );
+		$type_label   = $post_type ? $post_type->labels->singular_name : $parent->post_type;
+		$status       = get_post_status_object( $parent->post_status );
+		$status_label = $status ? $status->label : $parent->post_status;
+		$dot_color    = $parent->post_status === 'publish' ? '#00a32a' : '#dba617';
+		ob_start();
+		?>
+		<div style="background:#f6f7f7;border:1px solid #dcdcde;border-radius:3px;padding:10px 12px;">
+			<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+				<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:<?php echo esc_attr( $dot_color ); ?>;flex-shrink:0;"></span>
+				<span style="font-size:11px;color:#646970;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">
+				<?php echo esc_html( $type_label ); ?> &middot; <?php echo esc_html( $status_label ); ?>
+			</span>
+			</div>
+			<a href="<?php echo esc_url( $edit_link ); ?>"
+			   style="display:block;font-size:13px;font-weight:600;color:#2271b1;text-decoration:none;line-height:1.4;word-break:break-word;"
+			   onmouseover="this.style.textDecoration='underline'"
+			   onmouseout="this.style.textDecoration='none'">
+				<?php echo esc_html( $parent->post_title ); ?>
+			</a>
+			<div style="margin-top:6px;font-size:11px;color:#8c8f94;">
+				ID: <?php echo absint( $parent->ID ); ?>
+				<?php if ( 'publish' === $parent->post_status ) : ?>
+				&nbsp;&middot;&nbsp;
+				<a href="<?php echo esc_url( get_permalink( $parent->ID ) ); ?>"
+				   target="_blank"
+				   style="color:#8c8f94;text-decoration:none;"
+				   onmouseover="this.style.color='#2271b1'"
+				   onmouseout="this.style.color='#8c8f94'">
+					<?php esc_html_e( 'View', 'media-library-tools' ); ?> &nearr;
+				</a>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
 	/**
 	 * @return void
 	 */
@@ -107,9 +175,9 @@ class ActionHooks {
 				echo esc_html( $image['description'] );
 				break;
 			case 'category':
-				$taxonomy_object = get_taxonomy( tsmlt()->category );
+				$taxonomy_object = get_taxonomy( Fns::CATEGORY );
 
-				if ( $terms = get_the_terms( $post_id, tsmlt()->category ) ) {
+				if ( $terms = get_the_terms( $post_id, Fns::CATEGORY ) ) {
 					$out = [];
 					foreach ( $terms as $t ) {
 						$posts_in_term_qv              = [];
@@ -118,14 +186,14 @@ class ActionHooks {
 						if ( $taxonomy_object->query_var ) {
 							$posts_in_term_qv[ $taxonomy_object->query_var ] = $t->slug;
 						} else {
-							$posts_in_term_qv['taxonomy'] = tsmlt()->category;
+							$posts_in_term_qv['taxonomy'] = Fns::CATEGORY;
 							$posts_in_term_qv['term']     = $t->slug;
 						}
 
 						$out[] = sprintf(
 							'<a href="%s">%s</a>',
 							esc_url( add_query_arg( $posts_in_term_qv, 'upload.php' ) ),
-							esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, tsmlt()->category, 'display' ) )
+							esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, Fns::CATEGORY, 'display' ) )
 						);
 					}
 
@@ -137,5 +205,4 @@ class ActionHooks {
 				break;
 		}
 	}
-
 }

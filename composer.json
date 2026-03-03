@@ -13,6 +13,7 @@
   },
   "description": "",
   "require": {
-    "enshrined/svg-sanitize": "^0.20.0"
+    "enshrined/svg-sanitize": "^0.22.0",
+    "codesvault/howdy-qb": "^2.2"
   }
 }

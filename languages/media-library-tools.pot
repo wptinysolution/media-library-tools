@@ -1,16 +1,294 @@
-# Copyright (C) 2026 Media Library Tools
-# This file is distributed under the same license as the Media Library Tools package.
+# Copyright (C) 2026 Tiny Solutions
+# This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Library Tools\n"
+"Project-Id-Version: Media Library Tools - Rename, Clean & CSV Import/Export 2.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-library-tools\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-08 19:02+0000\n"
-"X-Poedit-Basepath: ..\n"
-"X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
-"X-Poedit-SearchPath-0: .\n"
-"X-Poedit-SearchPathExcluded-0: *.js\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"POT-Creation-Date: 2026-03-03T18:03:07+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: media-library-tools\n"
 
+#. Plugin Name of the plugin
+#: media-library-tools.php
+msgid "Media Library Tools - Rename, Clean & CSV Import/Export"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: media-library-tools.php
+msgid "https://www.wptinysolutions.com/tiny-products/media-library-tools/"
+msgstr ""
+
+#. Description of the plugin
+#: media-library-tools.php
+msgid "Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score."
+msgstr ""
+
+#. Author of the plugin
+#: media-library-tools.php
+msgid "Tiny Solutions"
+msgstr ""
+
+#. Author URI of the plugin
+#: media-library-tools.php
+msgid "https://www.wptinysolutions.com/"
+msgstr ""
+
+#: app/Abs/Discount.php:222
+msgid "Dismiss"
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:95
+msgid "Update failed. Maybe change not found. "
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:131
+msgid "Please try to fix"
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:131
+msgid "Updated. Be happy"
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:203
+#: app/Controllers/Admin/Api.php:299
+#: app/Controllers/Admin/Api.php:569
+#: app/Controllers/Admin/Api.php:663
+#: app/Controllers/Admin/Api.php:738
+#: app/Controllers/Admin/Api.php:757
+msgid "Update failed. Please try to fix"
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:228
+msgid "Rename failed. Please try again."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:254
+msgid "Renamed."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:256
+msgid "Rename failed. The file may not exist or file permissions may be incorrect."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:272
+msgid "Update failed."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:288
+#: app/Controllers/Admin/Api.php:317
+msgid "Saved."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:314
+msgid "The Title has been saved."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:315
+msgid "The Caption has been saved."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:316
+msgid "Content has been saved."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:347
+msgid "Update failed. Please try to fix."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:585
+#: app/Controllers/Admin/Api.php:662
+msgid "Updated. Be happy."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:600
+msgid "Done. Be happy."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:614
+msgid "Deleted. Be happy."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:615
+msgid "Deleted failed. Please try to fix"
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:707
+msgid "Schedule Will Execute Soon."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:710
+msgid "Schedule Will Execute Soon For Directory List."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:757
+msgid "Done, Be happy."
+msgstr ""
+
+#: app/Controllers/Admin/Api.php:770
+msgid "Schedule Cleared. Will Execute Soon."
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:45
+#: app/Controllers/Admin/RegisterPostAndTax.php:55
+#: app/Controllers/Hooks/FilterHooks.php:382
+msgid "Groups"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:46
+msgid "Group"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:47
+msgid "Search Groups"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:48
+msgid "All Groups"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:49
+msgid "Parent Group"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:50
+msgid "Parent Group:"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:51
+msgid "Edit Group"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:52
+msgid "Update Group"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:53
+msgid "Add New Group"
+msgstr ""
+
+#: app/Controllers/Admin/RegisterPostAndTax.php:54
+msgid "New Group Name"
+msgstr ""
+
+#: app/Controllers/Admin/SubMenu.php:49
+msgid "Get license"
+msgstr ""
+
+#: app/Controllers/Admin/SubMenu.php:56
+#: app/Controllers/Admin/SubMenu.php:57
+msgid "Media Tools Settings"
+msgstr ""
+
+#. translators: 1: Plugin name 2: PHP 3: Required PHP version
+#: app/Controllers/Dependencies.php:48
+#, php-format
+msgid "\"%1$s\" requires \"%2$s\" version %3$s or greater."
+msgstr ""
+
+#: app/Controllers/Dependencies.php:49
+msgid "Media Library Tools"
+msgstr ""
+
+#: app/Controllers/Dependencies.php:50
+msgid "PHP"
+msgstr ""
+
+#: app/Controllers/Hooks/ActionHooks.php:47
+msgid "Uploaded To"
+msgstr ""
+
+#: app/Controllers/Hooks/ActionHooks.php:102
+msgid "View"
+msgstr ""
+
+#: app/Controllers/Hooks/Ajax.php:80
+#: app/Controllers/Hooks/Ajax.php:130
+msgid "Invalid request."
+msgstr ""
+
+#: app/Controllers/Hooks/Ajax.php:85
+msgid "Method not allowed."
+msgstr ""
+
+#: app/Controllers/Hooks/Ajax.php:93
+#: app/Controllers/Hooks/Ajax.php:136
+msgid "Unauthorized."
+msgstr ""
+
+#: app/Controllers/Hooks/Ajax.php:102
+msgid "Malformed request payload."
+msgstr ""
+
+#: app/Controllers/Hooks/CronJobHooks.php:57
+msgid "Every 6 Hours"
+msgstr ""
+
+#. translators: file size
+#: app/Controllers/Hooks/FilterHooks.php:208
+#, php-format
+msgid "The uploaded SVG exceeds the maximum allowed file size of %s."
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:223
+msgid "This SVG file contains unsafe content and cannot be uploaded."
+msgstr ""
+
+#. translators: %s: Attachment title.
+#: app/Controllers/Hooks/FilterHooks.php:302
+#, php-format
+msgid "Move &#8220;%s&#8221; to the Trash"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:303
+msgctxt "verb"
+msgid "Trash"
+msgstr ""
+
+#. translators: %s: Attachment title.
+#: app/Controllers/Hooks/FilterHooks.php:311
+#, php-format
+msgid "Delete &#8220;%s&#8221; permanently"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:312
+msgid "Delete Permanently"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:379
+msgid "Alt"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:380
+msgid "Caption"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:381
+msgid "Description"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:447
+msgid "Settings"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:449
+msgid "Go Pro"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:464
+msgid "Facing issue?"
+msgstr ""
+
+#: app/Controllers/Hooks/FilterHooks.php:464
+msgid "Please open a support ticket."
+msgstr ""
+
+#: app/Traits/SingletonTrait.php:41
+#: app/Traits/SingletonTrait.php:50
+msgid "Cheatin&#8217; huh?"
+msgstr ""

@@ -2,6 +2,7 @@
 
 namespace TinySolutions\mlt\Controllers;
 
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 // Do not allow directly accessing this file.
@@ -74,7 +75,14 @@ class AssetsController {
 		}
 		global $pagenow;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce needed for page check.
-		if ( 'upload.php' === $pagenow && 'media-library-tools' === sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) ) ) {
+		$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
+		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro', 'tsmlt-pricing-pro' ];
+
+		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) ) {
+			wp_enqueue_style( 'tsmlt-settings-style' );
+		}
+
+		if ( 'upload.php' === $pagenow && 'media-library-tools' === $current_page ) {
 			// Enqueue ThickBox scripts and styles.
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
@@ -89,18 +97,19 @@ class AssetsController {
 				'tsmlt-settings',
 				'tsmltParams',
 				[
-					'ajaxUrl'        => esc_url( admin_url( 'admin-ajax.php' ) ),
-					'adminUrl'       => esc_url( admin_url() ),
-					'hasExtended'    => tsmlt()->has_pro(),
-					'proVersion'     => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
-					'proLink'        => tsmlt()->pro_version_link(),
-					'includesUrl'    => esc_url( includes_url() ),
-					'uploadUrl'      => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
-					'uploadBasedir'  => $upload_dir['basedir'] ?? '',
-					'hasWoo'         => function_exists( 'WC' ),
-					'restApiUrl'     => esc_url_raw( rest_url() ),
-					'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
-					tsmlt()->nonceId => wp_create_nonce( tsmlt()->nonceId ),
+					'ajaxUrl'       => esc_url( admin_url( 'admin-ajax.php' ) ),
+					'adminUrl'      => esc_url( admin_url() ),
+					'hasExtended'   => tsmlt()->has_pro(),
+					'proVersion'    => defined( 'TSMLTPRO_VERSION' ) ? TSMLTPRO_VERSION : false,
+					'proLink'       => tsmlt()->pro_version_link(),
+					'includesUrl'   => esc_url( includes_url() ),
+					'uploadUrl'     => esc_url( set_url_scheme( $upload_dir['baseurl'] ?? '#' ) ),
+					'uploadBasedir' => $upload_dir['basedir'] ?? '',
+					'hasWoo'        => function_exists( 'WC' ),
+					'restApiUrl'    => esc_url_raw( rest_url() ),
+					'rest_nonce'    => wp_create_nonce( 'wp_rest' ),
+					'iconUrl'       => esc_url( tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ) ),
+					Fns::NONCE_ID   => wp_create_nonce( Fns::NONCE_ID ),
 				]
 			);
 		}

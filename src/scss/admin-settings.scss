@@ -1,5 +1,5 @@
-@import './abstracts/_abstracts-dir';
-@import './licence';
+@use './abstracts/_abstracts-dir';
+@use './licence';
 
 :root {
 	--tsmlt-admin-color-secondary: #d80e0e;
@@ -9,6 +9,9 @@
 body {
 	
 	&.media_page_tsmlt-media-tools{
+		#wpcontent {
+			padding-left: 0;
+		}
 		#wpbody-content {
 			float: inherit;
 			height: 100%;

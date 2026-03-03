@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
+class ComposerStaticInit623f683c6bfce6552338e9f79cf4d127
 {
     public static $prefixLengthsPsr4 = array (
         'e' => 
@@ -14,6 +14,10 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
         'T' => 
         array (
             'TinySolutions\\mlt\\' => 18,
+        ),
+        'C' => 
+        array (
+            'CodesVault\\Howdyqb\\' => 19,
         ),
     );
 
@@ -26,9 +30,37 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
+        'CodesVault\\Howdyqb\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/codesvault/howdy-qb/src',
+        ),
     );
 
     public static $classMap = array (
+        'CodesVault\\Howdyqb\\Api\\AlterInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/AlterInterface.php',
+        'CodesVault\\Howdyqb\\Api\\CreateInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/CreateInterface.php',
+        'CodesVault\\Howdyqb\\Api\\DeleteInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/DeleteInterface.php',
+        'CodesVault\\Howdyqb\\Api\\DropInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/DropInterface.php',
+        'CodesVault\\Howdyqb\\Api\\SelectInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/SelectInterface.php',
+        'CodesVault\\Howdyqb\\Api\\UpdateInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/UpdateInterface.php',
+        'CodesVault\\Howdyqb\\Api\\WhereClauseInterface' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Api/WhereClauseInterface.php',
+        'CodesVault\\Howdyqb\\Clause\\JoinClause' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Clause/JoinClause.php',
+        'CodesVault\\Howdyqb\\Clause\\SqlCore' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Clause/SqlCore.php',
+        'CodesVault\\Howdyqb\\Clause\\SubQuery' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Clause/SubQuery.php',
+        'CodesVault\\Howdyqb\\Clause\\WhereClause' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Clause/WhereClause.php',
+        'CodesVault\\Howdyqb\\Connect' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Connect.php',
+        'CodesVault\\Howdyqb\\DB' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/DB.php',
+        'CodesVault\\Howdyqb\\QueryFactory' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/QueryFactory.php',
+        'CodesVault\\Howdyqb\\SqlGenerator' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/SqlGenerator.php',
+        'CodesVault\\Howdyqb\\Statement\\Alter' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Alter.php',
+        'CodesVault\\Howdyqb\\Statement\\Create' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Create.php',
+        'CodesVault\\Howdyqb\\Statement\\Delete' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Delete.php',
+        'CodesVault\\Howdyqb\\Statement\\Drop' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Drop.php',
+        'CodesVault\\Howdyqb\\Statement\\Insert' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Insert.php',
+        'CodesVault\\Howdyqb\\Statement\\Select' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Select.php',
+        'CodesVault\\Howdyqb\\Statement\\Update' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Statement/Update.php',
+        'CodesVault\\Howdyqb\\Utilities' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Utilities.php',
+        'CodesVault\\Howdyqb\\Validation\\IdentifierValidator' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Validation/IdentifierValidator.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/../..' . '/app/Abs/Discount.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/../..' . '/app/Controllers/Admin/Api.php',
@@ -63,9 +95,9 @@ class ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitfe1cac6b6b758a8331011a0ff563df01::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit623f683c6bfce6552338e9f79cf4d127::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit623f683c6bfce6552338e9f79cf4d127::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit623f683c6bfce6552338e9f79cf4d127::$classMap;
 
         }, null, ClassLoader::class);
     }

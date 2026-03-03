@@ -48,20 +48,13 @@ class Installation {
 	 * @return void
 	 */
 	public static function create_tables() {
-		global $wpdb;
-		if ( ! function_exists( 'dbDelta' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		}
-
-		$charset_collate = $wpdb->get_charset_collate();
-		$sql_query       = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}tsmlt_unlisted_file` (	
-				 	`id` INT AUTO_INCREMENT PRIMARY KEY,
-					`attachment_id` INT DEFAULT 0,
-					`file_path` VARCHAR(255) NOT NULL,
-					`file_type` VARCHAR(50) DEFAULT NULL,
-					`status` VARCHAR(50) DEFAULT 'show',
-					`meta_data` VARCHAR(50) DEFAULT NULL
-				) $charset_collate";
-		dbDelta( $sql_query );
+		Fns::DB()->create( 'tsmlt_unlisted_file' )
+			->column( 'id' )->int()->autoIncrement()->primary()
+			->column( 'attachment_id' )->int()->default( 0 )
+			->column( 'file_path' )->string( 255 )->required()
+			->column( 'file_type' )->string( 50 )
+			->column( 'status' )->string( 50 )->default( 'show' )
+			->column( 'meta_data' )->string( 50 )
+			->execute();
 	}
 }

@@ -47,25 +47,7 @@ class FilterHooks {
 			add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'svgs_generate_svg_attachment_metadata' ], 10, 3 );
 		}
 	}
-	/**
-	 * Remove the `srcset` attribute for SVG images in WordPress.
-	 *
-	 * WordPress automatically generates a `srcset` attribute for responsive images,
-	 * but since SVGs are vector graphics and do not require different resolutions,
-	 * this function disables `srcset` for SVG images.
-	 *
-	 * @param array|false $sources      An array of image sources, or false if no sources exist.
-	 * @param array       $size_array   Image width and height in pixels.
-	 * @param string      $image_src    The URL of the image.
-	 *
-	 * @return array|false Modified sources array or false for SVG images to disable `srcset`.
-	 */
-	public static function remove_srcset_for_svg( $sources, $size_array, $image_src ) {
-		if ( false !== strpos( $image_src, '.svg' ) ) {
-			return false; // Disable srcset for SVG.
-		}
-		return $sources;
-	}
+
 	/**
 	 * @param array $metadata image metadata.
 	 * @param int   $attachment_id image id.
@@ -245,26 +227,6 @@ class FilterHooks {
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		file_put_contents( $file['tmp_name'], $clean_svg );
 		return $file;
-	}
-	/**
-	 * Fix SVG size.
-	 *
-	 * @param array|boolean $out output.
-	 * @param int           $id image id.
-	 *
-	 * @return array|mixed
-	 */
-	public static function fix_svg_size_attributes( $out, $id ) {
-		if ( ! is_admin() ) {
-			return $out;
-		}
-		$image_url = wp_get_attachment_url( $id );
-		$file_ext  = pathinfo( $image_url, PATHINFO_EXTENSION );
-
-		if ( 'svg' !== $file_ext ) {
-			return $out;
-		}
-		return [ $image_url, null, null, false ];
 	}
 
 	/**

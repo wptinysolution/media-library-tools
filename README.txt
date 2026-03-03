@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.0.2
+Stable tag: 2.1.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -181,6 +181,26 @@ To search for images by categories, users can find the categories box near the F
 
 == Changelog ==
 
+= 2.1.0 ( Mar 03, 2026 ) =
+* Security: Migrated all REST API endpoints to WordPress admin-ajax for improved security compliance
+* Improvement: Added clear (×) button to search keyword input field
+* Fixed: Bulk action select de-syncs visually after filter reset, causing "No Actions selected" error
+* Improvement: Refactored loading states and per-page controls
+* Improvement: Updated Export/Import UI styles and imports
+* Fixed: Text size classes not applying correctly in Garbage file notice
+* Improvement: Refactored checkbox markup and shortened column labels
+* Improvement: Overall UI improvements for better user experience
+* Fixed: Bulk directory scan now processes files in batches of 50 to prevent timeouts on large directories
+* Fixed: Directories containing only subdirectories no longer loop infinitely during bulk scan
+* Fixed: Files in custom directories incorrectly excluded from rubbish list due to cross-directory filename matching
+* Fixed: Progress bar in bulk delete confirmation modal showing as full due to boolean false value
+* Fixed: Attached Post column sorting in file rename table
+* Added: Current scanning directory name shown below progress bar during bulk scan
+* Added: Horizontal scroll shadow and chevron indicators in data tables to signal hidden columns
+* Improvement: DataTable first column maintains fixed width regardless of visible column count
+* Improvement: Directory scan list displays trimmed wp-content/ path instead of full server path
+* Fixed: Missing text domain on translatable strings in attachment field
+ 
 = 2.0.1 ( Jan 08, 2026 ) =
 * Fix: Search Attached Post Issue resolved
 

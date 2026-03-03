@@ -32,24 +32,11 @@ if ( ! class_exists( Tsmlt::class ) ) {
 	final class Tsmlt {
 
 		/**
-		 * Nonce id
-		 *
-		 * @var string
-		 */
-		public $nonceId = 'tsmlt_wpnonce';
-
-		/**
 		 * Post Type.
 		 *
 		 * @var string
 		 */
 		public $current_theme;
-		/**
-		 * Post Type.
-		 *
-		 * @var string
-		 */
-		public $category = 'tsmlt_category';
 		/**
 		 * Singleton
 		 */
@@ -102,7 +89,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			if ( ! Dependencies::instance()->check() ) {
 				return;
 			}
-
 			do_action( 'tsmlt/before_loaded' );
 			Ajax::instance();
 			Api::instance();

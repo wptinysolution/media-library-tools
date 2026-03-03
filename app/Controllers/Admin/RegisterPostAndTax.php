@@ -8,6 +8,7 @@ namespace TinySolutions\mlt\Controllers\Admin;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -59,7 +60,7 @@ class RegisterPostAndTax {
 			'hierarchical'          => true,
 		];
 
-		register_taxonomy( tsmlt()->category, 'attachment', $args );
+		register_taxonomy( Fns::CATEGORY, 'attachment', $args );
 
 		do_action( 'tsmlt_after_register_taxonomy' );
 	}
