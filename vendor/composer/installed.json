@@ -2,17 +2,17 @@
     "packages": [
         {
             "name": "codesvault/howdy-qb",
-            "version": "2.2.0",
-            "version_normalized": "2.2.0.0",
+            "version": "2.2.1",
+            "version_normalized": "2.2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CodesVault/howdy_qb.git",
-                "reference": "e69cc7d1e1936a0f3647a9b78d25768523e6a6da"
+                "reference": "c65baa3455b32b3d24838392531ae8eb6b07d15d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CodesVault/howdy_qb/zipball/e69cc7d1e1936a0f3647a9b78d25768523e6a6da",
-                "reference": "e69cc7d1e1936a0f3647a9b78d25768523e6a6da",
+                "url": "https://api.github.com/repos/CodesVault/howdy_qb/zipball/c65baa3455b32b3d24838392531ae8eb6b07d15d",
+                "reference": "c65baa3455b32b3d24838392531ae8eb6b07d15d",
                 "shasum": ""
             },
             "require": {
@@ -28,7 +28,7 @@
                 "wp-coding-standards/wpcs": "^2.3",
                 "wp-phpunit/wp-phpunit": "^6.8"
             },
-            "time": "2026-02-18T11:53:51+00:00",
+            "time": "2026-03-04T07:16:45+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -64,7 +64,7 @@
             ],
             "support": {
                 "issues": "https://github.com/CodesVault/howdy_qb/issues",
-                "source": "https://github.com/CodesVault/howdy_qb/tree/2.2.0"
+                "source": "https://github.com/CodesVault/howdy_qb/tree/2.2.1"
             },
             "funding": [
                 {
