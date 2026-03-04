@@ -180,6 +180,9 @@ To search for images by categories, users can find the categories box near the F
 
 
 == Changelog ==
+= 2.1.1 ( xx xx, 2026 ) =
+* Updated: Update "codesvault/howdy-qb" Composer Dependencies
+* Fixed: Custom Table Query Truncate Function Updated
 
 = 2.1.0 ( Mar 03, 2026 ) =
 * Security: Migrated all REST API endpoints to WordPress admin-ajax for improved security compliance
