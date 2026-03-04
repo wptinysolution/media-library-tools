@@ -11,22 +11,7 @@ export default function AiSettings() {
                 <h3 className="text-xl m-0! font-semibold text-gray-900">AI Settings</h3>
             </div>
             <div className="p-6 space-y-6">
-                <SettingRow label="Enable AI Features:">
-                    <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            checked={!!options.ai_enabled}
-                            onChange={(e) => setOptions({ ai_enabled: e.target.checked })}
-                        />
-                        <span className="text-base text-gray-900">Enable AI content generation</span>
-                    </label>
-                    <p className="text-sm text-gray-500">
-                        Allow AI to generate titles, alt text, captions, descriptions, and filenames for your media files. API keys are stored securely on the server and never exposed to the browser.
-                    </p>
-                </SettingRow>
-
-                <SettingRow label="AI Provider:" bordered>
+                <SettingRow label="AI Provider:">
                     <div className="flex flex-wrap gap-6">
                         {(['chatgpt', 'gemini', 'claude'] as const).map((provider) => (
                             <label key={provider} className="inline-flex items-center gap-2 cursor-pointer">

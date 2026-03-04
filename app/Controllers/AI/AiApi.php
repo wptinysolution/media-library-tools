@@ -54,10 +54,6 @@ class AiApi {
 
 		$settings = get_option( 'tsmlt_settings', [] );
 
-		if ( empty( $settings['ai_enabled'] ) ) {
-			throw new \Exception( esc_html__( 'AI is not enabled.', 'media-library-tools' ) );
-		}
-
 		$provider = $settings['ai_provider'] ?? 'chatgpt';
 		$prompt   = self::PROMPTS[ $field_type ];
 

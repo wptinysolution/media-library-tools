@@ -122,7 +122,6 @@ class Api {
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
-		$tsmlt_media['ai_enabled']     = ! empty( $parameters['ai_enabled'] );
 		$tsmlt_media['ai_provider']    = in_array( $parameters['ai_provider'] ?? '', [ 'chatgpt', 'gemini', 'claude' ], true ) ? $parameters['ai_provider'] : 'chatgpt';
 		$tsmlt_media['ai_chatgpt_key'] = sanitize_text_field( $parameters['ai_chatgpt_key'] ?? '' );
 		$tsmlt_media['ai_gemini_key']  = sanitize_text_field( $parameters['ai_gemini_key']  ?? '' );
