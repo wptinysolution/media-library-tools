@@ -771,8 +771,8 @@ class Review {
 					});
 
 					// Rename buttons
-					$('.ui-dialog-buttonpane button:contains("Submit")').text('<?php echo esc_js( __( 'Send Feedback & Deactivate', 'media-library-tools' ) ); ?>');
-					$('.ui-dialog-buttonpane button:contains("Cancel")').text('<?php echo esc_js( __( 'Skip & Deactivate', 'media-library-tools' ) ); ?>');
+					$('.ui-dialog-buttonpane button:contains("Submit")').text(<?php echo wp_json_encode( __( 'Send Feedback & Deactivate', 'media-library-tools' ) ); ?>);
+					$('.ui-dialog-buttonpane button:contains("Cancel")').text(<?php echo wp_json_encode( __( 'Skip & Deactivate', 'media-library-tools' ) ); ?>);
 				});
 
 				function submitFeedback($btn, deactivateHref) {
