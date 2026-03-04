@@ -109,6 +109,11 @@ export interface OptionsState {
     media_rename_prefix?: string;
     media_rename_suffix?: string;
     auto_rename_by_post_title?: string;
+    ai_enabled?: boolean;
+    ai_provider?: 'chatgpt' | 'gemini' | 'claude';
+    ai_chatgpt_key?: string;
+    ai_gemini_key?: string;
+    ai_claude_key?: string;
     [key: string]: unknown;
 }
 

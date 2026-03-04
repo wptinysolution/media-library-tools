@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import type { MediaPost, RubbishMediaFile, BulkSubmitData } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
+import AiButton from "@/js/Component/Common/AiButton";
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction, rubbishSingleRestoreAction } from "./Data";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 import type { ColumnDef } from "@/js/Component/Common/DataTable";
@@ -230,7 +231,24 @@ export function columns(): ColumnDef<MediaPost>[] {
             render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="flex flex-col gap-1">
+                                <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <div className="flex justify-end">
+                                    <AiButton
+                                        attachmentId={record.ID}
+                                        fieldType="title"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], title: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, title: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
                         : <a className="w-50 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{text as string}</a>
                     }
                 </>
@@ -246,10 +264,27 @@ export function columns(): ColumnDef<MediaPost>[] {
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="flex flex-col gap-1">
+                                <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <div className="flex justify-end">
+                                    <AiButton
+                                        attachmentId={record.ID}
+                                        fieldType="alt_text"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], alt_text: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, ID: record.ID });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
                         : <span className="w-50 flex overflow-x-auto">{text as string}</span>
                     }
                 </>
@@ -264,10 +299,27 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Caption',
             dataIndex: 'caption',
             width: '300px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="flex flex-col gap-1">
+                                <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <div className="flex justify-end">
+                                    <AiButton
+                                        attachmentId={record.ID}
+                                        fieldType="caption"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], caption: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, caption: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
                         : <>{text as string}</>
                     }
                 </>
@@ -282,10 +334,27 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Description',
             dataIndex: 'description',
             width: '350px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="flex flex-col gap-1">
+                                <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <div className="flex justify-end">
+                                    <AiButton
+                                        attachmentId={record.ID}
+                                        fieldType="description"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], description: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, description: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
                         : <>{text as string}</>
                     }
                 </>
@@ -313,7 +382,7 @@ export function columns(): ColumnDef<MediaPost>[] {
 }
 
 export function renamerColumns(): ColumnDef<MediaPost>[] {
-    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType } = useStore();
+    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType, setRename } = useStore();
 
     const handleSortClick = (odrby: string) => {
         const { orderby, order } = mediaData.postQuery;
@@ -413,35 +482,58 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
                 <>
                     {rename.formEdited
                         ? (
-                            <div className="flex items-center gap-1 bg-transparent">
-                                <input
-                                    type="text"
-                                    className="w-87.5 h-9.5 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    name="filebasename"
-                                    placeholder="The name Shouldn't leave empty"
-                                    data-current={i}
-                                    onBlur={() => setSaveType(Types.UPDATE_RENAMER_MEDIA)}
-                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                        const { setMediaData, setRename } = useStore.getState();
-                                        const currentItem = parseInt(event.target.getAttribute('data-current') ?? '0', 10);
-                                        if ('filebasename' === event.target.name) {
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1 bg-transparent">
+                                    <input
+                                        type="text"
+                                        className="w-87.5 h-9.5 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        name="filebasename"
+                                        placeholder="The name Shouldn't leave empty"
+                                        data-current={i}
+                                        onBlur={() => setSaveType(Types.UPDATE_RENAMER_MEDIA)}
+                                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                            const { setMediaData, setRename } = useStore.getState();
+                                            const currentItem = parseInt(event.target.getAttribute('data-current') ?? '0', 10);
+                                            if ('filebasename' === event.target.name) {
+                                                const posts = [...mediaData.posts];
+                                                const pnlname = { ...posts[currentItem].thefile };
+                                                posts[currentItem] = {
+                                                    ...posts[currentItem],
+                                                    thefile: { ...posts[currentItem].thefile, filebasename: event.target.value },
+                                                };
+                                                setMediaData({ posts });
+                                                setRename({
+                                                    postsdata: pnlname,
+                                                    ID: posts[currentItem].ID,
+                                                    newname: event.target.value,
+                                                });
+                                            }
+                                        }}
+                                        value={record.thefile.filebasename}
+                                    />
+                                    <span className="text-sm text-gray-600">{`.${record.thefile.fileextension}`}</span>
+                                </div>
+                                <div className="flex justify-end">
+                                    <AiButton
+                                        attachmentId={record.ID}
+                                        fieldType="filename"
+                                        onSuccess={(value) => {
                                             const posts = [...mediaData.posts];
-                                            const pnlname = { ...posts[currentItem].thefile };
-                                            posts[currentItem] = {
-                                                ...posts[currentItem],
-                                                thefile: { ...posts[currentItem].thefile, filebasename: event.target.value },
+                                            const pnlname = { ...posts[i].thefile };
+                                            posts[i] = {
+                                                ...posts[i],
+                                                thefile: { ...posts[i].thefile, filebasename: value },
                                             };
                                             setMediaData({ posts });
                                             setRename({
                                                 postsdata: pnlname,
-                                                ID: posts[currentItem].ID,
-                                                newname: event.target.value,
+                                                ID: record.ID,
+                                                newname: value,
                                             });
-                                        }
-                                    }}
-                                    value={record.thefile.filebasename}
-                                />
-                                <span className="text-sm text-gray-600">{`.${record.thefile.fileextension}`}</span>
+                                            setSaveType(Types.UPDATE_RENAMER_MEDIA);
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )
                         : <a className="max-w-75 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{record.thefile.mainfilename}</a>

@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
+use TinySolutions\mlt\Controllers\AI\AiApi;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -58,6 +59,9 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_clear_schedule',             [ $this, 'clear_schedule' ] );
 		add_action( 'wp_ajax_tsmlt_get_registered_image_sizes', [ $this, 'get_registered_image_sizes' ] );
 		add_action( 'wp_ajax_tsmlt_get_plugin_list',            [ $this, 'get_plugin_list' ] );
+
+		// AI content generation.
+		add_action( 'wp_ajax_tsmlt_ai_generate', [ $this, 'ai_generate' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -284,5 +288,27 @@ class Ajax {
 	public function get_plugin_list(): void {
 		$this->verify_and_get_params();
 		$this->send( Api::instance()->get_plugin_list() );
+	}
+
+	// -------------------------------------------------------------------------
+	// AI content generation
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function ai_generate(): void {
+		$params        = $this->verify_and_get_params();
+		$attachment_id = absint( $params['attachment_id'] ?? 0 );
+		$field_type    = sanitize_key( $params['field_type'] ?? '' );
+		try {
+			$result = ( new AiApi() )->generate(
+				[
+					'attachment_id' => $attachment_id,
+					'field_type'    => $field_type,
+				]
+			);
+			wp_send_json_success( $result );
+		} catch ( \Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ], 400 );
+		}
 	}
 }
