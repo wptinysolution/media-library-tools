@@ -47,60 +47,102 @@ export default function AiSettings() {
                 </SettingRow>
 
                 {(options.ai_provider ?? 'chatgpt') === 'chatgpt' && (
-                    <SettingRow label="ChatGPT API Key:" bordered>
-                        <div className="relative w-full max-w-md">
-                            <input
-                                type={showKey ? 'text' : 'password'}
-                                name="ai_chatgpt_key"
-                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="sk-..."
-                                value={(options.ai_chatgpt_key as string) || ''}
-                                onChange={(e) => setOptions({ ai_chatgpt_key: e.target.value })}
-                            />
-                            <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                            </button>
-                        </div>
-                        <p className="text-sm text-gray-500">OpenAI API key for GPT-4o-mini vision.</p>
-                    </SettingRow>
+                    <>
+                        <SettingRow label="ChatGPT API Key:" bordered>
+                            <div className="relative w-full max-w-md">
+                                <input
+                                    type={showKey ? 'text' : 'password'}
+                                    name="ai_chatgpt_key"
+                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="sk-..."
+                                    value={(options.ai_chatgpt_key as string) || ''}
+                                    onChange={(e) => setOptions({ ai_chatgpt_key: e.target.value })}
+                                />
+                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
+                                </button>
+                            </div>
+                        </SettingRow>
+                        <SettingRow label="ChatGPT Model:" bordered>
+                            <select
+                                name="ai_chatgpt_model"
+                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                value={(options.ai_chatgpt_model as string) || 'gpt-4o-mini'}
+                                onChange={(e) => setOptions({ ai_chatgpt_model: e.target.value })}
+                            >
+                                <option value="gpt-4o-mini">gpt-4o-mini (default)</option>
+                                <option value="gpt-4o">gpt-4o</option>
+                                <option value="gpt-4-turbo">gpt-4-turbo</option>
+                                <option value="gpt-4">gpt-4</option>
+                            </select>
+                        </SettingRow>
+                    </>
                 )}
 
                 {(options.ai_provider ?? 'chatgpt') === 'gemini' && (
-                    <SettingRow label="Gemini API Key:" bordered>
-                        <div className="relative w-full max-w-md">
-                            <input
-                                type={showKey ? 'text' : 'password'}
-                                name="ai_gemini_key"
-                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="AIza..."
-                                value={(options.ai_gemini_key as string) || ''}
-                                onChange={(e) => setOptions({ ai_gemini_key: e.target.value })}
-                            />
-                            <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                            </button>
-                        </div>
-                        <p className="text-sm text-gray-500">Google Gemini API key for gemini-2.0-flash.</p>
-                    </SettingRow>
+                    <>
+                        <SettingRow label="Gemini API Key:" bordered>
+                            <div className="relative w-full max-w-md">
+                                <input
+                                    type={showKey ? 'text' : 'password'}
+                                    name="ai_gemini_key"
+                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="AIza..."
+                                    value={(options.ai_gemini_key as string) || ''}
+                                    onChange={(e) => setOptions({ ai_gemini_key: e.target.value })}
+                                />
+                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
+                                </button>
+                            </div>
+                        </SettingRow>
+                        <SettingRow label="Gemini Model:" bordered>
+                            <select
+                                name="ai_gemini_model"
+                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                value={(options.ai_gemini_model as string) || 'gemini-2.0-flash'}
+                                onChange={(e) => setOptions({ ai_gemini_model: e.target.value })}
+                            >
+                                <option value="gemini-2.0-flash">gemini-2.0-flash (default)</option>
+                                <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+                                <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                                <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                            </select>
+                        </SettingRow>
+                    </>
                 )}
 
                 {(options.ai_provider ?? 'chatgpt') === 'claude' && (
-                    <SettingRow label="Claude API Key:" bordered>
-                        <div className="relative w-full max-w-md">
-                            <input
-                                type={showKey ? 'text' : 'password'}
-                                name="ai_claude_key"
-                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="sk-ant-..."
-                                value={(options.ai_claude_key as string) || ''}
-                                onChange={(e) => setOptions({ ai_claude_key: e.target.value })}
-                            />
-                            <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                            </button>
-                        </div>
-                        <p className="text-sm text-gray-500">Anthropic API key for Claude Haiku.</p>
-                    </SettingRow>
+                    <>
+                        <SettingRow label="Claude API Key:" bordered>
+                            <div className="relative w-full max-w-md">
+                                <input
+                                    type={showKey ? 'text' : 'password'}
+                                    name="ai_claude_key"
+                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="sk-ant-..."
+                                    value={(options.ai_claude_key as string) || ''}
+                                    onChange={(e) => setOptions({ ai_claude_key: e.target.value })}
+                                />
+                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
+                                </button>
+                            </div>
+                        </SettingRow>
+                        <SettingRow label="Claude Model:" bordered>
+                            <select
+                                name="ai_claude_model"
+                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                value={(options.ai_claude_model as string) || 'claude-haiku-4-5-20251001'}
+                                onChange={(e) => setOptions({ ai_claude_model: e.target.value })}
+                            >
+                                <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (default)</option>
+                                <option value="claude-sonnet-4-5">claude-sonnet-4-5</option>
+                                <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+                                <option value="claude-opus-4-6">claude-opus-4-6</option>
+                            </select>
+                        </SettingRow>
+                    </>
                 )}
             </div>
         </div>

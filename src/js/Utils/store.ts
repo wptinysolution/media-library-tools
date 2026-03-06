@@ -111,8 +111,11 @@ export interface OptionsState {
     auto_rename_by_post_title?: string;
     ai_provider?: 'chatgpt' | 'gemini' | 'claude';
     ai_chatgpt_key?: string;
+    ai_chatgpt_model?: string;
     ai_gemini_key?: string;
+    ai_gemini_model?: string;
     ai_claude_key?: string;
+    ai_claude_model?: string;
     [key: string]: unknown;
 }
 

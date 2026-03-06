@@ -308,7 +308,7 @@ class Ajax {
 			);
 			wp_send_json_success( $result );
 		} catch ( \Exception $e ) {
-			wp_send_json_error( [ 'message' => $e->getMessage() ], 400 );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 }

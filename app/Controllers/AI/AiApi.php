@@ -70,7 +70,7 @@ class AiApi {
 		}
 
 		// Only base64-encode actual image files.
-		$is_image = $mime && str_starts_with( $mime, 'image/' );
+		$is_image = $mime && ( 0 === strpos( $mime, 'image/' ) );
 
 		if ( $is_image && $file_path && file_exists( $file_path ) ) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file read; no HTTP involved.
@@ -88,17 +88,20 @@ class AiApi {
 
 		switch ( $provider ) {
 			case 'gemini':
-				$key  = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
-				$text = $this->call_gemini( $key, $base64, $mime, $prompt );
+				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
+				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.0-flash';
+				$text  = $this->call_gemini( $key, $base64, $mime, $prompt, $model );
 				break;
 			case 'claude':
-				$key  = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
-				$text = $this->call_claude( $key, $base64, $mime, $prompt );
+				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
+				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
+				$text  = $this->call_claude( $key, $base64, $mime, $prompt, $model );
 				break;
 			case 'chatgpt':
 			default:
-				$key  = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
-				$text = $this->call_openai( $key, $base64, $mime, $prompt );
+				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
+				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-4o-mini';
+				$text  = $this->call_openai( $key, $base64, $mime, $prompt, $model );
 				break;
 		}
 
@@ -120,11 +123,11 @@ class AiApi {
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_openai( string $key, string $base64, string $mime, string $prompt ): string {
+	private function call_openai( string $key, string $base64, string $mime, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'OpenAI API key is not configured.', 'media-library-tools' ) );
 		}
-
+		
 		$content = [];
 
 		if ( $base64 ) {
@@ -144,7 +147,7 @@ class AiApi {
 
 		$body = wp_json_encode(
 			[
-				'model'      => 'gpt-4o-mini',
+				'model'      => $model,
 				'messages'   => [
 					[
 						'role'    => 'user',
@@ -198,7 +201,7 @@ class AiApi {
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_gemini( string $key, string $base64, string $mime, string $prompt ): string {
+	private function call_gemini( string $key, string $base64, string $mime, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'Gemini API key is not configured.', 'media-library-tools' ) );
 		}
@@ -226,7 +229,7 @@ class AiApi {
 			]
 		);
 
-		$url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . rawurlencode( $key );
+		$url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent?key=' . rawurlencode( $key );
 
 		$response = wp_remote_post(
 			$url,
@@ -268,7 +271,7 @@ class AiApi {
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_claude( string $key, string $base64, string $mime, string $prompt ): string {
+	private function call_claude( string $key, string $base64, string $mime, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'Claude API key is not configured.', 'media-library-tools' ) );
 		}
@@ -293,7 +296,7 @@ class AiApi {
 
 		$body = wp_json_encode(
 			[
-				'model'      => 'claude-haiku-4-5-20251001',
+				'model'      => $model,
 				'max_tokens' => 200,
 				'messages'   => [
 					[
