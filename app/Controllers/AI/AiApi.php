@@ -176,8 +176,9 @@ class AiApi {
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
-			/* translators: %d: HTTP status code */
-			throw new \Exception( sprintf( esc_html__( 'OpenAI API returned HTTP %d.', 'media-library-tools' ), $code ) );
+			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
+			$err_msg  = $err_body['error']['message'] ?? '';
+			throw new \Exception( sprintf( 'OpenAI HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -246,8 +247,9 @@ class AiApi {
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
-			/* translators: %d: HTTP status code */
-			throw new \Exception( sprintf( esc_html__( 'Gemini API returned HTTP %d.', 'media-library-tools' ), $code ) );
+			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
+			$err_msg  = $err_body['error']['message'] ?? '';
+			throw new \Exception( sprintf( 'Gemini HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -326,8 +328,9 @@ class AiApi {
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
-			/* translators: %d: HTTP status code */
-			throw new \Exception( sprintf( esc_html__( 'Claude API returned HTTP %d.', 'media-library-tools' ), $code ) );
+			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
+			$err_msg  = $err_body['error']['message'] ?? '';
+			throw new \Exception( sprintf( 'Claude HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
