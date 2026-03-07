@@ -69,10 +69,11 @@ class AiApi {
 			}
 		}
 
-		// Only base64-encode actual image files.
-		$is_image = $mime && ( 0 === strpos( $mime, 'image/' ) );
+		// Only base64-encode actual image files when the user opts in.
+		$send_image = ! empty( $settings['ai_send_image'] );
+		$is_image   = $mime && ( 0 === strpos( $mime, 'image/' ) );
 
-		if ( $is_image && $file_path && file_exists( $file_path ) ) {
+		if ( $send_image && $is_image && $file_path && file_exists( $file_path ) ) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file read; no HTTP involved.
 			$file_data = file_get_contents( $file_path );
 			if ( false !== $file_data ) {
@@ -80,11 +81,22 @@ class AiApi {
 			}
 		}
 
-		// For non-images, append filename context to the prompt.
-		if ( ! $is_image ) {
-			$filename = $file_path ? basename( $file_path ) : get_the_title( $attachment_id );
-			$prompt  .= ' The file is named: ' . sanitize_text_field( $filename );
+		// Always append text context (site title, filename, attached post) to the prompt.
+		$filename        = $file_path ? basename( $file_path ) : get_the_title( $attachment_id );
+		$attachment_post = get_post( $attachment_id );
+		$attached_title  = ( $attachment_post && $attachment_post->post_parent )
+			? get_the_title( $attachment_post->post_parent )
+			: '';
+
+		$context  = ' Context:';
+		$context .= ' Site title: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
+		$context .= ' Site tagline: "' . sanitize_text_field( get_bloginfo( 'description' ) ) . '".';
+		$context .= ' Filename: "' . sanitize_text_field( $filename ) . '".';
+		if ( $attached_title ) {
+			$context .= ' Attached to post: "' . sanitize_text_field( $attached_title ) . '".';
 		}
+
+		$prompt .= $context;
 
 		switch ( $provider ) {
 			case 'gemini':

@@ -19,6 +19,8 @@ export default function AiSettings() {
     const { options, setOptions } = useStore();
     const [showKey, setShowKey] = useState(false);
 
+    const provider = options.ai_provider ?? 'gemini';
+
     return (
         <div className="bg-white rounded-lg border border-gray-200">
             <div className="px-6 py-5 border-b border-gray-200">
@@ -27,18 +29,18 @@ export default function AiSettings() {
             <div className="p-6 space-y-6">
                 <SettingRow label="AI Provider:">
                     <div className="flex flex-wrap gap-6">
-                        {(['chatgpt', 'gemini', 'claude'] as const).map((provider) => (
-                            <label key={provider} className="inline-flex items-center gap-2 cursor-pointer">
+                        {(['chatgpt', 'gemini', 'claude'] as const).map((p) => (
+                            <label key={p} className="inline-flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="radio"
                                     name="ai_provider"
-                                    value={provider}
+                                    value={p}
                                     className="w-4 h-4 m-0! border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                    checked={(options.ai_provider ?? 'chatgpt') === provider}
-                                    onChange={() => setOptions({ ai_provider: provider })}
+                                    checked={provider === p}
+                                    onChange={() => setOptions({ ai_provider: p })}
                                 />
                                 <span className="text-base text-gray-900">
-                                    {provider === 'chatgpt' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude'}
+                                    {p === 'chatgpt' ? 'ChatGPT' : p === 'gemini' ? 'Gemini' : 'Claude'}
                                 </span>
                             </label>
                         ))}
@@ -46,7 +48,20 @@ export default function AiSettings() {
                     <p className="text-sm text-gray-500">Select which AI provider to use. All API keys you enter are saved; only the active provider&apos;s key is used.</p>
                 </SettingRow>
 
-                {(options.ai_provider ?? 'chatgpt') === 'chatgpt' && (
+                <SettingRow label="Send Image to AI:" bordered>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 m-0! border-gray-300 text-blue-600 focus:ring-blue-500 rounded cursor-pointer"
+                            checked={options.ai_send_image ?? false}
+                            onChange={(e) => setOptions({ ai_send_image: e.target.checked })}
+                        />
+                        <span className="text-base text-gray-900">Send image data to AI (uses more API tokens)</span>
+                    </label>
+                    <p className="text-sm text-gray-500">When enabled, the actual image is base64-encoded and sent to the AI for visual analysis. When disabled, the AI generates content using text context only: site title, tagline, filename, and attached post title.</p>
+                </SettingRow>
+
+                {provider === 'chatgpt' && (
                     <>
                         <SettingRow label="ChatGPT API Key:" bordered>
                             <div className="relative w-full max-w-md">
@@ -101,7 +116,7 @@ export default function AiSettings() {
                     </>
                 )}
 
-                {(options.ai_provider ?? 'chatgpt') === 'gemini' && (
+                {provider === 'gemini' && (
                     <>
                         <SettingRow label="Gemini API Key:" bordered>
                             <div className="relative w-full max-w-md">
@@ -134,7 +149,7 @@ export default function AiSettings() {
                     </>
                 )}
 
-                {(options.ai_provider ?? 'chatgpt') === 'claude' && (
+                {provider === 'claude' && (
                     <>
                         <SettingRow label="Claude API Key:" bordered>
                             <div className="relative w-full max-w-md">

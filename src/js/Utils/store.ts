@@ -110,6 +110,7 @@ export interface OptionsState {
     media_rename_suffix?: string;
     auto_rename_by_post_title?: string;
     ai_provider?: 'chatgpt' | 'gemini' | 'claude';
+    ai_send_image?: boolean;
     ai_chatgpt_key?: string;
     ai_chatgpt_model?: string;
     ai_gemini_key?: string;
