@@ -502,6 +502,8 @@ class Fns {
 			$options['rubbish_per_page'] = self::maximum_media_per_page() < $total_rabbis_count ? self::maximum_media_per_page() : $total_rabbis_count;
 		}
 
+		$options['ai_max_suggestion_count'] = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
+
 		return wp_parse_args( $options, $defaults );
 	}
 

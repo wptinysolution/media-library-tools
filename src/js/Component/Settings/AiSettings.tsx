@@ -16,7 +16,7 @@ const EyeOffIcon = () => (
 );
 
 export default function AiSettings() {
-    const { options, setOptions } = useStore();
+    const { options, setOptions, setGeneralData } = useStore();
     const [showKey, setShowKey] = useState(false);
 
     const provider = options.ai_provider ?? 'gemini';
@@ -59,6 +59,28 @@ export default function AiSettings() {
                         <span className="text-base text-gray-900">Send image data to AI (uses more API tokens)</span>
                     </label>
                     <p className="text-sm text-gray-500">When enabled, the actual image is base64-encoded and sent to the AI for visual analysis. When disabled, the AI generates content using text context only: site title, tagline, filename, and attached post title.</p>
+                </SettingRow>
+
+                <SettingRow label="Number of Suggestions:" bordered>
+                    <select
+                        className="w-24 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        value={options.ai_suggestion_count ?? 1}
+                        onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            if ((options.ai_max_suggestion_count ?? 1) <= 1 && val > 1) {
+                                setGeneralData({ openProModal: true });
+                            } else {
+                                setOptions({ ai_suggestion_count: val });
+                            }
+                        }}
+                    >
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                            <option key={n} value={n}>{n}</option>
+                        ))}
+                    </select>
+                    {(options.ai_max_suggestion_count ?? 1) <= 1 && (
+                        <p className="text-sm text-amber-600">Selecting more than 1 requires Pro.</p>
+                    )}
                 </SettingRow>
 
                 {provider === 'chatgpt' && (

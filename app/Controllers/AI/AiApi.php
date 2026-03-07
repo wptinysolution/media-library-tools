@@ -98,6 +98,17 @@ class AiApi {
 
 		$prompt .= $context;
 
+		// Determine suggestion count: user setting capped by the Pro-controlled max.
+		$max_count = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
+		$count     = min( $max_count, max( 1, (int) ( $settings['ai_suggestion_count'] ?? 1 ) ) );
+
+		if ( $count > 1 ) {
+			$prompt .= sprintf(
+				' Provide %d different suggestions. Number each one (e.g. "1. suggestion"). Put each suggestion on its own line. Return only the numbered list, nothing else.',
+				$count
+			);
+		}
+
 		switch ( $provider ) {
 			case 'gemini':
 				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
@@ -117,7 +128,24 @@ class AiApi {
 				break;
 		}
 
-		return [ 'text' => $text ];
+		// Parse numbered suggestions when count > 1, otherwise wrap single text.
+		if ( $count > 1 ) {
+			$lines       = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
+			$suggestions = [];
+			foreach ( $lines as $line ) {
+				$clean = preg_replace( '/^\d+[\.\)]\s*/', '', $line );
+				if ( '' !== $clean ) {
+					$suggestions[] = $clean;
+				}
+			}
+			if ( empty( $suggestions ) ) {
+				$suggestions = [ $text ];
+			}
+		} else {
+			$suggestions = [ $text ];
+		}
+
+		return [ 'suggestions' => $suggestions ];
 	}
 
 	// -------------------------------------------------------------------------
