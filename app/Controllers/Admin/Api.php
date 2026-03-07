@@ -123,8 +123,8 @@ class Api {
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
 		$tsmlt_media['ai_provider']      = in_array( $parameters['ai_provider'] ?? '', [ 'chatgpt', 'gemini', 'claude' ], true ) ? $parameters['ai_provider'] : 'gemini';
-		$tsmlt_media['ai_send_image']    = ! empty( $parameters['ai_send_image'] );
 		$ai_max                          = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
+		$tsmlt_media['ai_send_image']    = $ai_max > 1 && ! empty( $parameters['ai_send_image'] );
 		$tsmlt_media['ai_suggestion_count'] = min( $ai_max, max( 1, (int) ( $parameters['ai_suggestion_count'] ?? 1 ) ) );
 		$tsmlt_media['ai_chatgpt_key']   = sanitize_text_field( $parameters['ai_chatgpt_key']   ?? '' );
 		$tsmlt_media['ai_chatgpt_model'] = sanitize_text_field( $parameters['ai_chatgpt_model'] ?? '' );

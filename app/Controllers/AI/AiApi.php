@@ -34,6 +34,34 @@ class AiApi {
 	];
 
 	/**
+	 * Base64-encoded image data set by the Pro plugin via set_image_data().
+	 * Empty string when Pro is not active or image sending is disabled.
+	 *
+	 * @var string
+	 */
+	private string $image_base64 = '';
+
+	/**
+	 * MIME type of the attachment image (set alongside $image_base64).
+	 *
+	 * @var string
+	 */
+	private string $image_mime = '';
+
+	/**
+	 * Called by the Pro plugin to supply image data for vision API calls.
+	 *
+	 * @param string $base64 Base64-encoded image data.
+	 * @param string $mime   MIME type of the image.
+	 *
+	 * @return void
+	 */
+	public function set_image_data( string $base64, string $mime ): void {
+		$this->image_base64 = $base64;
+		$this->image_mime   = $mime;
+	}
+
+	/**
 	 * Generate AI content for an attachment field.
 	 *
 	 * @param array $params {
@@ -41,7 +69,7 @@ class AiApi {
 	 *     @type string $field_type     One of: title, alt_text, caption, description, filename.
 	 * }
 	 *
-	 * @return array{text: string}
+	 * @return array{suggestions: string[]}
 	 * @throws \Exception On configuration or API errors.
 	 */
 	public function generate( array $params ): array {
@@ -54,32 +82,14 @@ class AiApi {
 
 		$settings = get_option( 'tsmlt_settings', [] );
 
-		$provider = $settings['ai_provider'] ?? 'chatgpt';
+		$provider = $settings['ai_provider'] ?? 'gemini';
 		$prompt   = self::PROMPTS[ $field_type ];
 
-		// Load the attachment file and detect MIME type.
+		// Filename is used in the text context (WP metadata lookup, no file I/O).
 		$file_path = get_attached_file( $attachment_id );
-		$base64    = '';
-		$mime      = '';
 
-		if ( $file_path && file_exists( $file_path ) ) {
-			$mime = mime_content_type( $file_path );
-			if ( ! $mime ) {
-				$mime = (string) get_post_mime_type( $attachment_id );
-			}
-		}
-
-		// Only base64-encode actual image files when the user opts in.
-		$send_image = ! empty( $settings['ai_send_image'] );
-		$is_image   = $mime && ( 0 === strpos( $mime, 'image/' ) );
-
-		if ( $send_image && $is_image && $file_path && file_exists( $file_path ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file read; no HTTP involved.
-			$file_data = file_get_contents( $file_path );
-			if ( false !== $file_data ) {
-				$base64 = base64_encode( $file_data ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Required by AI vision APIs.
-			}
-		}
+		// Pro plugin loads the file, detects MIME, and calls set_image_data() on this instance.
+		do_action( 'tsmlt_ai_prepare_image', $this, $attachment_id, $settings, $file_path );
 
 		// Always append text context (site title, filename, attached post) to the prompt.
 		$filename        = $file_path ? basename( $file_path ) : get_the_title( $attachment_id );
@@ -113,18 +123,18 @@ class AiApi {
 			case 'gemini':
 				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.0-flash';
-				$text  = $this->call_gemini( $key, $base64, $mime, $prompt, $model );
+				$text  = $this->call_gemini( $key, $prompt, $model );
 				break;
 			case 'claude':
 				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
-				$text  = $this->call_claude( $key, $base64, $mime, $prompt, $model );
+				$text  = $this->call_claude( $key, $prompt, $model );
 				break;
 			case 'chatgpt':
 			default:
 				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-4o-mini';
-				$text  = $this->call_openai( $key, $base64, $mime, $prompt, $model );
+				$text  = $this->call_openai( $key, $prompt, $model );
 				break;
 		}
 
@@ -133,7 +143,7 @@ class AiApi {
 			$lines       = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
 			$suggestions = [];
 			foreach ( $lines as $line ) {
-				$clean = preg_replace( '/^\d+[\.\)]\s*/', '', $line );
+				$clean = preg_replace( '/^\d+[.)]\s*/', '', $line );
 				if ( '' !== $clean ) {
 					$suggestions[] = $clean;
 				}
@@ -153,37 +163,23 @@ class AiApi {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Call the OpenAI GPT-4o-mini API.
+	 * Call the OpenAI API.
 	 *
 	 * @param string $key    API key.
-	 * @param string $base64 Base64-encoded image data (empty string for non-images).
-	 * @param string $mime   MIME type of the file.
 	 * @param string $prompt Text prompt.
+	 * @param string $model  Model ID.
 	 *
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_openai( string $key, string $base64, string $mime, string $prompt, string $model ): string {
+	private function call_openai( string $key, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'OpenAI API key is not configured.', 'media-library-tools' ) );
 		}
-		
-		$content = [];
 
-		if ( $base64 ) {
-			$content[] = [
-				'type'      => 'image_url',
-				'image_url' => [
-					'url'    => 'data:' . $mime . ';base64,' . $base64,
-					'detail' => 'low',
-				],
-			];
-		}
-
-		$content[] = [
-			'type' => 'text',
-			'text' => $prompt,
-		];
+		// Pro plugin injects the image block via filter; free returns empty array.
+		$content   = (array) apply_filters( 'tsmlt_ai_openai_image_content', [], $this->image_base64, $this->image_mime );
+		$content[] = [ 'type' => 'text', 'text' => $prompt ];
 
 		$body = wp_json_encode(
 			[
@@ -235,29 +231,19 @@ class AiApi {
 	 * Call the Google Gemini API.
 	 *
 	 * @param string $key    API key.
-	 * @param string $base64 Base64-encoded image data (empty string for non-images).
-	 * @param string $mime   MIME type of the file.
 	 * @param string $prompt Text prompt.
+	 * @param string $model  Model ID.
 	 *
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_gemini( string $key, string $base64, string $mime, string $prompt, string $model ): string {
+	private function call_gemini( string $key, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'Gemini API key is not configured.', 'media-library-tools' ) );
 		}
 
-		$parts = [];
-
-		if ( $base64 ) {
-			$parts[] = [
-				'inline_data' => [
-					'mime_type' => $mime,
-					'data'      => $base64,
-				],
-			];
-		}
-
+		// Pro plugin injects the image part via filter; free returns empty array.
+		$parts   = (array) apply_filters( 'tsmlt_ai_gemini_image_parts', [], $this->image_base64, $this->image_mime );
 		$parts[] = [ 'text' => $prompt ];
 
 		$body = wp_json_encode(
@@ -306,35 +292,20 @@ class AiApi {
 	 * Call the Anthropic Claude API.
 	 *
 	 * @param string $key    API key.
-	 * @param string $base64 Base64-encoded image data (empty string for non-images).
-	 * @param string $mime   MIME type of the file.
 	 * @param string $prompt Text prompt.
+	 * @param string $model  Model ID.
 	 *
 	 * @return string Generated text.
 	 * @throws \Exception On request or API error.
 	 */
-	private function call_claude( string $key, string $base64, string $mime, string $prompt, string $model ): string {
+	private function call_claude( string $key, string $prompt, string $model ): string {
 		if ( empty( $key ) ) {
 			throw new \Exception( esc_html__( 'Claude API key is not configured.', 'media-library-tools' ) );
 		}
 
-		$content = [];
-
-		if ( $base64 ) {
-			$content[] = [
-				'type'   => 'image',
-				'source' => [
-					'type'       => 'base64',
-					'media_type' => $mime,
-					'data'       => $base64,
-				],
-			];
-		}
-
-		$content[] = [
-			'type' => 'text',
-			'text' => $prompt,
-		];
+		// Pro plugin injects the image block via filter; free returns empty array.
+		$content   = (array) apply_filters( 'tsmlt_ai_claude_image_content', [], $this->image_base64, $this->image_mime );
+		$content[] = [ 'type' => 'text', 'text' => $prompt ];
 
 		$body = wp_json_encode(
 			[

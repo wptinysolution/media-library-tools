@@ -54,11 +54,20 @@ export default function AiSettings() {
                             type="checkbox"
                             className="w-4 h-4 m-0! border-gray-300 text-blue-600 focus:ring-blue-500 rounded cursor-pointer"
                             checked={options.ai_send_image ?? false}
-                            onChange={(e) => setOptions({ ai_send_image: e.target.checked })}
+                            onChange={(e) => {
+                                if ((options.ai_max_suggestion_count ?? 1) <= 1 && e.target.checked) {
+                                    setGeneralData({ openProModal: true });
+                                } else {
+                                    setOptions({ ai_send_image: e.target.checked });
+                                }
+                            }}
                         />
                         <span className="text-base text-gray-900">Send image data to AI (uses more API tokens)</span>
                     </label>
                     <p className="text-sm text-gray-500">When enabled, the actual image is base64-encoded and sent to the AI for visual analysis. When disabled, the AI generates content using text context only: site title, tagline, filename, and attached post title.</p>
+                    {(options.ai_max_suggestion_count ?? 1) <= 1 && (
+                        <p className="text-sm text-amber-600">Sending image data requires Pro.</p>
+                    )}
                 </SettingRow>
 
                 <SettingRow label="Number of Suggestions:" bordered>
