@@ -111,7 +111,7 @@ class AiApi {
 		// Free: always 3 suggestions (1 selectable, rest blurred). Pro: user setting.
 		$max_count = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 		$count     = $max_count > 1
-			? min( $max_count, max( 1, (int) ( $settings['ai_suggestion_count'] ?? 3 ) ) )
+			? min( $max_count, max( 5, (int) ( $settings['ai_suggestion_count'] ?? 5 ) ) )
 			: 3;
 
 		$prompt .= sprintf(
