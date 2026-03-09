@@ -23,8 +23,12 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
             });
             const response = await Axios.post(tsmltParams.ajaxUrl, body);
             const envelope = response.data;
-            if (envelope && envelope.success && Array.isArray(envelope.data?.suggestions)) {
-                setSuggestions(envelope.data.suggestions);
+            if (envelope && envelope.success && Array.isArray(envelope.data?.suggestions) && envelope.data.suggestions.length) {
+                if (envelope.data.suggestions.length === 1) {
+                    onSuccess(envelope.data.suggestions[0]);
+                } else {
+                    setSuggestions(envelope.data.suggestions);
+                }
             } else {
                 const message = envelope?.data?.message || 'AI generation failed. Check your API key.';
                 notifications(false, message);
