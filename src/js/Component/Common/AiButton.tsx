@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { notifications } from '@/js/Utils/Data';
 import Axios from 'axios';
 
@@ -6,9 +6,10 @@ interface AiButtonProps {
     attachmentId: number;
     fieldType: 'title' | 'alt_text' | 'caption' | 'description' | 'filename';
     onSuccess: (value: string) => void;
+    className?: string;
 }
 
-export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButtonProps) {
+export default function AiButton({ attachmentId, fieldType, onSuccess, className = '' }: AiButtonProps) {
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
 
@@ -44,13 +45,13 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
     };
 
     return (
-        <div className="relative">
+        <div className={`${className}`}>
             <button
                 type="button"
                 onClick={handleClick}
                 disabled={loading}
                 title={`Generate ${fieldType.replace('_', ' ')} with AI`}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer"
+                className="inline-flex text-purple-700 items-center justify-center w-10 h-7 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer"
             >
                 {loading ? (
                     <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -58,13 +59,14 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                 ) : (
-                    <span>✨</span>
+                   <>
+                       <span className="text-sm leading-none text-blue-600">✨</span>  {loading ? 'Generating...' : 'AI'}
+                   </>
                 )}
-                {loading ? 'Generating...' : 'AI'}
             </button>
 
             {suggestions.length > 0 && (
-                <div className="absolute z-50 mt-1 right-0 w-80 bg-white border border-purple-200 rounded-md shadow-lg">
+                <div className="absolute z-50 top-full mt-1 left-0 w-80 bg-white border border-purple-200 rounded-md shadow-lg">
                     <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
                         <span className="text-xs font-semibold text-purple-700">Select a suggestion</span>
                         <button
