@@ -508,7 +508,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
                                         value={record.thefile.filebasename}
                                     />
                                         <AiButton
-                                            className="absolute left-1.5 top-1/2 -translate-y-1/2"
+                                            className="absolute left-1.5 top-1.5"
                                             attachmentId={record.ID}
                                             fieldType="filename"
                                             onSuccess={(value) => {
