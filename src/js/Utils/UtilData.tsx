@@ -235,7 +235,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                             <div className="relative">
                                 <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
                                 <AiButton
-                                        className="absolute left-1.5 top-1.5 z-10"
+                                        className="absolute left-1.5 top-1.5"
                                         attachmentId={record.ID}
                                         fieldType="title"
                                         onSuccess={(value) => {
@@ -270,7 +270,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                             <div className="relative">
                                 <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
                                 <AiButton
-                                        className="absolute left-1.5 top-1.5 z-10"
+                                        className="absolute left-1.5 top-1.5"
                                         attachmentId={record.ID}
                                         fieldType="alt_text"
                                         onSuccess={(value) => {
@@ -304,7 +304,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                             <div className="relative">
                                 <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
                                 <AiButton
-                                        className="absolute left-1.5 top-1.5 z-10"
+                                        className="absolute left-1.5 top-1.5"
                                         attachmentId={record.ID}
                                         fieldType="caption"
                                         onSuccess={(value) => {
@@ -338,7 +338,7 @@ export function columns(): ColumnDef<MediaPost>[] {
                             <div className="relative">
                                 <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
                                 <AiButton
-                                        className="absolute left-1.5 top-1.5 z-10"
+                                        className="absolute left-1.5 top-1.5"
                                         attachmentId={record.ID}
                                         fieldType="description"
                                         onSuccess={(value) => {
@@ -508,7 +508,7 @@ export function renamerColumns(): ColumnDef<MediaPost>[] {
                                         value={record.thefile.filebasename}
                                     />
                                         <AiButton
-                                            className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10"
+                                            className="absolute left-1.5 top-1/2 -translate-y-1/2"
                                             attachmentId={record.ID}
                                             fieldType="filename"
                                             onSuccess={(value) => {

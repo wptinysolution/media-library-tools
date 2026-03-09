@@ -71,25 +71,26 @@ export default function AiSettings() {
                 </SettingRow>
 
                 <SettingRow label="Number of Suggestions:" bordered>
-                    <select
-                        className="w-24 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                        value={options.ai_suggestion_count ?? 5}
-                        onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            if ((options.ai_max_suggestion_count ?? 1) <= 1) {
-                                setGeneralData({ openProModal: true });
-                            } else {
-                                setOptions({ ai_suggestion_count: val });
-                            }
-                        }}
-                    >
-                        {Array.from({ length: 6 }, (_, i) => i + 5).map((n) => (
-                            <option key={n} value={n}>{n}</option>
-                        ))}
-                    </select>
-                    {(options.ai_max_suggestion_count ?? 1) <= 1 && (
-                        <p className="text-sm text-amber-600">Selecting more than 1 requires Pro.</p>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <select
+                            className="w-24 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            value={options.ai_suggestion_count ?? 5}
+                            onChange={(e) => {
+                                if ((options.ai_max_suggestion_count ?? 1) <= 1) {
+                                    setGeneralData({ openProModal: true });
+                                } else {
+                                    setOptions({ ai_suggestion_count: parseInt(e.target.value, 10) });
+                                }
+                            }}
+                        >
+                            {Array.from({ length: 6 }, (_, i) => i + 5).map((n) => (
+                                <option key={n} value={n}>{n}</option>
+                            ))}
+                        </select>
+                        {(options.ai_max_suggestion_count ?? 1) <= 1 && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Pro feature</span>
+                        )}
+                    </div>
                 </SettingRow>
 
                 {provider === 'chatgpt' && (
