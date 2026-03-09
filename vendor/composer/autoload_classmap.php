@@ -32,6 +32,7 @@ return array(
     'CodesVault\\Howdyqb\\Validation\\IdentifierValidator' => $vendorDir . '/codesvault/howdy-qb/src/Validation/IdentifierValidator.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'TinySolutions\\mlt\\Abs\\Discount' => $baseDir . '/app/Abs/Discount.php',
+    'TinySolutions\\mlt\\Controllers\\AI\\AiApi' => $baseDir . '/app/Controllers/AI/AiApi.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\Api' => $baseDir . '/app/Controllers/Admin/Api.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => $baseDir . '/app/Controllers/Admin/RegisterPostAndTax.php',
     'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => $baseDir . '/app/Controllers/Admin/SubMenu.php',

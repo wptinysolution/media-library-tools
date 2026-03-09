@@ -63,6 +63,7 @@ class ComposerStaticInit623f683c6bfce6552338e9f79cf4d127
         'CodesVault\\Howdyqb\\Validation\\IdentifierValidator' => __DIR__ . '/..' . '/codesvault/howdy-qb/src/Validation/IdentifierValidator.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/../..' . '/app/Abs/Discount.php',
+        'TinySolutions\\mlt\\Controllers\\AI\\AiApi' => __DIR__ . '/../..' . '/app/Controllers/AI/AiApi.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/../..' . '/app/Controllers/Admin/Api.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => __DIR__ . '/../..' . '/app/Controllers/Admin/RegisterPostAndTax.php',
         'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/../..' . '/app/Controllers/Admin/SubMenu.php',

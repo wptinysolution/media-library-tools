@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -180,7 +180,8 @@ To search for images by categories, users can find the categories box near the F
 
 
 == Changelog ==
-= 2.1.1 ( xx xx, 2026 ) =
+= 2.1.1 ( Mar 10, 2026 ) =
+* Added: AI content generator — generate title, alt text, caption, description, and filename using ChatGPT, Gemini, or Claude directly from the media table
 * Updated: Update "codesvault/howdy-qb" Composer Dependencies
 * Fixed: Custom Table Query Truncate Function Updated
 

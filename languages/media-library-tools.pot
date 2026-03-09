@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Library Tools - Rename, Clean & CSV Import/Export 2.1.0\n"
+"Project-Id-Version: Media Library Tools - Rename, Clean & CSV Import/Export 2.1.1-rc-1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-library-tools\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-04T13:15:26+00:00\n"
+"POT-Creation-Date: 2026-03-09T18:54:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -47,90 +47,90 @@ msgstr ""
 msgid "Update failed. Maybe change not found. "
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:131
+#: app/Controllers/Admin/Api.php:142
 msgid "Please try to fix"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:131
+#: app/Controllers/Admin/Api.php:142
 msgid "Updated. Be happy"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:203
-#: app/Controllers/Admin/Api.php:299
-#: app/Controllers/Admin/Api.php:569
-#: app/Controllers/Admin/Api.php:663
-#: app/Controllers/Admin/Api.php:738
-#: app/Controllers/Admin/Api.php:757
+#: app/Controllers/Admin/Api.php:214
+#: app/Controllers/Admin/Api.php:310
+#: app/Controllers/Admin/Api.php:580
+#: app/Controllers/Admin/Api.php:674
+#: app/Controllers/Admin/Api.php:749
+#: app/Controllers/Admin/Api.php:768
 msgid "Update failed. Please try to fix"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:228
+#: app/Controllers/Admin/Api.php:239
 msgid "Rename failed. Please try again."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:254
+#: app/Controllers/Admin/Api.php:265
 msgid "Renamed."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:256
+#: app/Controllers/Admin/Api.php:267
 msgid "Rename failed. The file may not exist or file permissions may be incorrect."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:272
+#: app/Controllers/Admin/Api.php:283
 msgid "Update failed."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:288
-#: app/Controllers/Admin/Api.php:317
+#: app/Controllers/Admin/Api.php:299
+#: app/Controllers/Admin/Api.php:328
 msgid "Saved."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:314
+#: app/Controllers/Admin/Api.php:325
 msgid "The Title has been saved."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:315
+#: app/Controllers/Admin/Api.php:326
 msgid "The Caption has been saved."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:316
+#: app/Controllers/Admin/Api.php:327
 msgid "Content has been saved."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:347
+#: app/Controllers/Admin/Api.php:358
 msgid "Update failed. Please try to fix."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:585
-#: app/Controllers/Admin/Api.php:662
+#: app/Controllers/Admin/Api.php:596
+#: app/Controllers/Admin/Api.php:673
 msgid "Updated. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:600
+#: app/Controllers/Admin/Api.php:611
 msgid "Done. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:614
+#: app/Controllers/Admin/Api.php:625
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:615
+#: app/Controllers/Admin/Api.php:626
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:707
+#: app/Controllers/Admin/Api.php:718
 msgid "Schedule Will Execute Soon."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:710
+#: app/Controllers/Admin/Api.php:721
 msgid "Schedule Will Execute Soon For Directory List."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:757
+#: app/Controllers/Admin/Api.php:768
 msgid "Done, Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:770
+#: app/Controllers/Admin/Api.php:781
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
@@ -185,6 +185,34 @@ msgstr ""
 msgid "Media Tools Settings"
 msgstr ""
 
+#: app/Controllers/AI/AiApi.php:80
+msgid "Invalid parameters."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:173
+msgid "OpenAI API key is not configured."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:220
+msgid "Empty response from OpenAI."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:238
+msgid "Gemini API key is not configured."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:281
+msgid "Empty response from Gemini."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:299
+msgid "Claude API key is not configured."
+msgstr ""
+
+#: app/Controllers/AI/AiApi.php:347
+msgid "Empty response from Claude."
+msgstr ""
+
 #. translators: 1: Plugin name 2: PHP 3: Required PHP version
 #: app/Controllers/Dependencies.php:48
 #, php-format
@@ -207,21 +235,21 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:80
-#: app/Controllers/Hooks/Ajax.php:130
+#: app/Controllers/Hooks/Ajax.php:84
+#: app/Controllers/Hooks/Ajax.php:134
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:85
+#: app/Controllers/Hooks/Ajax.php:89
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:93
-#: app/Controllers/Hooks/Ajax.php:136
+#: app/Controllers/Hooks/Ajax.php:97
+#: app/Controllers/Hooks/Ajax.php:140
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:102
+#: app/Controllers/Hooks/Ajax.php:106
 msgid "Malformed request payload."
 msgstr ""
 
@@ -286,6 +314,78 @@ msgstr ""
 
 #: app/Controllers/Hooks/FilterHooks.php:464
 msgid "Please open a support ticket."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:331
+msgid "Quick Feedback: How can we improve the plugin?"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:335
+msgid "We're sorry to see you go! Before you leave, could you spare a moment to tell us why? Your feedback helps us make the plugin better for everyone."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:339
+msgid "Having trouble? Our support team is here to help."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:340
+msgid "Contact Support"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:344
+msgid "Or tell us why you're leaving"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:354
+msgid "Bug or issue detected"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:362
+msgid "I no longer need the plugin"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:370
+msgid "I found a better plugin"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:374
+msgid "Which plugin did you switch to?"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:382
+msgid "I couldn't get the plugin to work"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:390
+msgid "It's a temporary deactivation"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:398
+msgid "How can we improve the plugin? Any details help..."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:403
+msgid "Deactivating will disable scheduled features like the rubbish file scanner. See the Settings page for details."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:774
+msgid "Send Feedback & Deactivate"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:775
+msgid "Skip & Deactivate"
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:785
+msgid "Please choose a reason before submitting."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:791
+msgid "Kindly share a few details so we can address this in a future update."
+msgstr ""
+
+#: app/Controllers/Notice/Review.php:801
+msgid "Sending…"
 msgstr ""
 
 #: app/Traits/SingletonTrait.php:41
