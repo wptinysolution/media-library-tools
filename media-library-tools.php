@@ -44,6 +44,14 @@ register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
 // Register Plugin Deactivate Hook.
 register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
 
+// Redirect to settings page on activation.
+add_action( 'activated_plugin', function ( $plugin ) {
+	if ( TSMLT_BASENAME === $plugin && ! ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) ) {
+		wp_safe_redirect( admin_url( 'upload.php?page=media-library-tools' ) );
+		exit;
+	}
+} );
+
 /**
  * App Init.
  */
