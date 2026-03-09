@@ -12,6 +12,8 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
 
+    const isPro = !!tsmltParams.hasExtended;
+
     const handleClick = async () => {
         setSuggestions([]);
         setLoading(true);
@@ -24,11 +26,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
             const response = await Axios.post(tsmltParams.ajaxUrl, body);
             const envelope = response.data;
             if (envelope && envelope.success && Array.isArray(envelope.data?.suggestions) && envelope.data.suggestions.length) {
-                if (envelope.data.suggestions.length === 1) {
-                    onSuccess(envelope.data.suggestions[0]);
-                } else {
-                    setSuggestions(envelope.data.suggestions);
-                }
+                setSuggestions(envelope.data.suggestions);
             } else {
                 const message = envelope?.data?.message || 'AI generation failed. Check your API key.';
                 notifications(false, message);
@@ -65,7 +63,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
                 {loading ? 'Generating...' : 'AI'}
             </button>
 
-            {suggestions.length > 1 && (
+            {suggestions.length > 0 && (
                 <div className="absolute z-50 mt-1 right-0 w-80 bg-white border border-purple-200 rounded-md shadow-lg">
                     <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
                         <span className="text-xs font-semibold text-purple-700">Select a suggestion</span>
@@ -77,16 +75,34 @@ export default function AiButton({ attachmentId, fieldType, onSuccess }: AiButto
                             ✕
                         </button>
                     </div>
-                    {suggestions.map((s, i) => (
-                        <button
-                            key={i}
-                            type="button"
-                            onClick={() => handleSelect(s)}
-                            className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 border-b border-gray-100 last:border-b-0 cursor-pointer"
-                        >
-                            <span className="font-semibold text-purple-600 mr-2">{i + 1}.</span>{s}
-                        </button>
-                    ))}
+                    {suggestions.map((s, i) => {
+                        const isLocked = !isPro && i > 0;
+                        return (
+                            <button
+                                key={i}
+                                type="button"
+                                onClick={() => isLocked ? window.open(tsmltParams.proLink, '_blank') : handleSelect(s)}
+                                className={`relative block w-full text-left px-3 py-2 text-sm border-b border-gray-100 last:border-b-0 cursor-pointer ${isLocked ? 'select-none' : 'text-gray-700 hover:bg-purple-50'}`}
+                            >
+                                {isLocked ? (
+                                    <>
+                                        <span className="blur-[3px] pointer-events-none">
+                                            <span className="font-semibold text-purple-600 mr-2">{i + 1}.</span>{s}
+                                        </span>
+                                        <span className="absolute inset-0 flex items-center justify-center">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded">
+                                                Pro
+                                            </span>
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="font-semibold text-purple-600 mr-2">{i + 1}.</span>{s}
+                                    </>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
         </div>
