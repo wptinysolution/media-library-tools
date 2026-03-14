@@ -26,11 +26,11 @@ class AiApi {
 	 * @var array<string, string>
 	 */
 	private const PROMPTS = [
-		'title'       => 'Generate a concise, descriptive title for this image (3–8 words). Return only the title text, no punctuation at the end.',
-		'alt_text'    => 'Generate an accurate, descriptive alt text for this image for web accessibility (WCAG). Keep it under 125 characters. Return only the alt text.',
-		'caption'     => 'Write a brief, engaging caption for this image (1–2 sentences). Return only the caption.',
-		'description' => 'Write a detailed description of this image suitable for a media library. Return only the description.',
-		'filename'    => 'Generate a clean, SEO-friendly filename for this image (lowercase letters and hyphens only, no extension, max 50 characters). Return only the filename.',
+		'title'       => 'Generate a concise, descriptive media title for this image. Use title case. Focus on the main subject or scene. Between 3 and 8 words. No trailing punctuation. Return only the title text, nothing else.',
+		'alt_text'    => 'Write accurate, SEO-friendly alt text for this image. Describe the image content and context naturally while incorporating relevant keywords that reflect the subject. Follow WCAG 2.1 accessibility guidelines so it is meaningful for screen readers. Do not start with "image of", "picture of", or similar phrases. Maximum 125 characters. Return only the alt text, nothing else.',
+		'caption'     => 'Write a short, engaging caption for this image. Describe what is happening or shown, and add context or interest for the viewer. 1 to 2 sentences maximum. No hashtags. Return only the caption text, nothing else.',
+		'description' => 'Write a detailed, SEO-friendly description of this image for a WordPress media library. Describe the main subject, visual elements, mood, and any relevant context. Use natural language with relevant keywords. 2 to 4 sentences. Return only the description text, nothing else.',
+		'filename'    => 'Generate an SEO-friendly filename for this image. Use descriptive keywords that reflect the main subject. Use only lowercase letters and hyphens — no spaces, underscores, numbers, or special characters. Maximum 50 characters. No file extension. Return only the filename, nothing else.',
 	];
 
 	/**
