@@ -26,11 +26,11 @@ class AiApi {
 	 * @var array<string, string>
 	 */
 	private const PROMPTS = [
-		'title'       => 'Generate a concise, descriptive media title for this image. Use title case. Focus on the main subject or scene. Between 3 and 8 words. No trailing punctuation. Return only the title text, nothing else.',
-		'alt_text'    => 'Write accurate, SEO-friendly alt text for this image. Describe the image content and context naturally while incorporating relevant keywords that reflect the subject. Follow WCAG 2.1 accessibility guidelines so it is meaningful for screen readers. Do not start with "image of", "picture of", or similar phrases. Maximum 125 characters. Return only the alt text, nothing else.',
-		'caption'     => 'Write a short, engaging caption for this image. Describe what is happening or shown, and add context or interest for the viewer. 1 to 2 sentences maximum. No hashtags. Return only the caption text, nothing else.',
-		'description' => 'Write a detailed, SEO-friendly description of this image for a WordPress media library. Describe the main subject, visual elements, mood, and any relevant context. Use natural language with relevant keywords. 2 to 4 sentences. Return only the description text, nothing else.',
-		'filename'    => 'Generate an SEO-friendly filename for this image. Use descriptive keywords that reflect the main subject. Use only lowercase letters and hyphens — no spaces, underscores, numbers, or special characters. Maximum 50 characters. No file extension. Return only the filename, nothing else.',
+		'title'       => 'Generate a concise, descriptive media title for this image. Use title case. Focus on the main subject or scene. The title should be relevant to the site and its content. Between 3 and 8 words. No trailing punctuation. Return only the title text, nothing else.',
+		'alt_text'    => 'Write accurate, SEO-friendly alt text for this image. Describe the image content and context naturally while incorporating relevant keywords that reflect both the subject and the site context. Follow WCAG 2.1 accessibility guidelines so it is meaningful for screen readers. Do not start with "image of", "picture of", or similar phrases. Maximum 125 characters. Return only the alt text, nothing else.',
+		'caption'     => 'Write a short, engaging caption for this image. Describe what is happening or shown, and add context relevant to the site and its content. 1 to 2 sentences maximum. No hashtags. Return only the caption text, nothing else.',
+		'description' => 'Write a detailed, SEO-friendly description of this image for a WordPress media library. Describe the main subject, visual elements, mood, and any relevant context. Incorporate keywords relevant to the site and the content the image is associated with. Use natural language. 2 to 4 sentences. Return only the description text, nothing else.',
+		'filename'    => 'Generate an SEO-friendly filename for this image. Use descriptive keywords that reflect the main subject and are relevant to the site context. Use only lowercase letters and hyphens — no spaces, underscores, numbers, or special characters. Maximum 50 characters. No file extension. Return only the filename, nothing else.',
 	];
 
 	/**
@@ -91,19 +91,49 @@ class AiApi {
 		// Pro plugin loads the file, detects MIME, and calls set_image_data() on this instance.
 		do_action( 'tsmlt_ai_prepare_image', $this, $attachment_id, $settings, $file_path );
 
-		// Always append text context (site title, filename, attached post) to the prompt.
-		$filename        = $file_path ? basename( $file_path ) : get_the_title( $attachment_id );
+		// Always append text context to the prompt.
+		$filename        = $file_path ? basename( $file_path ) : '';
 		$attachment_post = get_post( $attachment_id );
-		$attached_title  = ( $attachment_post && $attachment_post->post_parent )
-			? get_the_title( $attachment_post->post_parent )
-			: '';
+
+		// Existing attachment metadata.
+		$current_title   = $attachment_post ? $attachment_post->post_title : '';
+		$current_alt     = get_post_meta( $attachment_id, '_wp_attachment_alt', true );
+		$current_caption = $attachment_post ? $attachment_post->post_excerpt : '';
+
+		// Parent post context.
+		$parent_title   = '';
+		$parent_type    = '';
+		$parent_excerpt = '';
+		if ( $attachment_post && $attachment_post->post_parent ) {
+			$parent        = get_post( $attachment_post->post_parent );
+			$parent_title  = $parent ? get_the_title( $parent ) : '';
+			$parent_type   = $parent ? $parent->post_type : '';
+			$parent_excerpt = $parent ? wp_trim_words( wp_strip_all_tags( $parent->post_content ), 30, '...' ) : '';
+		}
 
 		$context  = ' Context:';
-		$context .= ' Site title: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
-		$context .= ' Site tagline: "' . sanitize_text_field( get_bloginfo( 'description' ) ) . '".';
-		$context .= ' Filename: "' . sanitize_text_field( $filename ) . '".';
-		if ( $attached_title ) {
-			$context .= ' Attached to post: "' . sanitize_text_field( $attached_title ) . '".';
+		$context .= ' Site: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
+		$site_desc = sanitize_text_field( get_bloginfo( 'description' ) );
+		if ( $site_desc ) {
+			$context .= ' Tagline: "' . $site_desc . '".';
+		}
+		if ( $filename ) {
+			$context .= ' Filename: "' . sanitize_text_field( $filename ) . '".';
+		}
+		if ( $current_title ) {
+			$context .= ' Current title: "' . sanitize_text_field( $current_title ) . '".';
+		}
+		if ( $current_alt ) {
+			$context .= ' Current alt text: "' . sanitize_text_field( $current_alt ) . '".';
+		}
+		if ( $current_caption ) {
+			$context .= ' Current caption: "' . sanitize_text_field( $current_caption ) . '".';
+		}
+		if ( $parent_title ) {
+			$context .= ' Attached to ' . sanitize_text_field( $parent_type ) . ': "' . sanitize_text_field( $parent_title ) . '".';
+		}
+		if ( $parent_excerpt ) {
+			$context .= ' Parent content summary: "' . sanitize_text_field( $parent_excerpt ) . '".';
 		}
 
 		$prompt .= $context;
