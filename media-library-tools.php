@@ -40,9 +40,23 @@ require_once TSMLT_PATH . 'vendor/autoload.php';
 use TinySolutions\mlt\Controllers\Installation;
 
 // Register Plugin Active Hook.
-register_activation_hook( TSMLT_FILE, [ Installation::class, 'activate' ] );
+register_activation_hook( TSMLT_FILE, function () {
+	Installation::activate();
+	set_transient( 'tsmlt_activation_redirect', 1, 30 );
+} );
 // Register Plugin Deactivate Hook.
 register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
+add_action( 'admin_init', function () {
+	if ( ! get_transient( 'tsmlt_activation_redirect' ) ) {
+		return;
+	}
+	delete_transient( 'tsmlt_activation_redirect' );
+	if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) {
+		return;
+	}
+	wp_safe_redirect( admin_url( 'upload.php?page=media-library-tools' ) );
+	exit;
+} );
 
 /**
  * App Init.
