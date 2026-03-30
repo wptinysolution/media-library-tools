@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Media Rename, CSV export import, find unused media, search rubbish files, SVG support, AI content generator, bulk edit titles, ALT tags, captions & descriptions.
+Media rename, CSV import/export, unused media finder, junk file search, SVG support, AI content, bulk edit titles, ALT, captions, descriptions.
 
 == Description ==
 
