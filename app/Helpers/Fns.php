@@ -7,7 +7,7 @@
 
 namespace TinySolutions\mlt\Helpers;
 
-use CodesVault\Howdyqb\DB;
+use TinySolutions\mlt\Vendor\CodesVault\Howdyqb\DB;
 use WP_Filesystem;
 use WP_Filesystem_Direct;
 use WP_Filesystem_Base;

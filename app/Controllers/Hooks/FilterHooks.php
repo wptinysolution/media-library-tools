@@ -11,7 +11,7 @@ namespace TinySolutions\mlt\Controllers\Hooks;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
-use enshrined\svgSanitize\Sanitizer;
+use TinySolutions\mlt\Vendor\enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
 
 defined( 'ABSPATH' ) || exit();

@@ -89,3 +89,6 @@ assets/modules
 tmp
 _ext_**
 .fleet
+
+# Scoped vendor (build artifact, regenerate with: composer prefix-vendor)
+vendor_prefixed/
