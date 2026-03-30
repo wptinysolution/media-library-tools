@@ -14,10 +14,10 @@ let includes = [
     "app",
     "assets",
     "languages",
-    "vendor",
+    "vendor_prefixed",
+    "autoload.php",
     "index.php",
     "README.txt",
-    "composer.json",
     `${packageSlug}.php`,
 ];
 

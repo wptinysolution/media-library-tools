@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-29T18:28:16+00:00\n"
+"POT-Creation-Date: 2026-03-30T14:40:32+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -189,27 +189,27 @@ msgstr ""
 msgid "Invalid parameters."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:173
+#: app/Controllers/AI/AiApi.php:203
 msgid "OpenAI API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:220
+#: app/Controllers/AI/AiApi.php:250
 msgid "Empty response from OpenAI."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:238
+#: app/Controllers/AI/AiApi.php:268
 msgid "Gemini API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:281
+#: app/Controllers/AI/AiApi.php:311
 msgid "Empty response from Gemini."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:299
+#: app/Controllers/AI/AiApi.php:329
 msgid "Claude API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:347
+#: app/Controllers/AI/AiApi.php:377
 msgid "Empty response from Claude."
 msgstr ""
 

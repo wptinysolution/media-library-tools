@@ -35,7 +35,7 @@ define( 'TSMLT_ABSPATH', dirname( TSMLT_FILE ) );
 
 define( 'TSMLT_PATH', plugin_dir_path( __FILE__ ) );
 
-require_once TSMLT_PATH . 'vendor_prefixed/autoload.php';
+require_once TSMLT_PATH . 'autoload.php';
 
 use TinySolutions\mlt\Controllers\Installation;
 

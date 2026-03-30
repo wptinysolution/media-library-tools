@@ -3,7 +3,7 @@
         'name' => 'tinysolutions/media-library-tools',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'f5bdd01eca767b5306820b03c36d842e0904101d',
+        'reference' => '766cc201f64d357ea0e2d3931b234eee3a0e3ed6',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'codesvault/howdy-qb' => array(
-            'pretty_version' => '2.2.1',
-            'version' => '2.2.1.0',
-            'reference' => 'c65baa3455b32b3d24838392531ae8eb6b07d15d',
+            'pretty_version' => '2.2.2',
+            'version' => '2.2.2.0',
+            'reference' => '676efa5798e22b002c351930e94db4177e8d6c9d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../codesvault/howdy-qb',
             'aliases' => array(),
@@ -235,7 +235,7 @@
         'tinysolutions/media-library-tools' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'f5bdd01eca767b5306820b03c36d842e0904101d',
+            'reference' => '766cc201f64d357ea0e2d3931b234eee3a0e3ed6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
