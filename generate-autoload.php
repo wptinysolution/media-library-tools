@@ -2,6 +2,8 @@
 /**
  * Generates autoload.php after PHP-Scoper runs.
  *
+ * @phpcs:disable WordPress.Security.EscapeOutput -- CLI script, not a web request.
+ *
  * Scans vendor_prefixed/ for scoped packages and builds a standalone
  * PSR-4 autoloader so the vendor/ directory is not needed in production.
  *
@@ -52,6 +54,11 @@ $content = <<<'HEADER'
  *
  * @package TinySolutions\mlt
  */
+
+// Do not allow directly accessing this file.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 'This script cannot be accessed directly.' );
+}
 
 spl_autoload_register(
 	function ( $class ) {

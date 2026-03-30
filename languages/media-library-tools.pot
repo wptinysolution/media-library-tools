@@ -2,21 +2,21 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Library Tools - Rename, Clean & CSV Import/Export 2.1.1-rc-1\n"
+"Project-Id-Version: Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export 2.1.1-rc-1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-library-tools\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-30T17:55:27+00:00\n"
+"POT-Creation-Date: 2026-03-30T19:18:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
 
 #. Plugin Name of the plugin
 #: media-library-tools.php
-msgid "Media Library Tools - Rename, Clean & CSV Import/Export"
+msgid "Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the plugin
 #: media-library-tools.php
-msgid "Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score."
+msgid "AI-Powered Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score."
 msgstr ""
 
 #. Author of the plugin
@@ -189,27 +189,27 @@ msgstr ""
 msgid "Invalid parameters."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:203
+#: app/Controllers/AI/AiApi.php:204
 msgid "OpenAI API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:250
+#: app/Controllers/AI/AiApi.php:252
 msgid "Empty response from OpenAI."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:268
+#: app/Controllers/AI/AiApi.php:270
 msgid "Gemini API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:311
+#: app/Controllers/AI/AiApi.php:314
 msgid "Empty response from Gemini."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:329
+#: app/Controllers/AI/AiApi.php:332
 msgid "Claude API key is not configured."
 msgstr ""
 
-#: app/Controllers/AI/AiApi.php:377
+#: app/Controllers/AI/AiApi.php:381
 msgid "Empty response from Claude."
 msgstr ""
 
