@@ -460,7 +460,7 @@ class FilterHooks {
 	 */
 	public static function plugin_row_meta( $links, $file ) {
 		if ( $file == TSMLT_BASENAME ) {
-			$report_url         = 'https://www.wptinysolutions.com/contact';
+			$report_url         = 'https://help.wptinysolutions.com/';
 			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'media-library-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'media-library-tools' ) . '</span>' );
 
 			return array_merge( $links, $row_meta );
