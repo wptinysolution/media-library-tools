@@ -24,7 +24,7 @@
   "scripts": {
     "prefix-vendor": [
       "php-scoper add-prefix --output-dir=vendor_prefixed --force",
-      "@composer dump-autoload"
+      "@php generate-autoload.php"
     ]
   }
 }
