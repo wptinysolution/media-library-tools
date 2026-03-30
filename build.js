@@ -18,6 +18,7 @@ let includes = [
     "autoload.php",
     "index.php",
     "README.txt",
+    "composer.json",
     `${packageSlug}.php`,
 ];
 

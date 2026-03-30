@@ -32,7 +32,6 @@ Media Library Tools is a powerful WordPress plugin that helps you manage, organi
 * **Media Download Shortcode** — Create download buttons for any file type with a simple shortcode
 * **Sort & Filter** — Filter media by date, category, status, or keyword; sort by any column
 * **Number Duplicate Filenames** — Automatically appends a number when a filename already exists
-* **Image Watermark** — Apply text or image watermarks to your media files
 * **Trash Management** — Move images to trash instead of permanent deletion; restore or permanently delete
 
 == 🏆 PRO Features ==
@@ -51,7 +50,6 @@ All free features plus:
 * **Bulk Edit by Post Title** — Update media title based on the attached post title
 * **AI: Send Image to AI** — Send the actual image to AI for visual analysis and better suggestions
 * **AI: Multiple Suggestions** — Get 5–10 AI-generated suggestions to choose from
-* **Image Watermark Pro** — Auto-apply watermark on upload, backup/restore originals, bulk watermark, MIME/dimension filters
 
 == 🏆 AI Content Generator ==
 
@@ -124,20 +122,6 @@ Safely upload SVG files to your WordPress media library with automatic sanitizat
 
 * Max SVG file size: 500KB (filterable via `tsmlt_upload_max_svg_file_size`)
 * Proper width/height metadata generation for SVG files
-
-== 🏆 Image Watermark ==
-
-Protect your images by applying text or image watermarks.
-
-**Free:**
-* Apply text or image watermarks with configurable position, opacity, and size
-* Watermark settings panel in the plugin settings page
-
-**Pro:**
-* Auto-apply watermark on upload
-* Backup and restore original images
-* Bulk watermark application
-* Filter by MIME type and minimum dimensions
 
 == 🏆 Disable Image Sizes ==
 
