@@ -113,6 +113,7 @@ class AiApi {
 
 		$context  = ' Context:';
 		$context .= ' Site: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variable inside namespaced class.
 		$site_desc = sanitize_text_field( get_bloginfo( 'description' ) );
 		if ( $site_desc ) {
 			$context .= ' Tagline: "' . $site_desc . '".';
@@ -233,14 +234,15 @@ class AiApi {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			throw new \Exception( $response->get_error_message() );
+			throw new \Exception( esc_html( $response->get_error_message() ) );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
 			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
 			$err_msg  = $err_body['error']['message'] ?? '';
-			throw new \Exception( sprintf( 'OpenAI HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- escaped via esc_html().
+			throw new \Exception( esc_html( sprintf( 'OpenAI HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -294,14 +296,15 @@ class AiApi {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			throw new \Exception( $response->get_error_message() );
+			throw new \Exception( esc_html( $response->get_error_message() ) );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
 			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
 			$err_msg  = $err_body['error']['message'] ?? '';
-			throw new \Exception( sprintf( 'Gemini HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- escaped via esc_html().
+			throw new \Exception( esc_html( sprintf( 'Gemini HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -360,14 +363,15 @@ class AiApi {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			throw new \Exception( $response->get_error_message() );
+			throw new \Exception( esc_html( $response->get_error_message() ) );
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( 200 !== $code ) {
 			$err_body = json_decode( wp_remote_retrieve_body( $response ), true );
 			$err_msg  = $err_body['error']['message'] ?? '';
-			throw new \Exception( sprintf( 'Claude HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- escaped via esc_html().
+			throw new \Exception( esc_html( sprintf( 'Claude HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) ) );
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
