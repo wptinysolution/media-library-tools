@@ -2,8 +2,6 @@
 /**
  * Generates autoload.php after PHP-Scoper runs.
  *
- * @phpcs:disable WordPress.Security.EscapeOutput -- CLI script, not a web request.
- *
  * Scans vendor_prefixed/ for scoped packages and builds a standalone
  * PSR-4 autoloader so the vendor/ directory is not needed in production.
  *
@@ -12,40 +10,44 @@
  * @package TinySolutions\mlt
  */
 
-$prefix = 'TinySolutions\\mlt\\Vendor';
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- CLI build script, not loaded in WordPress.
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- CLI script.
+// phpcs:disable WordPress.Security.EscapeOutput -- CLI script.
+
+$tsmlt_prefix = 'TinySolutions\\mlt\\Vendor';
 
 // Discover scoped packages from vendor_prefixed directory.
-$map = [
+$tsmlt_map = [
 	'TinySolutions\\mlt\\' => '/app/',
 ];
 
-$vendorPrefixedDir = __DIR__ . '/vendor_prefixed';
+$tsmlt_vendor_dir = __DIR__ . '/vendor_prefixed';
 
-foreach ( glob( $vendorPrefixedDir . '/*/*/composer.json' ) as $composerFile ) {
-	$json = json_decode( file_get_contents( $composerFile ), true );
+foreach ( glob( $tsmlt_vendor_dir . '/*/*/composer.json' ) as $tsmlt_composer_file ) {
+	$tsmlt_json = json_decode( file_get_contents( $tsmlt_composer_file ), true );
 
-	if ( empty( $json['autoload']['psr-4'] ) ) {
+	if ( empty( $tsmlt_json['autoload']['psr-4'] ) ) {
 		continue;
 	}
 
-	$packageDir = dirname( $composerFile );
-	$relPath    = str_replace( __DIR__, '', $packageDir );
+	$tsmlt_package_dir = dirname( $tsmlt_composer_file );
+	$tsmlt_rel_path    = str_replace( __DIR__, '', $tsmlt_package_dir );
 
-	foreach ( $json['autoload']['psr-4'] as $namespace => $src ) {
+	foreach ( $tsmlt_json['autoload']['psr-4'] as $tsmlt_namespace => $tsmlt_src ) {
 		// Namespace is already prefixed by PHP-Scoper in the scoped composer.json.
-		$srcPath          = rtrim( $relPath, '/' ) . '/' . rtrim( $src, '/' ) . '/';
-		$map[ $namespace ] = $srcPath;
+		$tsmlt_src_path                = rtrim( $tsmlt_rel_path, '/' ) . '/' . rtrim( $tsmlt_src, '/' ) . '/';
+		$tsmlt_map[ $tsmlt_namespace ] = $tsmlt_src_path;
 	}
 }
 
 // Generate autoload.php content.
-$entries = '';
-foreach ( $map as $ns => $dir ) {
-	$escapedNs  = addcslashes( $ns, '\\' );
-	$entries   .= "\t\t\t'{$escapedNs}' => __DIR__ . '{$dir}',\n";
+$tsmlt_entries = '';
+foreach ( $tsmlt_map as $tsmlt_ns => $tsmlt_dir ) {
+	$tsmlt_escaped_ns  = addcslashes( $tsmlt_ns, '\\' );
+	$tsmlt_entries    .= "\t\t\t'{$tsmlt_escaped_ns}' => __DIR__ . '{$tsmlt_dir}',\n";
 }
 
-$content = <<<'HEADER'
+$tsmlt_content = <<<'HEADER'
 <?php
 /**
  * Standalone PSR-4 autoloader for prefixed vendor packages.
@@ -66,9 +68,9 @@ spl_autoload_register(
 
 HEADER;
 
-$content .= $entries;
+$tsmlt_content .= $tsmlt_entries;
 
-$content .= <<<'FOOTER'
+$tsmlt_content .= <<<'FOOTER'
 		];
 
 		foreach ( $map as $prefix => $base_dir ) {
@@ -88,6 +90,6 @@ $content .= <<<'FOOTER'
 
 FOOTER;
 
-file_put_contents( __DIR__ . '/autoload.php', $content );
+file_put_contents( __DIR__ . '/autoload.php', $tsmlt_content );
 
-echo "autoload.php generated with " . count( $map ) . " namespace mappings.\n";
+echo 'autoload.php generated with ' . count( $tsmlt_map ) . " namespace mappings.\n";
