@@ -1,9 +1,9 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       AI-Powered Media Library Tools - Rename, Clean & CSV Import/Export
+ * Plugin Name:       Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
- * Description:       Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
+ * Description:       AI-Powered Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
  * Version:           2.1.1-rc-1
  * Author:            Tiny Solutions
  * Author URI:        https://www.wptinysolutions.com/

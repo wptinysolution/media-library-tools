@@ -1,4 +1,4 @@
-=== AI-Powered Media Library Tools - Rename, Clean & CSV Import/Export ===
+=== Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
