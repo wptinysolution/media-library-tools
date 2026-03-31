@@ -193,10 +193,18 @@ export default function DuplicatePage() {
                                     </div>
                                     <button
                                         type="button"
-                                        className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
                                         onClick={() => openMergeModal(group)}
                                     >
                                         Merge
+                                        {!tsmltParams.hasExtended && (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full leading-none">
+                                                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                                </svg>
+                                                PRO
+                                            </span>
+                                        )}
                                     </button>
                                 </div>
 

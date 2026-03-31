@@ -5,7 +5,7 @@
  * @package TinySolutions\mlt
  */
 
-namespace TinySolutions\mlt\Controllers\Duplicate;
+namespace TinySolutions\mlt\Modules\Duplicate;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -16,7 +16,7 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
-use TinySolutions\mlt\Controllers\Duplicate\DuplicateScanner;
+use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 
 defined( 'ABSPATH' ) || exit();
 
