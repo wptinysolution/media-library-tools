@@ -16,6 +16,7 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
+use TinySolutions\mlt\Controllers\Duplicate\DuplicateScanner;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -62,6 +63,12 @@ class Ajax {
 
 		// AI content generation.
 		add_action( 'wp_ajax_tsmlt_ai_generate', [ $this, 'ai_generate' ] );
+
+		// Duplicate detection.
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_batch',  [ $this, 'duplicate_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_get_results', [ $this, 'duplicate_get_results' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_get_status',  [ $this, 'duplicate_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_clear',       [ $this, 'duplicate_clear' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -310,5 +317,36 @@ class Ajax {
 		} catch ( \Exception $e ) {
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Duplicate detection
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function duplicate_scan_batch(): void {
+		$params = $this->verify_and_get_params();
+		$offset = absint( $params['offset'] ?? 0 );
+		$batch  = absint( $params['batch_size'] ?? 50 );
+		$this->send( DuplicateScanner::instance()->scan_batch( $offset, $batch ) );
+	}
+
+	/** @return void */
+	public function duplicate_get_results(): void {
+		$params = $this->verify_and_get_params();
+		$result = DuplicateScanner::instance()->get_duplicates( $params );
+		wp_send_json_success( json_decode( $result, true ) );
+	}
+
+	/** @return void */
+	public function duplicate_get_status(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->get_scan_status() );
+	}
+
+	/** @return void */
+	public function duplicate_clear(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->clear_scan() );
 	}
 }

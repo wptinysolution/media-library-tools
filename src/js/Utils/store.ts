@@ -205,6 +205,37 @@ export interface SearchUsesState {
     isModalOpen: boolean;
 }
 
+export interface DuplicateItem {
+    attachment_id: number;
+    title: string;
+    url: string;
+    thumbnail: string;
+    file_path: string;
+    file_size: number;
+    attached_post: { title: string; permalink: string } | null;
+    upload_date: string;
+}
+
+export interface DuplicateGroup {
+    file_hash: string;
+    file_size: number;
+    item_count: number;
+    items: DuplicateItem[];
+}
+
+export interface DuplicateState {
+    isLoading: boolean;
+    isScanning: boolean;
+    scanProgress: { processed: number; total: number };
+    groups: DuplicateGroup[];
+    totalGroups: number;
+    potentialSavings: number;
+    scanned: number;
+    totalAttachments: number;
+    paged: number;
+    postsPerPage: number;
+}
+
 export interface StoreState {
     saveType: string | null;
     setSaveType: (saveType: string | null) => void;
@@ -244,6 +275,9 @@ export interface StoreState {
 
     searchUses: SearchUsesState;
     setSearchUses: (update: Partial<SearchUsesState>) => void;
+
+    duplicateData: DuplicateState;
+    setDuplicateData: (update: Partial<DuplicateState>) => void;
 }
 
 export const initialExportImport: ExportImportState = {
@@ -380,4 +414,18 @@ export const useStore = create<StoreState>((set) => ({
         isModalOpen: false,
     },
     setSearchUses: (update) => set((state) => ({ searchUses: { ...state.searchUses, ...update } })),
+
+    duplicateData: {
+        isLoading: false,
+        isScanning: false,
+        scanProgress: { processed: 0, total: 0 },
+        groups: [],
+        totalGroups: 0,
+        potentialSavings: 0,
+        scanned: 0,
+        totalAttachments: 0,
+        paged: 1,
+        postsPerPage: 20,
+    },
+    setDuplicateData: (update) => set((state) => ({ duplicateData: { ...state.duplicateData, ...update } })),
 }));

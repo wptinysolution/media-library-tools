@@ -28,6 +28,7 @@ import PluginList from "@/js/Component/PluginList";
 import ImageSize from "@/js/Component/ImageSize/ImageSize";
 import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
+import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
 
 function App() {
     const {
@@ -176,6 +177,8 @@ function App() {
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
+                    <Route path="/duplicates" element={<DuplicatePage />} />
+                    <Route path="/duplicates/page/:page" element={<DuplicatePage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />

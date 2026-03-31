@@ -835,6 +835,7 @@ return array(
     'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => $baseDir . '/app/Controllers/Admin/SubMenu.php',
     'TinySolutions\\mlt\\Controllers\\AssetsController' => $baseDir . '/app/Controllers/AssetsController.php',
     'TinySolutions\\mlt\\Controllers\\Dependencies' => $baseDir . '/app/Controllers/Dependencies.php',
+    'TinySolutions\\mlt\\Controllers\\Duplicate\\DuplicateScanner' => $baseDir . '/app/Controllers/Duplicate/DuplicateScanner.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => $baseDir . '/app/Controllers/Hooks/ActionHooks.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\Ajax' => $baseDir . '/app/Controllers/Hooks/Ajax.php',
     'TinySolutions\\mlt\\Controllers\\Hooks\\CronJobHooks' => $baseDir . '/app/Controllers/Hooks/CronJobHooks.php',

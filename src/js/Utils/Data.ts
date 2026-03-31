@@ -193,3 +193,30 @@ export const getRegisteredImageSizes = async (): Promise<AxiosResponse> => {
 export const truncateUnlistedFile = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_truncate_unlisted_file');
 };
+
+// Duplicate detection.
+export const duplicateScanBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_duplicate_scan_batch', prams);
+};
+
+export const getDuplicateResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_duplicate_get_results', prams);
+    return result.data as Record<string, unknown>;
+};
+
+export const getDuplicateStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_duplicate_get_status');
+    return result.data as Record<string, unknown>;
+};
+
+export const clearDuplicateScan = async (): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_duplicate_clear');
+    notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
+    return response;
+};
+
+export const mergeDuplicates = async (prams: object = {}): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_duplicate_merge', prams);
+    notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
+    return response;
+};

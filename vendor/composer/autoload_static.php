@@ -1084,6 +1084,7 @@ class ComposerStaticInitecc989f4ce9ea5b37e18e1aebddaee9c
         'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/../..' . '/app/Controllers/Admin/SubMenu.php',
         'TinySolutions\\mlt\\Controllers\\AssetsController' => __DIR__ . '/../..' . '/app/Controllers/AssetsController.php',
         'TinySolutions\\mlt\\Controllers\\Dependencies' => __DIR__ . '/../..' . '/app/Controllers/Dependencies.php',
+        'TinySolutions\\mlt\\Controllers\\Duplicate\\DuplicateScanner' => __DIR__ . '/../..' . '/app/Controllers/Duplicate/DuplicateScanner.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\ActionHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/ActionHooks.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\Ajax' => __DIR__ . '/../..' . '/app/Controllers/Hooks/Ajax.php',
         'TinySolutions\\mlt\\Controllers\\Hooks\\CronJobHooks' => __DIR__ . '/../..' . '/app/Controllers/Hooks/CronJobHooks.php',
