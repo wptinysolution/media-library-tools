@@ -12,7 +12,7 @@ const bulkOptions = [
     { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
     { value: 'csv_export', label: 'Export CSV' },
     { value: 'inherit', label: 'Restore' },
-    { value: 'searchUses', label: 'Search Uses' },
+    { value: 'searchUses', label: 'Find Where Image Is Used' },
     { value: 'delete', label: 'Delete Permanently' },
     { value: 'trash', label: 'Move to Trash' },
 
