@@ -38,11 +38,25 @@ class Installation {
 			update_option( 'tsmlt_plugin_activation_time', strtotime( 'now' ) );
 		}
 
-		// Create duplicate table for existing installs upgrading to this version.
+		// Existing installs upgrading — create all tables if not exist.
 		if ( $current_version && version_compare( $current_version, TSMLT_VERSION, '<' ) ) {
-			self::create_duplicate_table();
+			self::create_tables();
 			update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 		}
+	}
+
+	/**
+	 * Create missing tables if the stored version doesn't match current version.
+	 *
+	 * @return void
+	 */
+	public static function maybe_create_tables() {
+		$current_version = get_option( 'tsmlt_plugin_version' );
+		if ( $current_version && version_compare( $current_version, TSMLT_VERSION, '>=' ) ) {
+			return;
+		}
+		self::create_tables();
+		update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 	}
 
 	/**
@@ -51,7 +65,7 @@ class Installation {
 	public static function deactivation() {
 		Fns::clear_scheduled_events();
 	}
-	
+
 	/**
 	 * @return void
 	 */

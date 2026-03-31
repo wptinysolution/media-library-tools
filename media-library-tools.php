@@ -52,6 +52,9 @@ register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] 
 add_action(
 	'admin_init',
 	function () {
+		// Create missing tables if they don't exist (activation hook doesn't fire on updates).
+		Installation::maybe_create_tables();
+
 		if ( ! get_transient( 'tsmlt_activation_redirect' ) ) {
 			return;
 		}
