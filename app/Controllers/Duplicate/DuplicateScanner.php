@@ -181,12 +181,26 @@ class DuplicateScanner {
 				$thumbnail = wp_get_attachment_image_url( $att_id, 'thumbnail' );
 				$url       = wp_get_attachment_url( $att_id );
 
-				// Parent post info.
-				$attached_post = null;
-				if ( $post->post_parent ) {
+				// Find all posts/pages where this image is used.
+				$used_in    = [];
+				$found_ids  = [];
+				$post_ids   = $url ? Fns::search_image_at_content( $url ) : [];
+				foreach ( $post_ids as $post_id ) {
+					$used_post = get_post( (int) $post_id );
+					if ( $used_post && ! in_array( $used_post->ID, $found_ids, true ) ) {
+						$found_ids[] = $used_post->ID;
+						$used_in[]   = [
+							'title'     => get_the_title( $used_post ),
+							'permalink' => get_the_permalink( $used_post ),
+						];
+					}
+				}
+
+				// Include parent post if not already found.
+				if ( $post->post_parent && ! in_array( $post->post_parent, $found_ids, true ) ) {
 					$parent = get_post( $post->post_parent );
 					if ( $parent ) {
-						$attached_post = [
+						$used_in[] = [
 							'title'     => get_the_title( $parent ),
 							'permalink' => get_the_permalink( $parent ),
 						];
@@ -200,7 +214,7 @@ class DuplicateScanner {
 					'thumbnail'     => $thumbnail ?: '',
 					'file_path'     => $item['file_path'],
 					'file_size'     => (int) $item['file_size'],
-					'attached_post' => $attached_post,
+					'used_in'       => $used_in,
 					'upload_date'   => $post->post_date,
 				];
 			}

@@ -224,12 +224,17 @@ export default function DuplicatePage() {
                                             </div>
                                             <div className="shrink-0 text-right">
                                                 <span className="text-xs text-gray-500">{formatBytes(item.file_size)}</span>
-                                                {item.attached_post && (
-                                                    <p className="text-xs text-gray-400 mt-0.5 mb-0!">
-                                                        <a href={item.attached_post.permalink} target="_blank" className="hover:text-blue-600">
-                                                            {item.attached_post.title}
-                                                        </a>
-                                                    </p>
+                                                {item.used_in && item.used_in.length > 0 && (
+                                                    <div className="mt-0.5">
+                                                        <span className="text-[10px] text-gray-400 uppercase">Used in:</span>
+                                                        {item.used_in.map((post, i) => (
+                                                            <p key={i} className="text-xs text-gray-400 mt-0 mb-0!">
+                                                                <a href={post.permalink} target="_blank" className="hover:text-blue-600">
+                                                                    {post.title}
+                                                                </a>
+                                                            </p>
+                                                        ))}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

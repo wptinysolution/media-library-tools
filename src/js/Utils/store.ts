@@ -212,7 +212,7 @@ export interface DuplicateItem {
     thumbnail: string;
     file_path: string;
     file_size: number;
-    attached_post: { title: string; permalink: string } | null;
+    used_in: { title: string; permalink: string }[];
     upload_date: string;
 }
 
