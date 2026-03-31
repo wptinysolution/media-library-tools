@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: csv, export, media, rename, cleaner
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -203,6 +203,12 @@ Most rubbish files are safe to delete, but some may be used by plugins that stor
 09. AI Content Generator suggestions
 
 == Changelog ==
+
+= 2.1.2 ( xx xx, 2026 ) =
+* Added: Duplicate scan ( batch, progress)
+* Added: Duplicate groups (preview, size, usage)
+* Added: Pro: Merge duplicates + update refs
+* Fixed: Auto-create DB tables on update
 
 = 2.1.1 ( Mar 10, 2026 ) =
 * Added: AI content generator — generate title, alt text, caption, description, and filename using ChatGPT, Gemini, or Claude directly from the media table
