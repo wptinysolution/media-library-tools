@@ -46,7 +46,7 @@ class Fns {
 	/**
 	 * @var array
 	 */
-	private static $cache = [];
+	public static $cache = [];
 	/**
 	 * @var string
 	 */

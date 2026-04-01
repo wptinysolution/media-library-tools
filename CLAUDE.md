@@ -24,14 +24,20 @@ generate-autoload.php          # Script to regenerate autoload.php
 scoper.inc.php                 # PHP-Scoper config
 app/                           # PHP source (PSR-4: TinySolutions\mlt\)
   Controllers/
-    Admin/Api.php              # All API/business logic methods
+    Admin/Api.php              # Core media API (get_media, bulk actions, image sizes, plugin list)
     Admin/SubMenu.php          # Admin menu registration
-    Hooks/Ajax.php             # 18+ AJAX action registrations + security
+    Hooks/Ajax.php             # AJAX action registrations + security, delegates to Api/Modules
     Hooks/ActionHooks.php      # WordPress action hooks
     Hooks/FilterHooks.php      # WordPress filter hooks
+    Hooks/CronJobHooks.php     # Cron scheduling (dir scan, rubbish scan, thumbnail)
     AI/AiApi.php               # AI provider integration (ChatGPT, Gemini, Claude)
-    Installation.php           # Activation/deactivation
-  Helpers/Fns.php              # Static helpers, DB shortcuts, rename logic
+    Installation.php           # Activation/deactivation, DB table creation
+  Helpers/Fns.php              # Static helpers, DB shortcuts, rename logic, filesystem
+  Modules/
+    ModuleInit.php             # Registers all modules (DownloadMedia, RubbishScanner)
+    DownloadMedia.php          # Download media feature
+    Rubbish/RubbishScanner.php # Rubbish (unlisted) file finder: dir scanning, file queries, scheduling
+    Duplicate/DuplicateScanner.php # Duplicate file detection via MD5 hashing
   Traits/SingletonTrait.php    # Singleton pattern used by all classes
 src/js/                        # React frontend source
   Component/
@@ -48,6 +54,11 @@ src/js/                        # React frontend source
 vendor_prefixed/               # PHP-Scoper output (shipped in production)
 assets/                        # Built frontend assets (Vite output)
 ```
+
+## Coding Standards
+- Always follow **PHPCS** (PHP CodeSniffer) and **WPCS** (WordPress Coding Standards) when writing or modifying PHP code.
+- Use tabs for indentation, Yoda conditions, proper escaping (`esc_html__`, `esc_attr`, `wp_kses`), and sanitization (`sanitize_text_field`, `absint`, etc.).
+- Follow WordPress naming conventions: `snake_case` for functions/variables, `PascalCase` for classes.
 
 ## Key Patterns
 

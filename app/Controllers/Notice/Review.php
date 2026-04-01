@@ -536,7 +536,7 @@ class Review {
 			.tsmlt-deactivate-reason {
 				display: flex;
 				align-items: center;
-				gap: 10px;
+				gap: 5px;
 				padding: 8px 12px;
 				border-radius: 6px;
 				border: 1px solid transparent;
@@ -570,7 +570,7 @@ class Review {
 			}
 
 			.tsmlt-deactivate-reason__text {
-				font-size: 13px;
+				font-size: 15px;
 				color: #1d2327;
 				line-height: 1.4;
 			}

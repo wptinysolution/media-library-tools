@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
