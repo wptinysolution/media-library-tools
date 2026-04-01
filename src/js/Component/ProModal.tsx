@@ -71,12 +71,12 @@ function ProModal() {
                 <div className="space-y-1">
                     {data.map((item, index) => (
                         <div key={index} className="flex items-start gap-3 py-2">
-                            <svg className="w-10 h-10 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-10 h-10 text-blue-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                             </svg>
                             <div>
                                 <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
-                                <p className="text-sm text-gray-700 mt-0.5!">{item.desc}</p>
+                                <p className="text-sm text-gray-700 mb-0! mt-0.5!">{item.desc}</p>
                             </div>
                         </div>
                     ))}
