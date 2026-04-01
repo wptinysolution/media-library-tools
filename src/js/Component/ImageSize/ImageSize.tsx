@@ -3,6 +3,7 @@ import Loader from "@/js/Utils/Loader";
 import RegisterSize from "./RegisterSize";
 import DisableSize from "./DisableSize";
 import SaveButton from '@/js/Component/SaveButton';
+import ProLabel from "@/js/Component/ProLabel";
 
 function ImageSize() {
     const { generalData } = useStore();
@@ -20,9 +21,7 @@ function ImageSize() {
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h2 className="text-base font-semibold text-gray-900 m-0!">
                                 Register Custom Image Sizes
-                                {!tsmltParams.hasExtended && (
-                                    <span className="ml-2 text-xs font-semibold text-white bg-red-500 px-2 py-0.5 rounded-full align-middle">PRO</span>
-                                )}
+                                {!tsmltParams.hasExtended && <ProLabel /> }
                             </h2>
                             <p className="text-sm text-gray-500 mt-0.5">Add custom sizes that WordPress will generate when images are uploaded.</p>
                         </div>

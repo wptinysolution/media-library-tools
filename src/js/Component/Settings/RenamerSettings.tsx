@@ -3,6 +3,7 @@ import { useStore } from '@/js/Utils/store';
 import CheckboxField from '@/js/Component/Common/CheckboxField';
 import TextInput from '@/js/Component/Common/TextInput';
 import SettingRow from '@/js/Component/Common/SettingRow';
+import ProLabel from "@/js/Component/ProLabel";
 
 export default function RenamerSettings() {
     const { options, setOptions, setGeneralData } = useStore();
@@ -33,7 +34,7 @@ export default function RenamerSettings() {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <label className="text-base font-medium text-gray-900">Rename prefix</label>
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
+                                {!tsmltParams.hasExtended && <ProLabel /> }
                             </div>
                             <TextInput
                                 placeholder="Prefix"
@@ -48,7 +49,7 @@ export default function RenamerSettings() {
                         <div className="space-y-2 pt-4 border-t border-gray-200">
                             <div className="flex items-center gap-2">
                                 <label className="text-base font-medium text-gray-900">Rename suffix</label>
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
+                                {!tsmltParams.hasExtended && <ProLabel /> }
                             </div>
                             <TextInput
                                 placeholder="Suffix"

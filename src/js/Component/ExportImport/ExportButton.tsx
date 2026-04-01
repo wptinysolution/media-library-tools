@@ -3,6 +3,7 @@ import { useStore } from "@/js/Utils/store";
 import { getMedia } from "@/js/Utils/Data";
 import ExportModalCSV from "./ExportModalCSV";
 import type { MediaPost } from "@/js/Utils/store";
+import ProLabel from "@/js/Component/ProLabel";
 
 function ExportButton() {
     const { exportImport, setExportImport, mediaData, setGeneralData } = useStore();
@@ -69,14 +70,7 @@ function ExportButton() {
                     <div className="mb-8">
                         <h1 className="text-2xl font-semibold text-gray-900 m-0! inline-flex items-center gap-2">
                             CSV Export
-                            {!tsmltParams.hasExtended && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full leading-none">
-                                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                    </svg>
-                                    PRO
-                                </span>
-                            )}
+                            {!tsmltParams.hasExtended && <ProLabel />}
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">Export your media library data to a CSV file.</p>
                     </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import SettingRow from '@/js/Component/Common/SettingRow';
+import ProLabel from "@/js/Component/ProLabel";
 
 const EyeIcon = () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,9 +88,7 @@ export default function AiSettings() {
                                 <option key={n} value={n}>{n}</option>
                             ))}
                         </select>
-                        {(options.ai_max_suggestion_count ?? 1) <= 1 && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Pro feature</span>
-                        )}
+                        {(options.ai_max_suggestion_count ?? 1) <= 1 && <ProLabel /> }
                     </div>
                 </SettingRow>
 
