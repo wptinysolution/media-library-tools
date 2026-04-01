@@ -24,6 +24,7 @@ function ProModal() {
         { title: 'Register Custom Image Sizes', desc: 'Easily register custom image sizes as needed.' },
         { title: 'Find Rubbish And Restore File', desc: 'Easily Restore necessary File.' },
         { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
+        { title: 'Merge Duplicate Media Files', desc: 'Detect duplicate files in your media library, keep one copy, and automatically update all references across posts, pages, and Elementor content.' },
     ];
 
     return (

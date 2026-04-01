@@ -159,6 +159,63 @@ class Fns {
 		}
 	}
 	/**
+	 * Replace all occurrences of an image URL in post content, excerpt, and Elementor data.
+	 *
+	 * @param string $old_url Original image URL.
+	 * @param string $new_url Replacement image URL.
+	 *
+	 * @return int Total number of affected rows.
+	 */
+	public static function replace_image_url_everywhere( string $old_url, string $new_url ): int {
+		$affected  = self::replace_image_at_content( 'post_content', $old_url, $new_url );
+		$affected += self::replace_image_at_content( 'post_excerpt', $old_url, $new_url );
+
+		// Elementor metadata.
+		if ( defined( 'ELEMENTOR_VERSION' ) ) {
+			$post_ids = self::search_elementor_metadata( $old_url );
+			foreach ( $post_ids as $post_id ) {
+				$elementor_data = get_post_meta( (int) $post_id, '_elementor_data', true );
+				if ( ! empty( $elementor_data ) ) {
+					$escaped_old    = str_replace( '/', '\\/', $old_url );
+					$escaped_new    = str_replace( '/', '\\/', $new_url );
+					$elementor_data = str_replace( $escaped_old, $escaped_new, $elementor_data );
+					update_post_meta( (int) $post_id, '_elementor_data', wp_slash( $elementor_data ) );
+					++$affected;
+				}
+			}
+		}
+
+		return $affected;
+	}
+
+	/**
+	 * Reassign featured images from one attachment to another.
+	 *
+	 * @param int $old_attachment_id Attachment ID to replace.
+	 * @param int $new_attachment_id Attachment ID to use instead.
+	 *
+	 * @return int Number of updated posts.
+	 */
+	public static function reassign_featured_image( int $old_attachment_id, int $new_attachment_id ): int {
+		Fns::DB()->update(
+			'postmeta',
+			[ 'meta_value' => $new_attachment_id ]
+		)->where( 'meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'meta_value', '=', $old_attachment_id )
+			->execute();
+
+		// Return count of affected posts.
+		$result = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'meta_value', '=', $new_attachment_id )
+			->get();
+
+		return (int) ( $result[0]['total'] ?? 0 );
+	}
+
+	/**
 	 * Search post IDs where an image URL exists in content or excerpt.
 	 *
 	 * @param string $orig_image_url Original image URL.
