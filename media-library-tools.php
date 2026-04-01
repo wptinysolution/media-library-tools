@@ -37,6 +37,7 @@ define( 'TSMLT_PATH', plugin_dir_path( __FILE__ ) );
 
 require_once TSMLT_PATH . 'autoload.php';
 
+use TinySolutions\mlt\Tsmlt;
 use TinySolutions\mlt\Controllers\Installation;
 
 // Register Plugin Active Hook.
@@ -70,4 +71,11 @@ add_action(
 /**
  * App Init.
  */
-require_once TSMLT_PATH . 'app/Tsmlt.php';
+
+/**
+ * @return Tsmlt
+ */
+function tsmlt() {
+	return Tsmlt::instance();
+}
+tsmlt();

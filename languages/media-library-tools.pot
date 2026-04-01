@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-31T19:10:44+00:00\n"
+"POT-Creation-Date: 2026-04-01T14:20:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -59,8 +59,8 @@ msgstr ""
 #: app/Controllers/Admin/Api.php:310
 #: app/Controllers/Admin/Api.php:580
 #: app/Controllers/Admin/Api.php:674
-#: app/Controllers/Admin/Api.php:749
-#: app/Controllers/Admin/Api.php:768
+#: app/Modules/Rubbish/RubbishScanner.php:121
+#: app/Modules/Rubbish/RubbishScanner.php:140
 msgid "Update failed. Please try to fix"
 msgstr ""
 
@@ -116,22 +116,6 @@ msgstr ""
 
 #: app/Controllers/Admin/Api.php:626
 msgid "Deleted failed. Please try to fix"
-msgstr ""
-
-#: app/Controllers/Admin/Api.php:718
-msgid "Schedule Will Execute Soon."
-msgstr ""
-
-#: app/Controllers/Admin/Api.php:721
-msgid "Schedule Will Execute Soon For Directory List."
-msgstr ""
-
-#: app/Controllers/Admin/Api.php:768
-msgid "Done, Be happy."
-msgstr ""
-
-#: app/Controllers/Admin/Api.php:781
-msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
 #: app/Controllers/Admin/RegisterPostAndTax.php:45
@@ -235,25 +219,25 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:91
-#: app/Controllers/Hooks/Ajax.php:141
+#: app/Controllers/Hooks/Ajax.php:92
+#: app/Controllers/Hooks/Ajax.php:142
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:96
+#: app/Controllers/Hooks/Ajax.php:97
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:104
-#: app/Controllers/Hooks/Ajax.php:147
+#: app/Controllers/Hooks/Ajax.php:105
+#: app/Controllers/Hooks/Ajax.php:148
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:113
+#: app/Controllers/Hooks/Ajax.php:114
 msgid "Malformed request payload."
 msgstr ""
 
-#: app/Controllers/Hooks/CronJobHooks.php:57
+#: app/Controllers/Hooks/CronJobHooks.php:58
 msgid "Every 6 Hours"
 msgstr ""
 
@@ -390,6 +374,22 @@ msgstr ""
 
 #: app/Modules/Duplicate/DuplicateScanner.php:300
 msgid "Duplicate scan results cleared."
+msgstr ""
+
+#: app/Modules/Rubbish/RubbishScanner.php:89
+msgid "Schedule Will Execute Soon."
+msgstr ""
+
+#: app/Modules/Rubbish/RubbishScanner.php:92
+msgid "Schedule Will Execute Soon For Directory List."
+msgstr ""
+
+#: app/Modules/Rubbish/RubbishScanner.php:140
+msgid "Done, Be happy."
+msgstr ""
+
+#: app/Modules/Rubbish/RubbishScanner.php:153
+msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
 #: app/Traits/SingletonTrait.php:41

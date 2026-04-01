@@ -4,6 +4,7 @@
  *
  * @package TinySolutions\mlt
  */
+namespace TinySolutions\mlt;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -130,13 +131,6 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			return 'https://www.wptinysolutions.com/tiny-products/media-library-tools/';
 		}
 	}
-	/**
-	 * @return Tsmlt
-	 */
-	function tsmlt() {
-		return Tsmlt::instance();
-	}
 
-	tsmlt();
 }
 
