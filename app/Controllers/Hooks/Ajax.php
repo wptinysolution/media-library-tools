@@ -14,10 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
+use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
+use TinySolutions\mlt\Modules\Rename\RenameModule;
+use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
-use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -199,7 +201,7 @@ class Ajax {
 	/** @return void */
 	public function update_single_media(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->update_single_media( $params ) );
+		$this->send( RenameModule::instance()->update_single_media( $params ) );
 	}
 
 	/** @return void */
@@ -289,7 +291,7 @@ class Ajax {
 	/** @return void */
 	public function get_registered_image_sizes(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_registered_image_size() );
+		$this->send( ImageSizeModule::instance()->get_registered_image_size() );
 	}
 
 	/** @return void */
