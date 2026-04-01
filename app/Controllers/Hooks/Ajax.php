@@ -17,6 +17,7 @@ use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -68,10 +69,16 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_ai_generate', [ $this, 'ai_generate' ] );
 
 		// Duplicate detection.
-		add_action( 'wp_ajax_tsmlt_duplicate_scan_batch',  [ $this, 'duplicate_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_batch', [ $this, 'duplicate_scan_batch' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_get_results', [ $this, 'duplicate_get_results' ] );
-		add_action( 'wp_ajax_tsmlt_duplicate_get_status',  [ $this, 'duplicate_get_status' ] );
-		add_action( 'wp_ajax_tsmlt_duplicate_clear',       [ $this, 'duplicate_clear' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_get_status', [ $this, 'duplicate_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_clear', [ $this, 'duplicate_clear' ] );
+
+		// Used-Where image usage tracking.
+		add_action( 'wp_ajax_tsmlt_used_where_scan_batch', [ $this, 'used_where_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_get_results', [ $this, 'used_where_get_results' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -351,5 +358,89 @@ class Ajax {
 	public function duplicate_clear(): void {
 		$this->verify_and_get_params();
 		$this->send( DuplicateScanner::instance()->clear_scan() );
+	}
+
+	// -------------------------------------------------------------------------
+	// Used-Where image usage tracking
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function used_where_scan_batch(): void {
+		$params = $this->verify_and_get_params();
+		$offset = absint( $params['offset'] ?? 0 );
+		$batch  = absint( $params['batch_size'] ?? 20 );
+		$result = UsedWhereScanner::instance()->scan_batch( $offset, $batch );
+		// Update scan status in options.
+		update_option( 'tsmlt_used_where_scan_status', array_merge( $result, [ 'timestamp' => current_time( 'mysql' ) ] ) );
+		$this->send( $result );
+	}
+
+	/** @return void */
+	public function used_where_get_results(): void {
+		$params = $this->verify_and_get_params();
+		// Return image usage data grouped by attachment.
+		$limit  = absint( $params['limit'] ?? 20 );
+		$offset = absint( $params['offset'] ?? 0 );
+
+		$results = Fns::DB()->select( 'attachment_id' )
+			->from( 'tsmlt_image_usage' )
+			->groupBy( 'attachment_id' )
+			->limit( $limit )
+			->offset( $offset )
+			->get();
+
+		if ( empty( $results ) ) {
+			$this->send(
+				[
+					'usages' => [],
+					'total'  => 0,
+				]
+			);
+			return;
+		}
+
+		$usages = [];
+		foreach ( $results as $row ) {
+			$attachment_id = absint( $row['attachment_id'] );
+			$stats         = UsedWhereScanner::instance()->get_usage_stats( $attachment_id );
+			$post          = get_post( $attachment_id );
+			if ( $post ) {
+				$usages[] = [
+					'attachment_id' => $attachment_id,
+					'title'         => $post->post_title,
+					'url'           => wp_get_attachment_url( $attachment_id ),
+					'usage_count'   => $stats['total_usage'],
+					'usage_by_type' => $stats['by_type'],
+					'used_in_posts' => count( $stats['by_post'] ),
+				];
+			}
+		}
+
+		// Get total count (unique attachments).
+		$total_result = Fns::DB()->select( 'attachment_id' )
+			->from( 'tsmlt_image_usage' )
+			->groupBy( 'attachment_id' )
+			->get();
+
+		$total = is_array( $total_result ) ? count( $total_result ) : 0;
+
+		$this->send(
+			[
+				'usages' => $usages,
+				'total'  => $total,
+			]
+		);
+	}
+
+	/** @return void */
+	public function used_where_get_status(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->get_scan_status() );
+	}
+
+	/** @return void */
+	public function used_where_clear(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->clear_scan() );
 	}
 }

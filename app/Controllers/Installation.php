@@ -80,6 +80,7 @@ class Installation {
 			->execute();
 
 		self::create_duplicate_table();
+		self::create_used_where_table();
 	}
 
 	/**
@@ -94,6 +95,22 @@ class Installation {
 			->column( 'file_hash' )->string( 32 )->required()
 			->column( 'file_size' )->bigInt()->default( 0 )
 			->column( 'file_path' )->string( 255 )->required()
+			->execute();
+	}
+
+	/**
+	 * Create the image usage tracking table (Used-Where feature).
+	 *
+	 * @return void
+	 */
+	public static function create_used_where_table() {
+		Fns::DB()->create( 'tsmlt_image_usage' )
+			->column( 'id' )->int()->autoIncrement()->primary()
+			->column( 'attachment_id' )->int()->required()
+			->column( 'post_id' )->int()->required()
+			->column( 'usage_type' )->string( 50 )->default( 'content' )
+			->column( 'post_type' )->string( 20 )->default( 'post' )
+			->column( 'detected_at' )->timestamp( 'now' )
 			->execute();
 	}
 }

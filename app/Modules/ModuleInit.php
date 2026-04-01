@@ -7,6 +7,7 @@ use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,5 +32,6 @@ class ModuleInit {
 		DuplicateScanner::instance();
 		RenameModule::instance();
 		ImageSizeModule::instance();
+		UsedWhereScanner::instance();
 	}
 }

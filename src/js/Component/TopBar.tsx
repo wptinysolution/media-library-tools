@@ -1,5 +1,4 @@
 import { useWpAdminBarHeight, useWpMenuWidth } from "@/js/Utils/Hooks";
-import ProLabel from "@/js/Component/ProLabel";
 
 function TopBar() {
     const adminBarHeight = useWpAdminBarHeight();
@@ -24,11 +23,10 @@ function TopBar() {
                         <span className="font-semibold text-gray-800 text-[14px] tracking-tight">
                             Media Library Tools
                         </span>
-                        {tsmltParams.hasExtended ? <ProLabel /> : (
-                            <span className="px-1.5 py-0.5 text-[9px] font-semibold text-gray-400 bg-gray-100 rounded uppercase tracking-widest leading-none">
-                                Free
-                            </span>
-                        )}
+                        <span className="px-1.5 py-0.5 text-[9px] font-semibold text-gray-400 bg-gray-100 rounded uppercase tracking-widest leading-none">
+                            {tsmltParams.hasExtended ? 'PRO' : 'Free' }
+                        </span>
+
                     </div>
                     <p className="text-[10px] text-gray-400 mt-0.5! m-0!">
                         by{' '}

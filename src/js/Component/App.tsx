@@ -29,6 +29,7 @@ import ImageSize from "@/js/Component/ImageSize/ImageSize";
 import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
+import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
 
 function App() {
     const {
@@ -179,6 +180,8 @@ function App() {
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
                     <Route path="/duplicates" element={<DuplicatePage />} />
                     <Route path="/duplicates/page/:page" element={<DuplicatePage />} />
+                    <Route path="/usedWhere" element={<UsedWherePage />} />
+                    <Route path="/usedWhere/page/:page" element={<UsedWherePage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />

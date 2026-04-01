@@ -849,6 +849,7 @@ return array(
     'TinySolutions\\mlt\\Modules\\ModuleInit' => $baseDir . '/app/Modules/ModuleInit.php',
     'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => $baseDir . '/app/Modules/Rename/RenameModule.php',
     'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => $baseDir . '/app/Modules/Rubbish/RubbishScanner.php',
+    'TinySolutions\\mlt\\Modules\\UsedWhere\\UsedWhereScanner' => $baseDir . '/app/Modules/UsedWhere/UsedWhereScanner.php',
     'TinySolutions\\mlt\\Traits\\SingletonTrait' => $baseDir . '/app/Traits/SingletonTrait.php',
     'TinySolutions\\mlt\\Tsmlt' => $baseDir . '/app/Tsmlt.php',
     'TinySolutions\\mlt\\Vendor\\CodesVault\\Howdyqb\\Api\\AlterInterface' => $baseDir . '/vendor_prefixed/codesvault/howdy-qb/src/Api/AlterInterface.php',

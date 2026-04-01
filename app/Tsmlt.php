@@ -91,6 +91,10 @@ if ( ! class_exists( Tsmlt::class ) ) {
 				return;
 			}
 			do_action( 'tsmlt/before_loaded' );
+			if ( ! get_transient( 'tsmlt_tables_checked_' . TSMLT_VERSION ) ) {
+				Installation::create_tables();
+				set_transient( 'tsmlt_tables_checked_' . TSMLT_VERSION, true, DAY_IN_SECONDS );
+			}
 			Ajax::instance();
 			Api::instance();
 			ModuleInit::instance();

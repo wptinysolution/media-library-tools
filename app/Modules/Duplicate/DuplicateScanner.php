@@ -262,7 +262,7 @@ class DuplicateScanner {
 		$scanned = (int) ( $scanned_result[0]['total'] ?? 0 );
 
 		// Duplicate groups — count rows from GROUP BY HAVING query.
-		$dup_rows = Fns::DB()->select( 'file_hash' )
+		$dup_rows = Fns::DB()->select( 'file_hash', 'file_size' )
 			->count( '*', 'cnt' )
 			->from( 'tsmlt_duplicate_file' )
 			->groupBy( 'file_hash' )
@@ -274,7 +274,8 @@ class DuplicateScanner {
 		$savings = 0;
 		if ( ! empty( $dup_rows ) ) {
 			foreach ( $dup_rows as $row ) {
-				$savings += (int) $row['file_size'] * ( (int) $row['cnt'] - 1 );
+				$file_size = isset( $row['file_size'] ) ? (int) $row['file_size'] : 0;
+				$savings += $file_size * ( (int) $row['cnt'] - 1 );
 			}
 		}
 

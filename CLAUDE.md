@@ -59,6 +59,13 @@ assets/                        # Built frontend assets (Vite output)
 - Always follow **PHPCS** (PHP CodeSniffer) and **WPCS** (WordPress Coding Standards) when writing or modifying PHP code.
 - Use tabs for indentation, Yoda conditions, proper escaping (`esc_html__`, `esc_attr`, `wp_kses`), and sanitization (`sanitize_text_field`, `absint`, etc.).
 - Follow WordPress naming conventions: `snake_case` for functions/variables, `PascalCase` for classes.
+- **Never use raw SQL queries** (`$wpdb->query()`, `$wpdb->get_var()`, `$wpdb->get_results()`). Always use the query builder via `Fns::DB()`:
+  - `Fns::DB()->select(...)->from(...)->where(...)->get()` — fetch rows
+  - `Fns::DB()->insert(...)->execute()` — insert rows
+  - `Fns::DB()->delete(...)->execute()` — delete rows
+  - `Fns::DB()->update(...)->where(...)->execute()` — update rows
+  - `Fns::DB()->select()->count(...)->from(...)->get()` — count queries
+  - Query builder is `codesvault/howdy-qb` (Howdy QB) with automatic escaping & parameter binding
 
 ## Key Patterns
 

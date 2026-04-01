@@ -220,3 +220,24 @@ export const mergeDuplicates = async (prams: object = {}): Promise<AxiosResponse
     notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
     return response;
 };
+
+// Used-Where image usage tracker.
+export const usedWhereScanBatch = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_scan_batch', prams);
+    return (result.data as { data: Record<string, unknown> }).data;
+};
+
+export const getUsedWhereResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_results', prams);
+    return (result.data as { data: Record<string, unknown> }).data;
+};
+
+export const getUsedWhereStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_status');
+    return (result.data as { data: Record<string, unknown> }).data;
+};
+
+export const clearUsedWhereScan = async (): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_used_where_clear');
+    return response;
+};

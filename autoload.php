@@ -37,6 +37,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\ModuleInit' => __DIR__ . '/app/Modules/ModuleInit.php',
 		'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => __DIR__ . '/app/Modules/Rename/RenameModule.php',
 		'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/app/Modules/Rubbish/RubbishScanner.php',
+		'TinySolutions\\mlt\\Modules\\UsedWhere\\UsedWhereScanner' => __DIR__ . '/app/Modules/UsedWhere/UsedWhereScanner.php',
 		'TinySolutions\\mlt\\Traits\\SingletonTrait' => __DIR__ . '/app/Traits/SingletonTrait.php',
 		'TinySolutions\\mlt\\Tsmlt' => __DIR__ . '/app/Tsmlt.php',
 		'TinySolutions\\mlt\\Vendor\\CodesVault\\Howdyqb\\Api\\AlterInterface' => __DIR__ . '/vendor_prefixed/codesvault/howdy-qb/src/Api/AlterInterface.php',
