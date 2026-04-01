@@ -3,6 +3,7 @@
 namespace TinySolutions\mlt\Modules;
 
 use TinySolutions\mlt\Traits\SingletonTrait;
+use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,5 +24,6 @@ class ModuleInit {
 	 */
 	public function __construct() {
 		DownloadMedia::instance();
+		RubbishScanner::instance();
 	}
 }

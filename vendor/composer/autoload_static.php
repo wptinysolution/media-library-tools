@@ -1094,6 +1094,7 @@ class ComposerStaticInitecc989f4ce9ea5b37e18e1aebddaee9c
         'TinySolutions\\mlt\\Helpers\\Fns' => __DIR__ . '/../..' . '/app/Helpers/Fns.php',
         'TinySolutions\\mlt\\Modules\\DownloadMedia' => __DIR__ . '/../..' . '/app/Modules/DownloadMedia.php',
         'TinySolutions\\mlt\\Modules\\ModuleInit' => __DIR__ . '/../..' . '/app/Modules/ModuleInit.php',
+        'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/../..' . '/app/Modules/Rubbish/RubbishScanner.php',
         'TinySolutions\\mlt\\Traits\\SingletonTrait' => __DIR__ . '/../..' . '/app/Traits/SingletonTrait.php',
         'TinySolutions\\mlt\\Vendor\\CodesVault\\Howdyqb\\Api\\AlterInterface' => __DIR__ . '/../..' . '/vendor_prefixed/codesvault/howdy-qb/src/Api/AlterInterface.php',
         'TinySolutions\\mlt\\Vendor\\CodesVault\\Howdyqb\\Api\\CreateInterface' => __DIR__ . '/../..' . '/vendor_prefixed/codesvault/howdy-qb/src/Api/CreateInterface.php',

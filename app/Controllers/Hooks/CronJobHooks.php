@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
+use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -36,7 +37,7 @@ class CronJobHooks {
 		add_filter( 'cron_schedules', [ $this, 'add_custom_cron_schedules' ] );
 		// Hook the function to a cron job.
 		add_action( 'init', [ $this, 'schedule_directory_cron_job' ] );
-		add_action( 'tsmlt_upload_dir_scan', [ Fns::class, 'get_directory_list_cron_job' ] );
+		add_action( 'tsmlt_upload_dir_scan', [ RubbishScanner::class, 'get_directory_list_cron_job' ] );
 		// Rubbish Cron Job.
 		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
 		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rubbish_file_cron_job' ] );
@@ -129,7 +130,7 @@ class CronJobHooks {
 	 * @return void
 	 */
 	public function scan_rubbish_file_cron_job() {
-		Fns::scan_rubbish_file_cron_job();
+		RubbishScanner::scan_rubbish_file_cron_job();
 	}
 
 	/**

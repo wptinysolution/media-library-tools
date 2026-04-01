@@ -36,29 +36,29 @@ class Ajax {
 		add_action( 'wp_ajax_immediately_search_rubbish_file', [ $this, 'search_rubbish_file' ] );
 
 		// Media list / counts.
-		add_action( 'wp_ajax_tsmlt_get_media',          [ $this, 'get_media' ] );
-		add_action( 'wp_ajax_tsmlt_media_count',         [ $this, 'media_count' ] );
+		add_action( 'wp_ajax_tsmlt_get_media', [ $this, 'get_media' ] );
+		add_action( 'wp_ajax_tsmlt_media_count', [ $this, 'media_count' ] );
 		add_action( 'wp_ajax_tsmlt_update_single_media', [ $this, 'update_single_media' ] );
-		add_action( 'wp_ajax_tsmlt_bulk_submit',         [ $this, 'media_submit_bulk_action' ] );
+		add_action( 'wp_ajax_tsmlt_bulk_submit', [ $this, 'media_submit_bulk_action' ] );
 
 		// Filters / options.
-		add_action( 'wp_ajax_tsmlt_get_dates',    [ $this, 'get_dates' ] );
-		add_action( 'wp_ajax_tsmlt_get_terms',    [ $this, 'get_terms' ] );
-		add_action( 'wp_ajax_tsmlt_get_options',  [ $this, 'get_options' ] );
+		add_action( 'wp_ajax_tsmlt_get_dates', [ $this, 'get_dates' ] );
+		add_action( 'wp_ajax_tsmlt_get_terms', [ $this, 'get_terms' ] );
+		add_action( 'wp_ajax_tsmlt_get_options', [ $this, 'get_options' ] );
 		add_action( 'wp_ajax_tsmlt_update_option', [ $this, 'update_option' ] );
 
 		// Rubbish / unlisted files.
-		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype',   [ $this, 'get_rubbish_filetype' ] );
-		add_action( 'wp_ajax_tsmlt_get_rubbish_file',       [ $this, 'get_rubbish_file' ] );
-		add_action( 'wp_ajax_tsmlt_get_dir_list',           [ $this, 'get_dir_list' ] );
-		add_action( 'wp_ajax_tsmlt_rescan_dir',             [ $this, 'rescan_dir' ] );
-		add_action( 'wp_ajax_tsmlt_search_file_by_dir',     [ $this, 'search_file_by_dir' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype', [ $this, 'get_rubbish_filetype' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_file', [ $this, 'get_rubbish_file' ] );
+		add_action( 'wp_ajax_tsmlt_get_dir_list', [ $this, 'get_dir_list' ] );
+		add_action( 'wp_ajax_tsmlt_rescan_dir', [ $this, 'rescan_dir' ] );
+		add_action( 'wp_ajax_tsmlt_search_file_by_dir', [ $this, 'search_file_by_dir' ] );
 		add_action( 'wp_ajax_tsmlt_truncate_unlisted_file', [ $this, 'truncate_unlisted_file' ] );
 
 		// Schedule / image sizes / plugins.
-		add_action( 'wp_ajax_tsmlt_clear_schedule',             [ $this, 'clear_schedule' ] );
+		add_action( 'wp_ajax_tsmlt_clear_schedule', [ $this, 'clear_schedule' ] );
 		add_action( 'wp_ajax_tsmlt_get_registered_image_sizes', [ $this, 'get_registered_image_sizes' ] );
-		add_action( 'wp_ajax_tsmlt_get_plugin_list',            [ $this, 'get_plugin_list' ] );
+		add_action( 'wp_ajax_tsmlt_get_plugin_list', [ $this, 'get_plugin_list' ] );
 
 		// AI content generation.
 		add_action( 'wp_ajax_tsmlt_ai_generate', [ $this, 'ai_generate' ] );
@@ -144,7 +144,7 @@ class Ajax {
 		$raw_skip = isset( $_POST['skip'] ) ? wp_unslash( $_POST['skip'] ) : [];
 		$skip     = is_array( $raw_skip ) ? array_map( 'sanitize_text_field', $raw_skip ) : [];
 
-		Fns::scan_rubbish_file_cron_job( $skip );
+		RubbishScanner::scan_rubbish_file_cron_job( $skip );
 
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 		$dir     = [];
@@ -235,37 +235,37 @@ class Ajax {
 	/** @return void */
 	public function get_rubbish_filetype(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_rubbish_filetype() );
+		$this->send( RubbishScanner::instance()->get_rubbish_filetype() );
 	}
 
 	/** @return void */
 	public function get_rubbish_file(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->get_rubbish_file( $params ) );
+		$this->send( RubbishScanner::instance()->get_rubbish_file( $params ) );
 	}
 
 	/** @return void */
 	public function get_dir_list(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_dir_list() );
+		$this->send( RubbishScanner::instance()->get_dir_list() );
 	}
 
 	/** @return void */
 	public function rescan_dir(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->rescan_dir( $params ) );
+		$this->send( RubbishScanner::instance()->rescan_dir( $params ) );
 	}
 
 	/** @return void */
 	public function search_file_by_dir(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->immediately_search_rubbish_file( $params ) );
+		$this->send( RubbishScanner::instance()->immediately_search_rubbish_file( $params ) );
 	}
 
 	/** @return void */
 	public function truncate_unlisted_file(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->delete_all_rows_in_unlisted_file() );
+		$this->send( RubbishScanner::instance()->delete_all_rows_in_unlisted_file() );
 	}
 
 	// -------------------------------------------------------------------------
@@ -275,7 +275,7 @@ class Ajax {
 	/** @return void */
 	public function clear_schedule(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->clear_schedule() );
+		$this->send( RubbishScanner::instance()->clear_schedule() );
 	}
 
 	/** @return void */
