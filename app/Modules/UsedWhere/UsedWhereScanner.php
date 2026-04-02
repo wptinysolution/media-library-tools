@@ -56,9 +56,9 @@ class UsedWhereScanner {
 			'order'          => 'ASC',
 		] );
 
-		// Get total posts.
-		$total = wp_count_posts();
-		$total_count = ( $total->publish ?? 0 ) + ( isset( $total->page ) ? $total->page : 0 );
+		// Get total published posts + pages.
+		$total_count = (int) ( wp_count_posts( 'post' )->publish ?? 0 )
+			+ (int) ( wp_count_posts( 'page' )->publish ?? 0 );
 
 		if ( empty( $posts ) ) {
 			return [
@@ -87,8 +87,6 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_usage_in_post( \WP_Post $post ): void {
-		global $wpdb;
-
 		// 1. Featured image.
 		$featured_id = get_post_thumbnail_id( $post->ID );
 		if ( $featured_id ) {
@@ -127,17 +125,16 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_images_in_content( string $content, int $post_id, string $type, string $post_type ): void {
-		// Find all wp_get_attachment_url patterns or direct attachment links.
+		// Find all /wp-content/uploads/ paths in content.
 		if ( ! preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $content, $matches ) ) {
 			return;
 		}
 
-		global $wpdb;
 		$upload_dir = wp_upload_dir();
 		$base_url   = trailingslashit( $upload_dir['baseurl'] );
 
-		foreach ( $matches[0] as $file_path ) {
-			$full_url = $base_url . $matches[1][ array_key_first( $matches[0] ) ];
+		foreach ( $matches[1] as $relative_path ) {
+			$full_url = $base_url . $relative_path;
 
 			// Find attachment by URL.
 			$attachment_id = $this->get_attachment_id_by_url( $full_url );
@@ -262,11 +259,13 @@ class UsedWhereScanner {
 		}
 
 		Fns::DB()->insert( 'tsmlt_image_usage', [
-			'attachment_id' => $attachment_id,
-			'post_id'       => $post_id,
-			'usage_type'    => $usage_type,
-			'post_type'     => $post_type,
-			'detected_at'   => current_time( 'mysql' ),
+			[
+				'attachment_id' => $attachment_id,
+				'post_id'       => $post_id,
+				'usage_type'    => $usage_type,
+				'post_type'     => $post_type,
+				'detected_at'   => current_time( 'mysql' ),
+			],
 		] )->execute();
 	}
 

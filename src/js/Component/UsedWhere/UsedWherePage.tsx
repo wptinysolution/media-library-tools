@@ -48,10 +48,11 @@ export default function UsedWherePage() {
 
         try {
             while (!complete) {
-                const result = await usedWhereScanBatch({
+                const response = await usedWhereScanBatch({
                     offset,
                     batch_size: 20,
                 }) as any;
+                const result = response.data || response;
                 offset = result.processed;
                 complete = result.complete;
                 setScanProgress({ processed: result.processed, total: result.total });
