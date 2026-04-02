@@ -28,7 +28,7 @@ export default function UsedWherePage() {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+    const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -273,10 +273,10 @@ export default function UsedWherePage() {
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                                            <h3 className="text-sm mt-0! mb-1.5 font-semibold text-gray-900 truncate">
                                                 {usage.title || `(ID: ${usage.attachment_id})`}
                                             </h3>
-                                            <p className="text-xs text-gray-500 truncate">{usage.url}</p>
+                                            <p className="text-xs mt-0! mb-0! text-gray-500 truncate">{usage.url}</p>
                                         </div>
 
                                         <div className="shrink-0 flex items-center gap-3 text-xs">
@@ -296,7 +296,7 @@ export default function UsedWherePage() {
                                                 </>
                                             ) : (
                                                 <span className="inline-flex items-center px-2 py-1 font-medium text-red-700 bg-red-50 rounded">
-                                                    Not used
+                                                    No uses found
                                                 </span>
                                             )}
                                         </div>
