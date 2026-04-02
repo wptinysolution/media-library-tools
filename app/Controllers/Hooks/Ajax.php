@@ -381,20 +381,34 @@ class Ajax {
 		$limit  = absint( $params['limit'] ?? 20 );
 		$paged  = absint( $params['offset'] ?? 0 );
 		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
+		$filter = sanitize_text_field( $params['filter'] ?? 'used' );
+		$search = sanitize_text_field( $params['search'] ?? '' );
 
-		// Query attachments that have _tsmlt_image_usages meta.
-		$query = new \WP_Query( [
+		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'posts_per_page' => $limit,
 			'paged'          => $page,
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		];
+
+		if ( $search ) {
+			$args['s'] = $search;
+		}
+
+		if ( 'unused' === $filter ) {
+			// Attachments with no parent post (not used anywhere).
+			$args['post_parent'] = 0;
+		} else {
+			// Default: attachments that have usage meta (used images).
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
 					'key'     => UsedWhereScanner::META_KEY,
 					'compare' => 'EXISTS',
 				],
-			],
-		] );
+			];
+		}
+
+		$query = new \WP_Query( $args );
 
 		$usages = [];
 		foreach ( $query->posts as $post ) {

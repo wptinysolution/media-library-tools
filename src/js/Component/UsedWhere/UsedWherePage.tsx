@@ -1,17 +1,51 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
-import ProLabel from "@/js/Component/ProLabel";
+import SearchInput from "@/js/Component/Common/SearchInput";
+
+type FilterTab = 'used' | 'unused';
+
+const tabs: { key: FilterTab; label: string }[] = [
+    { key: 'used', label: 'Used' },
+    { key: 'unused', label: 'Unused' },
+];
 
 export default function UsedWherePage() {
+    const { filter: filterParam, page: pageParam } = useParams<{ filter?: string; page?: string }>();
+    const navigate = useNavigate();
+
+    const activeFilter: FilterTab = filterParam === 'unused' ? 'unused' : 'used';
+    const currentPageFromUrl = parseInt(pageParam || '1', 10);
+
     const [isScanning, setIsScanning] = useState(false);
     const [scanProgress, setScanProgress] = useState({ processed: 0, total: 0 });
     const [usages, setUsages] = useState<any[]>([]);
     const [totalUsages, setTotalUsages] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(currentPageFromUrl);
     const [isLoading, setIsLoading] = useState(false);
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [searchInput, setSearchInput] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchInput(val);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setSearchQuery(val);
+            // Reset pagination on search.
+            navigate(`/usedWhere/${activeFilter}`);
+        }, 500);
+    };
+
+    const handleSearchClear = () => {
+        setSearchInput('');
+        setSearchQuery('');
+        navigate(`/usedWhere/${activeFilter}`);
+    };
 
     const loadStatus = useCallback(async () => {
         try {
@@ -25,12 +59,14 @@ export default function UsedWherePage() {
         }
     }, []);
 
-    const loadResults = useCallback(async (page = 1) => {
+    const loadResults = useCallback(async (page = 1, filter: FilterTab = activeFilter, search: string = searchQuery) => {
         setIsLoading(true);
         try {
             const result = await getUsedWhereResults({
                 limit: 10,
                 offset: (page - 1) * 10,
+                filter,
+                search,
             }) as any;
             setUsages(result.usages || []);
             setTotalUsages(result.total || 0);
@@ -40,7 +76,12 @@ export default function UsedWherePage() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [activeFilter, searchQuery]);
+
+    const handleTabChange = (filter: FilterTab) => {
+        setExpandedId(null);
+        navigate(`/usedWhere/${filter}`);
+    };
 
     const startScan = async () => {
         setIsScanning(true);
@@ -62,7 +103,7 @@ export default function UsedWherePage() {
 
             setIsScanning(false);
             await loadStatus();
-            await loadResults(1);
+            await loadResults(1, activeFilter, searchQuery);
         } catch (error) {
             console.error('Error during scan:', error);
             setIsScanning(false);
@@ -84,10 +125,15 @@ export default function UsedWherePage() {
         }
     };
 
+    // Load status on mount.
     useEffect(() => {
         loadStatus();
-        loadResults(1);
     }, []);
+
+    // Load results when filter, page, or search changes.
+    useEffect(() => {
+        loadResults(currentPageFromUrl, activeFilter, searchQuery);
+    }, [activeFilter, currentPageFromUrl, searchQuery]);
 
     const scanPercent = scanProgress.total > 0
         ? Math.round((scanProgress.processed / scanProgress.total) * 100)
@@ -128,20 +174,13 @@ export default function UsedWherePage() {
                     </button>
                 )}
 
-                {/* Search — Pro feature */}
-                <div className="ml-auto flex items-center gap-2 relative">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="Search by image name..."
-                            disabled={!tsmltParams.hasExtended}
-                            className="w-56 px-3 py-2 pl-8 text-sm border border-gray-300 rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        />
-                        <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    {!tsmltParams.hasExtended && <ProLabel />}
+                <div className="ml-auto">
+                    <SearchInput
+                        placeholder="Search images..."
+                        value={searchInput}
+                        onChange={handleSearchChange}
+                        onClear={handleSearchClear}
+                    />
                 </div>
             </div>
 
@@ -155,6 +194,29 @@ export default function UsedWherePage() {
                 </div>
             )}
 
+            {/* Filter tabs */}
+            <div className="flex bg-white border-b border-gray-200">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.key}
+                        type="button"
+                        className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+                            activeFilter === tab.key
+                                ? 'border-blue-600 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleTabChange(tab.key)}
+                    >
+                        {tab.label}
+                        {!isLoading && activeFilter === tab.key && (
+                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded-full">
+                                {totalUsages}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+
             {/* Results */}
             <div className="bg-white rounded-b-lg border border-t-0 border-gray-200 p-4">
                 {isLoading ? (
@@ -165,9 +227,15 @@ export default function UsedWherePage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <p className="text-gray-500 text-sm">
-                            {scanProgress.processed > 0
-                                ? 'No images found in use. Your media library may contain orphaned files!'
-                                : 'Click "Scan All Posts" to detect where images are used on your site.'}
+                            {searchQuery
+                                ? `No images found matching "${searchQuery}".`
+                                : activeFilter === 'unused'
+                                    ? (scanProgress.processed > 0
+                                        ? 'All images are attached to posts. No unused images found!'
+                                        : 'Click "Scan All Posts" first to detect image usage.')
+                                    : (scanProgress.processed > 0
+                                        ? 'No images found in use. Your media library may contain orphaned files!'
+                                        : 'Click "Scan All Posts" to detect where images are used on your site.')}
                         </p>
                     </div>
                 ) : (
@@ -180,18 +248,20 @@ export default function UsedWherePage() {
                                 <div key={usage.attachment_id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                                     {/* Main row */}
                                     <div
-                                        className="flex items-center gap-4 p-4 cursor-pointer"
-                                        onClick={() => setExpandedId(isExpanded ? null : usage.attachment_id)}
+                                        className={`flex items-center gap-4 p-4 ${posts.length > 0 ? 'cursor-pointer' : ''}`}
+                                        onClick={() => posts.length > 0 && setExpandedId(isExpanded ? null : usage.attachment_id)}
                                     >
-                                        {/* Expand/collapse arrow */}
-                                        <svg
-                                            className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
+                                        {posts.length > 0 ? (
+                                            <svg
+                                                className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        ) : (
+                                            <div className="w-4 h-4 shrink-0" />
+                                        )}
 
-                                        {/* Image thumbnail */}
                                         <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                                             {usage.url ? (
                                                 <img src={usage.url} alt={usage.title} className="w-full h-full object-cover" />
@@ -202,7 +272,6 @@ export default function UsedWherePage() {
                                             )}
                                         </div>
 
-                                        {/* Details */}
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-sm font-semibold text-gray-900 truncate">
                                                 {usage.title || `(ID: ${usage.attachment_id})`}
@@ -210,41 +279,43 @@ export default function UsedWherePage() {
                                             <p className="text-xs text-gray-500 truncate">{usage.url}</p>
                                         </div>
 
-                                        {/* Stats badges */}
                                         <div className="shrink-0 flex items-center gap-3 text-xs">
-                                            <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
-                                                {usage.usage_count} usage{usage.usage_count !== 1 ? 's' : ''}
-                                            </span>
-                                            <span className="inline-flex items-center px-2 py-1 font-medium text-blue-700 bg-blue-50 rounded">
-                                                {usage.used_in_posts} post{usage.used_in_posts !== 1 ? 's' : ''}
-                                            </span>
-                                            {Object.entries(usage.usage_by_type).map(([type, count]: [string, any]) => (
-                                                <span key={type} className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
-                                                    {type}: {count}
+                                            {usage.usage_count > 0 ? (
+                                                <>
+                                                    <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
+                                                        {usage.usage_count} usage{usage.usage_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                    <span className="inline-flex items-center px-2 py-1 font-medium text-blue-700 bg-blue-50 rounded">
+                                                        {usage.used_in_posts} post{usage.used_in_posts !== 1 ? 's' : ''}
+                                                    </span>
+                                                    {Object.entries(usage.usage_by_type || {}).map(([type, count]: [string, any]) => (
+                                                        <span key={type} className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
+                                                            {type}: {count}
+                                                        </span>
+                                                    ))}
+                                                </>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-1 font-medium text-red-700 bg-red-50 rounded">
+                                                    Not used
                                                 </span>
-                                            ))}
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Expanded post list */}
                                     {isExpanded && posts.length > 0 && (
                                         <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
                                             <div className="space-y-1.5">
                                                 {posts.map((post: any, idx: number) => (
                                                     <div key={idx} className="flex items-center gap-3 text-sm py-2 px-3 bg-white rounded border border-gray-100">
-                                                        {/* Post title — primary label */}
                                                         <span className="flex-1 min-w-0 truncate font-medium text-gray-800">
                                                             {post.post_title || `(ID: ${post.post_id})`}
                                                         </span>
-                                                        {/* Post type badge */}
                                                         <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 rounded">
                                                             {post.post_type}
                                                         </span>
-                                                        {/* Usage type badge */}
                                                         <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
                                                             {post.usage_type}
                                                         </span>
-                                                        {/* View link */}
                                                         {post.post_link && (
                                                             <a
                                                                 href={post.post_link}

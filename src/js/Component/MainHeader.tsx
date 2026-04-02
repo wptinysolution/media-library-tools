@@ -154,7 +154,7 @@ function MainHeader() {
             {/* Navigation items */}
             <div className="flex flex-col pt-5 flex-1 overflow-y-auto overflow-x-hidden">
                 {menuItems.map((item) => {
-                    const isActive = pat === item.key;
+                    const isActive = pat === item.key || pat.startsWith(item.key + '/');
                     return (
                         <Link
                             key={item.key}

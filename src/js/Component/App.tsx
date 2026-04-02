@@ -181,7 +181,8 @@ function App() {
                     <Route path="/duplicates" element={<DuplicatePage />} />
                     <Route path="/duplicates/page/:page" element={<DuplicatePage />} />
                     <Route path="/usedWhere" element={<UsedWherePage />} />
-                    <Route path="/usedWhere/page/:page" element={<UsedWherePage />} />
+                    <Route path="/usedWhere/:filter" element={<UsedWherePage />} />
+                    <Route path="/usedWhere/:filter/page/:page" element={<UsedWherePage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
