@@ -14,17 +14,16 @@ function ProModal() {
     };
 
     const data: ProFeature[] = [
-        { title: 'All free Features Included', desc: 'All features available in the free version are included.' },
-        { title: 'Search And Find Used Images (Attached Post)', desc: 'Identify where the media file is used and display the corresponding page link.' },
-        { title: 'Media File CSV Export/Import', desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.' },
-        { title: 'Bulk Renaming File Based on Associated Post Title', desc: 'Automatic renaming of media files bulk mode.' },
-        { title: 'Renaming File Prior to Uploading Based on Attached Posts Title', desc: 'Automatic renaming of media files prior to uploading based on attached posts.' },
-        { title: 'Auto Rename Based on Custom Name', desc: 'Implement automatic renaming of media files based on custom text.' },
-        { title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title', desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.' },
-        { title: 'Register Custom Image Sizes', desc: 'Easily register custom image sizes as needed.' },
-        { title: 'Find Rubbish And Restore File', desc: 'Easily Restore necessary File.' },
-        { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
-        { title: 'Merge Duplicate Media Files', desc: 'Detect duplicate files in your media library, keep one copy, and automatically update all references across posts, pages, and Elementor content.' },
+        { title: 'All Free Features Included', desc: 'Everything in the free version, plus all premium features below.' },
+        { title: 'AI-Powered Content Generation', desc: 'Generate titles, alt text, captions, descriptions, and file names using AI.' },
+        { title: 'Bulk Edit by Post Title', desc: 'Bulk add alt text, caption, and description based on the attached post title.' },
+        { title: 'Bulk Rename by Post Title / SKU', desc: 'Rename media files in bulk based on attached post title or WooCommerce product SKU.' },
+        { title: 'Auto Rename on Upload', desc: 'Automatically rename media files when uploaded, based on attached post title or custom name.' },
+        { title: 'Media CSV Export / Import', desc: 'Export and import media metadata via CSV for bulk editing and backup.' },
+        { title: 'Register Custom Image Sizes', desc: 'Register custom image sizes that WordPress generates on upload.' },
+        { title: 'Merge Duplicate Files', desc: 'Detect duplicates, keep one copy, and update all references across posts, pages, and Elementor.' },
+        { title: 'Rubbish File Delete & Restore', desc: 'Delete unnecessary files or restore them back into the WordPress media library.' },
+        { title: 'Find Where Images Are Used', desc: 'Search selected images and find which posts, pages, or custom post types use them.' },
     ];
 
     return (

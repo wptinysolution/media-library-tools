@@ -19,19 +19,17 @@ function MediaDownload() {
     };
 
     const ShortcodeCard = ({ label, shortcode, phpCode, isPro = false }: ShortcodeCardProps) => {
-        const isLocked = isPro && !cptwoointParams.hasExtended;
+        const isLocked = isPro && !tsmltParams.hasExtended;
 
         return (
             <div
-                className={`bg-white mb-3 rounded-xl border transition-all duration-300 overflow-hidden ${
-                    isLocked
-                        ? 'border-gray-200 opacity-75 cursor-pointer hover:border-amber-300 hover:shadow-md'
-                        : 'border-gray-100 hover:border-blue-200 hover:shadow-md'
+                className={`bg-white mb-4 rounded-lg border overflow-hidden transition-shadow hover:shadow-md ${
+                    isLocked ? 'border-gray-200 opacity-75 cursor-pointer' : 'border-gray-200'
                 }`}
                 onClick={() => openProModal(isPro)}
             >
-                <div className={`px-5 py-3 border-b flex items-center justify-between ${
-                    isLocked ? 'bg-gradient-to-r from-amber-50 to-transparent border-amber-100' : 'bg-gradient-to-r from-blue-50 to-transparent border-gray-100'
+                <div className={`px-5 py-3 border-b border-gray-200 flex items-center justify-between ${
+                    isLocked ? 'bg-amber-50' : 'bg-gray-50'
                 }`}>
                     <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
@@ -66,12 +64,12 @@ function MediaDownload() {
                 <div className="p-5 space-y-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Shortcode</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Shortcode</span>
                             <div className="flex-1 h-px bg-gray-100"></div>
                         </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1 bg-gray-900 rounded-lg px-4 py-3 overflow-x-auto">
-                                <code className="text-green-400 text-sm font-mono">{shortcode}</code>
+                        <div className="flex gap-2 items-start">
+                            <div className="flex-1 bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto">
+                                <code className="text-emerald-400 text-sm font-mono">{shortcode}</code>
                             </div>
                             <CopyToClipboard text={shortcode} />
                         </div>
@@ -79,12 +77,12 @@ function MediaDownload() {
 
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">PHP Code</span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">PHP Code</span>
                             <div className="flex-1 h-px bg-gray-100"></div>
                         </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1 bg-gray-900 rounded-lg px-4 py-3 overflow-x-auto">
-                                <code className="text-blue-400 text-xs font-mono">{phpCode}</code>
+                        <div className="flex gap-2 items-start">
+                            <div className="flex-1 bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto">
+                                <code className="text-sky-400 text-sm font-mono">{phpCode}</code>
                             </div>
                             <CopyToClipboard text={phpCode} />
                         </div>
@@ -97,12 +95,14 @@ function MediaDownload() {
     return generalData.isLoading ? (
         <Loader />
     ) : (
-        <div className="p-6 bg-white/35 rounded-lg shadow-sm">
-            <h3 className="text-2xl font-semibold m-0! mb-6">
-                Button For Download Media File
-            </h3>
+        <div className="mx-auto px-6 py-8 min-h-screen bg-gray-50">
+            <div className="mb-6">
+                <h1 className="text-2xl font-semibold text-gray-900 m-0!">
+                    Button For Download Media File
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">Use these shortcodes to add download buttons for media files on your site.</p>
+            </div>
 
-            <div className="border-t border-gray-200 my-6"></div>
             <ShortcodeCard
                 label="Download By Id"
                 shortcode="[tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]"

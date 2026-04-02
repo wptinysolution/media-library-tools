@@ -94,16 +94,16 @@ class SubMenu {
 							<li class="tsmlt-pro-card-header">
 								Premium Plan
 							</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> All free Features Included</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Media file CSV Export Import</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Register/Add new custom image sizes as needed.</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Bulk Renaming Based on Associated Post Title</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Renaming File Prior to Uploading Based on Attached Posts Title</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Auto Rename By Custom Text</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Bulk Add Alt Text, Caption, and Description Based on Associated Post Title</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Find And Bulk Delete Unnecessary / Rubbish File</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Rename Based on Woo Product SKU</li>
-							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Search Used Images (Attached Post)</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> All Free Features Included</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> AI-Powered Content Generation</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Bulk Edit by Post Title (Alt, Caption, Description)</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Bulk Rename by Post Title / WooCommerce SKU</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Auto Rename on Upload</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Media CSV Export / Import</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Register Custom Image Sizes</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Merge Duplicate Files</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Rubbish File Delete &amp; Restore</li>
+							<li class="tsmlt-pro-feature-item"><span class="dashicons dashicons-yes-alt"></span> Find Where Images Are Used</li>
 							<li class="tsmlt-pro-card-footer">
 								<a class="tsmlt-pro-btn tsmlt-pro-btn--primary" target="_blank" href="https://checkout.freemius.com/plugin/13159/plan/22377/licenses/5/">Buy Now <span class="dashicons dashicons-arrow-right-alt"></span></a>
 								<a class="tsmlt-pro-btn tsmlt-pro-btn--outline" target="_blank" href="https://www.wptinysolutions.com/tiny-products/media-library-tools/">Visit Our Website</a>
