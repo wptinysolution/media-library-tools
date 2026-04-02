@@ -28,7 +28,7 @@ export default function AltTextSettings() {
                     label="Default Alt Text Base On Post Title"
                     isPro={!tsmltParams.hasExtended}
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Alt Text will add automatically when upload Media as attached posts.
                 </p>
             </SettingRow>
@@ -61,7 +61,7 @@ export default function AltTextSettings() {
                     </div>
                 )}
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Alt Text Will add automatically when upload Media file
                 </p>
             </SettingRow>

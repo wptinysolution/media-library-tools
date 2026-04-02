@@ -28,7 +28,7 @@ export default function CaptionSettings() {
                     label="Default Caption Text Base On Post Title"
                     isPro={!tsmltParams.hasExtended}
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Caption Text will add automatically when upload Media as attached posts.
                 </p>
             </SettingRow>
@@ -61,7 +61,7 @@ export default function CaptionSettings() {
                     </div>
                 )}
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Caption text will add automatically when upload Media file
                 </p>
             </SettingRow>

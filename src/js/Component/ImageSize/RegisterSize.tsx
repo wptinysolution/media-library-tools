@@ -45,12 +45,12 @@ function RegisterSize() {
                     <div key={index} className="flex items-center gap-3 flex-wrap p-4 bg-gray-50 rounded-lg border border-gray-200">
                         {/* Size key */}
                         <div className="flex items-center">
-                            <span className="h-9 px-3 flex items-center text-sm bg-white border border-r-0 border-gray-300 rounded-l-md text-gray-500 whitespace-nowrap select-none">
+                            <span className="h-9 px-3 flex items-center text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-500 whitespace-nowrap select-none">
                                 tsmlt_
                             </span>
                             <input
                                 type="text"
-                                className="h-9 w-36 px-3 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="h-9 w-36 px-3 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={String(sizeKey)}
                                 placeholder="size-name"
                                 title={fullKey}
@@ -63,34 +63,34 @@ function RegisterSize() {
 
                         {/* Width */}
                         <div className="flex items-center">
-                            <span className="h-9 px-3 flex items-center text-sm bg-white border border-r-0 border-gray-300 rounded-l-md text-gray-500 select-none">
+                            <span className="h-9 px-3 flex items-center text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-500 select-none">
                                 W
                             </span>
                             <input
                                 type="number"
                                 min={0}
-                                className="w-18 h-9 px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={sizes[index]?.width || ''}
                                 onChange={(event) => registerImageSize(index, 'width', Number(event.target.value))}
                             />
-                            <span className="h-9 px-3 flex items-center text-sm bg-white border border-l-0 border-gray-300 rounded-r-md text-gray-500 select-none">
+                            <span className="h-9 px-3 flex items-center text-sm bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-gray-500 select-none">
                                 px
                             </span>
                         </div>
 
                         {/* Height */}
                         <div className="flex items-center">
-                            <span className="h-9 px-3 flex items-center text-sm bg-white border border-r-0 border-gray-300 rounded-l-md text-gray-500 select-none">
+                            <span className="h-9 px-3 flex items-center text-sm bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-gray-500 select-none">
                                 H
                             </span>
                             <input
                                 type="number"
                                 min={0}
-                                className="w-18 h-9 px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={sizes[index]?.height || ''}
                                 onChange={(event) => registerImageSize(index, 'height', Number(event.target.value))}
                             />
-                            <span className="h-9 px-3 flex items-center text-sm bg-white border border-l-0 border-gray-300 rounded-r-md text-gray-500 select-none">
+                            <span className="h-9 px-3 flex items-center text-sm bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-gray-500 select-none">
                                 px
                             </span>
                         </div>

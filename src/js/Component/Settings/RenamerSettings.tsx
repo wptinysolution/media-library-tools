@@ -41,7 +41,7 @@ export default function RenamerSettings() {
                                 onChange={(event) => setOptions({ media_rename_prefix: event.target.value })}
                                 value={(options.media_rename_prefix as string) || ''}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 A file rename prefix is a set of characters, words, or numbers added at the beginning of a filename when renaming it.
                             </p>
                         </div>
@@ -56,7 +56,7 @@ export default function RenamerSettings() {
                                 onChange={(event) => setOptions({ media_rename_suffix: event.target.value })}
                                 value={(options.media_rename_suffix as string) || ''}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 A file rename suffix is a set of characters, words, or numbers added at the end of a filename when renaming it.
                             </p>
                         </div>
@@ -72,7 +72,7 @@ export default function RenamerSettings() {
                         label="Auto Rename by post title"
                         isPro={!tsmltParams.hasExtended}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         When you edit a post and upload an image, it will be renamed automatically based on the post title.
                     </p>
                 </SettingRow>
@@ -86,7 +86,7 @@ export default function RenamerSettings() {
                         label="Custom text"
                         isPro={!tsmltParams.hasExtended}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         Auto rename will apply automatically when upload Media file.
                     </p>
                     {tsmltParams.hasExtended && 'enable_auto_rename' === options.enable_auto_rename && (
@@ -112,7 +112,7 @@ export default function RenamerSettings() {
                         label="Enable auto alt text injection"
                         isPro={!tsmltParams.hasExtended}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         Automatically add alt text to images missing alt attributes when pages are rendered on the frontend.
                     </p>
                 </SettingRow>
@@ -128,7 +128,7 @@ export default function RenamerSettings() {
                                 label="Use post title for alt text"
                                 isPro={false}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 If enabled, will use the post/page title as alt text. Falls back to filename if no parent post.
                             </p>
                         </SettingRow>
@@ -139,7 +139,7 @@ export default function RenamerSettings() {
                                 onChange={(event) => setOptions({ default_alt_text_if_missing: event.target.value })}
                                 value={(options.default_alt_text_if_missing as string) || ''}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 Fallback alt text if no post title or filename is available. Leave empty to use filename as fallback.
                             </p>
                         </SettingRow>
@@ -155,7 +155,7 @@ export default function RenamerSettings() {
                         label="Enable passive image usage tracking"
                         isPro={false}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         Automatically collect image usage data when users visit pages. Complements the backend scan functionality.
                     </p>
                 </SettingRow>

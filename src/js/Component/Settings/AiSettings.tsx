@@ -46,7 +46,7 @@ export default function AiSettings() {
                             </label>
                         ))}
                     </div>
-                    <p className="text-sm text-gray-500">Select which AI provider to use. All API keys you enter are saved; only the active provider&apos;s key is used.</p>
+                    <p className="text-sm text-gray-500 mt-0!">Select which AI provider to use. All API keys you enter are saved; only the active provider&apos;s key is used.</p>
                 </SettingRow>
 
                 <SettingRow label="Send Image to AI:" bordered>
@@ -65,7 +65,7 @@ export default function AiSettings() {
                         />
                         <span className="text-base text-gray-900">Send image data to AI (uses more API tokens)</span>
                     </label>
-                    <p className="text-sm text-gray-500">When enabled, the actual image is base64-encoded and sent to the AI for visual analysis. When disabled, the AI generates content using text context only: site title, tagline, filename, and attached post title.</p>
+                    <p className="text-sm text-gray-500 mt-0!">When enabled, the actual image is base64-encoded and sent to the AI for visual analysis. When disabled, the AI generates content using text context only: site title, tagline, filename, and attached post title.</p>
                     {(options.ai_max_suggestion_count ?? 1) <= 1 && (
                         <p className="text-sm text-amber-600">Sending image data requires Pro.</p>
                     )}
