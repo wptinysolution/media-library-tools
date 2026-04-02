@@ -328,6 +328,17 @@ class Api {
 				];
 			}
 		}
+		// Used/Unused image filter.
+		if ( ! empty( $parameters['usage_filter'] ) ) {
+			$usage_filter = sanitize_text_field( $parameters['usage_filter'] );
+			if ( 'used' === $usage_filter ) {
+				// Images that have a parent post set (used somewhere).
+				$args['post_parent__not_in'] = [ 0 ];
+			} elseif ( 'unused' === $usage_filter ) {
+				// Images with no parent post (not used anywhere).
+				$args['post_parent'] = 0;
+			}
+		}
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];

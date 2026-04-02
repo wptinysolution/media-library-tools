@@ -162,6 +162,16 @@ function TheHeader() {
                         ))}
                     </select>
 
+                    <select
+                        className="px-3! py-2! pr-5.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        onChange={(e) => handleSelectChange(e.target.value || null, 'usage_filter')}
+                        defaultValue={mediaData.postQuery.usage_filter || ""}
+                    >
+                        <option value="">All Images</option>
+                        <option value="used">Used Images</option>
+                        <option value="unused">Unused Images</option>
+                    </select>
+
                     <SearchInput
                         placeholder="Search keywords..."
                         value={searchQuery}

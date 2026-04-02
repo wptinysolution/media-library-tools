@@ -714,6 +714,7 @@ class Fns {
 				'_edit_lock',
 				'_edit_last',
 				'_original_file_url',
+				'_tsmlt_image_usages',
 			]
 		);
 		if ( empty( $skip_key ) || ! is_array( $skip_key ) ) {

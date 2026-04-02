@@ -2,6 +2,9 @@
 /**
  * Used-Where module — tracks where images are used across the website.
  *
+ * Stores usage data as attachment post meta (`_tsmlt_image_usages`) and sets
+ * `post_parent` on each attachment for the "Attached Post" column.
+ *
  * @package TinySolutions\mlt
  */
 
@@ -26,6 +29,18 @@ class UsedWhereScanner {
 	use SingletonTrait;
 
 	/**
+	 * Meta key for storing image usage data on attachments.
+	 */
+	const META_KEY = '_tsmlt_image_usages';
+
+	/**
+	 * Buffer: accumulates usages per attachment_id during a batch scan.
+	 *
+	 * @var array<int, array>
+	 */
+	private $usages_buffer = [];
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -33,7 +48,8 @@ class UsedWhereScanner {
 	/**
 	 * Scan all posts and detect where images (attachments) are used.
 	 *
-	 * Processes in batches to avoid timeouts.
+	 * Processes in batches to avoid timeouts. Stores results as post meta
+	 * on each attachment and sets post_parent.
 	 *
 	 * @param int $offset Batch offset.
 	 * @param int $batch_size Number of posts per batch.
@@ -41,14 +57,13 @@ class UsedWhereScanner {
 	 * @return array{processed: int, total: int, complete: bool}
 	 */
 	public function scan_batch( int $offset = 0, int $batch_size = 20 ): array {
-		// Clear old usage records first (only once at offset 0).
+		// Clear old usage meta on first batch only.
 		if ( 0 === $offset ) {
-			Fns::DB()->delete( 'tsmlt_image_usage' )->execute();
+			$this->clear_all_usage_meta();
 		}
 
 		// Scan all public post types (post, page, product, portfolio, etc.).
 		$post_types = get_post_types( [ 'public' => true ], 'names' );
-		// Exclude 'attachment' — we're looking for where attachments are used, not attachments themselves.
 		unset( $post_types['attachment'] );
 		$post_types = array_values( $post_types );
 
@@ -76,9 +91,15 @@ class UsedWhereScanner {
 			];
 		}
 
+		// Reset buffer for this batch.
+		$this->usages_buffer = [];
+
 		foreach ( $posts as $post ) {
 			$this->detect_usage_in_post( $post );
 		}
+
+		// Flush buffer: save usages to post meta and set post_parent.
+		$this->flush_usages_buffer();
 
 		return [
 			'processed' => $offset + count( $posts ),
@@ -98,42 +119,40 @@ class UsedWhereScanner {
 		// 1. Featured image.
 		$featured_id = get_post_thumbnail_id( $post->ID );
 		if ( $featured_id ) {
-			$this->record_usage( $featured_id, $post->ID, 'featured', $post->post_type );
+			$this->record_usage( $featured_id, $post, 'featured' );
 		}
 
 		// 2. Images in post content.
-		$this->detect_images_in_content( $post->post_content, $post->ID, 'content', $post->post_type );
+		$this->detect_images_in_content( $post->post_content, $post, 'content' );
 
 		// 3. Images in post excerpt.
 		if ( ! empty( $post->post_excerpt ) ) {
-			$this->detect_images_in_content( $post->post_excerpt, $post->ID, 'excerpt', $post->post_type );
+			$this->detect_images_in_content( $post->post_excerpt, $post, 'excerpt' );
 		}
 
 		// 4. Elementor (meta-based).
 		$elementor_data = get_post_meta( $post->ID, '_elementor_data', true );
 		if ( ! empty( $elementor_data ) ) {
-			$this->detect_images_in_elementor( $elementor_data, $post->ID, $post->post_type );
+			$this->detect_images_in_elementor( $elementor_data, $post );
 		}
 
 		// 5. Custom meta fields (if enabled).
 		$options = Fns::get_options();
 		if ( ! empty( $options['scan_custom_meta_usage'] ) ) {
-			$this->detect_images_in_meta( $post->ID, $post->post_type );
+			$this->detect_images_in_meta( $post );
 		}
 	}
 
 	/**
-	 * Detect image attachments in HTML content (posts, pages, excerpts).
+	 * Detect image attachments in HTML content.
 	 *
-	 * @param string $content Content to search.
-	 * @param int    $post_id Post ID.
-	 * @param string $type Usage type ('content', 'excerpt', etc.).
-	 * @param string $post_type Post type.
+	 * @param string   $content Content to search.
+	 * @param \WP_Post $post Post object.
+	 * @param string   $type Usage type ('content', 'excerpt', etc.).
 	 *
 	 * @return void
 	 */
-	private function detect_images_in_content( string $content, int $post_id, string $type, string $post_type ): void {
-		// Find all /wp-content/uploads/ paths in content.
+	private function detect_images_in_content( string $content, \WP_Post $post, string $type ): void {
 		if ( ! preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $content, $matches ) ) {
 			return;
 		}
@@ -142,12 +161,10 @@ class UsedWhereScanner {
 		$base_url   = trailingslashit( $upload_dir['baseurl'] );
 
 		foreach ( $matches[1] as $relative_path ) {
-			$full_url = $base_url . $relative_path;
-
-			// Find attachment by URL.
+			$full_url      = $base_url . $relative_path;
 			$attachment_id = $this->get_attachment_id_by_url( $full_url );
 			if ( $attachment_id ) {
-				$this->record_usage( $attachment_id, $post_id, $type, $post_type );
+				$this->record_usage( $attachment_id, $post, $type );
 			}
 		}
 	}
@@ -155,57 +172,52 @@ class UsedWhereScanner {
 	/**
 	 * Detect images in Elementor meta data.
 	 *
-	 * @param string $elementor_data JSON data from Elementor.
-	 * @param int    $post_id Post ID.
-	 * @param string $post_type Post type.
+	 * @param string   $elementor_data JSON data from Elementor.
+	 * @param \WP_Post $post Post object.
 	 *
 	 * @return void
 	 */
-	private function detect_images_in_elementor( string $elementor_data, int $post_id, string $post_type ): void {
+	private function detect_images_in_elementor( string $elementor_data, \WP_Post $post ): void {
 		$data = json_decode( $elementor_data, true );
 		if ( ! is_array( $data ) ) {
 			return;
 		}
 
-		$this->extract_attachment_ids_from_array( $data, $post_id, 'elementor', $post_type );
+		$this->extract_attachment_ids_from_array( $data, $post, 'elementor' );
 	}
 
 	/**
-	 * Recursively extract attachment IDs from nested arrays (Elementor or other JSON data).
+	 * Recursively extract attachment IDs from nested arrays.
 	 *
-	 * @param array  $data Array to search.
-	 * @param int    $post_id Post ID.
-	 * @param string $type Usage type.
-	 * @param string $post_type Post type.
-	 * @param int    $depth Current recursion depth (max 10).
+	 * @param array    $data Array to search.
+	 * @param \WP_Post $post Post object.
+	 * @param string   $type Usage type.
+	 * @param int      $depth Current recursion depth (max 10).
 	 *
 	 * @return void
 	 */
-	private function extract_attachment_ids_from_array( array $data, int $post_id, string $type, string $post_type, int $depth = 0 ): void {
+	private function extract_attachment_ids_from_array( array $data, \WP_Post $post, string $type, int $depth = 0 ): void {
 		if ( $depth > 10 ) {
-			return; // Prevent infinite recursion.
+			return;
 		}
 
 		foreach ( $data as $key => $value ) {
-			// Check for numeric ID keys (common in Elementor).
 			if ( is_numeric( $value ) && in_array( $key, [ 'id', 'image', 'attachment_id' ], true ) ) {
 				$attachment_id = absint( $value );
 				if ( $attachment_id && 'attachment' === get_post_type( $attachment_id ) ) {
-					$this->record_usage( $attachment_id, $post_id, $type, $post_type );
+					$this->record_usage( $attachment_id, $post, $type );
 				}
 			}
 
-			// Check for full URLs to attachments.
 			if ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
 				$attachment_id = $this->get_attachment_id_by_url( $value );
 				if ( $attachment_id ) {
-					$this->record_usage( $attachment_id, $post_id, $type, $post_type );
+					$this->record_usage( $attachment_id, $post, $type );
 				}
 			}
 
-			// Recurse into nested arrays.
 			if ( is_array( $value ) ) {
-				$this->extract_attachment_ids_from_array( $value, $post_id, $type, $post_type, $depth + 1 );
+				$this->extract_attachment_ids_from_array( $value, $post, $type, $depth + 1 );
 			}
 		}
 	}
@@ -213,30 +225,28 @@ class UsedWhereScanner {
 	/**
 	 * Detect images in custom post meta fields.
 	 *
-	 * @param int    $post_id Post ID.
-	 * @param string $post_type Post type.
+	 * @param \WP_Post $post Post object.
 	 *
 	 * @return void
 	 */
-	private function detect_images_in_meta( int $post_id, string $post_type ): void {
-		$meta = get_post_meta( $post_id );
+	private function detect_images_in_meta( \WP_Post $post ): void {
+		$meta = get_post_meta( $post->ID );
 		if ( empty( $meta ) ) {
 			return;
 		}
 
 		foreach ( $meta as $key => $values ) {
-			// Skip private meta keys (prefixed with _).
 			if ( strpos( $key, '_' ) === 0 ) {
 				continue;
 			}
 
 			foreach ( (array) $values as $value ) {
 				if ( is_numeric( $value ) && 'attachment' === get_post_type( $value ) ) {
-					$this->record_usage( absint( $value ), $post_id, 'meta', $post_type );
+					$this->record_usage( absint( $value ), $post, 'meta' );
 				} elseif ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
 					$attachment_id = $this->get_attachment_id_by_url( $value );
 					if ( $attachment_id ) {
-						$this->record_usage( $attachment_id, $post_id, 'meta', $post_type );
+						$this->record_usage( $attachment_id, $post, 'meta' );
 					}
 				}
 			}
@@ -244,43 +254,77 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Record an image usage instance in the database.
+	 * Buffer a usage record. Deduplicated by attachment+post+type.
 	 *
-	 * @param int    $attachment_id Attachment ID.
-	 * @param int    $post_id Post ID where the image is used.
-	 * @param string $usage_type Type of usage ('content', 'featured', 'elementor', 'meta').
-	 * @param string $post_type Post type.
+	 * @param int      $attachment_id Attachment ID.
+	 * @param \WP_Post $post Post where the image is used.
+	 * @param string   $usage_type Type of usage.
 	 *
 	 * @return void
 	 */
-	private function record_usage( int $attachment_id, int $post_id, string $usage_type, string $post_type ): void {
-		// Avoid duplicate records for the same attachment+post combo.
-		$existing = Fns::DB()->select( 'id' )
-			->from( 'tsmlt_image_usage' )
-			->where( 'attachment_id', '=', $attachment_id )
-			->andWhere( 'post_id', '=', $post_id )
-			->andWhere( 'usage_type', '=', $usage_type )
-			->get();
+	private function record_usage( int $attachment_id, \WP_Post $post, string $usage_type ): void {
+		$key = $attachment_id . ':' . $post->ID . ':' . $usage_type;
 
-		if ( ! empty( $existing ) ) {
+		if ( ! isset( $this->usages_buffer[ $attachment_id ] ) ) {
+			$this->usages_buffer[ $attachment_id ] = [];
+		}
+
+		// Avoid duplicates within the buffer.
+		if ( isset( $this->usages_buffer[ $attachment_id ][ $key ] ) ) {
 			return;
 		}
 
-		Fns::DB()->insert( 'tsmlt_image_usage', [
-			[
-				'attachment_id' => $attachment_id,
-				'post_id'       => $post_id,
-				'usage_type'    => $usage_type,
-				'post_type'     => $post_type,
-				'detected_at'   => current_time( 'mysql' ),
-			],
-		] )->execute();
+		$this->usages_buffer[ $attachment_id ][ $key ] = [
+			'post_id'    => $post->ID,
+			'post_title' => $post->post_title,
+			'post_type'  => $post->post_type,
+			'usage_type' => $usage_type,
+		];
+	}
+
+	/**
+	 * Flush the usages buffer to post meta and set post_parent.
+	 *
+	 * @return void
+	 */
+	private function flush_usages_buffer(): void {
+		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
+			$new_usages = array_values( $entries );
+
+			// Merge with any existing meta (from previous batches).
+			$existing = get_post_meta( $attachment_id, self::META_KEY, true );
+			if ( ! empty( $existing ) && is_array( $existing ) ) {
+				// Deduplicate by key.
+				$existing_keys = [];
+				foreach ( $existing as $item ) {
+					$existing_keys[ $item['post_id'] . ':' . $item['usage_type'] ] = true;
+				}
+				foreach ( $new_usages as $item ) {
+					$k = $item['post_id'] . ':' . $item['usage_type'];
+					if ( ! isset( $existing_keys[ $k ] ) ) {
+						$existing[] = $item;
+					}
+				}
+				$new_usages = $existing;
+			}
+
+			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
+
+			// Set post_parent if not already set.
+			$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
+			if ( ! $current_parent && ! empty( $new_usages[0]['post_id'] ) ) {
+				wp_update_post( [
+					'ID'          => $attachment_id,
+					'post_parent' => (int) $new_usages[0]['post_id'],
+				] );
+			}
+		}
+
+		$this->usages_buffer = [];
 	}
 
 	/**
 	 * Get attachment ID by its URL.
-	 *
-	 * Optimized: uses a static cache to avoid repeated DB queries.
 	 *
 	 * @param string $url Attachment URL.
 	 *
@@ -293,7 +337,6 @@ class UsedWhereScanner {
 			return $cache[ $url ];
 		}
 
-		// Search by URL in post_meta (attachment metadata).
 		$result = Fns::DB()->select( 'post_id' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', '_wp_attached_file' )
@@ -304,7 +347,6 @@ class UsedWhereScanner {
 		$attachment_id = ! empty( $result ) ? absint( $result[0]['post_id'] ?? 0 ) : 0;
 
 		if ( ! $attachment_id ) {
-			// Fallback: search by GUID.
 			$result = Fns::DB()->select( 'ID' )
 				->from( 'posts' )
 				->where( 'guid', '=', $url )
@@ -321,7 +363,7 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Get usage statistics for a specific attachment.
+	 * Get usage statistics for a specific attachment from post meta.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 *
@@ -334,18 +376,13 @@ class UsedWhereScanner {
 			'by_post'     => [],
 		];
 
-		$usages = Fns::DB()->select( '*' )
-			->from( 'tsmlt_image_usage' )
-			->where( 'attachment_id', '=', $attachment_id )
-			->get();
-
-		if ( empty( $usages ) ) {
+		$usages = get_post_meta( $attachment_id, self::META_KEY, true );
+		if ( empty( $usages ) || ! is_array( $usages ) ) {
 			return $result;
 		}
 
 		$result['total_usage'] = count( $usages );
 
-		// Group by usage type.
 		$by_type = [];
 		$by_post = [];
 
@@ -353,17 +390,13 @@ class UsedWhereScanner {
 			$type = $usage['usage_type'] ?? 'unknown';
 			$by_type[ $type ] = ( $by_type[ $type ] ?? 0 ) + 1;
 
-			$post_id = $usage['post_id'];
-			$post    = get_post( $post_id );
-			if ( $post ) {
-				$by_post[] = [
-					'post_id'   => $post_id,
-					'post_title' => $post->post_title,
-					'post_type' => $post->post_type,
-					'post_link' => get_permalink( $post_id ),
-					'usage_type' => $type,
-				];
-			}
+			$by_post[] = [
+				'post_id'    => $usage['post_id'],
+				'post_title' => $usage['post_title'] ?? '',
+				'post_type'  => $usage['post_type'] ?? '',
+				'post_link'  => get_permalink( $usage['post_id'] ),
+				'usage_type' => $type,
+			];
 		}
 
 		$result['by_type'] = $by_type;
@@ -375,7 +408,7 @@ class UsedWhereScanner {
 	/**
 	 * Get scan status.
 	 *
-	 * @return array{scanned: int, total: int, status: string}
+	 * @return array{scanned: int, total: int, complete: bool, last_update: string}
 	 */
 	public function get_scan_status(): array {
 		$last_scan = get_option( 'tsmlt_used_where_scan_status', [] );
@@ -389,12 +422,12 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Clear all scan results.
+	 * Clear all scan results — removes meta from all attachments and resets post_parent.
 	 *
 	 * @return array
 	 */
 	public function clear_scan(): array {
-		Fns::DB()->delete( 'tsmlt_image_usage' )->execute();
+		$this->clear_all_usage_meta();
 		delete_option( 'tsmlt_used_where_scan_status' );
 
 		return [
@@ -404,9 +437,36 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Record frontend image usage (for passive tracking on page visits).
+	 * Delete _tsmlt_image_usages meta from all attachments and reset post_parent to 0.
 	 *
-	 * Public wrapper for record_usage() to be called from frontend hooks.
+	 * @return void
+	 */
+	private function clear_all_usage_meta(): void {
+		// Get all attachment IDs that have our meta key.
+		$attachments = get_posts( [
+			'post_type'      => 'attachment',
+			'posts_per_page' => -1,
+			'post_status'    => 'any',
+			'fields'         => 'ids',
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				[
+					'key'     => self::META_KEY,
+					'compare' => 'EXISTS',
+				],
+			],
+		] );
+
+		foreach ( $attachments as $attachment_id ) {
+			delete_post_meta( $attachment_id, self::META_KEY );
+			wp_update_post( [
+				'ID'          => $attachment_id,
+				'post_parent' => 0,
+			] );
+		}
+	}
+
+	/**
+	 * Record frontend image usage (passive tracking).
 	 *
 	 * @param int    $attachment_id Attachment ID.
 	 * @param int    $post_id Post ID.
@@ -416,26 +476,39 @@ class UsedWhereScanner {
 	 */
 	public function record_frontend_usage( int $attachment_id, int $post_id, string $usage_type ): void {
 		$post = get_post( $post_id );
-		if ( $post ) {
-			$this->record_usage( $attachment_id, $post_id, $usage_type, $post->post_type );
-		}
-	}
-
-	/**
-	 * Detect images in post content (frontend tracking helper).
-	 *
-	 * @param string $content Post content.
-	 * @param int    $post_id Post ID.
-	 * @param string $type Usage type.
-	 *
-	 * @return void
-	 */
-	public function detect_content_images( string $content, int $post_id, string $type ): void {
-		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return;
 		}
 
-		$this->detect_images_in_content( $content, $post_id, $type, $post->post_type );
+		$existing = get_post_meta( $attachment_id, self::META_KEY, true );
+		if ( ! is_array( $existing ) ) {
+			$existing = [];
+		}
+
+		// Check for duplicate.
+		$key = $post_id . ':' . $usage_type;
+		foreach ( $existing as $item ) {
+			if ( ( $item['post_id'] . ':' . $item['usage_type'] ) === $key ) {
+				return;
+			}
+		}
+
+		$existing[] = [
+			'post_id'    => $post_id,
+			'post_title' => $post->post_title,
+			'post_type'  => $post->post_type,
+			'usage_type' => $usage_type,
+		];
+
+		update_post_meta( $attachment_id, self::META_KEY, $existing );
+
+		// Set post_parent if not set.
+		$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
+		if ( ! $current_parent ) {
+			wp_update_post( [
+				'ID'          => $attachment_id,
+				'post_parent' => $post_id,
+			] );
+		}
 	}
 }

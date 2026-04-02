@@ -378,59 +378,42 @@ class Ajax {
 	/** @return void */
 	public function used_where_get_results(): void {
 		$params = $this->verify_and_get_params();
-		// Return image usage data grouped by attachment.
 		$limit  = absint( $params['limit'] ?? 20 );
-		$offset = absint( $params['offset'] ?? 0 );
+		$paged  = absint( $params['offset'] ?? 0 );
+		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
 
-		$results = Fns::DB()->select( 'attachment_id' )
-			->from( 'tsmlt_image_usage' )
-			->groupBy( 'attachment_id' )
-			->limit( $limit )
-			->offset( $offset )
-			->get();
-
-		if ( empty( $results ) ) {
-			$this->send(
+		// Query attachments that have _tsmlt_image_usages meta.
+		$query = new \WP_Query( [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => $limit,
+			'paged'          => $page,
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
-					'usages' => [],
-					'total'  => 0,
-				]
-			);
-			return;
-		}
+					'key'     => UsedWhereScanner::META_KEY,
+					'compare' => 'EXISTS',
+				],
+			],
+		] );
 
 		$usages = [];
-		foreach ( $results as $row ) {
-			$attachment_id = absint( $row['attachment_id'] );
-			$stats         = UsedWhereScanner::instance()->get_usage_stats( $attachment_id );
-			$post          = get_post( $attachment_id );
-			if ( $post ) {
-				$usages[] = [
-					'attachment_id' => $attachment_id,
-					'title'         => $post->post_title,
-					'url'           => wp_get_attachment_url( $attachment_id ),
-					'usage_count'   => $stats['total_usage'],
-					'usage_by_type' => $stats['by_type'],
-					'used_in_posts' => count( $stats['by_post'] ),
-					'posts'         => $stats['by_post'],
-				];
-			}
+		foreach ( $query->posts as $post ) {
+			$stats    = UsedWhereScanner::instance()->get_usage_stats( $post->ID );
+			$usages[] = [
+				'attachment_id' => $post->ID,
+				'title'         => $post->post_title,
+				'url'           => wp_get_attachment_url( $post->ID ),
+				'usage_count'   => $stats['total_usage'],
+				'usage_by_type' => $stats['by_type'],
+				'used_in_posts' => count( $stats['by_post'] ),
+				'posts'         => $stats['by_post'],
+			];
 		}
 
-		// Get total count (unique attachments).
-		$total_result = Fns::DB()->select( 'attachment_id' )
-			->from( 'tsmlt_image_usage' )
-			->groupBy( 'attachment_id' )
-			->get();
-
-		$total = is_array( $total_result ) ? count( $total_result ) : 0;
-
-		$this->send(
-			[
-				'usages' => $usages,
-				'total'  => $total,
-			]
-		);
+		$this->send( [
+			'usages' => $usages,
+			'total'  => $query->found_posts,
+		] );
 	}
 
 	/** @return void */
