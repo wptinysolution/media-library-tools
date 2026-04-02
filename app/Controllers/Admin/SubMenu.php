@@ -114,9 +114,7 @@ class SubMenu {
 						<section class="tsmlt-pro-guarantee">
 							<img class="tsmlt-pro-guarantee__image" src="<?php echo esc_url( tsmlt()->get_assets_uri( 'images/pngtree-gold-premium-quality-100-money-back-guaranteed-2.jpg' ) ); ?>" alt="">
 							<h1 class="tsmlt-pro-guarantee__title">
-								<b class="tsmlt-pro-stars"><i>⋆</i><i>⋆</i><i>⋆</i></b>
-								<span>30-Days Money Back Guarantee</span>
-								<b class="tsmlt-pro-stars"><i>⋆</i><i>⋆</i><i>⋆</i></b>
+								30-Days Money Back Guarantee
 							</h1>
 							<p class="tsmlt-pro-guarantee__text">
 								You are fully protected by our 100% Money Back Guarantee. If during the next 30 days you experience an issue that makes the plugin unusable and we are unable to resolve it, we'll happily consider offering a full refund of your money.
