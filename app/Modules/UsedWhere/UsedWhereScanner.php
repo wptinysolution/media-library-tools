@@ -46,9 +46,14 @@ class UsedWhereScanner {
 			Fns::DB()->delete( 'tsmlt_image_usage' )->execute();
 		}
 
-		// Get all published posts.
+		// Scan all public post types (post, page, product, portfolio, etc.).
+		$post_types = get_post_types( [ 'public' => true ], 'names' );
+		// Exclude 'attachment' — we're looking for where attachments are used, not attachments themselves.
+		unset( $post_types['attachment'] );
+		$post_types = array_values( $post_types );
+
 		$posts = get_posts( [
-			'post_type'      => [ 'post', 'page' ],
+			'post_type'      => $post_types,
 			'posts_per_page' => $batch_size,
 			'offset'         => $offset,
 			'post_status'    => 'publish',
@@ -56,9 +61,12 @@ class UsedWhereScanner {
 			'order'          => 'ASC',
 		] );
 
-		// Get total published posts + pages.
-		$total_count = (int) ( wp_count_posts( 'post' )->publish ?? 0 )
-			+ (int) ( wp_count_posts( 'page' )->publish ?? 0 );
+		// Count total published posts across all public post types.
+		$total_count = 0;
+		foreach ( $post_types as $pt ) {
+			$counts = wp_count_posts( $pt );
+			$total_count += (int) ( $counts->publish ?? 0 );
+		}
 
 		if ( empty( $posts ) ) {
 			return [

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
+import ProLabel from "@/js/Component/ProLabel";
 
 export default function UsedWherePage() {
     const [isScanning, setIsScanning] = useState(false);
@@ -10,6 +11,7 @@ export default function UsedWherePage() {
     const [totalUsages, setTotalUsages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [expandedId, setExpandedId] = useState<number | null>(null);
 
     const loadStatus = useCallback(async () => {
         try {
@@ -103,7 +105,7 @@ export default function UsedWherePage() {
                         Free Feature
                     </span>
                 </div>
-                <p className="text-sm text-gray-500">Track where images are used across your website. Both backend scanning and frontend passive detection.</p>
+                <p className="text-sm text-gray-500">Track where images are used across your website — posts, pages, custom post types, and more.</p>
             </div>
 
             {/* Actions bar */}
@@ -125,6 +127,22 @@ export default function UsedWherePage() {
                         Clear Results
                     </button>
                 )}
+
+                {/* Search — Pro feature */}
+                <div className="ml-auto flex items-center gap-2 relative">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search by image name..."
+                            disabled={!tsmltParams.hasExtended}
+                            className="w-56 px-3 py-2 pl-8 text-sm border border-gray-300 rounded-md bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    {!tsmltParams.hasExtended && <ProLabel />}
+                </div>
             </div>
 
             {/* Scan progress */}
@@ -153,60 +171,99 @@ export default function UsedWherePage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {usages.map((usage) => (
-                            <div key={usage.attachment_id} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                                <div className="flex items-start gap-4">
-                                    {/* Image thumbnail */}
-                                    <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                        {usage.url ? (
-                                            <img src={usage.url} alt={usage.title} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        )}
-                                    </div>
+                    <div className="space-y-3">
+                        {usages.map((usage) => {
+                            const isExpanded = expandedId === usage.attachment_id;
+                            const posts: any[] = usage.posts || [];
 
-                                    {/* Details */}
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-semibold text-gray-900 truncate mb-1">
-                                            {usage.title || `(ID: ${usage.attachment_id})`}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 truncate mb-2">{usage.url}</p>
+                            return (
+                                <div key={usage.attachment_id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                    {/* Main row */}
+                                    <div
+                                        className="flex items-center gap-4 p-4 cursor-pointer"
+                                        onClick={() => setExpandedId(isExpanded ? null : usage.attachment_id)}
+                                    >
+                                        {/* Expand/collapse arrow */}
+                                        <svg
+                                            className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
 
-                                        {/* Usage stats */}
-                                        <div className="flex items-center gap-4 text-xs">
-                                            <span className="flex items-center gap-1">
-                                                <span className="font-medium text-gray-700">{usage.usage_count}</span>
-                                                <span className="text-gray-500">total usages</span>
+                                        {/* Image thumbnail */}
+                                        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                            {usage.url ? (
+                                                <img src={usage.url} alt={usage.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                        {/* Details */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                                                {usage.title || `(ID: ${usage.attachment_id})`}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 truncate">{usage.url}</p>
+                                        </div>
+
+                                        {/* Stats badges */}
+                                        <div className="shrink-0 flex items-center gap-3 text-xs">
+                                            <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
+                                                {usage.usage_count} usage{usage.usage_count !== 1 ? 's' : ''}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <span className="font-medium text-gray-700">{usage.used_in_posts}</span>
-                                                <span className="text-gray-500">post{usage.used_in_posts !== 1 ? 's' : ''}</span>
+                                            <span className="inline-flex items-center px-2 py-1 font-medium text-blue-700 bg-blue-50 rounded">
+                                                {usage.used_in_posts} post{usage.used_in_posts !== 1 ? 's' : ''}
                                             </span>
-
-                                            {/* Usage type badges */}
-                                            <div className="flex gap-1">
-                                                {Object.entries(usage.usage_by_type).map(([type, count]: [string, any]) => (
-                                                    <span key={type} className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-blue-700 bg-blue-50 rounded">
-                                                        {type}: {count}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                            {Object.entries(usage.usage_by_type).map(([type, count]: [string, any]) => (
+                                                <span key={type} className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
+                                                    {type}: {count}
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
 
-                                    {/* Edit link */}
-                                    <a
-                                        href={`/wp-admin/post.php?post=${usage.attachment_id}&action=edit`}
-                                        className="shrink-0 inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                                    >
-                                        Edit
-                                    </a>
+                                    {/* Expanded post list */}
+                                    {isExpanded && posts.length > 0 && (
+                                        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                                            <div className="space-y-1.5">
+                                                {posts.map((post: any, idx: number) => (
+                                                    <div key={idx} className="flex items-center gap-3 text-sm py-2 px-3 bg-white rounded border border-gray-100">
+                                                        {/* Post title — primary label */}
+                                                        <span className="flex-1 min-w-0 truncate font-medium text-gray-800">
+                                                            {post.post_title || `(ID: ${post.post_id})`}
+                                                        </span>
+                                                        {/* Post type badge */}
+                                                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 rounded">
+                                                            {post.post_type}
+                                                        </span>
+                                                        {/* Usage type badge */}
+                                                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
+                                                            {post.usage_type}
+                                                        </span>
+                                                        {/* View link */}
+                                                        {post.post_link && (
+                                                            <a
+                                                                href={post.post_link}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="shrink-0 text-xs text-blue-600 hover:text-blue-700"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                View
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {totalPages > 1 && (
                             <Pagination

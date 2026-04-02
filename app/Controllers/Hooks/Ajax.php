@@ -412,6 +412,7 @@ class Ajax {
 					'usage_count'   => $stats['total_usage'],
 					'usage_by_type' => $stats['by_type'],
 					'used_in_posts' => count( $stats['by_post'] ),
+					'posts'         => $stats['by_post'],
 				];
 			}
 		}
