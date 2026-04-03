@@ -7,7 +7,7 @@ import DuplicateHeader from "./DuplicateHeader";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import Modal from "@/js/Component/Common/Modal";
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';

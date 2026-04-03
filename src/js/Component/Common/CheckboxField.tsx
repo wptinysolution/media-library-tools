@@ -1,5 +1,5 @@
 import React from 'react';
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 interface CheckboxFieldProps {
     name?: string;

@@ -8,6 +8,7 @@ import Pagination from "@/js/Component/Common/Pagination";
 import AiButton from "@/js/Component/Common/AiButton";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 import * as Types from "@/js/Utils/actionType";
+import MissingBadge from "@/js/Component/Badges/MissingBadge";
 
 const theImage = (record: MediaPost) => {
     const typeParts = record.post_mime_type.split('/');
@@ -182,10 +183,10 @@ function RenamerTableData() {
                                             {/* File name */}
                                             {rename.formEdited ? (
                                                 <div className="flex items-center gap-1.5 mb-1">
-                                                    <div className="relative flex-1 max-w-sm">
+                                                    <div className="relative flex-1 max-w-full">
                                                         <input
                                                             type="text"
-                                                            className="w-full h-9 pl-13 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            className="w-full min-h-auto h-8.5! pl-13 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                             name="filebasename"
                                                             placeholder="File name"
                                                             data-current={i}
@@ -208,7 +209,7 @@ function RenamerTableData() {
                                                             value={record.thefile.filebasename}
                                                         />
                                                         <AiButton
-                                                            className="absolute left-1.5 top-1.5"
+                                                            className="absolute left-0 top-0 bottom-0 ring-0"
                                                             attachmentId={record.ID}
                                                             fieldType="filename"
                                                             onSuccess={(value) => {
@@ -248,17 +249,19 @@ function RenamerTableData() {
                                                 <CopyToClipboard text={fullUrl} />
                                             </div>
                                             <div className="flex items-center gap-1.5 mt-0!">
-                                            {parent?.title && (
                                                 <div className={'flex items-center'}>
-                                                    Attached Post : <a
-                                                        target="_blank"
-                                                        href={parent.permalink}
-                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
-                                                    >
-                                                        {parent.title}
-                                                    </a>
+                                                    Attached Post :
+                                                    {parent?.title ? (
+                                                            <a
+                                                                target="_blank"
+                                                                href={parent.permalink}
+                                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
+                                                            >
+                                                                {parent.title}
+                                                            </a>
+                                                        ) : <MissingBadge />
+                                                    }
                                                 </div>
-                                            )}
                                             </div>
                                         </div>
 

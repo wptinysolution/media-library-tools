@@ -1,7 +1,7 @@
 import { useStore } from "@/js/Utils/store";
 import ImportInfo from "./ImportInfo";
 import UploadCsv from "./UploadCsv";
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 function ImportButton() {
     const { exportImport, setExportImport, setGeneralData } = useStore();

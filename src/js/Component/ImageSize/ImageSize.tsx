@@ -3,7 +3,7 @@ import Loader from "@/js/Utils/Loader";
 import RegisterSize from "./RegisterSize";
 import DisableSize from "./DisableSize";
 import SaveButton from '@/js/Component/SaveButton';
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 function ImageSize() {
     const { generalData } = useStore();

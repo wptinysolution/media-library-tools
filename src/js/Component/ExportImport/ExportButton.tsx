@@ -3,7 +3,7 @@ import { useStore } from "@/js/Utils/store";
 import { getMedia } from "@/js/Utils/Data";
 import ExportModalCSV from "./ExportModalCSV";
 import type { MediaPost } from "@/js/Utils/store";
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 function ExportButton() {
     const { exportImport, setExportImport, mediaData, setGeneralData } = useStore();

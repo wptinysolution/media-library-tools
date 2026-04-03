@@ -3,7 +3,7 @@ import { useStore } from '@/js/Utils/store';
 import CheckboxField from '@/js/Component/Common/CheckboxField';
 import TextInput from '@/js/Component/Common/TextInput';
 import SettingRow from '@/js/Component/Common/SettingRow';
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 export default function RenamerSettings() {
     const { options, setOptions, setGeneralData } = useStore();

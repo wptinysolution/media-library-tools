@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import SettingRow from '@/js/Component/Common/SettingRow';
-import ProLabel from "@/js/Component/ProLabel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 const EyeIcon = () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

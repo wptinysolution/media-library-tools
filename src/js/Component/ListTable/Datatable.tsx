@@ -12,6 +12,7 @@ import AiButton from "@/js/Component/Common/AiButton";
 import SearchInput from "@/js/Component/Common/SearchInput";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
+import MissingBadge from "@/js/Component/Badges/MissingBadge";
 
 const theImage = (record: MediaPost) => {
     const typeParts = record.post_mime_type.split('/');
@@ -77,14 +78,7 @@ const SortButton = ({ label, field, currentOrderby, currentOrder, onClick }: {
     );
 };
 
-const MissingBadge = () => (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded">
-        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        Missing
-    </span>
-);
+
 
 export default function Datatable() {
     const {
@@ -235,7 +229,7 @@ export default function Datatable() {
                         >
                             {formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
                         </button>
-                        
+
                         {/* Sort buttons */}
                         <div className="flex items-center gap-1 flex-wrap">
                             <span className="text-xs text-gray-500 font-medium">Sort:</span>
@@ -333,11 +327,11 @@ export default function Datatable() {
                                                     {/* Title row */}
                                                     <div className="flex items-center gap-2">
                                                         {formEdited ? (
-                                                            <div className="flex-1 max-w-lg">
+                                                            <div className="flex-1 max-w-full">
                                                                 <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Title</label>
                                                                 <div className="relative">
                                                                     <textarea
-                                                                        className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                        className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                                                         rows={1}
                                                                         name="title"
                                                                         placeholder="Enter title..."
@@ -369,11 +363,11 @@ export default function Datatable() {
 
                                                     {/* Alt text */}
                                                     {formEdited ? (
-                                                        <div className="max-w-lg">
+                                                        <div className="max-w-full">
                                                             <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Alt Text</label>
                                                             <div className="relative">
                                                                 <textarea
-                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                                                     rows={1}
                                                                     name="alt_text"
                                                                     placeholder="Enter alt text..."
@@ -397,7 +391,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
                                                             <span className="text-gray-400">Alt:</span>
                                                             {record.alt_text ? record.alt_text : <MissingBadge />}
                                                         </p>
@@ -405,11 +399,11 @@ export default function Datatable() {
 
                                                     {/* Caption */}
                                                     {formEdited ? (
-                                                        <div className="max-w-lg">
+                                                        <div className="max-w-full">
                                                             <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Caption</label>
                                                             <div className="relative">
                                                                 <textarea
-                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                                                     rows={1}
                                                                     name="caption"
                                                                     placeholder="Enter caption..."
@@ -433,7 +427,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
                                                             <span className="text-gray-400">Caption:</span>
                                                             {record.caption ? record.caption : <MissingBadge />}
                                                         </p>
@@ -441,11 +435,11 @@ export default function Datatable() {
 
                                                     {/* Description */}
                                                     {formEdited ? (
-                                                        <div className="max-w-lg">
+                                                        <div className="max-w-full">
                                                             <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Description</label>
                                                             <div className="relative">
                                                                 <textarea
-                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                                                     rows={1}
                                                                     name="description"
                                                                     placeholder="Enter description..."
@@ -469,7 +463,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
                                                             <span className="text-gray-400">Desc:</span>
                                                             {record.description ? record.description : <MissingBadge />}
                                                         </p>

@@ -62,7 +62,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                 onClick={handleClick}
                 disabled={loading}
                 title={`Generate ${fieldType.replace('_', ' ')} with AI`}
-                className="inline-flex text-purple-700 items-center justify-center gap-0.5 w-9 h-8.5 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer text-xs font-semibold"
+                className="inline-flex text-purple-700 items-center justify-center gap-0.5 w-12 h-8.5 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer text-xs font-semibold"
             >
                 {loading ? (
                     <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
