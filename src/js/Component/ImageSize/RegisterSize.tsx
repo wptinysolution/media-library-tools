@@ -50,7 +50,7 @@ function RegisterSize() {
                             </span>
                             <input
                                 type="text"
-                                className="h-9 w-36 px-3 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="min-h-auto h-9 w-36 px-3 text-sm border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={String(sizeKey)}
                                 placeholder="size-name"
                                 title={fullKey}
@@ -69,7 +69,7 @@ function RegisterSize() {
                             <input
                                 type="number"
                                 min={0}
-                                className="w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="min-h-auto w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={sizes[index]?.width || ''}
                                 onChange={(event) => registerImageSize(index, 'width', Number(event.target.value))}
                             />
@@ -86,7 +86,7 @@ function RegisterSize() {
                             <input
                                 type="number"
                                 min={0}
-                                className="w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="min-h-auto w-18 h-9 px-3 text-sm border-y border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={sizes[index]?.height || ''}
                                 onChange={(event) => registerImageSize(index, 'height', Number(event.target.value))}
                             />
