@@ -235,10 +235,7 @@ export default function Datatable() {
                         >
                             {formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
                         </button>
-
-                        {/* Divider */}
-                        <div className="w-px h-6 bg-gray-200" />
-
+                        
                         {/* Sort buttons */}
                         <div className="flex items-center gap-1 flex-wrap">
                             <span className="text-xs text-gray-500 font-medium">Sort:</span>
