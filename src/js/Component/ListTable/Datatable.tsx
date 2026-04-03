@@ -9,6 +9,8 @@ import BulkModal from "@/js/Component/ListTable/BulkModal";
 import BulkModalForCSV from "@/js/Component/ListTable/BulkModalForCSV";
 import Pagination from "@/js/Component/Common/Pagination";
 import AiButton from "@/js/Component/Common/AiButton";
+import SearchInput from "@/js/Component/Common/SearchInput";
+import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
 
 const theImage = (record: MediaPost) => {
@@ -40,6 +42,50 @@ const theImage = (record: MediaPost) => {
     return <img className="w-full h-full object-cover" src={url} alt={record.post_mime_type} />;
 };
 
+const SortButton = ({ label, field, currentOrderby, currentOrder, onClick }: {
+    label: string;
+    field: string;
+    currentOrderby?: string;
+    currentOrder?: string;
+    onClick: (field: string) => void;
+}) => {
+    const isActive = currentOrderby === field;
+    return (
+        <button
+            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md cursor-pointer transition-colors ${
+                isActive
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+            }`}
+            onClick={() => onClick(field)}
+        >
+            {label}
+            {isActive && (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {currentOrder === 'ASC'
+                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    }
+                </svg>
+            )}
+            {!isActive && (
+                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+            )}
+        </button>
+    );
+};
+
+const MissingBadge = () => (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded">
+        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Missing
+    </span>
+);
+
 export default function Datatable() {
     const {
         mediaData, setMediaData,
@@ -50,6 +96,7 @@ export default function Datatable() {
         setSaveType,
     } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
+    const [search, searchQuery, setSearch] = useSearchDebounce();
 
     const handlePagination = (current: number) => {
         setMediaData({
@@ -68,6 +115,13 @@ export default function Datatable() {
             handlePagination(pageFromUrl);
         }
     }, [pageParam]);
+
+    useEffect(() => {
+        if (mediaData.postQuery.searchKeyWords === search) return;
+        setMediaData({
+            postQuery: { ...mediaData.postQuery, searchKeyWords: search }
+        });
+    }, [search]);
 
     const renderModal = () => {
         if (bulkSubmitData.isModalOpen) return <BulkModal />;
@@ -116,6 +170,18 @@ export default function Datatable() {
         setSaveType(Types.UPDATE_SINGLE_MEDIA);
     };
 
+    const handleSortClick = (field: string) => {
+        const { orderby, order } = mediaData.postQuery;
+        setMediaData({
+            postQuery: {
+                ...mediaData.postQuery,
+                orderby: field,
+                paged: 1,
+                order: field === orderby && 'DESC' === order ? 'ASC' : 'DESC',
+            }
+        });
+    };
+
     const totalPosts = mediaData.total_post || 0;
     const postsPerPage = mediaData.posts_per_page || 20;
     const currentPage = mediaData.paged || 1;
@@ -128,9 +194,9 @@ export default function Datatable() {
             <TheHeader />
             {generalData.isLoading ? <Loader /> : (
                 <>
-                    {/* Per page control */}
+                    {/* Toolbar: Per page + Search + Edit Mode + Sort */}
                     <div className="mx-3 mt-3 px-4 py-3 bg-white border border-gray-200 rounded-lg flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                        <label className="inline-flex items-center gap-1.5">
                             <span className="text-sm font-medium text-gray-900 whitespace-nowrap">Per page:</span>
                             <input
                                 type="number"
@@ -140,6 +206,38 @@ export default function Datatable() {
                                 onBlur={() => setMediaData({ postQuery: { ...mediaData.postQuery, media_per_page: parseInt(String(options.media_per_page || 20), 10), paged: 1 } })}
                             />
                         </label>
+
+                        <SearchInput
+                            placeholder="Search keywords..."
+                            value={searchQuery}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onClear={() => setSearch('')}
+                        />
+
+                        <button
+                            className={`px-4 py-2 text-sm border rounded-md transition-colors font-medium whitespace-nowrap cursor-pointer ${
+                                formEdited
+                                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                                    : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-500'
+                            }`}
+                            onClick={() => setSingleMedia({ formEdited: !formEdited })}
+                        >
+                            {formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
+                        </button>
+
+                        {/* Divider */}
+                        <div className="w-px h-6 bg-gray-200" />
+
+                        {/* Sort buttons */}
+                        <span className="text-xs text-gray-500 font-medium">Sort:</span>
+                        <div className="flex items-center gap-1 flex-wrap">
+                            <SortButton label="ID" field="id" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Name" field="name" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Title" field="title" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Alt" field="alt" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Caption" field="caption" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Description" field="description" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                        </div>
                     </div>
 
                     {/* Card list */}
@@ -216,29 +314,32 @@ export default function Datatable() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-gray-400">#{record.ID}</span>
                                                         {formEdited ? (
-                                                            <div className="relative flex-1 max-w-sm">
-                                                                <textarea
-                                                                    className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                                    rows={1}
-                                                                    name="title"
-                                                                    placeholder="Title"
-                                                                    data-current={i}
-                                                                    onBlur={handleFocusout}
-                                                                    onChange={(e) => handleChange(e, i)}
-                                                                    value={record.title}
-                                                                />
-                                                                <AiButton
-                                                                    className="absolute left-1.5 top-1.5"
-                                                                    attachmentId={record.ID}
-                                                                    fieldType="title"
-                                                                    onSuccess={(value) => {
-                                                                        const updatedPosts = [...mediaData.posts];
-                                                                        updatedPosts[i] = { ...updatedPosts[i], title: value };
-                                                                        setMediaData({ posts: updatedPosts });
-                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, title: value });
-                                                                        setSaveType(Types.UPDATE_SINGLE_MEDIA);
-                                                                    }}
-                                                                />
+                                                            <div className="flex-1 max-w-lg">
+                                                                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Title</label>
+                                                                <div className="relative">
+                                                                    <textarea
+                                                                        className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                        rows={1}
+                                                                        name="title"
+                                                                        placeholder="Enter title..."
+                                                                        data-current={i}
+                                                                        onBlur={handleFocusout}
+                                                                        onChange={(e) => handleChange(e, i)}
+                                                                        value={record.title}
+                                                                    />
+                                                                    <AiButton
+                                                                        className="absolute left-1 top-1"
+                                                                        attachmentId={record.ID}
+                                                                        fieldType="title"
+                                                                        onSuccess={(value) => {
+                                                                            const updatedPosts = [...mediaData.posts];
+                                                                            updatedPosts[i] = { ...updatedPosts[i], title: value };
+                                                                            setMediaData({ posts: updatedPosts });
+                                                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, title: value });
+                                                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                                                        }}
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         ) : (
                                                             <a className="text-sm font-medium text-gray-900 truncate" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>
@@ -249,99 +350,111 @@ export default function Datatable() {
 
                                                     {/* Alt text */}
                                                     {formEdited ? (
-                                                        <div className="relative max-w-sm">
-                                                            <textarea
-                                                                className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                                rows={1}
-                                                                name="alt_text"
-                                                                placeholder="Alt Text"
-                                                                data-current={i}
-                                                                onBlur={handleFocusout}
-                                                                onChange={(e) => handleChange(e, i)}
-                                                                value={record.alt_text}
-                                                            />
-                                                            <AiButton
-                                                                className="absolute left-1.5 top-1.5"
-                                                                attachmentId={record.ID}
-                                                                fieldType="alt_text"
-                                                                onSuccess={(value) => {
-                                                                    const updatedPosts = [...mediaData.posts];
-                                                                    updatedPosts[i] = { ...updatedPosts[i], alt_text: value };
-                                                                    setMediaData({ posts: updatedPosts });
-                                                                    setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, ID: record.ID });
-                                                                    setSaveType(Types.UPDATE_SINGLE_MEDIA);
-                                                                }}
-                                                            />
+                                                        <div className="max-w-lg">
+                                                            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Alt Text</label>
+                                                            <div className="relative">
+                                                                <textarea
+                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    rows={1}
+                                                                    name="alt_text"
+                                                                    placeholder="Enter alt text..."
+                                                                    data-current={i}
+                                                                    onBlur={handleFocusout}
+                                                                    onChange={(e) => handleChange(e, i)}
+                                                                    value={record.alt_text}
+                                                                />
+                                                                <AiButton
+                                                                    className="absolute left-1 top-1"
+                                                                    attachmentId={record.ID}
+                                                                    fieldType="alt_text"
+                                                                    onSuccess={(value) => {
+                                                                        const updatedPosts = [...mediaData.posts];
+                                                                        updatedPosts[i] = { ...updatedPosts[i], alt_text: value };
+                                                                        setMediaData({ posts: updatedPosts });
+                                                                        setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, ID: record.ID });
+                                                                        setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    ) : record.alt_text ? (
-                                                        <p className="text-xs text-gray-500 m-0!">
-                                                            <span className="text-gray-400">Alt:</span> {record.alt_text}
+                                                    ) : (
+                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                            <span className="text-gray-400">Alt:</span>
+                                                            {record.alt_text ? record.alt_text : <MissingBadge />}
                                                         </p>
-                                                    ) : null}
+                                                    )}
 
                                                     {/* Caption */}
                                                     {formEdited ? (
-                                                        <div className="relative max-w-sm">
-                                                            <textarea
-                                                                className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                                rows={1}
-                                                                name="caption"
-                                                                placeholder="Caption"
-                                                                data-current={i}
-                                                                onBlur={handleFocusout}
-                                                                onChange={(e) => handleChange(e, i)}
-                                                                value={record.caption}
-                                                            />
-                                                            <AiButton
-                                                                className="absolute left-1.5 top-1.5"
-                                                                attachmentId={record.ID}
-                                                                fieldType="caption"
-                                                                onSuccess={(value) => {
-                                                                    const updatedPosts = [...mediaData.posts];
-                                                                    updatedPosts[i] = { ...updatedPosts[i], caption: value };
-                                                                    setMediaData({ posts: updatedPosts });
-                                                                    setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, caption: value });
-                                                                    setSaveType(Types.UPDATE_SINGLE_MEDIA);
-                                                                }}
-                                                            />
+                                                        <div className="max-w-lg">
+                                                            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Caption</label>
+                                                            <div className="relative">
+                                                                <textarea
+                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    rows={1}
+                                                                    name="caption"
+                                                                    placeholder="Enter caption..."
+                                                                    data-current={i}
+                                                                    onBlur={handleFocusout}
+                                                                    onChange={(e) => handleChange(e, i)}
+                                                                    value={record.caption}
+                                                                />
+                                                                <AiButton
+                                                                    className="absolute left-1 top-1"
+                                                                    attachmentId={record.ID}
+                                                                    fieldType="caption"
+                                                                    onSuccess={(value) => {
+                                                                        const updatedPosts = [...mediaData.posts];
+                                                                        updatedPosts[i] = { ...updatedPosts[i], caption: value };
+                                                                        setMediaData({ posts: updatedPosts });
+                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, caption: value });
+                                                                        setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    ) : record.caption ? (
-                                                        <p className="text-xs text-gray-500 m-0!">
-                                                            <span className="text-gray-400">Caption:</span> {record.caption}
+                                                    ) : (
+                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                            <span className="text-gray-400">Caption:</span>
+                                                            {record.caption ? record.caption : <MissingBadge />}
                                                         </p>
-                                                    ) : null}
+                                                    )}
 
                                                     {/* Description */}
                                                     {formEdited ? (
-                                                        <div className="relative max-w-sm">
-                                                            <textarea
-                                                                className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                                                rows={1}
-                                                                name="description"
-                                                                placeholder="Description"
-                                                                data-current={i}
-                                                                onBlur={handleFocusout}
-                                                                onChange={(e) => handleChange(e, i)}
-                                                                value={record.description}
-                                                            />
-                                                            <AiButton
-                                                                className="absolute left-1.5 top-1.5"
-                                                                attachmentId={record.ID}
-                                                                fieldType="description"
-                                                                onSuccess={(value) => {
-                                                                    const updatedPosts = [...mediaData.posts];
-                                                                    updatedPosts[i] = { ...updatedPosts[i], description: value };
-                                                                    setMediaData({ posts: updatedPosts });
-                                                                    setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, description: value });
-                                                                    setSaveType(Types.UPDATE_SINGLE_MEDIA);
-                                                                }}
-                                                            />
+                                                        <div className="max-w-lg">
+                                                            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Description</label>
+                                                            <div className="relative">
+                                                                <textarea
+                                                                    className="w-full pl-11 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                                    rows={1}
+                                                                    name="description"
+                                                                    placeholder="Enter description..."
+                                                                    data-current={i}
+                                                                    onBlur={handleFocusout}
+                                                                    onChange={(e) => handleChange(e, i)}
+                                                                    value={record.description}
+                                                                />
+                                                                <AiButton
+                                                                    className="absolute left-1 top-1"
+                                                                    attachmentId={record.ID}
+                                                                    fieldType="description"
+                                                                    onSuccess={(value) => {
+                                                                        const updatedPosts = [...mediaData.posts];
+                                                                        updatedPosts[i] = { ...updatedPosts[i], description: value };
+                                                                        setMediaData({ posts: updatedPosts });
+                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, description: value });
+                                                                        setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    ) : record.description ? (
-                                                        <p className="text-xs text-gray-500 m-0!">
-                                                            <span className="text-gray-400">Desc:</span> {record.description}
+                                                    ) : (
+                                                        <p className="text-xs text-gray-500 m-0! flex items-center gap-1.5">
+                                                            <span className="text-gray-400">Desc:</span>
+                                                            {record.description ? record.description : <MissingBadge />}
                                                         </p>
-                                                    ) : null}
+                                                    )}
                                                 </div>
 
                                                 {/* Right side info */}

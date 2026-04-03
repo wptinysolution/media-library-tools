@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { defaultBulkSubmitData } from '@/js/Utils/UtilData';
 import { useStore } from "@/js/Utils/store";
-import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
 import { notifications } from "@/js/Utils/Data";
-import SearchInput from "@/js/Component/Common/SearchInput";
 import Modal from "@/js/Component/Common/Modal";
 
 const bulkOptions = [
@@ -22,12 +20,9 @@ function TheHeader() {
     const {
         mediaData, setMediaData,
         generalData, setGeneralData,
-        singleMedia, setSingleMedia,
         bulkSubmitData, setBulkSubmitData,setBulkExport,
         setSaveType,
     } = useStore();
-
-    const [search, searchQuery, setSearch] = useSearchDebounce();
 
     const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | null>(null);
 
@@ -83,21 +78,7 @@ function TheHeader() {
         }
     };
 
-    const upDateQuery = async () => {
-        if (mediaData.postQuery.searchKeyWords === search) {
-            return;
-        }
-        setMediaData({
-            postQuery: { ...mediaData.postQuery, searchKeyWords: search }
-        });
-
-    };
-
     const postQuery = mediaData.postQuery;
-
-    useEffect(() => {
-        upDateQuery();
-    }, [search]);
 
     const filteredBulkOptions = postQuery.filtering && 'trash' === postQuery.status
         ? bulkOptions.filter(item => 'trash' !== item.value)
@@ -162,26 +143,7 @@ function TheHeader() {
                         ))}
                     </select>
 
-                    <SearchInput
-                        placeholder="Search keywords..."
-                        value={searchQuery}
-                        onChange={(e) => setSearch(e.target.value)}
-                        onClear={() => setSearch('')}
-                    />
                 {/*</div>*/}
-
-                {/* Controls group */}
-                <button
-                        className={`px-4 py-2 text-sm border rounded-md transition-colors font-medium whitespace-nowrap cursor-pointer ${
-                            singleMedia.formEdited
-                                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                                : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-500'
-                        }`}
-                        onClick={() => setSingleMedia({ formEdited: !singleMedia.formEdited })}
-                    >
-                        {singleMedia.formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
-                    </button>
-
 
             </div>
         </header>

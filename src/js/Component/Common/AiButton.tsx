@@ -62,7 +62,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                 onClick={handleClick}
                 disabled={loading}
                 title={`Generate ${fieldType.replace('_', ' ')} with AI`}
-                className="inline-flex text-purple-700 items-center justify-center w-10 h-7 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer"
+                className="inline-flex text-purple-700 items-center justify-center gap-0.5 w-9 h-7 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer text-xs font-semibold"
             >
                 {loading ? (
                     <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -70,9 +70,12 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                 ) : (
-                   <>
-                       <span className="text-sm leading-none text-blue-600">✨</span>  {loading ? 'Generating...' : 'AI'}
-                   </>
+                    <>
+                        <svg className="w-3.5 h-3.5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.4 4.8L8 14 2 9.2h7.6z" />
+                        </svg>
+                        AI
+                    </>
                 )}
             </button>
 
