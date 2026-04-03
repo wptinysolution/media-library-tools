@@ -247,22 +247,26 @@ function RenamerTableData() {
                                                 </code>
                                                 <CopyToClipboard text={fullUrl} />
                                             </div>
+                                            <div className="flex items-center gap-1.5 mt-0!">
+                                            {parent?.title && (
+                                                <div className={'flex items-center'}>
+                                                    Attached Post : <a
+                                                        target="_blank"
+                                                        href={parent.permalink}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
+                                                    >
+                                                        {parent.title}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            </div>
                                         </div>
 
                                         {/* Right side info */}
                                         <div className="shrink-0 flex items-center gap-3">
-                                            {parent?.title && (
-                                                <a
-                                                    target="_blank"
-                                                    href={parent.permalink}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
-                                                >
-                                                    {parent.title}
-                                                </a>
-                                            )}
-                                            <span className="text-xs text-gray-400">#{record.ID}</span>
+                                            <span className="text-xs text-gray-400">ID: #{record.ID}</span>
                                             {record.title && (
-                                                <span className="text-sm text-gray-600 max-w-40 truncate">{record.title}</span>
+                                                <span className="flex text-sm text-gray-600 max-w-40 truncate">Title: {record.title}</span>
                                             )}
                                         </div>
                                     </div>
