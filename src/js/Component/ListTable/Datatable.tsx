@@ -182,6 +182,17 @@ export default function Datatable() {
         });
     };
 
+    const handleSortReset = () => {
+        setMediaData({
+            postQuery: {
+                ...mediaData.postQuery,
+                orderby: 'id',
+                order: 'DESC',
+                paged: 1,
+            }
+        });
+    };
+
     const totalPosts = mediaData.total_post || 0;
     const postsPerPage = mediaData.posts_per_page || 20;
     const currentPage = mediaData.paged || 1;
@@ -229,14 +240,26 @@ export default function Datatable() {
                         <div className="w-px h-6 bg-gray-200" />
 
                         {/* Sort buttons */}
-                        <span className="text-xs text-gray-500 font-medium">Sort:</span>
                         <div className="flex items-center gap-1 flex-wrap">
+                            <span className="text-xs text-gray-500 font-medium">Sort:</span>
                             <SortButton label="ID" field="id" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                             <SortButton label="Name" field="name" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                             <SortButton label="Title" field="title" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            <SortButton label="Parent Post" field="post_parents" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                             <SortButton label="Alt" field="alt" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                             <SortButton label="Caption" field="caption" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                             <SortButton label="Description" field="description" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                            {mediaData.postQuery.orderby && mediaData.postQuery.orderby !== 'id' && (
+                                <button
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md cursor-pointer transition-colors bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                    onClick={handleSortReset}
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reset
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -327,7 +350,7 @@ export default function Datatable() {
                                                                         value={record.title}
                                                                     />
                                                                     <AiButton
-                                                                        className="absolute left-1 top-1"
+                                                                        className="absolute left-0 top-0 bottom-0 ring-0"
                                                                         attachmentId={record.ID}
                                                                         fieldType="title"
                                                                         onSuccess={(value) => {
@@ -363,7 +386,7 @@ export default function Datatable() {
                                                                     value={record.alt_text}
                                                                 />
                                                                 <AiButton
-                                                                    className="absolute left-1 top-1"
+                                                                    className="absolute left-0 top-0 bottom-0 ring-0"
                                                                     attachmentId={record.ID}
                                                                     fieldType="alt_text"
                                                                     onSuccess={(value) => {
@@ -399,7 +422,7 @@ export default function Datatable() {
                                                                     value={record.caption}
                                                                 />
                                                                 <AiButton
-                                                                    className="absolute left-1 top-1"
+                                                                    className="absolute left-0 top-0 bottom-0 ring-0"
                                                                     attachmentId={record.ID}
                                                                     fieldType="caption"
                                                                     onSuccess={(value) => {
@@ -435,7 +458,7 @@ export default function Datatable() {
                                                                     value={record.description}
                                                                 />
                                                                 <AiButton
-                                                                    className="absolute left-1 top-1"
+                                                                    className="absolute left-0 top-0 bottom-0 ring-0"
                                                                     attachmentId={record.ID}
                                                                     fieldType="description"
                                                                     onSuccess={(value) => {
