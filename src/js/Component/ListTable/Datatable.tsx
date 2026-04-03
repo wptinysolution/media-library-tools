@@ -312,7 +312,6 @@ export default function Datatable() {
                                                 <div className="flex-1 min-w-0 space-y-2">
                                                     {/* Title row */}
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-400">#{record.ID}</span>
                                                         {formEdited ? (
                                                             <div className="flex-1 max-w-lg">
                                                                 <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Title</label>
@@ -459,22 +458,26 @@ export default function Datatable() {
 
                                                 {/* Right side info */}
                                                 <div className="shrink-0 flex flex-col items-end gap-2">
+                                                    <span className="text-xs text-gray-400">ID: #{record.ID}</span>
                                                     {parent?.title && (
-                                                        <a
-                                                            target="_blank"
-                                                            href={parent.permalink}
-                                                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
-                                                        >
-                                                            {parent.title}
-                                                        </a>
+                                                        <span className={'flex'}>
+                                                            Attached Post: <a
+                                                                target="_blank"
+                                                                href={parent.permalink}
+                                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
+                                                            >
+                                                                {parent.title}
+                                                            </a>
+                                                        </span>
                                                     )}
+
                                                     {categories.length > 0 && (
                                                         <div className="flex flex-wrap gap-1 justify-end">
-                                                            {categories.map(item => item.id && (
-                                                                <span key={String(item.id)} className="inline-flex px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
+                                                            Groups: {categories.map(item => item.id && (
+                                                            <span key={String(item.id)} className="inline-flex px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
                                                                     {item.name}
                                                                 </span>
-                                                            ))}
+                                                        ))}
                                                         </div>
                                                     )}
                                                 </div>
