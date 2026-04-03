@@ -460,7 +460,7 @@ export default function Datatable() {
                                                 <div className="shrink-0 flex flex-col items-end gap-2">
                                                     <span className="text-xs text-gray-400">ID: #{record.ID}</span>
                                                     {parent?.title && (
-                                                        <span className={'flex'}>
+                                                        <span className={'flex'} title={'Parent Post: Where Attached The image'}>
                                                             Attached Post: <a
                                                                 target="_blank"
                                                                 href={parent.permalink}
