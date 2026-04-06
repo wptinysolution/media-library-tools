@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-The complete WordPress media library manager. Rename files, bulk edit metadata, find duplicates, clean rubbish files, track image usage, and generate AI content.
+The complete WordPress media library manager. Rename, bulk edit metadata, find duplicates, clean rubbish, track image usage, and generate AI content.
 
 == Description ==
 
