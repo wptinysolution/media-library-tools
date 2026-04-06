@@ -8,8 +8,8 @@ import SearchInput from "@/js/Component/Common/SearchInput";
 type FilterTab = 'used' | 'unused';
 
 const tabs: { key: FilterTab; label: string }[] = [
-    { key: 'used', label: 'Used' },
     { key: 'unused', label: 'Unused' },
+    { key: 'used', label: 'Used' },
 ];
 
 export default function UsedWherePage() {

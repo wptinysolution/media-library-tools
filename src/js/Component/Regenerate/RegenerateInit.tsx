@@ -4,9 +4,8 @@ interface RegenerateInitProps {
 }
 function RegenerateInit({ className = '' }: RegenerateInitProps) {
     return (
-            <>
             <div className={`min-h-screen bg-gray-50 ${className}`}>
-                <div className="max-w-3xl mx-auto px-6 py-8">
+                <div className="max-w-10xl mx-auto px-6 py-8">
                     <div className="mb-8">
                         <h1 className="text-2xl font-semibold text-gray-900 m-0! inline-flex items-center gap-2">
                             Regenerate Thumbnails
@@ -18,7 +17,6 @@ function RegenerateInit({ className = '' }: RegenerateInitProps) {
                     </div>
                 </div>
             </div>
-        </>
     );
 }
 
