@@ -59,16 +59,13 @@ function RenamerTableData() {
     const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setRename, setSaveType } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
 
+    const applyQuery = (overrides: Partial<typeof mediaData.postQuery>, resetBulk = false) => {
+        setMediaData({ postQuery: { ...mediaData.postQuery, ...overrides } });
+        if (resetBulk) setBulkSubmitData(defaultBulkSubmitData);
+    };
+
     const handlePagination = (current: number) => {
-        setMediaData({
-            postQuery: {
-                ...mediaData.postQuery,
-                paged: current,
-                orderby: 'id',
-                order: 'DESC',
-            }
-        });
-        setBulkSubmitData(defaultBulkSubmitData);
+        applyQuery({ paged: current, orderby: 'id', order: 'DESC' }, true);
     };
 
     useEffect(() => {
@@ -78,7 +75,7 @@ function RenamerTableData() {
         }
     }, [pageParam]);
 
-    const setRenamerMainQuery = () => {
+    useEffect(() => {
         if (mediaData.postQuery.filtering) {
             setMediaData({
                 postQuery: {
@@ -93,24 +90,15 @@ function RenamerTableData() {
                 }
             });
         }
-    };
-
-    useEffect(() => {
-        setRenamerMainQuery();
     }, []);
 
     const handleSort = (field: SortField) => {
         const isSameField = mediaData.postQuery.orderby === field;
         const newOrder = isSameField && mediaData.postQuery.order === 'ASC' ? 'DESC' : 'ASC';
-        setMediaData({
-            postQuery: {
-                ...mediaData.postQuery,
-                orderby: field,
-                order: newOrder,
-                paged: 1,
-            }
-        });
+        applyQuery({ orderby: field, order: newOrder, paged: 1 });
     };
+
+    const handleSortReset = () => applyQuery({ orderby: 'id', order: 'DESC', paged: 1 });
 
     const onBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
         const postsId = event.target.checked ? posts.map(item => item.ID) : [];
@@ -185,7 +173,8 @@ function RenamerTableData() {
                                     ? `${bulkSubmitData.ids.length} selected`
                                     : 'Select all'}
                             </span>
-                            <span className="text-xs text-gray-400">Sort by:</span>
+
+                            <span className="text-xs text-gray-400 border-l border-gray-300 pl-5">Sort by:</span>
                             {([
                                 { field: 'id' as SortField, label: 'ID' },
                                 { field: 'title' as SortField, label: 'Title' },
@@ -201,6 +190,17 @@ function RenamerTableData() {
                                     <SortIcon field={field} orderby={orderby} order={order} />
                                 </button>
                             ))}
+                            {mediaData.postQuery.orderby && mediaData.postQuery.orderby !== 'id' && (
+                                <button
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md cursor-pointer transition-colors bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                    onClick={handleSortReset}
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reset
+                                </button>
+                            )}
                         </div>
 
                         {posts.map((record, i) => {

@@ -229,29 +229,6 @@ export default function Datatable() {
                         >
                             {formEdited ? 'Disable Edit Mode' : 'Enable Edit Mode'}
                         </button>
-
-                        {/* Sort buttons */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                            <span className="text-xs text-gray-500 font-medium">Sort:</span>
-                            <SortButton label="ID" field="id" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Name" field="name" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Title" field="title" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Parent Post" field="post_parents" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Alt" field="alt" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Caption" field="caption" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            <SortButton label="Description" field="description" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                            {mediaData.postQuery.orderby && mediaData.postQuery.orderby !== 'id' && (
-                                <button
-                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md cursor-pointer transition-colors bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
-                                    onClick={handleSortReset}
-                                >
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    Reset
-                                </button>
-                            )}
-                        </div>
                     </div>
 
                     {/* Card list */}
@@ -282,7 +259,7 @@ export default function Datatable() {
                         ) : (
                             <div className="space-y-3">
                                 {/* Select all */}
-                                <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-gray-200">
+                                <div className="flex items-center gap-4 px-4 py-2 bg-white rounded-lg border border-gray-200">
                                     <input
                                         type="checkbox"
                                         className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -290,11 +267,35 @@ export default function Datatable() {
                                         checked={bulkSubmitData.bulkChecked}
                                         onChange={onBulkCheck}
                                     />
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-gray-600 mr-2">
                                         {bulkSubmitData.ids.length > 0
                                             ? `${bulkSubmitData.ids.length} selected`
                                             : 'Select all'}
                                     </span>
+
+                                    {/* Sort buttons */}
+                                    <div className="flex items-center gap-1 flex-wrap border-l border-gray-300 pl-5">
+                                        <span className="text-xs text-gray-500 font-medium">Sort:</span>
+                                        <SortButton label="ID" field="id" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Name" field="name" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Title" field="title" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Parent Post" field="post_parents" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Alt" field="alt" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Caption" field="caption" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Description" field="description" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        {mediaData.postQuery.orderby && mediaData.postQuery.orderby !== 'id' && (
+                                            <button
+                                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md cursor-pointer transition-colors bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                                onClick={handleSortReset}
+                                            >
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Reset
+                                            </button>
+                                        )}
+                                    </div>
+
                                 </div>
 
                                 {posts.map((record, i) => {
