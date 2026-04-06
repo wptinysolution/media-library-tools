@@ -1,7 +1,7 @@
 <?php
 /**
  * @wordpress-plugin
- * Plugin Name:       Media Library Tools - AI Rename, Duplicate Finder & Media Cleaner
+ * Plugin Name:       Media Library Tools - Regenerate, AI Rename, Duplicate Finder & Media Cleaner
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
  * Description:       AI-Powered Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
  * Version:           2.1.2

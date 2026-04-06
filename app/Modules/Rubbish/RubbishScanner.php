@@ -506,6 +506,158 @@ class RubbishScanner {
 		);
 	}
 
+	// -------------------------------------------------------------------------
+	// Empty directory detection & deletion
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Return all upload subdirectories that contain no files (recursively).
+	 *
+	 * Only directories that are inside the WordPress uploads basedir are considered.
+	 * Directories on the ignore list are skipped.
+	 *
+	 * @return array  List of absolute paths to empty directories.
+	 */
+	public static function get_empty_directories(): array {
+		$upload_dir  = wp_upload_dir();
+		$basedir     = trailingslashit( $upload_dir['basedir'] );
+		$filesystem  = Fns::get_wp_filesystem_instance();
+		$ignore_list = self::paths_to_ignore();
+
+		return self::collect_empty_directories( $basedir, $filesystem, $ignore_list );
+	}
+
+	/**
+	 * Recursively collect directories that contain no files at any depth.
+	 *
+	 * @param string $directory  Absolute path to scan.
+	 * @param object $filesystem WP_Filesystem instance.
+	 * @param array  $ignore     Paths to skip.
+	 *
+	 * @return array
+	 */
+	private static function collect_empty_directories( string $directory, $filesystem, array $ignore ): array {
+		if ( ! $filesystem->is_dir( $directory ) ) {
+			return [];
+		}
+		foreach ( $ignore as $path ) {
+			if ( false !== strpos( $directory, $path ) ) {
+				return [];
+			}
+		}
+
+		$files   = $filesystem->dirlist( $directory );
+		$empty   = [];
+
+		if ( empty( $files ) ) {
+			$empty[] = untrailingslashit( $directory );
+			return $empty;
+		}
+
+		$has_file   = false;
+		$child_dirs = [];
+
+		foreach ( $files as $file ) {
+			$file_path = trailingslashit( $directory ) . $file['name'];
+			if ( $filesystem->is_dir( $file_path ) ) {
+				$child_dirs[] = $file_path;
+			} else {
+				$has_file = true;
+			}
+		}
+
+		// Directory contains files — not empty itself.
+		if ( $has_file ) {
+			// Still recurse into subdirectories to find nested empty ones.
+			foreach ( $child_dirs as $child ) {
+				$empty = array_merge( $empty, self::collect_empty_directories( $child, $filesystem, $ignore ) );
+			}
+			return $empty;
+		}
+
+		// No files in this directory — check children.
+		$all_child_empty = true;
+		foreach ( $child_dirs as $child ) {
+			$child_empty = self::collect_empty_directories( $child, $filesystem, $ignore );
+			if ( ! empty( $child_empty ) ) {
+				$empty = array_merge( $empty, $child_empty );
+			} else {
+				// Child was not reported empty (has files inside).
+				$all_child_empty = false;
+			}
+		}
+
+		// If this directory has subdirs and all of them (and their descendants)
+		// are empty, report this directory itself as empty instead.
+		if ( ! empty( $child_dirs ) && $all_child_empty && count( $empty ) === count( $child_dirs ) ) {
+			$empty[] = untrailingslashit( $directory );
+		}
+
+		return $empty;
+	}
+
+	/**
+	 * Delete a single empty directory.
+	 *
+	 * Validates that the path is inside the uploads basedir, is a real directory,
+	 * and is genuinely empty before removing it.
+	 *
+	 * @param array $request_data Must contain 'directory' key with absolute path.
+	 *
+	 * @return array Result with 'updated' bool and 'message' string.
+	 */
+	public function delete_empty_directory( array $request_data ): array {
+		$result = [
+			'updated' => false,
+			'message' => esc_html__( 'Delete failed.', 'media-library-tools' ),
+		];
+
+		$directory = sanitize_text_field( $request_data['directory'] ?? '' );
+
+		if ( empty( $directory ) ) {
+			$result['message'] = esc_html__( 'No directory specified.', 'media-library-tools' );
+			return $result;
+		}
+
+		$upload_dir = wp_upload_dir();
+		$basedir    = realpath( $upload_dir['basedir'] );
+		$real_dir   = realpath( $directory );
+
+		// Security: must be inside uploads basedir.
+		if ( ! $real_dir || ! $basedir || 0 !== strpos( $real_dir, $basedir ) ) {
+			$result['message'] = esc_html__( 'Invalid directory path.', 'media-library-tools' );
+			return $result;
+		}
+
+		// Must be a directory.
+		if ( ! is_dir( $real_dir ) ) {
+			$result['message'] = esc_html__( 'Path is not a directory.', 'media-library-tools' );
+			return $result;
+		}
+
+		// Must be empty (no files or subdirs).
+		$filesystem = Fns::get_wp_filesystem_instance();
+		$files      = $filesystem->dirlist( $real_dir );
+		if ( ! empty( $files ) ) {
+			$result['message'] = esc_html__( 'Directory is not empty.', 'media-library-tools' );
+			return $result;
+		}
+
+		if ( $filesystem->rmdir( $real_dir ) ) {
+			// Remove from directory list option if present.
+			$dir_list = get_option( 'tsmlt_get_directory_list', [] );
+			unset( $dir_list[ $directory ], $dir_list[ $real_dir ] );
+			update_option( 'tsmlt_get_directory_list', $dir_list );
+
+			$result['updated'] = true;
+			$result['message'] = esc_html__( 'Empty directory deleted successfully.', 'media-library-tools' );
+		} else {
+			$result['message'] = esc_html__( 'Could not delete directory. Check file permissions.', 'media-library-tools' );
+		}
+
+		return $result;
+	}
+
 	/**
 	 * @return string[]
 	 */

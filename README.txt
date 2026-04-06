@@ -1,4 +1,4 @@
-=== Media Library Tools - AI Rename, Duplicate Finder & Media Cleaner ===
+=== Media Library Tools - Regenerate, AI Rename, Duplicate Finder & Media Cleaner ===
 Contributors: tinysolution, mehediihasan
 Tags: media library, rename, duplicate finder, media cleaner, alt text
 Requires at least: 5.5

@@ -59,6 +59,8 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_rescan_dir', [ $this, 'rescan_dir' ] );
 		add_action( 'wp_ajax_tsmlt_search_file_by_dir', [ $this, 'search_file_by_dir' ] );
 		add_action( 'wp_ajax_tsmlt_truncate_unlisted_file', [ $this, 'truncate_unlisted_file' ] );
+		add_action( 'wp_ajax_tsmlt_get_empty_directories', [ $this, 'get_empty_directories' ] );
+		add_action( 'wp_ajax_tsmlt_delete_empty_directory', [ $this, 'delete_empty_directory' ] );
 
 		// Schedule / image sizes / plugins.
 		add_action( 'wp_ajax_tsmlt_clear_schedule', [ $this, 'clear_schedule' ] );
@@ -283,6 +285,19 @@ class Ajax {
 	public function truncate_unlisted_file(): void {
 		$this->verify_and_get_params();
 		$this->send( RubbishScanner::instance()->delete_all_rows_in_unlisted_file() );
+	}
+
+	/** @return void */
+	public function get_empty_directories(): void {
+		$this->verify_and_get_params();
+		$dirs = RubbishScanner::get_empty_directories();
+		$this->send( [ 'updated' => true, 'directories' => $dirs ] );
+	}
+
+	/** @return void */
+	public function delete_empty_directory(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( RubbishScanner::instance()->delete_empty_directory( $params ) );
 	}
 
 	// -------------------------------------------------------------------------

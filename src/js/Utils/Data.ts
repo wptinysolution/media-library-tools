@@ -194,6 +194,15 @@ export const truncateUnlistedFile = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_truncate_unlisted_file');
 };
 
+export const getEmptyDirectories = async (): Promise<{ directories: string[] }> => {
+    const result = await ajaxPost('tsmlt_get_empty_directories');
+    return result.data as { directories: string[] };
+};
+
+export const deleteEmptyDirectory = async (directory: string): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_delete_empty_directory', { directory });
+};
+
 // Duplicate detection.
 export const duplicateScanBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_duplicate_scan_batch', prams);
