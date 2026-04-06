@@ -20,7 +20,7 @@ function RubbishHeader() {
     const getTheRubbishFileType = async () => {
         const rubbishFile = await getRubbishFileType() as { fileTypes: string[] };
         const types = rubbishFile.fileTypes.map((item) => ({ value: item, label: item }));
-        setFilterItems([{ value: '', label: 'Default' }, ...types]);
+        setFilterItems([{ value: '', label: 'Default' }, { value: 'all', label: 'All' }, ...types]);
     };
 
     const handleDirForModal = async () => {

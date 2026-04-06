@@ -190,18 +190,26 @@ class RubbishScanner {
 		$offset     = ( $page - 1 ) * $limit;
 		$status     = sanitize_text_field( $parameters['fileStatus'] ?? 'show' );
 		$statuses   = [ $status ];
-		$extensions = ! empty( $parameters['filterExtension'] )
-			? [ sanitize_text_field( $parameters['filterExtension'] ) ]
-			: self::default_file_extensions();
+		$filter_ext = sanitize_text_field( $parameters['filterExtension'] ?? '' );
+		if ( 'all' === $filter_ext ) {
+			$extensions = null;
+		} elseif ( ! empty( $filter_ext ) ) {
+			$extensions = [ $filter_ext ];
+		} else {
+			$extensions = self::default_file_extensions();
+		}
 
 		$cache_key    = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
 		$existing_row = wp_cache_get( $cache_key );
 
 		if ( false === $existing_row ) {
-			$existing_row = Fns::DB()->select( '*' )
+			$query = Fns::DB()->select( '*' )
 				->from( 'tsmlt_unlisted_file' )
-				->whereIn( 'status', ...$statuses )
-				->andIn( 'file_type', ...$extensions )
+				->whereIn( 'status', ...$statuses );
+			if ( null !== $extensions ) {
+				$query = $query->andIn( 'file_type', ...$extensions );
+			}
+			$existing_row = $query
 				->limit( $limit )
 				->offset( $offset )
 				->get();
@@ -215,12 +223,14 @@ class RubbishScanner {
 		$total_file      = wp_cache_get( $total_cache_key );
 
 		if ( false === $total_file ) {
-			$count_result = Fns::DB()->select()
+			$count_query = Fns::DB()->select()
 				->count( '*', 'total' )
 				->from( 'tsmlt_unlisted_file' )
-				->whereIn( 'status', ...$statuses )
-				->andIn( 'file_type', ...$extensions )
-				->get();
+				->whereIn( 'status', ...$statuses );
+			if ( null !== $extensions ) {
+				$count_query = $count_query->andIn( 'file_type', ...$extensions );
+			}
+			$count_result = $count_query->get();
 			$total_file   = (int) ( $count_result[0]['total'] ?? 0 );
 			wp_cache_set( $total_cache_key, $total_file );
 		}

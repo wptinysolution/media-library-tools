@@ -3,208 +3,387 @@ import { useStore } from "@/js/Utils/store";
 import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
 import Axios from 'axios';
 import Modal from "@/js/Component/Common/Modal";
-import ProgressBar from "@/js/Component/Common/ProgressBar";
-import DirectoryList, { trimPath } from "@/js/Component/Rubbish/DirectoryList";
+import { trimPath } from "@/js/Component/Rubbish/DirectoryList";
 
 const MAX_RETRIES = 3;
 
 interface DirStatusItem {
     total_items: number;
     counted: number;
+    scanned?: boolean;
 }
+
+type ScanPhase = 'idle' | 'scanning' | 'done' | 'stopped';
 
 function DirectoryModal() {
     const { generalData, setGeneralData } = useStore();
-    const [dirListExist, setDirListExist] = useState<string[]>([]);
-    const [scanRubbishDirList, setScanRubbishDirList] = useState<Record<string, DirStatusItem>>({});
-    const [scanRubbishDirLoading, setScanRubbishDirLoading] = useState(false);
-    const [progressBar, setProgressBar] = useState(0);
-    const [progressTotal, setProgressTotal] = useState(0);
-    const [buttonSpain, setButtonSpain] = useState<string | null>(null);
+
+    // ── Directory list state ─────────────────────────────────────────────────
+    const [dirList, setDirList]     = useState<Record<string, DirStatusItem>>({});
+    const [dirLoading, setDirLoading] = useState(false);
+
+    // ── Scan state ───────────────────────────────────────────────────────────
+    const [phase, setPhase]             = useState<ScanPhase>('idle');
+    const [scannedDirs, setScannedDirs] = useState(0);
+    const [totalDirs, setTotalDirs]     = useState(0);
+    const [currentDir, setCurrentDir]   = useState('');
     const [instantDeletion, setInstantDeletion] = useState('not-instant');
-    const [skip, setSkip] = useState<string[]>([]);
-    const [currentScanDir, setCurrentScanDir] = useState<string>('');
+    const [skip] = useState<string[]>([]);
 
+    const stopRef    = useRef(false);
     const retryCount = useRef(0);
-    const instantDeletionRef = useRef(instantDeletion);
-    const skipRef = useRef(skip);
-    const progressTotalRef = useRef(progressTotal);
-    const dirListExistRef = useRef<string[]>([]);
+    const instantRef = useRef(instantDeletion);
+    const skipRef    = useRef(skip);
 
-    useEffect(() => { instantDeletionRef.current = instantDeletion; }, [instantDeletion]);
+    useEffect(() => { instantRef.current = instantDeletion; }, [instantDeletion]);
     useEffect(() => { skipRef.current = skip; }, [skip]);
-    useEffect(() => { progressTotalRef.current = progressTotal; }, [progressTotal]);
-    useEffect(() => { dirListExistRef.current = dirListExist; }, [dirListExist]);
 
-    const handleDirModalCancel = () => {
-        setGeneralData({ isDirModalOpen: false });
-    };
+    // Sync from store when modal opens
+    useEffect(() => {
+        if (!generalData.isDirModalOpen) return;
+        const stored = (generalData.scanRubbishDirList ?? {}) as Record<string, DirStatusItem>;
+        setDirList(stored);
+        setTotalDirs(Object.keys(stored).length);
+    }, [generalData.isDirModalOpen, generalData.scanRubbishDirList]);
 
-    const handleDirRescan = async (dir: string = "all") => {
-        setScanRubbishDirLoading(true);
+    const close = () => setGeneralData({ isDirModalOpen: false });
+
+    // ── Re-Scan Directory (rebuild list + clear history) ─────────────────────
+    const handleRescan = async () => {
+        setDirLoading(true);
         try {
-            const dirList = await rescanDir({ dir }) as { data: { thedirlist: Record<string, DirStatusItem> } };
-            setScanRubbishDirList(dirList.data.thedirlist);
+            await truncateUnlistedFile();
+            const res = await rescanDir({ dir: 'all' }) as { data: { thedirlist: Record<string, DirStatusItem> } };
+            const newList = res.data.thedirlist ?? {};
+            setDirList(newList);
+            setTotalDirs(Object.keys(newList).length);
+            setGeneralData({ scanRubbishDirList: newList });
+            setPhase('idle');
+            setScannedDirs(0);
+            setCurrentDir('');
         } finally {
-            setScanRubbishDirLoading(false);
+            setDirLoading(false);
         }
     };
 
-    const exclude_from_bulk_scan = (dir: string = "") => {
-        setSkip(prev => [...prev, dir]);
-    };
+    // ── Fire one AJAX batch ───────────────────────────────────────────────────
+    const fireBatch = (): Promise<{ remaining: string[]; statusList: Record<string, DirStatusItem> }> => {
+        return new Promise((resolve, reject) => {
+            const params = new URLSearchParams();
+            params.append('action', 'immediately_search_rubbish_file');
+            params.append('nonce', tsmltParams.tsmlt_wpnonce);
+            params.append('instantDeletion', instantRef.current);
+            skipRef.current.forEach(v => params.append('skip[]', v));
 
-    const processDirectory = () => {
-        const currentList = dirListExistRef.current;
-        if (currentList.length > 0) {
-            // PHP picks the last unfinished directory in the list
-            setCurrentScanDir(currentList[currentList.length - 1]);
-        }
-
-        const params = new URLSearchParams();
-        params.append('action', 'immediately_search_rubbish_file');
-        params.append('nonce', tsmltParams.tsmlt_wpnonce);
-        params.append('instantDeletion', instantDeletionRef.current);
-        skipRef.current.forEach((value) => {
-            params.append('skip[]', value);
-        });
-
-        Axios
-            .post(tsmltParams.ajaxUrl, params)
-            .then((response) => {
-                if (response && response.data) {
+            Axios.post(tsmltParams.ajaxUrl, params)
+                .then(res => {
                     retryCount.current = 0;
-                    const { dirList, dirStatusList } = response.data.data as {
-                        dirList: Record<string, unknown>;
-                        dirStatusList: Record<string, DirStatusItem>;
-                    };
-                    setScanRubbishDirList(dirStatusList);
-                    const list = Object.entries(dirList).map(([key]) => key);
-                    const percent = Math.floor((100 * (progressTotalRef.current - list.length)) / progressTotalRef.current);
-                    setProgressBar(percent);
-                    setDirListExist(list);
-                    if (percent >= 100) {
-                        setCurrentScanDir('');
-                        window.location.reload();
+                    const data      = res.data?.data ?? {};
+                    const remaining = Object.keys(data.dirList ?? {});
+                    resolve({ remaining, statusList: data.dirStatusList ?? {} });
+                })
+                .catch(err => {
+                    if (retryCount.current < MAX_RETRIES) {
+                        retryCount.current++;
+                        setTimeout(() => fireBatch().then(resolve).catch(reject), 2000);
+                    } else {
+                        retryCount.current = 0;
+                        reject(err);
                     }
-                } else {
-                    console.error("Invalid response structure:", response);
-                }
-            })
-            .catch((error) => {
-                console.error("Request failed:", error);
-                if (retryCount.current < MAX_RETRIES) {
-                    retryCount.current++;
-                    console.log(`Retrying... attempt ${retryCount.current} of ${MAX_RETRIES}`);
-                    setTimeout(() => processDirectory(), 2000);
-                } else {
-                    retryCount.current = 0;
-                    console.error("Max retries reached. Stopping.");
-                    setButtonSpain(null);
-                }
-            });
+                });
+        });
     };
 
-    const handleDirScanManually = () => {
-        setButtonSpain("bulkScan");
-        processDirectory();
-    };
+    // ── Start bulk scan ───────────────────────────────────────────────────────
+    const handleStart = async () => {
+        stopRef.current = false;
+        setPhase('scanning');
+        setScannedDirs(0);
+        setCurrentDir('');
 
-    useEffect(() => {
-        setScanRubbishDirList(generalData.scanRubbishDirList as Record<string, DirStatusItem>);
-    }, [generalData.scanRubbishDirList]);
+        const allDirs = Object.keys(dirList).filter(k => !skipRef.current.includes(k));
+        const total   = allDirs.length;
+        setTotalDirs(total);
 
-    useEffect(() => {
-        const list = Object.entries(scanRubbishDirList).map(([key]) => key);
-        setProgressTotal(list.length);
-    }, [scanRubbishDirList]);
+        let remaining = [...allDirs];
 
-    useEffect(() => {
-        if (dirListExist.length > 0) {
-            processDirectory();
+        while (remaining.length > 0 && !stopRef.current) {
+            setCurrentDir(remaining[remaining.length - 1] ?? '');
+
+            let result: { remaining: string[]; statusList: Record<string, DirStatusItem> };
+            try {
+                result = await fireBatch();
+            } catch {
+                setPhase('stopped');
+                return;
+            }
+
+            if (stopRef.current) break;
+
+            setDirList(result.statusList);
+            setScannedDirs(total - result.remaining.length);
+            remaining = result.remaining;
         }
-    }, [dirListExist]);
 
-    const dirEntries = Object.entries(scanRubbishDirList) as [string, DirStatusItem][];
+        setCurrentDir('');
+        setPhase(stopRef.current ? 'stopped' : 'done');
+    };
 
+    const handleStop    = () => { stopRef.current = true; };
+    const handleRestart = () => { setPhase('idle'); setScannedDirs(0); setCurrentDir(''); };
+
+    // ── Derived ───────────────────────────────────────────────────────────────
+    const isScanning = phase === 'scanning';
+    const percent    = totalDirs > 0 ? Math.min(100, Math.round((scannedDirs / totalDirs) * 100)) : 0;
+    const dirEntries = Object.entries(dirList) as [string, DirStatusItem][];
+
+    const fullyScanned = (item: DirStatusItem) =>
+        (item.total_items > 0 && item.counted >= item.total_items) ||
+        (item.total_items === 0 && !!item.scanned);
+
+    const doneCount    = dirEntries.filter(([, v]) => fullyScanned(v)).length;
+    const pendingCount = dirEntries.length - doneCount;
+
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <Modal
             isOpen={generalData.isDirModalOpen}
-            onClose={handleDirModalCancel}
-            title="Directory List"
-            maxWidth="max-w-[950px]"
+            onClose={close}
+            title="Scan Directories for Rubbish Files"
+            maxWidth="max-w-[820px]"
             footer={
-                <div className="px-6 py-4 border-t border-gray-200">
-                    {tsmltParams.hasExtended && (
-                        <div className="mb-3">
-                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between gap-3">
+                    {/* Instant deletion toggle — pro only */}
+                    <div>
+                        {tsmltParams.hasExtended && (
+                            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                                 <input
                                     type="checkbox"
-                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                    onChange={(event) => setInstantDeletion(event.target.checked ? 'instant' : 'not-instant')}
+                                    className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                                    disabled={isScanning}
+                                    onChange={e => setInstantDeletion(e.target.checked ? 'instant' : 'not-instant')}
                                 />
-                                <span className="text-sm text-gray-900">Rubbish File Instant Deletion?</span>
+                                <span className="text-sm text-gray-700">Instant delete during scan</span>
+                                <span className="text-xs text-red-500">(irreversible)</span>
                             </label>
-                            <p className="text-xs text-red-600 mt-1 text-left">
-                                Enabling this will delete files immediately during a bulk scan. Use with caution, as it may result in permanent loss of files without confirmation.
-                            </p>
-                            <hr className="border-gray-200 my-3" />
-                        </div>
-                    )}
-                    <div className="flex items-center gap-3">
+                        )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            className={`px-5 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-2 ${
-                                buttonSpain === "bulkScan"
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                            }`}
-                            onClick={handleDirScanManually}
+                            disabled={isScanning || dirLoading}
+                            onClick={handleRescan}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Bulk Search Rubbish File
-                            {buttonSpain === "bulkScan" && (
+                            {dirLoading ? (
                                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                             )}
+                            Re-Scan Directory
                         </button>
-                        <button
-                            type="button"
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={async () => {
-                                await truncateUnlistedFile();
-                                await handleDirRescan("all");
-                            }}
-                        >
-                            Scan Directory
-                        </button>
+
+                        {!isScanning ? (
+                            <button
+                                type="button"
+                                disabled={dirLoading || dirEntries.length === 0}
+                                onClick={phase === 'idle' ? handleStart : handleRestart}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                {phase === 'idle' ? 'Start Scanning' : 'Restart Scan'}
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleStop}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <rect x="6" y="6" width="12" height="12" rx="1" />
+                                </svg>
+                                Stop
+                            </button>
+                        )}
                     </div>
                 </div>
             }
         >
-            <hr className="border-gray-200" />
-            <div className="px-4 py-4 h-[450px] overflow-y-auto border-b border-gray-100">
-                <DirectoryList
-                    dirEntries={dirEntries}
-                    skip={skip}
-                    onExclude={exclude_from_bulk_scan}
-                    onRescan={handleDirRescan}
-                    loading={scanRubbishDirLoading}
-                />
-            </div>
+            <div className="flex flex-col">
 
-            {progressBar > 0 && (
-                <div className="px-6 py-3">
-                    <h5 className="text-base! font-semibold mt-0!  text-gray-900 mb-2">Progress:</h5>
-                    <ProgressBar percent={progressBar} />
-                    {currentScanDir && (
-                        <p className="text-xs text-gray-500 mt-1.5 truncate">
-                            Scanning: <span className="font-medium text-gray-700">{trimPath(currentScanDir)}</span>
-                        </p>
+                {/* ── Progress banner ── */}
+                {phase !== 'idle' && (
+                    <div className={`px-6 py-4 border-b ${
+                        phase === 'done'    ? 'bg-green-50 border-green-100' :
+                        phase === 'stopped' ? 'bg-amber-50 border-amber-100' :
+                                             'bg-blue-50 border-blue-100'
+                    }`}>
+                        <div className="flex items-center gap-2 mb-2.5">
+                            {isScanning && (
+                                <svg className="w-4 h-4 animate-spin text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                            )}
+                            {phase === 'done' && (
+                                <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            )}
+                            {phase === 'stopped' && (
+                                <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            )}
+                            <span className={`text-sm font-semibold ${
+                                phase === 'done'    ? 'text-green-700' :
+                                phase === 'stopped' ? 'text-amber-700' :
+                                                     'text-blue-700'
+                            }`}>
+                                {isScanning  && 'Scanning — do not close this page'}
+                                {phase === 'done'    && `Complete — all ${totalDirs} director${totalDirs === 1 ? 'y' : 'ies'} scanned`}
+                                {phase === 'stopped' && `Stopped at ${scannedDirs} of ${totalDirs} directories`}
+                            </span>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex-1 bg-white rounded-full h-2 overflow-hidden border border-gray-200">
+                                <div
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                        phase === 'done'    ? 'bg-green-500' :
+                                        phase === 'stopped' ? 'bg-amber-400' :
+                                                             'bg-blue-500'
+                                    }`}
+                                    style={{ width: `${percent}%` }}
+                                />
+                            </div>
+                            <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+                                {scannedDirs} / {totalDirs} ({percent}%)
+                            </span>
+                        </div>
+
+                        {isScanning && currentDir && (
+                            <p className="text-xs text-blue-600 mt-1.5 truncate">
+                                <span className="text-gray-400">Current:</span>{' '}
+                                <span className="font-medium">{trimPath(currentDir)}</span>
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {/* ── Stats strip ── */}
+                {dirEntries.length > 0 && (
+                    <div className="flex items-center gap-5 px-6 py-2.5 bg-gray-50 border-b border-gray-100">
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="w-2 h-2 rounded-full bg-gray-300 inline-block" />
+                            {dirEntries.length} total
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                            {doneCount} done
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                            {pendingCount} pending
+                        </span>
+                    </div>
+                )}
+
+                {/* ── Directory table ── */}
+                <div className="h-[340px] overflow-y-auto">
+                    {dirLoading ? (
+                        <div className="flex items-center justify-center h-full gap-2 text-gray-400 text-sm">
+                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Loading directories…
+                        </div>
+                    ) : dirEntries.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 px-8 text-center">
+                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                            </svg>
+                            <p className="text-sm">No directories found.<br />Click <strong className="text-gray-600">Re-Scan Directory</strong> to build the list first.</p>
+                        </div>
+                    ) : (
+                        <table className="w-full text-sm border-collapse">
+                            <thead className="sticky top-0 bg-white border-b border-gray-100 z-10">
+                                <tr>
+                                    <th className="text-left px-6 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Directory</th>
+                                    <th className="text-right px-6 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-32">Files</th>
+                                    <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-24">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dirEntries.map(([key, item]) => {
+                                    const done   = fullyScanned(item);
+                                    const active = isScanning && currentDir === key;
+                                    return (
+                                        <tr
+                                            key={key}
+                                            className={`border-b border-gray-50 last:border-0 transition-colors ${
+                                                active ? 'bg-blue-50' : 'hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <td className="px-6 py-2.5">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    {active ? (
+                                                        <svg className="w-3.5 h-3.5 animate-spin text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-3.5 h-3.5 shrink-0 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                                        </svg>
+                                                    )}
+                                                    <span className="text-xs font-mono text-gray-600 truncate" title={key}>
+                                                        {trimPath(key)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-2.5 text-right text-xs text-gray-500 tabular-nums">
+                                                {item.total_items > 0
+                                                    ? `${item.counted} / ${item.total_items}`
+                                                    : '—'}
+                                            </td>
+                                            <td className="px-4 py-2.5 text-center">
+                                                {done ? (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Done
+                                                    </span>
+                                                ) : active ? (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                                                        Scanning…
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                                        Pending
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     )}
                 </div>
-            )}
+            </div>
         </Modal>
     );
 }
