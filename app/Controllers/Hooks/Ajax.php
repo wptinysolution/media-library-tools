@@ -86,7 +86,6 @@ class Ajax {
 		// Regenerate thumbnails.
 		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
 		add_action( 'wp_ajax_tsmlt_regenerate_get_status', [ $this, 'regenerate_get_status' ] );
-		add_action( 'wp_ajax_tsmlt_delete_unregistered_sizes_batch', [ $this, 'delete_unregistered_sizes_batch' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -481,11 +480,4 @@ class Ajax {
 		$this->send( [ 'total' => RegenerateThumbnails::instance()->get_total() ] );
 	}
 
-	/** @return void */
-	public function delete_unregistered_sizes_batch(): void {
-		$params     = $this->verify_and_get_params();
-		$offset     = absint( $params['offset'] ?? 0 );
-		$batch_size = min( absint( $params['batch_size'] ?? 10 ), 50 );
-		$this->send( RegenerateThumbnails::instance()->delete_unregistered_sizes_batch( $offset, $batch_size ) );
-	}
 }

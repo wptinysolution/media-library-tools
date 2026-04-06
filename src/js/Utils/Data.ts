@@ -259,6 +259,3 @@ export const regenerateGetStatus = async (): Promise<{ total: number }> => {
     return result.data as { total: number };
 };
 
-export const deleteUnregisteredSizesBatch = async (prams: object = {}): Promise<AxiosResponse> => {
-    return await ajaxPost('tsmlt_delete_unregistered_sizes_batch', prams);
-};

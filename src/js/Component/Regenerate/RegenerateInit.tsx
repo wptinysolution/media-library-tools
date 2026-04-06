@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { regenerateBatch, regenerateGetStatus, deleteUnregisteredSizesBatch } from '@/js/Utils/Data';
+import { regenerateBatch, regenerateGetStatus } from '@/js/Utils/Data';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -13,29 +13,16 @@ interface BatchError {
 interface BatchSucceeded {
     id: number;
     file: string;
+    deleted_sizes: string[];
 }
 
 interface BatchResponse {
     processed: number;
     total: number;
     complete: boolean;
+    deleted_total: number;
     errors: BatchError[];
     succeeded: BatchSucceeded[];
-}
-
-interface CleanupSucceeded {
-    id: number;
-    file: string;
-    deleted_sizes: string[];
-}
-
-interface CleanupBatchResponse {
-    processed: number;
-    total: number;
-    complete: boolean;
-    deleted: number;
-    errors: BatchError[];
-    succeeded: CleanupSucceeded[];
 }
 
 type Status = 'idle' | 'running' | 'stopped' | 'done';
@@ -47,24 +34,14 @@ const BATCH_SIZE = 10;
 function RegenerateInit() {
     const [total, setTotal]           = useState<number | null>(null);
     const [processed, setProcessed]   = useState(0);
+    const [deletedTotal, setDeletedTotal] = useState(0);
     const [status, setStatus]         = useState<Status>('idle');
     const [errors, setErrors]         = useState<BatchError[]>([]);
     const [history, setHistory]       = useState<BatchSucceeded[]>([]);
     const [dismissedErrors, setDismissedErrors] = useState<Set<number>>(new Set());
 
-    // ── Cleanup (delete unregistered sizes) state ────────────────────────────
-    const [cleanupStatus, setCleanupStatus]         = useState<Status>('idle');
-    const [cleanupProcessed, setCleanupProcessed]   = useState(0);
-    const [cleanupTotal, setCleanupTotal]           = useState<number | null>(null);
-    const [cleanupDeleted, setCleanupDeleted]       = useState(0);
-    const [cleanupErrors, setCleanupErrors]         = useState<BatchError[]>([]);
-    const [cleanupLog, setCleanupLog]               = useState<CleanupSucceeded[]>([]);
-    const cleanupStopRef = useRef(false);
-
-    const navigate = useNavigate();
-
-    // Use a ref so the running loop can read the latest stop signal.
-    const stopRef = useRef(false);
+    const navigate  = useNavigate();
+    const stopRef   = useRef(false);
 
     // ── Load total on mount ─────────────────────────────────────────────────
     useEffect(() => {
@@ -75,6 +52,7 @@ function RegenerateInit() {
 
     const reset = () => {
         setProcessed(0);
+        setDeletedTotal(0);
         setErrors([]);
         setHistory([]);
         setDismissedErrors(new Set());
@@ -102,71 +80,23 @@ function RegenerateInit() {
 
             offset = data.processed;
 
-            if (data.errors.length) {
-                setErrors(prev => [...prev, ...data.errors]);
-            }
-            if (data.succeeded.length) {
-                setHistory(prev => [...prev, ...data.succeeded]);
-            }
+            if (data.errors.length)    setErrors(prev => [...prev, ...data.errors]);
+            if (data.succeeded.length) setHistory(prev => [...prev, ...data.succeeded]);
+            if (data.deleted_total)    setDeletedTotal(prev => prev + data.deleted_total);
 
             setProcessed(offset);
 
-            if (data.complete || stopRef.current) {
-                break;
-            }
+            if (data.complete || stopRef.current) break;
         }
 
         setStatus(stopRef.current ? 'stopped' : 'done');
     };
 
-    const handleStop = () => {
-        stopRef.current = true;
-    };
+    const handleStop = () => { stopRef.current = true; };
 
     const dismissError = (id: number) => {
         setDismissedErrors(prev => new Set(prev).add(id));
     };
-
-    // ── Cleanup handlers ────────────────────────────────────────────────────
-
-    const handleCleanupStart = async () => {
-        setCleanupStatus('running');
-        setCleanupProcessed(0);
-        setCleanupDeleted(0);
-        setCleanupErrors([]);
-        setCleanupLog([]);
-        cleanupStopRef.current = false;
-
-        // Fetch total fresh on start.
-        const { total: t } = await regenerateGetStatus();
-        setCleanupTotal(t);
-
-        let offset = 0;
-
-        while (!cleanupStopRef.current) {
-            let data: CleanupBatchResponse;
-            try {
-                const response = await deleteUnregisteredSizesBatch({ offset, batch_size: BATCH_SIZE });
-                data = response.data as CleanupBatchResponse;
-            } catch {
-                setCleanupStatus('stopped');
-                return;
-            }
-
-            offset = data.processed;
-            setCleanupProcessed(offset);
-            setCleanupDeleted(prev => prev + data.deleted);
-            if (data.errors.length) setCleanupErrors(prev => [...prev, ...data.errors]);
-            const withDeleted = data.succeeded.filter(s => s.deleted_sizes.length > 0);
-            if (withDeleted.length) setCleanupLog(prev => [...prev, ...withDeleted]);
-
-            if (data.complete || cleanupStopRef.current) break;
-        }
-
-        setCleanupStatus(cleanupStopRef.current ? 'stopped' : 'done');
-    };
-
-    const handleCleanupStop = () => { cleanupStopRef.current = true; };
 
     // ── Derived values ───────────────────────────────────────────────────────
 
@@ -174,10 +104,6 @@ function RegenerateInit() {
     const percent       = safeTotal > 0 ? Math.min(100, Math.round((processed / safeTotal) * 100)) : 0;
     const visibleErrors = errors.filter(e => !dismissedErrors.has(e.id));
     const isRunning     = status === 'running';
-
-    const cleanupSafeTotal = cleanupTotal ?? safeTotal;
-    const cleanupPercent   = cleanupSafeTotal > 0 ? Math.min(100, Math.round((cleanupProcessed / cleanupSafeTotal) * 100)) : 0;
-    const isCleanupRunning = cleanupStatus === 'running';
 
     // ── Render ───────────────────────────────────────────────────────────────
 
@@ -191,7 +117,8 @@ function RegenerateInit() {
                         Regenerate Thumbnails
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        Regenerate all thumbnail sizes for every image in the media library.
+                        Regenerates all registered thumbnail sizes for every image, and automatically
+                        deletes orphan files for any sizes that are no longer registered.
                         Processing happens in batches of {BATCH_SIZE} to avoid server timeouts.
                     </p>
                 </div>
@@ -218,6 +145,12 @@ function RegenerateInit() {
                                 {history.length.toLocaleString()}
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-orange-500">
+                                {deletedTotal.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">Orphans deleted</p>
                         </div>
                         <div className="text-center">
                             <p className="text-3xl font-bold text-red-500">
@@ -302,13 +235,16 @@ function RegenerateInit() {
                         )}
                     </div>
 
-                    {/* Status notice */}
+                    {/* Status notices */}
                     {status === 'done' && (
                         <div className="mt-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-4 py-3">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            All {safeTotal.toLocaleString()} images processed successfully!
+                            All {safeTotal.toLocaleString()} images processed.
+                            {deletedTotal > 0 && (
+                                <span className="ml-1">{deletedTotal.toLocaleString()} orphan thumbnail file{deletedTotal !== 1 ? 's' : ''} deleted.</span>
+                            )}
                         </div>
                     )}
                     {status === 'stopped' && (
@@ -325,7 +261,7 @@ function RegenerateInit() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
-                            Regenerating… do not close this page.
+                            Regenerating thumbnails and cleaning orphan sizes… do not close this page.
                         </div>
                     )}
                 </div>
@@ -373,7 +309,7 @@ function RegenerateInit() {
                     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                             <span className="text-sm font-medium text-gray-700">
-                                Regenerated files ({history.length.toLocaleString()})
+                                Regenerated ({history.length.toLocaleString()})
                             </span>
                             {isRunning && (
                                 <span className="inline-flex items-center gap-1 text-xs text-blue-600">
@@ -387,197 +323,29 @@ function RegenerateInit() {
                         </div>
                         <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                             {[...history].reverse().map(item => (
-                                <li key={item.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
-                                    <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
-                                    <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
+                                <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
+                                        <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
+                                    </div>
+                                    {item.deleted_sizes.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
+                                            <span className="text-[10px] text-gray-400 mr-0.5">orphans removed:</span>
+                                            {item.deleted_sizes.map(s => (
+                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded">
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </li>
                             ))}
                         </ul>
                     </div>
                 )}
-
-                {/* ── Delete Unregistered Sizes card ── */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-                    <div className="mb-5">
-                        <h2 className="text-base font-semibold text-gray-900 m-0!">Delete Unregistered Thumbnail Sizes</h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Scans every image and deletes physical thumbnail files for sizes that are
-                            no longer registered in WordPress. Only currently registered sizes are kept.
-                        </p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex flex-wrap items-center gap-6 mb-5">
-                        <div className="text-center">
-                            <p className="text-2xl font-bold text-gray-900">{cleanupSafeTotal.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Total images</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold text-blue-600">{cleanupProcessed.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Scanned</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold text-red-500">{cleanupDeleted.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Sizes deleted</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold text-orange-500">{cleanupErrors.length.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Errors</p>
-                        </div>
-                    </div>
-
-                    {/* Progress bar */}
-                    {(isCleanupRunning || cleanupStatus === 'done' || cleanupStatus === 'stopped') && (
-                        <div className="mb-5">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                <span>{cleanupProcessed.toLocaleString()} of {cleanupSafeTotal.toLocaleString()} images scanned</span>
-                                <span>{cleanupPercent}%</span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                                <div
-                                    className={`h-3 rounded-full transition-all duration-300 ${
-                                        cleanupStatus === 'done'
-                                            ? 'bg-green-500'
-                                            : cleanupStatus === 'stopped'
-                                            ? 'bg-amber-400'
-                                            : 'bg-red-500'
-                                    }`}
-                                    style={{ width: `${cleanupPercent}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Buttons */}
-                    <div className="flex items-center gap-3">
-                        {!isCleanupRunning ? (
-                            <button
-                                type="button"
-                                disabled={cleanupSafeTotal === 0}
-                                onClick={handleCleanupStart}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                {cleanupStatus === 'idle' ? 'Delete Unregistered Sizes' : 'Run Again'}
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleCleanupStop}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
-                            >
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <rect x="6" y="6" width="12" height="12" rx="1" />
-                                </svg>
-                                Stop
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Status notices */}
-                    {cleanupStatus === 'done' && (
-                        <div className="mt-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-4 py-3">
-                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Done — {cleanupDeleted.toLocaleString()} unregistered thumbnail file{cleanupDeleted !== 1 ? 's' : ''} deleted across {cleanupSafeTotal.toLocaleString()} images.
-                        </div>
-                    )}
-                    {cleanupStatus === 'stopped' && (
-                        <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
-                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                            </svg>
-                            Stopped at {cleanupProcessed.toLocaleString()} of {cleanupSafeTotal.toLocaleString()}. Click "Run Again" to restart.
-                        </div>
-                    )}
-                    {isCleanupRunning && (
-                        <div className="mt-4 flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-4 py-3">
-                            <svg className="w-4 h-4 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                            Scanning and cleaning… do not close this page.
-                        </div>
-                    )}
-
-                    {/* Warning notice */}
-                    {cleanupStatus === 'idle' && (
-                        <div className="mt-4 flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
-                            <svg className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                            <span>
-                                <strong>Warning:</strong> This permanently deletes thumbnail files from disk.
-                                Make sure you have disabled unwanted image sizes in{' '}
-                                <strong>Image Size Settings</strong> before running this.
-                                Back up your uploads folder first.
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Cleanup errors */}
-                    {cleanupErrors.length > 0 && (
-                        <div className="mt-4 border border-red-200 rounded-lg overflow-hidden">
-                            <div className="px-4 py-2.5 bg-red-50 border-b border-red-100">
-                                <span className="text-sm font-medium text-red-700">{cleanupErrors.length} error{cleanupErrors.length !== 1 ? 's' : ''}</span>
-                            </div>
-                            <ul className="divide-y divide-red-100 max-h-40 overflow-y-auto">
-                                {cleanupErrors.map((err, i) => (
-                                    <li key={i} className="px-4 py-2">
-                                        <p className="text-xs font-medium text-gray-800">{err.file}</p>
-                                        <p className="text-xs text-red-600">{err.error}</p>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-
-                    {/* Cleanup log — only show images where sizes were actually deleted */}
-                    {cleanupLog.length > 0 && (
-                        <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-                            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">
-                                    Cleaned ({cleanupLog.length.toLocaleString()} image{cleanupLog.length !== 1 ? 's' : ''})
-                                </span>
-                                {isCleanupRunning && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                                        <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                        </svg>
-                                        Live
-                                    </span>
-                                )}
-                            </div>
-                            <ul className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
-                                {[...cleanupLog].reverse().map((item, i) => (
-                                    <li key={i} className="px-4 py-2.5 hover:bg-gray-50">
-                                        <div className="flex items-center gap-2">
-                                            <svg className="w-3.5 h-3.5 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            <span className="text-xs font-mono text-gray-700 truncate">{item.file}</span>
-                                            <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-5">
-                                            {item.deleted_sizes.map(s => (
-                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded">
-                                                    {s}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
 
             </div>
         </div>
