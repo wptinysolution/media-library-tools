@@ -149,9 +149,9 @@ class RegenerateThumbnails {
 				$thumb_file = $upload_dir . ( $size_data['file'] ?? '' );
 				if ( ! empty( $size_data['file'] ) && file_exists( $thumb_file ) ) {
 					wp_delete_file( $thumb_file );
+					$deleted_sizes[] = $size_name;
+					++$deleted_total;
 				}
-				$deleted_sizes[] = $size_name;
-				++$deleted_total;
 			}
 
 			// ── Step 4: save the clean, registered-only metadata ─────────────

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from '@/js/Utils/store';
 import { regenerateBatch, regenerateGetStatus } from '@/js/Utils/Data';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -40,8 +41,9 @@ function RegenerateInit() {
     const [history, setHistory]       = useState<BatchSucceeded[]>([]);
     const [dismissedErrors, setDismissedErrors] = useState<Set<number>>(new Set());
 
-    const navigate  = useNavigate();
-    const stopRef   = useRef(false);
+    const navigate        = useNavigate();
+    const { setGeneralData } = useStore();
+    const stopRef         = useRef(false);
 
     // ── Load total on mount ─────────────────────────────────────────────────
     useEffect(() => {
@@ -223,7 +225,10 @@ function RegenerateInit() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/rubbishFile')}
+                                    onClick={() => {
+                                        setGeneralData({ isDirModalOpen: true, autoStartScan: true });
+                                        navigate('/rubbishFile');
+                                    }}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

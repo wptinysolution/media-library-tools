@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "@/js/Utils/store";
 import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
 import Axios from 'axios';
@@ -13,14 +13,13 @@ interface DirStatusItem {
     scanned?: boolean;
 }
 
-type ScanPhase = 'idle' | 'scanning' | 'done' | 'stopped';
+type ScanPhase = 'idle' | 'rescan' | 'scanning' | 'done' | 'stopped';
 
 function DirectoryModal() {
     const { generalData, setGeneralData } = useStore();
 
     // ── Directory list state ─────────────────────────────────────────────────
-    const [dirList, setDirList]     = useState<Record<string, DirStatusItem>>({});
-    const [dirLoading, setDirLoading] = useState(false);
+    const [dirList, setDirList]         = useState<Record<string, DirStatusItem>>({});
 
     // ── Scan state ───────────────────────────────────────────────────────────
     const [phase, setPhase]             = useState<ScanPhase>('idle');
@@ -38,7 +37,7 @@ function DirectoryModal() {
     useEffect(() => { instantRef.current = instantDeletion; }, [instantDeletion]);
     useEffect(() => { skipRef.current = skip; }, [skip]);
 
-    // Sync from store when modal opens
+    // Sync dir list from store when modal opens (normal open without autoStart)
     useEffect(() => {
         if (!generalData.isDirModalOpen) return;
         const stored = (generalData.scanRubbishDirList ?? {}) as Record<string, DirStatusItem>;
@@ -46,25 +45,7 @@ function DirectoryModal() {
         setTotalDirs(Object.keys(stored).length);
     }, [generalData.isDirModalOpen, generalData.scanRubbishDirList]);
 
-    const close = () => setGeneralData({ isDirModalOpen: false });
-
-    // ── Re-Scan Directory (rebuild list + clear history) ─────────────────────
-    const handleRescan = async () => {
-        setDirLoading(true);
-        try {
-            await truncateUnlistedFile();
-            const res = await rescanDir({ dir: 'all' }) as { data: { thedirlist: Record<string, DirStatusItem> } };
-            const newList = res.data.thedirlist ?? {};
-            setDirList(newList);
-            setTotalDirs(Object.keys(newList).length);
-            setGeneralData({ scanRubbishDirList: newList });
-            setPhase('idle');
-            setScannedDirs(0);
-            setCurrentDir('');
-        } finally {
-            setDirLoading(false);
-        }
-    };
+    const close = () => setGeneralData({ isDirModalOpen: false, autoStartScan: false });
 
     // ── Fire one AJAX batch ───────────────────────────────────────────────────
     const fireBatch = (): Promise<{ remaining: string[]; statusList: Record<string, DirStatusItem> }> => {
@@ -94,14 +75,14 @@ function DirectoryModal() {
         });
     };
 
-    // ── Start bulk scan ───────────────────────────────────────────────────────
-    const handleStart = async () => {
+    // ── Run the rubbish file scan against a given dir list ───────────────────
+    const runScan = useCallback(async (dirs: Record<string, DirStatusItem>) => {
         stopRef.current = false;
         setPhase('scanning');
         setScannedDirs(0);
         setCurrentDir('');
 
-        const allDirs = Object.keys(dirList).filter(k => !skipRef.current.includes(k));
+        const allDirs = Object.keys(dirs).filter(k => !skipRef.current.includes(k));
         const total   = allDirs.length;
         setTotalDirs(total);
 
@@ -127,15 +108,53 @@ function DirectoryModal() {
 
         setCurrentDir('');
         setPhase(stopRef.current ? 'stopped' : 'done');
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleStop    = () => { stopRef.current = true; };
-    const handleRestart = () => { setPhase('idle'); setScannedDirs(0); setCurrentDir(''); };
+    // ── Full flow: truncate → rebuild dir list → scan ────────────────────────
+    const runFullFlow = useCallback(async () => {
+        stopRef.current = false;
+        setPhase('rescan');
+        setScannedDirs(0);
+        setCurrentDir('');
+        setDirList({});
+
+        let newList: Record<string, DirStatusItem> = {};
+        try {
+            await truncateUnlistedFile();
+            const res = await rescanDir({ dir: 'all' }) as { data: { thedirlist: Record<string, DirStatusItem> } };
+            newList = res.data.thedirlist ?? {};
+        } catch {
+            setPhase('stopped');
+            return;
+        }
+
+        setDirList(newList);
+        setTotalDirs(Object.keys(newList).length);
+        setGeneralData({ scanRubbishDirList: newList, autoStartScan: false });
+
+        if (stopRef.current) {
+            setPhase('stopped');
+            return;
+        }
+
+        await runScan(newList);
+    }, [runScan, setGeneralData]);
+
+    // ── Auto-start when opened with autoStartScan flag ───────────────────────
+    useEffect(() => {
+        if (generalData.isDirModalOpen && generalData.autoStartScan) {
+            runFullFlow();
+        }
+    }, [generalData.isDirModalOpen, generalData.autoStartScan, runFullFlow]);
+
+    const handleStop = () => { stopRef.current = true; };
 
     // ── Derived ───────────────────────────────────────────────────────────────
-    const isScanning = phase === 'scanning';
-    const percent    = totalDirs > 0 ? Math.min(100, Math.round((scannedDirs / totalDirs) * 100)) : 0;
-    const dirEntries = Object.entries(dirList) as [string, DirStatusItem][];
+    const isScanning  = phase === 'scanning';
+    const isRescan    = phase === 'rescan';
+    const isBusy      = isScanning || isRescan;
+    const percent     = totalDirs > 0 ? Math.min(100, Math.round((scannedDirs / totalDirs) * 100)) : 0;
+    const dirEntries  = Object.entries(dirList) as [string, DirStatusItem][];
 
     const fullyScanned = (item: DirStatusItem) =>
         (item.total_items > 0 && item.counted >= item.total_items) ||
@@ -160,7 +179,7 @@ function DirectoryModal() {
                                 <input
                                     type="checkbox"
                                     className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
-                                    disabled={isScanning}
+                                    disabled={isBusy}
                                     onChange={e => setInstantDeletion(e.target.checked ? 'instant' : 'not-instant')}
                                 />
                                 <span className="text-sm text-gray-700">Instant delete during scan</span>
@@ -171,34 +190,14 @@ function DirectoryModal() {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            disabled={isScanning || dirLoading}
-                            onClick={handleRescan}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {dirLoading ? (
-                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                            ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            )}
-                            Re-Scan Directory
-                        </button>
-
-                        {!isScanning ? (
+                        {!isBusy ? (
                             <button
                                 type="button"
-                                disabled={dirLoading || dirEntries.length === 0}
-                                onClick={phase === 'idle' ? handleStart : handleRestart}
+                                onClick={runFullFlow}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                                 {phase === 'idle' ? 'Start Scanning' : 'Restart Scan'}
                             </button>
@@ -228,7 +227,7 @@ function DirectoryModal() {
                                              'bg-blue-50 border-blue-100'
                     }`}>
                         <div className="flex items-center gap-2 mb-2.5">
-                            {isScanning && (
+                            {isBusy && (
                                 <svg className="w-4 h-4 animate-spin text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -249,28 +248,31 @@ function DirectoryModal() {
                                 phase === 'stopped' ? 'text-amber-700' :
                                                      'text-blue-700'
                             }`}>
+                                {isRescan    && 'Rebuilding directory list…'}
                                 {isScanning  && 'Scanning — do not close this page'}
                                 {phase === 'done'    && `Complete — all ${totalDirs} director${totalDirs === 1 ? 'y' : 'ies'} scanned`}
                                 {phase === 'stopped' && `Stopped at ${scannedDirs} of ${totalDirs} directories`}
                             </span>
                         </div>
 
-                        {/* Progress bar */}
-                        <div className="flex items-center gap-3">
-                            <div className="flex-1 bg-white rounded-full h-2 overflow-hidden border border-gray-200">
-                                <div
-                                    className={`h-2 rounded-full transition-all duration-300 ${
-                                        phase === 'done'    ? 'bg-green-500' :
-                                        phase === 'stopped' ? 'bg-amber-400' :
-                                                             'bg-blue-500'
-                                    }`}
-                                    style={{ width: `${percent}%` }}
-                                />
+                        {/* Progress bar — only shown during file scan phase */}
+                        {(isScanning || phase === 'done' || phase === 'stopped') && (
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-white rounded-full h-2 overflow-hidden border border-gray-200">
+                                    <div
+                                        className={`h-2 rounded-full transition-all duration-300 ${
+                                            phase === 'done'    ? 'bg-green-500' :
+                                            phase === 'stopped' ? 'bg-amber-400' :
+                                                                 'bg-blue-500'
+                                        }`}
+                                        style={{ width: `${percent}%` }}
+                                    />
+                                </div>
+                                <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+                                    {scannedDirs} / {totalDirs} ({percent}%)
+                                </span>
                             </div>
-                            <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
-                                {scannedDirs} / {totalDirs} ({percent}%)
-                            </span>
-                        </div>
+                        )}
 
                         {isScanning && currentDir && (
                             <p className="text-xs text-blue-600 mt-1.5 truncate">
@@ -301,20 +303,20 @@ function DirectoryModal() {
 
                 {/* ── Directory table ── */}
                 <div className="h-[340px] overflow-y-auto">
-                    {dirLoading ? (
+                    {isRescan ? (
                         <div className="flex items-center justify-center h-full gap-2 text-gray-400 text-sm">
                             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
-                            Loading directories…
+                            Rebuilding directory list…
                         </div>
                     ) : dirEntries.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400 px-8 text-center">
                             <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
                             </svg>
-                            <p className="text-sm">No directories found.<br />Click <strong className="text-gray-600">Re-Scan Directory</strong> to build the list first.</p>
+                            <p className="text-sm">No directories found.<br />Click <strong className="text-gray-600">Start Scanning</strong> to begin.</p>
                         </div>
                     ) : (
                         <table className="w-full text-sm border-collapse">

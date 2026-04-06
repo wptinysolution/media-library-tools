@@ -170,6 +170,7 @@ export interface GeneralData {
     dateList: Array<{ value: string; label: string }>;
     termsList: Array<{ value: string; label: string }>;
     isDirModalOpen: boolean;
+    autoStartScan: boolean;
     scanDir: string;
     scanRubbishDirList: Record<string, { total_items: number; counted: number }>;
     scanDirNextSchedule: string;
@@ -395,6 +396,7 @@ export const useStore = create<StoreState>((set) => ({
         dateList: [],
         termsList: [],
         isDirModalOpen: false,
+        autoStartScan: false,
         scanDir: '',
         scanRubbishDirList: {},
         scanDirNextSchedule: '',
