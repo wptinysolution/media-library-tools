@@ -2,21 +2,21 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export 2.1.2\n"
+"Project-Id-Version: Media Library Tools - AI Rename, Duplicate Finder & Media Cleaner 2.1.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-library-tools\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-01T17:37:16+00:00\n"
+"POT-Creation-Date: 2026-04-06T16:16:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
 
 #. Plugin Name of the plugin
 #: media-library-tools.php
-msgid "Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export"
+msgid "Media Library Tools - AI Rename, Duplicate Finder & Media Cleaner"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -55,8 +55,8 @@ msgstr ""
 msgid "Updated. Be happy"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:433
-#: app/Controllers/Admin/Api.php:527
+#: app/Controllers/Admin/Api.php:447
+#: app/Controllers/Admin/Api.php:541
 #: app/Modules/Rename/RenameModule.php:43
 #: app/Modules/Rename/RenameModule.php:152
 #: app/Modules/Rubbish/RubbishScanner.php:121
@@ -64,26 +64,26 @@ msgstr ""
 msgid "Update failed. Please try to fix"
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:449
-#: app/Controllers/Admin/Api.php:526
+#: app/Controllers/Admin/Api.php:463
+#: app/Controllers/Admin/Api.php:540
 msgid "Updated. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:464
+#: app/Controllers/Admin/Api.php:478
 msgid "Done. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:478
+#: app/Controllers/Admin/Api.php:492
 msgid "Deleted. Be happy."
 msgstr ""
 
-#: app/Controllers/Admin/Api.php:479
+#: app/Controllers/Admin/Api.php:493
 msgid "Deleted failed. Please try to fix"
 msgstr ""
 
 #: app/Controllers/Admin/RegisterPostAndTax.php:45
 #: app/Controllers/Admin/RegisterPostAndTax.php:55
-#: app/Controllers/Hooks/FilterHooks.php:382
+#: app/Controllers/Hooks/FilterHooks.php:386
 msgid "Groups"
 msgstr ""
 
@@ -182,21 +182,21 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:94
-#: app/Controllers/Hooks/Ajax.php:144
+#: app/Controllers/Hooks/Ajax.php:101
+#: app/Controllers/Hooks/Ajax.php:151
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:99
+#: app/Controllers/Hooks/Ajax.php:106
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:107
-#: app/Controllers/Hooks/Ajax.php:150
+#: app/Controllers/Hooks/Ajax.php:114
+#: app/Controllers/Hooks/Ajax.php:157
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:116
+#: app/Controllers/Hooks/Ajax.php:123
 msgid "Malformed request payload."
 msgstr ""
 
@@ -205,61 +205,61 @@ msgid "Every 6 Hours"
 msgstr ""
 
 #. translators: file size
-#: app/Controllers/Hooks/FilterHooks.php:208
+#: app/Controllers/Hooks/FilterHooks.php:212
 #, php-format
 msgid "The uploaded SVG exceeds the maximum allowed file size of %s."
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:223
+#: app/Controllers/Hooks/FilterHooks.php:227
 msgid "This SVG file contains unsafe content and cannot be uploaded."
 msgstr ""
 
 #. translators: %s: Attachment title.
-#: app/Controllers/Hooks/FilterHooks.php:302
+#: app/Controllers/Hooks/FilterHooks.php:306
 #, php-format
 msgid "Move &#8220;%s&#8221; to the Trash"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:303
+#: app/Controllers/Hooks/FilterHooks.php:307
 msgctxt "verb"
 msgid "Trash"
 msgstr ""
 
 #. translators: %s: Attachment title.
-#: app/Controllers/Hooks/FilterHooks.php:311
+#: app/Controllers/Hooks/FilterHooks.php:315
 #, php-format
 msgid "Delete &#8220;%s&#8221; permanently"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:312
+#: app/Controllers/Hooks/FilterHooks.php:316
 msgid "Delete Permanently"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:379
+#: app/Controllers/Hooks/FilterHooks.php:383
 msgid "Alt"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:380
+#: app/Controllers/Hooks/FilterHooks.php:384
 msgid "Caption"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:381
+#: app/Controllers/Hooks/FilterHooks.php:385
 msgid "Description"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:447
+#: app/Controllers/Hooks/FilterHooks.php:451
 msgid "Settings"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:449
+#: app/Controllers/Hooks/FilterHooks.php:453
 msgid "Go Pro"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:464
+#: app/Controllers/Hooks/FilterHooks.php:468
 msgid "Facing issue?"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:464
+#: app/Controllers/Hooks/FilterHooks.php:468
 msgid "Please open a support ticket."
 msgstr ""
 
@@ -335,7 +335,7 @@ msgstr ""
 msgid "Sending…"
 msgstr ""
 
-#: app/Modules/Duplicate/DuplicateScanner.php:300
+#: app/Modules/Duplicate/DuplicateScanner.php:301
 msgid "Duplicate scan results cleared."
 msgstr ""
 
@@ -391,6 +391,10 @@ msgstr ""
 
 #: app/Modules/Rubbish/RubbishScanner.php:153
 msgid "Schedule Cleared. Will Execute Soon."
+msgstr ""
+
+#: app/Modules/UsedWhere/UsedWhereScanner.php:435
+msgid "Scan cleared successfully."
 msgstr ""
 
 #: app/Traits/SingletonTrait.php:41

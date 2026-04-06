@@ -246,7 +246,7 @@ function RubbishFile() {
                                     </div>
 
                                     {/* Actions bar at bottom */}
-                                    <div className="flex items-center gap-2 px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+                                    <div className="flex items-center pl-25 gap-2 px-4 py-2.5 border-t border-gray-100 bg-gray-50">
                                         {isIgnoreMode ? (
                                             <button
                                                 className="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50 bg-white"
