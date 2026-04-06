@@ -510,6 +510,7 @@ class RubbishScanner {
 		return apply_filters(
 			'tsmlt_get_directory_list_paths_to_ignore',
 			[
+				'wp-content/uploads/elementor',
 				'wp-content/uploads/rtcl',
 			]
 		);
