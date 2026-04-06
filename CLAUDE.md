@@ -42,7 +42,7 @@ app/                           # PHP source (PSR-4: TinySolutions\mlt\)
 src/js/                        # React frontend source
   Component/
     DataTable/                 # Main media table (list, edit, bulk actions)
-    Rename/                    # File rename table
+    Renamer/                   # File rename table + bulk rename modal + header
     ExportImport/              # CSV export/import UI
     Rubbish/                   # Rubbish file scanner/cleaner
     Settings/                  # Settings page (alt, caption, desc, AI, rename)
@@ -97,7 +97,7 @@ Pro features are gated via:
 Pro plugin hooks into free via WordPress hooks/filters (no direct coupling):
 - `tsmlt/settings/before/save` — Pro extends settings save
 - `tsmlt_ai_*` filters — Pro adds AI image support
-- `tsmlt_attachment_rename_to` — Pro adds rename strategies
+- `tsmlt_attachment_rename_to` — Pro adds rename strategies (by post title, SKU, alt text)
 - `tsmlt/add/more/submenu` — Pro adds menu items
 
 ### Settings

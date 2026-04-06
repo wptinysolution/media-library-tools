@@ -38,7 +38,7 @@ function RenamerMainHeader() {
     }, [search]);
 
     const handleBulkSubmit = () => {
-        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
+        if (['bulkRenameBySKU', 'bulkRenameByPostTitle', 'bulkRenameByAltText'].includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
             setGeneralData({ openProModal: true });
             return;
         }
@@ -52,6 +52,7 @@ function RenamerMainHeader() {
             case 'bulkRename':
             case 'bulkRenameBySKU':
             case 'bulkRenameByPostTitle':
+            case 'bulkRenameByAltText':
                 setBulkSubmitData({ isModalOpen: true, progressBar: 0 });
                 setSaveType(null);
                 break;
@@ -63,6 +64,7 @@ function RenamerMainHeader() {
     const options_list: Array<{ value: string; label: string }> = [
         { value: 'bulkRename', label: 'Bulk Rename' },
         { value: 'bulkRenameByPostTitle', label: 'Rename Based on Attached Post Title' },
+        { value: 'bulkRenameByAltText', label: 'Rename Based on Alt Text' },
     ];
     if (tsmltParams?.hasWoo) {
         options_list.push({ value: 'bulkRenameBySKU', label: 'Rename Based on Product SKU' });
