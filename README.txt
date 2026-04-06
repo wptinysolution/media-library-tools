@@ -1,6 +1,6 @@
-=== Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
+=== Media Library Tools – Rename, Clean, Duplicate Finder & AI Metadata ===
 Contributors: tinysolution, mehediihasan
-Tags: csv, export, media, rename, cleaner
+Tags: media library, rename, duplicate finder, media cleaner, alt text
 Requires at least: 5.5
 Tested up to: 6.9
 Stable tag: 2.1.2
@@ -8,278 +8,353 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Bulk rename media files, edit ALT/title/caption, AI content, CSV export/import, find rubbish files, SVG support.
+The complete WordPress media library manager. Rename files, bulk edit metadata, find duplicates, clean rubbish files, track image usage, and generate AI content.
 
 == Description ==
 
-Media Library Tools is a powerful WordPress plugin that helps you manage, organize, and optimize your media library. Rename files, bulk edit metadata, clean up unused media, generate AI content, and import/export via CSV — all from one intuitive interface.
+**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — rename files for better SEO, bulk edit alt text and metadata, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
+
+Whether you run a blog, WooCommerce store, or content-heavy site, Media Library Tools helps you keep your media library clean, organized, and SEO-optimized.
 
 👉 [Documentation](https://docs.wptinysolutions.com/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 [youtube https://www.youtube.com/watch?v=L7F33DYnsZU]
 
-== 🏆 Free Features ==
+---
 
-* **Media File Rename** — Rename individual or bulk media files with SEO-friendly filenames
-* **Bulk Edit Metadata** — Edit title, ALT text, caption, and description for single or multiple media items
-* **AI Content Generator** — Generate title, alt text, caption, description, and filename suggestions using ChatGPT, Gemini, or Claude
-* **SVG Upload Support** — Safely upload SVG files with automatic sanitization
-* **Find Rubbish Files** — Scan upload directories and identify files not registered in the media library
-* **Media Categories** — Organize media items with custom categories and filter by category
-* **Disable Image Sizes** — Selectively disable default or custom image sizes to save disk space
-* **Auto Alt Text, Caption & Description** — Automatically set default alt text, caption, or description on upload
-* **Attached Post Detection** — See where each media file is used across your site
-* **Media Download Shortcode** — Create download buttons for any file type with a simple shortcode
-* **Sort & Filter** — Filter media by date, category, status, or keyword; sort by any column
-* **Number Duplicate Filenames** — Automatically appends a number when a filename already exists
-* **Trash Management** — Move images to trash instead of permanent deletion; restore or permanently delete
+== Why Media Library Tools? ==
 
-== 🏆 PRO Features ==
+Most WordPress sites accumulate hundreds or thousands of media files over time — poorly named, missing alt text, duplicated across posts, and cluttered with orphaned files that waste disk space. Media Library Tools solves all of this from a single, intuitive admin interface:
 
-All free features plus:
+* **SEO** — Rename files to keyword-rich slugs, bulk-fill missing alt text, and generate AI-optimized metadata.
+* **Performance** — Find and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
+* **Organization** — Categorize media, track image usage across posts and pages, and filter by any column.
+* **Automation** — Auto-rename on upload, auto-fill metadata from post titles, and inject missing alt text on the frontend.
 
-* **CSV Export/Import** — Transfer media data between sites or bulk-update metadata via CSV
-* **Rename via CSV** — Import a CSV with a `rename_to` column to bulk rename files
-* **Register Custom Image Sizes** — Add custom image sizes with width, height, and crop settings
-* **Bulk Rename by Post Title** — Rename media files based on their attached post title
-* **Bulk Rename by Product SKU** — Rename WooCommerce product images using the product SKU
-* **Auto Rename on Upload** — Automatically rename files using the attached post title or a custom name
-* **Post Title as Metadata** — Set alt text, caption, and description from the attached post title on upload
-* **Bulk Delete Rubbish Files** — Delete unregistered files in bulk with one click
-* **Instant Deletion During Scan** — Delete rubbish files as they are found during directory scan
-* **Bulk Edit by Post Title** — Update media title based on the attached post title
-* **AI: Send Image to AI** — Send the actual image to AI for visual analysis and better suggestions
-* **AI: Multiple Suggestions** — Get 5–10 AI-generated suggestions to choose from
+---
 
-== 🏆 AI Content Generator ==
+== Free Features ==
 
-Generate SEO-optimized metadata for your media files using AI — directly from the media table.
+= Media Table =
+* View your entire media library in a fast, paginated, and filterable table
+* Sort by filename, date, alt text, caption, and description
+* Filter by date range, media category, status, or keyword search
+* Inline single-item editing — title, alt text, caption, and description
+* Bulk edit multiple items at once with a single save action
+* Move selected images to trash or restore them; permanently delete when ready
+* Copy file URL to clipboard with one click
 
-**Supported AI Providers:**
+= AI Content Generator =
+* Generate SEO-optimized alt text, title, caption, description, and filename for any media file
+* Supports three AI providers: **ChatGPT** (GPT-4o, GPT-5, and more), **Google Gemini** (2.0 Flash, 1.5 Pro), and **Anthropic Claude** (Haiku, Sonnet, Opus)
+* AI considers your site name, tagline, existing metadata, and attached post context for accurate, relevant results
+* Free plan includes 1 AI suggestion per field
 
-* **ChatGPT** — GPT-5.1, gpt-5-mini, gpt-4o-mini, gpt-4o, gpt-4.1, and more
-* **Google Gemini** — Gemini 2.0 Flash, Flash Lite, 1.5 Pro, 1.5 Flash
-* **Anthropic Claude** — Claude Haiku, Sonnet, Opus
+= Media File Renamer =
+* Rename individual media files with SEO-friendly slugs directly from the rename table
+* Bulk rename selected files using a custom name
+* See the attached post for each file to make informed rename decisions
+* Inline AI filename suggestions in the rename table
+* Prefix and suffix apply automatically during bulk rename (Pro)
 
-**What AI generates:**
+= Duplicate Image Finder =
+* Scan your entire media library for duplicate files using MD5 hash comparison
+* View duplicate groups with file count, individual file size, and total wasted space
+* See exactly where each duplicate is used — in posts, pages, featured images, and custom fields
+* Batch scanning with a visual progress bar — no timeouts on large libraries
 
-* Title (3–8 words, title case)
-* Alt text (SEO-friendly, WCAG 2.1 accessible, max 125 characters)
-* Caption (1–2 sentence engaging caption)
-* Description (2–4 sentence SEO-optimized description)
-* Filename (lowercase, hyphenated, max 50 characters)
+= Rubbish File Finder (Media Library Cleaner) =
+* Scan your WordPress uploads directory for orphaned files not registered in the media library
+* Identify leftover files from deleted plugins, failed uploads, or manual file operations
+* Filter rubbish files by file extension
+* Mark files as "ignored" to exclude known safe files from future scan results
+* Re-scan specific directories or clear the full scan history
+* Automated background scanning via WordPress cron
 
-The AI considers your site name, tagline, existing metadata, and attached post context for accurate results.
+= Image Usage Tracker (Used Where) =
+* Track exactly where every image is used across your WordPress site
+* Detect images in post content, featured images, Elementor data, and custom meta fields
+* Batch scan the full site or enable passive frontend tracking to capture usage automatically
+* Filter media by "Used" vs "Unused" status to find images that can be safely removed
+* View a per-image breakdown: how many posts use it, which post types, and direct links
 
-== 🏆 CSV Export/Import ==
+= Auto Metadata on Upload =
+* Automatically set alt text, caption, and description when a new image is uploaded
+* Choose between using the image filename or a custom default text as the alt text source
 
-Transfer, backup, and bulk-manage your media library data with CSV files.
+= SVG Upload Support =
+* Safely upload SVG files with automatic sanitization — removes XSS vectors, remote references, and other security risks
+* Proper width and height metadata generation for SVG files
+* Maximum SVG file size: 500KB (filterable via `tsmlt_upload_max_svg_file_size`)
 
-**Export:** Select which columns to include — ID, slug, URL, title, caption, description, alt text, and custom meta fields. Download as a CSV file with a progress indicator.
+= Disable Image Sizes =
+* Stop WordPress from generating unnecessary thumbnail sizes and save disk space
+* Disable default sizes: Thumbnail, Medium, Large, Medium Large (768px), 1536×1536, 2048×2048, and the "Big" scaled size
+* Works with sizes added by your theme or other plugins
 
-**Import:** Upload a CSV to update existing media or import new files. Supported columns: `ID`, `slug`, `url`, `rename_to`, `title`, `caption`, `description`, `alt_text`, `custom_meta:_key`.
+= Media Categories =
+* Organize your media library with a custom category taxonomy
+* Bulk-assign categories from the media table
+* Filter media by category using the dropdown filter
+* Categories appear as clickable links in the native WordPress media list view
 
-👉 Video 1: CSV transfer Media between systems. 👈
+= Media Download Shortcode =
+* Add styled download buttons anywhere on your site using a simple shortcode:
+  `[tsmlt_download_button id='123' text='Download Now' class='my-btn' /]`
+* Also supports direct file URLs:
+  `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
+* Forces a browser download prompt — works with images, PDFs, documents, audio, video, archives, and more
+
+= Additional Columns in WordPress Media List =
+* Alt text column (sortable)
+* Caption column (sortable)
+* Description column (sortable)
+* Media Categories column
+* Uploaded To post info in the media attachment modal
+
+= CSV Export =
+* Export your full media library to a CSV file — IDs, slugs, URLs, titles, alt text, captions, descriptions, and custom meta fields
+* Select which columns to include before exporting
+* Visual progress indicator during export
+
+---
+
+== Pro Features ==
+
+All free features, plus:
+
+= CSV Import =
+* Upload a CSV file to bulk-update existing media metadata or create new attachments from external URLs
+* Supported columns: `ID`, `slug`, `url`, `rename_to`, `title`, `caption`, `description`, `alt_text`, `custom_meta:_key`
+* Batch processing with progress tracking — handles large libraries without timeouts
+* Rename files during import using the `rename_to` column
 
 [youtube https://www.youtube.com/watch?v=CxBf8m3dTpo]
-
-👉 Video 2: CSV Edit Title, Alt, Caption, Description. 👈
-
 [youtube https://www.youtube.com/watch?v=uQ1KQqTLFss]
-
-👉 Bulk Rename With CSV Import 👈
-
 [youtube https://www.youtube.com/watch?v=4o17Q5gRSXs]
 
-== 🏆 Media File Rename ==
+= Duplicate Merge =
+* Select which copy of a duplicate group to keep, then merge with one click
+* All references to the deleted copies are automatically updated across:
+  - Post content and excerpts
+  - Featured images
+  - Elementor page builder data
+  - Custom post meta fields
+* Keeps your site fully functional after cleanup — no broken image references
 
-Optimizing media file names provides valuable SEO benefits. Descriptive, keyword-rich filenames help search engines better understand your content, leading to higher rankings and increased visibility.
+= Rubbish File Pro Actions =
+* **Bulk Delete** — delete all selected rubbish files with a single confirmation
+* **Single Delete** — delete individual rubbish files with confirmation
+* **Restore to Library** — import a rubbish file back into the WordPress media library, generating proper thumbnails and metadata
+* **Ignore / Unignore** — mark files as safe to keep and exclude them from future scan results
 
-Well-named media files also enhance user experience, improving engagement and reducing bounce rates. Organized filenames make it easier for users to find and share content, driving more organic traffic.
+= Bulk Rename by Post Title =
+* Rename all selected media files based on their attached post or page title
+* Prefix and suffix are automatically applied
 
-**Important:** Renaming files can affect references across your site. We strongly recommend:
+= Bulk Rename by Product SKU =
+* Rename WooCommerce product images using the product's SKU
+* Ideal for WooCommerce stores managing large product catalogs
 
-1. Practice on a staging site first
-2. Back up your files and database before bulk renaming
-3. Try renaming individual files before using bulk rename
-4. Clear your cache after renaming if you notice broken references
+= Bulk Rename by Alt Text =
+* Rename media files using their existing alt text as the new filename
+* Keeps filenames and alt text consistent for stronger SEO alignment
 
-== 🏆 Find Unused / Rubbish Files ==
+= Auto Rename on Upload =
+* Automatically rename uploaded files based on the attached post title
+* Or set a custom global rename pattern for all uploads
 
-Identify files that physically exist in your upload directories but are not registered in the WordPress media library.
+= Auto Metadata from Post Title =
+* Automatically set alt text, caption, and description from the attached post title at upload time
+* No manual editing needed for images uploaded directly to a post
 
-* Scan all upload directories with a visual progress indicator
-* Filter rubbish files by file extension
-* Ignore false positives (mark files as "not deletable")
-* View current scanning directory name during scan
-* Re-scan directories or clear scan history
+= Rename Prefix & Suffix =
+* Prepend and append custom text to every renamed filename
+* Applies to all bulk rename strategies: by post title, SKU, alt text, and CSV import
 
-Removing unnecessary files improves site performance, load times, and storage efficiency.
+= Auto Alt Text on Frontend =
+* Automatically inject missing alt text into image tags when WordPress renders frontend pages
+* Fallback strategy: post title → filename → custom default text
+* Improves accessibility (WCAG 2.1) and SEO without editing every image manually
 
-== 🏆 Image SVG Support ==
+= Register Custom Image Sizes =
+* Define custom image sizes (width, height, crop) that WordPress generates on every upload
+* Sizes are prefixed with `tsmlt_` to avoid conflicts
+* Reduce storage waste by generating only the sizes your theme actually uses
 
-Safely upload SVG files to your WordPress media library with automatic sanitization that removes remote references, XSS vectors, and other security risks. SVGs are lightweight and scalable, improving page load times while providing high-quality visuals on all devices.
+= Enhanced AI Features =
+* Send the actual image to the AI provider for visual analysis — get far more accurate alt text and captions
+* Up to 10 AI suggestions per field to choose from (vs. 1 in the free version)
 
-* Max SVG file size: 500KB (filterable via `tsmlt_upload_max_svg_file_size`)
-* Proper width/height metadata generation for SVG files
+---
 
-== 🏆 Disable Image Sizes ==
+== AI Content Generator – Supported Models ==
 
-Selectively disable unnecessary image sizes generated by WordPress, your theme, or other plugins. Disable default sizes like Thumbnail, Medium, Large, Medium Large (768px), 1536x1536, 2048x2048, and the scaled "Big" size. Save server space and reduce upload processing time.
+= ChatGPT =
+GPT-5.1, GPT-5 Mini, GPT-4o, GPT-4o Mini, GPT-4.1, and more
 
-== 🏆 Register Custom Image Sizes (Pro) ==
+= Google Gemini =
+Gemini 2.0 Flash, Gemini 2.0 Flash Lite, Gemini 1.5 Pro, Gemini 1.5 Flash
 
-Register custom image sizes with specific width, height, and crop settings for your project. Custom sizes are automatically prefixed with `tsmlt_` to avoid conflicts.
+= Anthropic Claude =
+Claude Haiku, Claude Sonnet, Claude Opus
 
-== 🏆 Media Library Categories ==
+**What the AI generates:**
 
-Organize your media items with a custom taxonomy. Bulk-assign categories from the media table, and filter media by category. Categories are displayed as clickable links in the native WordPress media list.
+* **Title** — 3 to 8 words, title case
+* **Alt Text** — SEO-friendly, WCAG 2.1 accessible, maximum 125 characters
+* **Caption** — 1 to 2 sentence engaging description
+* **Description** — 2 to 4 sentence SEO-optimized description
+* **Filename** — lowercase, hyphenated, maximum 50 characters
 
-== 🏆 Download Media Shortcode ==
+---
 
-Create download buttons for any file type with a simple shortcode:
+== Media File Rename — SEO Benefits ==
 
-`[tsmlt_download_button id='123' text='Download Now' class='my-custom-btn' /]`
+Descriptive, keyword-rich filenames help search engines understand your images, improving rankings in Google Image Search and general web search. Well-named files also make your media library easier to navigate and audit over time.
 
-Or by URL:
+**Before renaming, we strongly recommend:**
 
-`[tsmlt_download_button url='http://example.com/file.pdf' text='Download Now' class='my-custom-btn' /]`
+1. Practice on a staging environment first
+2. Back up your database and files before any bulk rename operation
+3. Test renaming a single file before running bulk actions
+4. Clear your site and CDN cache after renaming to prevent broken references
 
-Supports audio, video, documents, Office files, scripts, archives, images, and e-books. Forces a browser download prompt.
-
-== 🏆 Media Table Columns ==
-
-The plugin adds these columns to the native WordPress media list:
-
-* Alt text (sortable)
-* Caption (sortable)
-* Description (sortable)
-* Media Categories
-* "Uploaded To" post info in the media modal
-
-== 🏆 Development Source Code ==
-👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
+---
 
 == Frequently Asked Questions ==
 
-= How do I enable edit mode for single items? =
-Navigate to Media > Media Tools > Media Table and click the "Enable Edit Mode" button to toggle inline editing.
+= How do I enable inline editing for a single media item? =
+Go to **Media > Media Tools > Media Table** and click the **Enable Edit Mode** button. Each row will show editable fields for title, alt text, caption, and description.
 
-= How do I move images to the trash? =
-In Media > Media Tools > Media Table, select the images using the checkboxes, then choose "Move to Trash" from the "Bulk actions" dropdown.
+= How do I bulk edit multiple media items? =
+Select items using the checkboxes in the Media Table, then choose **Bulk Edit** from the Bulk Actions dropdown. Apply changes to all selected items at once.
+
+= How do I move media files to the trash? =
+In the Media Table, select one or more items and choose **Move to Trash** from the Bulk Actions dropdown. Trashed items can be restored or permanently deleted.
 
 = How do I create and assign media categories? =
-Select images in Media > Media Tools > Media Table, choose "Bulk Edit" from the "Bulk actions" dropdown, and assign categories.
+Select items in the Media Table, choose **Bulk Edit**, and assign a category in the modal. You can also filter the table by category using the category dropdown.
 
-= How do I search for images by category? =
-Use the category dropdown filter near the Filter button in Media > Media Tools > Media Table.
+= How does the AI content generator work? =
+1. Go to **Settings** and enter your API key for ChatGPT, Gemini, or Claude.
+2. Open the Media Table, click the AI button on any media item.
+3. Review the generated suggestions and apply the one you want.
 
-= How do I use the AI content generator? =
-1. Go to Settings and configure your AI provider (ChatGPT, Gemini, or Claude) with an API key.
-2. In the Media Table, click the AI button on any media item.
-3. Select the generated suggestion you want to apply.
+= How do I bulk rename using a CSV file? =
+1. Export your media as a CSV.
+2. Add a `rename_to` column with your desired filenames (no extension needed).
+3. Import the CSV using the Import feature (Pro required).
 
-= How do I rename files using a CSV? =
-1. Export your media data as CSV.
-2. Add a `rename_to` column with the desired new filenames.
-3. Import the modified CSV using the Import feature (Pro required).
-
-= What is a "rubbish file"? =
-A rubbish file is a file that exists in your WordPress uploads directory but is not registered in the media library database. These files may be leftover from deleted plugins, failed uploads, or manual file operations.
+= What is a rubbish file? =
+A rubbish file physically exists in your WordPress uploads directory but is not registered in the media library database. These are typically leftover files from deleted plugins, failed uploads, theme switches, or manual FTP operations.
 
 = Is it safe to delete rubbish files? =
-Most rubbish files are safe to delete, but some may be used by plugins that store files outside the media library. Review the file list before deleting and use the "Ignore" feature for files you want to keep.
+Most rubbish files are safe to delete. However, some plugins store files in the uploads directory outside of the media library. Always review the rubbish file list before deleting, and use the **Ignore** feature to protect files you want to keep.
+
+= What happens when I merge duplicate images? =
+The plugin keeps the copy you select and deletes the rest. All references to the deleted files — in post content, featured images, Elementor data, and custom meta fields — are automatically updated to point to the kept copy. Your site will continue to work normally.
+
+= How does image usage tracking work? =
+The Used Where feature scans your posts and pages in batches to detect where each image is referenced — in content, featured images, Elementor data, and custom meta fields. You can also enable frontend tracking to passively capture usage as visitors browse your site.
+
+= Does the plugin support SVG files? =
+Yes. SVG files are sanitized on upload to remove XSS vectors and remote references. The maximum allowed SVG size is 500KB (adjustable via the `tsmlt_upload_max_svg_file_size` filter).
+
+= Where is the source code? =
+👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
+
+---
 
 == Screenshots ==
 
-01. Media Table for editing media content
-02. Media File Rename table
-03. Rubbish Media notice
-04. Rubbish Media table for finding unused files
-05. Rubbish Media directory list with scan history
-06. Media Table in edit mode
+01. Media Table — view, filter, sort, and inline-edit all media files
+02. Media File Rename table with inline editing and AI suggestions
+03. Rubbish File notice and scan prompt
+04. Rubbish File table showing orphaned files with filter and action buttons
+05. Directory list with scan history for targeted rubbish scanning
+06. Media Table in single-item edit mode
 07. Media Table in bulk edit mode
-08. Plugin settings page
-09. AI Content Generator suggestions
+08. Plugin settings page — AI, rename, alt text, image sizes, and more
+09. AI Content Generator showing multiple field suggestions
+
+---
 
 == Changelog ==
 
-= 2.1.2 ( xx xx, 2026 ) =
-* Added: Duplicate scan ( batch, progress)
-* Added: Duplicate groups (preview, size, usage)
-* Added: Pro: Merge duplicates + update refs
-* Fixed: Auto-create DB tables on update
+= 2.1.2 =
+* Added: Duplicate file scanner with batch scanning and progress bar
+* Added: Duplicate groups view with file count, size, and usage details
+* Added: Pro — Merge duplicates: keep one copy, delete the rest, and update all references automatically
+* Fixed: Database tables now auto-created on plugin update (not just on activation)
 
 = 2.1.1 ( Mar 10, 2026 ) =
-* Added: AI content generator — generate title, alt text, caption, description, and filename using ChatGPT, Gemini, or Claude directly from the media table
-* Updated: Update "codesvault/howdy-qb" Composer Dependencies
-* Fixed: Custom Table Query Truncate Function Updated
+* Added: AI Content Generator — generate title, alt text, caption, description, and filename using ChatGPT, Gemini, or Claude directly from the media table
+* Updated: Composer dependency `codesvault/howdy-qb` updated to latest version
+* Fixed: Custom table query truncate function updated
 
 = 2.1.0 ( Mar 03, 2026 ) =
 * Security: Migrated all REST API endpoints to WordPress admin-ajax for improved security compliance
-* Improvement: Added clear button to search keyword input field
+* Added: Clear button on search keyword input field
+* Added: Current scanning directory name shown live during bulk scan
+* Added: Horizontal scroll shadow indicators in data tables
 * Fixed: Bulk action select de-syncs visually after filter reset
-* Improvement: Refactored loading states and per-page controls
-* Improvement: Updated Export/Import UI styles
-* Fixed: Text size classes not applying correctly in rubbish file notice
-* Improvement: Refactored checkbox markup and shortened column labels
-* Improvement: Overall UI improvements for better user experience
 * Fixed: Bulk directory scan now processes files in batches of 50 to prevent timeouts
-* Fixed: Directories containing only subdirectories no longer loop infinitely during bulk scan
+* Fixed: Directories containing only subdirectories no longer loop infinitely during scan
 * Fixed: Files in custom directories incorrectly excluded from rubbish list
 * Fixed: Progress bar in bulk delete confirmation modal
-* Fixed: Attached Post column sorting in file rename table
-* Added: Current scanning directory name shown during bulk scan
-* Added: Horizontal scroll shadow indicators in data tables
-* Improvement: DataTable first column maintains fixed width
-* Improvement: Directory scan list displays trimmed paths
+* Fixed: Attached Post column sorting in the file rename table
 * Fixed: Missing text domain on translatable strings
+* Improvement: DataTable first column maintains fixed width
+* Improvement: Directory scan list displays trimmed relative paths
+* Improvement: Refactored loading states and per-page controls
+* Improvement: Updated Export/Import UI styles
+* Improvement: Overall UI improvements for better user experience
 
 = 2.0.1 ( Jan 08, 2026 ) =
 * Fixed: Search Attached Post issue resolved
 
 = 2.0.0 ( Jan 08, 2026 ) =
 * Updated: Display name and branding for clarity and compliance
-* Updated: Removed license checks, trial logic, and locked features
-* Updated: Removed Freemius code and remote assets; bundled all required files locally
-* Updated: Added composer.json and included readable JS/CSS source files
-* Updated: Fixed sanitization, validation, escaping, and nonce handling
-* Updated: Standardized prefixes across codebase to avoid conflicts
-* Updated: General code quality improvements and directory guideline compliance
+* Updated: Removed Freemius code and remote assets; all required files now bundled locally
+* Updated: Added composer.json and included readable JS and CSS source files
+* Updated: Fixed sanitization, validation, escaping, and nonce handling throughout
+* Updated: Standardized prefixes across the codebase to avoid conflicts with other plugins
+* Updated: General code quality improvements and WordPress directory guideline compliance
 
 = 1.7.0 ( Nov 25, 2025 ) =
-* Improvement: Rubbish File Bulk Delete made faster
-* Improvement: Security improvements
+* Improvement: Rubbish file bulk delete made significantly faster
+* Improvement: Security hardening across AJAX endpoints
 
 = 1.6.15 ( Nov 16, 2025 ) =
 * Fixed: Activation time hooks
 * Fixed: Migration issue resolved
 
 = 1.6.14 ( Oct 23, 2025 ) =
-* Added: Media File Download Shortcode
+* Added: Media File Download Shortcode (`[tsmlt_download_button]`)
 
 = 1.6.13 ( Sep 29, 2025 ) =
-* Added: Sort By Attached Post (Parent)
-* Fixed: Image Group Name
+* Added: Sort by Attached Post (parent post) in the rename table
+* Fixed: Image group name display issue
 
 = 1.6.12 ( Aug 20, 2025 ) =
 * Fixed: Broken URL removal
 * Added: Proper support URL
 
 = 1.6.11 ( Jul 17, 2025 ) =
-* Fixed: Cron error
-* Fixed: Load Text Domain
+* Fixed: Cron scheduling error
+* Fixed: Text domain loading issue
 
 = 1.6.10 ( May 27, 2025 ) =
-* Fixed: Content Update issue
+* Fixed: Content update issue on save
 
 = 1.6.9 ( May 07, 2025 ) =
-* Added: Export selected columns for CSV
+* Added: Export selected columns only for CSV
 * Added: Export all media items with selected columns
 
 = 1.6.8 ( Apr 21, 2025 ) =
 * Added: Updated support URL
-* Support: WordPress latest version compatibility
+* Compatibility: Tested with latest WordPress version
 
 = 1.6.7 ( Mar 09, 2025 ) =
 * Fixed: URL fixes and removed unwanted srcset from SVG images
@@ -288,31 +363,31 @@ Most rubbish files are safe to delete, but some may be used by plugins that stor
 * Fixed: SVG image rename issue
 
 = 1.6.5 ( Feb 22, 2025 ) =
-* Added: Attached Post searching filter
-* Fixed: Attached Post search optimization
+* Added: Attached Post searching and filtering
+* Fixed: Attached Post search query optimization
 
 = 1.6.4 ( Feb 21, 2025 ) =
-* Fixed: Attached Post search optimization
+* Fixed: Attached Post search query optimization
 
 = 1.6.3 ( Feb 17, 2025 ) =
-* Fixed: Attached Post search optimization
+* Fixed: Attached Post search query optimization
 
 = 1.6.2 ( Feb 06, 2025 ) =
-* Improvement: Attached Post Detection — detect where media files are used
+* Improvement: Attached Post Detection — detect where media files are used across the site
 * Fixed: Media Table loader issue
-* Fixed: Search image issue
+* Fixed: Search image query issue
 
 = 1.6.1 ( Jan 30, 2025 ) =
-* Fixed: File rename prefix and suffix
+* Fixed: File rename prefix and suffix not applying correctly
 
 = 1.6.0 ( Jan 29, 2025 ) =
-* Fixed: Image broken issue
-* Fixed: Elementor page image broken issue
+* Fixed: Image broken after rename issue
+* Fixed: Elementor page image broken after rename issue
 
 = 1.1.4 ( Aug 27, 2023 ) =
-* Added: Parent Post URL
-* Added: URL for Title
-* Fixed: Media content issue
+* Added: Parent post URL display
+* Added: URL for title field
+* Fixed: Media content update issue
 
 = 1.0.0 ( Mar 07, 2023 ) =
 * Initial release
