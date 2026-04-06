@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Loader from '@/js/Utils/Loader';
 import { getPluginList, safeParseJSON } from '@/js/Utils/Data';
 import PluginCard from '@/js/Component/PluginCard';
