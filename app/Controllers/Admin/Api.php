@@ -346,9 +346,11 @@ class Api {
 			// Set Thumbnail Uploaded to.
 			$parent_title     = '';
 			$parent_permalink = '';
+			$parent_sku       = '';
 			if ( $post->post_parent ) {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
+				$parent_sku       = get_post_meta( $post->post_parent, '_sku', true );
 			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
@@ -402,8 +404,9 @@ class Api {
 				'url'            => wp_get_attachment_url( $post->ID ),
 				'title'          => esc_attr( $post->post_title ),
 				'post_parents'   => [
-					'title'     => esc_attr( $parent_title ) ,
+					'title'     => esc_attr( $parent_title ),
 					'permalink' => $parent_permalink,
+					'sku'       => esc_attr( $parent_sku ),
 				],
 				'caption'        => esc_attr( $post->post_excerpt ),
 				'description'    => esc_attr( $post->post_content ),

@@ -21,7 +21,7 @@ export interface MediaPost {
     caption: string;
     description: string;
     post_mime_type: string;
-    post_parents: { title?: string; permalink?: string };
+    post_parents: { title?: string; permalink?: string; sku?: string };
     categories: string;
     uploaddir: string;
     thefile: { file: string; filebasename: string; fileextension: string; mainfilename: string; originalname?: string };

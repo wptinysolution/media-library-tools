@@ -39,6 +39,22 @@ const theImage = (record: MediaPost) => {
     return <img className="w-full h-full object-cover" src={url} alt={record.post_mime_type} />;
 };
 
+type SortField = 'id' | 'alt' | 'title';
+
+const SortIcon = ({ field, orderby, order }: { field: SortField; orderby: string; order: string }) => {
+    const active = orderby === field;
+    return (
+        <span className="inline-flex flex-col ml-1 leading-none">
+            <svg className={`w-2.5 h-2.5 ${active && order === 'ASC' ? 'text-blue-600' : 'text-gray-300'}`} viewBox="0 0 10 6" fill="currentColor">
+                <path d="M0 6l5-6 5 6z" />
+            </svg>
+            <svg className={`w-2.5 h-2.5 ${active && order === 'DESC' ? 'text-blue-600' : 'text-gray-300'}`} viewBox="0 0 10 6" fill="currentColor">
+                <path d="M0 0l5 6 5-6z" />
+            </svg>
+        </span>
+    );
+};
+
 function RenamerTableData() {
     const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setRename, setSaveType } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
@@ -83,6 +99,19 @@ function RenamerTableData() {
         setRenamerMainQuery();
     }, []);
 
+    const handleSort = (field: SortField) => {
+        const isSameField = mediaData.postQuery.orderby === field;
+        const newOrder = isSameField && mediaData.postQuery.order === 'ASC' ? 'DESC' : 'ASC';
+        setMediaData({
+            postQuery: {
+                ...mediaData.postQuery,
+                orderby: field,
+                order: newOrder,
+                paged: 1,
+            }
+        });
+    };
+
     const onBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
         const postsId = event.target.checked ? posts.map(item => item.ID) : [];
         setBulkSubmitData({
@@ -112,6 +141,8 @@ function RenamerTableData() {
 
     const isLoading = mediaData.isLoading || mediaData.total_post < 0;
 
+    const { orderby, order } = mediaData.postQuery;
+
     return (
         <div className="min-h-screen bg-gray-50">
             <RenamerMainHeader />
@@ -140,8 +171,8 @@ function RenamerTableData() {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {/* Select all */}
-                        <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-gray-200">
+                        {/* Select all + sort bar */}
+                        <div className="flex items-center gap-4 px-4 py-2 bg-white rounded-lg border border-gray-200">
                             <input
                                 type="checkbox"
                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -149,16 +180,33 @@ function RenamerTableData() {
                                 checked={bulkSubmitData.bulkChecked}
                                 onChange={onBulkCheck}
                             />
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-gray-600 mr-2">
                                 {bulkSubmitData.ids.length > 0
                                     ? `${bulkSubmitData.ids.length} selected`
                                     : 'Select all'}
                             </span>
+                            <span className="text-xs text-gray-400">Sort by:</span>
+                            {([
+                                { field: 'id' as SortField, label: 'ID' },
+                                { field: 'title' as SortField, label: 'Title' },
+                                { field: 'alt' as SortField, label: 'Alt Text' },
+                            ]).map(({ field, label }) => (
+                                <button
+                                    key={field}
+                                    type="button"
+                                    onClick={() => handleSort(field)}
+                                    className={`inline-flex items-center text-xs px-2 py-1 rounded cursor-pointer border transition-colors ${orderby === field ? 'border-blue-400 text-blue-700 bg-blue-50' : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'}`}
+                                >
+                                    {label}
+                                    <SortIcon field={field} orderby={orderby} order={order} />
+                                </button>
+                            ))}
                         </div>
 
                         {posts.map((record, i) => {
                             const parent = record.post_parents;
                             const fullUrl = `${record.uploaddir}/${record.thefile.file}`;
+                            const sku = parent?.sku || '';
 
                             return (
                                 <div key={record.ID} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -248,20 +296,34 @@ function RenamerTableData() {
                                                 </code>
                                                 <CopyToClipboard text={fullUrl} />
                                             </div>
-                                            <div className="flex items-center gap-1.5 mt-0!">
-                                                <div className={'flex items-center'}>
-                                                    Attached Post :
+
+                                            {/* Meta row: Attached Post | Alt Text | SKU */}
+                                            <div className="flex flex-col gap-x-4 gap-y-1 mt-1">
+                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                    <span className="font-medium text-gray-400">Post:</span>
                                                     {parent?.title ? (
-                                                            <a
-                                                                target="_blank"
-                                                                href={parent.permalink}
-                                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
-                                                            >
-                                                                {parent.title}
-                                                            </a>
-                                                        ) : <MissingBadge />
+                                                        <a
+                                                            target="_blank"
+                                                            href={parent.permalink}
+                                                            className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
+                                                        >
+                                                            {parent.title}
+                                                        </a>
+                                                    ) : <MissingBadge />}
+                                                </div>
+                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                    <span className="font-medium text-gray-400">Alt:</span>
+                                                    {record.alt_text
+                                                        ? <span className="text-gray-700 max-w-[200px] truncate" title={record.alt_text}>{record.alt_text}</span>
+                                                        : <MissingBadge />
                                                     }
                                                 </div>
+                                                {sku && (
+                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                        <span className="font-medium text-gray-400">SKU:</span>
+                                                        <span className="text-gray-700">{sku}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
