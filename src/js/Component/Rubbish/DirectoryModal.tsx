@@ -154,16 +154,6 @@ function DirectoryModal() {
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={async () => {
-                                await handleDirRescan("all");
-                                await truncateUnlistedFile();
-                            }}
-                        >
-                            Delete Old History
-                        </button>
-                        <button
-                            type="button"
                             className={`px-5 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors inline-flex items-center gap-2 ${
                                 buttonSpain === "bulkScan"
                                     ? 'bg-blue-600 text-white hover:bg-blue-700'
@@ -171,7 +161,7 @@ function DirectoryModal() {
                             }`}
                             onClick={handleDirScanManually}
                         >
-                            Bulk Scan Immediately
+                            Bulk Search Rubbish File
                             {buttonSpain === "bulkScan" && (
                                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -182,9 +172,12 @@ function DirectoryModal() {
                         <button
                             type="button"
                             className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => handleDirRescan("all")}
+                            onClick={async () => {
+                                await truncateUnlistedFile();
+                                await handleDirRescan("all");
+                            }}
                         >
-                            Re-Scan Directory
+                            Scan Directory
                         </button>
                     </div>
                 </div>

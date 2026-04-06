@@ -248,3 +248,17 @@ export const getUsedWhereStatus = async (): Promise<Record<string, unknown>> => 
 export const clearUsedWhereScan = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_used_where_clear');
 };
+
+// Regenerate Thumbnails.
+export const regenerateBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_regenerate_batch', prams);
+};
+
+export const regenerateGetStatus = async (): Promise<{ total: number }> => {
+    const result = await ajaxPost('tsmlt_regenerate_get_status');
+    return result.data as { total: number };
+};
+
+export const deleteUnregisteredSizesBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_delete_unregistered_sizes_batch', prams);
+};

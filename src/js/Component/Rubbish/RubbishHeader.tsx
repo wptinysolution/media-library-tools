@@ -174,7 +174,7 @@ function RubbishHeader() {
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors font-medium cursor-pointer whitespace-nowrap"
                         onClick={openDirModal}
                     >
-                        Scan Directory
+                        Find Rubbish File
                     </button>
                 </div>
                 <div className="flex items-center gap-1.5">
