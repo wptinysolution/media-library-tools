@@ -168,26 +168,7 @@ function RubbishFile() {
     return (
         <div className="min-h-screen bg-gray-50">
             <RubbishHeader />
-            {/* Rubbish Directories */}
-            <div className="p-3 pt-5">
-                <details className="group bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none hover:bg-gray-50 transition-colors list-none">
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                            </svg>
-                            <span className="text-sm font-medium text-gray-800">Rubbish Directories</span>
-                            <span className="text-xs text-gray-400">— empty folders that can be safely removed</span>
-                        </div>
-                        <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </summary>
-                    <div className="px-4 py-3 border-t border-gray-100">
-                        <EmptyDirectories />
-                    </div>
-                </details>
-            </div>
+
             <div className="p-3">
                 {rubbishMedia.isLoading ? (
                     <div className="space-y-3">
@@ -227,6 +208,12 @@ function RubbishFile() {
                                     ? `${bulkRubbishData.ids.length} selected`
                                     : 'Select all'}
                             </span>
+                            <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                </svg>
+                                <span className="text-sm font-medium text-gray-800">Rubbish File</span>
+                            </div>
                         </div>
 
                         {posts.map((record) => {
@@ -316,6 +303,27 @@ function RubbishFile() {
                         />
                     </div>
                 )}
+            </div>
+
+            {/* Rubbish Directories */}
+            <div className="p-3 pt-5">
+                <details className="group bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none hover:bg-gray-50 transition-colors list-none">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-800">Rubbish Directories</span>
+                            <span className="text-xs text-gray-400">— empty folders that can be safely removed</span>
+                        </div>
+                        <svg className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </summary>
+                    <div className="px-4 py-3 border-t border-gray-100">
+                        <EmptyDirectories />
+                    </div>
+                </details>
             </div>
 
             <DirectoryModal />

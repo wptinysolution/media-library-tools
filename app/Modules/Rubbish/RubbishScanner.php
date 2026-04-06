@@ -612,7 +612,9 @@ class RubbishScanner {
 			'message' => esc_html__( 'Delete failed.', 'media-library-tools' ),
 		];
 
-		$directory = sanitize_text_field( $request_data['directory'] ?? '' );
+		// File paths must not be run through sanitize_text_field() — it can mangle
+		// valid directory names (e.g. folders containing spaces or special chars).
+		$directory = isset( $request_data['directory'] ) ? (string) $request_data['directory'] : '';
 
 		if ( empty( $directory ) ) {
 			$result['message'] = esc_html__( 'No directory specified.', 'media-library-tools' );
@@ -623,8 +625,9 @@ class RubbishScanner {
 		$basedir    = realpath( $upload_dir['basedir'] );
 		$real_dir   = realpath( $directory );
 
-		// Security: must be inside uploads basedir.
-		if ( ! $real_dir || ! $basedir || 0 !== strpos( $real_dir, $basedir ) ) {
+		// Security: must be inside uploads basedir (trailing separator prevents
+		// partial-prefix bypasses like /uploads-extra/).
+		if ( ! $real_dir || ! $basedir || 0 !== strpos( $real_dir, trailingslashit( $basedir ) ) ) {
 			$result['message'] = esc_html__( 'Invalid directory path.', 'media-library-tools' );
 			return $result;
 		}
