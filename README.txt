@@ -2,8 +2,8 @@
 Contributors: tinysolution, mehediihasan
 Tags: media library, rename, duplicate finder, media cleaner, alt text
 Requires at least: 5.5
-Tested up to: 6.9
-Stable tag: 2.1.2
+Tested up to: 7.0
+Stable tag: 2.2.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -111,6 +111,22 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Description column (sortable)
 * Media Categories column
 * Uploaded To post info in the media attachment modal
+
+= Regenerate Thumbnails =
+* Regenerate all registered image thumbnail sizes for every image in your media library in a single click
+* Automatically detects and deletes orphaned thumbnail files for image sizes that are no longer registered — frees disk space without manual cleanup
+* Processes images in batches of 10 to avoid server timeouts on large libraries
+* Real-time progress bar with stats: total images, processed, succeeded, and errors
+* Stop and restart at any time — the progress bar shows stopped, running, or completed state clearly
+* Per-image error log with dismiss support so you can identify and track any failed regenerations
+* After completion, jump directly to the Rubbish File Finder to clean up any remaining orphaned files
+
+= Empty Directories Cleanup =
+* Detects empty directories left behind in your WordPress uploads folder after files are deleted or moved
+* View a full list of empty directories with their relative paths
+* Delete directories one at a time or remove all empty directories at once with a single click
+* Prevents confusion from stale folder structures and keeps your uploads directory tidy
+* Accessible from within the Rubbish Files page
 
 = CSV Export =
 * Export your full media library to a CSV file — IDs, slugs, URLs, titles, alt text, captions, descriptions, and custom meta fields
@@ -223,6 +239,8 @@ Descriptive, keyword-rich filenames help search engines understand your images, 
 ---
 
 == Frequently Asked Questions ==
+
+-- MEDIA TABLE --
 
 = How do I view and manage all my media files in one place? =
 Go to **Media > Media Tools > Media Table**. You will see your entire WordPress media library in a fast, paginated table with columns for thumbnail, filename, title, alt text, caption, description, attached post, and file type. You can sort by any column, filter by date, category, or keyword, and perform bulk actions on selected items.
@@ -383,6 +401,25 @@ Use the `[tsmlt_download_button]` shortcode anywhere in your posts, pages, or wi
 * By attachment ID: `[tsmlt_download_button id='123' text='Download Now' /]`
 * By direct URL: `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
 The button forces a browser download prompt and works with images, PDFs, audio, video, archives, and documents.
+
+-- REGENERATE THUMBNAILS --
+
+= How do I regenerate all image thumbnail sizes in WordPress? =
+Go to **Media > Media Tools > Regenerate Thumbs** and click **Start Regenerating**. The plugin processes your entire media library in batches of 10 images at a time, regenerating every registered thumbnail size for each image. A real-time progress bar shows total images, processed count, succeeded, and any errors. This is useful after changing image sizes in your theme, installing a new page builder, or adding new registered sizes.
+
+= Does regenerating thumbnails delete old unused thumbnail files? =
+Yes. When regenerating, the plugin automatically detects and deletes orphaned thumbnail files — size variants that exist on disk but are no longer registered as active image sizes. This frees up disk space without any manual cleanup. After regeneration finishes, you can also click **Check Rubbish Files** to scan for any remaining orphaned files.
+
+= Can I stop the thumbnail regeneration partway through? =
+Yes. Click the **Stop** button at any time. The progress bar turns amber to indicate a stopped state, showing exactly how many images were processed before stopping. You can then click **Restart from Beginning** to start over, or navigate to the Rubbish Files page to clean up already-processed orphans.
+
+= What should I do if some images fail during thumbnail regeneration? =
+Any failed images are listed in the error log below the progress bar. Each error shows the filename and the error message. You can dismiss individual errors or all at once. Common causes are unreadable files, unsupported file types, or insufficient server memory for very large images. Check your server's PHP `memory_limit` setting if you see repeated failures.
+
+-- EMPTY DIRECTORIES --
+
+= How do I find and delete empty folders in my WordPress uploads directory? =
+Go to **Media > Media Tools > Rubbish Files**. The page includes an **Empty Directories** section that lists all empty folders found in your uploads directory. You can delete them one by one or click **Delete All Empty Directories** to remove them all at once. Empty directories are commonly left behind after deleting media files, switching themes, or removing plugins.
 
 -- GENERAL --
 
