@@ -19,7 +19,7 @@ use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
-use TinySolutions\mlt\Modules\ExifDate\ExifManager;
+use TinySolutions\mlt\Modules\EXIFData\ExifManager;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;

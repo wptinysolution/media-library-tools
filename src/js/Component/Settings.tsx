@@ -32,7 +32,7 @@ function Settings() {
                             <AiSettings />
                             <div className="bg-white rounded-lg border border-gray-200">
                                 <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl m-0! font-semibold text-gray-900">EXIF Date Settings</h3>
+                                    <h3 className="text-xl m-0! font-semibold text-gray-900">EXIF Data Settings</h3>
                                 </div>
                                 <ExifSettings />
                             </div>

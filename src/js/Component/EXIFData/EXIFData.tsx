@@ -81,7 +81,7 @@ const tabs: { key: FilterTab; label: string }[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatExifDate(raw: string): string {
+function formatEXIFData(raw: string): string {
     if (!raw) return '';
     const converted = raw.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
     const d = new Date(converted);
@@ -134,7 +134,7 @@ function FileTypeIcon({ fileType }: { fileType: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function EXIFDate() {
+export default function EXIFData() {
     const { filter: filterParam, page: pageParam } = useParams<{ filter?: string; page?: string }>();
     const navigate = useNavigate();
 
@@ -217,20 +217,20 @@ export default function EXIFDate() {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
             setSearchQuery(val);
-            navigate(`/EXIFDate/${activeFilter}`);
+            navigate(`/EXIFData/${activeFilter}`);
         }, 500);
     };
 
     const handleSearchClear = () => {
         setSearchInput('');
         setSearchQuery('');
-        navigate(`/EXIFDate/${activeFilter}`);
+        navigate(`/EXIFData/${activeFilter}`);
     };
 
     // ── Tab change ────────────────────────────────────────────────────────────
 
     const handleTabChange = (filter: FilterTab) => {
-        navigate(`/EXIFDate/${filter}`);
+        navigate(`/EXIFData/${filter}`);
     };
 
     // ── Read date for single file ─────────────────────────────────────────────
@@ -300,7 +300,7 @@ export default function EXIFDate() {
         try {
             let done = false;
             while (!done) {
-                const res = await exifBulkSyncBatch() as BulkSyncState;
+                const res = await exifBulkSyncBatch() as unknown as BulkSyncState;
                 setBulkSync({ ...res });
                 done = !!res.complete;
                 if (done) {
@@ -337,7 +337,7 @@ export default function EXIFDate() {
     const handleBulkSyncCancel = async () => {
         batchRunning.current = false;
         try {
-            const res = await exifBulkSyncCancel() as BulkSyncState;
+            const res = await exifBulkSyncCancel() as unknown as BulkSyncState;
             setBulkSync({ ...res });
         } catch {
             setBulkSync((prev) => ({ ...prev, status: 'cancelled', complete: true }));
@@ -360,7 +360,7 @@ export default function EXIFDate() {
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-semibold text-gray-900 m-0!">Manage EXIF / File Dates</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900 m-0!">Manage EXIF / File Data</h1>
                     <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium text-amber-800 bg-amber-100 rounded-full">
                         Free Feature
                     </span>
@@ -496,8 +496,8 @@ function ExifRow({ item, readingId, onRead, onSync }: ExifRowProps) {
     const isReading = readingId === item.attachment_id;
     const exif = item.exif;
     const source = exif?.source || '';
-    const dateOriginal = exif?.date_original ? formatExifDate(exif.date_original) : '';
-    const dateDigitized = exif?.date_digitized ? formatExifDate(exif.date_digitized) : '';
+    const dateOriginal = exif?.date_original ? formatEXIFData(exif.date_original) : '';
+    const dateDigitized = exif?.date_digitized ? formatEXIFData(exif.date_digitized) : '';
     const camera = [exif?.camera_make, exif?.camera_model].filter(Boolean).join(' ');
     const isImage = item.file_type === 'image';
 
@@ -625,7 +625,7 @@ function BulkSyncPanel({ opts, onChangeOpts, syncState, onStart, onCancel }: Bul
     const filterOptions: { value: BulkSyncFilter; label: string; desc: string }[] = [
         { value: 'all',           label: 'All media files',       desc: 'Sync every file that has a stored date.' },
         { value: 'missing_exif',  label: 'Missing date only',     desc: 'Only files that have not been scanned yet.' },
-        { value: 'date_mismatch', label: 'Date mismatch only',    desc: 'Files where the EXIF date differs from the WP upload date.' },
+        { value: 'date_mismatch', label: 'Date mismatch only',    desc: 'Files where the EXIF Data differs from the WP upload date.' },
     ];
 
     const syncTypeOptions: { value: BulkSyncOptions['syncType']; label: string }[] = [
@@ -818,8 +818,8 @@ function BulkSyncPanel({ opts, onChangeOpts, syncState, onStart, onCancel }: Bul
 function SyncModal({ item, syncType, loading, done, message, newWpDate, onChangeSyncType, onSync, onClose }: SyncModalProps) {
     const exif = item.exif;
     const source = exif?.source || '';
-    const dateOriginal = exif?.date_original ? formatExifDate(exif.date_original) : '';
-    const dateDigitized = exif?.date_digitized ? formatExifDate(exif.date_digitized) : '';
+    const dateOriginal = exif?.date_original ? formatEXIFData(exif.date_original) : '';
+    const dateDigitized = exif?.date_digitized ? formatEXIFData(exif.date_digitized) : '';
 
     // The date that will be written — prefer original, fall back to digitized.
     const dateToSync = dateOriginal || dateDigitized;
@@ -907,7 +907,7 @@ function SyncModal({ item, syncType, loading, done, message, newWpDate, onChange
                                 <span>{dateDigitized}</span>
                             </div>
                             <p className="text-gray-400 m-0!">
-                                The preferred field is used (settable in EXIF Date Settings).
+                                The preferred field is used (settable in EXIF Data Settings).
                             </p>
                         </div>
                     )}

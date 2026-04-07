@@ -13,7 +13,7 @@
  * @package TinySolutions\mlt
  */
 
-namespace TinySolutions\mlt\Modules\ExifDate;
+namespace TinySolutions\mlt\Modules\EXIFData;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {

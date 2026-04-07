@@ -73,7 +73,7 @@ export default function ExifSettings() {
                     <option value="Y-m-d">2025-07-15 (Y-m-d)</option>
                 </select>
                 <p className="text-sm text-gray-500 mt-0!">
-                    How EXIF dates are displayed in the attachment edit screen and EXIF Dates panel.
+                    How EXIF Datas are displayed in the attachment edit screen and EXIF Datas panel.
                 </p>
             </SettingRow>
         </div>

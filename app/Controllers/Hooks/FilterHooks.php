@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Vendor\enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
-use TinySolutions\mlt\Modules\ExifDate\ExifManager;
+use TinySolutions\mlt\Modules\EXIFData\ExifManager;
 
 defined( 'ABSPATH' ) || exit();
 
