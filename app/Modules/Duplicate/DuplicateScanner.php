@@ -33,6 +33,10 @@ class DuplicateScanner {
 	/**
 	 * Scan a batch of attachments and store their file hashes.
 	 *
+	 * Optimized for large libraries: pre-loads all already-scanned IDs in one
+	 * query, then bulk-inserts new rows and bulk-updates existing rows after the
+	 * loop — reducing DB queries from O(2n) to O(4) per batch.
+	 *
 	 * @param int $offset     Offset to start scanning from.
 	 * @param int $batch_size Number of attachments to scan per batch.
 	 *
@@ -58,7 +62,35 @@ class DuplicateScanner {
 			->offset( $offset )
 			->get();
 
-		$processed = 0;
+		if ( empty( $batch ) ) {
+			return [
+				'processed' => $offset,
+				'total'     => $total,
+				'complete'  => true,
+			];
+		}
+
+		// Collect the IDs in this batch.
+		$batch_ids = array_map( fn( $row ) => (int) $row['ID'], $batch );
+
+		// Pre-load which IDs are already in the duplicate table (1 query).
+		$existing_rows = Fns::DB()->select( 'attachment_id' )
+			->from( 'tsmlt_duplicate_file' )
+			->whereIn( 'attachment_id', ...$batch_ids )
+			->get();
+
+		$already_scanned = [];
+		foreach ( ( $existing_rows ?: [] ) as $r ) {
+			$already_scanned[ (int) $r['attachment_id'] ] = true;
+		}
+
+		$upload_dir = wp_upload_dir();
+		$base_dir   = trailingslashit( $upload_dir['basedir'] );
+
+		// Rows to bulk-insert (new) and update payloads (existing).
+		$rows_to_insert  = [];
+		$rows_to_update  = [];
+		$processed       = 0;
 
 		foreach ( $batch as $row ) {
 			$attachment_id = (int) $row['ID'];
@@ -75,43 +107,43 @@ class DuplicateScanner {
 				continue;
 			}
 
-			$file_size  = (int) filesize( $file_path );
-			$upload_dir = wp_upload_dir();
-			$rel_path   = str_replace( trailingslashit( $upload_dir['basedir'] ), '', $file_path );
+			$file_size = (int) filesize( $file_path );
+			$rel_path  = str_replace( $base_dir, '', $file_path );
 
-			// Check if this attachment is already in the table.
-			$existing = Fns::DB()->select( 'id' )
-				->from( 'tsmlt_duplicate_file' )
-				->where( 'attachment_id', '=', $attachment_id )
-				->limit( 1 )
-				->get();
-
-			if ( ! empty( $existing ) ) {
-				// Update existing record.
-				Fns::DB()->update(
-					'tsmlt_duplicate_file',
-					[
-						'file_hash' => $file_hash,
-						'file_size' => $file_size,
-						'file_path' => $rel_path,
-					]
-				)->where( 'attachment_id', '=', $attachment_id )->execute();
+			if ( isset( $already_scanned[ $attachment_id ] ) ) {
+				// Queue for update.
+				$rows_to_update[] = [
+					'attachment_id' => $attachment_id,
+					'file_hash'     => $file_hash,
+					'file_size'     => $file_size,
+					'file_path'     => $rel_path,
+				];
 			} else {
-				// Insert new record.
-				Fns::DB()->insert(
-					'tsmlt_duplicate_file',
-					[
-						[
-							'attachment_id' => $attachment_id,
-							'file_hash'     => $file_hash,
-							'file_size'     => $file_size,
-							'file_path'     => $rel_path,
-						],
-					]
-				)->execute();
+				// Queue for insert.
+				$rows_to_insert[] = [
+					'attachment_id' => $attachment_id,
+					'file_hash'     => $file_hash,
+					'file_size'     => $file_size,
+					'file_path'     => $rel_path,
+				];
 			}
 
 			++$processed;
+		}
+
+		// Bulk insert all new rows (1 query).
+		if ( ! empty( $rows_to_insert ) ) {
+			Fns::DB()->insert( 'tsmlt_duplicate_file', $rows_to_insert )->execute();
+		}
+
+		// Update existing rows individually — query builder has no bulk UPDATE,
+		// but these are rare (re-scanning already-scanned IDs).
+		foreach ( $rows_to_update as $update ) {
+			$attachment_id = $update['attachment_id'];
+			unset( $update['attachment_id'] );
+			Fns::DB()->update( 'tsmlt_duplicate_file', $update )
+				->where( 'attachment_id', '=', $attachment_id )
+				->execute();
 		}
 
 		$new_offset = $offset + $processed;

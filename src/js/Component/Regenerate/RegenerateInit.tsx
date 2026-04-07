@@ -315,7 +315,7 @@ function RegenerateInit() {
                             )}
                         </div>
                         <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                            {[...history].reverse().map(item => (
+                            {history.slice(-50).reverse().map(item => (
                                 <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
                                     <div className="flex items-center gap-3">
                                         <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
