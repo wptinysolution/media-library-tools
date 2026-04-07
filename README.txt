@@ -224,42 +224,182 @@ Descriptive, keyword-rich filenames help search engines understand your images, 
 
 == Frequently Asked Questions ==
 
-= How do I enable inline editing for a single media item? =
-Go to **Media > Media Tools > Media Table** and click the **Enable Edit Mode** button. Each row will show editable fields for title, alt text, caption, and description.
+= How do I view and manage all my media files in one place? =
+Go to **Media > Media Tools > Media Table**. You will see your entire WordPress media library in a fast, paginated table with columns for thumbnail, filename, title, alt text, caption, description, attached post, and file type. You can sort by any column, filter by date, category, or keyword, and perform bulk actions on selected items.
 
-= How do I bulk edit multiple media items? =
-Select items using the checkboxes in the Media Table, then choose **Bulk Edit** from the Bulk Actions dropdown. Apply changes to all selected items at once.
+= How do I inline-edit a single media item's metadata? =
+In the Media Table, click the **Enable Edit Mode** button on any row. The row expands to show editable fields for title, alt text, caption, and description. Make your changes and save. This is the fastest way to update metadata for individual images without leaving the table.
 
-= How do I move media files to the trash? =
-In the Media Table, select one or more items and choose **Move to Trash** from the Bulk Actions dropdown. Trashed items can be restored or permanently deleted.
+= How do I bulk edit alt text, title, caption, and description for multiple images at once? =
+Select the images you want to edit using the checkboxes in the Media Table, then choose **Bulk Edit** from the Bulk Actions dropdown and click Apply. A modal will open where you can enter new values for title, alt text, caption, and description. Changes are applied to all selected items in one save action.
+
+= Can I bulk edit media metadata based on the attached post title? (Pro) =
+Yes — this is a Pro feature. Select images in the Media Table, choose **Bulk Edit by Post Title** from the Bulk Actions dropdown, and click Apply. The plugin will automatically populate alt text, caption, and description using the title of the post or page each image is attached to. This is ideal for sites where images are always uploaded directly inside a post.
+
+= How do I move media files to trash or delete them permanently? =
+Select items in the Media Table, then choose **Move to Trash** or **Delete Permanently** from the Bulk Actions dropdown. Trashed items can be restored at any time before you empty the trash.
 
 = How do I create and assign media categories? =
-Select items in the Media Table, choose **Bulk Edit**, and assign a category in the modal. You can also filter the table by category using the category dropdown.
+Select items in the Media Table and choose **Bulk Edit**. In the modal you can assign a media category to all selected items. You can also filter the Media Table by category using the category dropdown filter at the top. Categories appear as clickable links in the native WordPress Media Library list view as well.
 
-= How does the AI content generator work? =
-1. Go to **Settings** and enter your API key for ChatGPT, Gemini, or Claude.
-2. Open the Media Table, click the AI button on any media item.
-3. Review the generated suggestions and apply the one you want.
+= How do I copy a media file URL quickly? =
+Each row in the Media Table has a copy-to-clipboard icon next to the filename. Clicking it copies the full file URL to your clipboard instantly — no need to open the attachment edit screen.
 
-= How do I bulk rename using a CSV file? =
-1. Export your media as a CSV.
-2. Add a `rename_to` column with your desired filenames (no extension needed).
-3. Import the CSV using the Import feature (Pro required).
+-- MEDIA FILE RENAMER --
+
+= How do I rename a WordPress media file for better SEO? =
+Go to **Media > Media Tools > Media Rename**. The rename table shows all your media files sorted by ID (newest first). Click into the filename field for any row, type your new SEO-friendly slug (no extension needed), and save. The plugin updates the filename on disk, the database record, all post content references, featured images, and Elementor data automatically.
+
+= How do I bulk rename multiple media files at once? =
+In the Media Rename table, select the files you want to rename using the checkboxes, then click **Bulk Rename** in the header. Choose a rename strategy — custom name, post title, SKU, or alt text — and confirm. All selected files are renamed in a single operation.
+
+= Can I rename files based on the attached post title? (Pro) =
+Yes — this is a Pro feature. Select images in the Media Rename table, click **Bulk Rename**, and choose **Rename Based on Attached Post Title**. The plugin reads the title of the post or page each image is attached to and uses it as the new filename. Prefix and suffix settings are applied automatically.
+
+= Can I rename files based on WooCommerce product SKU? (Pro) =
+Yes — this is a Pro feature available on WooCommerce sites. In the Bulk Rename modal, choose **Rename Based on Product SKU**. Each image is renamed using the SKU of its attached WooCommerce product. This is perfect for keeping product image filenames aligned with your inventory system.
+
+= Can I rename files based on their existing alt text? (Pro) =
+Yes — this is a Pro feature. Choose **Rename Based on Alt Text** in the Bulk Rename modal. The plugin uses each image's current alt text as the new filename, which keeps your filenames and alt text perfectly consistent for stronger SEO alignment.
+
+= Can I add a prefix or suffix to all renamed files? (Pro) =
+Yes — this is a Pro feature. Go to **Settings > Renamer Settings** and enter your desired prefix and/or suffix. These values are automatically prepended and appended to every filename during any bulk rename operation — whether by post title, SKU, alt text, or CSV import.
+
+= Can WordPress automatically rename files when they are uploaded? (Pro) =
+Yes — this is a Pro feature. Enable **Auto Rename on Upload** in **Settings > Renamer Settings**. You can rename uploaded files based on the attached post title or set a global custom rename pattern that applies to every upload.
+
+= Does renaming a file break existing links or images on my site? =
+No. When you rename a file, the plugin automatically updates the database record, all `<img>` tags in post content, featured image assignments, Elementor page builder data, and custom meta fields. Your site continues to work normally. We still recommend testing on a staging site first and clearing your cache after any bulk rename.
+
+-- REGENERATE THUMBNAILS --
+
+= How do I regenerate all image thumbnails after changing image sizes? =
+Go to **Media > Media Tools > Regenerate Thumbs**. Click **Start Regenerating** to process all images in batches of 10 at a time. A progress bar shows real-time status. The process also automatically deletes orphaned thumbnail files for image sizes that are no longer registered, freeing up disk space.
+
+= Can I stop the thumbnail regeneration process partway through? =
+Yes. Click the **Stop** button at any time to pause. The progress bar turns amber to indicate a stopped state. You can resume by clicking **Restart from Beginning** or proceed to clean up orphaned files using the **Check Rubbish Files** button.
+
+-- DUPLICATE IMAGE FINDER --
+
+= How do I find duplicate images in my WordPress media library? =
+Go to **Media > Media Tools > Duplicates**. Click **Scan for Duplicates**. The plugin compares every media file using MD5 hash fingerprinting — so it finds exact byte-for-byte duplicates regardless of filename. Results are grouped by file, showing how many copies exist, the file size, and the total wasted disk space across the group.
+
+= Can I see where duplicate images are being used before deleting them? =
+Yes. Each duplicate group shows every copy with its filename, file path, and a list of posts and pages where it is currently used — including post type and a direct link to view the post. This lets you make an informed decision before merging.
+
+= What happens when I merge duplicate images? (Pro) =
+Merging is a Pro feature. In the duplicate group, click **Merge**, select the copy you want to keep, and confirm. The plugin deletes all other copies and automatically updates every reference to them — in post content, excerpts, featured images, Elementor data, and custom post meta — to point to the kept copy. Your site continues to work without any broken images.
+
+= Is merging duplicates reversible? =
+No. Merged (deleted) files are permanently removed from disk and the media library. We strongly recommend reviewing which copy to keep and backing up before running a merge operation.
+
+-- RUBBISH FILE FINDER (MEDIA CLEANER) --
 
 = What is a rubbish file? =
-A rubbish file physically exists in your WordPress uploads directory but is not registered in the media library database. These are typically leftover files from deleted plugins, failed uploads, theme switches, or manual FTP operations.
+A rubbish file is a file that physically exists in your WordPress uploads directory but is not registered in the media library database. These are typically leftover files from deleted plugins, failed uploads, manual FTP operations, theme switches, or old image size variations that WordPress no longer generates. They waste disk space without serving any purpose.
+
+= How do I scan for rubbish files? =
+Go to **Media > Media Tools > Rubbish Files** and click **Find Rubbish Files**. The directory scan modal opens — select which directories to scan and click Start. The plugin scans in batches via WordPress cron and lists all files not found in the media library database. You can filter results by file type.
 
 = Is it safe to delete rubbish files? =
-Most rubbish files are safe to delete. However, some plugins store files in the uploads directory outside of the media library. Always review the rubbish file list before deleting, and use the **Ignore** feature to protect files you want to keep.
+Most rubbish files are safe to delete. However, some themes and plugins store files in the uploads directory that are not registered in the media library — for example, plugin data files, backup exports, or files used by page builders. Always review the list before deleting, and use the **Ignore** feature to mark files you want to keep so they are excluded from future scan results.
 
-= What happens when I merge duplicate images? =
-The plugin keeps the copy you select and deletes the rest. All references to the deleted files — in post content, featured images, Elementor data, and custom meta fields — are automatically updated to point to the kept copy. Your site will continue to work normally.
+= How do I delete or restore rubbish files? (Pro) =
+Deleting and restoring are Pro features. With Pro you can: **Bulk Delete** all selected files at once, **Single Delete** individual files, **Restore to Library** to import an orphaned file back into the WordPress media library with proper thumbnails and metadata generated, or **Ignore** a file to exclude it from future scans.
 
-= How does image usage tracking work? =
-The Used Where feature scans your posts and pages in batches to detect where each image is referenced — in content, featured images, Elementor data, and custom meta fields. You can also enable frontend tracking to passively capture usage as visitors browse your site.
+= Can rubbish files be deleted automatically during the scan? (Pro) =
+Yes — this is a Pro option. In the directory scan modal, enable **Instant delete rubbish file during scan** before starting. Files identified as rubbish are deleted immediately as they are found. Note: this action is irreversible.
 
-= Does the plugin support SVG files? =
-Yes. SVG files are sanitized on upload to remove XSS vectors and remote references. The maximum allowed SVG size is 500KB (adjustable via the `tsmlt_upload_max_svg_file_size` filter).
+-- IMAGE USAGE TRACKER (USED WHERE) --
+
+= How do I find out where a specific image is being used on my WordPress site? =
+Go to **Media > Media Tools > Used Where** and click **Scan All Posts**. The plugin scans all your posts, pages, and custom post types in batches, detecting images used in post content, featured images, Elementor data, and custom meta fields. After scanning, click on any image in the results to expand a list of every post it appears in — with post type, usage type, and a direct View link.
+
+= How do I find unused images that are safe to delete? =
+After running a scan in **Used Where**, click the **Unused** tab. This lists all media files that were not found in any post, page, or custom field during the scan. You can select unused images using the checkboxes and delete them in bulk. A confirmation modal will appear with a disclaimer reminding you to verify manually before deleting.
+
+= Can I delete unused images in bulk? =
+Yes. On the **Unused** tab, use the **Select all** checkbox or select individual images, then click **Delete N images**. A confirmation modal will appear with a warning and disclaimer. Once confirmed, the selected attachments are permanently deleted from the media library and disk. The results list refreshes automatically after deletion.
+
+= What types of image usage does the scanner detect? =
+The scanner detects images used in: post content (via `<img>` tags and URLs), featured images (`_thumbnail_id`), Elementor page builder widget data, and custom post meta fields containing image URLs or IDs. You can also enable **Frontend Tracking** in Settings to passively capture additional usage as real visitors browse your site.
+
+= Does the unused image list update in real time? =
+The unused image list reflects the last completed scan. To get up-to-date results, click **Re-scan** after publishing new content or making changes to your media library. The scan processes posts in batches of 20 with a live progress bar so it handles large sites without timeouts.
+
+-- AUTO METADATA ON UPLOAD --
+
+= Can WordPress automatically fill in alt text when I upload an image? =
+Yes. Go to **Settings > Alt Text Settings** and enable **Use Image Name as Alt Text** or **Custom Text**. When enabled, every newly uploaded image automatically gets alt text set from its filename or your custom default text — no manual entry needed.
+
+= Can alt text, caption, and description be auto-filled from the attached post title at upload? (Pro) =
+Yes — this is a Pro feature. Enable **Default Alt Text Based on Post Title**, **Default Caption Based on Post Title**, and/or **Default Description Based on Post Title** in the respective Settings sections. When you upload an image directly inside a post or page, the plugin automatically fills those fields using the post title.
+
+= Can missing alt text be automatically injected on the frontend without editing every image? (Pro) =
+Yes — this is a Pro feature. Enable **Auto Inject Alt Text** in **Settings > Renamer Settings**. When WordPress renders image tags on the frontend, the plugin fills in any missing `alt` attribute using a priority fallback: post title → filename → custom default text. This improves both SEO and WCAG 2.1 accessibility across your entire site without touching individual media records.
+
+-- AI CONTENT GENERATOR --
+
+= How does the AI content generator work? =
+Go to **Settings > AI Settings**, select your AI provider (ChatGPT, Google Gemini, or Anthropic Claude), enter your API key, and choose a model. Then open the **Media Table** or **Media Rename** table and click the **AI** button on any media item. The plugin sends the file metadata (and the image itself in Pro) to the AI and returns SEO-optimized suggestions for title, alt text, caption, description, and filename.
+
+= Which AI providers and models are supported? =
+The plugin supports **ChatGPT** (GPT-5, GPT-5 Mini, GPT-4o, GPT-4.1, and more), **Google Gemini** (2.0 Flash, 2.0 Flash Lite, 1.5 Pro, 1.5 Flash), and **Anthropic Claude** (Haiku, Sonnet, Opus). You can switch providers and models at any time in Settings.
+
+= What is the difference between free and Pro AI generation? =
+The free version returns 1 AI suggestion per field. The **Pro version** returns up to 10 suggestions per field so you can pick the best one, and it also supports **Image Vision** — sending the actual image file to the AI provider for visual analysis, which produces significantly more accurate and descriptive alt text and captions.
+
+= Does AI generation send my images to a third-party server? =
+In the free version, only text metadata (filename, existing alt text, post title, site name) is sent to the AI provider. In Pro, if you enable **Image Vision**, the image is base64-encoded and included in the API request. All communication is encrypted via HTTPS. No data is stored by this plugin; it is sent directly to your chosen provider (OpenAI, Google, or Anthropic) under their respective privacy policies.
+
+= Do I need to pay for AI generation? =
+The plugin itself does not charge for AI generation. You need an API key from your chosen provider (OpenAI, Google AI Studio, or Anthropic). Each provider has their own pricing — most offer a generous free tier that covers typical media library use. You are billed directly by the provider based on usage.
+
+-- IMAGE SIZES --
+
+= How do I disable WordPress from generating unnecessary thumbnail sizes? =
+Go to **Settings > Image Size Settings**. You will see a list of all registered image sizes — including default WordPress sizes and any added by your theme or plugins. Check the sizes you want to disable and save. WordPress will no longer generate those sizes for new uploads, saving disk space. Already-generated thumbnails are not deleted automatically; use Regenerate Thumbnails or the Rubbish File Finder to clean those up.
+
+= How do I register new custom image sizes? (Pro) =
+This is a Pro feature. Go to **Settings > Image Size Settings** and scroll to the **Register Custom Image Sizes** section. Click **Add New Size**, enter a name, width, height, and choose whether to crop. Save your settings. WordPress will generate this size for every new upload. You can edit or delete custom sizes at any time.
+
+-- CSV EXPORT / IMPORT --
+
+= How do I export my media library metadata to CSV? =
+Go to **Media > Media Tools > CSV Export**. Choose which columns to include (ID, slug, URL, title, alt text, caption, description, and custom meta fields) and click Export. The plugin processes your entire library in batches and downloads a CSV file you can open in Excel, Google Sheets, or any spreadsheet application.
+
+= How do I bulk-update media metadata using a CSV file? (Pro) =
+This is a Pro feature. Go to **Media > Media Tools > CSV Import**, upload your CSV file, and click Import. The plugin matches rows by ID or slug and updates each media record. Supported columns include `rename_to`, `title`, `alt_text`, `caption`, `description`, and custom meta fields using the `custom_meta:_key` format. Files can also be renamed during import using the `rename_to` column.
+
+-- SVG SUPPORT --
+
+= Does the plugin allow SVG file uploads in WordPress? =
+Yes. The plugin enables secure SVG uploads to WordPress. Every SVG file is sanitized on upload to remove XSS vulnerabilities, remote references, and embedded scripts. Proper width and height metadata is generated automatically. The maximum allowed SVG file size is 500KB by default (adjustable via the `tsmlt_upload_max_svg_file_size` filter).
+
+-- MEDIA DOWNLOAD SHORTCODE --
+
+= How do I add a download button for a media file in my content? =
+Use the `[tsmlt_download_button]` shortcode anywhere in your posts, pages, or widgets:
+* By attachment ID: `[tsmlt_download_button id='123' text='Download Now' /]`
+* By direct URL: `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
+The button forces a browser download prompt and works with images, PDFs, audio, video, archives, and documents.
+
+-- GENERAL --
+
+= Does the plugin slow down my WordPress site? =
+No. The plugin only loads its code in the WordPress admin on the Media Library Tools pages. No scripts, styles, or database queries are added to your frontend (except for optional frontend tracking and alt text injection, both of which are opt-in and lightweight). Admin scanning operations run via AJAX in batches specifically to avoid server timeouts.
+
+= Is the plugin compatible with Elementor? =
+Yes. File renames, duplicate merges, and usage tracking all correctly handle Elementor page builder data. When you rename or merge a file, the plugin updates Elementor's serialized widget data in the database so page builder layouts continue to work.
+
+= Is the plugin compatible with WooCommerce? =
+Yes. The Bulk Rename by Product SKU feature (Pro) is specifically designed for WooCommerce stores. The plugin also correctly handles product images in duplicate detection, usage tracking, and the CSV export/import workflow.
+
+= Will the plugin work on WordPress multisite? =
+The plugin is designed for single-site installations. Multisite compatibility is not officially tested or supported at this time.
+
+= Where can I get support? =
+Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/media-library-tools/) for free support, or use the **Get Support** page inside the plugin admin for documentation, feature requests, and priority Pro support.
 
 = Where is the source code? =
 👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
