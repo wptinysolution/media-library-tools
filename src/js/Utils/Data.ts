@@ -280,3 +280,24 @@ export const exifGetMissing = async (params: object = {}): Promise<Record<string
     return result.data as Record<string, unknown>;
 };
 
+// Pro: EXIF Bulk Sync Engine.
+export const exifBulkSyncStart = async (params: object): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_bulk_sync_start', params);
+    return result.data as Record<string, unknown>;
+};
+
+export const exifBulkSyncBatch = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_bulk_sync_batch', {});
+    return result.data as Record<string, unknown>;
+};
+
+export const exifBulkSyncStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_bulk_sync_status', {});
+    return result.data as Record<string, unknown>;
+};
+
+export const exifBulkSyncCancel = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_bulk_sync_cancel', {});
+    return result.data as Record<string, unknown>;
+};
+

@@ -5,10 +5,14 @@ import {
     exifReadSingle,
     exifSyncSingle,
     exifGetMissing,
+    exifBulkSyncStart,
+    exifBulkSyncBatch,
+    exifBulkSyncCancel,
     notifications,
 } from "@/js/Utils/Data";
 import Pagination from "@/js/Component/Common/Pagination";
 import SearchInput from "@/js/Component/Common/SearchInput";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +45,29 @@ interface SyncModalState {
     done: boolean;
     message: string;
     newWpDate: string;
+}
+
+// ─── Bulk Sync types ──────────────────────────────────────────────────────────
+
+type BulkSyncFilter = 'all' | 'missing_exif' | 'date_mismatch';
+type BulkSyncStatus = 'idle' | 'running' | 'cancelled' | 'done';
+
+interface BulkSyncState {
+    status: BulkSyncStatus;
+    total: number;
+    processed: number;
+    synced: number;
+    failed: number;
+    skipped: number;
+    message: string;
+    complete: boolean;
+}
+
+interface BulkSyncOptions {
+    filter: BulkSyncFilter;
+    syncType: 'post_date' | 'post_modified' | 'both';
+    dateFrom: string;
+    dateTo: string;
 }
 
 // ─── Tab config ───────────────────────────────────────────────────────────────
@@ -134,7 +161,28 @@ export default function EXIFDate() {
     });
 
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const batchRunning = useRef(false);
     const PER_PAGE = 20;
+
+    // Pro: Bulk Sync state.
+    const hasPro = typeof window !== 'undefined' && !!(window as unknown as Record<string, unknown>)['tsmltParams'] &&
+        !!((window as unknown as Record<string, unknown>)['tsmltParams'] as Record<string, unknown>)['hasExtended'];
+    const [bulkOpts, setBulkOpts] = useState<BulkSyncOptions>({
+        filter: 'all',
+        syncType: 'post_date',
+        dateFrom: '',
+        dateTo: '',
+    });
+    const [bulkSync, setBulkSync] = useState<BulkSyncState>({
+        status: 'idle',
+        total: 0,
+        processed: 0,
+        synced: 0,
+        failed: 0,
+        skipped: 0,
+        message: '',
+        complete: true,
+    });
 
     // ── Load results ──────────────────────────────────────────────────────────
 
@@ -244,6 +292,58 @@ export default function EXIFDate() {
         }
     };
 
+    // ── Bulk Sync handlers ────────────────────────────────────────────────────
+
+    const runBatchLoop = useCallback(async () => {
+        if (batchRunning.current) return;
+        batchRunning.current = true;
+        try {
+            let done = false;
+            while (!done) {
+                const res = await exifBulkSyncBatch() as BulkSyncState;
+                setBulkSync({ ...res });
+                done = !!res.complete;
+                if (done) {
+                    await loadResults(1, activeFilter, searchQuery);
+                }
+            }
+        } catch {
+            setBulkSync((prev) => ({ ...prev, status: 'idle', complete: true, message: 'Request failed.' }));
+        } finally {
+            batchRunning.current = false;
+        }
+    }, [activeFilter, searchQuery, loadResults]);
+
+    const handleBulkSyncStart = async () => {
+        setBulkSync({ status: 'running', total: 0, processed: 0, synced: 0, failed: 0, skipped: 0, message: 'Starting…', complete: false });
+        try {
+            const res = await exifBulkSyncStart({
+                filter: bulkOpts.filter,
+                sync_type: bulkOpts.syncType,
+                date_from: bulkOpts.dateFrom,
+                date_to: bulkOpts.dateTo,
+            }) as { started: boolean; total?: number; message?: string };
+            if (!res.started) {
+                setBulkSync({ status: 'idle', total: 0, processed: 0, synced: 0, failed: 0, skipped: 0, message: res.message || 'No files found.', complete: true });
+                return;
+            }
+            setBulkSync((prev) => ({ ...prev, total: res.total ?? 0, message: res.message || '' }));
+            runBatchLoop();
+        } catch {
+            setBulkSync({ status: 'idle', total: 0, processed: 0, synced: 0, failed: 0, skipped: 0, message: 'Request failed.', complete: true });
+        }
+    };
+
+    const handleBulkSyncCancel = async () => {
+        batchRunning.current = false;
+        try {
+            const res = await exifBulkSyncCancel() as BulkSyncState;
+            setBulkSync({ ...res });
+        } catch {
+            setBulkSync((prev) => ({ ...prev, status: 'cancelled', complete: true }));
+        }
+    };
+
     // ── Effects ───────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -269,6 +369,17 @@ export default function EXIFDate() {
                     Read date metadata from any media file — images (EXIF), video, audio, PDF, documents — and sync to WordPress post dates.
                 </p>
             </div>
+
+            {/* Pro: Bulk Sync Panel */}
+            {hasPro && (
+                <BulkSyncPanel
+                    opts={bulkOpts}
+                    onChangeOpts={setBulkOpts}
+                    syncState={bulkSync}
+                    onStart={handleBulkSyncStart}
+                    onCancel={handleBulkSyncCancel}
+                />
+            )}
 
             {/* Actions bar */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white rounded-t-lg">
@@ -490,6 +601,219 @@ interface SyncModalProps {
     onSync: () => void;
     onClose: () => void;
 }
+
+// ─── BulkSyncPanel ────────────────────────────────────────────────────────────
+
+interface BulkSyncPanelProps {
+    opts: BulkSyncOptions;
+    onChangeOpts: (opts: BulkSyncOptions) => void;
+    syncState: BulkSyncState;
+    onStart: () => void;
+    onCancel: () => void;
+}
+
+function BulkSyncPanel({ opts, onChangeOpts, syncState, onStart, onCancel }: BulkSyncPanelProps) {
+    const isRunning = syncState.status === 'running';
+    const isDone    = syncState.status === 'done';
+    const isCancelled = syncState.status === 'cancelled';
+    const hasResult = isDone || isCancelled;
+
+    const progress = syncState.total > 0
+        ? Math.round((syncState.processed / syncState.total) * 100)
+        : 0;
+
+    const filterOptions: { value: BulkSyncFilter; label: string; desc: string }[] = [
+        { value: 'all',           label: 'All media files',       desc: 'Sync every file that has a stored date.' },
+        { value: 'missing_exif',  label: 'Missing date only',     desc: 'Only files that have not been scanned yet.' },
+        { value: 'date_mismatch', label: 'Date mismatch only',    desc: 'Files where the EXIF date differs from the WP upload date.' },
+    ];
+
+    const syncTypeOptions: { value: BulkSyncOptions['syncType']; label: string }[] = [
+        { value: 'post_date',     label: 'Upload Date (post_date)' },
+        { value: 'post_modified', label: 'Last Modified (post_modified)' },
+        { value: 'both',          label: 'Both' },
+    ];
+
+    return (
+        <div className="mb-6 bg-white rounded-lg border border-blue-200 overflow-hidden">
+            {/* Panel header */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-blue-100 bg-blue-50">
+                <svg className="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-blue-900 m-0!">Bulk Sync Engine</h3>
+                    <p className="text-xs text-blue-500 m-0!">
+                        Sync EXIF / file dates to WordPress post dates for all media in one go.
+                    </p>
+                </div>
+                <ProLabel />
+            </div>
+
+            <div className="px-5 py-4">
+                {/* Config form — hidden while running */}
+                {!isRunning && (
+                    <div className="space-y-4">
+                        {/* Filter */}
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Filter files to process:</p>
+                            <div className="flex flex-wrap gap-x-6 gap-y-2">
+                                {filterOptions.map((opt) => (
+                                    <label key={opt.value} className="flex items-start gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="bulk_filter"
+                                            value={opt.value}
+                                            checked={opts.filter === opt.value}
+                                            onChange={() => onChangeOpts({ ...opts, filter: opt.value })}
+                                            className="mt-0.5 cursor-pointer"
+                                            disabled={isRunning}
+                                        />
+                                        <div>
+                                            <span className="text-sm text-gray-800">{opt.label}</span>
+                                            <p className="text-xs text-gray-400 m-0!">{opt.desc}</p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Date range */}
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                                Limit to date range <span className="text-gray-400 font-normal">(optional — by WP upload date)</span>:
+                            </p>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-600 shrink-0">From:</label>
+                                    <input
+                                        type="date"
+                                        value={opts.dateFrom}
+                                        onChange={(e) => onChangeOpts({ ...opts, dateFrom: e.target.value })}
+                                        disabled={isRunning}
+                                        className="border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-600 shrink-0">To:</label>
+                                    <input
+                                        type="date"
+                                        value={opts.dateTo}
+                                        onChange={(e) => onChangeOpts({ ...opts, dateTo: e.target.value })}
+                                        disabled={isRunning}
+                                        className="border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+                                    />
+                                </div>
+                                {(opts.dateFrom || opts.dateTo) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onChangeOpts({ ...opts, dateFrom: '', dateTo: '' })}
+                                        className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Sync type */}
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Which WordPress date to update:</p>
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                {syncTypeOptions.map((opt) => (
+                                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                        <input
+                                            type="radio"
+                                            name="bulk_sync_type"
+                                            value={opt.value}
+                                            checked={opts.syncType === opt.value}
+                                            onChange={() => onChangeOpts({ ...opts, syncType: opt.value })}
+                                            className="cursor-pointer"
+                                            disabled={isRunning}
+                                        />
+                                        {opt.label}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Progress area */}
+                {(isRunning || hasResult) && (
+                    <div className={`${!isRunning && !hasResult ? '' : 'mt-4'} space-y-3`}>
+                        {/* Live count */}
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700 font-medium">
+                                {isRunning ? `Processing… ${syncState.processed} of ${syncState.total}` : syncState.message}
+                            </span>
+                            {syncState.total > 0 && (
+                                <span className="text-gray-500 text-xs">{progress}%</span>
+                            )}
+                        </div>
+
+                        {/* Progress bar */}
+                        {syncState.total > 0 && (
+                            <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                <div
+                                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                                        isCancelled ? 'bg-amber-400' : isDone ? 'bg-emerald-500' : 'bg-blue-500'
+                                    }`}
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Result summary */}
+                        {hasResult && syncState.total > 0 && (
+                            <div className="flex flex-wrap gap-4 text-xs pt-1">
+                                <span className="inline-flex items-center gap-1.5 text-emerald-700">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                                    Synced: <strong>{syncState.synced}</strong>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 text-gray-500">
+                                    <span className="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
+                                    Skipped: <strong>{syncState.skipped}</strong>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 text-red-600">
+                                    <span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+                                    Failed: <strong>{syncState.failed}</strong>
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-3 mt-5">
+                    {!isRunning ? (
+                        <button
+                            type="button"
+                            onClick={onStart}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                        >
+                            {hasResult ? 'Run Again' : 'Start Bulk Sync'}
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                    {isRunning && (
+                        <span className="text-xs text-gray-400 animate-pulse">Running in background…</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── SyncModal ────────────────────────────────────────────────────────────────
 
 function SyncModal({ item, syncType, loading, done, message, newWpDate, onChangeSyncType, onSync, onClose }: SyncModalProps) {
     const exif = item.exif;
