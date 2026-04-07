@@ -1,0 +1,606 @@
+SKipp This file for AI checking.
+
+# Step-by-Step Claude Prompts
+# Feature: EXIF Data Management
+# Plugin: Media Library Tools
+# Total: 4 Free Steps + 7 Pro Steps
+
+===================================================================
+HOW TO USE
+===================================================================
+
+- One prompt = one Claude conversation
+- Always fill [PASTE ...] sections with your actual code
+- Test each step before moving to the next
+- Start with FREE STEP 1, finish all free steps first
+- Then do PRO steps in order
+
+===================================================================
+FREE STEP 1 — Date & Time
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools".
+I want to add EXIF date reading and syncing as the first part
+of a new "EXIF Data Management" feature.
+
+Read my existing plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FOLDER STRUCTURE HERE]
+
+Main plugin file:
+[PASTE YOUR MAIN PLUGIN FILE HERE]
+
+Example of an existing feature file (so you follow my pattern):
+[PASTE ONE EXISTING FEATURE FILE FROM /includes/ HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. A helper method that reads EXIF date fields from an image file:
+   - Read DateTimeOriginal and DateTimeDigitized using PHP exif_read_data()
+   - Support JPEG and TIFF only — skip other formats silently
+   - Parse the EXIF date string format "YYYY:MM:DD HH:MM:SS"
+   - Return the date as a clean formatted string, or null if not found
+   - Store the result in post meta so we do not re-read every time
+
+2. A new sortable column "Date Taken" in the media library list view:
+   - Show the EXIF date if found
+   - Show "No EXIF" in muted text if not found
+   - Make the column sortable when clicked
+
+3. On the attachment edit screen, show a small section:
+   - Label: "EXIF Date"
+   - Value: the EXIF date taken
+   - WordPress date (for comparison)
+   - A button: "Sync EXIF date to WordPress"
+   - When clicked: update WordPress post_date with the EXIF date
+   - Show success or error message inline
+
+4. A setting in the plugin settings page:
+   - Toggle: "Auto-read EXIF date on upload"
+   - When enabled: on every new image upload, automatically read
+     and store EXIF date in post meta
+   - Setting key should follow the same naming pattern already
+     used in my settings
+
+---
+
+When done, show me all the files you created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+FREE STEP 2 — Camera & Lens Info
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools".
+FREE STEP 1 is already done — EXIF date reading and syncing works.
+
+Now I want to add camera and lens info reading to the same feature.
+
+Read my existing plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FOLDER STRUCTURE HERE]
+
+The EXIF feature file created in Step 1:
+[PASTE THE FILE FROM STEP 1 HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. Extend the existing EXIF reader to also read:
+   - Camera Make (e.g. Canon, Nikon, Apple)
+   - Camera Model (e.g. EOS R5, iPhone 15 Pro)
+   - Lens Model
+   - Focal Length
+   - Aperture (FNumber)
+   - Shutter Speed (ExposureTime)
+   - ISO Speed
+   - Flash (whether flash fired or not)
+   - Store all of these in post meta alongside the date
+
+2. On the attachment edit screen, extend the existing EXIF section
+   to also show:
+   - Camera Make & Model on one line
+   - Lens Model
+   - Exposure summary on one line: ISO 400 · f/2.8 · 1/500s · Flash off
+   - Only show fields that actually have a value — skip empty ones
+
+3. No new settings needed for this step.
+   No new admin pages needed for this step.
+
+---
+
+When done, show me only the files you changed
+and wait for my confirmation before doing anything else.
+
+===================================================================
+FREE STEP 3 — GPS & Location
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools".
+FREE STEPS 1 and 2 are done — EXIF date and camera info work.
+
+Now I want to add GPS coordinate reading.
+
+Read my existing plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FOLDER STRUCTURE HERE]
+
+The EXIF feature file (updated after Step 2):
+[PASTE THE CURRENT EXIF FEATURE FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. Extend the existing EXIF reader to also read GPS data:
+   - GPSLatitude and GPSLatitudeRef
+   - GPSLongitude and GPSLongitudeRef
+   - GPSAltitude (optional, show if available)
+   - Convert the raw EXIF GPS format (degrees/minutes/seconds array)
+     into a clean decimal format: e.g. 23.8103, 90.4125
+   - Store latitude, longitude, altitude in post meta
+
+2. On the attachment edit screen, extend the existing EXIF section:
+   - Show GPS coordinates if available: "23.8103, 90.4125"
+   - Show a "View on Google Maps" link that opens the location
+   - If no GPS data: show "No GPS data" in muted text
+
+3. No new admin pages needed.
+   No new settings needed.
+
+---
+
+When done, show me only the files you changed
+and wait for my confirmation before doing anything else.
+
+===================================================================
+FREE STEP 4 — Missing EXIF Detection & Settings
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools".
+FREE STEPS 1, 2, and 3 are done.
+
+Now I want to add a missing EXIF detector and finalize settings
+for the free version of EXIF Data Management.
+
+Read my existing plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FOLDER STRUCTURE HERE]
+
+The EXIF feature file (updated after Step 3):
+[PASTE THE CURRENT EXIF FEATURE FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. A simple admin page or section that shows images with no EXIF:
+   - Query attachments that have no EXIF data stored in post meta
+   - Show as a simple table: thumbnail, filename, upload date
+   - Add a "Read EXIF" button per row that triggers reading on demand
+   - Show count: "X images have no EXIF data"
+   - Place this page in the same location as other plugin pages
+
+2. Finalize the settings section for EXIF Data Management:
+   - Toggle: auto-read EXIF on upload (already done in Step 1,
+     just make sure it is in a clean settings section)
+   - Select: preferred EXIF date field
+     (DateTimeOriginal or DateTimeDigitized)
+   - Text: date display format (default: Y-m-d H:i)
+   - Toggle: show camera info in attachment modal
+   - Toggle: show GPS info in attachment modal
+   - All settings follow the same pattern already used in the plugin
+
+3. No new EXIF reading logic — only use what is already built.
+
+---
+
+When done, show me all files created or changed.
+Free version is now complete. Wait for my confirmation.
+
+===================================================================
+PRO STEP 1 — Bulk Date Sync
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. The free version of EXIF Data Management is
+fully working (date sync, camera info, GPS reading, missing detector).
+
+Now I want to add the first Pro feature: Bulk Date Sync.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used in the pro version. Do not introduce
+anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro main loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+Example of an existing Pro feature file:
+[PASTE ONE EXISTING PRO FEATURE FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. A bulk sync engine that processes images in safe batches:
+   - Never process all images in one request (avoid server timeout)
+   - Collect matching image IDs and store in a transient as a queue
+   - Process 20 images per AJAX request
+   - After each batch, return progress to the browser
+   - Browser requests next batch automatically until done
+
+2. Before starting, user can filter which images to process:
+   - All images
+   - Only images where EXIF date exists but WordPress date differs
+   - Only images with no EXIF date at all
+   - Images uploaded within a specific date range
+
+3. The bulk sync admin page:
+   - Filter options at the top
+   - "Start Bulk Sync" button
+   - Progress bar that fills as batches complete
+   - Live counter: "Processed X of Y images"
+   - Cancel button that stops processing mid-way
+   - Results summary when done: synced count, skipped, errors
+
+4. Timezone offset option:
+   - Number input: offset in hours (e.g. +3 or -5)
+   - Applied to EXIF date before saving to WordPress
+   - Only applied during this bulk run, not a permanent setting
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 2 — EXIF Edit & Write
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEP 1 (bulk date sync) is working.
+
+Now I want to add EXIF field editing — letting users edit EXIF
+text fields and write them back to the physical image file.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+Bulk sync file from Pro Step 1:
+[PASTE THE BULK SYNC FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. On the attachment edit screen (single image), add an
+   "Edit EXIF Fields" section:
+   - Editable fields: Copyright, Artist/Author, ImageDescription,
+     UserComment
+   - Show current value in each field
+   - "Save EXIF" button — write values back to the image file
+   - JPEG only — for other formats show "Not supported for this type"
+   - Before writing: backup original EXIF values in post meta
+   - After save: show what changed (old value → new value)
+   - If write fails: show clear error message
+
+2. A bulk Copyright & Author page:
+   - Two inputs: Copyright text, Author/Artist name
+   - Filter: apply to all images, or images missing copyright,
+     or a selected date range
+   - Processes in safe batches (reuse the batch engine from Step 1)
+   - Show progress bar and results when done
+
+3. A bulk EXIF strip page:
+   - Checkboxes: which fields to strip (GPS, Author, Copyright,
+     UserComment, or All EXIF)
+   - Same filter and batch options as bulk copyright page
+   - Warning message before starting: "This will permanently
+     remove selected EXIF fields from image files"
+   - Require confirmation before processing
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 3 — GPS Advanced
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEPS 1 and 2 are working.
+
+Now I want to add advanced GPS features.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. Reverse geocoding — convert GPS coordinates to a location name:
+   - Use OpenStreetMap Nominatim API (free, no API key needed)
+   - Convert stored latitude/longitude to: City, Country
+   - Store result in post meta: _mlt_exif_location_name
+   - Add a "Get Location Name" button on attachment edit screen
+   - Show result: "Dhaka, Bangladesh"
+   - Rate limit: do not call API more than once per second
+
+2. Filter media library by location:
+   - Add a dropdown filter above the media library: "Filter by country"
+   - Populated from stored location names in post meta
+   - When selected: show only images from that country
+   - Works alongside WordPress's existing media filters
+
+3. Bulk GPS strip:
+   - A dedicated button or section on the bulk EXIF strip page
+     (already built in Pro Step 2) specifically for GPS removal
+   - After stripping GPS: clear stored lat/long/location from post meta
+   - Show count of images that had GPS removed
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 4 — Camera & Exposure Filters
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEPS 1, 2, and 3 are working.
+
+Now I want to add camera model and exposure-based filtering.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. Filter media library by camera model:
+   - Add a dropdown above the media library: "Filter by camera"
+   - List all unique camera models found in post meta
+   - When selected: show only images from that camera
+   - Works alongside other media library filters
+
+2. Filter media library by ISO range:
+   - Add two number inputs: "ISO from" and "ISO to"
+   - Filter media to show only images within that ISO range
+   - Example: ISO 800 to 6400 shows only high-ISO images
+
+3. A simple camera usage stats section on the plugin dashboard
+   or reports page:
+   - Table: Camera model | Number of images
+   - Table: Most used ISO values
+   - Table: Most used aperture values
+   - No charts needed — plain tables are fine
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 5 — Image Orientation & Color Profile
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEPS 1 through 4 are working.
+
+Now I want to add orientation fixing and color profile detection.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. EXIF orientation auto-fix:
+   - Read the EXIF Orientation field (1-8 values)
+   - If orientation is not 1 (normal), the image may appear rotated
+   - Add a "Fix Orientation" button on the attachment edit screen
+   - When clicked: rotate the physical image file to match EXIF
+     orientation, then reset EXIF orientation to 1
+   - Use WordPress's built-in image editor (WP_Image_Editor)
+   - Show before/after confirmation
+
+2. Bulk orientation fix:
+   - Find all images where EXIF orientation is not 1 (rotated)
+   - Show count and list on a simple page
+   - "Fix All" button processes them in batches
+   - Show progress and results
+
+3. Color profile detector:
+   - Read ColorSpace field from EXIF
+   - If not sRGB: flag the image with a warning badge
+   - Show flagged images in the missing EXIF / audit section
+   - Warning message: "This image uses a non-web color profile
+     and may display incorrectly in browsers"
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 6 — Audit, Export & Reports
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEPS 1 through 5 are working.
+
+Now I want to add a full audit dashboard and export features.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. EXIF Audit Dashboard — an admin page that scans all media
+   and groups images into categories:
+   - Complete: has date, camera, no issues
+   - Missing date: no EXIF date found
+   - Missing copyright: no copyright field
+   - Wrong orientation: EXIF orientation not normal
+   - Non-sRGB color profile: flagged from Step 5
+   - Has GPS (privacy note for user awareness)
+   - Show count per category with a colored indicator
+   - Clicking a category shows the list of images in it
+   - Each category has a "Fix All" button where applicable
+
+2. EXIF completeness score:
+   - Calculate a score per image: percentage of key EXIF fields
+     that are filled (date, camera, lens, GPS, copyright, author)
+   - Show score as a simple number (e.g. 4/6 fields)
+   - Show in attachment edit screen and audit dashboard
+
+3. Export to CSV:
+   - A "Download CSV" button on the audit page
+   - CSV columns: ID, Filename, Date Taken, Camera, Lens, ISO,
+     Aperture, Shutter, GPS Lat, GPS Lng, Location, Copyright,
+     Author, Completeness Score, WordPress Date, Sync Status
+   - Stream directly to browser as a file download
+
+4. Stats summary at the top of the audit page:
+   - Total images in library
+   - Images with full EXIF
+   - Images with no EXIF
+   - Images with GPS data
+   - Images missing copyright
+   - Last audit run date
+
+---
+
+When done, show me all files created or modified
+and wait for my confirmation before doing anything else.
+
+===================================================================
+PRO STEP 7 — Undo & Activity Log
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools"
+with a Pro version. PRO STEPS 1 through 6 are working.
+
+Now I want to add an activity log and undo functionality.
+This is the final Pro step.
+
+Read my existing pro plugin structure carefully and follow the exact
+same patterns already used. Do not introduce anything new.
+
+Plugin structure:
+[PASTE YOUR FULL FOLDER STRUCTURE HERE]
+
+Pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+---
+
+Build only these things. Nothing else.
+
+1. A database log table created on plugin activation:
+   - Columns: id, attachment_id, filename, field_changed,
+     old_value, new_value, action_type, user_id, created_at
+   - Log a row every time any EXIF field is changed by this plugin
+   - Action types: date_sync, exif_edit, bulk_sync, bulk_strip,
+     orientation_fix, gps_strip
+
+2. Activity Log admin page:
+   - Table showing recent changes: thumbnail, filename, what changed,
+     old value, new value, who did it, when
+   - Pagination: 20 rows per page
+   - Filter by: action type, date range
+   - Each row shows the action type as a small badge
+
+3. Undo last bulk operation:
+   - Track which log rows belong to the same bulk run
+     (use a bulk_run_id stored in the log)
+   - "Undo Last Bulk" button on the activity log page
+   - Shows what will be undone before confirming
+   - On confirm: revert each change from the last bulk run
+   - Only the most recent bulk run can be undone
+
+4. Per-image restore:
+   - On the attachment edit screen, if the image has been changed
+     by this plugin, show a "Restore Original" button
+   - Shows the original value before any changes
+   - On click: restore the backed-up original EXIF values
+
+---
+
+When done, show me all files created or modified.
+This completes the full EXIF Data Management Pro feature set.
+
+===================================================================
+QUICK REFERENCE — Step Order
+===================================================================
+
+FREE VERSION (do these first, in order):
+  Step 1 — Date & Time reading and sync
+  Step 2 — Camera & Lens info
+  Step 3 — GPS coordinate reading
+  Step 4 — Missing EXIF detection & settings
+
+PRO VERSION (do these after free is complete, in order):
+  Step 1 — Bulk date sync
+  Step 2 — EXIF edit & write
+  Step 3 — GPS advanced (reverse geocoding, location filter)
+  Step 4 — Camera & exposure filters
+  Step 5 — Orientation fix & color profile
+  Step 6 — Audit dashboard & CSV export
+  Step 7 — Undo & activity log
+
+RULE: One step = one Claude conversation.
+      Test before moving to the next step.
+
+===================================================================

@@ -31,7 +31,6 @@ import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
 import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
 import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
-import EXIFData from "@/js/Component/EXIFData/EXIFData";
 
 function App() {
     const {
@@ -180,9 +179,6 @@ function App() {
                     <Route path="/regenerate" element={<RegenerateInit />} />
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
-                    <Route path="/EXIFData" element={<EXIFData />} />
-                    <Route path="/EXIFData/:filter" element={<EXIFData />} />
-                    <Route path="/EXIFData/:filter/page/:page" element={<EXIFData />} />
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
                     <Route path="/duplicates" element={<DuplicatePage />} />
                     <Route path="/duplicates/page/:page" element={<DuplicatePage />} />

@@ -7,7 +7,6 @@ import CaptionSettings from '@/js/Component/Settings/CaptionSettings';
 import DescriptionSettings from '@/js/Component/Settings/DescriptionSettings';
 import RenamerSettings from '@/js/Component/Settings/RenamerSettings';
 import AiSettings from '@/js/Component/Settings/AiSettings';
-import ExifSettings from '@/js/Component/Settings/ExifSettings';
 
 function Settings() {
     const { options } = useStore();
@@ -30,12 +29,6 @@ function Settings() {
                             </div>
                             <RenamerSettings />
                             <AiSettings />
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl m-0! font-semibold text-gray-900">EXIF Data Settings</h3>
-                                </div>
-                                <ExifSettings />
-                            </div>
                         </div>
                     )}
                     <SaveButton />

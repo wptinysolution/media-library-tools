@@ -19,7 +19,6 @@ use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
-use TinySolutions\mlt\Modules\EXIFData\ExifManager;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -87,12 +86,6 @@ class Ajax {
 		// Regenerate thumbnails.
 		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
 		add_action( 'wp_ajax_tsmlt_regenerate_get_status', [ $this, 'regenerate_get_status' ] );
-
-		// EXIF Date management.
-		add_action( 'wp_ajax_tsmlt_exif_get_list', [ $this, 'exif_get_list' ] );
-		add_action( 'wp_ajax_tsmlt_exif_read_single', [ $this, 'exif_read_single' ] );
-		add_action( 'wp_ajax_tsmlt_exif_sync_single', [ $this, 'exif_sync_single' ] );
-		add_action( 'wp_ajax_tsmlt_exif_get_missing', [ $this, 'exif_get_missing' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -485,34 +478,6 @@ class Ajax {
 	public function regenerate_get_status(): void {
 		$this->verify_and_get_params();
 		$this->send( [ 'total' => RegenerateThumbnails::instance()->get_total() ] );
-	}
-
-	// -------------------------------------------------------------------------
-	// EXIF Date management
-	// -------------------------------------------------------------------------
-
-	/** @return void */
-	public function exif_get_list(): void {
-		$params = $this->verify_and_get_params();
-		$this->send( ExifManager::instance()->get_exif_list( $params ) );
-	}
-
-	/** @return void */
-	public function exif_read_single(): void {
-		$params = $this->verify_and_get_params();
-		$this->send( ExifManager::instance()->read_single( $params ) );
-	}
-
-	/** @return void */
-	public function exif_sync_single(): void {
-		$params = $this->verify_and_get_params();
-		$this->send( ExifManager::instance()->sync_single( $params ) );
-	}
-
-	/** @return void */
-	public function exif_get_missing(): void {
-		$params = $this->verify_and_get_params();
-		$this->send( ExifManager::instance()->get_missing_exif( $params ) );
 	}
 
 }
