@@ -459,6 +459,21 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
+= 2.2.0 ( Apr 08, 2026 ) =
+* Added: Image Usage Tracker (Used Where) — scan all posts and pages to detect where every image is used across post content, featured images, Elementor data, and custom meta fields
+* Added: Used/Unused filter tabs in the Image Usage Tracker with live post count badges
+* Added: Bulk delete unused images — select individual images or all at once, with a confirmation modal and disclaimer before deletion
+* Added: Confirmation modal for unused image bulk delete includes a manual verification warning and a full disclaimer about irreversibility
+* Added: Per-image usage breakdown — expand any image to see every post it appears in, with post type, usage type, and a direct View link
+* Added: Search filter in the Image Usage Tracker to find images by filename or title
+* Added: Pagination for Used/Unused results with URL-driven page state
+* Added: Pro Upgrade Banner at the bottom of every admin page for free users — lists all pro-only features with descriptions and Buy Now button
+* Added: AI suggestion picker shown in a full modal (replaces dropdown) — prevents overflow/clipping in constrained table cells; supports up to 10 suggestions with blurred pro-locked rows
+* Improvement: Duplicate merge now instantly removes only the merged group from the list without a full page reload
+* Improvement: Media Rename table now always defaults to sorting by ID descending on load — recently renamed or uploaded images appear at the top
+* Improvement: "Check Rubbish Files" button no longer auto-starts the directory scan — the modal opens and waits for manual confirmation before scanning
+* Improvement: Loading states replaced with centered spinner animations across the Duplicates and Used Where pages
+
 = 2.1.2 =
 * Added: Duplicate file scanner with batch scanning and progress bar
 * Added: Duplicate groups view with file count, size, and usage details
