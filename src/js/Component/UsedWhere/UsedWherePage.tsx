@@ -16,7 +16,7 @@ export default function UsedWherePage() {
     const { filter: filterParam, page: pageParam } = useParams<{ filter?: string; page?: string }>();
     const navigate = useNavigate();
 
-    const activeFilter: FilterTab = filterParam === 'unused' ? 'unused' : 'used';
+    const activeFilter: FilterTab = 'used' === filterParam ? 'used' : 'unused';
     const currentPageFromUrl = parseInt(pageParam || '1', 10);
 
     const [isScanning, setIsScanning] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getEmptyDirectories, deleteEmptyDirectory, notifications } from '@/js/Utils/Data';
-import { trimPath } from './DirectoryList';
+import { trimPath } from '@/js/Component/Rubbish/DirectoryList';
 
 interface EmptyDirState {
     directories: string[];

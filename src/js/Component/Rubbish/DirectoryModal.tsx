@@ -182,7 +182,7 @@ function DirectoryModal() {
                                     disabled={isBusy}
                                     onChange={e => setInstantDeletion(e.target.checked ? 'instant' : 'not-instant')}
                                 />
-                                <span className="text-sm text-gray-700">Instant delete during scan</span>
+                                <span className="text-sm text-gray-700">Instant delete rubbish file during scan</span>
                                 <span className="text-xs text-red-500">(irreversible)</span>
                             </label>
                         )}

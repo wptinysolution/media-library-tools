@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import { getDirList, getRubbishFileType, notifications } from "@/js/Utils/Data";
-import RubbishConfirmationModal from "./RubbishConfirmationModal";
+import RubbishConfirmationModal from "@/js/Component/Rubbish/RubbishConfirmationModal";
 
 function RubbishHeader() {
     const {
