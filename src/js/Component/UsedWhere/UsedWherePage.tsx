@@ -4,6 +4,7 @@ import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedW
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import SearchInput from "@/js/Component/Common/SearchInput";
+import Modal from "@/js/Component/Common/Modal";
 
 type FilterTab = 'used' | 'unused';
 
@@ -33,6 +34,7 @@ export default function UsedWherePage() {
     // Bulk delete state (unused tab only).
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -150,17 +152,19 @@ export default function UsedWherePage() {
         }
     };
 
-    const handleBulkDelete = async () => {
+    const handleBulkDelete = () => {
         if (selectedIds.size === 0) return;
-        if (!confirm(`Permanently delete ${selectedIds.size} image${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+        setShowDeleteModal(true);
+    };
 
+    const confirmBulkDelete = async () => {
+        setShowDeleteModal(false);
         setIsDeleting(true);
         try {
             await usedWhereBulkDelete(Array.from(selectedIds));
-            // Remove deleted items from local state.
-            setUsages(prev => prev.filter((u: any) => !selectedIds.has(u.attachment_id)));
-            setTotalUsages(prev => prev - selectedIds.size);
             setSelectedIds(new Set());
+            // Re-query to get fresh results after deletion.
+            await loadResults(currentPageFromUrl, activeFilter, searchQuery);
         } catch (error) {
             console.error('Error deleting attachments:', error);
         } finally {
@@ -307,6 +311,16 @@ export default function UsedWherePage() {
 
             {/* Results */}
             <div className="bg-white rounded-b-lg border border-t-0 border-gray-200 p-4 relative">
+                {/* Delete overlay */}
+                {isDeleting && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/80 backdrop-blur-[2px] rounded-b-lg">
+                        <svg className="w-8 h-8 animate-spin text-red-500" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-600">Deleting images…</span>
+                    </div>
+                )}
                 {isLoading ? (
                     <div className="flex items-center justify-center py-16">
                         <div className="flex flex-col items-center gap-3 text-gray-400">
@@ -468,6 +482,63 @@ export default function UsedWherePage() {
                     </div>
                 )}
             </div>
+
+            {/* Bulk delete confirmation modal */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title={
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 shrink-0">
+                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 m-0!">Delete Unused Images</h3>
+                    </div>
+                }
+                maxWidth="max-w-[520px]"
+                closeOnBackdrop={false}
+                footer={
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                        <button
+                            type="button"
+                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => setShowDeleteModal(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="px-5 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
+                            onClick={confirmBulkDelete}
+                        >
+                            Yes, Delete {selectedIds.size} Image{selectedIds.size !== 1 ? 's' : ''}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="px-6 py-5 space-y-4">
+                    <p className="text-sm text-gray-700 mt-0!">
+                        You are about to permanently delete <strong>{selectedIds.size} image{selectedIds.size !== 1 ? 's' : ''}</strong> from your media library.
+                    </p>
+
+                    <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
+                        <p className="text-sm font-semibold text-amber-800 m-0! mb-1">
+                            ⚠ Before deleting, please manually verify these images are truly unused.
+                        </p>
+                        <p className="text-xs text-amber-700 m-0!">
+                            Our scan detects usage in posts, pages, and common custom fields — but some themes or plugins may reference images in ways that cannot be automatically detected.
+                        </p>
+                    </div>
+
+                    <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3">
+                        <p className="text-xs text-red-700 m-0!">
+                            <strong>Disclaimer:</strong> Deleted files cannot be recovered. If you delete an image that is still in use somewhere on your site, it will result in broken images. We are not responsible for any loss of data or broken content resulting from this action. Proceed at your own risk.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
