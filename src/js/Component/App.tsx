@@ -31,6 +31,7 @@ import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
 import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
 import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
+import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
 
 function App() {
     const {
@@ -189,6 +190,7 @@ function App() {
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                <ProUpgradeBanner />
             </div>
             <ProModal />
             <Toaster
