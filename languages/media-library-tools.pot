@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Library Tools - Regenerate, AI Rename, Duplicate Finder & Media Cleaner 2.1.2\n"
+"Project-Id-Version: Media Library Tools - Regenerate, AI Rename, Duplicate Finder & Media Cleaner 2.2.0-rc-1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-library-tools\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-06T18:21:17+00:00\n"
+"POT-Creation-Date: 2026-04-07T20:31:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -182,22 +182,26 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:103
-#: app/Controllers/Hooks/Ajax.php:153
+#: app/Controllers/Hooks/Ajax.php:109
+#: app/Controllers/Hooks/Ajax.php:159
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:108
+#: app/Controllers/Hooks/Ajax.php:114
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:116
-#: app/Controllers/Hooks/Ajax.php:159
+#: app/Controllers/Hooks/Ajax.php:122
+#: app/Controllers/Hooks/Ajax.php:165
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:125
+#: app/Controllers/Hooks/Ajax.php:131
 msgid "Malformed request payload."
+msgstr ""
+
+#: app/Controllers/Hooks/Ajax.php:477
+msgid "No IDs provided."
 msgstr ""
 
 #: app/Controllers/Hooks/CronJobHooks.php:58
@@ -339,6 +343,14 @@ msgstr ""
 msgid "Duplicate scan results cleared."
 msgstr ""
 
+#: app/Modules/Regenerate/RegenerateThumbnails.php:107
+msgid "File not found on disk."
+msgstr ""
+
+#: app/Modules/Regenerate/RegenerateThumbnails.php:134
+msgid "Could not generate metadata (unsupported format?)."
+msgstr ""
+
 #: app/Modules/Rename/RenameModule.php:74
 msgid "Rename failed. Please try again."
 msgstr ""
@@ -393,31 +405,31 @@ msgstr ""
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:612
+#: app/Modules/Rubbish/RubbishScanner.php:622
 msgid "Delete failed."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:620
+#: app/Modules/Rubbish/RubbishScanner.php:630
 msgid "No directory specified."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:631
+#: app/Modules/Rubbish/RubbishScanner.php:641
 msgid "Invalid directory path."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:637
+#: app/Modules/Rubbish/RubbishScanner.php:647
 msgid "Path is not a directory."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:645
+#: app/Modules/Rubbish/RubbishScanner.php:655
 msgid "Directory is not empty."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:656
+#: app/Modules/Rubbish/RubbishScanner.php:666
 msgid "Empty directory deleted successfully."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:658
+#: app/Modules/Rubbish/RubbishScanner.php:668
 msgid "Could not delete directory. Check file permissions."
 msgstr ""
 

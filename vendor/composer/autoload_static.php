@@ -1096,6 +1096,7 @@ class ComposerStaticInitecc989f4ce9ea5b37e18e1aebddaee9c
         'TinySolutions\\mlt\\Modules\\Duplicate\\DuplicateScanner' => __DIR__ . '/../..' . '/app/Modules/Duplicate/DuplicateScanner.php',
         'TinySolutions\\mlt\\Modules\\ImageSize\\ImageSizeModule' => __DIR__ . '/../..' . '/app/Modules/ImageSize/ImageSizeModule.php',
         'TinySolutions\\mlt\\Modules\\ModuleInit' => __DIR__ . '/../..' . '/app/Modules/ModuleInit.php',
+        'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => __DIR__ . '/../..' . '/app/Modules/Regenerate/RegenerateThumbnails.php',
         'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => __DIR__ . '/../..' . '/app/Modules/Rename/RenameModule.php',
         'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/../..' . '/app/Modules/Rubbish/RubbishScanner.php',
         'TinySolutions\\mlt\\Modules\\UsedWhere\\UsedWhereScanner' => __DIR__ . '/../..' . '/app/Modules/UsedWhere/UsedWhereScanner.php',

@@ -847,6 +847,7 @@ return array(
     'TinySolutions\\mlt\\Modules\\Duplicate\\DuplicateScanner' => $baseDir . '/app/Modules/Duplicate/DuplicateScanner.php',
     'TinySolutions\\mlt\\Modules\\ImageSize\\ImageSizeModule' => $baseDir . '/app/Modules/ImageSize/ImageSizeModule.php',
     'TinySolutions\\mlt\\Modules\\ModuleInit' => $baseDir . '/app/Modules/ModuleInit.php',
+    'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => $baseDir . '/app/Modules/Regenerate/RegenerateThumbnails.php',
     'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => $baseDir . '/app/Modules/Rename/RenameModule.php',
     'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => $baseDir . '/app/Modules/Rubbish/RubbishScanner.php',
     'TinySolutions\\mlt\\Modules\\UsedWhere\\UsedWhereScanner' => $baseDir . '/app/Modules/UsedWhere/UsedWhereScanner.php',
