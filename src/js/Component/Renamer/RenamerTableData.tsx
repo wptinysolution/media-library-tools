@@ -76,20 +76,19 @@ function RenamerTableData() {
     }, [pageParam]);
 
     useEffect(() => {
-        if (mediaData.postQuery.filtering) {
-            setMediaData({
-                postQuery: {
-                    status: null,
-                    filtering: false,
-                    media_per_page: mediaData.postQuery.media_per_page,
-                    searchKeyWords: null,
-                    order: 'DESC',
-                    orderby: 'id',
-                    paged: 1,
-                    isUpdate: false,
-                }
-            });
-        }
+        // Always reset to ID descending on mount so recently renamed files are easy to find.
+        setMediaData({
+            postQuery: {
+                status: null,
+                filtering: false,
+                media_per_page: mediaData.postQuery.media_per_page,
+                searchKeyWords: null,
+                order: 'DESC',
+                orderby: 'id',
+                paged: 1,
+                isUpdate: false,
+            }
+        });
     }, []);
 
     const handleSort = (field: SortField) => {
