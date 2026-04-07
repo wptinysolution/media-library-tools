@@ -249,6 +249,11 @@ export const clearUsedWhereScan = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_used_where_clear');
 };
 
+export const usedWhereBulkDelete = async (ids: number[]): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_bulk_delete', { ids });
+    return result.data as Record<string, unknown>;
+};
+
 // Regenerate Thumbnails.
 export const regenerateBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_regenerate_batch', prams);

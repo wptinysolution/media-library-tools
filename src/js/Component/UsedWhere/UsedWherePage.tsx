@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan } from "@/js/Utils/Data";
+import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan, usedWhereBulkDelete } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import SearchInput from "@/js/Component/Common/SearchInput";
@@ -29,6 +29,10 @@ export default function UsedWherePage() {
     const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+    // Bulk delete state (unused tab only).
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -61,6 +65,7 @@ export default function UsedWherePage() {
 
     const loadResults = useCallback(async (page = 1, filter: FilterTab = activeFilter, search: string = searchQuery) => {
         setIsLoading(true);
+        setSelectedIds(new Set());
         try {
             const result = await getUsedWhereResults({
                 limit: 10,
@@ -80,6 +85,7 @@ export default function UsedWherePage() {
 
     const handleTabChange = (filter: FilterTab) => {
         setExpandedId(null);
+        setSelectedIds(new Set());
         navigate(`/usedWhere/${filter}`);
     };
 
@@ -120,8 +126,45 @@ export default function UsedWherePage() {
             setTotalUsages(0);
             setScanProgress({ processed: 0, total: 0 });
             setCurrentPage(1);
+            setSelectedIds(new Set());
         } catch (error) {
             console.error('Error clearing results:', error);
+        }
+    };
+
+    // ── Bulk delete ──────────────────────────────────────────────────────────
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === usages.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(usages.map((u: any) => u.attachment_id)));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Permanently delete ${selectedIds.size} image${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+
+        setIsDeleting(true);
+        try {
+            await usedWhereBulkDelete(Array.from(selectedIds));
+            // Remove deleted items from local state.
+            setUsages(prev => prev.filter((u: any) => !selectedIds.has(u.attachment_id)));
+            setTotalUsages(prev => prev - selectedIds.size);
+            setSelectedIds(new Set());
+        } catch (error) {
+            console.error('Error deleting attachments:', error);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -140,6 +183,8 @@ export default function UsedWherePage() {
         : 0;
 
     const totalPages = Math.ceil(totalUsages / 10);
+    const allSelected = usages.length > 0 && selectedIds.size === usages.length;
+    const someSelected = selectedIds.size > 0 && !allSelected;
 
     return (
         <div className="mx-auto px-6 py-8 min-h-screen bg-gray-50">
@@ -217,10 +262,61 @@ export default function UsedWherePage() {
                 ))}
             </div>
 
+            {/* Bulk delete toolbar — unused tab only */}
+            {activeFilter === 'unused' && usages.length > 0 && !isLoading && (
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                            checked={allSelected}
+                            ref={el => { if (el) el.indeterminate = someSelected; }}
+                            onChange={toggleSelectAll}
+                        />
+                        <span className="text-sm text-gray-600">
+                            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
+                        </span>
+                    </label>
+                    {selectedIds.size > 0 && (
+                        <button
+                            type="button"
+                            disabled={isDeleting}
+                            onClick={handleBulkDelete}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete {selectedIds.size} image{selectedIds.size !== 1 ? 's' : ''}
+                                </>
+                            )}
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* Results */}
-            <div className="bg-white rounded-b-lg border border-t-0 border-gray-200 p-4">
+            <div className="bg-white rounded-b-lg border border-t-0 border-gray-200 p-4 relative">
                 {isLoading ? (
-                    <div className="text-center py-12 text-gray-500">Loading...</div>
+                    <div className="flex items-center justify-center py-16">
+                        <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            <span className="text-sm">Loading…</span>
+                        </div>
+                    </div>
                 ) : usages.length === 0 ? (
                     <div className="text-center py-12">
                         <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,23 +339,47 @@ export default function UsedWherePage() {
                         {usages.map((usage) => {
                             const isExpanded = expandedId === usage.attachment_id;
                             const posts: any[] = usage.posts || [];
+                            const isSelected = selectedIds.has(usage.attachment_id);
 
                             return (
-                                <div key={usage.attachment_id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                <div
+                                    key={usage.attachment_id}
+                                    className={`bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow ${
+                                        isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'
+                                    }`}
+                                >
                                     {/* Main row */}
                                     <div
                                         className={`flex items-center gap-4 p-4 ${posts.length > 0 ? 'cursor-pointer' : ''}`}
                                         onClick={() => posts.length > 0 && setExpandedId(isExpanded ? null : usage.attachment_id)}
                                     >
-                                        {posts.length > 0 ? (
-                                            <svg
-                                                className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        {/* Checkbox for unused tab */}
+                                        {activeFilter === 'unused' && (
+                                            <div
+                                                className="shrink-0"
+                                                onClick={(e) => { e.stopPropagation(); toggleSelect(usage.attachment_id); }}
                                             >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        ) : (
-                                            <div className="w-4 h-4 shrink-0" />
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                                    checked={isSelected}
+                                                    onChange={() => toggleSelect(usage.attachment_id)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {activeFilter === 'used' && (
+                                            posts.length > 0 ? (
+                                                <svg
+                                                    className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            ) : (
+                                                <div className="w-4 h-4 shrink-0" />
+                                            )
                                         )}
 
                                         <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -342,7 +462,7 @@ export default function UsedWherePage() {
                                 totalPages={totalPages}
                                 totalPosts={totalUsages}
                                 postsPerPage={10}
-                                onPageChange={(page) => loadResults(page)}
+                                onPageChange={(page) => navigate(`/usedWhere/${activeFilter}/page/${page}`)}
                             />
                         )}
                     </div>

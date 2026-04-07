@@ -35,7 +35,6 @@ const BATCH_SIZE = 10;
 function RegenerateInit() {
     const [total, setTotal]           = useState<number | null>(null);
     const [processed, setProcessed]   = useState(0);
-    const [deletedTotal, setDeletedTotal] = useState(0);
     const [status, setStatus]         = useState<Status>('idle');
     const [errors, setErrors]         = useState<BatchError[]>([]);
     const [history, setHistory]       = useState<BatchSucceeded[]>([]);
@@ -54,7 +53,6 @@ function RegenerateInit() {
 
     const reset = () => {
         setProcessed(0);
-        setDeletedTotal(0);
         setErrors([]);
         setHistory([]);
         setDismissedErrors(new Set());
@@ -84,7 +82,6 @@ function RegenerateInit() {
 
             if (data.errors.length)    setErrors(prev => [...prev, ...data.errors]);
             if (data.succeeded.length) setHistory(prev => [...prev, ...data.succeeded]);
-            if (data.deleted_total)    setDeletedTotal(prev => prev + data.deleted_total);
 
             setProcessed(offset);
 
@@ -147,12 +144,6 @@ function RegenerateInit() {
                                 {history.length.toLocaleString()}
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-orange-500">
-                                {deletedTotal.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Orphans deleted</p>
                         </div>
                         <div className="text-center">
                             <p className="text-3xl font-bold text-red-500">
@@ -226,7 +217,7 @@ function RegenerateInit() {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setGeneralData({ isDirModalOpen: true, autoStartScan: true });
+                                        setGeneralData({ isDirModalOpen: true, autoStartScan: false });
                                         navigate('/rubbishFile');
                                     }}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
@@ -247,9 +238,6 @@ function RegenerateInit() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                             All {safeTotal.toLocaleString()} images processed.
-                            {deletedTotal > 0 && (
-                                <span className="ml-1">{deletedTotal.toLocaleString()} orphan thumbnail file{deletedTotal !== 1 ? 's' : ''} deleted.</span>
-                            )}
                         </div>
                     )}
                     {status === 'stopped' && (
