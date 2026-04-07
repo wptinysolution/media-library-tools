@@ -1,0 +1,140 @@
+
+===================================================================
+PROMPT 2 — PRO VERSION
+===================================================================
+
+I have an existing WordPress plugin called "Media Library Tools".
+The free version already has "Manage EXIF Dates" working
+(single sync, EXIF column, missing detector, settings).
+
+Now I want to add the PRO version of this feature as an extension.
+
+Before writing any code, read my existing plugin structure carefully
+and follow exactly the same patterns already used in the pro version.
+Do not introduce anything new that is not already present.
+
+Here is my main pro loader file:
+[PASTE YOUR PRO LOADER FILE HERE]
+
+Here is an example of an existing pro feature file:
+/Users/mamunurrashid/projectfile/media-library-tools-pro/media-library-tools-pro.php
+
+---
+
+Now implement the following features for the pro version.
+Build them one at a time. Start with Feature 1 only,
+then wait for my confirmation before moving to the next.
+
+---
+
+**FEATURE 1 — Bulk Sync Engine**
+
+- Process all images in the library in safe batches (not all at once)
+- Before running, user can filter by:
+  - Only images with missing EXIF date
+  - Only images where EXIF and WP date do not match
+  - A specific date range
+- Show a progress bar while processing
+- Show live count: "Processed X of Y"
+- Allow user to cancel mid-way
+- Show final results: how many synced, how many failed
+
+---
+
+**FEATURE 2 — Smart Sync Rules**
+
+- On every upload, apply rules automatically (if enabled)
+- Rule logic:
+  - If EXIF date exists → use it
+  - If EXIF missing → fallback options:
+    - Try to extract date from filename
+      (e.g. IMG_20240115.jpg → 2024-01-15)
+    - Or use upload date
+    - Or do nothing
+- Timezone/offset correction:
+  - User sets offset in hours (e.g. +3 or -5)
+  - Applied to EXIF date before saving
+- Bidirectional sync option:
+  - Also allow writing WordPress date back to EXIF
+
+---
+
+**FEATURE 3 — Advanced Audit Dashboard**
+
+- Scan all media and group images into categories:
+  - EXIF matches WP date (all good)
+  - EXIF exists but WP date is different (mismatch)
+  - No EXIF at all
+  - Future date (likely wrong camera date)
+  - Duplicate timestamps (same date on multiple images)
+- Show count per category with color indicators
+- Show filterable image list per category
+- Suggest fix for each category
+- "Fix All" button per category
+
+---
+
+**FEATURE 4 — Undo and Activity Log**
+
+- Log every date change: old date, new date, which image, who did it
+- Show log in admin as a table with filters
+- "Undo Last Bulk" button — reverts all changes from last bulk run
+- Before any sync, backup the old date so it can always be restored
+
+---
+
+**FEATURE 5 — Export and Import**
+
+- Export: download a CSV of all media with EXIF date and WP date
+- Import: upload a corrected CSV and apply dates from it
+- Show results after import: how many applied, how many failed
+
+---
+
+**FEATURE 6 — WooCommerce Product Image Support**
+
+- Only activate if WooCommerce is installed
+- Fix dates for all images in a product's gallery
+- Add a "Fix Gallery Dates" button on the product edit screen
+- Option to bulk fix all products at once
+
+---
+
+**FEATURE 7 — Reports Dashboard**
+
+- Summary numbers: total images, images with EXIF, images synced,
+  mismatches, last sync date
+- Simple bar chart: how many images per year based on EXIF date
+- Recent activity: last 10 changes from the log
+- Quick action buttons to jump to bulk sync or audit
+
+---
+
+===================================================================
+HOW TO USE
+===================================================================
+
+FREE VERSION:
+  1. Copy PROMPT 1 into a new Claude conversation
+  2. Fill in the three [PASTE ...] sections with your actual code
+  3. Claude will follow your existing patterns exactly
+
+PRO VERSION:
+  1. Make sure free version is working first
+  2. Copy PROMPT 2 into a new Claude conversation
+  3. Fill in the three [PASTE ...] sections with your actual code
+  4. Claude will implement Feature 1 first and wait
+  5. Test it, then say "looks good, do Feature 2"
+  6. Repeat for each feature
+
+ONE FEATURE AT A TIME (recommended):
+  Copy only the feature you need from PROMPT 2.
+  Keep the top context and [PASTE ...] sections.
+  Remove the features you are not ready for yet.
+
+IF SOMETHING BREAKS:
+  Paste the broken file back to Claude and say:
+  "This file broke something. Here is the error: [error message].
+  Fix it without changing anything else in the plugin."
+
+===================================================================

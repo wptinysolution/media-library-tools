@@ -259,3 +259,24 @@ export const regenerateGetStatus = async (): Promise<{ total: number }> => {
     return result.data as { total: number };
 };
 
+// EXIF Date management.
+export const exifGetList = async (params: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_list', params);
+    return result.data as Record<string, unknown>;
+};
+
+export const exifReadSingle = async (params: object): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_read_single', params);
+    return result.data as Record<string, unknown>;
+};
+
+export const exifSyncSingle = async (params: object): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_sync_single', params);
+    return result.data as Record<string, unknown>;
+};
+
+export const exifGetMissing = async (params: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_missing', params);
+    return result.data as Record<string, unknown>;
+};
+
