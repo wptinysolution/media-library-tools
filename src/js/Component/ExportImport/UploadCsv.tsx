@@ -33,11 +33,17 @@ function UploadCsv() {
                             header: true,
                             dynamicTyping: true,
                             complete: (results) => {
+                                const sessionId = Date.now().toString();
+                                try {
+                                    sessionStorage.setItem(`tsmlt_import_${sessionId}`, JSON.stringify(results.data));
+                                    sessionStorage.setItem(`tsmlt_import_id`, sessionId);
+                                } catch { /* quota exceeded */ }
                                 setExportImport({
                                     mediaFiles: results.data as never[],
                                     fileCount: results.data.length,
                                     percent: 0,
                                     totalPage: results.data.length,
+                                    csvFilename: file.name,
                                 });
                             },
                         });

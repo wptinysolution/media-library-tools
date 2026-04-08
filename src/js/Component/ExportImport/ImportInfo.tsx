@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useStore } from "@/js/Utils/store";
 import { importOneByOne } from "@/js/Utils/Data";
 import { Link } from "react-router-dom";
 import type { ExportImportSettings } from "@/js/Utils/store";
+import { loadImportHistory, saveImportHistory } from "./ExportCSV";
 
 interface UploadedItem {
     id: string | number;
@@ -10,13 +11,14 @@ interface UploadedItem {
     status: string;
 }
 
-function ImportInfo() {
+function ImportInfo({ onComplete }: { onComplete?: () => void }) {
     const { exportImport } = useStore();
 
     const [percent, setPercent] = useState(0);
     const [uploadedFile, setUploadedFile] = useState<UploadedItem[]>([]);
     const [currentFile, setCurrentFile] = useState<string | null>(null);
     const settings = exportImport.settings as ExportImportSettings;
+    const recordedRef = useRef(false);
 
     const getFileNameFromURL = (url: string): string | false => {
         if (!url) {
@@ -53,6 +55,24 @@ function ImportInfo() {
     useEffect(() => {
         uploadMediaSequentially();
     }, []);
+
+    // Record to import history once when the import completes.
+    useEffect(() => {
+        if (percent < 100 || recordedRef.current) return;
+        recordedRef.current = true;
+        const succeeded = uploadedFile.filter(f => f.status === 'uploaded').length;
+        const sessionId = sessionStorage.getItem('tsmlt_import_id') || '';
+        const record = {
+            id: Date.now().toString(),
+            sessionId,
+            filename: exportImport.csvFilename || 'import.csv',
+            rows: exportImport.fileCount,
+            succeeded,
+            date: new Date().toISOString(),
+        };
+        saveImportHistory([...loadImportHistory(), record]);
+        onComplete?.();
+    }, [percent]);
 
     const reversedFiles = useMemo(() => uploadedFile.slice(-10).reverse(), [uploadedFile]);
 

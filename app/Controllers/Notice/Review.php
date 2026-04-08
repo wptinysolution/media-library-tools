@@ -177,7 +177,7 @@ class Review {
 					</p>
 					<div class="tsmlt-review-notice_actions">
 						<a href="<?php echo esc_url( $reviewurl ); ?>"
-						   class="tsmlt-review-button tsmlt-review-button--cta" target="_blank"><span>⭐ Yes, You Deserve It!</span></a>
+						   class="tsmlt-review-button tsmlt-review-button-deseeve tsmlt-review-button--cta" target="_blank"><span>⭐ Yes, You Deserve It!</span></a>
 						<a href="<?php echo esc_url( $rated ); ?>"
 						   class="tsmlt-review-button tsmlt-review-button--cta tsmlt-review-button--outline"><span>😀 Already Rated!</span></a>
 						<a href="<?php echo esc_url( $remind_me ); ?>"
@@ -258,10 +258,12 @@ class Review {
 					color: #fff;
 					vertical-align: middle;
 					text-align: center;
-					text-decoration: none;
+					text-decoration: none !important;
 					white-space: nowrap;
 				}
-
+				.tsmlt-review-button-deseeve{
+					color: #fff !important;
+				}
 				.tsmlt-review-button:active {
 					background: var(--e-button-context-color-dark);
 					color: #fff;
@@ -313,7 +315,7 @@ class Review {
 			<?php
 		}
 	}
- 
+
 	/***
 	 *
 	 * @return mixed
