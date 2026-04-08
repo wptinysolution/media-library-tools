@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-08T15:58:06+00:00\n"
+"POT-Creation-Date: 2026-04-08T16:51:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -267,75 +267,75 @@ msgstr ""
 msgid "Please open a support ticket."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:331
+#: app/Controllers/Notice/Review.php:333
 msgid "Quick Feedback: How can we improve the plugin?"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:335
+#: app/Controllers/Notice/Review.php:337
 msgid "We're sorry to see you go! Before you leave, could you spare a moment to tell us why? Your feedback helps us make the plugin better for everyone."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:339
+#: app/Controllers/Notice/Review.php:341
 msgid "Having trouble? Our support team is here to help."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:340
+#: app/Controllers/Notice/Review.php:342
 msgid "Contact Support"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:344
+#: app/Controllers/Notice/Review.php:346
 msgid "Or tell us why you're leaving"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:354
+#: app/Controllers/Notice/Review.php:356
 msgid "Bug or issue detected"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:362
+#: app/Controllers/Notice/Review.php:364
 msgid "I no longer need the plugin"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:370
+#: app/Controllers/Notice/Review.php:372
 msgid "I found a better plugin"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:374
+#: app/Controllers/Notice/Review.php:376
 msgid "Which plugin did you switch to?"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:382
+#: app/Controllers/Notice/Review.php:384
 msgid "I couldn't get the plugin to work"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:390
+#: app/Controllers/Notice/Review.php:392
 msgid "It's a temporary deactivation"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:398
+#: app/Controllers/Notice/Review.php:400
 msgid "How can we improve the plugin? Any details help..."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:403
+#: app/Controllers/Notice/Review.php:405
 msgid "Deactivating will disable scheduled features like the rubbish file scanner. See the Settings page for details."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:774
+#: app/Controllers/Notice/Review.php:776
 msgid "Send Feedback & Deactivate"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:775
+#: app/Controllers/Notice/Review.php:777
 msgid "Skip & Deactivate"
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:785
+#: app/Controllers/Notice/Review.php:787
 msgid "Please choose a reason before submitting."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:791
+#: app/Controllers/Notice/Review.php:793
 msgid "Kindly share a few details so we can address this in a future update."
 msgstr ""
 
-#: app/Controllers/Notice/Review.php:801
+#: app/Controllers/Notice/Review.php:803
 msgid "Sending…"
 msgstr ""
 
