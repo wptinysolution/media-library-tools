@@ -4,7 +4,7 @@
  * Plugin Name:       Media Library Tools - AI-Powered Rename, Duplicate Finder, Clean & CSV Import/Export
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
  * Description:       AI-Powered Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
- * Version:           2.2.0-rc-1
+ * Version:           2.2.0
  * Author:            Tiny Solutions
  * Author URI:        https://www.wptinysolutions.com/
  * Text Domain:       media-library-tools

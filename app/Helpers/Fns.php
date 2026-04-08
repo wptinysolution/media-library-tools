@@ -199,7 +199,7 @@ class Fns {
 	public static function reassign_featured_image( int $old_attachment_id, int $new_attachment_id ): int {
 		self::DB()->update(
 			'postmeta',
-			[ 'meta_value' => $new_attachment_id ] // phpcs:ignore WordPress.DB.SlowDBQuery ..
+			[ 'meta_value' => $new_attachment_id ] // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		)->where( 'meta_key', '=', '_thumbnail_id' )
 			->andWhere( 'meta_value', '=', $old_attachment_id )
 			->execute();
