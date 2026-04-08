@@ -81,13 +81,12 @@ function UploadCsv() {
                             }
                         />
                         <span className="text-sm text-gray-900">
-                            Existing media file that match by <strong>ID</strong> or <strong>slug</strong> will be updated.
+                            Update existing media — matches by <strong>ID</strong> first, then by <strong>slug</strong>.
                         </span>
                     </label>
-                    <br />
-                    <span className="text-sm text-gray-600">
-                        Media that do not exist will be skipped and missing column data will remain unchanged.
-                    </span>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Each row is matched to an existing attachment using the <strong>ID</strong> column. If no ID match is found, it falls back to the <strong>slug</strong> column. Rows with no match are skipped. Any column left blank will leave that field unchanged.
+                    </p>
                     <hr className="border-gray-200 my-3" />
                     {settings.importUpdateContent ? (
                         <>
@@ -109,7 +108,6 @@ function UploadCsv() {
                                     Rename using the value located in the <strong>( rename_to )</strong> column.
                                 </span>
                             </label>
-                            <br />
                             <span className="text-sm text-gray-600">
                                 Note: Rename media file that match by <strong>ID</strong> or <strong>slug</strong> And Any missing column data will be left unchanged.
                             </span>
