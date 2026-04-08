@@ -502,7 +502,22 @@ class Ajax {
 	/** @return void */
 	public function regenerate_get_status(): void {
 		$this->verify_and_get_params();
-		$this->send( [ 'total' => RegenerateThumbnails::instance()->get_total() ] );
+
+		$sizes      = [];
+		$registered = wp_get_registered_image_subsizes();
+		foreach ( $registered as $name => $size ) {
+			$sizes[] = [
+				'name'   => $name,
+				'width'  => (int) ( $size['width'] ?? 0 ),
+				'height' => (int) ( $size['height'] ?? 0 ),
+				'crop'   => ! empty( $size['crop'] ),
+			];
+		}
+
+		$this->send( [
+			'total'       => RegenerateThumbnails::instance()->get_total(),
+			'image_sizes' => $sizes,
+		] );
 	}
 
 }

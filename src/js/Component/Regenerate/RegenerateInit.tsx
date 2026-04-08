@@ -26,6 +26,13 @@ interface BatchResponse {
     succeeded: BatchSucceeded[];
 }
 
+interface ImageSize {
+    name: string;
+    width: number;
+    height: number;
+    crop: boolean;
+}
+
 type Status = 'idle' | 'running' | 'stopped' | 'done';
 
 const BATCH_SIZE = 10;
@@ -34,19 +41,23 @@ const BATCH_SIZE = 10;
 
 function RegenerateInit() {
     const [total, setTotal]           = useState<number | null>(null);
+    const [imageSizes, setImageSizes] = useState<ImageSize[]>([]);
     const [processed, setProcessed]   = useState(0);
     const [status, setStatus]         = useState<Status>('idle');
     const [errors, setErrors]         = useState<BatchError[]>([]);
     const [history, setHistory]       = useState<BatchSucceeded[]>([]);
     const [dismissedErrors, setDismissedErrors] = useState<Set<number>>(new Set());
 
-    const navigate        = useNavigate();
+    const navigate           = useNavigate();
     const { setGeneralData } = useStore();
-    const stopRef         = useRef(false);
+    const stopRef            = useRef(false);
 
-    // ── Load total on mount ─────────────────────────────────────────────────
+    // ── Load total + image sizes on mount ───────────────────────────────────
     useEffect(() => {
-        regenerateGetStatus().then(({ total: t }) => setTotal(t));
+        regenerateGetStatus().then(({ total: t, image_sizes }) => {
+            setTotal(t);
+            if (Array.isArray(image_sizes)) setImageSizes(image_sizes as ImageSize[]);
+        });
     }, []);
 
     // ── Helpers ─────────────────────────────────────────────────────────────
@@ -103,6 +114,7 @@ function RegenerateInit() {
     const percent       = safeTotal > 0 ? Math.min(100, Math.round((processed / safeTotal) * 100)) : 0;
     const visibleErrors = errors.filter(e => !dismissedErrors.has(e.id));
     const isRunning     = status === 'running';
+    const hasStarted    = status !== 'idle';
 
     // ── Render ───────────────────────────────────────────────────────────────
 
@@ -125,36 +137,38 @@ function RegenerateInit() {
                 {/* Control card */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
 
-                    {/* Stats row */}
-                    <div className="flex flex-wrap items-center gap-6 mb-6">
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-gray-900">
-                                {total === null ? '…' : total.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Total images</p>
+                    {/* Stats row — shown only after starting */}
+                    {hasStarted && (
+                        <div className="flex flex-wrap items-center gap-6 mb-6">
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-gray-900">
+                                    {safeTotal.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Total</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-blue-600">
+                                    {processed.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Processed</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-green-600">
+                                    {history.length.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-red-500">
+                                    {errors.length.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Errors</p>
+                            </div>
                         </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-blue-600">
-                                {processed.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Processed</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-green-600">
-                                {history.length.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-red-500">
-                                {errors.length.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Errors</p>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Progress bar */}
-                    {(isRunning || status === 'done' || status === 'stopped') && (
+                    {hasStarted && (
                         <div className="mb-5">
                             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <span>{processed.toLocaleString()} of {safeTotal.toLocaleString()} images</span>
@@ -259,6 +273,36 @@ function RegenerateInit() {
                     )}
                 </div>
 
+                {/* Image sizes list */}
+                {imageSizes.length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span className="text-sm font-medium text-gray-700">
+                                Registered Image Sizes ({imageSizes.length})
+                            </span>
+                            <span className="ml-2 text-xs text-gray-400">These sizes will be regenerated for every image</span>
+                        </div>
+                        <ul className="divide-y divide-gray-100">
+                            {imageSizes.map(size => (
+                                <li key={size.name} className="flex items-center justify-between px-4 py-2 hover:bg-gray-50">
+                                    <span className="text-xs font-medium text-gray-800">{size.name}</span>
+                                    <span className="text-[11px] text-gray-400">
+                                        {size.width > 0 && size.height > 0
+                                            ? `${size.width} × ${size.height}`
+                                            : size.width > 0
+                                            ? `${size.width}w`
+                                            : size.height > 0
+                                            ? `${size.height}h`
+                                            : 'flexible'
+                                        }
+                                        {size.crop && <span className="ml-1.5 text-blue-500">crop</span>}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 {/* Errors panel */}
                 {visibleErrors.length > 0 && (
                     <div className="bg-white rounded-lg border border-red-200 mb-6 overflow-hidden">
@@ -303,6 +347,9 @@ function RegenerateInit() {
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                             <span className="text-sm font-medium text-gray-700">
                                 Regenerated ({history.length.toLocaleString()})
+                                {history.length > 10 && (
+                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last 10</span>
+                                )}
                             </span>
                             {isRunning && (
                                 <span className="inline-flex items-center gap-1 text-xs text-blue-600">
@@ -315,7 +362,7 @@ function RegenerateInit() {
                             )}
                         </div>
                         <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                            {history.slice(-50).reverse().map(item => (
+                            {history.slice(-10).reverse().map(item => (
                                 <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
                                     <div className="flex items-center gap-3">
                                         <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

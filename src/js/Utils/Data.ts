@@ -259,8 +259,8 @@ export const regenerateBatch = async (prams: object = {}): Promise<AxiosResponse
     return await ajaxPost('tsmlt_regenerate_batch', prams);
 };
 
-export const regenerateGetStatus = async (): Promise<{ total: number }> => {
+export const regenerateGetStatus = async (): Promise<{ total: number; image_sizes: unknown[] }> => {
     const result = await ajaxPost('tsmlt_regenerate_get_status');
-    return result.data as { total: number };
+    return result.data as { total: number; image_sizes: unknown[] };
 };
 
