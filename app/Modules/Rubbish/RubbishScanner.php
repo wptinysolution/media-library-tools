@@ -88,9 +88,13 @@ class RubbishScanner {
 		$directory_list = [];
 		$message        = esc_html__( 'Schedule Will Execute Soon.', 'media-library-tools' );
 		if ( 'all' === $dir ) {
+			// Clear all directory scan transients so fresh filesystem reads happen.
+			self::clear_scan_transients();
 			self::get_directory_list_cron_job( true );
 			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'media-library-tools' );
 		} elseif ( empty( $directory_list[ $dir ] ) ) {
+			// Clear the transient for this specific directory.
+			delete_transient( 'tsmlt_dir_scan_' . md5( $dir ) );
 			$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 			if ( ! empty( $directory_list[ $dir ] ) ) {
 				$directory_list[ $dir ] = [
@@ -255,7 +259,29 @@ class RubbishScanner {
 		// MODIFY COLUMN resets the AUTO_INCREMENT counter once all rows are deleted.
 		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->execute();
 		update_option( 'tsmlt_get_directory_list', [] );
+		self::clear_scan_transients();
 		return true;
+	}
+
+	/**
+	 * Delete all tsmlt_dir_scan_* transients so the next scan reads fresh from disk.
+	 *
+	 * WordPress stores transients in the options table as `_transient_<key>`, so
+	 * we can bulk-delete them with a LIKE query via the query builder.
+	 *
+	 * @return void
+	 */
+	private static function clear_scan_transients(): void {
+		// Also clear the registered-file lookup cache.
+		wp_cache_delete( 'tsmlt_registered_file_lookup' );
+
+		// Bulk-delete all directory scan transients from the options table.
+		Fns::DB()->delete( 'options' )
+			->where( 'option_name', 'LIKE', '_transient_tsmlt_dir_scan_%' )
+			->execute();
+		Fns::DB()->delete( 'options' )
+			->where( 'option_name', 'LIKE', '_transient_timeout_tsmlt_dir_scan_%' )
+			->execute();
 	}
 
 	// -------------------------------------------------------------------------
@@ -265,6 +291,10 @@ class RubbishScanner {
 	/**
 	 * Function to scan the upload directory and search for files.
 	 *
+	 * Results are cached in a transient (10 minutes) so that the repeated AJAX
+	 * batch calls for large directories (e.g. 30,000+ files) do not re-read the
+	 * filesystem on every request.
+	 *
 	 * @param string $directory The directory to scan.
 	 *
 	 * @return array The list of found files.
@@ -273,6 +303,14 @@ class RubbishScanner {
 		if ( ! $directory ) {
 			return [];
 		}
+
+		// Transient cache — survives across AJAX requests (unlike Fns::$cache).
+		$transient_key = 'tsmlt_dir_scan_' . md5( $directory );
+		$cached        = get_transient( $transient_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		$filesystem = Fns::get_wp_filesystem_instance();
 		// Ensure the directory exists before scanning.
 		if ( ! $filesystem->is_dir( $directory ) ) {
@@ -290,6 +328,9 @@ class RubbishScanner {
 			}
 			$scanned_files[] = $file_path;
 		}
+
+		// Cache for 10 minutes — long enough to survive the full batch run.
+		set_transient( $transient_key, $scanned_files, 10 * MINUTE_IN_SECONDS );
 
 		return $scanned_files;
 	}
@@ -371,13 +412,9 @@ class RubbishScanner {
 	 */
 	public static function update_rubbish_file_to_database( $directory ) {
 
-		$dir_cache_key = md5( $directory );
-		if ( isset( Fns::$cache[ $dir_cache_key ] ) ) {
-			$found_files = Fns::$cache[ $dir_cache_key ];
-		} else {
-			$found_files                   = self::scan_file_in_directory( $directory );
-			Fns::$cache[ $dir_cache_key ] = $found_files;
-		}
+		// scan_file_in_directory() caches in a transient, so subsequent batch
+		// AJAX calls for the same directory don't hit the filesystem again.
+		$found_files = self::scan_file_in_directory( $directory );
 
 		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
 
@@ -385,8 +422,11 @@ class RubbishScanner {
 
 		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
 
-		// Process files in batches of 50 to avoid timeouts on large directories.
-		$files = array_slice( $found_files, $last_processed_offset, 50 );
+		// Process files in batches of 500 — large enough to finish big directories
+		// (30k+ files) in ~60 round trips instead of 600, while staying well within
+		// typical PHP time limits since the per-file work is now O(1) hash lookups.
+		$batch_size = (int) apply_filters( 'tsmlt_rubbish_scan_batch_size', 500 );
+		$files      = array_slice( $found_files, $last_processed_offset, $batch_size );
 
 		$found_files_count = count( $files );
 
@@ -401,11 +441,15 @@ class RubbishScanner {
 		// ── Pre-load all known registered paths in ONE DB round-trip ──────────
 		$lookup = self::build_registered_file_lookup();
 
-		// ── Pre-load all file_paths already in our rubbish table (1 query) ───
-		$existing_rows = Fns::DB()->select( 'file_path' )
+		// ── Pre-load only rubbish rows for this specific directory (1 query) ──
+		// Scoping by directory prefix avoids loading the entire rubbish table
+		// when there are thousands of rows across many directories.
+		$upload_rel      = ltrim( str_replace( $uploaddir, '', $directory ), '/\\' );
+		$existing_rows   = Fns::DB()->select( 'file_path' )
 			->from( 'tsmlt_unlisted_file' )
+			->where( 'file_path', 'LIKE', $upload_rel . '/%' )
 			->get();
-		$existing_set  = array_flip( array_column( (array) $existing_rows, 'file_path' ) );
+		$existing_set    = array_flip( array_column( (array) $existing_rows, 'file_path' ) );
 
 		// ── Collect rows to bulk-insert ───────────────────────────────────────
 		$rows_to_insert = [];

@@ -1,6 +1,6 @@
-=== Media Library Tools - AI Power Rename, Duplicate Finder, Media Cleaner & CSV Import & Export ===
+=== Media Library Tools - AI-Powered Rename, Duplicate Finder, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
-Tags: media library, csv import, csv export, rename, duplicate finder, media cleaner, alt text
+Tags: csv import, csv export, rename, duplicate media cleaner, alt text
 Requires at least: 5.5
 Tested up to: 7.0
 Stable tag: 2.2.0
@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-The complete WordPress media library manager. CSV Import & Export, AI Rename, bulk edit metadata, find duplicates, clean rubbish, and track image usage.
+AI-Powered Rename, bulk edit metadata, find duplicates, clean, CSV Import & Export, and track image usage.
 
 == Description ==
 
