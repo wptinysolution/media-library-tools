@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-07T20:32:08+00:00\n"
+"POT-Creation-Date: 2026-04-08T15:58:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -339,7 +339,7 @@ msgstr ""
 msgid "Sending…"
 msgstr ""
 
-#: app/Modules/Duplicate/DuplicateScanner.php:301
+#: app/Modules/Duplicate/DuplicateScanner.php:333
 msgid "Duplicate scan results cleared."
 msgstr ""
 
@@ -405,35 +405,35 @@ msgstr ""
 msgid "Schedule Cleared. Will Execute Soon."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:622
+#: app/Modules/Rubbish/RubbishScanner.php:687
 msgid "Delete failed."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:630
+#: app/Modules/Rubbish/RubbishScanner.php:695
 msgid "No directory specified."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:641
+#: app/Modules/Rubbish/RubbishScanner.php:706
 msgid "Invalid directory path."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:647
+#: app/Modules/Rubbish/RubbishScanner.php:712
 msgid "Path is not a directory."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:655
+#: app/Modules/Rubbish/RubbishScanner.php:720
 msgid "Directory is not empty."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:666
+#: app/Modules/Rubbish/RubbishScanner.php:731
 msgid "Empty directory deleted successfully."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:668
+#: app/Modules/Rubbish/RubbishScanner.php:733
 msgid "Could not delete directory. Check file permissions."
 msgstr ""
 
-#: app/Modules/UsedWhere/UsedWhereScanner.php:435
+#: app/Modules/UsedWhere/UsedWhereScanner.php:505
 msgid "Scan cleared successfully."
 msgstr ""
 
