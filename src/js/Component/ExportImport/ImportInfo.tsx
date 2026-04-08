@@ -54,7 +54,7 @@ function ImportInfo() {
         uploadMediaSequentially();
     }, []);
 
-    const reversedFiles = useMemo(() => [...uploadedFile].reverse(), [uploadedFile]);
+    const reversedFiles = useMemo(() => uploadedFile.slice(-10).reverse(), [uploadedFile]);
 
     return (
         <div className="max-w-375 mx-auto w-full">
@@ -94,7 +94,16 @@ function ImportInfo() {
             <hr className="border-gray-200 my-4" />
 
             {reversedFiles.length ? (
-                <div className="h-100 overflow-auto px-4 border border-gray-300 rounded-lg">
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-700">
+                            Imported ({uploadedFile.length})
+                        </span>
+                        {uploadedFile.length > 10 && (
+                            <span className="text-xs text-gray-400">showing last 10</span>
+                        )}
+                    </div>
+                    <div className="h-100 overflow-auto px-4">
                     {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             <img
@@ -118,6 +127,7 @@ function ImportInfo() {
                             </div>
                         </div>
                     ))}
+                    </div>
                 </div>
             ) : ''}
         </div>
