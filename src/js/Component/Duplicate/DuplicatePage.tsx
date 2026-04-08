@@ -295,10 +295,12 @@ export default function DuplicatePage() {
                     </div>
                 }
             >
-                <div className="px-6 py-5">
+                <div className="px-6 pt-5 pb-0">
                     <p className="text-sm text-gray-700 mt-0! mb-4">
                         Select which copy to keep. The others will be deleted and all references in your content will be updated to point to the kept file.
                     </p>
+                </div>
+                <div className="px-6 pb-5 overflow-y-auto max-h-[50vh]">
                     <div className="space-y-2">
                         {mergeGroup?.items.map((item) => (
                             <label
@@ -333,6 +335,7 @@ export default function DuplicatePage() {
                     </div>
                 </div>
             </Modal>
+
         </div>
     );
 }
