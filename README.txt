@@ -1,6 +1,6 @@
-=== Media Library Tools - Regenerate, AI Rename, Duplicate Finder & Media Cleaner ===
+=== Media Library Tools - AI Power Rename, Duplicate Finder, Media Cleaner & CSV Import & Export ===
 Contributors: tinysolution, mehediihasan
-Tags: media library, rename, duplicate finder, media cleaner, alt text
+Tags: media library, csv import, csv export, rename, duplicate finder, media cleaner, alt text
 Requires at least: 5.5
 Tested up to: 7.0
 Stable tag: 2.2.0
@@ -8,11 +8,11 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-The complete WordPress media library manager. Rename, bulk edit metadata, find duplicates, clean rubbish, track image usage, and generate AI content.
+The complete WordPress media library manager. CSV Import & Export, AI Rename, bulk edit metadata, find duplicates, clean rubbish, and track image usage.
 
 == Description ==
 
-**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — rename files for better SEO, bulk edit alt text and metadata, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
+**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — export your entire library to CSV, bulk-import metadata updates, rename files for better SEO, bulk edit alt text, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
 
 Whether you run a blog, WooCommerce store, or content-heavy site, Media Library Tools helps you keep your media library clean, organized, and SEO-optimized.
 
