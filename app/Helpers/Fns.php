@@ -197,15 +197,15 @@ class Fns {
 	 * @return int Number of updated posts.
 	 */
 	public static function reassign_featured_image( int $old_attachment_id, int $new_attachment_id ): int {
-		Fns::DB()->update(
+		self::DB()->update(
 			'postmeta',
-			[ 'meta_value' => $new_attachment_id ]
+			[ 'meta_value' => $new_attachment_id ] // phpcs:ignore WordPress.DB.SlowDBQuery ..
 		)->where( 'meta_key', '=', '_thumbnail_id' )
 			->andWhere( 'meta_value', '=', $old_attachment_id )
 			->execute();
 
 		// Return count of affected posts.
-		$result = Fns::DB()->select()
+		$result = self::DB()->select()
 			->count( '*', 'total' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', '_thumbnail_id' )
@@ -227,22 +227,26 @@ class Fns {
 		$like                     = '%' . $wpdb->esc_like( $orig_image_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
 
-		$result_content = Fns::DB()->select( 'ID' )
+		$result_content = self::DB()->select( 'ID' )
 			->from( 'posts' )
 			->where( 'post_content', 'LIKE', $like )
 			->raw( "AND {$useless_types_conditions}" )
 			->get();
 
-		$result_excerpt = Fns::DB()->select( 'ID' )
+		$result_excerpt = self::DB()->select( 'ID' )
 			->from( 'posts' )
 			->where( 'post_excerpt', 'LIKE', $like )
 			->raw( "AND {$useless_types_conditions}" )
 			->get();
 
-		$ids = array_values( array_unique( array_merge(
-			array_column( $result_content ?: [], 'ID' ),
-			array_column( $result_excerpt ?: [], 'ID' )
-		) ) );
+		$ids = array_values(
+			array_unique(
+				array_merge(
+					array_column( $result_content ?: [], 'ID' ),
+					array_column( $result_excerpt ?: [], 'ID' )
+				)
+			)
+		);
 
 		return empty( $ids ) ? [] : $ids;
 	}
@@ -296,7 +300,7 @@ class Fns {
 		$escaped_url              = str_replace( '/', '\/', $orig_image_url );
 		$searchValue              = '%' . str_replace( '\/', '\\\/', $escaped_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
-		$result                   = Fns::DB()->select( 'm.post_id' )
+		$result                   = self::DB()->select( 'm.post_id' )
 			->from( 'postmeta m' )
 			->join( 'posts p', 'p.ID', 'm.post_id' )
 			->where( 'm.meta_key', '=', '_elementor_data' )
@@ -341,16 +345,20 @@ class Fns {
 			->andWhere( 'p.post_type', '=', 'product_variation' )
 			->get();
 
-		$ids = array_values( array_unique( array_merge(
-			array_column( $gallery_result ?: [], 'post_id' ),
-			array_column( $variation_result ?: [], 'post_id' )
-		) ) );
+		$ids = array_values(
+			array_unique(
+				array_merge(
+					array_column( $gallery_result ?: [], 'post_id' ),
+					array_column( $variation_result ?: [], 'post_id' )
+				)
+			)
+		);
 
 		// For variation posts, resolve to the parent product ID.
 		$resolved = [];
 		foreach ( $ids as $post_id ) {
 			if ( 'product_variation' === get_post_type( $post_id ) ) {
-				$parent = wp_get_post_parent_id( $post_id );
+				$parent     = wp_get_post_parent_id( $post_id );
 				$resolved[] = $parent ?: $post_id;
 			} else {
 				$resolved[] = absint( $post_id );
@@ -384,8 +392,8 @@ class Fns {
 		$query        = $wpdb->prepare( $sql, $orig_image_url, $new_image_url, $search_value ); // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
 		$wpdb->query( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		// Force Elementor to regenerate CSS and cache.
-		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
-		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
+		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
+		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
 	}
 
 	/**
@@ -525,7 +533,7 @@ class Fns {
 	 */
 	public static function permalink_to_post_guid( $post_id ) {
 		$guid = wp_get_attachment_url( $post_id );
-		Fns::DB()->update( 'posts', [ 'guid' => $guid ] )
+		self::DB()->update( 'posts', [ 'guid' => $guid ] )
 			->where( 'ID', '=', $post_id )
 			->execute();
 		clean_post_cache( $post_id );
@@ -618,12 +626,12 @@ class Fns {
 			return false;
 		}
 
-		$result    = Fns::DB()->select( 'post_id' )
+		$result         = self::DB()->select( 'post_id' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', '_thumbnail_id' )
 			->andWhere( 'meta_value', '=', $attachment_id )
 			->get();
-		$parent_id = ! empty( $result ) ? $result[0]['post_id'] : null;
+		$parent_id      = ! empty( $result ) ? $result[0]['post_id'] : null;
 		$post_ids       = [];
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		if ( ! $parent_id ) {
@@ -730,7 +738,7 @@ class Fns {
 		if ( isset( self::$cache[ $keys_attachment ] ) ) {
 			return self::$cache[ $keys_attachment ];
 		}
-		$result    = Fns::DB()->select( 'pm.meta_key' )
+		$result    = self::DB()->select( 'pm.meta_key' )
 			->distinct()
 			->from( 'postmeta pm' )
 			->innerJoin( 'posts p', 'p.ID', 'pm.post_id' )
