@@ -323,7 +323,7 @@ function DirectoryModal() {
                             <thead className="sticky top-0 bg-white border-b border-gray-100 z-10">
                                 <tr>
                                     <th className="text-left px-6 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Directory</th>
-                                    <th className="text-right px-6 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-32">Files</th>
+                                    <th className="text-right px-6 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-80">Files</th>
                                     <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-24">Status</th>
                                 </tr>
                             </thead>
