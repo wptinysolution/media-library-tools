@@ -88,11 +88,11 @@ export default function DuplicatePage() {
             .map(item => item.attachment_id);
 
         await mergeDuplicates({ keep_id: keepId, delete_ids: deleteIds });
+        await loadStatus();
+        await loadResults(duplicateData.paged, true);
         setMerging(false);
         setMergeGroup(null);
         setKeepId(0);
-        await loadStatus();
-        await loadResults(duplicateData.paged, true);
     };
 
     useEffect(() => {
@@ -278,29 +278,41 @@ export default function DuplicatePage() {
             {/* Merge Modal */}
             <Modal
                 isOpen={!!mergeGroup}
-                onClose={() => { setMergeGroup(null); setKeepId(0); }}
+                onClose={() => { if (!merging) { setMergeGroup(null); setKeepId(0); } }}
                 title="Merge Duplicates"
                 maxWidth="max-w-[550px]"
+                closeOnBackdrop={!merging}
                 footer={
                     <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
                             onClick={() => { setMergeGroup(null); setKeepId(0); }}
+                            disabled={merging}
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
                             onClick={handleMerge}
                             disabled={merging || !keepId}
                         >
+                            {merging && (
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                            )}
                             {merging ? 'Merging...' : 'Merge & Delete Others'}
                         </button>
                     </div>
                 }
             >
+                <div className={`relative transition-all duration-200 ${merging ? 'pointer-events-none select-none' : ''}`}>
+                    {merging && (
+                        <div className="absolute inset-0 z-10 backdrop-blur-sm bg-white/40 rounded" />
+                    )}
                 <div className="px-6 pt-5 pb-0">
                     <p className="text-sm text-gray-700 mt-0! mb-4">
                         Select which copy to keep. The others will be deleted and all references in your content will be updated to point to the kept file.
@@ -339,6 +351,7 @@ export default function DuplicatePage() {
                             </label>
                         ))}
                     </div>
+                </div>
                 </div>
             </Modal>
 
