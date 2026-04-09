@@ -34,8 +34,8 @@ export default function DuplicatePage() {
         });
     }, [setDuplicateData]);
 
-    const loadResults = useCallback(async (page = 1) => {
-        setDuplicateData({ isLoading: true });
+    const loadResults = useCallback(async (page = 1, silent = false) => {
+        if (!silent) setDuplicateData({ isLoading: true });
         const result = await getDuplicateResults({ paged: page, postsPerPage: duplicateData.postsPerPage }) as {
             groups: DuplicateGroup[];
             totalGroups: number;
@@ -92,8 +92,17 @@ export default function DuplicatePage() {
         setMergeGroup(null);
         setKeepId(0);
         await loadStatus();
-        await loadResults(duplicateData.paged);
+        await loadResults(duplicateData.paged, true);
     };
+
+    useEffect(() => {
+        if (!mergeGroup) return;
+        const handleEnter = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && !merging && keepId) handleMerge();
+        };
+        document.addEventListener('keydown', handleEnter);
+        return () => document.removeEventListener('keydown', handleEnter);
+    }, [mergeGroup, merging, keepId]);
 
     const openMergeModal = (group: DuplicateGroup) => {
         if (!tsmltParams.hasExtended) {
@@ -105,8 +114,10 @@ export default function DuplicatePage() {
     };
 
     useEffect(() => {
-        loadStatus();
-        loadResults(1);
+        loadStatus().then(() => {
+            const { scanned } = useStore.getState().duplicateData;
+            if (scanned > 0) loadResults(1);
+        });
     }, []);
 
     useEffect(() => {
