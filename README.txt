@@ -1,6 +1,6 @@
-=== Media Library Tools - AI-Powered Rename, Duplicate Finder, Clean & CSV Import/Export ===
+=== Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
-Tags: csv import, csv export, rename, duplicate media cleaner, alt text
+Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 5.5
 Tested up to: 7.0
 Stable tag: 2.2.0
