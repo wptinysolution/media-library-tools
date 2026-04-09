@@ -311,7 +311,7 @@ export default function DuplicatePage() {
             >
                 <div className={`relative transition-all duration-200 ${merging ? 'pointer-events-none select-none' : ''}`}>
                     {merging && (
-                        <div className="absolute inset-0 z-10 backdrop-blur-sm bg-white/40 rounded" />
+                        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-white/20 rounded" />
                     )}
                 <div className="px-6 pt-5 pb-0">
                     <p className="text-sm text-gray-700 mt-0! mb-4">
