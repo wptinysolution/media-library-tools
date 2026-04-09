@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import type { DuplicateGroup } from "@/js/Utils/store";
 import { duplicateScanBatch, getDuplicateResults, getDuplicateStatus, clearDuplicateScan, mergeDuplicates } from "@/js/Utils/Data";
@@ -20,6 +20,7 @@ function formatBytes(bytes: number): string {
 export default function DuplicatePage() {
     const { duplicateData, setDuplicateData, setGeneralData } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
+    const navigate = useNavigate();
     const [mergeGroup, setMergeGroup] = useState<DuplicateGroup | null>(null);
     const [keepId, setKeepId] = useState<number>(0);
     const [merging, setMerging] = useState(false);
@@ -34,14 +35,31 @@ export default function DuplicatePage() {
         });
     }, [setDuplicateData]);
 
-    const loadResults = useCallback(async (page = 1, silent = false) => {
+    const loadResults = useCallback(async (page = 1, silent = false, fixUrl = false) => {
         if (!silent) setDuplicateData({ isLoading: true });
-        const result = await getDuplicateResults({ paged: page, postsPerPage: duplicateData.postsPerPage }) as {
+        const { postsPerPage } = useStore.getState().duplicateData;
+        const result = await getDuplicateResults({ paged: page, postsPerPage }) as {
             groups: DuplicateGroup[];
             totalGroups: number;
             paged: number;
             postsPerPage: number;
         };
+        // If page came back empty but groups still exist, fall back to previous page.
+        if (result.groups.length === 0 && result.totalGroups > 0 && page > 1) {
+            const safePage = page - 1;
+            const fallback = await getDuplicateResults({ paged: safePage, postsPerPage }) as typeof result;
+            setDuplicateData({
+                isLoading: false,
+                groups: fallback.groups,
+                totalGroups: fallback.totalGroups,
+                paged: fallback.paged,
+                postsPerPage: fallback.postsPerPage,
+            });
+            if (fixUrl) {
+                navigate(safePage === 1 ? '/duplicates' : `/duplicates/page/${safePage}`, { replace: true });
+            }
+            return;
+        }
         setDuplicateData({
             isLoading: false,
             groups: result.groups,
@@ -49,7 +67,7 @@ export default function DuplicatePage() {
             paged: result.paged,
             postsPerPage: result.postsPerPage,
         });
-    }, [duplicateData.postsPerPage, setDuplicateData]);
+    }, [setDuplicateData, navigate]);
 
     const startScan = async () => {
         setDuplicateData({ isScanning: true, scanProgress: { processed: 0, total: 0 } });
@@ -89,7 +107,8 @@ export default function DuplicatePage() {
 
         await mergeDuplicates({ keep_id: keepId, delete_ids: deleteIds });
         await loadStatus();
-        await loadResults(duplicateData.paged, true);
+        const { paged } = useStore.getState().duplicateData;
+        await loadResults(paged, true, true);
         setMerging(false);
         setMergeGroup(null);
         setKeepId(0);
@@ -127,9 +146,8 @@ export default function DuplicatePage() {
         }
     }, [pageParam]);
 
-    const handlePagination = (page: number) => {
-        loadResults(page);
-    };
+    // URL change (via Pagination's navigate) drives the load — no-op here to avoid double fetch.
+    const handlePagination = () => {};
 
     const scanPercent = duplicateData.scanProgress.total > 0
         ? Math.round((duplicateData.scanProgress.processed / duplicateData.scanProgress.total) * 100)
