@@ -89,15 +89,10 @@ export default function DuplicatePage() {
 
         await mergeDuplicates({ keep_id: keepId, delete_ids: deleteIds });
         setMerging(false);
-
-        // Remove only the merged group from the list — no full reload needed.
-        const mergedHash = mergeGroup.file_hash;
         setMergeGroup(null);
         setKeepId(0);
-        setDuplicateData({
-            groups: duplicateData.groups.filter(g => g.file_hash !== mergedHash),
-            totalGroups: duplicateData.totalGroups - 1,
-        });
+        await loadStatus();
+        await loadResults(duplicateData.paged);
     };
 
     const openMergeModal = (group: DuplicateGroup) => {
