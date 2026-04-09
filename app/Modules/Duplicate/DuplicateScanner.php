@@ -157,6 +157,26 @@ class DuplicateScanner {
 	}
 
 	/**
+	 * Remove rows from tsmlt_duplicate_file for attachments that no longer exist.
+	 */
+	private function purge_stale_rows(): void {
+		$all_ids_result = Fns::DB()->select( 'attachment_id' )
+			->from( 'tsmlt_duplicate_file' )
+			->get();
+		if ( empty( $all_ids_result ) ) {
+			return;
+		}
+		foreach ( $all_ids_result as $row ) {
+			$att_id = (int) $row['attachment_id'];
+			if ( ! get_post( $att_id ) ) {
+				Fns::DB()->delete( 'tsmlt_duplicate_file' )
+					->where( 'attachment_id', '=', $att_id )
+					->execute();
+			}
+		}
+	}
+
+	/**
 	 * Get duplicate groups with pagination.
 	 *
 	 * @param array $query {
@@ -181,6 +201,9 @@ class DuplicateScanner {
 			->limit( $limit )
 			->offset( $offset )
 			->get();
+
+		// Remove stale rows before counting so total_groups is accurate.
+		$this->purge_stale_rows();
 
 		// Get total count of duplicate groups.
 		$total_result = Fns::DB()->select( 'file_hash' )
@@ -277,6 +300,8 @@ class DuplicateScanner {
 	 * @return array{total_attachments: int, scanned: int, duplicate_groups: int, potential_savings: int}
 	 */
 	public function get_scan_status(): array {
+		$this->purge_stale_rows();
+
 		// Total attachments.
 		$total_result = Fns::DB()->select()
 			->count( '*', 'total' )

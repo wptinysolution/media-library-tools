@@ -133,14 +133,16 @@ export default function DuplicatePage() {
     };
 
     useEffect(() => {
+        const pageFromUrl = parseInt(pageParam || '1', 10);
         loadStatus().then(() => {
             const { scanned } = useStore.getState().duplicateData;
-            if (scanned > 0) loadResults(1);
+            if (scanned > 0) loadResults(pageFromUrl);
         });
     }, []);
 
     useEffect(() => {
-        const pageFromUrl = parseInt(pageParam || '1', 10);
+        if (!pageParam) return;
+        const pageFromUrl = parseInt(pageParam, 10);
         if (pageFromUrl !== duplicateData.paged) {
             loadResults(pageFromUrl);
         }
