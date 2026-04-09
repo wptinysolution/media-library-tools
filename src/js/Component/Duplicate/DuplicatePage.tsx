@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import type { DuplicateGroup } from "@/js/Utils/store";
@@ -24,6 +24,7 @@ export default function DuplicatePage() {
     const [mergeGroup, setMergeGroup] = useState<DuplicateGroup | null>(null);
     const [keepId, setKeepId] = useState<number>(0);
     const [merging, setMerging] = useState(false);
+    const isMounted = useRef(false);
 
     const loadStatus = useCallback(async () => {
         const status = await getDuplicateStatus() as { total_attachments: number; scanned: number; duplicate_groups: number; potential_savings: number };
@@ -137,12 +138,14 @@ export default function DuplicatePage() {
         loadStatus().then(() => {
             const { scanned } = useStore.getState().duplicateData;
             if (scanned > 0) loadResults(pageFromUrl);
+        }).finally(() => {
+            isMounted.current = true;
         });
     }, []);
 
     useEffect(() => {
-        if (!pageParam) return;
-        const pageFromUrl = parseInt(pageParam, 10);
+        if (!isMounted.current) return;
+        const pageFromUrl = parseInt(pageParam || '1', 10);
         if (pageFromUrl !== duplicateData.paged) {
             loadResults(pageFromUrl);
         }
