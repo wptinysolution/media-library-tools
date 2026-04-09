@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import { useStore } from "@/js/Utils/store";
-import type { MediaPost, RubbishMediaFile, BulkSubmitData } from "@/js/Utils/store";
+import type { MediaPost, BulkSubmitData } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
-import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction, rubbishSingleRestoreAction } from "./Data";
-import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
-import type { ColumnDef } from "@/js/Component/Common/DataTable";
-import Modal from "@/js/Component/Common/Modal";
+import AiButton from "@/js/Component/Common/AiButton";
+
+export interface ColumnDef<T = Record<string, unknown>> {
+    title: React.ReactNode;
+    key: string;
+    dataIndex: string;
+    width?: string;
+    minWidth?: number;
+    align?: 'left' | 'center' | 'top';
+    fixed?: boolean;
+    render?: (value: unknown, record: T, index: number) => React.ReactNode;
+}
 
 export const headerStyle: React.CSSProperties = {
     height: 'auto',
@@ -13,11 +21,6 @@ export const headerStyle: React.CSSProperties = {
     lineHeight: '1',
     backgroundColor: '#fff',
     padding: '15px 0'
-};
-
-export const selectStyle: React.CSSProperties = {
-    width: 250,
-    paddingInline: 0,
 };
 
 export const defaultBulkSubmitData: BulkSubmitData = {
@@ -37,17 +40,6 @@ export const defaultBulkSubmitData: BulkSubmitData = {
     will_attached_post_title: [],
     post_categories: [],
 };
-
-export const columnList: Array<{ title: string; key: string }> = [
-    { title: 'ID', key: 'ID' },
-    { title: 'File', key: 'Image' },
-    { title: 'Attached Post', key: 'Parents' },
-    { title: 'Title', key: 'Title' },
-    { title: 'Alt', key: 'Alt' },
-    { title: 'Caption', key: 'Caption' },
-    { title: 'Description', key: 'Description' },
-    { title: 'Groups', key: 'Category' },
-];
 
 const theImage = (record: MediaPost): React.ReactElement => {
     const typeParts = record.post_mime_type.split('/');
@@ -230,7 +222,23 @@ export function columns(): ColumnDef<MediaPost>[] {
             render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="relative">
+                                <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="title" placeholder="Title Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <AiButton
+                                        className="absolute left-1.5 top-1.5"
+                                        attachmentId={record.ID}
+                                        fieldType="title"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], title: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, title: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                            </div>
+                        )
                         : <a className="w-50 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{text as string}</a>
                     }
                 </>
@@ -246,10 +254,26 @@ export function columns(): ColumnDef<MediaPost>[] {
             dataIndex: 'alt_text',
             align: 'top',
             width: '300px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="relative">
+                                <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="alt_text" placeholder="Alt Text Shouldn't leave empty" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <AiButton
+                                        className="absolute left-1.5 top-1.5"
+                                        attachmentId={record.ID}
+                                        fieldType="alt_text"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], alt_text: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, ID: record.ID });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                            </div>
+                        )
                         : <span className="w-50 flex overflow-x-auto">{text as string}</span>
                     }
                 </>
@@ -264,10 +288,26 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Caption',
             dataIndex: 'caption',
             width: '300px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="relative">
+                                <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="caption" placeholder="Caption Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <AiButton
+                                        className="absolute left-1.5 top-1.5"
+                                        attachmentId={record.ID}
+                                        fieldType="caption"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], caption: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, caption: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                            </div>
+                        )
                         : <>{text as string}</>
                     }
                 </>
@@ -282,10 +322,26 @@ export function columns(): ColumnDef<MediaPost>[] {
             key: 'Description',
             dataIndex: 'description',
             width: '350px',
-            render: (text, _record, i) => (
+            render: (text, record, i) => (
                 <>
                     {formEdited
-                        ? <textarea className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                        ? (
+                            <div className="relative">
+                                <textarea className="w-full pl-13 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" rows={2} name="description" placeholder="Description Text" data-current={i} onBlur={handleFocusout} onChange={handleChange} value={text as string} />
+                                <AiButton
+                                        className="absolute left-1.5 top-1.5"
+                                        attachmentId={record.ID}
+                                        fieldType="description"
+                                        onSuccess={(value) => {
+                                            const posts = [...mediaData.posts];
+                                            posts[i] = { ...posts[i], description: value };
+                                            setMediaData({ posts });
+                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, description: value });
+                                            setSaveType(Types.UPDATE_SINGLE_MEDIA);
+                                        }}
+                                    />
+                            </div>
+                        )
                         : <>{text as string}</>
                     }
                 </>
@@ -311,424 +367,6 @@ export function columns(): ColumnDef<MediaPost>[] {
         },
     ];
 }
-
-export function renamerColumns(): ColumnDef<MediaPost>[] {
-    const { mediaData, setMediaData, bulkSubmitData, setBulkSubmitData, rename, setSaveType } = useStore();
-
-    const handleSortClick = (odrby: string) => {
-        const { orderby, order } = mediaData.postQuery;
-        setMediaData({
-            postQuery: {
-                ...mediaData.postQuery,
-                orderby: odrby,
-                paged: 1,
-                order: odrby === orderby && 'DESC' === order ? 'ASC' : 'DESC',
-            }
-        });
-    };
-
-    const onCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(event.target.value, 10);
-        const changeData = event.target.checked
-            ? [...bulkSubmitData.ids, value]
-            : bulkSubmitData.ids.filter(item => item !== value);
-
-        const checkedCount = changeData.length;
-        const postCount = mediaData.posts.length;
-
-        setBulkSubmitData({
-            bulkChecked: !!(checkedCount && checkedCount === postCount),
-            ids: changeData,
-            progressTotal: checkedCount,
-        });
-    };
-
-    const onBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const postsId = event.target.checked ? mediaData.posts.map(item => item.ID) : [];
-        setBulkSubmitData({
-            bulkChecked: !!postsId.length,
-            progressTotal: postsId.length,
-            ids: postsId,
-        });
-    };
-
-    const hasIds = bulkSubmitData.ids.length > 0;
-
-    return [
-        {
-            title: (
-                <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    ref={(el) => { if (el) el.indeterminate = hasIds && !bulkSubmitData.bulkChecked; }}
-                    checked={bulkSubmitData.bulkChecked}
-                    onChange={onBulkCheck}
-                />
-            ),
-            key: 'CheckboxID',
-            dataIndex: 'ID',
-            width: '50px',
-            align: 'center',
-            fixed: true,
-            render: (id) => (
-                <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    checked={-1 !== bulkSubmitData.ids.indexOf(id as number)}
-                    name="item_id"
-                    value={id as number}
-                    onChange={onCheckboxChange}
-                />
-            ),
-        },
-        {
-            title: 'File',
-            key: 'Image',
-            dataIndex: 'guid',
-            width: '100px',
-            align: 'top',
-            render: (_text, record) => <span className="inline-flex items-center">{theImage(record)}</span>,
-        },
-        {
-            title: (
-                <button className="inline-flex items-center gap-1.5 group cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleSortClick('post_parents')}>
-                    Attached Post<SortIcon />
-                </button>
-            ),
-            key: 'Parents',
-            dataIndex: 'post_parents',
-            width: '150px',
-            render: (text) => {
-                const parent = text as { title?: string; permalink?: string };
-                return <>{parent.title ? <a target="_blank" href={parent.permalink}>{parent.title}</a> : ''}</>;
-            },
-        },
-        {
-            title: 'File Name',
-            key: 'Image',
-            dataIndex: 'guid',
-            width: '350px',
-            align: 'top',
-            render: (_text, record, i) => (
-                <>
-                    {rename.formEdited
-                        ? (
-                            <div className="flex items-center gap-1 bg-transparent">
-                                <input
-                                    type="text"
-                                    className="w-87.5 h-9.5 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    name="filebasename"
-                                    placeholder="The name Shouldn't leave empty"
-                                    data-current={i}
-                                    onBlur={() => setSaveType(Types.UPDATE_RENAMER_MEDIA)}
-                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                        const { setMediaData, setRename } = useStore.getState();
-                                        const currentItem = parseInt(event.target.getAttribute('data-current') ?? '0', 10);
-                                        if ('filebasename' === event.target.name) {
-                                            const posts = [...mediaData.posts];
-                                            const pnlname = { ...posts[currentItem].thefile };
-                                            posts[currentItem] = {
-                                                ...posts[currentItem],
-                                                thefile: { ...posts[currentItem].thefile, filebasename: event.target.value },
-                                            };
-                                            setMediaData({ posts });
-                                            setRename({
-                                                postsdata: pnlname,
-                                                ID: posts[currentItem].ID,
-                                                newname: event.target.value,
-                                            });
-                                        }
-                                    }}
-                                    value={record.thefile.filebasename}
-                                />
-                                <span className="text-sm text-gray-600">{`.${record.thefile.fileextension}`}</span>
-                            </div>
-                        )
-                        : <a className="max-w-75 flex overflow-x-auto" target="_blank" href={`${record.uploaddir}/${record.thefile.file}`}>{record.thefile.mainfilename}</a>
-                    }
-                </>
-            ),
-        },
-        {
-            title: 'URL',
-            key: 'Image',
-            dataIndex: 'guid',
-            align: 'top',
-            minWidth: 300,
-            render: (_text, record) => (
-                <span className="inline-flex items-center gap-1">
-                    <code className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-[300px] inline-flex overflow-x-auto">
-                        {record.uploaddir + '/' + record.thefile.file}
-                    </code>
-                    <CopyToClipboard text={`${record.uploaddir + '/' + record.thefile.file}`} />
-                </span>
-            ),
-        },
-        {
-            title: <span className="inline-flex items-center">Title</span>,
-            key: 'Title',
-            dataIndex: 'title',
-            align: 'top',
-            render: (text) => <span className="text-sm text-gray-500">{text as string}</span>,
-        },
-    ];
-}
-
-type ConfirmState = { record: RubbishMediaFile; action: string } | null;
-
-const actionConfig: Record<string, { title: string; message: string; confirmLabel: string; confirmClass: string }> = {
-    delete: {
-        title: 'Delete Unnecessary File',
-        message: 'Are you sure you want to permanently delete this file? This cannot be undone.',
-        confirmLabel: 'Delete',
-        confirmClass: 'bg-red-600 hover:bg-red-700 text-white',
-    },
-    restore: {
-        title: 'Restore to Library',
-        message: 'Are you sure you want to restore this file to the WordPress media library?',
-        confirmLabel: 'Restore',
-        confirmClass: 'bg-green-600 hover:bg-green-700 text-white',
-    },
-    ignore: {
-        title: 'Ignore Important File',
-        message: 'Are you sure you want to mark this as an important file? It will be excluded from the rubbish file list.',
-        confirmLabel: 'Ignore',
-        confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-    },
-    show: {
-        title: 'Mark As Unnecessary File',
-        message: 'Are you sure you want to mark this file as unnecessary?',
-        confirmLabel: 'Confirm',
-        confirmClass: 'bg-gray-600 hover:bg-gray-700 text-white',
-    },
-};
-
-export function RubbishFileColumns(): { columns: ColumnDef<RubbishMediaFile>[]; confirmModal: React.ReactElement } {
-    const { rubbishMedia, setRubbishMedia, bulkRubbishData, setBulkRubbishData, setGeneralData } = useStore();
-
-    const [deleteCurrentItem,  setDeleteCurrentItem]  = useState<string | number | null>(null);
-    const [ignoreCurrentItem,  setIgnoreCurrentItem]  = useState<string | number | null>(null);
-    const [restoreCurrentItem, setRestoreCurrentItem] = useState<string | number | null>(null);
-    const [confirmState, setConfirmState] = useState<ConfirmState>(null);
-
-    const onRubbishBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const postsId = event.target.checked ? rubbishMedia.mediaFile.map(item => item.id) : [];
-        const files = event.target.checked
-            ? rubbishMedia.mediaFile.map(item => ({ id: item.id, path: item.file_path }))
-            : [];
-        setBulkRubbishData({
-            bulkChecked: !!postsId.length,
-            ids: postsId,
-            files,
-            progressTotal: files.length,
-        });
-    };
-
-    const onCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, record: RubbishMediaFile) => {
-        const value = event.target.value;
-        const changeData = event.target.checked
-            ? [...bulkRubbishData.ids, value]
-            : bulkRubbishData.ids.filter(item => item !== value);
-
-        const changePath = event.target.checked
-            ? [...bulkRubbishData.files, { id: record.id, path: record.file_path }]
-            : bulkRubbishData.files.filter(item => item.id !== record.id);
-
-        const checkedCount = changeData.length;
-        const postCount = rubbishMedia.mediaFile.length;
-
-        setBulkRubbishData({
-            bulkChecked: !!(checkedCount && checkedCount === postCount),
-            ids: changeData,
-            files: changePath,
-            progressTotal: checkedCount,
-        });
-    };
-
-    const onRubbishSingleAction = async (data: RubbishMediaFile, action: string) => {
-        if (tsmltParams.hasExtended) {
-            let response: { status: number | string; data: { updated: boolean } } | undefined;
-            if ('restore' === action) {
-                setRestoreCurrentItem(data.id);
-                try {
-                    response = await rubbishSingleRestoreAction(data) as typeof response;
-                    if (200 === parseInt(String(response?.status)) && response?.data.updated) {
-                        setRubbishMedia({ mediaFile: rubbishMedia.mediaFile.filter(item => data.id !== item.id) });
-                    }
-                } finally {
-                    setRestoreCurrentItem(null);
-                }
-                return;
-            } else if ('ignore' === action) {
-                setIgnoreCurrentItem(data.id);
-                response = await rubbishSingleIgnoreAction(data) as typeof response;
-            } else if ('delete' === action) {
-                setDeleteCurrentItem(data.id);
-                response = await rubbishSingleDeleteAction(data) as typeof response;
-            } else if ('show' === action) {
-                response = await rubbishSingleShowAction(data) as typeof response;
-            }
-            if (200 === parseInt(String(response?.status))) {
-                const mediaFile = response?.data.updated
-                    ? rubbishMedia.mediaFile.filter(item => data.id !== item.id)
-                    : rubbishMedia.mediaFile;
-                setRubbishMedia({ mediaFile });
-                setIgnoreCurrentItem(null);
-                setDeleteCurrentItem(null);
-            }
-            return;
-        }
-        setGeneralData({ openProModal: true });
-    };
-
-    const config = confirmState ? actionConfig[confirmState.action] : null;
-
-    const confirmModal = (
-        <Modal
-            isOpen={!!confirmState}
-            onClose={() => setConfirmState(null)}
-            title={config?.title ?? ''}
-            maxWidth="max-w-[480px]"
-            footer={
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                    <button
-                        type="button"
-                        className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => setConfirmState(null)}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        className={`px-5 py-2 text-sm font-medium rounded-md cursor-pointer transition-colors ${config?.confirmClass ?? ''}`}
-                        onClick={() => {
-                            if (!confirmState) return;
-                            onRubbishSingleAction(confirmState.record, confirmState.action);
-                            setConfirmState(null);
-                        }}
-                    >
-                        {config?.confirmLabel}
-                    </button>
-                </div>
-            }
-        >
-            <div className="px-6 py-5">
-                <p className="text-sm mt-0! text-gray-700 mb-3">{config?.message}</p>
-                {confirmState && (
-                    <p className="text-xs mb-0! text-gray-500 bg-gray-50 border border-gray-200 rounded px-3 py-2 break-all">
-                        {`${tsmltParams.uploadUrl}/${confirmState.record.file_path}`}
-                    </p>
-                )}
-            </div>
-        </Modal>
-    );
-
-    const columns: ColumnDef<RubbishMediaFile>[] = [
-        {
-            title: (
-                <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    checked={bulkRubbishData.bulkChecked}
-                    onChange={onRubbishBulkCheck}
-                />
-            ),
-            key: 'CheckboxID',
-            dataIndex: 'id',
-            width: '50px',
-            align: 'center',
-            fixed: true,
-            render: (id, record) => (
-                <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    checked={-1 !== bulkRubbishData.ids.indexOf(id as string | number)}
-                    name="item_id"
-                    value={String(id)}
-                    onChange={(event) => onCheckboxChange(event, record)}
-                />
-            ),
-        },
-        {
-            title: 'File',
-            key: 'Image',
-            dataIndex: 'file_path',
-            width: '150px',
-            align: 'top',
-            render: (file_path) => (
-                <span className="inline-flex items-center">
-                    <img width={50} src={`${tsmltParams.uploadUrl}/${file_path as string}`} />
-                </span>
-            ),
-        },
-        {
-            title: 'File URL',
-            key: 'FileType',
-            dataIndex: 'file_path',
-            align: 'top',
-            render: (file_path) => (
-                <span className="text-sm">{`${tsmltParams.uploadUrl}/${file_path as string}`}</span>
-            ),
-        },
-        {
-            title: 'Actions',
-            key: 'FileType',
-            dataIndex: 'file_path',
-            align: 'top',
-            width: '450px',
-            render: (_text, record) => (
-                <span className="flex flex-wrap gap-2">
-                    {'ignore' === rubbishMedia.postQuery.fileStatus ? (
-                        <button
-                            className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
-                            onClick={() => setConfirmState({ record, action: 'show' })}
-                            disabled={record.id === deleteCurrentItem}
-                        >
-                            {record.id === deleteCurrentItem ? 'Processing...' : 'Mark As Unnecessary File'}
-                        </button>
-                    ) : (
-                        <>
-                            <button
-                                className="px-3 py-1.5 text-sm font-medium text-green-600 border border-green-300 rounded-md hover:bg-green-50 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => setConfirmState({ record, action: 'restore' })}
-                                disabled={record.id === restoreCurrentItem}
-                                title="Import this file into the WordPress media library"
-                            >
-                                {record.id === restoreCurrentItem ? 'Restoring...' : 'Restore to Library'}
-                            </button>
-                            <button
-                                className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => setConfirmState({ record, action: 'delete' })}
-                                disabled={record.id === deleteCurrentItem}
-                            >
-                                {record.id === deleteCurrentItem ? 'Deleting...' : 'Delete'}
-                            </button>
-                            <button
-                                className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-50"
-                                onClick={() => setConfirmState({ record, action: 'ignore' })}
-                                disabled={record.id === ignoreCurrentItem}
-                            >
-                                {record.id === ignoreCurrentItem ? 'Processing...' : 'Ignore File'}
-                            </button>
-                        </>
-                    )}
-                </span>
-            ),
-        },
-    ];
-
-    return { columns, confirmModal };
-}
-
-export const functionDebounce = (func: (...args: unknown[]) => void, delay: number) => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    return function (...args: unknown[]) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            func.apply(null, args);
-        }, delay);
-    };
-};
 
 export function localStoreData(key: string, value: unknown): void {
     const expirationTime = Date.now() + (60 * 60 * 1000 * 24);

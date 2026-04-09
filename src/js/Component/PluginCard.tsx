@@ -46,7 +46,7 @@ function PluginCard({ plugin, iframeUrl }: PluginCardProps) {
                                     <span dangerouslySetInnerHTML={{ __html: plugin.plugin_name }} />
                                 </h3>
                             </a>
-                            <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed">
+                            <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mb-0!">
                                 <span dangerouslySetInnerHTML={{ __html: plugin.short_description }} />
                             </p>
                         </div>

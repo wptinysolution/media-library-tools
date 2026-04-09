@@ -7,6 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Rename\RenameModule;
+use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Query;
 
@@ -122,6 +124,17 @@ class Api {
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
+		$tsmlt_media['ai_provider']      = in_array( $parameters['ai_provider'] ?? '', [ 'chatgpt', 'gemini', 'claude' ], true ) ? $parameters['ai_provider'] : 'gemini';
+		$ai_max                          = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
+		$tsmlt_media['ai_send_image']    = $ai_max > 1 && ! empty( $parameters['ai_send_image'] );
+		$tsmlt_media['ai_suggestion_count'] = min( $ai_max, max( 1, (int) ( $parameters['ai_suggestion_count'] ?? 1 ) ) );
+		$tsmlt_media['ai_chatgpt_key']   = sanitize_text_field( $parameters['ai_chatgpt_key']   ?? '' );
+		$tsmlt_media['ai_chatgpt_model'] = sanitize_text_field( $parameters['ai_chatgpt_model'] ?? '' );
+		$tsmlt_media['ai_gemini_key']    = sanitize_text_field( $parameters['ai_gemini_key']    ?? '' );
+		$tsmlt_media['ai_gemini_model']  = sanitize_text_field( $parameters['ai_gemini_model']  ?? '' );
+		$tsmlt_media['ai_claude_key']    = sanitize_text_field( $parameters['ai_claude_key']    ?? '' );
+		$tsmlt_media['ai_claude_model']  = sanitize_text_field( $parameters['ai_claude_model']  ?? '' );
+
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
 		$options = update_option( 'tsmlt_settings', $tsmlt_media );
@@ -196,157 +209,8 @@ class Api {
 	 *
 	 * @return array
 	 */
-	public function update_single_media( array $request_data ) {
-		$parameters = $this->parse_params( $request_data );
-		$result     = [
-			'updated' => false,
-			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
-		];
-		if ( empty( $parameters['ID'] ) ) {
-			return $result;
-		}
-		// Handle Rename.
-		if ( isset( $parameters['newname'] ) ) {
-			return $this->handle_rename( $parameters );
-		}
-		// Handle Bulk Edit.
-		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
-			return $this->handle_bulk_edit( $parameters );
-		}
-		// Handle Single Field Update.
-		return $this->handle_single_updates( $parameters, $result );
-	}
-
-	/**
-	 * @param $parameters
-	 *
-	 * @return array
-	 */
-	private function handle_rename( $parameters ) {
-		$result     = [
-			'updated' => false,
-			'message' => esc_html__( 'Rename failed. Please try again.', 'media-library-tools' ),
-		];
-		$attachment = get_post( (int) $parameters['ID'] );
-		if ( ! $attachment || empty( $parameters['newname'] ) ) {
-			return $result;
-		}
-		$new_name  = sanitize_text_field( $parameters['newname'] );
-		$rename_to = $new_name; // default behavior (direct rename).
-		$post_id   = $attachment->post_parent ?: Fns::set_thumbnail_parent_id( $attachment->ID );
-		/**
-		 * Filter rename target filename.
-		 *
-		 * @param string   $rename_to  Final filename to rename to.
-		 * @param string   $new_name   Rename action or raw filename.
-		 * @param int      $post_id    Parent post ID (if exists).
-		 * @param \WP_Post  $attachment Attachment object.
-		 */
-		$rename_to = apply_filters(
-			'tsmlt_attachment_rename_to',
-			$rename_to,
-			$new_name,
-			$post_id,
-			$attachment
-		);
-		if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $attachment->ID, $rename_to ) ) {
-			$result['updated'] = true;
-			$result['message'] = esc_html__( 'Renamed.', 'media-library-tools' );
-		} else {
-			$result['message'] = esc_html__(
-				'Rename failed. The file may not exist or file permissions may be incorrect.',
-				'media-library-tools'
-			);
-		}
-		return $result;
-	}
-
-	/**
-	 * @param array $parameters pram.
-	 *
-	 * @return array
-	 */
-	private function handle_bulk_edit( $parameters ) {
-		$result     = [
-			'updated' => false,
-			'message' => esc_html__( 'Update failed.', 'media-library-tools' ),
-		];
-		$attachment = get_post( $parameters['ID'] );
-		$new_text   = '';
-		if ( $attachment && $attachment->post_parent ) {
-			$new_text = get_the_title( $attachment->post_parent );
-		}
-		if ( empty( $new_text ) ) {
-			return $result;
-		}
-		$submit = [];
-		if ( in_array( 'post_title', $parameters['bulkEditPostTitle'], true ) ) {
-			$submit['post_title'] = $new_text;
-		}
-		if ( in_array( 'alt_text', $parameters['bulkEditPostTitle'], true ) ) {
-			$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $new_text ) );
-			$result['message'] = esc_html__( 'Saved.', 'media-library-tools' );
-		}
-		if ( in_array( 'caption', $parameters['bulkEditPostTitle'], true ) ) {
-			$submit['post_excerpt'] = $new_text;
-		}
-		if ( in_array( 'post_description', $parameters['bulkEditPostTitle'], true ) ) {
-			$submit['post_content'] = $new_text;
-		}
-		if ( ! empty( $submit ) ) {
-			$submit['ID']      = $parameters['ID'];
-			$result['updated'] = wp_update_post( $submit );
-			$result['message'] = $result['updated'] ? $result['message'] : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
-		}
-		return $result;
-	}
-
-	/**
-	 * Handles a single update operation and processes the result.
-	 *
-	 * @param array $parameters Data required to perform the update.
-	 * @param mixed $result     Result returned from the update process.
-	 *
-	 * @return mixed Modified or original result after processing.
-	 */
-	private function handle_single_updates( $parameters, $result ) {
-		$post_fields = [
-			'post_title'   => esc_html__( 'The Title has been saved.', 'media-library-tools' ),
-			'post_excerpt' => esc_html__( 'The Caption has been saved.', 'media-library-tools' ),
-			'post_content' => esc_html__( 'Content has been saved.', 'media-library-tools' ),
-			'alt_text'     => esc_html__( 'Saved.', 'media-library-tools' ),
-		];
-		if ( isset( $parameters['title'] ) ) {
-			$parameters['post_title'] = sanitize_text_field( $parameters['title'] );
-			unset( $parameters['title'] );
-		}
-		if ( isset( $parameters['caption'] ) ) {
-			$parameters['post_excerpt'] = sanitize_text_field( $parameters['caption'] );
-			unset( $parameters['caption'] );
-		}
-		if ( isset( $parameters['description'] ) ) {
-			$parameters['post_content'] = sanitize_text_field( $parameters['description'] );
-			unset( $parameters['description'] );
-		}
-		$submit = [];
-		foreach ( $post_fields as $field => $message ) {
-			if ( isset( $parameters[ $field ] ) ) {
-				if ( 'alt_text' === $field ) {
-					$result['updated'] = update_post_meta( $parameters['ID'], '_wp_attachment_image_alt', trim( $parameters[ $field ] ) );
-				} else {
-					$submit[ $field ] = trim( $parameters[ $field ] );
-				}
-				$result['message'] = $message;
-			}
-		}
-		if ( ! empty( $submit ) ) {
-			$submit['ID']      = $parameters['ID'];
-			$result['updated'] = wp_update_post( $submit );
-			$result['message'] = $result['updated']
-				? $result['message']
-				: esc_html__( 'Update failed. Please try to fix.', 'media-library-tools' );
-		}
-		return $result;
+	public function update_single_media( array $request_data ): array {
+		return RenameModule::instance()->update_single_media( $this->parse_params( $request_data ) );
 	}
 	/**
 	 * @return array
@@ -464,6 +328,17 @@ class Api {
 				];
 			}
 		}
+		// Used/Unused image filter.
+		if ( ! empty( $parameters['usage_filter'] ) ) {
+			$usage_filter = sanitize_text_field( $parameters['usage_filter'] );
+			if ( 'used' === $usage_filter ) {
+				// Images that have a parent post set (used somewhere).
+				$args['post_parent__not_in'] = [ 0 ];
+			} elseif ( 'unused' === $usage_filter ) {
+				// Images with no parent post (not used anywhere).
+				$args['post_parent'] = 0;
+			}
+		}
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
@@ -471,9 +346,11 @@ class Api {
 			// Set Thumbnail Uploaded to.
 			$parent_title     = '';
 			$parent_permalink = '';
+			$parent_sku       = '';
 			if ( $post->post_parent ) {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
+				$parent_sku       = get_post_meta( $post->post_parent, '_sku', true );
 			}
 			$thefile       = [];
 			$metadata      = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
@@ -527,8 +404,9 @@ class Api {
 				'url'            => wp_get_attachment_url( $post->ID ),
 				'title'          => esc_attr( $post->post_title ),
 				'post_parents'   => [
-					'title'     => esc_attr( $parent_title ) ,
+					'title'     => esc_attr( $parent_title ),
 					'permalink' => $parent_permalink,
+					'sku'       => esc_attr( $parent_sku ),
 				],
 				'caption'        => esc_attr( $post->post_excerpt ),
 				'description'    => esc_attr( $post->post_content ),
@@ -668,211 +546,12 @@ class Api {
 		}
 		return $result;
 	}
-	/**
-	 * @return false|string
-	 */
-	public function get_dir_list() {
-
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-
-		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
-
-		// Get the timestamp of the next scheduled event.
-		$next_scheduled_timestamp = wp_next_scheduled( 'tsmlt_upload_dir_scan' );
-
-		// Get WordPress timezone.
-		$wordpress_timezone = get_option( 'timezone_string' );
-
-		// Set a default timezone in case the WordPress timezone is not set or invalid.
-		$timezone = $wordpress_timezone ? new \DateTimeZone( $wordpress_timezone ) : new \DateTimeZone( 'UTC' );
-
-		// Create a DateTime object with the scheduled timestamp and set the timezone.
-		$next_scheduled_datetime = new \DateTime( "@$next_scheduled_timestamp" );
-		$next_scheduled_datetime->setTimezone( $timezone );
-
-		$data = [
-			'dirList'      => $directory_list,
-			'nextSchedule' => $next_scheduled_datetime->format( 'Y-m-d h:i:sa' ),
-		];
-		return json_encode( $data );
-	}
 
 	/**
 	 * @return array
 	 */
-	public function rescan_dir( array $request_data ) {
-		$parameters     = $this->parse_params( $request_data );
-		$dir            = $parameters['dir'] ?? 'all';
-		$directory_list = [];
-		$message        = esc_html__( 'Schedule Will Execute Soon.', 'media-library-tools' );
-		if ( 'all' === $dir ) {
-			Fns::get_directory_list_cron_job( true );
-			$message = esc_html__( 'Schedule Will Execute Soon For Directory List.', 'media-library-tools' );
-		} elseif ( empty( $directory_list[ $dir ] ) ) {
-			$directory_list = get_option( 'tsmlt_get_directory_list', [] );
-			if ( ! empty( $directory_list[ $dir ] ) ) {
-				$directory_list[ $dir ] = [
-					'total_items' => 0,
-					'counted'     => 0,
-					'status'      => 'available',
-				];
-				update_option( 'tsmlt_get_directory_list', $directory_list );
-			}
-		}
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-		return [
-			'updated'    => true,
-			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message'    => $message,
-		];
-	}
-	/**
-	 * @return array
-	 */
-	public function immediately_search_rubbish_file( array $request_data ) {
-		$parameters = $this->parse_params( $request_data );
-		$result     = [
-			'updated' => false,
-			'data'    => [],
-			'message' => esc_html__( 'Update failed. Please try to fix', 'media-library-tools' ),
-		];
-
-		$directory = $parameters['directory'] ?? '';
-
-		if ( empty( $directory ) ) {
-			return $result;
-		}
-		$updated = Fns::update_rubbish_file_to_database( $directory );
-		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
-
-		if ( ! empty( $dirlist[ $directory ] ) ) {
-			if ( isset( $dirlist[ $directory ]['total_items'] ) && isset( $dirlist[ $directory ]['counted'] ) ) {
-				$directory = absint( $dirlist[ $directory ]['total_items'] ) > absint( $dirlist[ $directory ]['counted'] ) ? $directory : 'nextDir';
-			}
-		}
-		$result['updated'] = (bool) $updated;
-		$result['nextDir'] = $directory;
-		$result['dirlist'] = $dirlist;
-		$result['message'] = $result['updated'] ? esc_html__( 'Done, Be happy.', 'media-library-tools' ) : esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
-		return $result;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function clear_schedule() {
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
-		return [
-			'updated' => true,
-			'dirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'media-library-tools' ),
-		];
-	}
-
-	/**
-	 * @return false|string
-	 */
-	public function get_rubbish_filetype() {
-		$cache_key = 'tsmlt_unlisted_filetypes';
-		$types     = wp_cache_get( $cache_key );
-		if ( false === $types ) {
-			$result = Fns::DB()->select( 'file_type' )->distinct()->from( 'tsmlt_unlisted_file' )->get();
-			$types  = array_column( $result ?: [], 'file_type' );
-			wp_cache_set( $cache_key, $types );
-		}
-		$rubbish_data = [
-			'fileTypes' => is_array( $types ) ? $types : [],
-		];
-		return wp_json_encode( $rubbish_data );
-	}
-
-	/**
-	 * Retrieve rubbish files with pagination and filtering.
-	 *
-	 * @param array $request_data Parameter array.
-	 *
-	 * @return false|string JSON-encoded response.
-	 */
-	public function get_rubbish_file( array $request_data ) {
-		$parameters = $this->parse_params( $request_data );
-		$options    = get_option( 'tsmlt_settings' );
-		$limit      = absint( $parameters['postsPerPage'] ?? $options['rubbish_per_page'] ?? 20 );
-		$page       = max( 1, absint( $parameters['paged'] ?? 1 ) );
-		$offset     = ( $page - 1 ) * $limit;
-		$status     = sanitize_text_field( $parameters['fileStatus'] ?? 'show' );
-		$statuses   = [ $status ];
-		$extensions = ! empty( $parameters['filterExtension'] )
-			? [ sanitize_text_field( $parameters['filterExtension'] ) ]
-			: Fns::default_file_extensions();
-
-		$cache_key    = 'tsmlt_unlisted_file_' . md5( serialize( [ $statuses, $extensions, $page ] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Safe use.
-		$existing_row = wp_cache_get( $cache_key );
-
-		if ( false === $existing_row ) {
-			$existing_row = Fns::DB()->select( '*' )
-				->from( 'tsmlt_unlisted_file' )
-				->whereIn( 'status', ...$statuses )
-				->andIn( 'file_type', ...$extensions )
-				->limit( $limit )
-				->offset( $offset )
-				->get();
-			$existing_row = $existing_row ?: [];
-			wp_cache_set( $cache_key, $existing_row );
-		}
-
-		/* ---------- COUNT QUERY ---------- */
-
-		$total_cache_key = $cache_key . '_total';
-		$total_file      = wp_cache_get( $total_cache_key );
-
-		if ( false === $total_file ) {
-			$count_result = Fns::DB()->select()
-				->count( '*', 'total' )
-				->from( 'tsmlt_unlisted_file' )
-				->whereIn( 'status', ...$statuses )
-				->andIn( 'file_type', ...$extensions )
-				->get();
-			$total_file   = (int) ( $count_result[0]['total'] ?? 0 );
-			wp_cache_set( $total_cache_key, $total_file );
-		}
-
-		return wp_json_encode(
-			[
-				'mediaFile'    => is_array( $existing_row ) ? $existing_row : [],
-				'paged'        => $page,
-				'totalPost'    => $total_file,
-				'postsPerPage' => $limit,
-			]
-		);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function get_registered_image_size() {
-		$image_sizes = wp_get_registered_image_subsizes();
-		$size        = [];
-		foreach ( $image_sizes as $key => $val ) {
-			$size[ $key ] = $key . ' (' . $val['width'] . 'x' . $val['height'] . ')';
-		}
-		return $size;
-	}
-
-	/**
-	 * Truncate the 'tsmlt_unlisted_file' table.
-	 *
-	 * This function clears all data from the 'tsmlt_unlisted_file' table.
-	 *
-	 * @return bool True if the query succeeds, false otherwise.
-	 */
-	public function delete_all_rows_in_unlisted_file() {
-		Fns::DB()->delete( 'tsmlt_unlisted_file' )->execute();
-		// MODIFY COLUMN resets the AUTO_INCREMENT counter once all rows are deleted.
-		Fns::DB()->alter( 'tsmlt_unlisted_file' )->modify( 'id' )->int()->autoIncrement()->execute();
-		update_option( 'tsmlt_get_directory_list', [] );
-		return true;
+	public function get_registered_image_size(): array {
+		return ImageSizeModule::instance()->get_registered_image_size();
 	}
 
 }

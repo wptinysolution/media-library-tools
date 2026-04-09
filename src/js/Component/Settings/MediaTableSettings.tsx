@@ -28,7 +28,7 @@ export default function MediaTableSettings() {
                             />
                             <span className="text-base text-gray-900">SVG</span>
                         </label>
-                        <p className="text-sm text-gray-500">Svg And Others File Upload.</p>
+                        <p className="text-sm mt-0! text-gray-500">Svg And Others File Upload.</p>
                     </div>
                 </div>
             </div>

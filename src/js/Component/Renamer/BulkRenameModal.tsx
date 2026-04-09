@@ -32,6 +32,8 @@ function BulkModal() {
             newName = 'bulkRenameByPostTitle';
         } else if (bulkSubmitData.type === 'bulkRenameBySKU') {
             newName = 'bulkRenameBySKU';
+        } else if (bulkSubmitData.type === 'bulkRenameByAltText') {
+            newName = 'bulkRenameByAltText';
         } else {
             newName = prams.data.file_name;
         }
@@ -62,7 +64,7 @@ function BulkModal() {
     };
 
     const isTheButtonDisabled = () => {
-        if (['bulkRenameBySKU', 'bulkRenameByPostTitle'].includes(bulkSubmitData.type)) {
+        if (['bulkRenameBySKU', 'bulkRenameByPostTitle', 'bulkRenameByAltText'].includes(bulkSubmitData.type)) {
             setIsButtonDisabled(false);
         } else {
             const isDisable = !bulkSubmitData.ids.length || !bulkSubmitData.data.file_name.length;
@@ -112,6 +114,10 @@ function BulkModal() {
                 ) : bulkSubmitData.type === 'bulkRenameBySKU' ? (
                     <h5 className="text-base! font-semibold text-gray-900 m-0!">
                         Are You Sure Bulk Rename Based on Product SKU?
+                    </h5>
+                ) : bulkSubmitData.type === 'bulkRenameByAltText' ? (
+                    <h5 className="text-base! font-semibold text-gray-900 m-0!">
+                        Are You Sure Bulk Rename Based on Alt Text?
                     </h5>
                 ) : (
                     <>

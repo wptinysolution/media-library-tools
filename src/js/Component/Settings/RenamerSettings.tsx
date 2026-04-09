@@ -3,6 +3,7 @@ import { useStore } from '@/js/Utils/store';
 import CheckboxField from '@/js/Component/Common/CheckboxField';
 import TextInput from '@/js/Component/Common/TextInput';
 import SettingRow from '@/js/Component/Common/SettingRow';
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 export default function RenamerSettings() {
     const { options, setOptions, setGeneralData } = useStore();
@@ -33,14 +34,14 @@ export default function RenamerSettings() {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <label className="text-base font-medium text-gray-900">Rename prefix</label>
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
+                                {!tsmltParams.hasExtended && <ProLabel /> }
                             </div>
                             <TextInput
                                 placeholder="Prefix"
                                 onChange={(event) => setOptions({ media_rename_prefix: event.target.value })}
                                 value={(options.media_rename_prefix as string) || ''}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 A file rename prefix is a set of characters, words, or numbers added at the beginning of a filename when renaming it.
                             </p>
                         </div>
@@ -48,14 +49,14 @@ export default function RenamerSettings() {
                         <div className="space-y-2 pt-4 border-t border-gray-200">
                             <div className="flex items-center gap-2">
                                 <label className="text-base font-medium text-gray-900">Rename suffix</label>
-                                {!tsmltParams.hasExtended && <span className="text-red-600 font-bold">- PRO</span>}
+                                {!tsmltParams.hasExtended && <ProLabel /> }
                             </div>
                             <TextInput
                                 placeholder="Suffix"
                                 onChange={(event) => setOptions({ media_rename_suffix: event.target.value })}
                                 value={(options.media_rename_suffix as string) || ''}
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 mt-0!">
                                 A file rename suffix is a set of characters, words, or numbers added at the end of a filename when renaming it.
                             </p>
                         </div>
@@ -71,7 +72,7 @@ export default function RenamerSettings() {
                         label="Auto Rename by post title"
                         isPro={!tsmltParams.hasExtended}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         When you edit a post and upload an image, it will be renamed automatically based on the post title.
                     </p>
                 </SettingRow>
@@ -85,7 +86,7 @@ export default function RenamerSettings() {
                         label="Custom text"
                         isPro={!tsmltParams.hasExtended}
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-0!">
                         Auto rename will apply automatically when upload Media file.
                     </p>
                     {tsmltParams.hasExtended && 'enable_auto_rename' === options.enable_auto_rename && (
@@ -100,6 +101,63 @@ export default function RenamerSettings() {
                             </p>
                         </div>
                     )}
+                </SettingRow>
+
+                <SettingRow label="Auto Alt Text on Frontend:" bordered>
+                    <CheckboxField
+                        name="auto_inject_alt_text"
+                        value="auto_inject_alt_text"
+                        checked={'auto_inject_alt_text' === options.auto_inject_alt_text}
+                        onChange={setDefaultText}
+                        label="Enable auto alt text injection"
+                        isPro={!tsmltParams.hasExtended}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">
+                        Automatically add alt text to images missing alt attributes when pages are rendered on the frontend.
+                    </p>
+                </SettingRow>
+
+                {tsmltParams.hasExtended && 'auto_inject_alt_text' === options.auto_inject_alt_text && (
+                    <>
+                        <SettingRow label="Use Post Title as Alt Text:" bordered>
+                            <CheckboxField
+                                name="use_post_title_alt_text"
+                                value="use_post_title_alt_text"
+                                checked={'use_post_title_alt_text' === options.use_post_title_alt_text}
+                                onChange={setDefaultText}
+                                label="Use post title for alt text"
+                                isPro={false}
+                            />
+                            <p className="text-sm text-gray-500 mt-0!">
+                                If enabled, will use the post/page title as alt text. Falls back to filename if no parent post.
+                            </p>
+                        </SettingRow>
+
+                        <SettingRow label="Default Alt Text (Fallback):" bordered>
+                            <TextInput
+                                placeholder="e.g., 'Image' or 'Photo'"
+                                onChange={(event) => setOptions({ default_alt_text_if_missing: event.target.value })}
+                                value={(options.default_alt_text_if_missing as string) || ''}
+                            />
+                            <p className="text-sm text-gray-500 mt-0!">
+                                Fallback alt text if no post title or filename is available. Leave empty to use filename as fallback.
+                            </p>
+                        </SettingRow>
+                    </>
+                )}
+
+                <SettingRow label="Frontend Image Usage Tracking:" bordered>
+                    <CheckboxField
+                        name="track_frontend_usage"
+                        value="track_frontend_usage"
+                        checked={'track_frontend_usage' === options.track_frontend_usage}
+                        onChange={setDefaultText}
+                        label="Enable passive image usage tracking"
+                        isPro={false}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">
+                        Automatically collect image usage data when users visit pages. Complements the backend scan functionality.
+                    </p>
                 </SettingRow>
             </div>
         </div>

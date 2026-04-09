@@ -11,8 +11,9 @@ namespace TinySolutions\mlt\Controllers\Hooks;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
-use enshrined\svgSanitize\Sanitizer;
+use TinySolutions\mlt\Vendor\enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -37,6 +38,9 @@ class FilterHooks {
 		add_filter( 'plugin_row_meta', [ __CLASS__, 'plugin_row_meta' ], 10, 2 );
 		// Image Size.
 		add_filter( 'intermediate_image_sizes_advanced', [ __CLASS__, 'custom_image_sizes' ] );
+		// Used-Where frontend detection (lightweight tracking).
+		add_filter( 'tsmlt/settings/before/save', [ __CLASS__, 'settings_before_save_used_where' ], 10, 2 );
+		add_action( 'wp_footer', [ __CLASS__, 'track_frontend_image_usage' ], 99 );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
 			// SVG File Permission.
 			add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
@@ -460,12 +464,69 @@ class FilterHooks {
 	 */
 	public static function plugin_row_meta( $links, $file ) {
 		if ( $file == TSMLT_BASENAME ) {
-			$report_url         = 'https://www.wptinysolutions.com/contact';
+			$report_url         = 'https://help.wptinysolutions.com/';
 			$row_meta['issues'] = sprintf( '%2$s <a target="_blank" href="%1$s">%3$s</a>', esc_url( $report_url ), esc_html__( 'Facing issue?', 'media-library-tools' ), '<span style="color: red">' . esc_html__( 'Please open a support ticket.', 'media-library-tools' ) . '</span>' );
 
 			return array_merge( $links, $row_meta );
 		}
 
 		return (array) $links;
+	}
+
+	/**
+	 * Save Used-Where tracking setting.
+	 *
+	 * @param array $tsmlt_media Settings array.
+	 * @param array $parameters Raw parameters from AJAX.
+	 *
+	 * @return array Modified settings array.
+	 */
+	public static function settings_before_save_used_where( $tsmlt_media, $parameters ) {
+		$tsmlt_media['track_frontend_usage'] = $parameters['track_frontend_usage'] ?? '';
+		return $tsmlt_media;
+	}
+
+	/**
+	 * Track frontend image usage (Used-Where feature).
+	 *
+	 * Lightweight passive detection when users visit pages — collects image usage data without
+	 * requiring a full backend scan. Complements the backend scan functionality.
+	 *
+	 * Hooks on wp_footer to minimize impact on page render time.
+	 *
+	 * @return void
+	 */
+	public static function track_frontend_image_usage(): void {
+		// Only track on single posts/pages (not archives, etc.).
+		if ( ! is_singular( [ 'post', 'page' ] ) ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return;
+		}
+
+		// Check if feature is enabled.
+		$options = Fns::get_options();
+		if ( empty( $options['track_frontend_usage'] ) ) {
+			return;
+		}
+
+		// Collect images from the current page's output buffer (already rendered HTML).
+		// This is passive and happens at the end of page load.
+		$scanner = UsedWhereScanner::instance();
+
+		// Record featured image.
+		$featured_id = get_post_thumbnail_id( $post_id );
+		if ( $featured_id ) {
+			$scanner->record_frontend_usage( $featured_id, $post_id, 'featured' );
+		}
+
+		// Record images in post content (simple detection).
+		$post = get_post( $post_id );
+		if ( $post && ! empty( $post->post_content ) ) {
+			$scanner->detect_content_images( $post->post_content, $post_id, 'content' );
+		}
 	}
 }

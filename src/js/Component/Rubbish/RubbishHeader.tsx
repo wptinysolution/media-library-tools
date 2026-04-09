@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import { getDirList, getRubbishFileType, notifications } from "@/js/Utils/Data";
-import RubbishConfirmationModal from "./RubbishConfirmationModal";
+import RubbishConfirmationModal from "@/js/Component/Rubbish/RubbishConfirmationModal";
 
 function RubbishHeader() {
     const {
@@ -20,7 +20,7 @@ function RubbishHeader() {
     const getTheRubbishFileType = async () => {
         const rubbishFile = await getRubbishFileType() as { fileTypes: string[] };
         const types = rubbishFile.fileTypes.map((item) => ({ value: item, label: item }));
-        setFilterItems([{ value: '', label: 'Default' }, ...types]);
+        setFilterItems([{ value: '', label: 'Default' }, { value: 'all', label: 'All' }, ...types]);
     };
 
     const handleDirForModal = async () => {
@@ -174,7 +174,7 @@ function RubbishHeader() {
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors font-medium cursor-pointer whitespace-nowrap"
                         onClick={openDirModal}
                     >
-                        Scan Directory
+                        Find Rubbish File
                     </button>
                 </div>
                 <div className="flex items-center gap-1.5">

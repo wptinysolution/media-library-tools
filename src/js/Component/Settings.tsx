@@ -6,6 +6,7 @@ import AltTextSettings from '@/js/Component/Settings/AltTextSettings';
 import CaptionSettings from '@/js/Component/Settings/CaptionSettings';
 import DescriptionSettings from '@/js/Component/Settings/DescriptionSettings';
 import RenamerSettings from '@/js/Component/Settings/RenamerSettings';
+import AiSettings from '@/js/Component/Settings/AiSettings';
 
 function Settings() {
     const { options } = useStore();
@@ -27,6 +28,7 @@ function Settings() {
                                 <DescriptionSettings />
                             </div>
                             <RenamerSettings />
+                            <AiSettings />
                         </div>
                     )}
                     <SaveButton />

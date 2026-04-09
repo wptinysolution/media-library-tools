@@ -3,6 +3,7 @@
 # Ignore all directories called node_modules in current folder and any subfolders.
 node_modules/
 /node_modules/
+vendor
 
 # Packages #
 ############
@@ -89,3 +90,6 @@ assets/modules
 tmp
 _ext_**
 .fleet
+
+# Scoped vendor (build artifact, regenerate with: composer prefix-vendor)
+vendor_prefixed/

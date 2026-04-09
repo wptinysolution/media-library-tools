@@ -14,6 +14,7 @@ Optionally WP-CLI for POT extraction
 
 ```composer install```
 
+```composer prefix-vendor```
 
 ### Development
 

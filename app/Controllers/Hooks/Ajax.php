@@ -13,8 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
+use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
+use TinySolutions\mlt\Modules\Rename\RenameModule;
+use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
+use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
+use TinySolutions\mlt\Controllers\AI\AiApi;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -35,29 +42,51 @@ class Ajax {
 		add_action( 'wp_ajax_immediately_search_rubbish_file', [ $this, 'search_rubbish_file' ] );
 
 		// Media list / counts.
-		add_action( 'wp_ajax_tsmlt_get_media',          [ $this, 'get_media' ] );
-		add_action( 'wp_ajax_tsmlt_media_count',         [ $this, 'media_count' ] );
+		add_action( 'wp_ajax_tsmlt_get_media', [ $this, 'get_media' ] );
+		add_action( 'wp_ajax_tsmlt_media_count', [ $this, 'media_count' ] );
 		add_action( 'wp_ajax_tsmlt_update_single_media', [ $this, 'update_single_media' ] );
-		add_action( 'wp_ajax_tsmlt_bulk_submit',         [ $this, 'media_submit_bulk_action' ] );
+		add_action( 'wp_ajax_tsmlt_bulk_submit', [ $this, 'media_submit_bulk_action' ] );
 
 		// Filters / options.
-		add_action( 'wp_ajax_tsmlt_get_dates',    [ $this, 'get_dates' ] );
-		add_action( 'wp_ajax_tsmlt_get_terms',    [ $this, 'get_terms' ] );
-		add_action( 'wp_ajax_tsmlt_get_options',  [ $this, 'get_options' ] );
+		add_action( 'wp_ajax_tsmlt_get_dates', [ $this, 'get_dates' ] );
+		add_action( 'wp_ajax_tsmlt_get_terms', [ $this, 'get_terms' ] );
+		add_action( 'wp_ajax_tsmlt_get_options', [ $this, 'get_options' ] );
 		add_action( 'wp_ajax_tsmlt_update_option', [ $this, 'update_option' ] );
 
 		// Rubbish / unlisted files.
-		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype',   [ $this, 'get_rubbish_filetype' ] );
-		add_action( 'wp_ajax_tsmlt_get_rubbish_file',       [ $this, 'get_rubbish_file' ] );
-		add_action( 'wp_ajax_tsmlt_get_dir_list',           [ $this, 'get_dir_list' ] );
-		add_action( 'wp_ajax_tsmlt_rescan_dir',             [ $this, 'rescan_dir' ] );
-		add_action( 'wp_ajax_tsmlt_search_file_by_dir',     [ $this, 'search_file_by_dir' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype', [ $this, 'get_rubbish_filetype' ] );
+		add_action( 'wp_ajax_tsmlt_get_rubbish_file', [ $this, 'get_rubbish_file' ] );
+		add_action( 'wp_ajax_tsmlt_get_dir_list', [ $this, 'get_dir_list' ] );
+		add_action( 'wp_ajax_tsmlt_rescan_dir', [ $this, 'rescan_dir' ] );
+		add_action( 'wp_ajax_tsmlt_search_file_by_dir', [ $this, 'search_file_by_dir' ] );
 		add_action( 'wp_ajax_tsmlt_truncate_unlisted_file', [ $this, 'truncate_unlisted_file' ] );
+		add_action( 'wp_ajax_tsmlt_get_empty_directories', [ $this, 'get_empty_directories' ] );
+		add_action( 'wp_ajax_tsmlt_delete_empty_directory', [ $this, 'delete_empty_directory' ] );
 
 		// Schedule / image sizes / plugins.
-		add_action( 'wp_ajax_tsmlt_clear_schedule',             [ $this, 'clear_schedule' ] );
+		add_action( 'wp_ajax_tsmlt_clear_schedule', [ $this, 'clear_schedule' ] );
 		add_action( 'wp_ajax_tsmlt_get_registered_image_sizes', [ $this, 'get_registered_image_sizes' ] );
-		add_action( 'wp_ajax_tsmlt_get_plugin_list',            [ $this, 'get_plugin_list' ] );
+		add_action( 'wp_ajax_tsmlt_get_plugin_list', [ $this, 'get_plugin_list' ] );
+
+		// AI content generation.
+		add_action( 'wp_ajax_tsmlt_ai_generate', [ $this, 'ai_generate' ] );
+
+		// Duplicate detection.
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_batch', [ $this, 'duplicate_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_get_results', [ $this, 'duplicate_get_results' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_get_status', [ $this, 'duplicate_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_clear', [ $this, 'duplicate_clear' ] );
+
+		// Used-Where image usage tracking.
+		add_action( 'wp_ajax_tsmlt_used_where_scan_batch', [ $this, 'used_where_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_get_results', [ $this, 'used_where_get_results' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_bulk_delete', [ $this, 'used_where_bulk_delete' ] );
+
+		// Regenerate thumbnails.
+		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
+		add_action( 'wp_ajax_tsmlt_regenerate_get_status', [ $this, 'regenerate_get_status' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -140,7 +169,7 @@ class Ajax {
 		$raw_skip = isset( $_POST['skip'] ) ? wp_unslash( $_POST['skip'] ) : [];
 		$skip     = is_array( $raw_skip ) ? array_map( 'sanitize_text_field', $raw_skip ) : [];
 
-		Fns::scan_rubbish_file_cron_job( $skip );
+		RubbishScanner::scan_rubbish_file_cron_job( $skip );
 
 		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
 		$dir     = [];
@@ -187,7 +216,7 @@ class Ajax {
 	/** @return void */
 	public function update_single_media(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->update_single_media( $params ) );
+		$this->send( RenameModule::instance()->update_single_media( $params ) );
 	}
 
 	/** @return void */
@@ -231,37 +260,50 @@ class Ajax {
 	/** @return void */
 	public function get_rubbish_filetype(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_rubbish_filetype() );
+		$this->send( RubbishScanner::instance()->get_rubbish_filetype() );
 	}
 
 	/** @return void */
 	public function get_rubbish_file(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->get_rubbish_file( $params ) );
+		$this->send( RubbishScanner::instance()->get_rubbish_file( $params ) );
 	}
 
 	/** @return void */
 	public function get_dir_list(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_dir_list() );
+		$this->send( RubbishScanner::instance()->get_dir_list() );
 	}
 
 	/** @return void */
 	public function rescan_dir(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->rescan_dir( $params ) );
+		$this->send( RubbishScanner::instance()->rescan_dir( $params ) );
 	}
 
 	/** @return void */
 	public function search_file_by_dir(): void {
 		$params = $this->verify_and_get_params();
-		$this->send( Api::instance()->immediately_search_rubbish_file( $params ) );
+		$this->send( RubbishScanner::instance()->immediately_search_rubbish_file( $params ) );
 	}
 
 	/** @return void */
 	public function truncate_unlisted_file(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->delete_all_rows_in_unlisted_file() );
+		$this->send( RubbishScanner::instance()->delete_all_rows_in_unlisted_file() );
+	}
+
+	/** @return void */
+	public function get_empty_directories(): void {
+		$this->verify_and_get_params();
+		$dirs = RubbishScanner::get_empty_directories();
+		$this->send( [ 'updated' => true, 'directories' => $dirs ] );
+	}
+
+	/** @return void */
+	public function delete_empty_directory(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( RubbishScanner::instance()->delete_empty_directory( $params ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -271,13 +313,13 @@ class Ajax {
 	/** @return void */
 	public function clear_schedule(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->clear_schedule() );
+		$this->send( RubbishScanner::instance()->clear_schedule() );
 	}
 
 	/** @return void */
 	public function get_registered_image_sizes(): void {
 		$this->verify_and_get_params();
-		$this->send( Api::instance()->get_registered_image_size() );
+		$this->send( ImageSizeModule::instance()->get_registered_image_size() );
 	}
 
 	/** @return void */
@@ -285,4 +327,197 @@ class Ajax {
 		$this->verify_and_get_params();
 		$this->send( Api::instance()->get_plugin_list() );
 	}
+
+	// -------------------------------------------------------------------------
+	// AI content generation
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function ai_generate(): void {
+		$params        = $this->verify_and_get_params();
+		$attachment_id = absint( $params['attachment_id'] ?? 0 );
+		$field_type    = sanitize_key( $params['field_type'] ?? '' );
+		try {
+			$result = ( new AiApi() )->generate(
+				[
+					'attachment_id' => $attachment_id,
+					'field_type'    => $field_type,
+				]
+			);
+			wp_send_json_success( $result );
+		} catch ( \Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Duplicate detection
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function duplicate_scan_batch(): void {
+		$params = $this->verify_and_get_params();
+		$offset = absint( $params['offset'] ?? 0 );
+		$batch  = absint( $params['batch_size'] ?? 50 );
+		$this->send( DuplicateScanner::instance()->scan_batch( $offset, $batch ) );
+	}
+
+	/** @return void */
+	public function duplicate_get_results(): void {
+		$params = $this->verify_and_get_params();
+		$result = DuplicateScanner::instance()->get_duplicates( $params );
+		wp_send_json_success( json_decode( $result, true ) );
+	}
+
+	/** @return void */
+	public function duplicate_get_status(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->get_scan_status() );
+	}
+
+	/** @return void */
+	public function duplicate_clear(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->clear_scan() );
+	}
+
+	// -------------------------------------------------------------------------
+	// Used-Where image usage tracking
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function used_where_scan_batch(): void {
+		$params = $this->verify_and_get_params();
+		$offset = absint( $params['offset'] ?? 0 );
+		$batch  = absint( $params['batch_size'] ?? 20 );
+		$result = UsedWhereScanner::instance()->scan_batch( $offset, $batch );
+		// Update scan status in options.
+		update_option( 'tsmlt_used_where_scan_status', array_merge( $result, [ 'timestamp' => current_time( 'mysql' ) ] ) );
+		$this->send( $result );
+	}
+
+	/** @return void */
+	public function used_where_get_results(): void {
+		$params = $this->verify_and_get_params();
+		$limit  = absint( $params['limit'] ?? 20 );
+		$paged  = absint( $params['offset'] ?? 0 );
+		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
+		$filter = sanitize_text_field( $params['filter'] ?? 'used' );
+		$search = sanitize_text_field( $params['search'] ?? '' );
+
+		$args = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => $limit,
+			'paged'          => $page,
+		];
+
+		if ( $search ) {
+			$args['s'] = $search;
+		}
+
+		if ( 'unused' === $filter ) {
+			// Attachments that were scanned but have no recorded usages.
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				[
+					'key'     => UsedWhereScanner::META_KEY,
+					'compare' => 'NOT EXISTS',
+				],
+			];
+		} else {
+			// Default: attachments that have usage meta (used images).
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				[
+					'key'     => UsedWhereScanner::META_KEY,
+					'compare' => 'EXISTS',
+				],
+			];
+		}
+
+		$query = new \WP_Query( $args );
+
+		$usages = [];
+		foreach ( $query->posts as $post ) {
+			$stats    = UsedWhereScanner::instance()->get_usage_stats( $post->ID );
+			$usages[] = [
+				'attachment_id' => $post->ID,
+				'title'         => $post->post_title,
+				'url'           => wp_get_attachment_url( $post->ID ),
+				'usage_count'   => $stats['total_usage'],
+				'usage_by_type' => $stats['by_type'],
+				'used_in_posts' => count( $stats['by_post'] ),
+				'posts'         => $stats['by_post'],
+			];
+		}
+
+		$this->send( [
+			'usages' => $usages,
+			'total'  => $query->found_posts,
+		] );
+	}
+
+	/** @return void */
+	public function used_where_get_status(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->get_scan_status() );
+	}
+
+	/** @return void */
+	public function used_where_clear(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->clear_scan() );
+	}
+
+	/** @return void */
+	public function used_where_bulk_delete(): void {
+		$params = $this->verify_and_get_params();
+		$ids    = isset( $params['ids'] ) && is_array( $params['ids'] ) ? array_map( 'absint', $params['ids'] ) : [];
+
+		if ( empty( $ids ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'No IDs provided.', 'media-library-tools' ) ], 400 );
+		}
+
+		$deleted = 0;
+		foreach ( $ids as $attachment_id ) {
+			if ( $attachment_id > 0 && wp_delete_attachment( $attachment_id, true ) ) {
+				$deleted++;
+			}
+		}
+
+		$this->send( [ 'deleted' => $deleted ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Regenerate Thumbnails
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function regenerate_batch(): void {
+		$params     = $this->verify_and_get_params();
+		$offset     = absint( $params['offset'] ?? 0 );
+		$batch_size = min( absint( $params['batch_size'] ?? 10 ), 50 );
+		$this->send( RegenerateThumbnails::instance()->regenerate_batch( $offset, $batch_size ) );
+	}
+
+	/** @return void */
+	public function regenerate_get_status(): void {
+		$this->verify_and_get_params();
+
+		$sizes      = [];
+		$registered = wp_get_registered_image_subsizes();
+		foreach ( $registered as $name => $size ) {
+			$sizes[] = [
+				'name'   => $name,
+				'width'  => (int) ( $size['width'] ?? 0 ),
+				'height' => (int) ( $size['height'] ?? 0 ),
+				'crop'   => ! empty( $size['crop'] ),
+			];
+		}
+
+		$this->send( [
+			'total'       => RegenerateThumbnails::instance()->get_total(),
+			'image_sizes' => $sizes,
+		] );
+	}
+
 }

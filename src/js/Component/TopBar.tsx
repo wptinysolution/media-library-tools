@@ -23,15 +23,10 @@ function TopBar() {
                         <span className="font-semibold text-gray-800 text-[14px] tracking-tight">
                             Media Library Tools
                         </span>
-                        {tsmltParams.hasExtended ? (
-                            <span className="px-1.5 py-0.5 text-[9px] font-bold text-white bg-blue-600 rounded uppercase tracking-widest leading-none">
-                                Pro
-                            </span>
-                        ) : (
-                            <span className="px-1.5 py-0.5 text-[9px] font-semibold text-gray-400 bg-gray-100 rounded uppercase tracking-widest leading-none">
-                                Free
-                            </span>
-                        )}
+                        <span className="px-1.5 py-0.5 text-[9px] font-semibold text-gray-400 bg-gray-100 rounded uppercase tracking-widest leading-none">
+                            {tsmltParams.hasExtended ? 'PRO' : 'Free' }
+                        </span>
+
                     </div>
                     <p className="text-[10px] text-gray-400 mt-0.5! m-0!">
                         by{' '}
@@ -80,7 +75,7 @@ function TopBar() {
                             href={`${tsmltParams.proLink}#tiny-pricing-plan`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors no-underline"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-amber-600  bg-amber-50 hover:bg-amber-700 hover:text-white rounded-md transition-colors no-underline"
                         >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

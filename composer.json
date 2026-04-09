@@ -8,12 +8,23 @@
   ],
   "autoload": {
     "psr-4": {
-      "TinySolutions\\mlt\\": "app"
+      "TinySolutions\\mlt\\": "app",
+      "TinySolutions\\mlt\\Vendor\\enshrined\\svgSanitize\\": "vendor_prefixed/enshrined/svg-sanitize/src",
+      "TinySolutions\\mlt\\Vendor\\CodesVault\\Howdyqb\\": "vendor_prefixed/codesvault/howdy-qb/src"
     }
   },
   "description": "",
   "require": {
     "enshrined/svg-sanitize": "^0.22.0",
     "codesvault/howdy-qb": "^2.2"
+  },
+  "require-dev": {
+    "humbug/php-scoper": "^0.18"
+  },
+  "scripts": {
+    "prefix-vendor": [
+      "php-scoper add-prefix --output-dir=vendor_prefixed --force",
+      "@php generate-autoload.php"
+    ]
   }
 }

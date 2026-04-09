@@ -7,7 +7,7 @@
 
 namespace TinySolutions\mlt\Helpers;
 
-use CodesVault\Howdyqb\DB;
+use TinySolutions\mlt\Vendor\CodesVault\Howdyqb\DB;
 use WP_Filesystem;
 use WP_Filesystem_Direct;
 use WP_Filesystem_Base;
@@ -46,7 +46,7 @@ class Fns {
 	/**
 	 * @var array
 	 */
-	private static $cache = [];
+	public static $cache = [];
 	/**
 	 * @var string
 	 */
@@ -159,6 +159,63 @@ class Fns {
 		}
 	}
 	/**
+	 * Replace all occurrences of an image URL in post content, excerpt, and Elementor data.
+	 *
+	 * @param string $old_url Original image URL.
+	 * @param string $new_url Replacement image URL.
+	 *
+	 * @return int Total number of affected rows.
+	 */
+	public static function replace_image_url_everywhere( string $old_url, string $new_url ): int {
+		$affected  = self::replace_image_at_content( 'post_content', $old_url, $new_url );
+		$affected += self::replace_image_at_content( 'post_excerpt', $old_url, $new_url );
+
+		// Elementor metadata.
+		if ( defined( 'ELEMENTOR_VERSION' ) ) {
+			$post_ids = self::search_elementor_metadata( $old_url );
+			foreach ( $post_ids as $post_id ) {
+				$elementor_data = get_post_meta( (int) $post_id, '_elementor_data', true );
+				if ( ! empty( $elementor_data ) ) {
+					$escaped_old    = str_replace( '/', '\\/', $old_url );
+					$escaped_new    = str_replace( '/', '\\/', $new_url );
+					$elementor_data = str_replace( $escaped_old, $escaped_new, $elementor_data );
+					update_post_meta( (int) $post_id, '_elementor_data', wp_slash( $elementor_data ) );
+					++$affected;
+				}
+			}
+		}
+
+		return $affected;
+	}
+
+	/**
+	 * Reassign featured images from one attachment to another.
+	 *
+	 * @param int $old_attachment_id Attachment ID to replace.
+	 * @param int $new_attachment_id Attachment ID to use instead.
+	 *
+	 * @return int Number of updated posts.
+	 */
+	public static function reassign_featured_image( int $old_attachment_id, int $new_attachment_id ): int {
+		self::DB()->update(
+			'postmeta',
+			[ 'meta_value' => $new_attachment_id ] // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		)->where( 'meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'meta_value', '=', $old_attachment_id )
+			->execute();
+
+		// Return count of affected posts.
+		$result = self::DB()->select()
+			->count( '*', 'total' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_thumbnail_id' )
+			->andWhere( 'meta_value', '=', $new_attachment_id )
+			->get();
+
+		return (int) ( $result[0]['total'] ?? 0 );
+	}
+
+	/**
 	 * Search post IDs where an image URL exists in content or excerpt.
 	 *
 	 * @param string $orig_image_url Original image URL.
@@ -170,22 +227,26 @@ class Fns {
 		$like                     = '%' . $wpdb->esc_like( $orig_image_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
 
-		$result_content = Fns::DB()->select( 'ID' )
+		$result_content = self::DB()->select( 'ID' )
 			->from( 'posts' )
 			->where( 'post_content', 'LIKE', $like )
 			->raw( "AND {$useless_types_conditions}" )
 			->get();
 
-		$result_excerpt = Fns::DB()->select( 'ID' )
+		$result_excerpt = self::DB()->select( 'ID' )
 			->from( 'posts' )
 			->where( 'post_excerpt', 'LIKE', $like )
 			->raw( "AND {$useless_types_conditions}" )
 			->get();
 
-		$ids = array_values( array_unique( array_merge(
-			array_column( $result_content ?: [], 'ID' ),
-			array_column( $result_excerpt ?: [], 'ID' )
-		) ) );
+		$ids = array_values(
+			array_unique(
+				array_merge(
+					array_column( $result_content ?: [], 'ID' ),
+					array_column( $result_excerpt ?: [], 'ID' )
+				)
+			)
+		);
 
 		return empty( $ids ) ? [] : $ids;
 	}
@@ -239,7 +300,7 @@ class Fns {
 		$escaped_url              = str_replace( '/', '\/', $orig_image_url );
 		$searchValue              = '%' . str_replace( '\/', '\\\/', $escaped_url ) . '%';
 		$useless_types_conditions = self::$useless_types_conditions;
-		$result                   = Fns::DB()->select( 'm.post_id' )
+		$result                   = self::DB()->select( 'm.post_id' )
 			->from( 'postmeta m' )
 			->join( 'posts p', 'p.ID', 'm.post_id' )
 			->where( 'm.meta_key', '=', '_elementor_data' )
@@ -284,16 +345,20 @@ class Fns {
 			->andWhere( 'p.post_type', '=', 'product_variation' )
 			->get();
 
-		$ids = array_values( array_unique( array_merge(
-			array_column( $gallery_result ?: [], 'post_id' ),
-			array_column( $variation_result ?: [], 'post_id' )
-		) ) );
+		$ids = array_values(
+			array_unique(
+				array_merge(
+					array_column( $gallery_result ?: [], 'post_id' ),
+					array_column( $variation_result ?: [], 'post_id' )
+				)
+			)
+		);
 
 		// For variation posts, resolve to the parent product ID.
 		$resolved = [];
 		foreach ( $ids as $post_id ) {
 			if ( 'product_variation' === get_post_type( $post_id ) ) {
-				$parent = wp_get_post_parent_id( $post_id );
+				$parent     = wp_get_post_parent_id( $post_id );
 				$resolved[] = $parent ?: $post_id;
 			} else {
 				$resolved[] = absint( $post_id );
@@ -327,8 +392,8 @@ class Fns {
 		$query        = $wpdb->prepare( $sql, $orig_image_url, $new_image_url, $search_value ); // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
 		$wpdb->query( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
 		// Force Elementor to regenerate CSS and cache.
-		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
-		Fns::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
+		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
+		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
 	}
 
 	/**
@@ -468,7 +533,7 @@ class Fns {
 	 */
 	public static function permalink_to_post_guid( $post_id ) {
 		$guid = wp_get_attachment_url( $post_id );
-		Fns::DB()->update( 'posts', [ 'guid' => $guid ] )
+		self::DB()->update( 'posts', [ 'guid' => $guid ] )
 			->where( 'ID', '=', $post_id )
 			->execute();
 		clean_post_cache( $post_id );
@@ -501,6 +566,8 @@ class Fns {
 			$total_rabbis_count          = absint( $options['rubbish_per_page'] ?? 20 );
 			$options['rubbish_per_page'] = self::maximum_media_per_page() < $total_rabbis_count ? self::maximum_media_per_page() : $total_rabbis_count;
 		}
+
+		$options['ai_max_suggestion_count'] = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 
 		return wp_parse_args( $options, $defaults );
 	}
@@ -546,217 +613,6 @@ class Fns {
 	}
 
 	/**
-	 * Function to scan the upload directory and search for files.
-	 *
-	 * @param string $directory The directory to scan.
-	 *
-	 * @return array The list of found files.
-	 */
-	public static function scan_file_in_directory( $directory ) {
-		if ( ! $directory ) {
-			return [];
-		}
-		$filesystem = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
-		$scanned_files = [];
-		$files         = $filesystem->dirlist( $directory );
-		if ( ! is_array( $files ) ) {
-			return [];
-		}
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-			if ( $filesystem->is_dir( $file_path ) ) {
-				continue;
-			}
-			$scanned_files[] = $file_path;
-		}
-
-		return $scanned_files;
-	}
-
-	/**
-	 * @param $directory
-	 *
-	 * @return bool|void
-	 */
-	public static function update_rubbish_file_to_database( $directory ) {
-
-		$dir_cache_key = md5( $directory );
-		if ( isset( self::$cache[ $dir_cache_key ] ) ) {
-			$found_files = self::$cache[ $dir_cache_key ];
-		} else {
-			$found_files                   = self::scan_file_in_directory( $directory ); // Scan the directory and search for files.
-			self::$cache[ $dir_cache_key ] = $found_files;
-		}
-
-		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
-
-		$dis_list[ $directory ]['total_items'] = count( $found_files );
-
-		$last_processed_offset = absint( $dis_list[ $directory ]['counted'] );
-
-		// Process files in batches of 50 to avoid timeouts on large directories.
-		$files = array_slice( $found_files, $last_processed_offset, 50 );
-
-		$found_files_count = count( $files );
-
-		$dis_list[ $directory ]['counted'] = $last_processed_offset + $found_files_count;
-		global $wpdb;
-
-		$upload_dir      = wp_upload_dir();
-		$uploaddir       = $upload_dir['basedir'] ?? 'wp-content/uploads/';
-		$instantDeletion = 'instant' === sanitize_text_field( wp_unslash( $_REQUEST['instantDeletion'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$table_name      = $wpdb->prefix . 'tsmlt_unlisted_file';
-		foreach ( $files as $file_path ) {
-			if ( ! file_exists( $file_path ) ) {
-				continue;
-			}
-			$search_string = '';
-			$str           = explode( $uploaddir . '/', $file_path );
-
-			if ( is_array( $str ) && ! empty( $str[1] ) ) {
-				$search_string = $str[1];
-			}
-			$attachment_id = 0;
-			if ( $search_string ) {
-				$attachment_id = attachment_url_to_postid( $search_string );
-			}
-			if ( ! $attachment_id && $search_string ) {
-				// Search by basename so WordPress-generated thumbnails are also matched.
-				// Then verify the matched attachment lives in the same directory to avoid
-				// false positives from custom directories like "ribbish/".
-				$search_basename = basename( $search_string );
-				$search_dir      = dirname( $search_string );
-				$result          = Fns::DB()->select( 'post_id' )
-					->from( 'postmeta' )
-					->where( 'meta_key', '=', '_wp_attachment_metadata' )
-					->andWhere( 'meta_value', 'LIKE', '%' . $wpdb->esc_like( $search_basename ) . '%' )
-					->get();
-				if ( ! empty( $result ) ) {
-					foreach ( $result as $row ) {
-						$attached_file = get_post_meta( (int) $row['post_id'], '_wp_attached_file', true );
-						if ( $attached_file && dirname( $attached_file ) === $search_dir ) {
-							$attachment_id = (int) $row['post_id'];
-							break;
-						}
-					}
-				}
-			}
-
-			if ( absint( $attachment_id ) && get_post_type( $attachment_id ) ) {
-				continue;
-			}
-
-			$metadata_file = basename( $file_path );
-			$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-
-			$matchFileExtension = in_array( $fileextension, self::default_file_extensions(), true );
-			if ( $instantDeletion && wp_doing_ajax() && $matchFileExtension ) {
-				do_action( 'tsmlt_do_ajax_instant_action', $file_path, $table_name );
-				continue;
-			}
-			$cache_key  = 'tsmlt_existing_row_' . sanitize_title( $file_path );
-			// Check if the file_path already exists in the table using cached data.
-			$existing_row = wp_cache_get( $cache_key );
-			if ( ! $existing_row ) {
-				$result       = Fns::DB()->select( 'id' )
-					->from( 'tsmlt_unlisted_file' )
-					->where( 'file_path', '=', $search_string )
-					->get();
-				$existing_row = ! empty( $result ) ? $result[0] : null;
-				// Cache the query result.
-				if ( $existing_row ) {
-					continue;
-				}
-				$save_data = [
-					'file_path'     => $search_string,
-					'attachment_id' => 0,
-					'file_type'     => pathinfo( $search_string, PATHINFO_EXTENSION ),
-					'meta_data'     => serialize( [] ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Using serialize to store array data.
-				];
-				Fns::DB()->insert( 'tsmlt_unlisted_file', [ $save_data ] )->execute();
-
-				wp_cache_set( $cache_key, $existing_row );
-			}
-		}
-		$dis_list[ $directory ]['scanned'] = true;
-		return update_option( 'tsmlt_get_directory_list', $dis_list );
-	}
-
-	/**
-	 * @return void
-	 */
-	public static function get_directory_list_cron_job( $isRescan = false ) {
-		if ( $isRescan ) {
-			update_option( 'tsmlt_get_directory_list', [] );
-		}
-		$cache_key      = 'get_directory_list';
-		$subdirectories = wp_cache_get( $cache_key );
-		if ( ! $subdirectories ) {
-			$upload_dir     = wp_upload_dir(); // Get the upload directory path.
-			$directory      = $upload_dir['basedir']; // Get the base directory path.
-			$subdirectories = self::scan_directory_list( $directory );
-			wp_cache_set( $cache_key, $subdirectories );
-		}
-		$dir_status = get_option( 'tsmlt_get_directory_list', [] );
-
-		$subdirectories = wp_parse_args( $dir_status, $subdirectories );
-
-		update_option( 'tsmlt_get_directory_list', $subdirectories );
-	}
-
-	/**
-	 * Function to retrieve the list of directories with paths from a given directory.
-	 *
-	 * @param string $directory The directory to scan.
-	 *
-	 * @return array The list of directories with their paths.
-	 */
-	public static function scan_directory_list( $directory ) {
-		if ( ! $directory || ! is_string( $directory ) ) {
-			return [];
-		}
-		$filesystem  = self::get_wp_filesystem_instance(); // Get the proper WP_Filesystem instance.
-		$directories = [];
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
-		$paths_to_ignore = self::paths_to_ignore();
-		foreach ( $paths_to_ignore as $path ) {
-			if ( strpos( $directory, $path ) !== false ) {
-				return [];
-			}
-		}
-
-		$files = $filesystem->dirlist( $directory );
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-
-			if ( $filesystem->is_dir( $file_path ) ) {
-				$subdirectories = self::scan_directory_list( $file_path );
-				$directories    = array_merge( $directories, $subdirectories );
-			} else {
-				// Extract the directory path from the file path.
-				$dir_path = dirname( $file_path );
-				// Add the directory to the list if it doesn't exist.
-				if ( ! in_array( $dir_path, $directories, true ) ) {
-					$directories[ $dir_path ] = [
-						'total_items' => 0,
-						'counted'     => 0,
-						'status'      => 'available',
-					];
-				}
-			}
-		}
-
-		return $directories;
-	}
-
-	/**
 	 * @param $attachment_id
 	 *
 	 * @return int|void
@@ -770,12 +626,12 @@ class Fns {
 			return false;
 		}
 
-		$result    = Fns::DB()->select( 'post_id' )
+		$result         = self::DB()->select( 'post_id' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', '_thumbnail_id' )
 			->andWhere( 'meta_value', '=', $attachment_id )
 			->get();
-		$parent_id = ! empty( $result ) ? $result[0]['post_id'] : null;
+		$parent_id      = ! empty( $result ) ? $result[0]['post_id'] : null;
 		$post_ids       = [];
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		if ( ! $parent_id ) {
@@ -844,56 +700,6 @@ class Fns {
 	}
 
 	/**
-	 * Function to scan the upload directory and search for files
-	 */
-	public static function scan_rubbish_file_cron_job( $skip = [] ) {
-
-		$dis_list = get_option( 'tsmlt_get_directory_list', [] );
-		if ( ! count( $dis_list ) ) {
-			return;
-		}
-		$directory = '';
-		foreach ( $dis_list as $key => $item ) {
-			$fully_scanned = ( absint( $item['total_items'] ) && absint( $item['total_items'] ) <= absint( $item['counted'] ) )
-				|| ( absint( $item['total_items'] ) === 0 && ! empty( $item['scanned'] ) );
-			if ( $fully_scanned ) {
-				continue;
-			}
-			if ( 'available' !== ( $item['status'] ?? 'available' ) ) {
-				continue;
-			}
-			if ( in_array( $key, $skip, true ) ) {
-				continue;
-			}
-			$directory = $key;
-		}
-
-		if ( ! empty( $directory ) ) {
-			self::update_rubbish_file_to_database( $directory );
-		}
-	}
-
-	/**
-	 * @return array|void
-	 */
-	public static function paths_to_ignore() {
-		return apply_filters(
-			'tsmlt_get_directory_list_paths_to_ignore',
-			[
-				'wp-content/uploads/elementor',
-				'wp-content/uploads/rtcl',
-			]
-		);
-	}
-
-	/**
-	 * @return string[]
-	 */
-	public static function default_file_extensions() {
-		return apply_filters( 'tsmlt_default_file_extensions', [ 'pdf', 'zip', 'mp4', 'jpeg', 'jpg', 'php', 'log', 'png', 'svg', 'gif', 'DS_Store', 'bmp', 'tiff', 'webp', 'heif', 'raw', 'psd', 'eps', 'ico', 'cur', 'jp2' ] );
-	}
-
-	/**
 	 * @return string[]
 	 */
 	public static function skip_meta_keys() {
@@ -916,6 +722,7 @@ class Fns {
 				'_edit_lock',
 				'_edit_last',
 				'_original_file_url',
+				'_tsmlt_image_usages',
 			]
 		);
 		if ( empty( $skip_key ) || ! is_array( $skip_key ) ) {
@@ -931,7 +738,7 @@ class Fns {
 		if ( isset( self::$cache[ $keys_attachment ] ) ) {
 			return self::$cache[ $keys_attachment ];
 		}
-		$result    = Fns::DB()->select( 'pm.meta_key' )
+		$result    = self::DB()->select( 'pm.meta_key' )
 			->distinct()
 			->from( 'postmeta pm' )
 			->innerJoin( 'posts p', 'p.ID', 'pm.post_id' )

@@ -2,6 +2,50 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import Papa from 'papaparse';
 
+export const IMPORT_HISTORY_KEY = 'tsmlt_csv_import_history';
+const HISTORY_KEY = 'tsmlt_csv_export_history';
+const MAX_HISTORY = 20;
+
+interface ExportRecord {
+    id: string;
+    filename: string;
+    rows: number;
+    date: string; // ISO string
+}
+
+const loadHistory = (): ExportRecord[] => {
+    try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    } catch {
+        return [];
+    }
+};
+
+const saveHistory = (records: ExportRecord[]) => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(records.slice(-MAX_HISTORY)));
+};
+
+export const triggerCsvDownload = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+export const redownloadCsv = (id: string, filename: string): boolean => {
+    try {
+        const content = sessionStorage.getItem(`tsmlt_csv_${id}`);
+        if (!content) return false;
+        triggerCsvDownload(filename, content);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 const escapeValues = (obj: Record<string, unknown>): Record<string, unknown> => {
     const escaped: Record<string, unknown> = {};
     for (const key in obj) {
@@ -22,9 +66,7 @@ function ExportCSV() {
     const selectedKeys = bulkExport.selectedKeys;
 
     const generateCSVStructure = () => {
-        if (filteredData.length < 1) {
-            return;
-        }
+        if (filteredData.length < 1) return;
         const updatedData = filteredData.map(item => {
             const flatMeta = (item.custom_meta as Record<string, unknown>) || {};
             const fullRow: Record<string, unknown> = {
@@ -40,13 +82,10 @@ function ExportCSV() {
             const finalKeys = Array.from(new Set(['ID', 'slug', ...selectedKeys]));
             const filteredRow: Record<string, unknown> = {};
             finalKeys.forEach(key => {
-                if (key in fullRow) {
-                    filteredRow[key] = fullRow[key];
-                }
+                if (key in fullRow) filteredRow[key] = fullRow[key];
             });
             return escapeValues(filteredRow);
         });
-
         const csv = Papa.unparse(updatedData, { quotes: true });
         setCsvData(csv);
     };
@@ -56,13 +95,14 @@ function ExportCSV() {
     }, [selectedKeys]);
 
     const downloadCSV = () => {
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `export-media-file-${window.location.hostname}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const filename = `export-media-file-${window.location.hostname}.csv`;
+        triggerCsvDownload(filename, csvData);
+
+        // Record this export in history and cache content for re-download.
+        const id = Date.now().toString();
+        const record: ExportRecord = { id, filename, rows: filteredData.length, date: new Date().toISOString() };
+        saveHistory([...loadHistory(), record]);
+        try { sessionStorage.setItem(`tsmlt_csv_${id}`, csvData); } catch { /* quota exceeded */ }
     };
 
     return (
@@ -80,4 +120,27 @@ function ExportCSV() {
     );
 }
 
+export interface ImportRecord {
+    id: string;
+    sessionId: string; // key into sessionStorage for re-import
+    filename: string;
+    rows: number;
+    succeeded: number;
+    date: string;
+}
+
+export const loadImportHistory = (): ImportRecord[] => {
+    try {
+        return JSON.parse(localStorage.getItem(IMPORT_HISTORY_KEY) || '[]');
+    } catch {
+        return [];
+    }
+};
+
+export const saveImportHistory = (records: ImportRecord[]) => {
+    localStorage.setItem(IMPORT_HISTORY_KEY, JSON.stringify(records.slice(-MAX_HISTORY)));
+};
+
+export { loadHistory, saveHistory };
+export type { ExportRecord };
 export default ExportCSV;

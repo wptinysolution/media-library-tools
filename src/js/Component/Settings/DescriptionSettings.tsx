@@ -28,7 +28,7 @@ export default function DescriptionSettings() {
                     label="Default Description Text Base On Post Title"
                     isPro={!tsmltParams.hasExtended}
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Description Text will add automatically when upload Media as attached posts.
                 </p>
             </SettingRow>
@@ -61,7 +61,7 @@ export default function DescriptionSettings() {
                     </div>
                 )}
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-0!">
                     Description text will add automatically when upload Media file
                 </p>
             </SettingRow>

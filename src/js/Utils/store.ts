@@ -21,7 +21,7 @@ export interface MediaPost {
     caption: string;
     description: string;
     post_mime_type: string;
-    post_parents: { title?: string; permalink?: string };
+    post_parents: { title?: string; permalink?: string; sku?: string };
     categories: string;
     uploaddir: string;
     thefile: { file: string; filebasename: string; fileextension: string; mainfilename: string; originalname?: string };
@@ -109,6 +109,16 @@ export interface OptionsState {
     media_rename_prefix?: string;
     media_rename_suffix?: string;
     auto_rename_by_post_title?: string;
+    ai_provider?: 'chatgpt' | 'gemini' | 'claude';
+    ai_send_image?: boolean;
+    ai_suggestion_count?: number;
+    ai_max_suggestion_count?: number;
+    ai_chatgpt_key?: string;
+    ai_chatgpt_model?: string;
+    ai_gemini_key?: string;
+    ai_gemini_model?: string;
+    ai_claude_key?: string;
+    ai_claude_model?: string;
     [key: string]: unknown;
 }
 
@@ -160,6 +170,7 @@ export interface GeneralData {
     dateList: Array<{ value: string; label: string }>;
     termsList: Array<{ value: string; label: string }>;
     isDirModalOpen: boolean;
+    autoStartScan: boolean;
     scanDir: string;
     scanRubbishDirList: Record<string, { total_items: number; counted: number }>;
     scanDirNextSchedule: string;
@@ -184,6 +195,7 @@ export interface ExportImportState {
     fileCount: number;
     percent: number;
     settings: ExportImportSettings | string[];
+    csvFilename: string;
 }
 
 export interface BulkExportState {
@@ -193,6 +205,37 @@ export interface BulkExportState {
 
 export interface SearchUsesState {
     isModalOpen: boolean;
+}
+
+export interface DuplicateItem {
+    attachment_id: number;
+    title: string;
+    url: string;
+    thumbnail: string;
+    file_path: string;
+    file_size: number;
+    used_in: { title: string; permalink: string }[];
+    upload_date: string;
+}
+
+export interface DuplicateGroup {
+    file_hash: string;
+    file_size: number;
+    item_count: number;
+    items: DuplicateItem[];
+}
+
+export interface DuplicateState {
+    isLoading: boolean;
+    isScanning: boolean;
+    scanProgress: { processed: number; total: number };
+    groups: DuplicateGroup[];
+    totalGroups: number;
+    potentialSavings: number;
+    scanned: number;
+    totalAttachments: number;
+    paged: number;
+    postsPerPage: number;
 }
 
 export interface StoreState {
@@ -234,6 +277,9 @@ export interface StoreState {
 
     searchUses: SearchUsesState;
     setSearchUses: (update: Partial<SearchUsesState>) => void;
+
+    duplicateData: DuplicateState;
+    setDuplicateData: (update: Partial<DuplicateState>) => void;
 }
 
 export const initialExportImport: ExportImportState = {
@@ -247,6 +293,7 @@ export const initialExportImport: ExportImportState = {
     fileCount: 0,
     percent: 0,
     settings: [],
+    csvFilename: '',
 };
 
 export const initialBulkExport: BulkExportState = {
@@ -351,6 +398,7 @@ export const useStore = create<StoreState>((set) => ({
         dateList: [],
         termsList: [],
         isDirModalOpen: false,
+        autoStartScan: false,
         scanDir: '',
         scanRubbishDirList: {},
         scanDirNextSchedule: '',
@@ -370,4 +418,18 @@ export const useStore = create<StoreState>((set) => ({
         isModalOpen: false,
     },
     setSearchUses: (update) => set((state) => ({ searchUses: { ...state.searchUses, ...update } })),
+
+    duplicateData: {
+        isLoading: false,
+        isScanning: false,
+        scanProgress: { processed: 0, total: 0 },
+        groups: [],
+        totalGroups: 0,
+        potentialSavings: 0,
+        scanned: 0,
+        totalAttachments: 0,
+        paged: 1,
+        postsPerPage: 20,
+    },
+    setDuplicateData: (update) => set((state) => ({ duplicateData: { ...state.duplicateData, ...update } })),
 }));

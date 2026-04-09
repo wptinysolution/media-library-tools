@@ -14,16 +14,16 @@ function ProModal() {
     };
 
     const data: ProFeature[] = [
-        { title: 'All free Features Included', desc: 'All features available in the free version are included.' },
-        { title: 'Search And Find Used Images (Attached Post)', desc: 'Identify where the media file is used and display the corresponding page link.' },
-        { title: 'Media File CSV Export/Import', desc: 'This feature empowers users to efficiently transfer, backup, and manage their media files, enhancing both the convenience and accuracy of data handling.' },
-        { title: 'Bulk Renaming File Based on Associated Post Title', desc: 'Automatic renaming of media files bulk mode.' },
-        { title: 'Renaming File Prior to Uploading Based on Attached Posts Title', desc: 'Automatic renaming of media files prior to uploading based on attached posts.' },
-        { title: 'Auto Rename Based on Custom Name', desc: 'Implement automatic renaming of media files based on custom text.' },
-        { title: 'Bulk Add Alt Text, Caption, and Description Based on Associated Post Title', desc: 'Add Alt Text, Caption, and Description Based on Associated Post Title Bulk mode.' },
-        { title: 'Register Custom Image Sizes', desc: 'Easily register custom image sizes as needed.' },
-        { title: 'Find Rubbish And Restore File', desc: 'Easily Restore necessary File.' },
-        { title: 'Find And Bulk Delete Unnecessary / Rubbish File', desc: 'Easily mass delete unnecessary files, optimizing storage space and simplifying clutter management with bulk deletion.' },
+        { title: 'All Free Features Included', desc: 'Everything in the free version, plus all premium features below.' },
+        { title: 'AI-Powered Content Generation', desc: 'Generate titles, alt text, captions, descriptions, and file names using AI.' },
+        { title: 'Bulk Edit by Post Title', desc: 'Bulk add alt text, caption, and description based on the attached post title.' },
+        { title: 'Bulk Rename by Post Title / SKU', desc: 'Rename media files in bulk based on attached post title or WooCommerce product SKU.' },
+        { title: 'Auto Rename on Upload', desc: 'Automatically rename media files when uploaded, based on attached post title or custom name.' },
+        { title: 'Media CSV Export / Import', desc: 'Export and import media metadata via CSV for bulk editing and backup.' },
+        { title: 'Register Custom Image Sizes', desc: 'Register custom image sizes that WordPress generates on upload.' },
+        { title: 'Merge Duplicate Files', desc: 'Detect duplicates, keep one copy, and update all references across posts, pages, and Elementor.' },
+        { title: 'Rubbish File Delete & Restore', desc: 'Delete unnecessary files or restore them back into the WordPress media library.' },
+        { title: 'Find Where Images Are Used', desc: 'Search selected images and find which posts, pages, or custom post types use them.' },
     ];
 
     return (
@@ -70,12 +70,12 @@ function ProModal() {
                 <div className="space-y-1">
                     {data.map((item, index) => (
                         <div key={index} className="flex items-start gap-3 py-2">
-                            <svg className="w-10 h-10 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-10 h-10 text-blue-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                             </svg>
                             <div>
                                 <span className="text-[15px] font-medium text-blue-600">{item.title}</span>
-                                <p className="text-sm text-gray-700 mt-0.5!">{item.desc}</p>
+                                <p className="text-sm text-gray-700 mb-0! mt-0.5!">{item.desc}</p>
                             </div>
                         </div>
                     ))}

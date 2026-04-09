@@ -193,3 +193,74 @@ export const getRegisteredImageSizes = async (): Promise<AxiosResponse> => {
 export const truncateUnlistedFile = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_truncate_unlisted_file');
 };
+
+export const getEmptyDirectories = async (): Promise<{ directories: string[] }> => {
+    const result = await ajaxPost('tsmlt_get_empty_directories');
+    return result.data as { directories: string[] };
+};
+
+export const deleteEmptyDirectory = async (directory: string): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_delete_empty_directory', { directory });
+};
+
+// Duplicate detection.
+export const duplicateScanBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_duplicate_scan_batch', prams);
+};
+
+export const getDuplicateResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_duplicate_get_results', prams);
+    return result.data as Record<string, unknown>;
+};
+
+export const getDuplicateStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_duplicate_get_status');
+    return result.data as Record<string, unknown>;
+};
+
+export const clearDuplicateScan = async (): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_duplicate_clear');
+    notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
+    return response;
+};
+
+export const mergeDuplicates = async (prams: object = {}): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_duplicate_merge', prams);
+    notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
+    return response;
+};
+
+// Used-Where image usage tracker.
+export const usedWhereScanBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_used_where_scan_batch', prams);
+};
+
+export const getUsedWhereResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_results', prams);
+    return result.data as Record<string, unknown>;
+};
+
+export const getUsedWhereStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_status');
+    return result.data as Record<string, unknown>;
+};
+
+export const clearUsedWhereScan = async (): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_used_where_clear');
+};
+
+export const usedWhereBulkDelete = async (ids: number[]): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_bulk_delete', { ids });
+    return result.data as Record<string, unknown>;
+};
+
+// Regenerate Thumbnails.
+export const regenerateBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_regenerate_batch', prams);
+};
+
+export const regenerateGetStatus = async (): Promise<{ total: number; image_sizes: unknown[] }> => {
+    const result = await ajaxPost('tsmlt_regenerate_get_status');
+    return result.data as { total: number; image_sizes: unknown[] };
+};
+

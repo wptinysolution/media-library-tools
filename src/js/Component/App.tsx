@@ -28,6 +28,10 @@ import PluginList from "@/js/Component/PluginList";
 import ImageSize from "@/js/Component/ImageSize/ImageSize";
 import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
+import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
+import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
+import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
+import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
 
 function App() {
     const {
@@ -173,13 +177,20 @@ function App() {
                     <Route path="/export" element={<ExportButton />} />
                     <Route path="/import" element={<ImportButton />} />
                     <Route path="/imageSize" element={<ImageSize />} />
+                    <Route path="/regenerate" element={<RegenerateInit />} />
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
+                    <Route path="/duplicates" element={<DuplicatePage />} />
+                    <Route path="/duplicates/page/:page" element={<DuplicatePage />} />
+                    <Route path="/usedWhere" element={<UsedWherePage />} />
+                    <Route path="/usedWhere/:filter" element={<UsedWherePage />} />
+                    <Route path="/usedWhere/:filter/page/:page" element={<UsedWherePage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                <ProUpgradeBanner />
             </div>
             <ProModal />
             <Toaster
