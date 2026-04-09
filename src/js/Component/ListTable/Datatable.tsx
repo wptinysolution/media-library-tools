@@ -279,7 +279,7 @@ export default function Datatable() {
                                         <SortButton label="ID" field="id" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                                         <SortButton label="Name" field="name" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                                         <SortButton label="Title" field="title" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
-                                        <SortButton label="Parent Post" field="post_parents" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
+                                        <SortButton label="Attached Post" field="post_parents" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                                         <SortButton label="Alt" field="alt" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                                         <SortButton label="Caption" field="caption" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />
                                         <SortButton label="Description" field="description" currentOrderby={mediaData.postQuery.orderby} currentOrder={mediaData.postQuery.order} onClick={handleSortClick} />

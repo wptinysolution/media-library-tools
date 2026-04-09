@@ -178,7 +178,7 @@ function RenamerTableData() {
                                 { field: 'id' as SortField, label: 'ID' },
                                 { field: 'title' as SortField, label: 'Title' },
                                 { field: 'alt' as SortField, label: 'Alt Text' },
-                                { field: 'post_parents' as SortField, label: 'Parent Post' },
+                                { field: 'post_parents' as SortField, label: 'Attached Post' },
                             ]).map(({ field, label }) => (
                                 <button
                                     key={field}
