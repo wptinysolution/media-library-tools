@@ -392,7 +392,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-start gap-1.5">
                                                             <span className="text-gray-400">Alt:</span>
                                                             {record.alt_text ? record.alt_text : <MissingBadge />}
                                                         </p>
@@ -428,7 +428,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-start gap-1.5">
                                                             <span className="text-gray-400">Caption:</span>
                                                             {record.caption ? record.caption : <MissingBadge />}
                                                         </p>
@@ -464,7 +464,7 @@ export default function Datatable() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-start gap-1.5">
                                                             <span className="text-gray-400">Desc:</span>
                                                             {record.description ? record.description : <MissingBadge />}
                                                         </p>
