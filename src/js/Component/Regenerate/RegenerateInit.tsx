@@ -273,6 +273,53 @@ function RegenerateInit() {
                     )}
                 </div>
 
+                {/* History list */}
+                {history.length > 0 && (
+                    <div className="bg-white mb-6 rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span className="text-sm font-medium text-gray-700">
+                                Regenerated ({history.length.toLocaleString()})
+                                {history.length > 10 && (
+                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last 10</span>
+                                )}
+                            </span>
+                            {isRunning && (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Live
+                                </span>
+                            )}
+                        </div>
+                        <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                            {history.slice(-10).reverse().map(item => (
+                                <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
+                                        <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
+                                    </div>
+                                    {item.deleted_sizes.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
+                                            <span className="text-[10px] text-gray-400 mr-0.5">orphans removed:</span>
+                                            {item.deleted_sizes.map(s => (
+                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded">
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+
                 {/* Image sizes list */}
                 {imageSizes.length > 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
@@ -290,10 +337,10 @@ function RegenerateInit() {
                                         {size.width > 0 && size.height > 0
                                             ? `${size.width} × ${size.height}`
                                             : size.width > 0
-                                            ? `${size.width}w`
-                                            : size.height > 0
-                                            ? `${size.height}h`
-                                            : 'flexible'
+                                                ? `${size.width}w`
+                                                : size.height > 0
+                                                    ? `${size.height}h`
+                                                    : 'flexible'
                                         }
                                         {size.crop && <span className="ml-1.5 text-blue-500">crop</span>}
                                     </span>
@@ -335,52 +382,6 @@ function RegenerateInit() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {/* History list */}
-                {history.length > 0 && (
-                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
-                            <span className="text-sm font-medium text-gray-700">
-                                Regenerated ({history.length.toLocaleString()})
-                                {history.length > 10 && (
-                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last 10</span>
-                                )}
-                            </span>
-                            {isRunning && (
-                                <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>
-                                    Live
-                                </span>
-                            )}
-                        </div>
-                        <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                            {history.slice(-10).reverse().map(item => (
-                                <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
-                                    <div className="flex items-center gap-3">
-                                        <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
-                                        <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
-                                    </div>
-                                    {item.deleted_sizes.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
-                                            <span className="text-[10px] text-gray-400 mr-0.5">orphans removed:</span>
-                                            {item.deleted_sizes.map(s => (
-                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded">
-                                                    {s}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
                                 </li>
                             ))}
                         </ul>
