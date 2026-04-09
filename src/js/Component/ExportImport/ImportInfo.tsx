@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useStore } from "@/js/Utils/store";
 import { importOneByOne } from "@/js/Utils/Data";
 import { Link } from "react-router-dom";
 import type { ExportImportSettings } from "@/js/Utils/store";
+import { loadImportHistory, saveImportHistory } from "./ExportCSV";
 
 interface UploadedItem {
     id: string | number;
@@ -10,13 +11,14 @@ interface UploadedItem {
     status: string;
 }
 
-function ImportInfo() {
+function ImportInfo({ onComplete }: { onComplete?: () => void }) {
     const { exportImport } = useStore();
 
     const [percent, setPercent] = useState(0);
     const [uploadedFile, setUploadedFile] = useState<UploadedItem[]>([]);
     const [currentFile, setCurrentFile] = useState<string | null>(null);
     const settings = exportImport.settings as ExportImportSettings;
+    const recordedRef = useRef(false);
 
     const getFileNameFromURL = (url: string): string | false => {
         if (!url) {
@@ -54,7 +56,25 @@ function ImportInfo() {
         uploadMediaSequentially();
     }, []);
 
-    const reversedFiles = useMemo(() => [...uploadedFile].reverse(), [uploadedFile]);
+    // Record to import history once when the import completes.
+    useEffect(() => {
+        if (percent < 100 || recordedRef.current) return;
+        recordedRef.current = true;
+        const succeeded = uploadedFile.filter(f => f.status === 'uploaded').length;
+        const sessionId = sessionStorage.getItem('tsmlt_import_id') || '';
+        const record = {
+            id: Date.now().toString(),
+            sessionId,
+            filename: exportImport.csvFilename || 'import.csv',
+            rows: exportImport.fileCount,
+            succeeded,
+            date: new Date().toISOString(),
+        };
+        saveImportHistory([...loadImportHistory(), record]);
+        onComplete?.();
+    }, [percent]);
+
+    const reversedFiles = useMemo(() => uploadedFile.slice(-10).reverse(), [uploadedFile]);
 
     return (
         <div className="max-w-375 mx-auto w-full">
@@ -94,7 +114,16 @@ function ImportInfo() {
             <hr className="border-gray-200 my-4" />
 
             {reversedFiles.length ? (
-                <div className="h-100 overflow-auto px-4 border border-gray-300 rounded-lg">
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-700">
+                            Imported ({uploadedFile.length})
+                        </span>
+                        {uploadedFile.length > 10 && (
+                            <span className="text-xs text-gray-400">showing last 10</span>
+                        )}
+                    </div>
+                    <div className="h-100 overflow-auto px-4">
                     {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             <img
@@ -118,6 +147,7 @@ function ImportInfo() {
                             </div>
                         </div>
                     ))}
+                    </div>
                 </div>
             ) : ''}
         </div>

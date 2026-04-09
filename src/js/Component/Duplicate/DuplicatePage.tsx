@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import type { DuplicateGroup } from "@/js/Utils/store";
 import { duplicateScanBatch, getDuplicateResults, getDuplicateStatus, clearDuplicateScan, mergeDuplicates } from "@/js/Utils/Data";
@@ -20,9 +20,11 @@ function formatBytes(bytes: number): string {
 export default function DuplicatePage() {
     const { duplicateData, setDuplicateData, setGeneralData } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
+    const navigate = useNavigate();
     const [mergeGroup, setMergeGroup] = useState<DuplicateGroup | null>(null);
     const [keepId, setKeepId] = useState<number>(0);
     const [merging, setMerging] = useState(false);
+    const isMounted = useRef(false);
 
     const loadStatus = useCallback(async () => {
         const status = await getDuplicateStatus() as { total_attachments: number; scanned: number; duplicate_groups: number; potential_savings: number };
@@ -34,14 +36,31 @@ export default function DuplicatePage() {
         });
     }, [setDuplicateData]);
 
-    const loadResults = useCallback(async (page = 1) => {
-        setDuplicateData({ isLoading: true });
-        const result = await getDuplicateResults({ paged: page, postsPerPage: duplicateData.postsPerPage }) as {
+    const loadResults = useCallback(async (page = 1, silent = false, fixUrl = false) => {
+        if (!silent) setDuplicateData({ isLoading: true });
+        const { postsPerPage } = useStore.getState().duplicateData;
+        const result = await getDuplicateResults({ paged: page, postsPerPage }) as {
             groups: DuplicateGroup[];
             totalGroups: number;
             paged: number;
             postsPerPage: number;
         };
+        // If page came back empty but groups still exist, fall back to previous page.
+        if (result.groups.length === 0 && result.totalGroups > 0 && page > 1) {
+            const safePage = page - 1;
+            const fallback = await getDuplicateResults({ paged: safePage, postsPerPage }) as typeof result;
+            setDuplicateData({
+                isLoading: false,
+                groups: fallback.groups,
+                totalGroups: fallback.totalGroups,
+                paged: fallback.paged,
+                postsPerPage: fallback.postsPerPage,
+            });
+            if (fixUrl) {
+                navigate(safePage === 1 ? '/duplicates' : `/duplicates/page/${safePage}`, { replace: true });
+            }
+            return;
+        }
         setDuplicateData({
             isLoading: false,
             groups: result.groups,
@@ -49,7 +68,7 @@ export default function DuplicatePage() {
             paged: result.paged,
             postsPerPage: result.postsPerPage,
         });
-    }, [duplicateData.postsPerPage, setDuplicateData]);
+    }, [setDuplicateData, navigate]);
 
     const startScan = async () => {
         setDuplicateData({ isScanning: true, scanProgress: { processed: 0, total: 0 } });
@@ -88,12 +107,22 @@ export default function DuplicatePage() {
             .map(item => item.attachment_id);
 
         await mergeDuplicates({ keep_id: keepId, delete_ids: deleteIds });
+        await loadStatus();
+        const { paged } = useStore.getState().duplicateData;
+        await loadResults(paged, true, true);
         setMerging(false);
         setMergeGroup(null);
         setKeepId(0);
-        await loadStatus();
-        await loadResults(duplicateData.paged);
     };
+
+    useEffect(() => {
+        if (!mergeGroup) return;
+        const handleEnter = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && !merging && keepId) handleMerge();
+        };
+        document.addEventListener('keydown', handleEnter);
+        return () => document.removeEventListener('keydown', handleEnter);
+    }, [mergeGroup, merging, keepId]);
 
     const openMergeModal = (group: DuplicateGroup) => {
         if (!tsmltParams.hasExtended) {
@@ -105,20 +134,25 @@ export default function DuplicatePage() {
     };
 
     useEffect(() => {
-        loadStatus();
-        loadResults(1);
+        const pageFromUrl = parseInt(pageParam || '1', 10);
+        loadStatus().then(() => {
+            const { scanned } = useStore.getState().duplicateData;
+            if (scanned > 0) loadResults(pageFromUrl);
+        }).finally(() => {
+            isMounted.current = true;
+        });
     }, []);
 
     useEffect(() => {
+        if (!isMounted.current) return;
         const pageFromUrl = parseInt(pageParam || '1', 10);
         if (pageFromUrl !== duplicateData.paged) {
             loadResults(pageFromUrl);
         }
     }, [pageParam]);
 
-    const handlePagination = (page: number) => {
-        loadResults(page);
-    };
+    // URL change (via Pagination's navigate) drives the load — no-op here to avoid double fetch.
+    const handlePagination = () => {};
 
     const scanPercent = duplicateData.scanProgress.total > 0
         ? Math.round((duplicateData.scanProgress.processed / duplicateData.scanProgress.total) * 100)
@@ -166,7 +200,15 @@ export default function DuplicatePage() {
             {/* Results */}
             <div className="p-4">
                 {duplicateData.isLoading ? (
-                    <div className="text-center py-12 text-gray-500">Loading...</div>
+                    <div className="flex items-center justify-center py-16">
+                        <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            <span className="text-sm">Loading…</span>
+                        </div>
+                    </div>
                 ) : duplicateDataGroups.length === 0 ? (
                     <div className="text-center py-12">
                         <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,33 +301,47 @@ export default function DuplicatePage() {
             {/* Merge Modal */}
             <Modal
                 isOpen={!!mergeGroup}
-                onClose={() => { setMergeGroup(null); setKeepId(0); }}
+                onClose={() => { if (!merging) { setMergeGroup(null); setKeepId(0); } }}
                 title="Merge Duplicates"
                 maxWidth="max-w-[550px]"
+                closeOnBackdrop={!merging}
                 footer={
                     <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
                             onClick={() => { setMergeGroup(null); setKeepId(0); }}
+                            disabled={merging}
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
                             onClick={handleMerge}
                             disabled={merging || !keepId}
                         >
+                            {merging && (
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                            )}
                             {merging ? 'Merging...' : 'Merge & Delete Others'}
                         </button>
                     </div>
                 }
             >
-                <div className="px-6 py-5">
+                <div className={`relative transition-all duration-200 ${merging ? 'pointer-events-none select-none' : ''}`}>
+                    {merging && (
+                        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-white/20 rounded" />
+                    )}
+                <div className="px-6 pt-5 pb-0">
                     <p className="text-sm text-gray-700 mt-0! mb-4">
                         Select which copy to keep. The others will be deleted and all references in your content will be updated to point to the kept file.
                     </p>
+                </div>
+                <div className="px-6 pb-5 overflow-y-auto max-h-[50vh]">
                     <div className="space-y-2">
                         {mergeGroup?.items.map((item) => (
                             <label
@@ -319,7 +375,9 @@ export default function DuplicatePage() {
                         ))}
                     </div>
                 </div>
+                </div>
             </Modal>
+
         </div>
     );
 }

@@ -55,8 +55,8 @@ export default function AltTextSettings() {
                     <div className="pt-4">
                         <Textarea
                             placeholder="Enter your custom alt text..."
-                            onChange={(event) => setOptions({ media_default_alt: event.target.value })}
-                            value={(options.media_default_alt as string) || ''}
+                            onChange={(event) => setOptions({ media_default_alt: event.target.value as string })}
+                            value={(options.media_default_alt) || ''}
                         />
                     </div>
                 )}

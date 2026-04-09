@@ -39,7 +39,7 @@ const theImage = (record: MediaPost) => {
     return <img className="w-full h-full object-cover" src={url} alt={record.post_mime_type} />;
 };
 
-type SortField = 'id' | 'alt' | 'title';
+type SortField = 'id' | 'alt' | 'title' | 'post_parents';
 
 const SortIcon = ({ field, orderby, order }: { field: SortField; orderby: string; order: string }) => {
     const active = orderby === field;
@@ -76,20 +76,19 @@ function RenamerTableData() {
     }, [pageParam]);
 
     useEffect(() => {
-        if (mediaData.postQuery.filtering) {
-            setMediaData({
-                postQuery: {
-                    status: null,
-                    filtering: false,
-                    media_per_page: mediaData.postQuery.media_per_page,
-                    searchKeyWords: null,
-                    order: 'DESC',
-                    orderby: 'id',
-                    paged: 1,
-                    isUpdate: false,
-                }
-            });
-        }
+        // Always reset to ID descending on mount so recently renamed files are easy to find.
+        setMediaData({
+            postQuery: {
+                status: null,
+                filtering: false,
+                media_per_page: mediaData.postQuery.media_per_page,
+                searchKeyWords: null,
+                order: 'DESC',
+                orderby: 'id',
+                paged: 1,
+                isUpdate: false,
+            }
+        });
     }, []);
 
     const handleSort = (field: SortField) => {
@@ -179,6 +178,7 @@ function RenamerTableData() {
                                 { field: 'id' as SortField, label: 'ID' },
                                 { field: 'title' as SortField, label: 'Title' },
                                 { field: 'alt' as SortField, label: 'Alt Text' },
+                                { field: 'post_parents' as SortField, label: 'Parent Post' },
                             ]).map(({ field, label }) => (
                                 <button
                                     key={field}

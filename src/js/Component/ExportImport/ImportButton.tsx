@@ -1,12 +1,52 @@
+import { useState } from "react";
 import { useStore } from "@/js/Utils/store";
 import ImportInfo from "./ImportInfo";
 import UploadCsv from "./UploadCsv";
 import ProLabel from "@/js/Component/Badges/ProLabel";
+import { loadImportHistory, saveImportHistory } from "./ExportCSV";
+import type { ImportRecord } from "./ExportCSV";
 
 function ImportButton() {
     const { exportImport, setExportImport, setGeneralData } = useStore();
+    const [history, setHistory] = useState<ImportRecord[]>(() => [...loadImportHistory()].reverse());
 
     const isImport = exportImport.isImport;
+
+    const deleteRecord = (id: string) => {
+        const updated = loadImportHistory().filter(r => r.id !== id);
+        saveImportHistory(updated);
+        setHistory([...updated].reverse());
+    };
+
+    const clearHistory = () => {
+        saveImportHistory([]);
+        setHistory([]);
+    };
+
+    // Refresh history list when the importer finishes (navigates back).
+    const refreshHistory = () => setHistory([...loadImportHistory()].reverse());
+
+    const handleReimport = (record: ImportRecord) => {
+        if (!tsmltParams.hasExtended) {
+            setGeneralData({ openProModal: true });
+            return;
+        }
+        try {
+            const raw = sessionStorage.getItem(`tsmlt_import_${record.sessionId}`);
+            if (!raw) return;
+            const parsed = JSON.parse(raw) as never[];
+            setExportImport({
+                isImport: true,
+                runImporter: false,
+                runExporter: false,
+                mediaFiles: parsed,
+                fileCount: parsed.length,
+                percent: 0,
+                totalPage: parsed.length,
+                csvFilename: record.filename,
+            });
+        } catch { /* session expired */ }
+    };
 
     const handleImport = () => {
         if (!tsmltParams.hasExtended) {
@@ -48,7 +88,7 @@ function ImportButton() {
                     {isImport ? (
                         <>
                             {exportImport.runImporter ? (
-                                <ImportInfo />
+                                <ImportInfo onComplete={refreshHistory} />
                             ) : (
                                 <div className="flex flex-col justify-center">
                                     <UploadCsv />
@@ -79,6 +119,65 @@ function ImportButton() {
                         </div>
                     )}
                 </div>
+
+                {/* Import history */}
+                {history.length > 0 && (
+                    <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span className="text-sm font-medium text-gray-700">
+                                Import History ({history.length})
+                            </span>
+                            <button
+                                type="button"
+                                onClick={clearHistory}
+                                className="text-xs text-red-500 hover:text-red-700 cursor-pointer transition-colors"
+                            >
+                                Clear all
+                            </button>
+                        </div>
+                        <ul className="divide-y divide-gray-100">
+                            {history.map(record => {
+                                const canReimport = !!record.sessionId && !!sessionStorage.getItem(`tsmlt_import_${record.sessionId}`);
+                                return (
+                                    <li key={record.id} className="flex items-center justify-between gap-4 px-4 py-2.5 hover:bg-gray-50">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-medium text-gray-800 truncate">{record.filename}</p>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">
+                                                {record.succeeded.toLocaleString()} / {record.rows.toLocaleString()} succeeded &middot; {new Date(record.date).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {canReimport && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleReimport(record)}
+                                                    className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer transition-colors inline-flex items-center gap-1"
+                                                    title="Re-import this CSV"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    Re-import
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => deleteRecord(record.id)}
+                                                className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
+                                                title="Remove from history"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+
             </div>
         </div>
     );

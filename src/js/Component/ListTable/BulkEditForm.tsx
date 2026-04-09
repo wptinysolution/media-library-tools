@@ -24,7 +24,7 @@ export default function BulkEditForm({ data, onChange }: BulkEditFormProps) {
                         rows={2}
                         onChange={onChange}
                         name={name}
-                        value={data[name]}
+                        value={data[name as keyof BulkSubmitDataItem]}
                         placeholder={placeholder}
                     />
                 </div>

@@ -41,6 +41,14 @@ class UsedWhereScanner {
 	private $usages_buffer = [];
 
 	/**
+	 * Site-wide URL→attachment_id lookup map, built once per batch.
+	 * Keys are relative paths (after /uploads/), values are attachment IDs.
+	 *
+	 * @var array<string, int>|null
+	 */
+	private $url_lookup_map = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -91,6 +99,10 @@ class UsedWhereScanner {
 			];
 		}
 
+		// Build the site-wide URL→ID lookup map once per batch (2 queries total
+		// instead of 1–2 queries per URL found in content).
+		$this->build_url_lookup_map();
+
 		// Reset buffer for this batch.
 		$this->usages_buffer = [];
 
@@ -100,6 +112,9 @@ class UsedWhereScanner {
 
 		// Flush buffer: save usages to post meta and set post_parent.
 		$this->flush_usages_buffer();
+
+		// Free the map; it will be rebuilt on the next batch call.
+		$this->url_lookup_map = null;
 
 		return [
 			'processed' => $offset + count( $posts ),
@@ -324,42 +339,97 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Get attachment ID by its URL.
+	 * Build a site-wide relative-path → attachment_id lookup map.
 	 *
-	 * @param string $url Attachment URL.
+	 * Loads all _wp_attached_file meta values (relative paths stored by WP, e.g.
+	 * "2024/01/photo.jpg") in a single query and builds a map keyed by the
+	 * basename (photo.jpg) pointing to the attachment ID. A second query loads
+	 * full GUIDs as a fallback for unusual attachment configurations.
+	 *
+	 * Called once per scan_batch() — eliminates per-URL DB queries.
+	 *
+	 * @return void
+	 */
+	private function build_url_lookup_map(): void {
+		if ( null !== $this->url_lookup_map ) {
+			return;
+		}
+
+		$this->url_lookup_map = [];
+
+		// 1. Load all _wp_attached_file entries: relative path → post_id.
+		$meta_rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_wp_attached_file' )
+			->get();
+
+		foreach ( ( $meta_rows ?: [] ) as $row ) {
+			$post_id   = absint( $row['post_id'] );
+			$rel_path  = $row['meta_value'] ?? '';
+			if ( ! $post_id || ! $rel_path ) {
+				continue;
+			}
+			// Index by basename for quick lookup (handles scaled/sized filenames too).
+			$basename = basename( $rel_path );
+			if ( ! isset( $this->url_lookup_map[ $basename ] ) ) {
+				$this->url_lookup_map[ $basename ] = $post_id;
+			}
+			// Also index by relative path for exact matches.
+			$this->url_lookup_map[ $rel_path ] = $post_id;
+		}
+
+		// 2. Fallback: load GUIDs (full URLs) → ID for non-standard setups.
+		$guid_rows = Fns::DB()->select( 'ID', 'guid' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->get();
+
+		foreach ( ( $guid_rows ?: [] ) as $row ) {
+			$att_id = absint( $row['ID'] );
+			$guid   = $row['guid'] ?? '';
+			if ( $att_id && $guid ) {
+				// Store full URL so it can be matched directly.
+				$this->url_lookup_map[ $guid ] = $att_id;
+			}
+		}
+	}
+
+	/**
+	 * Get attachment ID by its URL using the preloaded lookup map.
+	 *
+	 * Falls back to basename lookup for scaled/sized variants (e.g., image-300x200.jpg).
+	 *
+	 * @param string $url Attachment URL or partial path.
 	 *
 	 * @return int Attachment ID, or 0 if not found.
 	 */
 	private function get_attachment_id_by_url( string $url ): int {
-		static $cache = [];
-
-		if ( isset( $cache[ $url ] ) ) {
-			return $cache[ $url ];
+		if ( null === $this->url_lookup_map ) {
+			// Safety fallback if called outside a batch context.
+			$this->build_url_lookup_map();
 		}
 
-		$result = Fns::DB()->select( 'post_id' )
-			->from( 'postmeta' )
-			->where( 'meta_key', '=', '_wp_attached_file' )
-			->andWhere( 'meta_value', 'LIKE', '%' . basename( $url ) . '%' )
-			->limit( 1 )
-			->get();
-
-		$attachment_id = ! empty( $result ) ? absint( $result[0]['post_id'] ?? 0 ) : 0;
-
-		if ( ! $attachment_id ) {
-			$result = Fns::DB()->select( 'ID' )
-				->from( 'posts' )
-				->where( 'guid', '=', $url )
-				->andWhere( 'post_type', '=', 'attachment' )
-				->limit( 1 )
-				->get();
-
-			$attachment_id = ! empty( $result ) ? absint( $result[0]['ID'] ?? 0 ) : 0;
+		// 1. Exact GUID match.
+		if ( isset( $this->url_lookup_map[ $url ] ) ) {
+			return $this->url_lookup_map[ $url ];
 		}
 
-		$cache[ $url ] = $attachment_id;
+		// 2. Extract the relative path after /uploads/ and try that.
+		$pos = strpos( $url, '/uploads/' );
+		if ( false !== $pos ) {
+			$rel_path = ltrim( substr( $url, $pos + strlen( '/uploads/' ) ), '/' );
+			if ( isset( $this->url_lookup_map[ $rel_path ] ) ) {
+				return $this->url_lookup_map[ $rel_path ];
+			}
+			// 3. Basename match (covers scaled/sized variants like image-300x200.jpg).
+			$basename = basename( $rel_path );
+			if ( isset( $this->url_lookup_map[ $basename ] ) ) {
+				return $this->url_lookup_map[ $basename ];
+			}
+		}
 
-		return $attachment_id;
+		return 0;
 	}
 
 	/**
@@ -439,30 +509,41 @@ class UsedWhereScanner {
 	/**
 	 * Delete _tsmlt_image_usages meta from all attachments and reset post_parent to 0.
 	 *
+	 * Optimized: uses two bulk queries instead of loading all attachment IDs into
+	 * PHP and looping. The query builder does not support JOINs in UPDATE, so we:
+	 * 1. Fetch the affected attachment IDs in one SELECT.
+	 * 2. Bulk-delete the meta rows in one DELETE.
+	 * 3. If there are affected IDs, bulk-reset post_parent via one UPDATE with whereIn.
+	 *
 	 * @return void
 	 */
 	private function clear_all_usage_meta(): void {
-		// Get all attachment IDs that have our meta key.
-		$attachments = get_posts( [
-			'post_type'      => 'attachment',
-			'posts_per_page' => -1,
-			'post_status'    => 'any',
-			'fields'         => 'ids',
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-				[
-					'key'     => self::META_KEY,
-					'compare' => 'EXISTS',
-				],
-			],
-		] );
+		// 1. Find which attachment IDs have our meta key.
+		$affected_rows = Fns::DB()->select( 'post_id' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->get();
 
-		foreach ( $attachments as $attachment_id ) {
-			delete_post_meta( $attachment_id, self::META_KEY );
-			wp_update_post( [
-				'ID'          => $attachment_id,
-				'post_parent' => 0,
-			] );
+		// 2. Bulk-delete all meta rows for our key.
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->execute();
+
+		if ( empty( $affected_rows ) ) {
+			return;
 		}
+
+		// 3. Collect affected attachment IDs and bulk-reset post_parent.
+		$affected_ids = array_unique(
+			array_map( fn( $r ) => absint( $r['post_id'] ), $affected_rows )
+		);
+
+		Fns::DB()->update( 'posts', [ 'post_parent' => 0 ] )
+			->whereIn( 'ID', ...$affected_ids )
+			->execute();
+
+		// Also reset the URL lookup map to avoid stale data.
+		$this->url_lookup_map = null;
 	}
 
 	/**

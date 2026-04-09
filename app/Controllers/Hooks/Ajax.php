@@ -82,6 +82,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_used_where_get_results', [ $this, 'used_where_get_results' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_bulk_delete', [ $this, 'used_where_bulk_delete' ] );
 
 		// Regenerate thumbnails.
 		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
@@ -416,8 +417,13 @@ class Ajax {
 		}
 
 		if ( 'unused' === $filter ) {
-			// Attachments with no parent post (not used anywhere).
-			$args['post_parent'] = 0;
+			// Attachments that were scanned but have no recorded usages.
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				[
+					'key'     => UsedWhereScanner::META_KEY,
+					'compare' => 'NOT EXISTS',
+				],
+			];
 		} else {
 			// Default: attachments that have usage meta (used images).
 			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -462,6 +468,25 @@ class Ajax {
 		$this->send( UsedWhereScanner::instance()->clear_scan() );
 	}
 
+	/** @return void */
+	public function used_where_bulk_delete(): void {
+		$params = $this->verify_and_get_params();
+		$ids    = isset( $params['ids'] ) && is_array( $params['ids'] ) ? array_map( 'absint', $params['ids'] ) : [];
+
+		if ( empty( $ids ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'No IDs provided.', 'media-library-tools' ) ], 400 );
+		}
+
+		$deleted = 0;
+		foreach ( $ids as $attachment_id ) {
+			if ( $attachment_id > 0 && wp_delete_attachment( $attachment_id, true ) ) {
+				$deleted++;
+			}
+		}
+
+		$this->send( [ 'deleted' => $deleted ] );
+	}
+
 	// -------------------------------------------------------------------------
 	// Regenerate Thumbnails
 	// -------------------------------------------------------------------------
@@ -477,7 +502,22 @@ class Ajax {
 	/** @return void */
 	public function regenerate_get_status(): void {
 		$this->verify_and_get_params();
-		$this->send( [ 'total' => RegenerateThumbnails::instance()->get_total() ] );
+
+		$sizes      = [];
+		$registered = wp_get_registered_image_subsizes();
+		foreach ( $registered as $name => $size ) {
+			$sizes[] = [
+				'name'   => $name,
+				'width'  => (int) ( $size['width'] ?? 0 ),
+				'height' => (int) ( $size['height'] ?? 0 ),
+				'crop'   => ! empty( $size['crop'] ),
+			];
+		}
+
+		$this->send( [
+			'total'       => RegenerateThumbnails::instance()->get_total(),
+			'image_sizes' => $sizes,
+		] );
 	}
 
 }

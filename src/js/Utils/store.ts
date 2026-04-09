@@ -195,6 +195,7 @@ export interface ExportImportState {
     fileCount: number;
     percent: number;
     settings: ExportImportSettings | string[];
+    csvFilename: string;
 }
 
 export interface BulkExportState {
@@ -292,6 +293,7 @@ export const initialExportImport: ExportImportState = {
     fileCount: 0,
     percent: 0,
     settings: [],
+    csvFilename: '',
 };
 
 export const initialBulkExport: BulkExportState = {

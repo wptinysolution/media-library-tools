@@ -26,6 +26,13 @@ interface BatchResponse {
     succeeded: BatchSucceeded[];
 }
 
+interface ImageSize {
+    name: string;
+    width: number;
+    height: number;
+    crop: boolean;
+}
+
 type Status = 'idle' | 'running' | 'stopped' | 'done';
 
 const BATCH_SIZE = 10;
@@ -34,27 +41,29 @@ const BATCH_SIZE = 10;
 
 function RegenerateInit() {
     const [total, setTotal]           = useState<number | null>(null);
+    const [imageSizes, setImageSizes] = useState<ImageSize[]>([]);
     const [processed, setProcessed]   = useState(0);
-    const [deletedTotal, setDeletedTotal] = useState(0);
     const [status, setStatus]         = useState<Status>('idle');
     const [errors, setErrors]         = useState<BatchError[]>([]);
     const [history, setHistory]       = useState<BatchSucceeded[]>([]);
     const [dismissedErrors, setDismissedErrors] = useState<Set<number>>(new Set());
 
-    const navigate        = useNavigate();
+    const navigate           = useNavigate();
     const { setGeneralData } = useStore();
-    const stopRef         = useRef(false);
+    const stopRef            = useRef(false);
 
-    // ── Load total on mount ─────────────────────────────────────────────────
+    // ── Load total + image sizes on mount ───────────────────────────────────
     useEffect(() => {
-        regenerateGetStatus().then(({ total: t }) => setTotal(t));
+        regenerateGetStatus().then(({ total: t, image_sizes }) => {
+            setTotal(t);
+            if (Array.isArray(image_sizes)) setImageSizes(image_sizes as ImageSize[]);
+        });
     }, []);
 
     // ── Helpers ─────────────────────────────────────────────────────────────
 
     const reset = () => {
         setProcessed(0);
-        setDeletedTotal(0);
         setErrors([]);
         setHistory([]);
         setDismissedErrors(new Set());
@@ -84,7 +93,6 @@ function RegenerateInit() {
 
             if (data.errors.length)    setErrors(prev => [...prev, ...data.errors]);
             if (data.succeeded.length) setHistory(prev => [...prev, ...data.succeeded]);
-            if (data.deleted_total)    setDeletedTotal(prev => prev + data.deleted_total);
 
             setProcessed(offset);
 
@@ -106,6 +114,7 @@ function RegenerateInit() {
     const percent       = safeTotal > 0 ? Math.min(100, Math.round((processed / safeTotal) * 100)) : 0;
     const visibleErrors = errors.filter(e => !dismissedErrors.has(e.id));
     const isRunning     = status === 'running';
+    const hasStarted    = status !== 'idle';
 
     // ── Render ───────────────────────────────────────────────────────────────
 
@@ -128,42 +137,38 @@ function RegenerateInit() {
                 {/* Control card */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
 
-                    {/* Stats row */}
-                    <div className="flex flex-wrap items-center gap-6 mb-6">
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-gray-900">
-                                {total === null ? '…' : total.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Total images</p>
+                    {/* Stats row — shown only after starting */}
+                    {hasStarted && (
+                        <div className="flex flex-wrap items-center gap-6 mb-6">
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-gray-900">
+                                    {safeTotal.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Total</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-blue-600">
+                                    {processed.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Processed</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-green-600">
+                                    {history.length.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-bold text-red-500">
+                                    {errors.length.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">Errors</p>
+                            </div>
                         </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-blue-600">
-                                {processed.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Processed</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-green-600">
-                                {history.length.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-orange-500">
-                                {deletedTotal.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Orphans deleted</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-red-500">
-                                {errors.length.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">Errors</p>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Progress bar */}
-                    {(isRunning || status === 'done' || status === 'stopped') && (
+                    {hasStarted && (
                         <div className="mb-5">
                             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <span>{processed.toLocaleString()} of {safeTotal.toLocaleString()} images</span>
@@ -226,7 +231,7 @@ function RegenerateInit() {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setGeneralData({ isDirModalOpen: true, autoStartScan: true });
+                                        setGeneralData({ isDirModalOpen: true, autoStartScan: false });
                                         navigate('/rubbishFile');
                                     }}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
@@ -247,9 +252,6 @@ function RegenerateInit() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                             All {safeTotal.toLocaleString()} images processed.
-                            {deletedTotal > 0 && (
-                                <span className="ml-1">{deletedTotal.toLocaleString()} orphan thumbnail file{deletedTotal !== 1 ? 's' : ''} deleted.</span>
-                            )}
                         </div>
                     )}
                     {status === 'stopped' && (
@@ -270,6 +272,83 @@ function RegenerateInit() {
                         </div>
                     )}
                 </div>
+
+                {/* History list */}
+                {history.length > 0 && (
+                    <div className="bg-white mb-6 rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span className="text-sm font-medium text-gray-700">
+                                Regenerated ({history.length.toLocaleString()})
+                                {history.length > 10 && (
+                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last 10</span>
+                                )}
+                            </span>
+                            {isRunning && (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Live
+                                </span>
+                            )}
+                        </div>
+                        <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                            {history.slice(-10).reverse().map(item => (
+                                <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
+                                        <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
+                                    </div>
+                                    {item.deleted_sizes.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
+                                            <span className="text-[10px] text-gray-400 mr-0.5">orphans removed:</span>
+                                            {item.deleted_sizes.map(s => (
+                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded">
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+
+                {/* Image sizes list */}
+                {imageSizes.length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                            <span className="text-sm font-medium text-gray-700">
+                                Registered Image Sizes ({imageSizes.length})
+                            </span>
+                            <span className="ml-2 text-xs text-gray-400">These sizes will be regenerated for every image</span>
+                        </div>
+                        <ul className="divide-y divide-gray-100">
+                            {imageSizes.map(size => (
+                                <li key={size.name} className="flex items-center justify-between px-4 py-2 hover:bg-gray-50">
+                                    <span className="text-xs font-medium text-gray-800">{size.name}</span>
+                                    <span className="text-[11px] text-gray-400">
+                                        {size.width > 0 && size.height > 0
+                                            ? `${size.width} × ${size.height}`
+                                            : size.width > 0
+                                                ? `${size.width}w`
+                                                : size.height > 0
+                                                    ? `${size.height}h`
+                                                    : 'flexible'
+                                        }
+                                        {size.crop && <span className="ml-1.5 text-blue-500">crop</span>}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 {/* Errors panel */}
                 {visibleErrors.length > 0 && (
@@ -303,49 +382,6 @@ function RegenerateInit() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {/* History list */}
-                {history.length > 0 && (
-                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
-                            <span className="text-sm font-medium text-gray-700">
-                                Regenerated ({history.length.toLocaleString()})
-                            </span>
-                            {isRunning && (
-                                <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>
-                                    Live
-                                </span>
-                            )}
-                        </div>
-                        <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                            {[...history].reverse().map(item => (
-                                <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
-                                    <div className="flex items-center gap-3">
-                                        <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span className="text-xs text-gray-700 font-mono truncate">{item.file}</span>
-                                        <span className="ml-auto text-xs text-gray-400 shrink-0">ID: {item.id}</span>
-                                    </div>
-                                    {item.deleted_sizes.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
-                                            <span className="text-[10px] text-gray-400 mr-0.5">orphans removed:</span>
-                                            {item.deleted_sizes.map(s => (
-                                                <span key={s} className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded">
-                                                    {s}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
                                 </li>
                             ))}
                         </ul>
