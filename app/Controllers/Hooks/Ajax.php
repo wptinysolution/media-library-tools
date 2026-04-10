@@ -534,6 +534,7 @@ class Ajax {
 		$limit  = absint( $params['limit'] ?? 10 );
 		$paged  = absint( $params['offset'] ?? 0 );
 		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
+		$search = sanitize_text_field( $params['search'] ?? '' );
 
 		$args = [
 			'post_type'      => 'attachment',
@@ -541,6 +542,11 @@ class Ajax {
 			'posts_per_page' => $limit,
 			'paged'          => $page,
 		];
+
+		// Add search parameter if provided.
+		if ( $search ) {
+			$args['s'] = $search;
+		}
 
 		$query = new \WP_Query( $args );
 		$items = [];
