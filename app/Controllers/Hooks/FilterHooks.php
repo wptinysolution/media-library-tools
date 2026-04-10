@@ -41,6 +41,10 @@ class FilterHooks {
 		// Used-Where frontend detection (lightweight tracking).
 		add_filter( 'tsmlt/settings/before/save', [ __CLASS__, 'settings_before_save_used_where' ], 10, 2 );
 		add_action( 'wp_footer', [ __CLASS__, 'track_frontend_image_usage' ], 99 );
+		// Suppress trashed attachments on frontend (protect like WordPress does for trashed posts).
+		add_filter( 'wp_get_attachment_url', [ __CLASS__, 'suppress_trashed_attachment_url' ], 10, 2 );
+		add_filter( 'wp_get_attachment_image_src', [ __CLASS__, 'suppress_trashed_attachment_image_src' ], 10, 4 );
+		add_filter( 'wp_get_attachment_image', [ __CLASS__, 'suppress_trashed_attachment_image' ], 10, 5 );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
 			// SVG File Permission.
 			add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
@@ -528,5 +532,97 @@ class FilterHooks {
 		if ( $post && ! empty( $post->post_content ) ) {
 			$scanner->detect_content_images( $post->post_content, $post_id, 'content' );
 		}
+	}
+
+	/**
+	 * Suppress trashed attachment URLs on the frontend.
+	 *
+	 * Returns empty string for trashed attachments, preventing them from being
+	 * rendered anywhere that uses wp_get_attachment_url().
+	 *
+	 * @param string|false $url  The attachment URL, or false if not found.
+	 * @param int          $post_id The attachment post ID.
+	 *
+	 * @return string|false Empty string if trashed, otherwise the URL.
+	 */
+	public static function suppress_trashed_attachment_url( $url, $post_id ) {
+		if ( ! $url || ! is_int( $post_id ) || $post_id <= 0 ) {
+			return $url;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'attachment' !== $post->post_type ) {
+			return $url;
+		}
+
+		// Return empty string if post is in trash.
+		if ( 'trash' === $post->post_status ) {
+			return '';
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Suppress trashed attachment image src arrays on the frontend.
+	 *
+	 * Returns false (no image source) for trashed attachments, preventing
+	 * them from being rendered via wp_get_attachment_image_src().
+	 *
+	 * @param array|false $image An array of image data, or false if not found.
+	 * @param int         $attachment_id The attachment post ID.
+	 * @param string|int[] $size Size of image. Image size or array of width and height values.
+	 * @param bool        $icon Whether the image should be treated as an icon.
+	 *
+	 * @return array|false False if trashed, otherwise the image array.
+	 */
+	public static function suppress_trashed_attachment_image_src( $image, $attachment_id, $size, $icon ) {
+		if ( ! $image || ! is_int( $attachment_id ) || $attachment_id <= 0 ) {
+			return $image;
+		}
+
+		$post = get_post( $attachment_id );
+		if ( ! $post || 'attachment' !== $post->post_type ) {
+			return $image;
+		}
+
+		// Return false if post is in trash.
+		if ( 'trash' === $post->post_status ) {
+			return false;
+		}
+
+		return $image;
+	}
+
+	/**
+	 * Suppress trashed attachment images on the frontend.
+	 *
+	 * Returns empty string for trashed attachments, preventing them from being
+	 * rendered via wp_get_attachment_image().
+	 *
+	 * @param string $html The attachment HTML output.
+	 * @param int    $attachment_id The attachment post ID.
+	 * @param string|int[] $size Size of image.
+	 * @param bool   $icon Whether the image should be treated as an icon.
+	 * @param string $alt The alt attribute.
+	 *
+	 * @return string Empty string if trashed, otherwise the HTML.
+	 */
+	public static function suppress_trashed_attachment_image( $html, $attachment_id, $size, $icon, $alt ) {
+		if ( ! $html || ! is_int( $attachment_id ) || $attachment_id <= 0 ) {
+			return $html;
+		}
+
+		$post = get_post( $attachment_id );
+		if ( ! $post || 'attachment' !== $post->post_type ) {
+			return $html;
+		}
+
+		// Return empty string if post is in trash.
+		if ( 'trash' === $post->post_status ) {
+			return '';
+		}
+
+		return $html;
 	}
 }
