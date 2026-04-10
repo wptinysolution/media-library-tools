@@ -227,10 +227,15 @@ export default function UsedWherePage() {
         loadStatus();
     }, []);
 
-    // Load results when filter, page, or search changes (only if a scan has been run).
+    // Load results when filter, page, or search changes.
+    // For Used/Unused tabs: only load if scan has been completed (processed > 0)
+    // For Trash tab: always load from DB (trash data is persistent)
     useEffect(() => {
-        // Only load results if scan has been completed (processed > 0)
-        if (scanProgress.processed > 0) {
+        // Trash tab always loads from DB
+        if (activeFilter === 'trash') {
+            loadResults(currentPageFromUrl, activeFilter, searchQuery);
+        } else if (scanProgress.processed > 0) {
+            // Used/Unused only load if scan has been completed
             loadResults(currentPageFromUrl, activeFilter, searchQuery);
         }
     }, [activeFilter, currentPageFromUrl, searchQuery, loadResults, scanProgress.processed]);
@@ -515,11 +520,14 @@ export default function UsedWherePage() {
                                             <p className="text-xs mt-0! mb-0! text-gray-500 truncate">{usage.url}</p>
                                         </div>
 
-                                        <div className="shrink-0 flex items-center gap-3 text-xs">
+                                        <div className="shrink-0 flex flex-col items-start gap-3 text-xs">
+                                            <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
+                                                ID: #{usage?.attachment_id}
+                                            </span>
                                             {activeFilter !== 'trash' && (
                                                 <>
                                                     {usage.usage_count > 0 ? (
-                                                        <>
+                                                        <div className={`flex items-center`}>
                                                             <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
                                                                 {usage.usage_count} usage{usage.usage_count !== 1 ? 's' : ''}
                                                             </span>
@@ -531,7 +539,7 @@ export default function UsedWherePage() {
                                                                     {type}: {count}
                                                                 </span>
                                                             ))}
-                                                        </>
+                                                        </div>
                                                     ) : (
                                                         <span className="inline-flex items-center px-2 py-1 font-medium text-red-700 bg-red-50 rounded">
                                                             No uses found
@@ -625,11 +633,11 @@ export default function UsedWherePage() {
                 }
             >
                 <div className="px-6 py-5">
-                    <p className="text-sm text-gray-700 mt-0!">
+                    <p className="text-base text-gray-700 mt-0!">
                         Move <strong>{selectedIds.size} image{selectedIds.size !== 1 ? 's' : ''}</strong> to Trash?
                     </p>
-                    <p className="text-xs text-gray-500 mt-2 mb-0!">
-                        You can permanently delete them from the Trash tab.
+                    <p className="text-base text-gray-500 mt-2 mb-0!">
+                        After moving images to Trash and clearing the cache, you should review your entire website. If any images appear missing or broken, restore them from the Trash. Once everything looks fine, you can permanently delete the images from the Trash tab.
                     </p>
                 </div>
             </Modal>
