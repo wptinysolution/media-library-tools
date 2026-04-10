@@ -73,8 +73,11 @@ export default function UsedWherePage() {
         setSelectedIds(new Set());
         try {
             if (filter === 'trash') {
-                // Load trash items from WordPress DB
-                const result = await getUsedWhereTrashed() as any;
+                // Load trash items from WordPress DB with pagination
+                const result = await getUsedWhereTrashed({
+                    limit,
+                    offset: (page - 1) * limit,
+                }) as any;
                 setUsages(result.items || []);
                 setTotalUsages(result.total || 0);
             } else {

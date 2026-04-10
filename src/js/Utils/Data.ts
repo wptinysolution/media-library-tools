@@ -264,8 +264,8 @@ export const usedWhereUntrash = async (ids: number[]): Promise<Record<string, un
     return result.data as Record<string, unknown>;
 };
 
-export const getUsedWhereTrashed = async (): Promise<Record<string, unknown>> => {
-    const result = await ajaxPost('tsmlt_used_where_get_trashed', {});
+export const getUsedWhereTrashed = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_trashed', prams);
     return result.data as Record<string, unknown>;
 };
 

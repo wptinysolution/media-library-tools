@@ -530,19 +530,23 @@ class Ajax {
 
 	/** @return void */
 	public function used_where_get_trashed(): void {
-		$this->verify_and_get_params();  // security check (no body params needed)
+		$params = $this->verify_and_get_params();
+		$limit  = absint( $params['limit'] ?? 10 );
+		$paged  = absint( $params['offset'] ?? 0 );
+		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
 
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'trash',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
+			'posts_per_page' => $limit,
+			'paged'          => $page,
 		];
 
 		$query = new \WP_Query( $args );
 		$items = [];
 
-		foreach ( $query->posts as $attachment_id ) {
+		foreach ( $query->posts as $post ) {
+			$attachment_id = $post->ID;
 			// For trashed items, get URL from attached file path (wp_get_attachment_url returns empty for trashed).
 			$url = '';
 			$attached_file = get_attached_file( $attachment_id );
@@ -553,12 +557,12 @@ class Ajax {
 
 			$items[] = [
 				'attachment_id' => $attachment_id,
-				'title'         => get_the_title( $attachment_id ),
+				'title'         => $post->post_title,
 				'url'           => $url,
 			];
 		}
 
-		$this->send( [ 'items' => $items, 'total' => count( $items ) ] );
+		$this->send( [ 'items' => $items, 'total' => $query->found_posts ] );
 	}
 
 	// -------------------------------------------------------------------------
