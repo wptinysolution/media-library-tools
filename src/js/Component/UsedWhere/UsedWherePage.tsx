@@ -30,6 +30,7 @@ export default function UsedWherePage() {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [perPage, setPerPage] = useState(10);
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     // Bulk delete state (unused and trash tabs).
@@ -67,7 +68,7 @@ export default function UsedWherePage() {
         }
     }, []);
 
-    const loadResults = useCallback(async (page = 1, filter: FilterTab = activeFilter, search: string = searchQuery) => {
+    const loadResults = useCallback(async (page = 1, filter: FilterTab = activeFilter, search: string = searchQuery, limit: number = perPage) => {
         setIsLoading(true);
         setSelectedIds(new Set());
         try {
@@ -79,8 +80,8 @@ export default function UsedWherePage() {
             } else {
                 // Load used/unused items
                 const result = await getUsedWhereResults({
-                    limit: 10,
-                    offset: (page - 1) * 10,
+                    limit,
+                    offset: (page - 1) * limit,
                     filter,
                     search,
                 }) as any;
@@ -93,7 +94,7 @@ export default function UsedWherePage() {
         } finally {
             setIsLoading(false);
         }
-    }, [activeFilter, searchQuery]);
+    }, [activeFilter, searchQuery, perPage]);
 
     const handleTabChange = (filter: FilterTab) => {
         setExpandedId(null);
@@ -246,9 +247,7 @@ export default function UsedWherePage() {
 
     const isPreScan = scanProgress.processed === 0 && !isScanning;
 
-    const displayTotalPages = Math.ceil(totalUsages / 10);
-
-    const totalPages = displayTotalPages;
+    const totalPages = Math.ceil(totalUsages / perPage);
     const allSelected = usages.length > 0 && selectedIds.size === usages.length;
     const someSelected = selectedIds.size > 0 && !allSelected;
 
@@ -273,7 +272,7 @@ export default function UsedWherePage() {
                     onClick={startScan}
                     disabled={isScanning}
                 >
-                    {isScanning ? 'Scanning...' : (scanProgress.processed > 0 ? 'Re-scan' : 'Scan All Posts')}
+                    {isScanning ? 'Scanning...' : (scanProgress.processed > 0 ? 'Re-scan' : 'Scan Media Usage ')}
                 </button>
                 <button
                     type="button"
@@ -282,6 +281,28 @@ export default function UsedWherePage() {
                 >
                     Clear Results
                 </button>
+
+                <div className="flex items-center gap-2">
+                    <label htmlFor="perPage" className="text-sm font-medium text-gray-700">
+                        Per page:
+                    </label>
+                    <select
+                        id="perPage"
+                        value={perPage}
+                        onChange={(e) => {
+                            const newPerPage = parseInt(e.target.value, 10);
+                            setPerPage(newPerPage);
+                            setCurrentPage(1);
+                            navigate(`/usedWhere/${activeFilter}`);
+                        }}
+                        className="w-20 px-3 py-2 text-sm border border-gray-300 rounded-md hover:border-gray-400 cursor-pointer transition-colors"
+                    >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                    </select>
+                </div>
 
                 <div className="ml-auto">
                     <SearchInput
@@ -431,7 +452,7 @@ export default function UsedWherePage() {
                                     onClick={startScan}
                                     disabled={isScanning}
                                 >
-                                    Scan All Posts
+                                    Scan Media Usage
                                 </button>
                             </>
                         ) : (
@@ -447,10 +468,10 @@ export default function UsedWherePage() {
                                             : activeFilter === 'unused'
                                                 ? (scanProgress.processed > 0
                                                     ? 'All images are attached to posts. No unused images found!'
-                                                    : 'Click "Scan All Posts" first to detect image usage.')
+                                                    : 'Click "Scan Media Usage " first to detect image usage.')
                                                 : (scanProgress.processed > 0
                                                     ? 'No images found in use. Your media library may contain orphaned files!'
-                                                    : 'Click "Scan All Posts" to detect where images are used on your site.')}
+                                                    : 'Click "Scan Media Usage " to detect where images are used on your site.')}
                                 </p>
                             </>
                         )}
@@ -589,7 +610,7 @@ export default function UsedWherePage() {
                                 currentPage={currentPage}
                                 totalPages={totalPages}
                                 totalPosts={totalUsages}
-                                postsPerPage={10}
+                                postsPerPage={perPage}
                                 onPageChange={(page) => navigate(`/usedWhere/${activeFilter}/page/${page}`)}
                             />
                         )}

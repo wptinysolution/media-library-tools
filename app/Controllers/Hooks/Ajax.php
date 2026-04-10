@@ -543,10 +543,18 @@ class Ajax {
 		$items = [];
 
 		foreach ( $query->posts as $attachment_id ) {
+			// For trashed items, get URL from attached file path (wp_get_attachment_url returns empty for trashed).
+			$url = '';
+			$attached_file = get_attached_file( $attachment_id );
+			if ( $attached_file ) {
+				$upload_dir = wp_upload_dir();
+				$url = $upload_dir['baseurl'] . '/' . str_replace( $upload_dir['basedir'] . '/', '', $attached_file );
+			}
+
 			$items[] = [
 				'attachment_id' => $attachment_id,
 				'title'         => get_the_title( $attachment_id ),
-				'url'           => wp_get_attachment_url( $attachment_id ) ?: '',
+				'url'           => $url,
 			];
 		}
 
