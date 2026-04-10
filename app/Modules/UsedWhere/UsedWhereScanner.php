@@ -106,6 +106,11 @@ class UsedWhereScanner {
 		// Reset buffer for this batch.
 		$this->usages_buffer = [];
 
+		// On first batch: detect site-wide image usage (favicon, site logo).
+		if ( 0 === $offset ) {
+			$this->detect_sitewide_usage();
+		}
+
 		foreach ( $posts as $post ) {
 			$this->detect_usage_in_post( $post );
 		}
@@ -591,5 +596,64 @@ class UsedWhereScanner {
 				'post_parent' => $post_id,
 			] );
 		}
+	}
+
+	/**
+	 * Detect site-wide image usage (favicon, site logo).
+	 *
+	 * Checks WordPress site settings:
+	 * - site_icon: site favicon
+	 * - site_logo: block theme logo
+	 * - custom_logo: classic theme logo
+	 *
+	 * Skips duplicates (e.g., if custom_logo and site_logo point to same ID).
+	 *
+	 * @return void
+	 */
+	private function detect_sitewide_usage(): void {
+		$site_icon_id = absint( get_option( 'site_icon', 0 ) );
+		if ( $site_icon_id && 'attachment' === get_post_type( $site_icon_id ) ) {
+			$this->record_sitewide_usage( $site_icon_id, 'site_icon' );
+		}
+
+		$site_logo_id = absint( get_option( 'site_logo', 0 ) );
+		if ( $site_logo_id && 'attachment' === get_post_type( $site_logo_id ) ) {
+			$this->record_sitewide_usage( $site_logo_id, 'site_logo' );
+		}
+
+		$custom_logo_id = absint( get_theme_mod( 'custom_logo', 0 ) );
+		if ( $custom_logo_id && $custom_logo_id !== $site_logo_id && 'attachment' === get_post_type( $custom_logo_id ) ) {
+			$this->record_sitewide_usage( $custom_logo_id, 'site_logo' );
+		}
+	}
+
+	/**
+	 * Record a site-wide usage entry (favicon, logo, etc.).
+	 *
+	 * Similar to record_usage() but for non-post contexts. Uses post_id=0
+	 * since there is no WP_Post associated with site settings.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $usage_type Type of site-wide usage.
+	 *
+	 * @return void
+	 */
+	private function record_sitewide_usage( int $attachment_id, string $usage_type ): void {
+		$key = $attachment_id . ':0:' . $usage_type;
+
+		if ( ! isset( $this->usages_buffer[ $attachment_id ] ) ) {
+			$this->usages_buffer[ $attachment_id ] = [];
+		}
+
+		if ( isset( $this->usages_buffer[ $attachment_id ][ $key ] ) ) {
+			return;
+		}
+
+		$this->usages_buffer[ $attachment_id ][ $key ] = [
+			'post_id'    => 0,
+			'post_title' => esc_html__( 'Site Settings', 'media-library-tools' ),
+			'post_type'  => 'site_settings',
+			'usage_type' => $usage_type,
+		];
 	}
 }
