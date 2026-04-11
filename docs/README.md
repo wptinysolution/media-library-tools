@@ -1,205 +1,299 @@
-# Media Library Tools - Documentation
+# Media Library Tools - Complete Documentation
 
-Welcome to the complete documentation for Media Library Tools, the ultimate WordPress media management plugin.
+Welcome to the official documentation for **Media Library Tools**, the ultimate WordPress media management plugin.
 
 ## 📚 Documentation Structure
 
-### For Users
+This documentation is organized by feature and includes detailed guides for both free and Pro versions.
 
-**Getting Started**
-- [Getting Started Guide](GETTING_STARTED.md) — Installation, first steps, initial configuration
-- Best for: New users, first-time setup, basic configuration
+### Getting Started
+- **[Quick Start Guide](QUICK-START.md)** — 5-minute setup and common tasks
+- **[Home](index.md)** — Overview and navigation
 
-**Usage & Features**
-- [Complete User Guide](USER_GUIDE.md) — Detailed walkthroughs of every feature
-- Best for: Understanding how to use each feature, step-by-step instructions
-- Includes: Media Table, Renaming, Duplicates, Rubbish Files, Image Usage Tracking, AI Generator, Settings, CSV Export, Thumbnails, and more
+### Core Modules (Free & Pro)
 
-**Questions & Help**
-- [Frequently Asked Questions](FAQ.md) — Common questions and troubleshooting
-- Best for: Quick answers, troubleshooting issues, understanding concepts
-- Includes: Installation, Features, Compatibility, Troubleshooting, Best Practices
+| Module | Description | Location |
+|--------|-------------|----------|
+| **[Media Settings](01-media-settings.md)** | Configure metadata defaults and behaviors | Settings page |
+| **[Media Table](02-media-table.md)** | Main interface for managing all media files | Media Table |
+| **[Media Rename](03-media-rename.md)** | Rename files individually or in bulk | Media Rename |
+| **[Regenerate Thumbnails](04-regenerate-thumbnails.md)** | Rebuild image sizes for compatibility | Regenerate Thumbnails |
+| **[CSV Export](05-csv-export.md)** | Export media metadata for backup/analysis | Media Table → Export |
+| **[CSV Import](06-csv-import.md)** | Import and update metadata from spreadsheets | CSV Import |
+| **[Rubbish Files](07-rubbish-files.md)** | Find and clean orphaned media files | Rubbish Files |
+| **[Duplicates](08-duplicates.md)** | Detect and manage duplicate images | Duplicates |
+| **[Used Where](09-used-where.md)** | Track image usage across your site | Used Where |
+| **[Image Sizes](10-image-sizes.md)** | Manage WordPress image dimensions | Image Sizes |
+| **[Media Download](11-media-download.md)** | Download media files and create backups | Media Download |
 
-### For Developers
-
-For developer documentation, see:
-- [Main CLAUDE.md](../CLAUDE.md) — Architecture, code patterns, build commands
-- [GitHub Repository](https://github.com/wptinysolutions/media-library-tools) — Source code, issues, contributions
-
-## 🚀 Quick Start Paths
-
-**I'm new to Media Library Tools**
-1. Read: [Getting Started Guide](GETTING_STARTED.md)
-2. Watch: Setup video (if available)
-3. Explore: [First Steps](GETTING_STARTED.md#first-steps) section
-
-**I want to understand a specific feature**
-1. Open: [Complete User Guide](USER_GUIDE.md)
-2. Find: Your feature in the Table of Contents
-3. Follow: Step-by-step instructions
-
-**I have a problem**
-1. Check: [FAQ Troubleshooting](FAQ.md#troubleshooting) section
-2. Search: FAQ for your issue
-3. Ask: [Support Forum](https://wordpress.org/support/plugin/media-library-tools/)
-
-**I want best practices**
-1. Read: [Getting Started Tips](GETTING_STARTED.md#tips-for-best-results)
-2. Check: [FAQ Tips](FAQ.md#tips--best-practices)
-3. Ask: Community forum for your use case
-
-## 📖 Feature Documentation
-
-### Core Features
-
-| Feature | Getting Started | User Guide | FAQ |
-|---------|-----------------|-----------|-----|
-| Media Table | ✅ | ✅ [Media Table](USER_GUIDE.md#media-table) | ✅ [Q&A](FAQ.md#media-table) |
-| File Rename | ✅ | ✅ [Media Rename](USER_GUIDE.md#media-rename) | ✅ [Q&A](FAQ.md#media-file-renamer) |
-| Duplicate Finder | ✅ | ✅ [Duplicates](USER_GUIDE.md#duplicate-finder) | ✅ [Q&A](FAQ.md#duplicate-image-finder) |
-| Rubbish Cleaner | ✅ | ✅ [Rubbish Files](USER_GUIDE.md#rubbish-file-cleaner) | ✅ [Q&A](FAQ.md#rubbish-file-finder) |
-| Image Usage Tracker | ✅ | ✅ [Used Where](USER_GUIDE.md#image-usage-tracker) | ✅ [Q&A](FAQ.md#image-usage-tracker-used-where) |
-| AI Generator | ✅ | ✅ [AI Content](USER_GUIDE.md#ai-content-generator) | ✅ [Q&A](FAQ.md#ai-content-generator) |
-| CSV Export | ✅ | ✅ [CSV Export](USER_GUIDE.md#csv-export) | ✅ [Q&A](FAQ.md#csv-exportimport) |
-| Thumbnails | ✅ | ✅ [Regenerate](USER_GUIDE.md#regenerate-thumbnails) | ✅ [Q&A](FAQ.md#regenerate-thumbnails) |
-| Image Sizes | ✅ | ✅ [Settings](USER_GUIDE.md#settings--configuration) | ✅ [Q&A](FAQ.md#image-sizes) |
-| SVG Support | ✅ | ✅ [SVG](USER_GUIDE.md#svg-upload-support) | ✅ [Q&A](FAQ.md#svg-support) |
-| Download Button | ✅ | ✅ [Shortcode](USER_GUIDE.md#media-download-shortcode) | ✅ [Q&A](FAQ.md#media-download-shortcode) |
-
-## 💡 Common Workflows
-
-### Organize Your Media Library
-1. [Getting Started](GETTING_STARTED.md#second-steps) — Configure Alt Text Settings
-2. [User Guide](USER_GUIDE.md#media-table) — Use Media Table to bulk edit
-3. [User Guide](USER_GUIDE.md#media-categories) — Create and assign categories
-
-### Rename Files for SEO
-1. [Getting Started](GETTING_STARTED.md#start-with-the-media-table) — Overview
-2. [User Guide](USER_GUIDE.md#media-rename) — Single rename or bulk rename
-3. [FAQ](FAQ.md#media-file-renamer) — Best practices and troubleshooting
-
-### Clean Up Duplicates
-1. [User Guide](USER_GUIDE.md#duplicate-finder) — Scan and review
-2. [FAQ](FAQ.md#duplicate-image-finder) — Understand what's happening
-3. Merge (Pro feature)
-
-### Find Orphaned Files
-1. [User Guide](USER_GUIDE.md#rubbish-file-cleaner) — Scan for rubbish files
-2. [FAQ](FAQ.md#rubbish-file-finder-media-library-cleaner) — What are rubbish files?
-3. Delete or ignore safely
-
-### Generate AI Metadata
-1. [Getting Started](GETTING_STARTED.md#configure-ai-settings) — Setup AI provider
-2. [User Guide](USER_GUIDE.md#ai-content-generator) — Use AI suggestions
-3. [FAQ](FAQ.md#ai-content-generator) — Providers, models, troubleshooting
-
-### Export for Backup/Analysis
-1. [User Guide](USER_GUIDE.md#csv-export) — Select columns and export
-2. Use spreadsheet app to analyze
-3. [FAQ](FAQ.md#csv-export--import) — Format and usage
-
-### Track Image Usage
-1. [User Guide](USER_GUIDE.md#image-usage-tracker) — Scan for usage
-2. Find unused images
-3. Delete safely
-
-## 🎯 Use Cases
-
-### For Blog Authors
-- Keep images organized with categories
-- Use AI to generate alt text quickly
-- Track which images are actually used
-- Find and remove unused images
-
-### For E-commerce Stores
-- Rename product images for SEO
-- Bulk edit product metadata
-- Find duplicate images to save storage
-- Export inventory for analysis
-
-### For Agencies
-- Batch rename client projects with prefix/suffix
-- Organize media by category
-- Audit image usage across the site
-- CSV export for client reports
-
-### For Developers
-- Extend with custom hooks/filters
-- Integrate with CI/CD pipelines via API
-- Use CSV export/import for automation
-- Monitor media library health
-
-## 📚 Key Concepts
-
-### Alt Text (Accessibility & SEO)
-- Max 125 characters
-- Describe what's in the image
-- Key words at start
-- No image filenames or special characters
-- [Learn more →](USER_GUIDE.md#inline-editing-single-item)
-
-### File Naming (SEO)
-- Use descriptive, keyword-relevant names
-- Hyphens between words
-- Lowercase only
-- Under 50 characters preferred
-- [Learn more →](USER_GUIDE.md#naming-best-practices)
-
-### Duplicate Files
-- Found using MD5 hash fingerprinting
-- Exact byte-for-byte comparison
-- Shows wasted disk space
-- [Learn more →](USER_GUIDE.md#duplicate-finder)
-
-### Rubbish Files
-- Exist on disk but not in media library
-- Common sources: deleted plugins, failed uploads
-- Can be marked as ignored
-- [Learn more →](USER_GUIDE.md#rubbish-file-cleaner)
-
-### Image Usage
-- Tracks where images are actually used
-- Finds unused images safe to delete
-- Passive frontend tracking optional
-- [Learn more →](USER_GUIDE.md#image-usage-tracker)
-
-## 🔗 Resources
-
-### Official Links
-- 🌐 [Website](https://www.wptinysolutions.com)
-- 📖 [Documentation Portal](https://docs.wptinysolutions.com/media-library-tools/)
-- 💬 [Support Forum](https://wordpress.org/support/plugin/media-library-tools/)
-- 🐛 [GitHub Repository](https://github.com/wptinysolutions/media-library-tools)
-- 🎥 [Video Tutorials](https://www.youtube.com/channel/wptinysolutions)
-
-### External Resources
-- [WordPress Plugin Handbook](https://developer.wordpress.org/plugins/)
-- [WordPress.org Plugin Directory](https://wordpress.org/plugins/media-library-tools/)
-- [WCAG 2.1 Alt Text Standards](https://www.w3.org/WAI/WCAG21/quickref/#text-alternatives)
-- [Google Image SEO Guide](https://developers.google.com/search/docs/beginner/images)
-
-## ❓ Still Need Help?
-
-### Before Asking for Support
-1. Check this documentation ✅
-2. Search the [FAQ](FAQ.md) ✅
-3. Check your browser console for errors (F12)
-4. Check WordPress debug log (wp-config.php)
-5. Try disabling other plugins to check conflicts
-
-### Where to Get Help
-- **Quick answers:** [FAQ](FAQ.md)
-- **How-to guidance:** [User Guide](USER_GUIDE.md)
-- **Setup help:** [Getting Started](GETTING_STARTED.md)
-- **Community support:** [WordPress.org Forum](https://wordpress.org/support/plugin/media-library-tools/)
-- **Bug reports:** [GitHub Issues](https://github.com/wptinysolutions/media-library-tools/issues)
-
-## 📝 Documentation License
-
-This documentation is part of Media Library Tools and is licensed under [GPLv3](http://www.gnu.org/licenses/gpl-3.0.html).
+### Advanced Topics
+- **[Pro Features Guide](PRO-FEATURES.md)** — Automation, AI, and advanced tools
+- **[Free vs Pro Comparison](#free-vs-pro-features)** — Feature matrix and pricing
 
 ---
 
-**Latest Update:** April 2026 | **Version:** 2.2.0
+## 🎯 Quick Navigation
 
-Have a suggestion for improving this documentation? [Open an issue on GitHub →](https://github.com/wptinysolutions/media-library-tools/issues)
+### By Task
+
+**Want to organize images?**
+- [Media Rename](03-media-rename.md) — Rename files
+- [Image Sizes](10-image-sizes.md) — Manage image versions
+
+**Want to clean up storage?**
+- [Used Where](09-used-where.md) — Find unused images
+- [Duplicates](08-duplicates.md) — Find and remove duplicates
+- [Rubbish Files](07-rubbish-files.md) — Find orphaned files
+
+**Want to edit metadata?**
+- [Media Table](02-media-table.md) — Edit individual or bulk
+- [Media Settings](01-media-settings.md) — Configure auto-population
+- [CSV Import](06-csv-import.md) — Bulk update from spreadsheet
+
+**Want to backup/migrate?**
+- [CSV Export](05-csv-export.md) — Export metadata
+- [Media Download](11-media-download.md) — Download files
+- [CSV Import](06-csv-import.md) — Restore to new site
+
+**Want automation?** (Pro)
+- [Pro Features Guide](PRO-FEATURES.md) — AI, auto-rename, scheduled tasks
+
+### By User Level
+
+**Beginner**
+1. Read [Quick Start Guide](QUICK-START.md)
+2. Explore [Media Table](02-media-table.md)
+3. Configure [Media Settings](01-media-settings.md)
+
+**Intermediate**
+1. Use [Duplicates](08-duplicates.md) to clean storage
+2. Use [Used Where](09-used-where.md) to understand usage
+3. Use [CSV Export/Import](05-csv-export.md) for bulk updates
+4. Use [Media Rename](03-media-rename.md) for organization
+
+**Advanced**
+1. Schedule regular [Rubbish Files](07-rubbish-files.md) scans
+2. Optimize with [Image Sizes](10-image-sizes.md)
+3. Automate with [Pro Features](PRO-FEATURES.md)
+4. Integrate CSV workflows for complex operations
+
+---
+
+## 📊 Free vs Pro Features
+
+### Complete Feature Matrix
+
+| Feature | Free | Pro |
+|---------|------|-----|
+| **Media Management** | | |
+| View all media | ✓ | ✓ |
+| Edit metadata | ✓ | ✓ |
+| Bulk edit | ✓ | ✓ |
+| Search & filter | ✓ | ✓ |
+| **File Organization** | | |
+| Rename files | ✓ | ✓ |
+| Auto-rename by pattern | | ✓ |
+| Auto-rename by post title | | ✓ |
+| Rename prefix/suffix | | ✓ |
+| **Metadata Defaults** | | |
+| Alt text from filename | ✓ | ✓ |
+| Custom default alt text | ✓ | ✓ |
+| Alt text from post title | | ✓ |
+| Caption/Description defaults | ✓ | ✓ |
+| Caption/Description from post | | ✓ |
+| **Advanced Features** | | |
+| CSV export | ✓ | ✓ |
+| CSV import | ✓ | ✓ |
+| Media download/backup | ✓ | ✓ |
+| **Image Optimization** | | |
+| Regenerate thumbnails | ✓ | ✓ |
+| Image size management | ✓ | ✓ |
+| **Finding Issues** | | |
+| Find unused images | ✓ | ✓ |
+| Detect duplicates | ✓ | ✓ |
+| Find rubbish files | ✓ | ✓ |
+| **Cleaning Up** | | |
+| Delete rubbish files | | ✓ |
+| Ignore rubbish files | | ✓ |
+| Merge duplicates | | ✓ |
+| Trash management | | ✓ |
+| **Automation** | | |
+| Auto alt text injection | | ✓ |
+| AI content generation | | ✓ |
+| Scheduled scans | | ✓ |
+| Auto-cleanup | | ✓ |
+| **Reporting** | | |
+| Storage analysis | | ✓ |
+| Usage reports | | ✓ |
+| Cloud backups | | ✓ |
+
+---
+
+## 🤔 Frequently Asked Questions
+
+### General Questions
+
+**Q: Is my data stored on external servers?**
+- A: No. All data stays on your WordPress server. Only AI features (optional) send data to external APIs (ChatGPT, Gemini, Claude).
+
+**Q: Does this plugin slow down my website?**
+- A: No. All operations run in WordPress admin only. Frontend performance unaffected.
+
+**Q: Can I undo changes?**
+- A: Most operations are reversible (with backups). Always export CSV before major bulk operations.
+
+**Q: Does this work with my theme/plugins?**
+- A: Yes. Compatible with all WordPress themes and plugins. Works with Elementor, WooCommerce, ACF, etc.
+
+### Technical Questions
+
+**Q: What PHP/WordPress versions are required?**
+- A: PHP 7.4+ and WordPress 5.5+
+
+**Q: Is there a maximum library size?**
+- A: No hard limit. Large libraries (10,000+ images) may have slower scans (1-2 hours) but work fine.
+
+**Q: Can I use this on multisite?**
+- A: Yes. Works per site or network-wide (Pro).
+
+**Q: Is my API key secure?**
+- A: Yes. API keys encrypted in database and never logged.
+
+### Upgrade Questions
+
+**Q: What happens when I upgrade from Free to Pro?**
+- A: All your data transfers automatically. No setup needed.
+
+**Q: Is there a refund guarantee?**
+- A: Yes. 30-day money-back guarantee on Pro licenses.
+
+**Q: Can I upgrade/downgrade anytime?**
+- A: Yes. Pro features gracefully degrade if license expires.
+
+**Q: What about license renewal?**
+- A: Annual licenses auto-renew (optional). One-time purchases available.
+
+---
+
+## 🚀 Getting Started
+
+### Recommended First Steps
+
+1. **Install & Activate**
+   - Upload plugin to `/wp-content/plugins/`
+   - Activate from WordPress admin
+
+2. **Read Quick Start**
+   - [QUICK-START.md](QUICK-START.md) — 5-minute overview
+
+3. **Configure Settings**
+   - [Media Settings](01-media-settings.md) — Set metadata defaults
+
+4. **Explore Main Features**
+   - [Media Table](02-media-table.md) — Manage all media
+   - [Media Rename](03-media-rename.md) — Organize by name
+
+5. **Clean Up (Optional)**
+   - [Used Where](09-used-where.md) — Find unused images
+   - [Duplicates](08-duplicates.md) — Remove duplicates
+
+6. **Consider Pro** (Optional)
+   - [Pro Features Guide](PRO-FEATURES.md) — See advanced options
+
+---
+
+## 📖 Reading Tips
+
+### For Different Uses
+
+**SEO Focused**: Read [Media Settings](01-media-settings.md) → [Auto Alt Text](PRO-FEATURES.md#auto-alt-text-on-frontend)
+
+**Storage Optimization**: Read [Used Where](09-used-where.md) → [Duplicates](08-duplicates.md) → [Rubbish Files](07-rubbish-files.md)
+
+**Team Collaboration**: Read [CSV Export](05-csv-export.md) → [Media Table](02-media-table.md) → [Bulk Edit](02-media-table.md#bulk-edit-multiple-files)
+
+**Automation (Pro)**: Read [Pro Features](PRO-FEATURES.md) → [Media Settings](01-media-settings.md) → [Media Rename](03-media-rename.md)
+
+---
+
+## 🆘 Need Help?
+
+### Self-Help Resources
+
+1. **Read the Docs**: Most answers in feature guides
+2. **Check Troubleshooting**: Every guide has Troubleshooting section
+3. **Search Keywords**: Use Ctrl+F to find topics
+
+### Getting Support
+
+- **Documentation**: This guide covers all features
+- **Plugin Support**: Visit plugin support forum
+- **Pro Support**: Priority support for Pro members
+- **Email**: Direct support available for Pro members
+
+### Report Issues
+
+Found a bug or have feature request?
+- GitHub Issues: [Report Issue](https://github.com/example/repo/issues)
+- Support Forum: [Ask Question](https://wordpress.org/support/plugin/)
+
+---
+
+## 📋 Documentation Quality
+
+This documentation includes:
+- ✓ Step-by-step guides for every feature
+- ✓ Screenshots/examples (referenced in guides)
+- ✓ Common workflows and use cases
+- ✓ Troubleshooting section in each guide
+- ✓ Free vs Pro feature clarity
+- ✓ Important notes and safety considerations
+- ✓ Best practices and recommendations
+
+---
+
+## 📅 Version & Updates
+
+**Current Version**: 2.1.1+
+**Last Updated**: April 2026
+**PHP Requirement**: 7.4+
+**WordPress Requirement**: 5.5+
+
+### What's New in Recent Versions
+
+- ✨ Enhanced duplicate detection accuracy
+- ✨ Improved AI content generation
+- ✨ Better image usage tracking
+- ✨ Expanded Pro automation features
+- ✨ Cloud backup integration (Pro)
+
+[View Full Changelog](https://example.com/changelog)
+
+---
+
+## 🎓 Learning Path
+
+### Path 1: Essential Features (1-2 hours)
+1. [Quick Start](QUICK-START.md)
+2. [Media Table](02-media-table.md)
+3. [Media Settings](01-media-settings.md)
+
+### Path 2: Storage Optimization (3-4 hours)
+1. [Used Where](09-used-where.md)
+2. [Duplicates](08-duplicates.md)
+3. [Rubbish Files](07-rubbish-files.md)
+4. [Media Rename](03-media-rename.md)
+
+### Path 3: Pro Deep Dive (2-3 hours)
+1. [Pro Features Guide](PRO-FEATURES.md)
+2. [Media Settings](01-media-settings.md)
+3. [Media Rename](03-media-rename.md)
+4. [Duplicates](08-duplicates.md)
+
+---
+
+**Happy managing! 🎉** For any questions, refer to specific feature guides or visit the support forum.
+
+---
+
+**Copyright © 2026 Tiny Solutions** | [Visit Website](https://example.com) | [Contact Support](https://example.com/support)
