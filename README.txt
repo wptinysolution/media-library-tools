@@ -105,13 +105,6 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
   `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
 * Forces a browser download prompt — works with images, PDFs, documents, audio, video, archives, and more
 
-= Additional Columns in WordPress Media List =
-* Alt text column (sortable)
-* Caption column (sortable)
-* Description column (sortable)
-* Media Categories column
-* Uploaded To post info in the media attachment modal
-
 = Regenerate Thumbnails =
 * Regenerate all registered image thumbnail sizes for every image in your media library in a single click
 * Automatically detects and deletes orphaned thumbnail files for image sizes that are no longer registered — frees disk space without manual cleanup
