@@ -8,7 +8,7 @@ Comprehensive documentation for **Media Library Tools** (Free & Pro) has been su
 
 ## 📂 Documentation Structure
 
-### Files Created: 15 Total
+### Files Created: 16 Total
 
 ```
 docs/
@@ -21,8 +21,9 @@ docs/
 ├── 02-media-table.md           # Media management interface
 ├── 03-media-rename.md          # File renaming tool
 ├── 04-regenerate-thumbnails.md # Thumbnail regeneration
-├── 05-csv-export.md            # Export to spreadsheet
+├── 05-csv-export.md            # Quick export from Media Table
 ├── 06-csv-import.md            # Import from spreadsheet
+├── 12-csv-export-bulk.md       # Bulk export entire library (Pro)
 ├── 07-rubbish-files.md         # Orphaned file finder
 ├── 08-duplicates.md            # Duplicate detection
 ├── 09-used-where.md            # Image usage tracker
@@ -36,7 +37,7 @@ docs/
 
 | Metric | Value |
 |--------|-------|
-| **Total Files** | 15 |
+| **Total Files** | 16 |
 | **Total Lines** | 4,329+ |
 | **Total Words** | ~35,000+ |
 | **Modules Documented** | 11 core + Pro guide |

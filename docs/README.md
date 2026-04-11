@@ -18,7 +18,8 @@ This documentation is organized by feature and includes detailed guides for both
 | **[Media Table](02-media-table.md)** | Main interface for managing all media files | Media Table |
 | **[Media Rename](03-media-rename.md)** | Rename files individually or in bulk | Media Rename |
 | **[Regenerate Thumbnails](04-regenerate-thumbnails.md)** | Rebuild image sizes for compatibility | Regenerate Thumbnails |
-| **[CSV Export](05-csv-export.md)** | Export media metadata for backup/analysis | Media Table → Export |
+| **[CSV Export (Quick)](05-csv-export.md)** | Export selected media from Media Table | Media Table → Export |
+| **[CSV Export (Bulk)](12-csv-export-bulk.md)** | Bulk export entire library (Pro) | CSV Export menu |
 | **[CSV Import](06-csv-import.md)** | Import and update metadata from spreadsheets | CSV Import |
 | **[Rubbish Files](07-rubbish-files.md)** | Find and clean orphaned media files | Rubbish Files |
 | **[Duplicates](08-duplicates.md)** | Detect and manage duplicate images | Duplicates |
@@ -102,7 +103,8 @@ This documentation is organized by feature and includes detailed guides for both
 | Caption/Description defaults | ✓ | ✓ |
 | Caption/Description from post | | ✓ |
 | **Advanced Features** | | |
-| CSV export | ✓ | ✓ |
+| CSV export (Quick) | ✓ | ✓ |
+| CSV export (Bulk/Entire library) | | ✓ |
 | CSV import | ✓ | ✓ |
 | Media download/backup | ✓ | ✓ |
 | **Image Optimization** | | |
