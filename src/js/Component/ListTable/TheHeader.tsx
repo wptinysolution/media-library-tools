@@ -39,6 +39,25 @@ function TheHeader() {
         setBulkSubmitData(defaultBulkSubmitData);
     };
 
+    const handleResetFilters = () => {
+        setMediaData({
+            isLoading: true,
+            postQuery: {
+                status: null,
+                filtering: false,
+                media_per_page: mediaData.postQuery.media_per_page,
+                searchKeyWords: mediaData.postQuery.searchKeyWords,
+                order: mediaData.postQuery.order,
+                orderby: mediaData.postQuery.orderby,
+                paged: 1,
+                isUpdate: false,
+                date: null,
+                categories: null,
+            }
+        });
+        setBulkSubmitData(defaultBulkSubmitData);
+    };
+
     const handleChangeBulkType = (value: string) => {
         const data = 'bulkedit' === value ? bulkSubmitData.data : defaultBulkSubmitData.data;
         setBulkSubmitData({ type: value, data });
@@ -84,6 +103,8 @@ function TheHeader() {
         ? bulkOptions.filter(item => 'trash' !== item.value)
         : bulkOptions.filter(item => 'inherit' !== item.value);
 
+    const hasActiveFilters = postQuery.status || postQuery.date || postQuery.categories;
+
     return (
         <>
         <header className="bg-white border-b border-gray-200 px-3 py-3 shadow-sm">
@@ -115,7 +136,7 @@ function TheHeader() {
                     <select
                         className="pl-3! pr-5.5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'status')}
-                        defaultValue={mediaData.postQuery.status || ""}
+                        value={mediaData.postQuery.status || ""}
                     >
                         <option value="">All Status</option>
                         <option value="trash">Trash</option>
@@ -124,7 +145,7 @@ function TheHeader() {
                     <select
                         className="px-3! pr-5.5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'date')}
-                        defaultValue={mediaData.postQuery.date || ""}
+                        value={mediaData.postQuery.date || ""}
                     >
                         <option value="">All Dates</option>
                         {generalData?.dateList?.map(date => (
@@ -135,13 +156,23 @@ function TheHeader() {
                     <select
                         className="px-3! py-2! pr-5.5! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
                         onChange={(e) => handleSelectChange(e.target.value || null, 'categories')}
-                        defaultValue={mediaData.postQuery.categories || ""}
+                        value={mediaData.postQuery.categories || ""}
                     >
                         <option value="">All Groups</option>
                         {generalData.termsList?.map(term => (
                             <option key={term.value} value={term.value}>{term.label}</option>
                         ))}
                     </select>
+
+                    {hasActiveFilters && (
+                        <button
+                            className="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-md transition-colors font-medium cursor-pointer whitespace-nowrap"
+                            onClick={handleResetFilters}
+                            title="Reset all filters"
+                        >
+                            ✕ Reset
+                        </button>
+                    )}
 
                 {/*</div>*/}
 
