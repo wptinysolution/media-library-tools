@@ -25,7 +25,7 @@ This documentation is organized by feature and includes detailed guides for both
 | **[Duplicates](08-duplicates.md)** | Detect and manage duplicate images | Duplicates |
 | **[Used Where](09-used-where.md)** | Track image usage across your site | Used Where |
 | **[Image Sizes](10-image-sizes.md)** | Manage WordPress image dimensions | Image Sizes |
-| **[Media Download](11-media-download.md)** | Download media files and create backups | Media Download |
+| **[Media Download](11-media-download.md)** | Add download buttons for media files | Media Download |
 
 ### Advanced Topics
 - **[Pro Features Guide](PRO-FEATURES.md)** — Automation, AI, and advanced tools

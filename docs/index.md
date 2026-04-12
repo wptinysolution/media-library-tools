@@ -19,7 +19,7 @@ Media Library Tools provides powerful features to help you manage, organize, and
 ### Optimization & Utilities
 - [Regenerate Thumbnails](#regenerate-thumbnails) - Rebuild image sizes for better compatibility
 - [Image Sizes](#image-sizes) - Register and manage WordPress image sizes
-- [Media Download](#media-download) - Download media files and organize exports
+- [Media Download](#media-download) - Add download buttons for media files
 
 ### Advanced Features
 - [CSV Export/Import](#csvexportimport) - Bulk media operations with spreadsheets

@@ -1,399 +1,294 @@
-# Media Download
+# Media Download (Shortcode)
 
-The Media Download feature allows you to download media files from your WordPress site. It provides tools for bulk media exports, creating downloadable archives, and organizing media for backup or distribution.
+The Media Download feature provides shortcodes to add download buttons for individual media files on your WordPress site. This allows visitors to download specific images or files directly from posts and pages.
 
 ## Overview
 
 Media Download helps you:
-- **Backup Media**: Safely download your entire media library
-- **Bulk Export**: Download multiple files at once
-- **Archives**: Create ZIP files for easy sharing
-- **Transfer**: Move media to another site
-- **Distribution**: Share media with team members
+- Add download buttons to media files
+- Let visitors download specific images by ID or URL
+- Customize button text and styling
+- Include download links in posts, pages, or widgets
+
+**Note**: This is for **adding download buttons on your site**—not for downloading media from the admin panel.
 
 **Location**: Media Library Tools → Media Download
 
-## Why Download Media?
-
-### Benefits
-
-- **Backup**: Independent backup of files (not database)
-- **Migration**: Easily move media to new server
-- **Archiving**: Keep historical copies
-- **Sharing**: Send multiple files to clients
-- **Compliance**: Maintain media records for audits
-
-### Common Use Cases
-
-1. **Backup Before Major Updates**: Download media before theme/plugin update
-2. **Server Migration**: Get all files for new server
-3. **Site Transfer**: Move media to new domain
-4. **Content Archive**: Archive old campaign media
-5. **Team Collaboration**: Share media pack with designers
-
----
-
 ## Feature Breakdown
 
-### 1. Download Methods
+### 1. Download Button Shortcodes
 
-#### Direct File Download
-- Download individual or selected files
-- Single click per file
-- Browser download
-- Best for: One or few files
+Two shortcode types available:
 
-#### Bulk ZIP Archive
-- Multiple files in one ZIP
-- Compressed for smaller size
-- Single download
-- Best for: Many files (10+)
+#### Shortcode 1: Download by ID
+- **What it does**: Creates download button for media by WordPress attachment ID
+- **Use case**: Link to images in your media library
+- **Shortcode**: `[tsmlt_download_button id='12345' text='Download' /]`
+- **Parameters**:
+  - `id`: WordPress attachment ID (required)
+  - `text`: Button text (optional, default: "Download")
+  - `class`: Custom CSS class (optional)
 
-#### CSV Export
-- Metadata export (separate from files)
-- File information in spreadsheet
-- Used with [CSV Import](csv-import.md)
-- Best for: Documenting/organizing
+#### Shortcode 2: Download by URL
+- **What it does**: Creates download button for any file URL
+- **Use case**: Download files from external URLs
+- **Shortcode**: `[tsmlt_download_button url='https://example.com/file.jpg' text='Download' /]`
+- **Parameters**:
+  - `url`: Full URL to file (required)
+  - `text`: Button text (optional, default: "Download")
+  - `class`: Custom CSS class (optional)
 
-### 2. Download Organization
+### 2. Button Customization
 
-Downloaded files can be organized by:
+**Text Parameter**
+- Set custom button text
+- Example: "Download Now", "Get Image", "Save File"
+- Default: "Download"
 
-| Organization | Structure |
-|--------------|-----------|
-| Flat | All files in root (thousands in one folder) |
-| By Date | 2024/04/, 2024/03/, etc. |
-| By Type | images/, documents/, videos/ |
-| By Post | post-123/, post-456/ |
-| Custom | As configured |
-
-**Note**: Organization depends on plugin settings and how you download.
-
-### 3. Compression & Size
-
-**ZIP Archive Compression**:
-- Reduces file size by 10-30%
-- JPEG already compressed (saves less)
-- PNG lossless (saves more)
-- Large archives: Split into multiple files
-
-**Example**:
-- Original media: 2 GB
-- ZIP compressed: 1.7 GB (15% reduction)
-- Download time: Depends on server speed
+**Class Parameter**
+- Add custom CSS classes for styling
+- Example: `class='custom-btn large'`
+- Apply your own CSS styling
 
 ---
 
 ## Step-by-Step Usage
 
-### Download Individual File
+### Add Download Button by Media ID
 
-1. Go to **Media Library Tools → Media Table**
-2. Find the image you want to download
-3. Click the **"Download"** button (down arrow icon)
-4. File downloads to your computer's Downloads folder
-5. Original filename preserved
-
-**Example**:
-```
-Click Download on: sunset.jpg
-→ Downloads to: ~/Downloads/sunset.jpg
-→ Size: Original image size
-```
-
-### Download Multiple Files (Bulk)
-
-**Method 1: From Media Table**
-1. Go to **Media Table**
-2. Select multiple images (checkboxes)
-3. Click **"Export CSV"** or **"Download Selection"** if available
-4. Choose format:
-   - CSV (metadata only)
-   - ZIP (files + metadata)
-5. Download starts
-
-**Method 2: From Media Download Page**
 1. Go to **Media Library Tools → Media Download**
-2. Select images to download:
-   - By date range
-   - By file type
-   - By usage status
-   - All images
-3. Click **"Download as ZIP"**
-4. ZIP created with all selected files
-5. Single download starts
-
-### Create Backup Archive
-
-To backup all media files:
-
-1. Go to **Media Download**
-2. Select **"All Images"** or **"All Media"**
-3. Choose **"Create ZIP Archive"**
-4. Optionally include:
-   - Metadata (CSV file in ZIP)
-   - Subfolder organization
-   - Compression settings
-5. Click **"Create Archive"**
-6. Progress bar shows:
-   - Files being processed
-   - Archive size
-   - Compression ratio
-7. Download starts when ready
-
-**Archive Contents**:
-```
-media-backup-2024-04-11.zip
-├── images/
-│   ├── 2024/
-│   │   ├── 04/
-│   │   │   ├── sunset.jpg
-│   │   │   ├── ocean.jpg
-│   │   │   └── ...
-│   │   └── 03/
-│   │       └── ...
-├── media-metadata.csv
-└── README.txt
-```
-
-### Download by Date Range
-
-To backup only recent media:
-
-1. Go to **Media Download**
-2. Select **"By Date Range"**
-3. Choose **"From"** and **"To"** dates
-4. Click **"Apply Filter"**
-5. Select all filtered items
-6. Click **"Download as ZIP"**
-7. Only files in date range included
+2. Find the **"Download By Id"** shortcode card
+3. Copy the shortcode:
+   ```
+   [tsmlt_download_button id='11393' text='Download Now' class='my-custom-btn' /]
+   ```
+4. Edit your post or page
+5. Paste the shortcode in the content
+6. Replace `11393` with your media ID
+7. Change `text` to your desired button text
+8. Publish the post
+9. Button appears and visitors can download
 
 **Example**:
 ```
-Date Range: 2024-04-01 to 2024-04-11
-Downloads: All media uploaded in April 2024
-Excludes: Older images from March/earlier
+Here's our latest product brochure:
+[tsmlt_download_button id='5432' text='Download Brochure' /]
 ```
 
-### Download by File Type
+### Add Download Button by URL
 
-To backup specific file types:
+1. Go to **Media Library Tools → Media Download**
+2. Find the **"Download By URL"** shortcode card
+3. Copy the shortcode:
+   ```
+   [tsmlt_download_button url='https://example.com/image.jpg' text='Download' /]
+   ```
+4. Edit post or page
+5. Paste shortcode in content
+6. Replace URL with your file URL
+7. Change text as needed
+8. Publish
+9. Download button ready for visitors
+
+**Example**:
+```
+[tsmlt_download_button url='https://example.com/wp-content/uploads/2026/04/product.pdf' text='Get PDF' /]
+```
+
+### Copy Shortcode to Clipboard
 
 1. Go to **Media Download**
-2. Select **"By File Type"**
-3. Choose type(s):
-   - Images (JPEG, PNG, GIF, WebP, SVG)
-   - Documents (PDF, DOCX)
-   - Video (MP4, WebM)
-   - Audio (MP3, WAV)
-4. Click **"Download"**
-5. Only selected types included
+2. Find the shortcode you want
+3. Click **copy icon** (top right of code block)
+4. Shortcode copied to clipboard
+5. Paste where needed
 
-### Download Used/Unused Images
+### Get PHP Code Version
 
-To backup only used or unused media:
+If you need to use PHP instead of shortcode:
 
-1. Run [Used Where](used-where.md) scan first
-2. Go to **Media Download**
-3. Select **"By Usage"**
-4. Choose:
-   - Used images only
-   - Unused images only
-5. Click **"Download as ZIP"**
+1. Go to **Media Download**
+2. Find the card with your shortcode
+3. Copy the **PHP Code** section
+4. Use in your theme template
 
-**Use Cases**:
-- Backup active images (before theme change)
-- Archive unused (before deletion)
-- Clean up verification (download unused to review)
+**Example PHP**:
+```php
+<?php
+  echo shortcode_exists('tsmlt_download_button')
+    ? do_shortcode("[tsmlt_download_button id='11393' text='Download Now' /]")
+    : '' ;
+?>
+```
 
 ---
 
-## Common Workflows
+## Finding Media ID
 
-### Complete Media Backup
+Need to find your media ID?
 
-Scenario: Prepare for major WordPress update
+1. Go to **Media Library Tools → Media Table**
+2. Find the file you want
+3. Look for the **ID** column (or hover over image)
+4. Copy the ID number
+5. Use in shortcode: `id='12345'`
 
-1. Go to **Media Download**
-2. Select **"All Media"**
-3. Click **"Create Backup Archive"**
-4. Include **"Metadata CSV"**: Yes
-5. Choose **"Full Compression"**
-6. Download starts
-7. Save backup file in multiple locations:
-   - External hard drive
-   - Cloud storage (Dropbox, Google Drive)
-   - Backup service
+Alternative:
+1. Go to **WordPress Media Library**
+2. Click image
+3. URL shows: `/post.php?post=12345`
+4. ID is `12345`
 
-### Migrate to New Server
+---
 
-Scenario: Moving WordPress to new hosting
+## Customization Options
 
-1. **Old Server**:
-   - Go to **Media Download**
-   - Create archive of all media
-   - Download to computer
-2. **New Server**:
-   - Upload media files to `/wp-content/uploads/`
-   - Import metadata via [CSV Import](csv-import.md)
-3. **Verify**:
-   - Check images display
-   - Run [Regenerate Thumbnails](regenerate-thumbnails.md)
+### Change Button Text
 
-### Archive Campaign Media
+```
+[tsmlt_download_button id='5432' text='Click to Download' /]
+[tsmlt_download_button id='5432' text='Save File' /]
+[tsmlt_download_button id='5432' text='Get Now' /]
+```
 
-Scenario: Quarterly campaign cleanup
+### Add Custom Styling
 
-1. Go to **Media Download**
-2. **By Date Range**: January-March 2024
-3. **By Usage**: Used images only (active campaign)
-4. Download as ZIP
-5. Save with label: "Q1-2024-Campaign-Media.zip"
-6. Archive in cloud storage
-7. Delete from WordPress after archiving
+```
+[tsmlt_download_button id='5432' class='primary-btn' /]
+[tsmlt_download_button id='5432' class='btn-large btn-red' /]
+```
 
-### Share Media with Client
+Then add CSS to your theme:
+```css
+.primary-btn {
+    background-color: #007cba;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
 
-Scenario: Designer needs product images
+.btn-large {
+    font-size: 18px;
+    padding: 15px 30px;
+}
 
-1. Go to **Media Download**
-2. **By File Type**: Images
-3. **By Usage**: Used images (active product images)
-4. Download ZIP
-5. Email to designer
-6. Designer has full product image set
+.btn-red {
+    background-color: #dc3545;
+}
+```
+
+---
+
+## Common Use Cases
+
+### Product Download
+
+```
+[tsmlt_download_button id='5432' text='Download Product Guide' /]
+```
+
+### Lead Magnet
+
+```
+Get our free guide:
+[tsmlt_download_button id='7890' text='Download Free Guide (PDF)' /]
+```
+
+### Portfolio File
+
+```
+See my work:
+[tsmlt_download_button url='https://example.com/portfolio.pdf' text='View Full Portfolio' /]
+```
+
+### Resource Library
+
+```
+Available Resources:
+- [tsmlt_download_button id='111' text='Template 1' /]
+- [tsmlt_download_button id='222' text='Template 2' /]
+- [tsmlt_download_button id='333' text='Template 3' /]
+```
 
 ---
 
 ## Important Notes
 
-### Download Limitations
+### ID vs URL
 
-**File Size**:
-- Individual files: Limited by server (usually 100+ MB ok)
-- ZIP archives: May be very large (1-5 GB)
-- Large downloads: May timeout on slow connections
+**Use ID when**:
+- File is in WordPress media library
+- You want WordPress to track the download
+- File is attached to the post
 
-**Browser Considerations**:
-- Downloads over 2 GB may fail in browser
-- Consider downloading in sections
-- Use FTP for very large transfers
+**Use URL when**:
+- File is on external server
+- File is outside WordPress
+- It's a direct file link
 
-### Archive Contents & Organization
+### File Formats Supported
 
-**Standard Archive Structure**:
-```
-images/
-├── 2024/
-│   ├── 04/
-│   │   └── sunset.jpg
-│   └── 03/
-│       └── photo.jpg
-├── 2023/
-│   └── 12/
-└── media-metadata.csv
-```
+Can download any file type:
+- Images: JPG, PNG, GIF, SVG, WebP
+- Documents: PDF, DOCX, XLSX, TXT
+- Archives: ZIP, RAR, 7Z
+- Media: MP3, MP4, WebM
+- Custom files (if accessible)
 
-**Metadata CSV Included**:
-- Filename, Alt Text, Caption, Description
-- File size, dimensions, upload date
-- Can reimport with [CSV Import](csv-import.md)
+### Security Notes
 
-### Compression Details
+- Downloads respect file permissions
+- External URLs download as-is
+- No additional security checks
+- Server must have access to file
 
-**ZIP Compression Effect**:
-- JPEG (already compressed): 0-5% reduction
-- PNG (uncompressed): 20-40% reduction
-- Mixed media: 10-20% average reduction
-- Text files: 50%+ reduction
+### Button Styling
 
----
-
-## Pro Features
-
-**Upgrade to Pro for**:
-- Scheduled automatic backups
-- Cloud storage integration (Google Drive, Dropbox, S3)
-- Incremental backups (only new files)
-- Backup encryption
-- Backup size limit enforcement
-- Automatic retention policies
-- One-click restore from backup
-
----
-
-## Safety Considerations
-
-### Before Large Downloads
-
-1. **Check Disk Space**: Ensure you have room
-2. **Test Connection**: Try downloading small file first
-3. **Backup Metadata**: Export CSV separately
-4. **Verify Download**: Check file integrity after download
-
-### After Download
-
-1. **Verify Files**: Spot-check downloaded images open
-2. **Test Extraction**: Extract ZIP and verify files
-3. **Keep Multiple Copies**: Store in multiple locations
-4. **Document Backup**: Note what's included, when backed up
-
-### Archive Security
-
-- **Unencrypted Archives**: Files visible to anyone with ZIP
-- **Sensitive Media**: Consider additional encryption
-- **Cloud Storage**: Use secure storage (encrypted cloud drives)
-- **Access Control**: Restrict who can download
+- Shortcode generates `<a>` tag
+- Default styling: plain link
+- Custom class: Apply your CSS
+- Styled by theme CSS if available
 
 ---
 
 ## Troubleshooting
 
-**Q: Download fails or times out**
-- A: Archive may be too large. Try:
-  - Download fewer files (smaller archive)
-  - Download by date range instead of all
-  - Use FTP instead of browser download
-  - Contact hosting provider about timeout
+**Q: Button doesn't appear**
+- A: Check:
+  - Shortcode syntax correct (id or url required)
+  - Media ID exists (check Media Table)
+  - URL is accessible
+  - Shortcode plugin active
 
-**Q: ZIP archive is larger than expected**
-- A: Uncompressed metadata or files not actually compressed. Check:
-  - Files included in archive
-  - Compression actually enabled
-  - Files are JPEG (already compressed, less benefit)
+**Q: Download doesn't work**
+- A: Check:
+  - File still exists (not deleted)
+  - File permissions allow download
+  - URL is correct and accessible
+  - Hosting allows downloads
 
-**Q: Can't extract downloaded ZIP**
-- A: Corrupted download or incomplete. Try:
-  - Re-download the archive
-  - Use different extraction tool (WinRAR, 7-Zip)
-  - Verify file size matches announced size
+**Q: Button text not changing**
+- A: Include `text=` parameter:
+  ```
+  [tsmlt_download_button id='5432' text='Your Text' /]
+  ```
 
-**Q: Missing files from archive**
-- A: Archive generation may have errors. Check:
-  - Download log for errors
-  - Re-create archive
-  - Try excluding file types causing issues
+**Q: Styling not working**
+- A: Check CSS syntax, class name matches, CSS loaded on page
 
-**Q: Download starts but stops mid-way**
-- A: Connection interrupted. Try:
-  - Download fewer files (smaller archive)
-  - Use wired internet (more stable)
-  - Use FTP client instead of browser
-  - Try during off-peak hours
+**Q: External URL showing 404**
+- A: Verify URL works in browser before using in shortcode
 
----
 
 ## Best Practices
 
-1. **Regular Backups**: Monthly at minimum
-2. **Multiple Copies**: Keep backups in 2+ locations
-3. **Test Extraction**: Verify zips extract correctly
-4. **Document Backups**: Note dates and contents
-5. **Archive Old Media**: Download before bulk deletion
-6. **Include Metadata**: Always include CSV in backups
+1. **Test Links**: Verify downloads work after publishing
+2. **Clear Text**: Use descriptive button text ("Download PDF", not just "Download")
+3. **Accessible URLs**: Keep files in accessible locations
+4. **File Management**: Don't delete media that shortcodes reference
+5. **Mobile Friendly**: Test button appearance on mobile devices
+6. **Alternative Text**: Provide context around buttons ("Right-click to save")
 
 ---
 
-**Documentation Complete**: You now have comprehensive coverage of all Media Library Tools features!
-
-For additional help, see [Getting Help](index.md#getting-help)
+**Next**: Learn about other features in [Image Sizes](10-image-sizes.md)
