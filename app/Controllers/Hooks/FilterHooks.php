@@ -521,16 +521,34 @@ class FilterHooks {
 		// This is passive and happens at the end of page load.
 		$scanner = UsedWhereScanner::instance();
 
+		// Get post object first.
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return;
+		}
+
 		// Record featured image.
 		$featured_id = get_post_thumbnail_id( $post_id );
 		if ( $featured_id ) {
 			$scanner->record_frontend_usage( $featured_id, $post_id, 'featured' );
 		}
 
-		// Record images in post content (simple detection).
-		$post = get_post( $post_id );
-		if ( $post && ! empty( $post->post_content ) ) {
-			$scanner->detect_content_images( $post->post_content, $post_id, 'content' );
+		// Record images in post content via URL detection.
+		if ( ! empty( $post->post_content ) ) {
+			if ( ! preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $post->post_content, $matches ) ) {
+				return;
+			}
+
+			$upload_dir = wp_upload_dir();
+			$base_url   = trailingslashit( $upload_dir['baseurl'] );
+
+			foreach ( $matches[1] as $relative_path ) {
+				$full_url      = $base_url . $relative_path;
+				$attachment_id = attachment_url_to_postid( $full_url );
+				if ( $attachment_id ) {
+					$scanner->record_frontend_usage( $attachment_id, $post_id, 'content' );
+				}
+			}
 		}
 	}
 

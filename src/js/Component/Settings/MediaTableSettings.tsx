@@ -4,7 +4,7 @@ import TextInput from '@/js/Component/Common/TextInput';
 import SettingRow from '@/js/Component/Common/SettingRow';
 
 export default function MediaTableSettings() {
-    const { options, setOptions } = useStore();
+    const { options, setOptions, setGeneralData } = useStore();
 
     const onChangeOthersFileList = (value: string) => {
         const currentList = options.others_file_support || [];
@@ -15,6 +15,11 @@ export default function MediaTableSettings() {
     };
 
     const setDefaultText = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const proFields = ['auto_inject_alt_text', 'use_post_title_alt_text'];
+        if (!tsmltParams.hasExtended && proFields.includes(e.target.name)) {
+            setGeneralData({ openProModal: true });
+            return;
+        }
         setOptions({
             [e.target.name]: options[e.target.name] !== e.target.value ? e.target.value : '',
         });
@@ -41,47 +46,68 @@ export default function MediaTableSettings() {
                     </div>
                 </div>
 
-                <SettingRow label="Auto Alt Text on Frontend:" bordered>
-                    <CheckboxField
-                        name="auto_inject_alt_text"
-                        value="auto_inject_alt_text"
-                        checked={'auto_inject_alt_text' === options.auto_inject_alt_text}
-                        onChange={setDefaultText}
-                        label="Enable auto alt text injection"
-                        isPro={!tsmltParams.hasExtended}
-                    />
-                    <p className="text-sm text-gray-500 mt-0!">
-                        Automatically add alt text to images missing alt attributes when pages are rendered on the frontend.
-                    </p>
-                </SettingRow>
+                {tsmltParams.hasExtended && (
+                    <SettingRow label="Auto Alt Text on Frontend:" bordered>
+                        <CheckboxField
+                            name="auto_inject_alt_text"
+                            value="auto_inject_alt_text"
+                            checked={'auto_inject_alt_text' === options.auto_inject_alt_text}
+                            onChange={setDefaultText}
+                            label="Enable auto alt text injection"
+                            isPro={false}
+                        />
+                        <p className="text-sm text-gray-500 mt-0!">
+                            <strong>What it does:</strong> Automatically fills in missing alt text on your website's frontend (visitor-facing pages) when images don't already have alt attributes. This only affects how images are displayed to visitors, not the image metadata in your media library.
+                        </p>
+                        <p className="text-sm text-gray-500 mt-2!">
+                            <strong>Why use it:</strong> Helps with SEO and accessibility by ensuring every image has alt text, even if you forgot to add it when uploading.
+                        </p>
+                    </SettingRow>
+                )}
 
                 {tsmltParams.hasExtended && 'auto_inject_alt_text' === options.auto_inject_alt_text && (
-                    <>
-                        <SettingRow label="Use Post Title as Alt Text:" bordered>
+                    <div className="ml-6 space-y-6">
+                        <SettingRow label="Alt Text Source (Priority Order):" bordered>
+                            <p className="text-sm text-gray-700 mb-4!">
+                                When auto-injecting alt text, the plugin will try these options in order (first available wins):
+                            </p>
+
                             <CheckboxField
                                 name="use_post_title_alt_text"
                                 value="use_post_title_alt_text"
                                 checked={'use_post_title_alt_text' === options.use_post_title_alt_text}
                                 onChange={setDefaultText}
-                                label="Use post title for alt text"
+                                label="1. Use Post/Page Title"
                                 isPro={false}
                             />
-                            <p className="text-sm text-gray-500 mt-0!">
-                                If enabled, will use the post/page title as alt text. Falls back to filename if no parent post.
+                            <p className="text-sm text-gray-500 mt-0! ml-6">
+                                If enabled, uses the title of the post or page containing the image. For example, if your post is titled "How to Bake Cookies", images in that post will get alt text "How to Bake Cookies".
                             </p>
                         </SettingRow>
 
-                        <SettingRow label="Default Alt Text (Fallback):" bordered>
+                        <SettingRow label="2. Image Filename (Automatic):" bordered>
+                            <p className="text-sm text-gray-500 mt-0!">
+                                If post title is not available or disabled, automatically uses the image's filename (without extension). For example, "my-product-photo.jpg" becomes "My Product Photo".
+                            </p>
+                        </SettingRow>
+
+                        <SettingRow label="3. Default Fallback Text (Optional):" bordered>
                             <TextInput
                                 placeholder="e.g., 'Image' or 'Photo'"
                                 onChange={(event) => setOptions({ default_alt_text_if_missing: event.target.value })}
                                 value={(options.default_alt_text_if_missing as string) || ''}
                             />
                             <p className="text-sm text-gray-500 mt-0!">
-                                Fallback alt text if no post title or filename is available. Leave empty to use filename as fallback.
+                                Enter a custom fallback text to use if both post title and filename are unavailable. Leave empty to use just the filename.
                             </p>
                         </SettingRow>
-                    </>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
+                            <p className="text-sm text-blue-900 m-0!">
+                                <strong>ℹ️ How it works:</strong> When a visitor views your website, if an image is missing alt text, the plugin will automatically add one using the above rules. This doesn't modify your media library - it only affects what visitors see.
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 <SettingRow label="Frontend Image Usage Tracking:" bordered>
@@ -94,7 +120,13 @@ export default function MediaTableSettings() {
                         isPro={false}
                     />
                     <p className="text-sm text-gray-500 mt-0!">
-                        Automatically collect image usage data when users visit pages. Complements the backend scan functionality.
+                        <strong>What it does:</strong> Automatically records image usage data whenever visitors view your pages. Works alongside the "Used Where" scanner to show you which images are being displayed on your frontend.
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2!">
+                        <strong>Why use it:</strong> Helps you identify images that look like they're used but aren't actually being displayed, or images that might have broken references. The backend scan shows uploaded images; this shows which ones are actually being viewed by visitors.
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2!">
+                        <strong>Performance:</strong> Minimal impact - only tracks data for images that are loaded when pages are viewed.
                     </p>
                 </SettingRow>
             </div>
