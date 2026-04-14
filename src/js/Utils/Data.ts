@@ -279,7 +279,7 @@ export const regenerateGetStatus = async (): Promise<{ total: number; image_size
     return result.data as { total: number; image_sizes: unknown[] };
 };
 
-// EXIF Stripper.
+// EXIF Stripper functions (handled by Pro plugin).
 export const exifStripBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_exif_strip_batch', prams);
 };
