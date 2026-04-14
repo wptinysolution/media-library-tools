@@ -264,3 +264,22 @@ export const regenerateGetStatus = async (): Promise<{ total: number; image_size
     return result.data as { total: number; image_sizes: unknown[] };
 };
 
+// EXIF Stripper.
+export const exifStripBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_exif_strip_batch', prams);
+};
+
+export const getExifResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_results', prams);
+    return result.data as Record<string, unknown>;
+};
+
+export const getExifStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_status');
+    return result.data as Record<string, unknown>;
+};
+
+export const exifStripSingle = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_exif_strip_single', prams);
+};
+
