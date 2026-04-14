@@ -69,7 +69,7 @@ export default function MediaTableSettings() {
                     <div className="space-y-6">
                         <SettingRow label="Alt Text Source (Priority Order):" bordered>
                             <p className="text-sm text-gray-700 mb-4!">
-                                When auto-injecting alt text, the plugin will try these options in order (first available wins):
+                                When auto-injecting alt text, the plugin tries these in order. The first one that produces a result wins:
                             </p>
 
                             <CheckboxField
@@ -81,24 +81,24 @@ export default function MediaTableSettings() {
                                 isPro={false}
                             />
                             <p className="text-sm text-gray-500 mt-0! ml-6">
-                                If enabled, uses the title of the post or page containing the image. For example, if your post is titled "How to Bake Cookies", images in that post will get alt text "How to Bake Cookies".
+                                If enabled, uses the title of the parent post or page. For example, if the post is titled "How to Bake Cookies", images in that post get alt text "How to Bake Cookies".
                             </p>
                         </SettingRow>
 
-                        <SettingRow label="3. Default Fallback Text (Optional):" bordered>
+                        <SettingRow label="2. Custom Default Text:" bordered>
                             <TextInput
                                 placeholder="e.g., 'Image' or 'Photo'"
                                 onChange={(event) => setOptions({ default_alt_text_if_missing: event.target.value })}
                                 value={(options.default_alt_text_if_missing as string) || ''}
                             />
                             <p className="text-sm text-gray-500 mt-0!">
-                                Enter a custom fallback text to use if both post title and filename are unavailable. Leave empty to use just the filename.
+                                If post title is unavailable or disabled, this custom text will be used. Leave empty to skip this step and fall back to the filename.
                             </p>
                         </SettingRow>
 
                         <div className="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
                             <p className="text-sm text-blue-900 m-0!">
-                                <strong>ℹ️ How it works:</strong> When a visitor views your website, if an image is missing alt text, the plugin will automatically add one using the above rules. This doesn't modify your media library - it only affects what visitors see.
+                                <strong>How it works:</strong> When a visitor views your website, if an image has no alt text, the plugin adds one using the rules above. This does not modify your media library — it only affects what visitors see on the frontend.
                             </p>
                         </div>
                     </div>
