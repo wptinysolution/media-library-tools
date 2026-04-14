@@ -254,6 +254,21 @@ export const usedWhereBulkDelete = async (ids: number[]): Promise<Record<string,
     return result.data as Record<string, unknown>;
 };
 
+export const usedWhereTrash = async (ids: number[]): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_trash', { ids });
+    return result.data as Record<string, unknown>;
+};
+
+export const usedWhereUntrash = async (ids: number[]): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_untrash', { ids });
+    return result.data as Record<string, unknown>;
+};
+
+export const getUsedWhereTrashed = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_get_trashed', prams);
+    return result.data as Record<string, unknown>;
+};
+
 // Regenerate Thumbnails.
 export const regenerateBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_regenerate_batch', prams);

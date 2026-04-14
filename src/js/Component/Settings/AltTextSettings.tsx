@@ -19,35 +19,41 @@ export default function AltTextSettings() {
 
     return (
         <div className="p-6 space-y-6 border-t border-gray-200">
-            <SettingRow label="Use Post Title as Alt Text:">
+            <div className="bg-amber-50 border border-amber-200 rounded p-4 mb-4">
+                <p className="text-sm text-amber-900 m-0!">
+                    <strong>⚙️ Upload Settings:</strong> These settings control what happens when you upload new images to your media library. See the "Auto Alt Text on Frontend" section above for options that affect how alt text appears to website visitors.
+                </p>
+            </div>
+
+            <SettingRow label="Auto Alt Text When Uploading:">
                 <CheckboxField
                     name="alt_text_by_post_title"
                     value="alt_text_by_post_title"
                     checked={'alt_text_by_post_title' === options.alt_text_by_post_title}
                     onChange={setDefaultText}
-                    label="Default Alt Text Base On Post Title"
+                    label="Use post title as default alt text"
                     isPro={!tsmltParams.hasExtended}
                 />
                 <p className="text-sm text-gray-500 mt-0!">
-                    Alt Text will add automatically when upload Media as attached posts.
+                    When uploading a new image to a post or page, automatically fill the alt text field with the post/page title. This only happens during upload, not on the frontend.
                 </p>
             </SettingRow>
 
-            <SettingRow label="Default Images Alt Text:" bordered>
+            <SettingRow label="Fallback Alt Text for Uploads:" bordered>
                 <div className="flex flex-wrap gap-6">
                     <CheckboxField
                         name="default_alt_text"
                         value="image_name_to_alt"
                         checked={'image_name_to_alt' === options.default_alt_text}
                         onChange={setDefaultText}
-                        label="Image name use as alt text"
+                        label="Use image filename"
                     />
                     <CheckboxField
                         name="default_alt_text"
                         value="custom_text_to_alt"
                         checked={'custom_text_to_alt' === options.default_alt_text}
                         onChange={setDefaultText}
-                        label="Custom text"
+                        label="Use custom text"
                     />
                 </div>
 
@@ -62,7 +68,7 @@ export default function AltTextSettings() {
                 )}
 
                 <p className="text-sm text-gray-500 mt-0!">
-                    Alt Text Will add automatically when upload Media file
+                    If a post title is not available, use the image filename or custom text as a fallback when uploading. This only affects new uploads.
                 </p>
             </SettingRow>
         </div>

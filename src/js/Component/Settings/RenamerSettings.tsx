@@ -103,62 +103,6 @@ export default function RenamerSettings() {
                     )}
                 </SettingRow>
 
-                <SettingRow label="Auto Alt Text on Frontend:" bordered>
-                    <CheckboxField
-                        name="auto_inject_alt_text"
-                        value="auto_inject_alt_text"
-                        checked={'auto_inject_alt_text' === options.auto_inject_alt_text}
-                        onChange={setDefaultText}
-                        label="Enable auto alt text injection"
-                        isPro={!tsmltParams.hasExtended}
-                    />
-                    <p className="text-sm text-gray-500 mt-0!">
-                        Automatically add alt text to images missing alt attributes when pages are rendered on the frontend.
-                    </p>
-                </SettingRow>
-
-                {tsmltParams.hasExtended && 'auto_inject_alt_text' === options.auto_inject_alt_text && (
-                    <>
-                        <SettingRow label="Use Post Title as Alt Text:" bordered>
-                            <CheckboxField
-                                name="use_post_title_alt_text"
-                                value="use_post_title_alt_text"
-                                checked={'use_post_title_alt_text' === options.use_post_title_alt_text}
-                                onChange={setDefaultText}
-                                label="Use post title for alt text"
-                                isPro={false}
-                            />
-                            <p className="text-sm text-gray-500 mt-0!">
-                                If enabled, will use the post/page title as alt text. Falls back to filename if no parent post.
-                            </p>
-                        </SettingRow>
-
-                        <SettingRow label="Default Alt Text (Fallback):" bordered>
-                            <TextInput
-                                placeholder="e.g., 'Image' or 'Photo'"
-                                onChange={(event) => setOptions({ default_alt_text_if_missing: event.target.value })}
-                                value={(options.default_alt_text_if_missing as string) || ''}
-                            />
-                            <p className="text-sm text-gray-500 mt-0!">
-                                Fallback alt text if no post title or filename is available. Leave empty to use filename as fallback.
-                            </p>
-                        </SettingRow>
-                    </>
-                )}
-
-                <SettingRow label="Frontend Image Usage Tracking:" bordered>
-                    <CheckboxField
-                        name="track_frontend_usage"
-                        value="track_frontend_usage"
-                        checked={'track_frontend_usage' === options.track_frontend_usage}
-                        onChange={setDefaultText}
-                        label="Enable passive image usage tracking"
-                        isPro={false}
-                    />
-                    <p className="text-sm text-gray-500 mt-0!">
-                        Automatically collect image usage data when users visit pages. Complements the backend scan functionality.
-                    </p>
-                </SettingRow>
             </div>
         </div>
     );

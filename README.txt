@@ -1,9 +1,9 @@
-=== Media Library Tools - AI-Powered Rename, Duplicate Finder, Clean & CSV Import/Export ===
+=== Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
-Tags: csv import, csv export, rename, duplicate media cleaner, alt text
+Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.2.0
+Stable tag: 2.2.2
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -104,13 +104,6 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Also supports direct file URLs:
   `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
 * Forces a browser download prompt — works with images, PDFs, documents, audio, video, archives, and more
-
-= Additional Columns in WordPress Media List =
-* Alt text column (sortable)
-* Caption column (sortable)
-* Description column (sortable)
-* Media Categories column
-* Uploaded To post info in the media attachment modal
 
 = Regenerate Thumbnails =
 * Regenerate all registered image thumbnail sizes for every image in your media library in a single click
@@ -458,6 +451,12 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.2.2 ( Apr 16, 2026 ) =
+* Fix: Alt Text Issue Resolve
+* Improvement: Settings Page UI Update
+
+= 2.2.1 ( Apr 11, 2026 ) =
+* Improvement: Media Where Used Functionality Update
 
 = 2.2.0 ( Apr 08, 2026 ) =
 * Added: Image Usage Tracker (Used Where) — scan all posts and pages to detect where every image is used across post content, featured images, Elementor data, and custom meta fields

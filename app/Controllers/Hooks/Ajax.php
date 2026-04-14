@@ -83,6 +83,9 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_bulk_delete', [ $this, 'used_where_bulk_delete' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_trash', [ $this, 'used_where_trash' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_untrash', [ $this, 'used_where_untrash' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_get_trashed', [ $this, 'used_where_get_trashed' ] );
 
 		// Regenerate thumbnails.
 		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
@@ -485,6 +488,87 @@ class Ajax {
 		}
 
 		$this->send( [ 'deleted' => $deleted ] );
+	}
+
+	/** @return void */
+	public function used_where_trash(): void {
+		$params = $this->verify_and_get_params();
+		$ids    = isset( $params['ids'] ) && is_array( $params['ids'] ) ? array_map( 'absint', $params['ids'] ) : [];
+
+		if ( empty( $ids ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'No IDs provided.', 'media-library-tools' ) ], 400 );
+		}
+
+		$trashed = [];
+		foreach ( $ids as $attachment_id ) {
+			if ( $attachment_id > 0 && wp_trash_post( $attachment_id ) ) {
+				$trashed[] = $attachment_id;
+			}
+		}
+
+		$this->send( [ 'trashed' => $trashed ] );
+	}
+
+	/** @return void */
+	public function used_where_untrash(): void {
+		$params = $this->verify_and_get_params();
+		$ids    = isset( $params['ids'] ) && is_array( $params['ids'] ) ? array_map( 'absint', $params['ids'] ) : [];
+
+		if ( empty( $ids ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'No IDs provided.', 'media-library-tools' ) ], 400 );
+		}
+
+		$untrashed = [];
+		foreach ( $ids as $attachment_id ) {
+			if ( $attachment_id > 0 && wp_untrash_post( $attachment_id ) ) {
+				$untrashed[] = $attachment_id;
+			}
+		}
+
+		$this->send( [ 'untrashed' => $untrashed ] );
+	}
+
+	/** @return void */
+	public function used_where_get_trashed(): void {
+		$params = $this->verify_and_get_params();
+		$limit  = absint( $params['limit'] ?? 10 );
+		$paged  = absint( $params['offset'] ?? 0 );
+		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
+		$search = sanitize_text_field( $params['search'] ?? '' );
+
+		$args = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'trash',
+			'posts_per_page' => $limit,
+			'paged'          => $page,
+		];
+
+		// Add search parameter if provided.
+		if ( $search ) {
+			$args['s'] = $search;
+		}
+
+		$query = new \WP_Query( $args );
+		$items = [];
+
+		foreach ( $query->posts as $post ) {
+			$attachment_id = $post->ID;
+			// For trashed items, get URL from attached file path (wp_get_attachment_url returns empty for trashed).
+			$url = '';
+			$attached_file = get_attached_file( $attachment_id );
+			if ( $attached_file ) {
+				$upload_dir = wp_upload_dir();
+				$url = $upload_dir['baseurl'] . '/' . str_replace( $upload_dir['basedir'] . '/', '', $attached_file );
+			}
+
+			$items[] = [
+				'attachment_id' => $attachment_id,
+				'title'         => $post->post_title,
+				'url'           => $url,
+			];
+		}
+
+		$this->send( [ 'items' => $items, 'total' => $query->found_posts ] );
 	}
 
 	// -------------------------------------------------------------------------
