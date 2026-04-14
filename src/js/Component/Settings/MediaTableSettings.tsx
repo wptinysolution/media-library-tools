@@ -66,7 +66,7 @@ export default function MediaTableSettings() {
                 )}
 
                 {tsmltParams.hasExtended && 'auto_inject_alt_text' === options.auto_inject_alt_text && (
-                    <div className="ml-6 space-y-6">
+                    <div className="space-y-6">
                         <SettingRow label="Alt Text Source (Priority Order):" bordered>
                             <p className="text-sm text-gray-700 mb-4!">
                                 When auto-injecting alt text, the plugin will try these options in order (first available wins):
@@ -82,12 +82,6 @@ export default function MediaTableSettings() {
                             />
                             <p className="text-sm text-gray-500 mt-0! ml-6">
                                 If enabled, uses the title of the post or page containing the image. For example, if your post is titled "How to Bake Cookies", images in that post will get alt text "How to Bake Cookies".
-                            </p>
-                        </SettingRow>
-
-                        <SettingRow label="2. Image Filename (Automatic):" bordered>
-                            <p className="text-sm text-gray-500 mt-0!">
-                                If post title is not available or disabled, automatically uses the image's filename (without extension). For example, "my-product-photo.jpg" becomes "My Product Photo".
                             </p>
                         </SettingRow>
 
