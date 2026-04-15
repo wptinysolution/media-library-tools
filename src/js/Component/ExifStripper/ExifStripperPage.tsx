@@ -199,14 +199,12 @@ export default function ExifStripperPage() {
         });
     }, []);
 
-    // URL change drives page load (like DuplicatePage).
+    // Load results when currentPage changes (pagination click).
     React.useEffect(() => {
         if (!isMounted.current) return;
-        const pageFromUrl = parseInt(pageParam || '1', 10);
-        if (pageFromUrl !== currentPage) {
-            loadResults(pageFromUrl);
-        }
-    }, [pageParam]);
+        if (!isPro) return;
+        loadResults(currentPage);
+    }, [currentPage, isPro]);
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.filter(img => img.has_exif && !img.stripped).every(img => selectedIds.has(img.attachment_id));
