@@ -57,6 +57,9 @@ class ExifScanner {
 			->andWhere( 'post_status', '=', 'inherit' )
 			->get();
 		$total        = (int) ( $total_result[0]['total'] ?? 0 );
+		
+		// Debug - log total
+		error_log( "Total attachments found: $total" );
 
 		// Get batch of attachment IDs.
 		$batch = Fns::DB()->select( 'ID', 'post_mime_type' )
@@ -79,8 +82,10 @@ class ExifScanner {
 		}
 
 		// Get current scan status.
-		$status           = get_option( self::SCAN_STATUS_KEY, [] );
-		$with_exif_count  = isset( $status['with_exif'] ) ? (int) $status['with_exif'] : 0;
+		$status = get_option( self::SCAN_STATUS_KEY, [] );
+		
+		// Read existing counts from option to accumulate
+		$with_exif_count    = isset( $status['with_exif'] ) ? (int) $status['with_exif'] : 0;
 		$without_exif_count = isset( $status['without_exif'] ) ? (int) $status['without_exif'] : 0;
 
 		// List of MIME types that support EXIF.
@@ -90,6 +95,9 @@ class ExifScanner {
 		foreach ( $batch as $row ) {
 			$attachment_id = (int) $row['ID'];
 			$mime          = $row['post_mime_type'];
+
+			// Debug
+			error_log( "Scanning ID: $attachment_id, MIME: $mime" );
 
 			// Check if MIME type supports EXIF.
 			if ( ! in_array( $mime, $supported_mimes, true ) ) {
@@ -121,6 +129,9 @@ class ExifScanner {
 			}
 		}
 
+		// Debug - log counts after batch
+		error_log( "Batch complete - With EXIF: $with_exif_count, Without EXIF: $without_exif_count" );
+
 		// Update scan status in options.
 		$processed = $offset + count( $batch );
 		$status    = [
@@ -131,6 +142,7 @@ class ExifScanner {
 			'timestamp'    => current_time( 'mysql' ),
 		];
 		update_option( self::SCAN_STATUS_KEY, $status );
+		error_log( "Saved status: " . print_r( $status, true ) );
 
 		// Reset counts for next batch to start fresh
 		$with_exif_count    = 0;
@@ -153,6 +165,9 @@ class ExifScanner {
 	public function get_scan_status(): array {
 		$status = get_option( self::SCAN_STATUS_KEY, [] );
 
+		// Debug - log current status
+		error_log( 'EXIF Scanner get_scan_status: ' . print_r( $status, true ) );
+
 		// Get total attachment count if no scan started yet.
 		if ( empty( $status['total'] ) ) {
 			$total_result = Fns::DB()->select()
@@ -166,11 +181,19 @@ class ExifScanner {
 			$status['total'] = $total;
 		}
 
+		// Ensure counts are set
+		if ( ! isset( $status['with_exif'] ) ) {
+			$status['with_exif'] = 0;
+		}
+		if ( ! isset( $status['without_exif'] ) ) {
+			$status['without_exif'] = 0;
+		}
+
 		return [
 			'processed'    => isset( $status['processed'] ) ? (int) $status['processed'] : 0,
 			'total'        => isset( $status['total'] ) ? (int) $status['total'] : 0,
-			'with_exif'    => isset( $status['with_exif'] ) ? (int) $status['with_exif'] : 0,
-			'without_exif' => isset( $status['without_exif'] ) ? (int) $status['without_exif'] : 0,
+			'with_exif'    => (int) $status['with_exif'],
+			'without_exif' => (int) $status['without_exif'],
 			'timestamp'    => isset( $status['timestamp'] ) ? $status['timestamp'] : '',
 		];
 	}

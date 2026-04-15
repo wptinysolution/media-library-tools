@@ -18,6 +18,7 @@ export default function ExifScannerSection() {
     });
     const [isScanning, setIsScanning] = useState(false);
     const [scanStarted, setScanStarted] = useState(false);
+    const [scanComplete, setScanComplete] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string>("");
     const isMounted = useRef(false);
 
@@ -54,22 +55,18 @@ export default function ExifScannerSection() {
         setScanStarted(true);
         setIsScanning(true);
 
-        // Initialize with current stored status to show progress during scan
-        try {
-            const initialStatus = await getExifScanStatus() as Record<string, unknown>;
-            setScanStatus({
-                processed: (initialStatus.processed as number) || 0,
-                total: (initialStatus.total as number) || 0,
-                with_exif: (initialStatus.with_exif as number) || 0,
-                without_exif: (initialStatus.without_exif as number) || 0,
-            });
-        } catch (error) {
-            console.error("Error loading initial status:", error);
-        }
+        // Don't load initial status - start fresh
+        setScanStatus({
+            processed: 0,
+            total: 0,
+            with_exif: 0,
+            without_exif: 0,
+        });
 
         try {
             await runExifScanBatch((data: Record<string, unknown>) => {
                 if (isMounted.current) {
+                    console.log('Scan progress:', data);
                     setScanStatus({
                         processed: (data.processed as number) || 0,
                         total: (data.total as number) || 0,
@@ -83,6 +80,7 @@ export default function ExifScannerSection() {
             if (isMounted.current) {
                 await loadStatus();
                 setIsScanning(false);
+                setScanComplete(true);
             }
         } catch (error) {
             console.error("Error during EXIF scan:", error);
@@ -108,13 +106,14 @@ export default function ExifScannerSection() {
                 });
                 setLastScanTime("");
                 setScanStarted(false);
+                setScanComplete(false);
             }
         } catch (error) {
             console.error("Error clearing EXIF scan:", error);
         }
     };
 
-    const progressPercent = scanStatus.total > 0 ? Math.round((scanStatus.processed / scanStatus.total) * 100) : 0;
+    const progressPercent = scanStatus.total > 0 ? Math.round((scanStatus.processed / scanStatus.total) * 100) : (scanComplete ? 100 : 0);
 
     return (
         <div>
@@ -153,7 +152,7 @@ export default function ExifScannerSection() {
             </div>
 
             {/* Progress Bar */}
-            {isScanning && (
+            {(isScanning || scanComplete) && (
                 <div style={{ marginBottom: "20px" }}>
                     <div style={{ marginBottom: "8px" }}>
                         <strong>Scanning Progress</strong>
@@ -192,7 +191,7 @@ export default function ExifScannerSection() {
                     {isScanning ? "Scanning..." : "Start Scan"}
                 </button>
 
-                {scanStarted && (
+                {scanComplete && (
                     <button
                         onClick={handleClearScan}
                         disabled={isScanning}
