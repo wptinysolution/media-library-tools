@@ -30,9 +30,9 @@ import ExportButton from "@/js/Component/ExportImport/ExportButton";
 import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
 import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
-import ExifStripperPage from "@/js/Component/ExifStripper/ExifStripperPage";
 import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
 import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
+import ExifDataPage from "@/js/Component/ExifData/ExifDataPage";
 
 function App() {
     const {
@@ -187,8 +187,8 @@ function App() {
                     <Route path="/usedWhere" element={<UsedWherePage />} />
                     <Route path="/usedWhere/:filter" element={<UsedWherePage />} />
                     <Route path="/usedWhere/:filter/page/:page" element={<UsedWherePage />} />
-                    <Route path="/exifStripper" element={<ExifStripperPage />} />
-                    <Route path="/exifStripper/page/:page" element={<ExifStripperPage />} />
+                    <Route path="/exifData" element={<ExifDataPage />} />
+                    <Route path="/exifData/page/:page" element={<ExifDataPage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />

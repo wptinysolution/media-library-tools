@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import { exifStripBatch, getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data";
@@ -24,7 +24,7 @@ interface ExifImage {
     stripped_info: any;
 }
 
-export default function ExifStripperPage() {
+export default function ExifDataPage() {
     const { page: pageParam } = useParams<{ page?: string }>();
     const { setGeneralData } = useStore();
     const [images, setImages] = useState<ExifImage[]>([]);
@@ -218,7 +218,7 @@ export default function ExifStripperPage() {
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Stripper</h1>
+                        <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
                         <ProLabel />
                     </div>
                     <p className="text-sm text-gray-500">Remove EXIF metadata (GPS, camera info, author) from your images to protect privacy and reduce file size.</p>
@@ -231,7 +231,7 @@ export default function ExifStripperPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Unlock EXIF Stripper</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Unlock EXIF Data</h2>
                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
                         Remove EXIF metadata from your images to protect privacy, reduce file sizes, and comply with data regulations.
                     </p>
@@ -305,7 +305,7 @@ export default function ExifStripperPage() {
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Stripper</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
                     <ProLabel />
                 </div>
                 <p className="text-sm text-gray-500">Remove EXIF metadata (GPS, camera info, author) from your images to protect privacy and reduce file size.</p>
