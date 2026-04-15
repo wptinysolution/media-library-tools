@@ -9,6 +9,9 @@ use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
+use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
+use TinySolutions\mlt\Modules\ExifData\ExifScanner;
+use TinySolutions\mlt\Modules\ExifData\ExifStripper;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -35,5 +38,8 @@ class ModuleInit {
 		ImageSizeModule::instance();
 		UsedWhereScanner::instance();
 		RegenerateThumbnails::instance();
+		ExifDataReader::instance();
+		ExifScanner::instance();
+		ExifStripper::instance();
 	}
 }

@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 use TinySolutions\mlt\Vendor\enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
 defined( 'ABSPATH' ) || exit();
@@ -32,6 +33,7 @@ class FilterHooks {
 		add_filter( 'manage_media_columns', [ __CLASS__, 'media_custom_column' ] );
 		add_filter( 'manage_upload_sortable_columns', [ __CLASS__, 'media_sortable_columns' ] );
 		add_filter( 'posts_clauses', [ __CLASS__, 'media_sortable_columns_query' ], 1, 2 );
+		add_filter( 'posts_results', [ __CLASS__, 'sort_exif_date_results' ], 10, 2 );
 		add_filter( 'request', [ __CLASS__, 'media_sort_by_alt' ], 20, 2 );
 		add_filter( 'media_row_actions', [ __CLASS__, 'filter_post_row_actions' ], 11, 2 );
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hidden_columns' ], 99, 2 );
@@ -384,14 +386,17 @@ class FilterHooks {
 		unset( $columns['date'] );
 		unset( $columns['comments'] );
 		unset( $columns['parent'] );
-		$columns['alt']         = __( 'Alt', 'media-library-tools' );
-		$columns['caption']     = __( 'Caption', 'media-library-tools' );
-		$columns['description'] = __( 'Description', 'media-library-tools' );
-		$columns['category']    = __( 'Groups', 'media-library-tools' );
-		$columns['parent']      = $parent;
-		$columns['author']      = $author;
-		$columns['comments']    = $comments;
-		$columns['date']        = $date;
+		$columns['alt']                    = __( 'Alt', 'media-library-tools' );
+		$columns['caption']                = __( 'Caption', 'media-library-tools' );
+		$columns['description']            = __( 'Description', 'media-library-tools' );
+		$columns['category']               = __( 'Groups', 'media-library-tools' );
+		$columns['tsmlt_exif_camera']      = __( 'Camera', 'media-library-tools' );
+		$columns['tsmlt_exif_date_taken']  = __( 'Date Taken', 'media-library-tools' );
+		$columns['tsmlt_exif_dimensions']  = __( 'Dimensions', 'media-library-tools' );
+		$columns['parent']                 = $parent;
+		$columns['author']                 = $author;
+		$columns['comments']               = $comments;
+		$columns['date']                   = $date;
 
 		return $columns;
 	}
@@ -404,9 +409,10 @@ class FilterHooks {
 	 * @return array
 	 */
 	public static function media_sortable_columns( $columns ) {
-		$columns['alt']         = 'alt';
-		$columns['caption']     = 'caption';
-		$columns['description'] = 'description';
+		$columns['alt']                   = 'alt';
+		$columns['caption']               = 'caption';
+		$columns['description']           = 'description';
+		$columns['tsmlt_exif_date_taken'] = 'tsmlt_exif_date_taken';
 
 		return $columns;
 	}
@@ -439,10 +445,66 @@ class FilterHooks {
 			case 'description':
 				$pieces['orderby'] = " $wpdb->posts.post_content $order ";
 				break;
-
+			case 'tsmlt_exif_date_taken':
+				// For EXIF date sorting, we use ID ordering as a fallback since EXIF data is dynamic.
+				// This allows WordPress to still apply the sort, though sorting is approximate.
+				// Real sorting happens via PHP in posts_pre_query filter (see below).
+				$pieces['orderby'] = " $wpdb->posts.ID $order ";
+				break;
 		}
 
 		return $pieces;
+	}
+
+	/**
+	 * Sort EXIF date taken results in PHP after database query.
+	 *
+	 * Since EXIF data is not stored in the database, we need to read it from files
+	 * and sort in PHP. This method is called after the query and re-sorts the results
+	 * if the user clicked the Date Taken column header.
+	 *
+	 * @param array  $posts Array of WP_Post objects.
+	 * @param object $query WP_Query object.
+	 *
+	 * @return array Sorted posts array.
+	 */
+	public static function sort_exif_date_results( $posts, $query ) {
+		if ( ! $query->is_main_query() || 'tsmlt_exif_date_taken' !== $query->get( 'orderby' ) ) {
+			return $posts;
+		}
+
+		if ( ! is_array( $posts ) || empty( $posts ) ) {
+			return $posts;
+		}
+
+		$order = strtoupper( $query->get( 'order' ) );
+		if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
+			return $posts;
+		}
+
+		// Build array of posts with EXIF dates for sorting.
+		$posts_with_dates = [];
+		foreach ( $posts as $post ) {
+			$date_str = ExifDataReader::instance()->get_date_for_sorting( $post->ID );
+			$posts_with_dates[ $post->ID ] = [
+				'post'  => $post,
+				'date'  => $date_str ? strtotime( $date_str ) : 0,
+			];
+		}
+
+		// Sort by date.
+		if ( 'ASC' === $order ) {
+			uasort( $posts_with_dates, function ( $a, $b ) {
+				return $a['date'] <=> $b['date'];
+			});
+		} else {
+			uasort( $posts_with_dates, function ( $a, $b ) {
+				return $b['date'] <=> $a['date'];
+			});
+		}
+
+		// Re-index and return posts in sorted order.
+		return array_column( $posts_with_dates, 'post' );
 	}
 
 	/**

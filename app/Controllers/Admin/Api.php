@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
@@ -339,6 +340,10 @@ class Api {
 				$args['post_parent'] = 0;
 			}
 		}
+
+		// EXIF-based filters.
+		$args = ExifFilter::apply_filters( $args, $parameters );
+
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 		$_posts_query = new WP_Query( $args );
 		$get_posts    = [];
@@ -539,6 +544,19 @@ class Api {
 				$result['message'] = $updated
 					? esc_html__( 'Updated. Be happy.', 'media-library-tools' )
 					: esc_html__( 'Update failed. Please try to fix', 'media-library-tools' );
+				break;
+
+			/**
+			 * Bulk EXIF operations (Pro feature, delegated to Pro module)
+			 */
+			case 'bulk_edit_exif':
+			case 'bulk_remove_exif':
+				// Delegate to Pro plugin if available.
+				if ( function_exists( 'tsmltpro' ) ) {
+					$result = apply_filters( 'tsmlt_bulk_exif_action', $result, $parameters['type'], $ids, $parameters );
+				} else {
+					$result['message'] = esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
+				}
 				break;
 			default:
 				// Unknown operation.

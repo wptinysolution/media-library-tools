@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
  * Unwraps the `{success, data}` envelope added by wp_send_json_success so that
  * callers receive data in the same shape as the previous REST API responses.
  */
-const ajaxPost = async (action: string, params: unknown = {}): Promise<AxiosResponse> => {
+export const ajaxPost = async (action: string, params: unknown = {}): Promise<AxiosResponse> => {
     const body = new URLSearchParams({
         action,
         nonce: tsmltParams.tsmlt_wpnonce,
@@ -298,3 +298,52 @@ export const exifStripSingle = async (prams: object = {}): Promise<AxiosResponse
     return await ajaxPost('tsmlt_exif_strip_single', prams);
 };
 
+// EXIF Scanner functions.
+export const exifScanBatch = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_exif_scan_batch', prams);
+};
+
+export const getExifScanStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_status');
+    return result.data as Record<string, unknown>;
+};
+
+export const clearExifScan = async (): Promise<AxiosResponse> => {
+    const response = await ajaxPost('tsmlt_exif_clear_scan');
+    notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
+    return response;
+};
+
+// EXIF Scanner batch processor (handles pagination and delays internally).
+export const runExifScanBatch = async (onProgress?: (data: Record<string, unknown>) => void): Promise<void> => {
+    let offset = 0;
+    let complete = false;
+
+    while (!complete) {
+        const result = await exifScanBatch({
+            offset,
+            batch_size: 50,
+        });
+
+        const data = result.data as Record<string, unknown>;
+        if (onProgress) {
+            onProgress(data);
+        }
+
+        complete = (data.complete as boolean) || false;
+        offset = (data.processed as number) || 0;
+
+        // Small delay between batches to prevent overwhelming the server
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+};
+
+// EXIF Stripper functions.
+export const stripExifSingle = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_strip_exif_single', prams);
+};
+
+export const checkStrippableExif = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_check_strippable_exif', prams);
+    return result.data as Record<string, unknown>;
+};
