@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import { exifStripBatch, getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
@@ -24,6 +25,7 @@ interface ExifImage {
 }
 
 export default function ExifStripperPage() {
+    const { page: pageParam } = useParams<{ page?: string }>();
     const { setGeneralData } = useStore();
     const [images, setImages] = useState<ExifImage[]>([]);
     const [totalImages, setTotalImages] = useState(0);
@@ -34,6 +36,8 @@ export default function ExifStripperPage() {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showStripModal, setShowStripModal] = useState(false);
     const [isStrippingSingle, setIsStrippingSingle] = useState<number | null>(null);
+    const [isStartStripAll, setIsStartStripAll] = useState(false);
+    const isMounted = useRef(false);
 
     const limit = 20;
     const isPro = typeof tsmltParams !== 'undefined' && tsmltParams.hasExtended;
@@ -53,6 +57,7 @@ export default function ExifStripperPage() {
     }, []);
 
     const loadResults = useCallback(async (page = 1) => {
+        if (!isPro) return;
         setIsLoading(true);
         setSelectedIds(new Set());
         try {
@@ -76,10 +81,11 @@ export default function ExifStripperPage() {
             return;
         }
 
-        if (!confirm('This will strip EXIF data from all JPEG images. Are you sure?')) {
-            return;
-        }
+        setIsStartStripAll(true);
+    };
 
+    const confirmStripAll = async () => {
+        setIsStartStripAll(false);
         setIsStripping(true);
         let offset = 0;
         let complete = false;
@@ -183,13 +189,24 @@ export default function ExifStripperPage() {
         }
     };
 
-    // Load results on mount (only in pro).
+    // Load status + results on first mount (only in pro).
     React.useEffect(() => {
-        if (isPro) {
-            loadStatus();
-            loadResults(1);
+        loadStatus().then(() => {
+            const pageFromUrl = parseInt(pageParam || '1', 10);
+            loadResults(pageFromUrl).finally(() => {
+                isMounted.current = true;
+            });
+        });
+    }, []);
+
+    // URL change drives page load (like DuplicatePage).
+    React.useEffect(() => {
+        if (!isMounted.current) return;
+        const pageFromUrl = parseInt(pageParam || '1', 10);
+        if (pageFromUrl !== currentPage) {
+            loadResults(pageFromUrl);
         }
-    }, [isPro]);
+    }, [pageParam]);
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.filter(img => img.has_exif && !img.stripped).every(img => selectedIds.has(img.attachment_id));
@@ -534,6 +551,39 @@ export default function ExifStripperPage() {
                             EXIF data will be permanently removed from the original image files on your server.
                         </p>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Strip All confirmation modal */}
+            <Modal
+                isOpen={isStartStripAll}
+                onClose={() => setIsStartStripAll(false)}
+                title="Strip All EXIF?"
+                maxWidth="max-w-md"
+                closeOnBackdrop={false}
+                footer={
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                        <button
+                            type="button"
+                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => setIsStartStripAll(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                            onClick={confirmStripAll}
+                        >
+                            Yes, Strip All
+                        </button>
+                    </div>
+                }
+            >
+                <div className="px-6 py-5">
+                    <p className="text-sm! text-gray-600 m-0!">
+                        You are about to <strong className="text-blue-600">strip EXIF data</strong> from all images. This action <strong>cannot be undone</strong>.
+                    </p>
                 </div>
             </Modal>
         </div>

@@ -188,6 +188,7 @@ function App() {
                     <Route path="/usedWhere/:filter" element={<UsedWherePage />} />
                     <Route path="/usedWhere/:filter/page/:page" element={<UsedWherePage />} />
                     <Route path="/exifStripper" element={<ExifStripperPage />} />
+                    <Route path="/exifStripper/page/:page" element={<ExifStripperPage />} />
                     <Route path="/plugins" element={<PluginList />} />
                     <Route path="/support" element={<NeedSupport />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
