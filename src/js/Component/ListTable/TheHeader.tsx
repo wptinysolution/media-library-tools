@@ -11,10 +11,6 @@ const bulkOptions = [
     { value: 'csv_export', label: 'Export CSV' },
     { value: 'inherit', label: 'Restore' },
     { value: 'searchUses', label: 'Find Where Image Is Used' },
-    ...(tsmltParams.hasExtended ? [
-        { value: 'bulk_edit_exif', label: 'Edit EXIF (Pro)' },
-        { value: 'bulk_remove_exif', label: 'Remove EXIF (Pro)' },
-    ] : []),
     { value: 'delete', label: 'Delete Permanently' },
     { value: 'trash', label: 'Move to Trash' },
 
@@ -28,7 +24,7 @@ function TheHeader() {
         setSaveType,
     } = useStore();
 
-    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | 'bulk_edit_exif' | 'bulk_remove_exif' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | null>(null);
 
     const handleSelectChange = (value: string | null, fieldName: string) => {
         setMediaData({
@@ -85,9 +81,7 @@ function TheHeader() {
             case 'trash':
             case 'delete':
             case 'searchUses':
-            case 'bulk_edit_exif':
-            case 'bulk_remove_exif':
-                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete' | 'searchUses' | 'bulk_edit_exif' | 'bulk_remove_exif');
+                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete' | 'searchUses');
                 break;
             case 'inherit':
             case 'update':

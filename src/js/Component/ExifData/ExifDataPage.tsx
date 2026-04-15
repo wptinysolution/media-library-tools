@@ -38,6 +38,7 @@ export default function ExifDataPage() {
     const [showStripModal, setShowStripModal] = useState(false);
     const [isStrippingSingle, setIsStrippingSingle] = useState<number | null>(null);
     const [isStartStripAll, setIsStartStripAll] = useState(false);
+    const [expandedId, setExpandedId] = useState<number | null>(null);
     const isMounted = useRef(false);
 
     const limit = 20;
@@ -209,7 +210,6 @@ export default function ExifDataPage() {
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.every(img => selectedIds.has(img.attachment_id));
-    const someSelected = selectedIds.size > 0 && !allSelected;
     const imagesWithExif = images.filter(img => img.has_exif && !img.stripped);
 
     // Show free version with scanner and upgrade option
@@ -220,7 +220,7 @@ export default function ExifDataPage() {
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
                         <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
-                        <ProLabel />
+                        {!isPro && <ProLabel />}
                     </div>
                     <p className="text-sm text-gray-500">Analyze and manage EXIF metadata in your media library. Upgrade to Pro to remove EXIF data from images.</p>
                 </div>
@@ -259,37 +259,70 @@ export default function ExifDataPage() {
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
-                    <ProLabel />
+                    {!isPro && <ProLabel />}
                 </div>
                 <p className="text-sm text-gray-500">Remove EXIF metadata (GPS, camera info, author) from your images to protect privacy and reduce file size.</p>
             </div>
 
+            {/* Scanner Section - Available for both Free and Pro */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+                <ExifScannerSection />
+            </div>
+
             {/* Actions bar */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white rounded-t-lg">
-                <button
-                    type="button"
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={toggleSelectAll}
-                >
-                    {selectedIds.size > 0 ? 'Deselect All' : 'Select All'}
-                </button>
-                {selectedIds.size > 0 && (
+            <div className="flex items-center gap-4 px-8 py-3 bg-white rounded-t-lg border border-b-0 border-gray-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        ref={(el) => { if (el) el.indeterminate = selectedIds.size > 0 && !allSelected; }}
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                    />
+                    <span className="text-sm text-gray-700">
+                        {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
+                    </span>
+                </label>
+                {selectedIds.size > 0 && isPro && (
                     <button
                         type="button"
-                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
-                        onClick={handleBulkStrip}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                            // TODO: Open bulk edit EXIF modal
+                        }}
                     >
-                        Strip Selected ({selectedIds.size})
+                        Edit Selected ({selectedIds.size})
                     </button>
                 )}
-                <button
-                    type="button"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
-                    onClick={startStripAll}
-                    disabled={isStripping}
-                >
-                    {isStripping ? 'Stripping...' : 'Strip All EXIF'}
-                </button>
+                {selectedIds.size > 0 && (
+                    <>
+                        <button
+                            type="button"
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
+                            onClick={handleBulkStrip}
+                        >
+                            Strip Selected ({selectedIds.size})
+                        </button>
+                    </>
+                )}
+                {isPro ? (
+                    <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
+                        onClick={startStripAll}
+                        disabled={isStripping}
+                    >
+                        {isStripping ? 'Stripping...' : 'Strip All EXIF'}
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors opacity-80"
+                        onClick={() => setGeneralData({ openProModal: true })}
+                    >
+                        Strip All EXIF <ProLabel />
+                    </button>
+                )}
                 <div className="ml-auto text-sm text-gray-500">
                     {totalImages} images found
                 </div>
@@ -307,24 +340,6 @@ export default function ExifDataPage() {
                             {stripProgress.stripped} images processed successfully
                         </p>
                     )}
-                </div>
-            )}
-
-            {/* Bulk select toolbar */}
-            {imagesWithExif.length > 0 && !isLoading && (
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                            checked={allSelected}
-                            ref={el => { if (el) el.indeterminate = someSelected; }}
-                            onChange={toggleSelectAll}
-                        />
-                        <span className="text-sm text-gray-600">
-                            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all with EXIF'}
-                        </span>
-                    </label>
                 </div>
             )}
 
@@ -365,7 +380,10 @@ export default function ExifDataPage() {
                                         isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-4 p-4">
+                                    <div 
+                                        className="flex items-center gap-4 p-4 cursor-pointer"
+                                        onClick={() => setExpandedId(expandedId === image.attachment_id ? null : image.attachment_id)}
+                                    >
                                         {/* Checkbox */}
                                         <div className="shrink-0">
                                             <input
@@ -422,23 +440,93 @@ export default function ExifDataPage() {
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="shrink-0">
+                                        <div className="shrink-0 flex items-center gap-2">
+                                            {image.has_exif && !image.stripped && isPro && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // TODO: Open Edit EXIF modal
+                                                    }}
+                                                    className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                                                >
+                                                    Edit EXIF
+                                                </button>
+                                            )}
                                             {image.has_exif && !image.stripped ? (
                                                 <button
                                                     type="button"
                                                     disabled={isStrippingSingle === image.attachment_id}
-                                                    onClick={() => handleStripSingle(image.attachment_id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleStripSingle(image.attachment_id);
+                                                    }}
                                                     className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors"
                                                 >
                                                     {isStrippingSingle === image.attachment_id ? 'Stripping...' : 'Strip EXIF'}
                                                 </button>
                                             ) : (
                                                 <span className="text-xs text-gray-400">
-                                                    {image.stripped ? 'Already stripped' : 'N/A'}
+                                                    {image.stripped ? 'Stripped' : 'N/A'}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
+                                    
+                                    {/* Expandable EXIF Details */}
+                                    {expandedId === image.attachment_id && (
+                                        <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {/* Camera Info */}
+                                                {hasCamera && (
+                                                    <div className="bg-white rounded p-3 border border-gray-200">
+                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Camera</h4>
+                                                        <div className="space-y-1 text-sm">
+                                                            {exif.camera.Make && <p><span className="text-gray-500">Make:</span> {exif.camera.Make}</p>}
+                                                            {exif.camera.Model && <p><span className="text-gray-500">Model:</span> {exif.camera.Model}</p>}
+                                                            {exif.camera.Software && <p><span className="text-gray-500">Software:</span> {exif.camera.Software}</p>}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* GPS Info */}
+                                                {hasGps && (
+                                                    <div className="bg-white rounded p-3 border border-gray-200">
+                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">GPS Location</h4>
+                                                        <div className="space-y-1 text-sm">
+                                                            {exif.gps.latitude && <p><span className="text-gray-500">Lat:</span> {exif.gps.latitude}</p>}
+                                                            {exif.gps.longitude && <p><span className="text-gray-500">Long:</span> {exif.gps.longitude}</p>}
+                                                            {exif.gps.altitude && <p><span className="text-gray-500">Altitude:</span> {exif.gps.altitude}</p>}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Other Info */}
+                                                {hasOther && (
+                                                    <div className="bg-white rounded p-3 border border-gray-200">
+                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Other</h4>
+                                                        <div className="space-y-1 text-sm">
+                                                            {exif.other.DateTimeOriginal && <p><span className="text-gray-500">Date:</span> {exif.other.DateTimeOriginal}</p>}
+                                                            {exif.other.ImageWidth && <p><span className="text-gray-500">Width:</span> {exif.other.ImageWidth}</p>}
+                                                            {exif.other.ImageHeight && <p><span className="text-gray-500">Height:</span> {exif.other.ImageHeight}</p>}
+                                                            {exif.other.Orientation && <p><span className="text-gray-500">Orientation:</span> {exif.other.Orientation}</p>}
+                                                            {exif.other.ISO && <p><span className="text-gray-500">ISO:</span> {exif.other.ISO}</p>}
+                                                            {exif.other.FocalLength && <p><span className="text-gray-500">Focal:</span> {exif.other.FocalLength}</p>}
+                                                            {exif.other.ExposureTime && <p><span className="text-gray-500">Exposure:</span> {exif.other.ExposureTime}</p>}
+                                                            {exif.other.FNumber && <p><span className="text-gray-500">F-Number:</span> {exif.other.FNumber}</p>}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* No EXIF Data Message */}
+                                                {!hasCamera && !hasGps && !hasOther && (
+                                                    <div className="col-span-full text-center py-4 text-sm text-gray-500">
+                                                        No EXIF data found for this image.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
