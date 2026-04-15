@@ -132,12 +132,16 @@ class ExifScanner {
 		];
 		update_option( self::SCAN_STATUS_KEY, $status );
 
+		// Reset counts for next batch to start fresh
+		$with_exif_count    = 0;
+		$without_exif_count = 0;
+
 		return [
 			'processed'    => $processed,
 			'total'        => $total,
 			'complete'     => $processed >= $total,
-			'with_exif'    => $with_exif_count,
-			'without_exif' => $without_exif_count,
+			'with_exif'    => $status['with_exif'],
+			'without_exif' => $status['without_exif'],
 		];
 	}
 

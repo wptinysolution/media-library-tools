@@ -54,6 +54,19 @@ export default function ExifScannerSection() {
         setScanStarted(true);
         setIsScanning(true);
 
+        // Initialize with current stored status to show progress during scan
+        try {
+            const initialStatus = await getExifScanStatus() as Record<string, unknown>;
+            setScanStatus({
+                processed: (initialStatus.processed as number) || 0,
+                total: (initialStatus.total as number) || 0,
+                with_exif: (initialStatus.with_exif as number) || 0,
+                without_exif: (initialStatus.without_exif as number) || 0,
+            });
+        } catch (error) {
+            console.error("Error loading initial status:", error);
+        }
+
         try {
             await runExifScanBatch((data: Record<string, unknown>) => {
                 if (isMounted.current) {
@@ -66,7 +79,7 @@ export default function ExifScannerSection() {
                 }
             });
 
-            // Reload status to ensure we have latest timestamp
+            // Reload status to ensure we have latest data and timestamp
             if (isMounted.current) {
                 await loadStatus();
                 setIsScanning(false);
@@ -140,7 +153,7 @@ export default function ExifScannerSection() {
             </div>
 
             {/* Progress Bar */}
-            {(isScanning || scanStarted) && (
+            {isScanning && (
                 <div style={{ marginBottom: "20px" }}>
                     <div style={{ marginBottom: "8px" }}>
                         <strong>Scanning Progress</strong>
@@ -197,32 +210,6 @@ export default function ExifScannerSection() {
                     </button>
                 )}
             </div>
-
-            {/* Summary Text */}
-            {scanStarted && !isScanning && scanStatus.total > 0 && (
-                <div style={{ marginTop: "30px", padding: "16px", backgroundColor: "#f9f9f9", borderRadius: "4px" }}>
-                    <h3>Scan Summary</h3>
-                    <ul style={{ lineHeight: "1.8" }}>
-                        <li>
-                            <strong>Total Images:</strong> {scanStatus.total}
-                        </li>
-                        <li>
-                            <strong>Images with EXIF:</strong> {scanStatus.with_exif} (
-                            {scanStatus.total > 0
-                                ? Math.round((scanStatus.with_exif / scanStatus.total) * 100)
-                                : 0}
-                            %)
-                        </li>
-                        <li>
-                            <strong>Images without EXIF:</strong> {scanStatus.without_exif} (
-                            {scanStatus.total > 0
-                                ? Math.round((scanStatus.without_exif / scanStatus.total) * 100)
-                                : 0}
-                            %)
-                        </li>
-                    </ul>
-                </div>
-            )}
         </div>
     );
 }
