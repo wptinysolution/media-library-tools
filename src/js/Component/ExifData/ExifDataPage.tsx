@@ -279,7 +279,6 @@ export default function ExifDataPage() {
                             const hasDate = Object.keys(exif.date || {}).length > 0;
                             const hasOther = Object.keys(exif.other || {}).length > 0;
                             const isLast = index === images.length - 1;
-
                             return (
                                 <div key={image.attachment_id} className={!isLast ? 'border-b border-gray-100' : ''}>
                                     {/* Row */}
@@ -424,9 +423,10 @@ export default function ExifDataPage() {
                                                                 <dl className="space-y-1.5 text-xs">
                                                                     {exif.camera.make && <div className="flex justify-between"><dt className="text-gray-400">Make</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.make}</dd></div>}
                                                                     {exif.camera.model && <div className="flex justify-between"><dt className="text-gray-400">Model</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.model}</dd></div>}
-                                                                    {exif.camera.iso && <div className="flex justify-between"><dt className="text-gray-400">ISO</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.iso}</dd></div>}
-                                                                    {exif.camera.exposure && <div className="flex justify-between"><dt className="text-gray-400">Exposure</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.exposure}</dd></div>}
-                                                                    {exif.camera.focal_length && <div className="flex justify-between"><dt className="text-gray-400">Focal</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.focal_length}</dd></div>}
+                                                                    {exif.other.iso && <div className="flex justify-between"><dt className="text-gray-400">ISO</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.iso}</dd></div>}
+                                                                    {exif.other.exposure_time && <div className="flex justify-between"><dt className="text-gray-400">Exposure</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.exposure_time}</dd></div>}
+                                                                    {exif.other.focal_length && <div className="flex justify-between"><dt className="text-gray-400">Focal</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.focal_length}</dd></div>}
+                                                                    {exif.camera.software && <div className="flex justify-between"><dt className="text-gray-400">Software</dt><dd className="font-medium text-gray-700 m-0!">{exif.camera.software}</dd></div>}
                                                                 </dl>
                                                             </div>
                                                         )}
@@ -471,10 +471,11 @@ export default function ExifDataPage() {
                                                                     <h4 className="text-xs font-semibold text-gray-500 uppercase m-0!">Other</h4>
                                                                 </div>
                                                                 <dl className="space-y-1.5 text-xs">
-                                                                    {exif.other.software && <div className="flex justify-between"><dt className="text-gray-400">Software</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.software}</dd></div>}
-                                                                    {exif.other.artist && <div className="flex justify-between"><dt className="text-gray-400">Artist</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.artist}</dd></div>}
-                                                                    {exif.other.copyright && <div className="flex justify-between"><dt className="text-gray-400">Copyright</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.copyright}</dd></div>}
-                                                                    {exif.other.user_comment && <div className="flex justify-between"><dt className="text-gray-400">Comment</dt><dd className="font-medium text-gray-700 m-0! truncate max-w-[120px]">{exif.other.user_comment}</dd></div>}
+                                                                    {exif.other.date_time_original && <div className="flex justify-between"><dt className="text-gray-400">Date</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.date_time_original}</dd></div>}
+                                                                    {exif.other.image_width && <div className="flex justify-between"><dt className="text-gray-400">Width</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.image_width}</dd></div>}
+                                                                    {exif.other.image_height && <div className="flex justify-between"><dt className="text-gray-400">Height</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.image_height}</dd></div>}
+                                                                    {exif.other.orientation && <div className="flex justify-between"><dt className="text-gray-400">Orientation</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.orientation}</dd></div>}
+                                                                    {exif.other.f_number && <div className="flex justify-between"><dt className="text-gray-400">Aperture</dt><dd className="font-medium text-gray-700 m-0!">{exif.other.f_number}</dd></div>}
                                                                 </dl>
                                                             </div>
                                                         )}

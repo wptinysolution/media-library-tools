@@ -639,13 +639,13 @@ class ExifDataReader {
 		if ( isset( $exif['IFD0'] ) ) {
 			$camera = [];
 			if ( ! empty( $exif['IFD0']['Make'] ) ) {
-				$camera['Make'] = $exif['IFD0']['Make'];
+				$camera['make'] = $exif['IFD0']['Make'];
 			}
 			if ( ! empty( $exif['IFD0']['Model'] ) ) {
-				$camera['Model'] = $exif['IFD0']['Model'];
+				$camera['model'] = $exif['IFD0']['Model'];
 			}
 			if ( ! empty( $exif['IFD0']['Software'] ) ) {
-				$camera['Software'] = $exif['IFD0']['Software'];
+				$camera['software'] = $exif['IFD0']['Software'];
 			}
 			if ( ! empty( $camera ) ) {
 				$summary['camera'] = $camera;
@@ -678,28 +678,28 @@ class ExifDataReader {
 		$other = [];
 		if ( isset( $exif['EXIF'] ) ) {
 			if ( ! empty( $exif['EXIF']['DateTimeOriginal'] ) ) {
-				$other['DateTimeOriginal'] = $exif['EXIF']['DateTimeOriginal'];
+				$other['date_time_original'] = $exif['EXIF']['DateTimeOriginal'];
 			}
 			if ( ! empty( $exif['EXIF']['ImageWidth'] ) ) {
-				$other['ImageWidth'] = $exif['EXIF']['ImageWidth'];
+				$other['image_width'] = $exif['EXIF']['ImageWidth'];
 			}
 			if ( ! empty( $exif['EXIF']['ImageHeight'] ) ) {
-				$other['ImageHeight'] = $exif['EXIF']['ImageHeight'];
+				$other['image_height'] = $exif['EXIF']['ImageHeight'];
 			}
 			if ( ! empty( $exif['EXIF']['Orientation'] ) ) {
-				$other['Orientation'] = $exif['EXIF']['Orientation'];
+				$other['orientation'] = $exif['EXIF']['Orientation'];
 			}
 			if ( ! empty( $exif['EXIF']['ISOSpeedRatings'] ) ) {
-				$other['ISO'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : $exif['EXIF']['ISOSpeedRatings'];
+				$other['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : $exif['EXIF']['ISOSpeedRatings'];
 			}
 			if ( ! empty( $exif['EXIF']['FocalLength'] ) ) {
-				$other['FocalLength'] = $exif['EXIF']['FocalLength'];
+				$other['focal_length'] = $exif['EXIF']['FocalLength'];
 			}
 			if ( ! empty( $exif['EXIF']['ExposureTime'] ) ) {
-				$other['ExposureTime'] = $exif['EXIF']['ExposureTime'];
+				$other['exposure_time'] = $exif['EXIF']['ExposureTime'];
 			}
 			if ( ! empty( $exif['EXIF']['FNumber'] ) ) {
-				$other['FNumber'] = $exif['EXIF']['FNumber'];
+				$other['f_number'] = $exif['EXIF']['FNumber'];
 			}
 		}
 
