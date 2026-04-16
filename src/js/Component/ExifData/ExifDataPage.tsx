@@ -16,10 +16,10 @@ interface ExifImage {
     has_exif: boolean;
     exif_summary: {
         has_exif: boolean;
-        camera: Record<string, string>;
-        gps: Record<string, any>;
-        date: Record<string, string>;
-        other: Record<string, string>;
+        camera: Record<string, string>;   // make, model, iso, exposure, focal_length
+        gps: Record<string, any>;         // has_location, lat_ref, lon_ref, altitude
+        date: Record<string, string>;     // original
+        other: Record<string, string>;    // software, artist, copyright, user_comment
         strippable: string[];
     };
     stripped: boolean;
@@ -434,55 +434,71 @@ export default function ExifDataPage() {
                                     {/* Expandable EXIF Details */}
                                     {expandedIds.has(image.attachment_id) && (
                                         <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                {/* Camera Info */}
-                                                {hasCamera && (
-                                                    <div className="bg-white rounded p-3 border border-gray-200">
-                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Camera</h4>
-                                                        <div className="space-y-1 text-sm">
-                                                            {exif.camera.Make && <p><span className="text-gray-500">Make:</span> {exif.camera.Make}</p>}
-                                                            {exif.camera.Model && <p><span className="text-gray-500">Model:</span> {exif.camera.Model}</p>}
-                                                            {exif.camera.Software && <p><span className="text-gray-500">Software:</span> {exif.camera.Software}</p>}
+                                            {(() => {
+                                                const hasDate = Object.keys(exif.date || {}).length > 0;
+                                                const hasAny = hasCamera || hasGps || hasDate || hasOther;
+
+                                                if (!hasAny) {
+                                                    return (
+                                                        <div className="text-center py-4 text-sm text-gray-500">
+                                                            No EXIF data found for this image.
                                                         </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        {/* Camera Info */}
+                                                        {hasCamera && (
+                                                            <div className="bg-white rounded p-3 border border-gray-200">
+                                                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Camera</h4>
+                                                                <div className="space-y-1 text-sm">
+                                                                    {exif.camera.make && <p className="m-0!"><span className="text-gray-500">Make:</span> {exif.camera.make}</p>}
+                                                                    {exif.camera.model && <p className="m-0!"><span className="text-gray-500">Model:</span> {exif.camera.model}</p>}
+                                                                    {exif.camera.iso && <p className="m-0!"><span className="text-gray-500">ISO:</span> {exif.camera.iso}</p>}
+                                                                    {exif.camera.exposure && <p className="m-0!"><span className="text-gray-500">Exposure:</span> {exif.camera.exposure}</p>}
+                                                                    {exif.camera.focal_length && <p className="m-0!"><span className="text-gray-500">Focal Length:</span> {exif.camera.focal_length}</p>}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Date Info */}
+                                                        {hasDate && (
+                                                            <div className="bg-white rounded p-3 border border-gray-200">
+                                                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Date</h4>
+                                                                <div className="space-y-1 text-sm">
+                                                                    {exif.date.original && <p className="m-0!"><span className="text-gray-500">Taken:</span> {exif.date.original}</p>}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* GPS Info */}
+                                                        {hasGps && (
+                                                            <div className="bg-white rounded p-3 border border-gray-200">
+                                                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">GPS Location</h4>
+                                                                <div className="space-y-1 text-sm">
+                                                                    {exif.gps.lat_ref && <p className="m-0!"><span className="text-gray-500">Lat Ref:</span> {exif.gps.lat_ref}</p>}
+                                                                    {exif.gps.lon_ref && <p className="m-0!"><span className="text-gray-500">Lon Ref:</span> {exif.gps.lon_ref}</p>}
+                                                                    {exif.gps.altitude && <p className="m-0!"><span className="text-gray-500">Altitude:</span> {exif.gps.altitude}</p>}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Other Info */}
+                                                        {hasOther && (
+                                                            <div className="bg-white rounded p-3 border border-gray-200">
+                                                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Other</h4>
+                                                                <div className="space-y-1 text-sm">
+                                                                    {exif.other.software && <p className="m-0!"><span className="text-gray-500">Software:</span> {exif.other.software}</p>}
+                                                                    {exif.other.artist && <p className="m-0!"><span className="text-gray-500">Artist:</span> {exif.other.artist}</p>}
+                                                                    {exif.other.copyright && <p className="m-0!"><span className="text-gray-500">Copyright:</span> {exif.other.copyright}</p>}
+                                                                    {exif.other.user_comment && <p className="m-0!"><span className="text-gray-500">Comment:</span> {exif.other.user_comment}</p>}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                                
-                                                {/* GPS Info */}
-                                                {hasGps && (
-                                                    <div className="bg-white rounded p-3 border border-gray-200">
-                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">GPS Location</h4>
-                                                        <div className="space-y-1 text-sm">
-                                                            {exif.gps.latitude && <p><span className="text-gray-500">Lat:</span> {exif.gps.latitude}</p>}
-                                                            {exif.gps.longitude && <p><span className="text-gray-500">Long:</span> {exif.gps.longitude}</p>}
-                                                            {exif.gps.altitude && <p><span className="text-gray-500">Altitude:</span> {exif.gps.altitude}</p>}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Other Info */}
-                                                {hasOther && (
-                                                    <div className="bg-white rounded p-3 border border-gray-200">
-                                                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Other</h4>
-                                                        <div className="space-y-1 text-sm">
-                                                            {exif.other.DateTimeOriginal && <p><span className="text-gray-500">Date:</span> {exif.other.DateTimeOriginal}</p>}
-                                                            {exif.other.ImageWidth && <p><span className="text-gray-500">Width:</span> {exif.other.ImageWidth}</p>}
-                                                            {exif.other.ImageHeight && <p><span className="text-gray-500">Height:</span> {exif.other.ImageHeight}</p>}
-                                                            {exif.other.Orientation && <p><span className="text-gray-500">Orientation:</span> {exif.other.Orientation}</p>}
-                                                            {exif.other.ISO && <p><span className="text-gray-500">ISO:</span> {exif.other.ISO}</p>}
-                                                            {exif.other.FocalLength && <p><span className="text-gray-500">Focal:</span> {exif.other.FocalLength}</p>}
-                                                            {exif.other.ExposureTime && <p><span className="text-gray-500">Exposure:</span> {exif.other.ExposureTime}</p>}
-                                                            {exif.other.FNumber && <p><span className="text-gray-500">F-Number:</span> {exif.other.FNumber}</p>}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* No EXIF Data Message */}
-                                                {!hasCamera && !hasGps && !hasOther && (
-                                                    <div className="col-span-full text-center py-4 text-sm text-gray-500">
-                                                        No EXIF data found for this image.
-                                                    </div>
-                                                )}
-                                            </div>
+                                                );
+                                            })()}
                                         </div>
                                     )}
                                 </div>
