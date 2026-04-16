@@ -347,3 +347,14 @@ export const checkStrippableExif = async (prams: object = {}): Promise<Record<st
     const result = await ajaxPost('tsmlt_check_strippable_exif', prams);
     return result.data as Record<string, unknown>;
 };
+
+// EXIF Editor functions (Pro).
+export const getEditableExif = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_get_editable', prams);
+    return result.data as Record<string, unknown>;
+};
+
+export const saveExif = async (prams: object = {}): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_save', prams);
+    return result.data as Record<string, unknown>;
+};

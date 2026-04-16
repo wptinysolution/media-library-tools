@@ -7,6 +7,7 @@ import Pagination from "@/js/Component/Common/Pagination";
 import Modal from "@/js/Component/Common/Modal";
 import ProLabel from "@/js/Component/Badges/ProLabel";
 import ExifScannerSection from "@/js/Component/ExifData/ExifScannerSection";
+import ExifEditModal from "@/js/Component/ExifData/ExifEditModal";
 
 interface ExifImage {
     attachment_id: number;
@@ -39,6 +40,8 @@ export default function ExifDataPage() {
     const [isStrippingSingle, setIsStrippingSingle] = useState<number | null>(null);
     const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
     const [bulkAction, setBulkAction] = useState("");
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editIds, setEditIds] = useState<number[]>([]);
     const isMounted = useRef(false);
 
     const limit = 20;
@@ -155,7 +158,8 @@ export default function ExifDataPage() {
                 setShowStripModal(true);
                 break;
             case 'edit_exif':
-                // TODO: Open bulk edit EXIF modal
+                setEditIds(Array.from(selectedIds));
+                setShowEditModal(true);
                 break;
         }
     };
@@ -399,7 +403,8 @@ export default function ExifDataPage() {
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        // TODO: Open Edit EXIF modal
+                                                        setEditIds([image.attachment_id]);
+                                                        setShowEditModal(true);
                                                     }}
                                                     className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 cursor-pointer transition-colors"
                                                 >
@@ -548,6 +553,13 @@ export default function ExifDataPage() {
                 </div>
             </Modal>
 
+            {/* Edit EXIF Modal */}
+            <ExifEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                attachmentIds={editIds}
+                onSaved={() => loadResults(currentPage)}
+            />
         </div>
     );
 }
