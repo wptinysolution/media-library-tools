@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import Modal from "@/js/Component/Common/Modal";
 import { getEditableExif, saveExif } from "@/js/Utils/Data";
 
@@ -36,8 +37,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
-    const [resultMsg, setResultMsg] = useState("");
-    const [resultType, setResultType] = useState<"success" | "error">("success");
 
     const isSingle = attachmentIds.length === 1;
 
@@ -45,7 +44,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
     useEffect(() => {
         if (!isOpen) return;
         setErrors([]);
-        setResultMsg("");
 
         if (isSingle) {
             loadExif(attachmentIds[0]);
@@ -112,7 +110,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         }
         setErrors([]);
         setIsSaving(true);
-        setResultMsg("");
 
         let successCount = 0;
         let failCount = 0;
@@ -132,16 +129,14 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
             }
 
             if (failCount === 0) {
-                setResultType("success");
-                setResultMsg(isSingle ? "EXIF data saved successfully." : `EXIF saved for ${successCount} image${successCount !== 1 ? "s" : ""}.`);
+                onClose();
+                toast.success(isSingle ? "EXIF data saved successfully." : `EXIF saved for ${successCount} image${successCount !== 1 ? "s" : ""}.`);
                 onSaved();
             } else {
-                setResultType("error");
-                setResultMsg(`${successCount} saved, ${failCount} failed.`);
+                setErrors([`${successCount} saved, ${failCount} failed.`]);
             }
         } catch {
-            setResultType("error");
-            setResultMsg("An error occurred while saving.");
+            setErrors(["An error occurred while saving."]);
         } finally {
             setIsSaving(false);
         }
@@ -182,11 +177,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
             closeOnBackdrop={false}
             footer={
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                    {resultMsg && (
-                        <span className={`text-sm mr-auto ${resultType === "success" ? "text-green-600" : "text-red-600"}`}>
-                            {resultMsg}
-                        </span>
-                    )}
                     <button
                         type="button"
                         className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
