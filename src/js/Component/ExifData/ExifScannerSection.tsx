@@ -19,16 +19,13 @@ export default function ExifScannerSection() {
     const [isScanning, setIsScanning] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string>("");
+    const [showPanel, setShowPanel] = useState(false);
     const isMounted = useRef(false);
 
-    // Load initial status on mount — restore completed state if a previous scan exists.
     useEffect(() => {
         isMounted.current = true;
         loadStatus();
-
-        return () => {
-            isMounted.current = false;
-        };
+        return () => { isMounted.current = false; };
     }, []);
 
     const loadStatus = useCallback(async () => {
@@ -49,9 +46,10 @@ export default function ExifScannerSection() {
                     setLastScanTime(result.timestamp as string);
                 }
 
-                // If a previous scan completed, restore the completed state.
+                // If a previous scan completed, restore the panel.
                 if (processed > 0 && total > 0 && processed >= total) {
                     setScanComplete(true);
+                    setShowPanel(true);
                 }
             }
         } catch (error) {
@@ -60,16 +58,11 @@ export default function ExifScannerSection() {
     }, []);
 
     const startScan = async () => {
+        setShowPanel(true);
         setIsScanning(true);
         setScanComplete(false);
 
-        // Reset status for fresh scan.
-        setScanStatus({
-            processed: 0,
-            total: 0,
-            with_exif: 0,
-            without_exif: 0,
-        });
+        setScanStatus({ processed: 0, total: 0, with_exif: 0, without_exif: 0 });
 
         try {
             let finalData: Record<string, unknown> = {};
@@ -87,7 +80,6 @@ export default function ExifScannerSection() {
             });
 
             if (isMounted.current) {
-                // Set final state from the last batch response — don't refetch.
                 setScanStatus({
                     processed: (finalData.processed as number) || 0,
                     total: (finalData.total as number) || 0,
@@ -95,7 +87,6 @@ export default function ExifScannerSection() {
                     without_exif: (finalData.without_exif as number) || 0,
                 });
 
-                // Fetch timestamp from server.
                 const status = await getExifScanStatus() as Record<string, unknown>;
                 if (status.timestamp && isMounted.current) {
                     setLastScanTime(status.timestamp as string);
@@ -120,62 +111,82 @@ export default function ExifScannerSection() {
         try {
             await clearExifScan();
             if (isMounted.current) {
-                setScanStatus({
-                    processed: 0,
-                    total: 0,
-                    with_exif: 0,
-                    without_exif: 0,
-                });
+                setScanStatus({ processed: 0, total: 0, with_exif: 0, without_exif: 0 });
                 setLastScanTime("");
                 setScanComplete(false);
+                setShowPanel(false);
             }
         } catch (error) {
             console.error("Error clearing EXIF scan:", error);
         }
     };
 
-    // Progress: if scan is complete, always show 100%. Otherwise calculate from processed/total.
     const progressPercent = scanComplete
         ? 100
         : scanStatus.total > 0
             ? Math.round((scanStatus.processed / scanStatus.total) * 100)
             : 0;
 
+    // Collapsed: just show the scan button
+    if (!showPanel) {
+        return (
+            <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-900 mt-0 mb-1">EXIF Scanner</h3>
+                    <p className="text-xs text-gray-500 m-0!">Scan your media library to identify images with and without EXIF metadata.</p>
+                </div>
+                <button
+                    onClick={startScan}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 border-none rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Scan Now
+                </button>
+            </div>
+        );
+    }
+
+    // Expanded: full scanner panel
     return (
         <div>
-            <h3 className="mt-0 mb-3">Scanner</h3>
-            <p className="text-sm text-gray-500 mb-5">
-                Scan your media library to identify images with and without EXIF metadata.
-            </p>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-900 m-0!">EXIF Scanner</h3>
+                {!isScanning && (
+                    <button
+                        onClick={() => { if (!scanComplete) setShowPanel(false); else handleClearScan(); }}
+                        className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors bg-transparent border-none p-0"
+                    >
+                        {scanComplete ? "Clear Results" : "Close"}
+                    </button>
+                )}
+            </div>
 
-            {/* Summary Stats */}
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
-                <div className="p-4 bg-gray-100 rounded">
-                    <div className="text-xs text-gray-500 mb-1">Total Scanned</div>
-                    <div className="text-3xl font-bold">{scanStatus.total}</div>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                    <div className="text-[11px] text-gray-500 mb-0.5">Total</div>
+                    <div className="text-2xl font-bold text-gray-900">{scanStatus.total}</div>
                 </div>
-
-                <div className="p-4 bg-green-100 rounded">
-                    <div className="text-xs text-gray-500 mb-1">With EXIF</div>
-                    <div className="text-3xl font-bold text-green-600">
-                        {scanStatus.with_exif}
-                    </div>
+                <div className="p-3 bg-emerald-50 rounded-lg text-center">
+                    <div className="text-[11px] text-gray-500 mb-0.5">With EXIF</div>
+                    <div className="text-2xl font-bold text-emerald-600">{scanStatus.with_exif}</div>
                 </div>
-
-                <div className="p-4 bg-red-100 rounded">
-                    <div className="text-xs text-gray-500 mb-1">Without EXIF</div>
-                    <div className="text-3xl font-bold text-red-600">
-                        {scanStatus.without_exif}
-                    </div>
+                <div className="p-3 bg-red-50 rounded-lg text-center">
+                    <div className="text-[11px] text-gray-500 mb-0.5">Without EXIF</div>
+                    <div className="text-2xl font-bold text-red-500">{scanStatus.without_exif}</div>
                 </div>
             </div>
 
-            {/* Progress Bar — show during scan or after completion */}
+            {/* Progress */}
             {(isScanning || scanComplete) && (
-                <div className="mb-5">
-                    <div className="mb-2">
-                        <strong>{scanComplete ? "Scan Complete" : "Scanning Progress"}</strong>
-                        <span className="ml-2.5 text-gray-500">
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-gray-700">
+                            {scanComplete ? "Scan Complete" : "Scanning..."}
+                        </span>
+                        <span className="text-xs text-gray-400">
                             {scanStatus.processed} / {scanStatus.total}
                         </span>
                     </div>
@@ -183,38 +194,30 @@ export default function ExifScannerSection() {
                 </div>
             )}
 
-            {/* Last Scan Time */}
-            {lastScanTime && (
-                <div className="mb-5 p-3 bg-blue-50 rounded">
-                    <small className="text-gray-500">
-                        Last scan completed: <strong>{lastScanTime}</strong>
-                    </small>
-                </div>
+            {/* Last scan time */}
+            {lastScanTime && !isScanning && (
+                <p className="text-[11px] text-gray-400 m-0! mb-3">
+                    Last scan: {lastScanTime}
+                </p>
             )}
 
-            {/* Action Buttons */}
+            {/* Actions */}
             <div className="flex gap-2">
                 <button
                     onClick={startScan}
                     disabled={isScanning}
-                    className={`px-4 py-2.5 text-white border-none rounded font-medium cursor-pointer ${
-                        isScanning ? "bg-gray-400 cursor-not-allowed" : "bg-[#0073aa] hover:bg-[#005f8c]"
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white border-none rounded-md cursor-pointer transition-colors ${
+                        isScanning ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                     }`}
                 >
+                    {isScanning && (
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                    )}
                     {isScanning ? "Scanning..." : scanComplete ? "Re-Scan" : "Start Scan"}
                 </button>
-
-                {scanComplete && (
-                    <button
-                        onClick={handleClearScan}
-                        disabled={isScanning}
-                        className={`px-4 py-2.5 text-white border-none rounded font-medium cursor-pointer ${
-                            isScanning ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
-                        }`}
-                    >
-                        Clear Results
-                    </button>
-                )}
             </div>
         </div>
     );
