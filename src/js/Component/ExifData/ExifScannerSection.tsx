@@ -17,12 +17,11 @@ export default function ExifScannerSection() {
         without_exif: 0,
     });
     const [isScanning, setIsScanning] = useState(false);
-    const [scanStarted, setScanStarted] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string>("");
     const isMounted = useRef(false);
 
-    // Load initial status on mount
+    // Load initial status on mount — restore completed state if a previous scan exists.
     useEffect(() => {
         isMounted.current = true;
         loadStatus();
@@ -36,14 +35,23 @@ export default function ExifScannerSection() {
         try {
             const result = await getExifScanStatus() as Record<string, unknown>;
             if (isMounted.current) {
+                const processed = (result.processed as number) || 0;
+                const total = (result.total as number) || 0;
+
                 setScanStatus({
-                    processed: (result.processed as number) || 0,
-                    total: (result.total as number) || 0,
+                    processed,
+                    total,
                     with_exif: (result.with_exif as number) || 0,
                     without_exif: (result.without_exif as number) || 0,
                 });
+
                 if (result.timestamp) {
                     setLastScanTime(result.timestamp as string);
+                }
+
+                // If a previous scan completed, restore the completed state.
+                if (processed > 0 && total > 0 && processed >= total) {
+                    setScanComplete(true);
                 }
             }
         } catch (error) {
@@ -52,10 +60,10 @@ export default function ExifScannerSection() {
     }, []);
 
     const startScan = async () => {
-        setScanStarted(true);
         setIsScanning(true);
+        setScanComplete(false);
 
-        // Don't load initial status - start fresh
+        // Reset status for fresh scan.
         setScanStatus({
             processed: 0,
             total: 0,
@@ -64,9 +72,11 @@ export default function ExifScannerSection() {
         });
 
         try {
+            let finalData: Record<string, unknown> = {};
+
             await runExifScanBatch((data: Record<string, unknown>) => {
                 if (isMounted.current) {
-                    console.log('Scan progress:', data);
+                    finalData = data;
                     setScanStatus({
                         processed: (data.processed as number) || 0,
                         total: (data.total as number) || 0,
@@ -76,9 +86,21 @@ export default function ExifScannerSection() {
                 }
             });
 
-            // Reload status to ensure we have latest data and timestamp
             if (isMounted.current) {
-                await loadStatus();
+                // Set final state from the last batch response — don't refetch.
+                setScanStatus({
+                    processed: (finalData.processed as number) || 0,
+                    total: (finalData.total as number) || 0,
+                    with_exif: (finalData.with_exif as number) || 0,
+                    without_exif: (finalData.without_exif as number) || 0,
+                });
+
+                // Fetch timestamp from server.
+                const status = await getExifScanStatus() as Record<string, unknown>;
+                if (status.timestamp && isMounted.current) {
+                    setLastScanTime(status.timestamp as string);
+                }
+
                 setIsScanning(false);
                 setScanComplete(true);
             }
@@ -105,7 +127,6 @@ export default function ExifScannerSection() {
                     without_exif: 0,
                 });
                 setLastScanTime("");
-                setScanStarted(false);
                 setScanComplete(false);
             }
         } catch (error) {
@@ -113,7 +134,12 @@ export default function ExifScannerSection() {
         }
     };
 
-    const progressPercent = scanStatus.total > 0 ? Math.round((scanStatus.processed / scanStatus.total) * 100) : (scanComplete ? 100 : 0);
+    // Progress: if scan is complete, always show 100%. Otherwise calculate from processed/total.
+    const progressPercent = scanComplete
+        ? 100
+        : scanStatus.total > 0
+            ? Math.round((scanStatus.processed / scanStatus.total) * 100)
+            : 0;
 
     return (
         <div>
@@ -151,11 +177,11 @@ export default function ExifScannerSection() {
                 </div>
             </div>
 
-            {/* Progress Bar */}
+            {/* Progress Bar — show during scan or after completion */}
             {(isScanning || scanComplete) && (
                 <div style={{ marginBottom: "20px" }}>
                     <div style={{ marginBottom: "8px" }}>
-                        <strong>Scanning Progress</strong>
+                        <strong>{scanComplete ? "Scan Complete" : "Scanning Progress"}</strong>
                         <span style={{ marginLeft: "10px", color: "#666" }}>
                             {scanStatus.processed} / {scanStatus.total}
                         </span>
@@ -188,7 +214,7 @@ export default function ExifScannerSection() {
                         fontWeight: "500",
                     }}
                 >
-                    {isScanning ? "Scanning..." : "Start Scan"}
+                    {isScanning ? "Scanning..." : scanComplete ? "Re-Scan" : "Start Scan"}
                 </button>
 
                 {scanComplete && (
