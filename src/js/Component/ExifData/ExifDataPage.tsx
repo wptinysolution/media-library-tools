@@ -152,6 +152,7 @@ export default function ExifDataPage() {
             case 'delete_exif':
                 setShowStripModal(true);
                 break;
+            case 'add_exif':
             case 'edit_exif':
                 setEditIds(Array.from(selectedIds));
                 setShowEditModal(true);
@@ -258,8 +259,9 @@ export default function ExifDataPage() {
                     >
                         <option value="" disabled>Bulk Actions</option>
                         <option value="read_exif">Read EXIF Data</option>
-                        <option value="delete_exif">Delete EXIF Data</option>
+                        <option value="add_exif">Add EXIF Data</option>
                         <option value="edit_exif">Edit EXIF Data</option>
+                        <option value="delete_exif">Delete EXIF Data</option>
                     </select>
                     <button
                         type="button"
@@ -404,33 +406,31 @@ export default function ExifDataPage() {
 
                                         {/* Row actions */}
                                         <div className="shrink-0 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditIds([image.attachment_id]);
+                                                    setShowEditModal(true);
+                                                }}
+                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-300 cursor-pointer transition-colors"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
                                             {image.has_exif && !image.stripped && (
-                                                <>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setEditIds([image.attachment_id]);
-                                                            setShowEditModal(true);
-                                                        }}
-                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-300 cursor-pointer transition-colors"
-                                                    >
-                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        disabled={isStrippingSingle === image.attachment_id}
-                                                        onClick={() => handleStripSingle(image.attachment_id)}
-                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 bg-white border border-red-200 rounded-md hover:bg-red-50 hover:border-red-300 disabled:opacity-50 cursor-pointer transition-colors"
-                                                    >
-                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        {isStrippingSingle === image.attachment_id ? 'Deleting...' : 'Delete'}
-                                                    </button>
-                                                </>
+                                                <button
+                                                    type="button"
+                                                    disabled={isStrippingSingle === image.attachment_id}
+                                                    onClick={() => handleStripSingle(image.attachment_id)}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 bg-white border border-red-200 rounded-md hover:bg-red-50 hover:border-red-300 disabled:opacity-50 cursor-pointer transition-colors"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    {isStrippingSingle === image.attachment_id ? 'Deleting...' : 'Delete'}
+                                                </button>
                                             )}
                                         </div>
                                     </div>
