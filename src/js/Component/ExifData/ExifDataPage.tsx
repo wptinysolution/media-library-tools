@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
-import { getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data";
+import { getExifResults, getExifStripStatus, exifStripSingle } from "@/js/Utils/Data";
 import Pagination from "@/js/Component/Common/Pagination";
 import ExifScannerSection from "@/js/Component/ExifData/ExifScannerSection";
 import ExifEditModal from "@/js/Component/ExifData/ExifEditModal";
@@ -46,18 +46,19 @@ export default function ExifDataPage() {
     const isPro = typeof tsmltParams !== 'undefined' && tsmltParams.hasExtended;
 
     const loadStatus = useCallback(async () => {
+        if (!isPro) return;
         try {
-            const status = await getExifStatus() as any;
+            const status = await getExifStripStatus() as any;
             setStripProgress({
                 processed: status.stripped || 0,
                 total: status.total || 0,
                 stripped: status.stripped || 0,
                 failed: 0,
             });
-        } catch (error) {
-            console.error('Error loading status:', error);
+        } catch {
+            // Strip status not available — expected for free users.
         }
-    }, []);
+    }, [isPro]);
 
     const loadResults = useCallback(async (page = 1) => {
         setIsLoading(true);
@@ -167,9 +168,9 @@ export default function ExifDataPage() {
     }, []);
 
     React.useEffect(() => {
-        if (!isMounted.current || !isPro) return;
+        if (!isMounted.current) return;
         loadResults(currentPage);
-    }, [currentPage, isPro]);
+    }, [currentPage]);
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.every(img => selectedIds.has(img.attachment_id));

@@ -294,6 +294,11 @@ export const getExifStatus = async (): Promise<Record<string, unknown>> => {
     return result.data as Record<string, unknown>;
 };
 
+export const getExifStripStatus = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_exif_strip_status');
+    return result.data as Record<string, unknown>;
+};
+
 export const exifStripSingle = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_exif_strip_single', prams);
 };
