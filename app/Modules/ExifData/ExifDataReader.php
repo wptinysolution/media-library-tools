@@ -733,7 +733,9 @@ class ExifDataReader {
 			$decimal = -$decimal;
 		}
 
-		return number_format( $decimal, 6 );
+		// Format with up to 6 decimals, trim trailing zeros.
+		$formatted = rtrim( number_format( $decimal, 6 ), '0' );
+		return rtrim( $formatted, '.' );
 	}
 
 	/**
@@ -746,6 +748,13 @@ class ExifDataReader {
 	private function convert_rational( $value ): float {
 		if ( is_numeric( $value ) ) {
 			return (float) $value;
+		}
+		// Handle rational strings like "23/1", "26/1", "4284/100".
+		if ( is_string( $value ) && strpos( $value, '/' ) !== false ) {
+			$parts = explode( '/', $value, 2 );
+			if ( count( $parts ) === 2 && is_numeric( $parts[0] ) && is_numeric( $parts[1] ) && (float) $parts[1] !== 0.0 ) {
+				return (float) $parts[0] / (float) $parts[1];
+			}
 		}
 		if ( is_array( $value ) && isset( $value[0] ) && isset( $value[1] ) && $value[1] > 0 ) {
 			return $value[0] / $value[1];

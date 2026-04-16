@@ -276,6 +276,9 @@ export default function ExifDataPage() {
                             const hasCamera = Object.keys(exif.camera || {}).length > 0;
                             const hasOther = Object.keys(exif.other || {}).length > 0;
                             const isLast = index === images.length - 1;
+
+                            console.log('exif', exif );
+
                             return (
                                 <div key={image.attachment_id} className={!isLast ? 'border-b border-gray-100' : ''}>
                                     {/* Row */}
