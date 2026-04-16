@@ -153,14 +153,6 @@ export default function ExifScannerSection() {
         <div>
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-900 m-0!">EXIF Scanner</h3>
-                {scanComplete && !isScanning && (
-                    <button
-                        onClick={handleClearScan}
-                        className="text-xs text-red-400 hover:text-red-600 cursor-pointer transition-colors bg-transparent border-none p-0"
-                    >
-                        Clear Results
-                    </button>
-                )}
             </div>
 
             {/* Stats */}
@@ -218,12 +210,20 @@ export default function ExifScannerSection() {
                     )}
                     {isScanning ? "Scanning..." : scanComplete ? "Re-Scan" : "Start Scan"}
                 </button>
-                {!isScanning && (
+                { isScanning && (
                     <button
                         onClick={() => { setShowPanel(false); }}
                         className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                         Cancel
+                    </button>
+                )}
+                {scanComplete && !isScanning && (
+                    <button
+                        onClick={handleClearScan}
+                        className="text-xs text-red-400 hover:text-red-600 cursor-pointer transition-colors bg-transparent border-none p-0"
+                    >
+                        Clear Results
                     </button>
                 )}
             </div>
