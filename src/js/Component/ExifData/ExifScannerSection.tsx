@@ -143,35 +143,28 @@ export default function ExifScannerSection() {
 
     return (
         <div>
-            <h3 style={{ marginTop: "0", marginBottom: "12px" }}>Scanner</h3>
-            <p style={{ color: "#666", marginBottom: "20px", fontSize: "14px" }}>
+            <h3 className="mt-0 mb-3">Scanner</h3>
+            <p className="text-sm text-gray-500 mb-5">
                 Scan your media library to identify images with and without EXIF metadata.
             </p>
 
             {/* Summary Stats */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "16px",
-                    marginBottom: "30px",
-                }}
-            >
-                <div style={{ padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-                    <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Total Scanned</div>
-                    <div style={{ fontSize: "28px", fontWeight: "bold" }}>{scanStatus.total}</div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
+                <div className="p-4 bg-gray-100 rounded">
+                    <div className="text-xs text-gray-500 mb-1">Total Scanned</div>
+                    <div className="text-3xl font-bold">{scanStatus.total}</div>
                 </div>
 
-                <div style={{ padding: "16px", backgroundColor: "#d4edda", borderRadius: "4px" }}>
-                    <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>With EXIF</div>
-                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#28a745" }}>
+                <div className="p-4 bg-green-100 rounded">
+                    <div className="text-xs text-gray-500 mb-1">With EXIF</div>
+                    <div className="text-3xl font-bold text-green-600">
                         {scanStatus.with_exif}
                     </div>
                 </div>
 
-                <div style={{ padding: "16px", backgroundColor: "#f8d7da", borderRadius: "4px" }}>
-                    <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>Without EXIF</div>
-                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#dc3545" }}>
+                <div className="p-4 bg-red-100 rounded">
+                    <div className="text-xs text-gray-500 mb-1">Without EXIF</div>
+                    <div className="text-3xl font-bold text-red-600">
                         {scanStatus.without_exif}
                     </div>
                 </div>
@@ -179,10 +172,10 @@ export default function ExifScannerSection() {
 
             {/* Progress Bar — show during scan or after completion */}
             {(isScanning || scanComplete) && (
-                <div style={{ marginBottom: "20px" }}>
-                    <div style={{ marginBottom: "8px" }}>
+                <div className="mb-5">
+                    <div className="mb-2">
                         <strong>{scanComplete ? "Scan Complete" : "Scanning Progress"}</strong>
-                        <span style={{ marginLeft: "10px", color: "#666" }}>
+                        <span className="ml-2.5 text-gray-500">
                             {scanStatus.processed} / {scanStatus.total}
                         </span>
                     </div>
@@ -192,27 +185,21 @@ export default function ExifScannerSection() {
 
             {/* Last Scan Time */}
             {lastScanTime && (
-                <div style={{ marginBottom: "20px", padding: "12px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
-                    <small style={{ color: "#666" }}>
+                <div className="mb-5 p-3 bg-blue-50 rounded">
+                    <small className="text-gray-500">
                         Last scan completed: <strong>{lastScanTime}</strong>
                     </small>
                 </div>
             )}
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div className="flex gap-2">
                 <button
                     onClick={startScan}
                     disabled={isScanning}
-                    style={{
-                        padding: "10px 16px",
-                        backgroundColor: isScanning ? "#ccc" : "#0073aa",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: isScanning ? "not-allowed" : "pointer",
-                        fontWeight: "500",
-                    }}
+                    className={`px-4 py-2.5 text-white border-none rounded font-medium cursor-pointer ${
+                        isScanning ? "bg-gray-400 cursor-not-allowed" : "bg-[#0073aa] hover:bg-[#005f8c]"
+                    }`}
                 >
                     {isScanning ? "Scanning..." : scanComplete ? "Re-Scan" : "Start Scan"}
                 </button>
@@ -221,15 +208,9 @@ export default function ExifScannerSection() {
                     <button
                         onClick={handleClearScan}
                         disabled={isScanning}
-                        style={{
-                            padding: "10px 16px",
-                            backgroundColor: "#dc3545",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: isScanning ? "not-allowed" : "pointer",
-                            fontWeight: "500",
-                        }}
+                        className={`px-4 py-2.5 text-white border-none rounded font-medium cursor-pointer ${
+                            isScanning ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+                        }`}
                     >
                         Clear Results
                     </button>

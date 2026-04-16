@@ -93,11 +93,13 @@ class ExifAutoProcessor {
 	 * @return void
 	 */
 	private function apply_rules( int $attachment_id, array $exif_data, array $options ): void {
-		// Always store EXIF meta for filtering/sorting (even if auto-processing is disabled).
+		// Always store EXIF meta for filtering/sorting.
 		ExifFilter::store_exif_meta( $attachment_id, $exif_data );
-		// Rule 1: Remove GPS if enabled.
+
+		// Rule 1: Remove GPS if enabled (also clean up stored GPS meta).
 		if ( ! empty( $options['auto_remove_gps_on_upload'] ) ) {
 			$this->remove_gps_metadata( $attachment_id );
+			ExifFilter::remove_gps_meta( $attachment_id );
 		}
 
 		// Rule 2: Fill missing metadata from EXIF.
@@ -210,7 +212,8 @@ class ExifAutoProcessor {
 		}
 
 		// Convert EXIF date format (YYYY:MM:DD HH:MM:SS) to MySQL format (YYYY-MM-DD HH:MM:SS).
-		$date_str = str_replace( ':', '-', $date_str, 2 );
+		// Only replace the first two colons (in the date part, not the time part).
+		$date_str = preg_replace( '/:/', '-', $date_str, 2 );
 
 		// Validate date format.
 		$date_obj = \DateTime::createFromFormat( 'Y-m-d H:i:s', $date_str );

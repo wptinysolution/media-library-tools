@@ -26,13 +26,9 @@ class ExifFilter {
 	 * @return array Modified query arguments.
 	 */
 	public static function apply_filters( array $args, array $params ): array {
-		global $wpdb;
-
 		// Camera model filter.
 		if ( ! empty( $params['exif_camera'] ) ) {
-			// This requires scanning EXIF on demand or joining to a meta table.
-			// For performance, we'll do post-query filtering.
-			$args['meta_query'] = $args['meta_query'] ?? [];
+			$args['meta_query']   = $args['meta_query'] ?? [];
 			$args['meta_query'][] = [
 				'key'     => '_tsmlt_exif_camera',
 				'value'   => sanitize_text_field( $params['exif_camera'] ),
@@ -53,13 +49,13 @@ class ExifFilter {
 			];
 
 			$from = sanitize_text_field( $params['exif_date_from'] ?? '' );
-			$to = sanitize_text_field( $params['exif_date_to'] ?? '' );
+			$to   = sanitize_text_field( $params['exif_date_to'] ?? '' );
 
 			if ( $from ) {
 				$date_query['value'] = [ $from . ' 00:00:00', $to ? $to . ' 23:59:59' : wp_date( 'Y-m-d H:i:s' ) ];
 			} elseif ( $to ) {
 				$date_query['compare'] = '<=';
-				$date_query['value'] = $to . ' 23:59:59';
+				$date_query['value']   = $to . ' 23:59:59';
 			}
 
 			if ( ! empty( $date_query['value'] ) ) {
@@ -74,13 +70,11 @@ class ExifFilter {
 			}
 
 			if ( 'yes' === $params['exif_has_gps'] ) {
-				// Has GPS.
 				$args['meta_query'][] = [
 					'key'     => '_tsmlt_exif_gps_lat',
 					'compare' => 'EXISTS',
 				];
 			} elseif ( 'no' === $params['exif_has_gps'] ) {
-				// No GPS.
 				$args['meta_query'][] = [
 					'key'     => '_tsmlt_exif_gps_lat',
 					'compare' => 'NOT EXISTS',
@@ -97,17 +91,22 @@ class ExifFilter {
 	 * @return array Camera model options.
 	 */
 	public static function get_camera_models(): array {
-		global $wpdb;
+		$results = Fns::DB()->select( 'meta_value' )
+			->distinct()
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_tsmlt_exif_camera' )
+			->andWhere( 'meta_value', '!=', '' )
+			->orderBy( 'meta_value', 'ASC' )
+			->get();
 
-		$models = $wpdb->get_col(
-			"SELECT DISTINCT meta_value
-			FROM {$wpdb->postmeta}
-			WHERE meta_key = '_tsmlt_exif_camera'
-			AND meta_value != ''
-			ORDER BY meta_value"
-		);
+		$models = [];
+		foreach ( $results as $row ) {
+			if ( ! empty( $row['meta_value'] ) ) {
+				$models[] = $row['meta_value'];
+			}
+		}
 
-		return array_filter( $models );
+		return $models;
 	}
 
 	/**
@@ -120,7 +119,7 @@ class ExifFilter {
 	 */
 	public static function store_exif_meta( int $attachment_id, array $exif_data ): void {
 		// Extract camera info.
-		$make = self::get_exif_field( $exif_data, 'Make' );
+		$make  = self::get_exif_field( $exif_data, 'Make' );
 		$model = self::get_exif_field( $exif_data, 'Model' );
 		if ( $make || $model ) {
 			$camera = trim( "$make $model" );
@@ -133,22 +132,88 @@ class ExifFilter {
 			$date = self::get_exif_field( $exif_data, 'DateTime', [ 'IFD0' ] );
 		}
 		if ( $date ) {
-			// Convert to MySQL format.
-			$date = str_replace( ':', '-', $date, 2 );
+			// Convert EXIF date "YYYY:MM:DD HH:MM:SS" to MySQL "YYYY-MM-DD HH:MM:SS".
+			// Only replace the first two colons (in the date part).
+			$date = preg_replace( '/:/', '-', $date, 2 );
 			update_post_meta( $attachment_id, '_tsmlt_exif_date', $date );
 		}
 
-		// Extract GPS.
-		$gps_lat = self::get_exif_field( $exif_data, 'GPSLatitude', [ 'GPS' ] );
-		$gps_lng = self::get_exif_field( $exif_data, 'GPSLongitude', [ 'GPS' ] );
-		if ( $gps_lat || $gps_lng ) {
-			if ( $gps_lat ) {
-				update_post_meta( $attachment_id, '_tsmlt_exif_gps_lat', $gps_lat );
-			}
-			if ( $gps_lng ) {
-				update_post_meta( $attachment_id, '_tsmlt_exif_gps_lng', $gps_lng );
+		// Extract GPS as decimal coordinates.
+		$gps_lat = self::get_gps_decimal( $exif_data, 'GPSLatitude', 'GPSLatitudeRef' );
+		$gps_lng = self::get_gps_decimal( $exif_data, 'GPSLongitude', 'GPSLongitudeRef' );
+		if ( null !== $gps_lat ) {
+			update_post_meta( $attachment_id, '_tsmlt_exif_gps_lat', $gps_lat );
+		}
+		if ( null !== $gps_lng ) {
+			update_post_meta( $attachment_id, '_tsmlt_exif_gps_lng', $gps_lng );
+		}
+	}
+
+	/**
+	 * Remove stored GPS meta for an attachment.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return void
+	 */
+	public static function remove_gps_meta( int $attachment_id ): void {
+		delete_post_meta( $attachment_id, '_tsmlt_exif_gps_lat' );
+		delete_post_meta( $attachment_id, '_tsmlt_exif_gps_lng' );
+	}
+
+	/**
+	 * Convert GPS DMS array from EXIF to decimal degrees.
+	 *
+	 * @param array  $exif_data Raw EXIF data.
+	 * @param string $coord_key GPS coordinate key (GPSLatitude or GPSLongitude).
+	 * @param string $ref_key   GPS reference key (GPSLatitudeRef or GPSLongitudeRef).
+	 *
+	 * @return float|null Decimal coordinate or null.
+	 */
+	private static function get_gps_decimal( array $exif_data, string $coord_key, string $ref_key ): ?float {
+		if ( ! isset( $exif_data['GPS'][ $coord_key ] ) ) {
+			return null;
+		}
+
+		$dms = $exif_data['GPS'][ $coord_key ];
+		if ( ! is_array( $dms ) || count( $dms ) < 3 ) {
+			return null;
+		}
+
+		$degrees = self::rational_to_float( $dms[0] );
+		$minutes = self::rational_to_float( $dms[1] );
+		$seconds = self::rational_to_float( $dms[2] );
+
+		$decimal = $degrees + ( $minutes / 60 ) + ( $seconds / 3600 );
+
+		$ref = $exif_data['GPS'][ $ref_key ] ?? '';
+		if ( in_array( $ref, [ 'S', 'W' ], true ) ) {
+			$decimal = -$decimal;
+		}
+
+		return round( $decimal, 6 );
+	}
+
+	/**
+	 * Convert rational string (e.g., "40/1") to float.
+	 *
+	 * @param mixed $value Rational string or number.
+	 *
+	 * @return float
+	 */
+	private static function rational_to_float( $value ): float {
+		if ( is_numeric( $value ) ) {
+			return (float) $value;
+		}
+
+		if ( is_string( $value ) && strpos( $value, '/' ) !== false ) {
+			$parts = explode( '/', $value, 2 );
+			if ( 2 === count( $parts ) && is_numeric( $parts[0] ) && is_numeric( $parts[1] ) && (float) $parts[1] > 0 ) {
+				return (float) $parts[0] / (float) $parts[1];
 			}
 		}
+
+		return 0.0;
 	}
 
 	/**
@@ -160,7 +225,7 @@ class ExifFilter {
 	 *
 	 * @return string|null
 	 */
-	private static function get_exif_field( array $exif_data, string $field, ?array $sections = null ): ?string {
+	public static function get_exif_field( array $exif_data, string $field, ?array $sections = null ): ?string {
 		if ( null === $sections ) {
 			$sections = [ 'IFD0', 'EXIF', 'GPS' ];
 		}

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
-import { exifStripBatch, getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data";
+import { getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import Modal from "@/js/Component/Common/Modal";
@@ -37,8 +37,8 @@ export default function ExifDataPage() {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [showStripModal, setShowStripModal] = useState(false);
     const [isStrippingSingle, setIsStrippingSingle] = useState<number | null>(null);
-    const [isStartStripAll, setIsStartStripAll] = useState(false);
-    const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+    const [bulkAction, setBulkAction] = useState("");
     const isMounted = useRef(false);
 
     const limit = 20;
@@ -77,51 +77,6 @@ export default function ExifDataPage() {
         }
     }, []);
 
-    const startStripAll = async () => {
-        if (!isPro) {
-            setGeneralData({ openProModal: true });
-            return;
-        }
-
-        setIsStartStripAll(true);
-    };
-
-    const confirmStripAll = async () => {
-        setIsStartStripAll(false);
-        setIsStripping(true);
-        let offset = 0;
-        let complete = false;
-        let totalStripped = 0;
-        let totalFailed = 0;
-
-        try {
-            while (!complete) {
-                const response = await exifStripBatch({
-                    offset,
-                    batch_size: 20,
-                }) as any;
-                const result = response.data || response;
-                offset = result.processed;
-                complete = result.complete;
-                totalStripped += result.stripped || 0;
-                totalFailed += result.failed || 0;
-                setStripProgress({
-                    processed: result.processed,
-                    total: result.total,
-                    stripped: totalStripped,
-                    failed: totalFailed,
-                });
-            }
-
-            setIsStripping(false);
-            await loadStatus();
-            await loadResults(currentPage);
-        } catch (error) {
-            console.error('Error during strip:', error);
-            setIsStripping(false);
-        }
-    };
-
     const handleStripSingle = async (attachmentId: number) => {
         if (!isPro) {
             setGeneralData({ openProModal: true });
@@ -155,15 +110,6 @@ export default function ExifDataPage() {
         }
     };
 
-    const handleBulkStrip = () => {
-        if (!isPro) {
-            setGeneralData({ openProModal: true });
-            return;
-        }
-        if (selectedIds.size === 0) return;
-        setShowStripModal(true);
-    };
-
     const confirmBulkStrip = async () => {
         setShowStripModal(false);
         setIsStripping(true);
@@ -191,6 +137,29 @@ export default function ExifDataPage() {
         }
     };
 
+    const handleBulkApply = () => {
+        if (!bulkAction) return;
+        if (selectedIds.size === 0) return;
+
+        if (!isPro) {
+            setGeneralData({ openProModal: true });
+            return;
+        }
+
+        switch (bulkAction) {
+            case 'read_exif':
+                // Expand all selected images to show EXIF details
+                setExpandedIds(new Set(selectedIds));
+                break;
+            case 'delete_exif':
+                setShowStripModal(true);
+                break;
+            case 'edit_exif':
+                // TODO: Open bulk edit EXIF modal
+                break;
+        }
+    };
+
     // Load status + results on first mount (only in pro).
     React.useEffect(() => {
         loadStatus().then(() => {
@@ -210,7 +179,6 @@ export default function ExifDataPage() {
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.every(img => selectedIds.has(img.attachment_id));
-    const imagesWithExif = images.filter(img => img.has_exif && !img.stripped);
 
     // Show free version with scanner and upgrade option
     if (!isPro) {
@@ -270,7 +238,7 @@ export default function ExifDataPage() {
             </div>
 
             {/* Actions bar */}
-            <div className="flex items-center gap-4 px-8 py-3 bg-white rounded-t-lg border border-b-0 border-gray-200">
+            <div className="flex items-center gap-3 px-8 py-3 bg-white rounded-t-lg border border-b-0 border-gray-200">
                 <label className="flex items-center gap-2 cursor-pointer">
                     <input
                         type="checkbox"
@@ -283,46 +251,27 @@ export default function ExifDataPage() {
                         {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select all'}
                     </span>
                 </label>
-                {selectedIds.size > 0 && isPro && (
-                    <button
-                        type="button"
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => {
-                            // TODO: Open bulk edit EXIF modal
-                        }}
-                    >
-                        Edit Selected ({selectedIds.size})
-                    </button>
-                )}
-                {selectedIds.size > 0 && (
-                    <>
-                        <button
-                            type="button"
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
-                            onClick={handleBulkStrip}
-                        >
-                            Strip Selected ({selectedIds.size})
-                        </button>
-                    </>
-                )}
-                {isPro ? (
-                    <button
-                        type="button"
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
-                        onClick={startStripAll}
-                        disabled={isStripping}
-                    >
-                        {isStripping ? 'Stripping...' : 'Strip All EXIF'}
-                    </button>
-                ) : (
-                    <button
-                        type="button"
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors opacity-80"
-                        onClick={() => setGeneralData({ openProModal: true })}
-                    >
-                        Strip All EXIF <ProLabel />
-                    </button>
-                )}
+
+                {/* Bulk Action Dropdown + Apply */}
+                <select
+                    className="h-9 px-3 text-sm border border-gray-300 rounded-md bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    value={bulkAction}
+                    onChange={(e) => setBulkAction(e.target.value)}
+                >
+                    <option value="" disabled>Bulk Actions</option>
+                    <option value="read_exif">Read EXIF Data</option>
+                    <option value="delete_exif">Delete EXIF Data</option>
+                    <option value="edit_exif">Edit EXIF Data</option>
+                </select>
+                <button
+                    type="button"
+                    className="h-9 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleBulkApply}
+                    disabled={!bulkAction || selectedIds.size === 0 || isStripping}
+                >
+                    Apply
+                </button>
+
                 <div className="ml-auto text-sm text-gray-500">
                     {totalImages} images found
                 </div>
@@ -332,7 +281,7 @@ export default function ExifDataPage() {
             {isStripping && (
                 <div className="px-4 py-4 bg-white border-b border-gray-200">
                     <p className="text-sm text-gray-600 mb-2 mt-0!">
-                        Stripping EXIF data... {stripProgress.processed} / {stripProgress.total} processed
+                        Deleting EXIF data... {stripProgress.processed} / {stripProgress.total} processed
                     </p>
                     <ProgressBar percent={stripProgress.total > 0 ? Math.round((stripProgress.processed / stripProgress.total) * 100) : 0} />
                     {stripProgress.stripped > 0 && (
@@ -382,10 +331,14 @@ export default function ExifDataPage() {
                                 >
                                     <div 
                                         className="flex items-center gap-4 p-4 cursor-pointer"
-                                        onClick={() => setExpandedId(expandedId === image.attachment_id ? null : image.attachment_id)}
+                                        onClick={() => setExpandedIds(prev => {
+                                            const next = new Set(prev);
+                                            next.has(image.attachment_id) ? next.delete(image.attachment_id) : next.add(image.attachment_id);
+                                            return next;
+                                        })}
                                     >
                                         {/* Checkbox */}
-                                        <div className="shrink-0">
+                                        <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                                             <input
                                                 type="checkbox"
                                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
@@ -461,9 +414,9 @@ export default function ExifDataPage() {
                                                         e.stopPropagation();
                                                         handleStripSingle(image.attachment_id);
                                                     }}
-                                                    className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors"
+                                                    className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 cursor-pointer transition-colors"
                                                 >
-                                                    {isStrippingSingle === image.attachment_id ? 'Stripping...' : 'Strip EXIF'}
+                                                    {isStrippingSingle === image.attachment_id ? 'Deleting...' : 'Delete EXIF'}
                                                 </button>
                                             ) : (
                                                 <span className="text-xs text-gray-400">
@@ -474,7 +427,7 @@ export default function ExifDataPage() {
                                     </div>
                                     
                                     {/* Expandable EXIF Details */}
-                                    {expandedId === image.attachment_id && (
+                                    {expandedIds.has(image.attachment_id) && (
                                         <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 {/* Camera Info */}
@@ -555,7 +508,7 @@ export default function ExifDataPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 m-0!">Strip EXIF from Selected Images</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 m-0!">Delete EXIF from Selected Images</h3>
                     </div>
                 }
                 maxWidth="max-w-[520px]"
@@ -574,14 +527,14 @@ export default function ExifDataPage() {
                             className="px-5 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
                             onClick={confirmBulkStrip}
                         >
-                            Yes, Strip EXIF from {selectedIds.size} Image{selectedIds.size !== 1 ? 's' : ''}
+                            Yes, Delete EXIF from {selectedIds.size} Image{selectedIds.size !== 1 ? 's' : ''}
                         </button>
                     </div>
                 }
             >
                 <div className="px-6 py-5 space-y-4">
                     <p className="text-sm text-gray-700 mt-0!">
-                        You are about to strip EXIF metadata from <strong>{selectedIds.size} image{selectedIds.size !== 1 ? 's' : ''}</strong>.
+                        You are about to delete EXIF metadata from <strong>{selectedIds.size} image{selectedIds.size !== 1 ? 's' : ''}</strong>.
                     </p>
 
                     <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
@@ -595,38 +548,6 @@ export default function ExifDataPage() {
                 </div>
             </Modal>
 
-            {/* Strip All confirmation modal */}
-            <Modal
-                isOpen={isStartStripAll}
-                onClose={() => setIsStartStripAll(false)}
-                title="Strip All EXIF?"
-                maxWidth="max-w-md"
-                closeOnBackdrop={false}
-                footer={
-                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                        <button
-                            type="button"
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => setIsStartStripAll(false)}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
-                            onClick={confirmStripAll}
-                        >
-                            Yes, Strip All
-                        </button>
-                    </div>
-                }
-            >
-                <div className="px-6 py-5">
-                    <p className="text-sm! text-gray-600 m-0!">
-                        You are about to <strong className="text-blue-600">strip EXIF data</strong> from all images. This action <strong>cannot be undone</strong>.
-                    </p>
-                </div>
-            </Modal>
         </div>
     );
 }

@@ -54,7 +54,7 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
 
     const pageNumbers = getPageNumbers();
 
-    const navBtnBase = 'inline-flex items-center justify-center w-8 h-8 text-sm border rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+    const navBtnBase = 'inline-flex items-center justify-center min-w-[40px] px-4 h-8 text-sm border rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
     const navBtnDefault = 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400';
     const navBtnActive = 'border-blue-600 bg-blue-600 text-white font-semibold shadow-sm';
 
