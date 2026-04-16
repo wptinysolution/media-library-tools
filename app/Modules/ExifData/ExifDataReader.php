@@ -69,7 +69,7 @@ class ExifDataReader {
 
 		// Check if MIME type is supported.
 		if ( ! in_array( $mime, $this->supported_mimes, true ) ) {
-			$result = [
+			$result                             = [
 				'supported' => false,
 				'has_exif'  => false,
 				'error'     => esc_html__( 'EXIF data is only available for JPEG, TIFF, and WebP images.', 'media-library-tools' ),
@@ -81,7 +81,7 @@ class ExifDataReader {
 		// Get file path.
 		$file_path = get_attached_file( $attachment_id );
 		if ( ! $file_path || ! file_exists( $file_path ) ) {
-			$result = [
+			$result                             = [
 				'supported' => true,
 				'has_exif'  => false,
 				'error'     => esc_html__( 'Image file not found on server.', 'media-library-tools' ),
@@ -92,7 +92,7 @@ class ExifDataReader {
 
 		// Check if PHP EXIF extension is available.
 		if ( ! function_exists( 'exif_read_data' ) ) {
-			$result = [
+			$result                             = [
 				'supported' => true,
 				'has_exif'  => false,
 				'error'     => esc_html__( 'PHP EXIF extension is not enabled on this server.', 'media-library-tools' ),
@@ -105,7 +105,7 @@ class ExifDataReader {
 		$raw = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		if ( ! is_array( $raw ) || empty( $raw ) ) {
-			$result = [
+			$result                             = [
 				'supported' => true,
 				'has_exif'  => false,
 				'error'     => esc_html__( 'No EXIF data found for this image.', 'media-library-tools' ),
@@ -115,7 +115,7 @@ class ExifDataReader {
 		}
 
 		// Format and return EXIF data.
-		$result = [
+		$result                             = [
 			'supported' => true,
 			'has_exif'  => true,
 			'data'      => $this->format_exif_for_display( $raw ),
@@ -134,45 +134,45 @@ class ExifDataReader {
 	 */
 	public function format_exif_for_display( array $raw ): array {
 		$groups = [
-			'camera'    => [
+			'camera'   => [
 				'Make'     => esc_html__( 'Make', 'media-library-tools' ),
 				'Model'    => esc_html__( 'Model', 'media-library-tools' ),
 				'Software' => esc_html__( 'Software', 'media-library-tools' ),
 			],
-			'image'     => [
-				'ImageWidth'     => esc_html__( 'Image Width', 'media-library-tools' ),
-				'ImageLength'    => esc_html__( 'Image Height', 'media-library-tools' ),
-				'ExifImageWidth' => esc_html__( 'EXIF Width', 'media-library-tools' ),
+			'image'    => [
+				'ImageWidth'      => esc_html__( 'Image Width', 'media-library-tools' ),
+				'ImageLength'     => esc_html__( 'Image Height', 'media-library-tools' ),
+				'ExifImageWidth'  => esc_html__( 'EXIF Width', 'media-library-tools' ),
 				'ExifImageLength' => esc_html__( 'EXIF Height', 'media-library-tools' ),
-				'Orientation'    => esc_html__( 'Orientation', 'media-library-tools' ),
-				'ColorSpace'     => esc_html__( 'Color Space', 'media-library-tools' ),
-				'BitsPerSample'  => esc_html__( 'Bits Per Sample', 'media-library-tools' ),
+				'Orientation'     => esc_html__( 'Orientation', 'media-library-tools' ),
+				'ColorSpace'      => esc_html__( 'Color Space', 'media-library-tools' ),
+				'BitsPerSample'   => esc_html__( 'Bits Per Sample', 'media-library-tools' ),
 			],
-			'exposure'  => [
-				'ExposureTime'        => esc_html__( 'Exposure Time', 'media-library-tools' ),
-				'FNumber'             => esc_html__( 'Aperture', 'media-library-tools' ),
-				'ISOSpeedRatings'     => esc_html__( 'ISO', 'media-library-tools' ),
-				'ExposureProgram'     => esc_html__( 'Exposure Program', 'media-library-tools' ),
-				'ExposureBiasValue'   => esc_html__( 'Exposure Bias', 'media-library-tools' ),
-				'MeteringMode'        => esc_html__( 'Metering Mode', 'media-library-tools' ),
-				'Flash'               => esc_html__( 'Flash', 'media-library-tools' ),
-				'FocalLength'         => esc_html__( 'Focal Length', 'media-library-tools' ),
+			'exposure' => [
+				'ExposureTime'          => esc_html__( 'Exposure Time', 'media-library-tools' ),
+				'FNumber'               => esc_html__( 'Aperture', 'media-library-tools' ),
+				'ISOSpeedRatings'       => esc_html__( 'ISO', 'media-library-tools' ),
+				'ExposureProgram'       => esc_html__( 'Exposure Program', 'media-library-tools' ),
+				'ExposureBiasValue'     => esc_html__( 'Exposure Bias', 'media-library-tools' ),
+				'MeteringMode'          => esc_html__( 'Metering Mode', 'media-library-tools' ),
+				'Flash'                 => esc_html__( 'Flash', 'media-library-tools' ),
+				'FocalLength'           => esc_html__( 'Focal Length', 'media-library-tools' ),
 				'FocalLengthIn35mmFilm' => esc_html__( '35mm Focal Length', 'media-library-tools' ),
 			],
-			'gps'       => [
+			'gps'      => [
 				'GPSLatitude'  => esc_html__( 'Latitude', 'media-library-tools' ),
 				'GPSLongitude' => esc_html__( 'Longitude', 'media-library-tools' ),
 				'GPSAltitude'  => esc_html__( 'Altitude', 'media-library-tools' ),
 			],
-			'date'      => [
-				'DateTime'           => esc_html__( 'Date Modified', 'media-library-tools' ),
-				'DateTimeOriginal'   => esc_html__( 'Date Taken', 'media-library-tools' ),
-				'DateTimeDigitized'  => esc_html__( 'Date Digitized', 'media-library-tools' ),
+			'date'     => [
+				'DateTime'          => esc_html__( 'Date Modified', 'media-library-tools' ),
+				'DateTimeOriginal'  => esc_html__( 'Date Taken', 'media-library-tools' ),
+				'DateTimeDigitized' => esc_html__( 'Date Digitized', 'media-library-tools' ),
 			],
-			'other'     => [
-				'Artist'       => esc_html__( 'Artist', 'media-library-tools' ),
-				'Copyright'    => esc_html__( 'Copyright', 'media-library-tools' ),
-				'UserComment'  => esc_html__( 'User Comment', 'media-library-tools' ),
+			'other'    => [
+				'Artist'           => esc_html__( 'Artist', 'media-library-tools' ),
+				'Copyright'        => esc_html__( 'Copyright', 'media-library-tools' ),
+				'UserComment'      => esc_html__( 'User Comment', 'media-library-tools' ),
 				'ImageDescription' => esc_html__( 'Description', 'media-library-tools' ),
 			],
 		];
@@ -199,7 +199,7 @@ class ExifDataReader {
 				}
 
 				// Format special fields.
-				if ( $value !== null && '' !== $value ) {
+				if ( null !== $value && '' !== $value ) {
 					if ( 'FNumber' === $exif_key ) {
 						$value = $this->format_aperture( $value );
 					} elseif ( 'ExposureTime' === $exif_key ) {
@@ -237,15 +237,15 @@ class ExifDataReader {
 			return null;
 		}
 
-		$dms = $raw['GPS'][ $exif_key ];
+		$dms     = $raw['GPS'][ $exif_key ];
 		$ref_key = 'GPSLatitude' === $exif_key ? 'GPSLatitudeRef' : 'GPSLongitudeRef';
-		$ref = $raw['GPS'][ $ref_key ] ?? '';
+		$ref     = $raw['GPS'][ $ref_key ] ?? '';
 
 		if ( ! is_array( $dms ) || count( $dms ) < 3 ) {
 			return null;
 		}
 
-		$decimal = $this->dms_to_decimal( $dms );
+		$decimal  = $this->dms_to_decimal( $dms );
 		$negative = in_array( $ref, [ 'S', 'W' ], true );
 
 		return ( $negative ? '-' : '' ) . number_format( (float) $decimal, 6 );
@@ -552,5 +552,204 @@ class ExifDataReader {
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Get images with EXIF data for the EXIF Data page (free version - view only).
+	 *
+	 * @param int $limit  Limit per page.
+	 * @param int $offset Offset.
+	 *
+	 * @return array
+	 */
+	public function get_images_with_exif( int $limit = 20, int $offset = 0 ): array {
+		$attachments = get_posts(
+			[
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => $limit,
+				'offset'         => $offset,
+				'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
+				'orderby'        => 'ID',
+				'order'          => 'DESC',
+			]
+		);
+
+		$images = [];
+		foreach ( $attachments as $attachment ) {
+			$file_path = get_attached_file( $attachment->ID );
+			if ( ! $file_path || ! file_exists( $file_path ) ) {
+				continue;
+			}
+
+			$exif_summary = $this->get_exif_summary( $file_path );
+			$has_exif     = ! empty( $exif_summary['has_exif'] );
+
+			// Get thumbnail URL.
+			$thumb_url = wp_get_attachment_thumb_url( $attachment->ID );
+			if ( ! $thumb_url ) {
+				$thumb_url = wp_get_attachment_url( $attachment->ID );
+			}
+
+			$images[] = [
+				'attachment_id' => $attachment->ID,
+				'title'         => $attachment->post_title,
+				'url'           => $thumb_url,
+				'has_exif'      => $has_exif,
+				'exif_summary'  => $exif_summary,
+				'stripped'      => false,
+			];
+		}
+
+		return $images;
+	}
+
+	/**
+	 * Get total count of image attachments.
+	 *
+	 * @return int
+	 */
+	public function get_attachment_count(): int {
+		$count = wp_count_posts( 'attachment' );
+		return isset( $count->inherit ) ? (int) $count->inherit : 0;
+	}
+
+	/**
+	 * Get EXIF summary for display in the list (camera, gps, other).
+	 *
+	 * @param string $file_path Path to the image file.
+	 *
+	 * @return array
+	 */
+	public function get_exif_summary( string $file_path ): array {
+		if ( ! function_exists( 'exif_read_data' ) ) {
+			return [];
+		}
+
+		$exif = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( ! is_array( $exif ) || empty( $exif ) ) {
+			return [];
+		}
+
+		$summary = [
+			'has_exif' => true,
+		];
+
+		// Camera info (IFD0).
+		if ( isset( $exif['IFD0'] ) ) {
+			$camera = [];
+			if ( ! empty( $exif['IFD0']['Make'] ) ) {
+				$camera['Make'] = $exif['IFD0']['Make'];
+			}
+			if ( ! empty( $exif['IFD0']['Model'] ) ) {
+				$camera['Model'] = $exif['IFD0']['Model'];
+			}
+			if ( ! empty( $exif['IFD0']['Software'] ) ) {
+				$camera['Software'] = $exif['IFD0']['Software'];
+			}
+			if ( ! empty( $camera ) ) {
+				$summary['camera'] = $camera;
+			}
+		}
+
+		// GPS info.
+		$gps          = [];
+		$has_location = false;
+
+		if ( isset( $exif['GPS'] ) ) {
+			if ( ! empty( $exif['GPS']['GPSLatitude'] ) && ! empty( $exif['GPS']['GPSLatitudeRef'] ) ) {
+				$gps['latitude'] = $this->convert_gps_coordinate( $exif['GPS']['GPSLatitude'], $exif['GPS']['GPSLatitudeRef'] );
+				$has_location    = true;
+			}
+			if ( ! empty( $exif['GPS']['GPSLongitude'] ) && ! empty( $exif['GPS']['GPSLongitudeRef'] ) ) {
+				$gps['longitude'] = $this->convert_gps_coordinate( $exif['GPS']['GPSLongitude'], $exif['GPS']['GPSLongitudeRef'] );
+			}
+			if ( ! empty( $exif['GPS']['GPSAltitude'] ) ) {
+				$gps['altitude'] = $exif['GPS']['GPSAltitude'];
+			}
+		}
+
+		if ( ! empty( $gps ) ) {
+			$gps['has_location'] = $has_location;
+			$summary['gps']      = $gps;
+		}
+
+		// Other EXIF (EXIF section).
+		$other = [];
+		if ( isset( $exif['EXIF'] ) ) {
+			if ( ! empty( $exif['EXIF']['DateTimeOriginal'] ) ) {
+				$other['DateTimeOriginal'] = $exif['EXIF']['DateTimeOriginal'];
+			}
+			if ( ! empty( $exif['EXIF']['ImageWidth'] ) ) {
+				$other['ImageWidth'] = $exif['EXIF']['ImageWidth'];
+			}
+			if ( ! empty( $exif['EXIF']['ImageHeight'] ) ) {
+				$other['ImageHeight'] = $exif['EXIF']['ImageHeight'];
+			}
+			if ( ! empty( $exif['EXIF']['Orientation'] ) ) {
+				$other['Orientation'] = $exif['EXIF']['Orientation'];
+			}
+			if ( ! empty( $exif['EXIF']['ISOSpeedRatings'] ) ) {
+				$other['ISO'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : $exif['EXIF']['ISOSpeedRatings'];
+			}
+			if ( ! empty( $exif['EXIF']['FocalLength'] ) ) {
+				$other['FocalLength'] = $exif['EXIF']['FocalLength'];
+			}
+			if ( ! empty( $exif['EXIF']['ExposureTime'] ) ) {
+				$other['ExposureTime'] = $exif['EXIF']['ExposureTime'];
+			}
+			if ( ! empty( $exif['EXIF']['FNumber'] ) ) {
+				$other['FNumber'] = $exif['EXIF']['FNumber'];
+			}
+		}
+
+		if ( ! empty( $other ) ) {
+			$summary['other'] = $other;
+		}
+
+		return $summary;
+	}
+
+	/**
+	 * Convert GPS coordinate to decimal degrees.
+	 *
+	 * @param array  $coord    GPS coordinate array.
+	 * @param string $ref      Direction reference (N, S, E, W).
+	 *
+	 * @return string
+	 */
+	private function convert_gps_coordinate( array $coord, string $ref ): string {
+		if ( empty( $coord ) || count( $coord ) < 3 ) {
+			return '';
+		}
+
+		$degrees = isset( $coord[0] ) ? $this->convert_rational( $coord[0] ) : 0;
+		$minutes = isset( $coord[1] ) ? $this->convert_rational( $coord[1] ) : 0;
+		$seconds = isset( $coord[2] ) ? $this->convert_rational( $coord[2] ) : 0;
+
+		$decimal = $degrees + ( $minutes / 60 ) + ( $seconds / 3600 );
+
+		if ( 'S' === $ref || 'W' === $ref ) {
+			$decimal = -$decimal;
+		}
+
+		return number_format( $decimal, 6 );
+	}
+
+	/**
+	 * Convert rational number to float.
+	 *
+	 * @param mixed $value Rational value.
+	 *
+	 * @return float
+	 */
+	private function convert_rational( $value ): float {
+		if ( is_numeric( $value ) ) {
+			return (float) $value;
+		}
+		if ( is_array( $value ) && isset( $value[0] ) && isset( $value[1] ) && $value[1] > 0 ) {
+			return $value[0] / $value[1];
+		}
+		return 0;
 	}
 }

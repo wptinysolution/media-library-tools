@@ -19,7 +19,7 @@ export default function ExifScannerSection() {
     const [isScanning, setIsScanning] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string>("");
-    const [showPanel, setShowPanel] = useState(false);
+    const [showPanel, setShowPanel] = useState(true);
     const isMounted = useRef(false);
 
     useEffect(() => {

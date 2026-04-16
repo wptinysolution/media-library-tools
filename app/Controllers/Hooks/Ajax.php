@@ -101,6 +101,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_exif_scan_batch', [ $this, 'exif_scan_batch' ] );
 		add_action( 'wp_ajax_tsmlt_exif_get_status', [ $this, 'exif_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_exif_clear_scan', [ $this, 'exif_clear_scan' ] );
+		add_action( 'wp_ajax_tsmlt_exif_get_results', [ $this, 'exif_get_results' ] );
 
 		// EXIF stripping.
 		add_action( 'wp_ajax_tsmlt_strip_exif_single', [ $this, 'strip_exif_single' ] );
@@ -657,6 +658,21 @@ class Ajax {
 	public function exif_clear_scan(): void {
 		$this->verify_and_get_params();
 		$this->send( ExifScanner::instance()->clear_scan() );
+	}
+
+	/** @return void */
+	public function exif_get_results(): void {
+		$params = $this->verify_and_get_params();
+		$limit  = absint( $params['limit'] ?? 20 );
+		$offset = absint( $params['offset'] ?? 0 );
+		$images = ExifDataReader::instance()->get_images_with_exif( $limit, $offset );
+		$total  = ExifDataReader::instance()->get_attachment_count();
+		$this->send(
+			[
+				'images' => $images,
+				'total'  => $total,
+			]
+		);
 	}
 
 	// -------------------------------------------------------------------------

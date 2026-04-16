@@ -5,7 +5,6 @@ import { getExifResults, getExifStatus, exifStripSingle } from "@/js/Utils/Data"
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import Modal from "@/js/Component/Common/Modal";
-import ProLabel from "@/js/Component/Badges/ProLabel";
 import ExifScannerSection from "@/js/Component/ExifData/ExifScannerSection";
 import ExifEditModal from "@/js/Component/ExifData/ExifEditModal";
 
@@ -62,7 +61,6 @@ export default function ExifDataPage() {
     }, []);
 
     const loadResults = useCallback(async (page = 1) => {
-        if (!isPro) return;
         setIsLoading(true);
         setSelectedIds(new Set());
         try {
@@ -176,44 +174,6 @@ export default function ExifDataPage() {
 
     const totalPages = Math.ceil(totalImages / limit);
     const allSelected = images.length > 0 && images.every(img => selectedIds.has(img.attachment_id));
-
-    // --- Free version ---
-    if (!isPro) {
-        return (
-            <div className="mx-auto px-6 py-8 min-h-screen bg-gray-50">
-                <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
-                        <ProLabel />
-                    </div>
-                    <p className="text-sm text-gray-500">Analyze and manage EXIF metadata in your media library.</p>
-                </div>
-
-                <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
-                    <ExifScannerSection />
-                </div>
-
-                <div className="bg-linear-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-8 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Unlock EXIF Management</h2>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        Upgrade to Pro to view, edit, and remove EXIF metadata from your images.
-                    </p>
-                    <button
-                        type="button"
-                        className="px-6 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 cursor-pointer transition-colors shadow-lg shadow-purple-200"
-                        onClick={() => setGeneralData({ openProModal: true })}
-                    >
-                        Upgrade to Pro
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     // --- Pro version ---
     return (
@@ -409,6 +369,10 @@ export default function ExifDataPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => {
+                                                    if (!isPro) {
+                                                        setGeneralData({ openProModal: true });
+                                                        return;
+                                                    }
                                                     setEditIds([image.attachment_id]);
                                                     setShowEditModal(true);
                                                 }}
