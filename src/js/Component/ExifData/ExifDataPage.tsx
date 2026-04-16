@@ -17,9 +17,7 @@ interface ExifImage {
         has_exif: boolean;
         camera: Record<string, string>;
         gps: Record<string, any>;
-        date: Record<string, string>;
         other: Record<string, string>;
-        strippable: string[];
     };
     stripped: boolean;
     stripped_info: any;
@@ -276,7 +274,6 @@ export default function ExifDataPage() {
                             const exif = image.exif_summary;
                             const hasGps = exif.gps?.has_location;
                             const hasCamera = Object.keys(exif.camera || {}).length > 0;
-                            const hasDate = Object.keys(exif.date || {}).length > 0;
                             const hasOther = Object.keys(exif.other || {}).length > 0;
                             const isLast = index === images.length - 1;
                             return (
@@ -338,11 +335,6 @@ export default function ExifDataPage() {
                                                                 Camera
                                                             </span>
                                                         )}
-                                                        {hasDate && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 rounded">
-                                                                Date
-                                                            </span>
-                                                        )}
                                                         {hasGps && (
                                                             <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-red-700 bg-red-50 rounded">
                                                                 GPS
@@ -402,7 +394,7 @@ export default function ExifDataPage() {
                                     {isExpanded && (
                                         <div className="px-5 py-4 bg-gray-50/80 border-t border-gray-100">
                                             {(() => {
-                                                const hasAny = hasCamera || hasGps || hasDate || hasOther;
+                                                const hasAny = hasCamera || hasGps || hasOther;
                                                 if (!hasAny) {
                                                     return (
                                                         <p className="text-sm text-gray-400 text-center py-3 m-0!">No EXIF data available for this image.</p>
@@ -431,20 +423,6 @@ export default function ExifDataPage() {
                                                             </div>
                                                         )}
 
-                                                        {hasDate && (
-                                                            <div className="bg-white rounded-lg p-3.5 border border-gray-200">
-                                                                <div className="flex items-center gap-1.5 mb-2.5">
-                                                                    <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                    </svg>
-                                                                    <h4 className="text-xs font-semibold text-gray-500 uppercase m-0!">Date</h4>
-                                                                </div>
-                                                                <dl className="space-y-1.5 text-xs">
-                                                                    {exif.date.original && <div className="flex justify-between"><dt className="text-gray-400">Taken</dt><dd className="font-medium text-gray-700 m-0!">{exif.date.original}</dd></div>}
-                                                                </dl>
-                                                            </div>
-                                                        )}
-
                                                         {hasGps && (
                                                             <div className="bg-white rounded-lg p-3.5 border border-gray-200">
                                                                 <div className="flex items-center gap-1.5 mb-2.5">
@@ -455,8 +433,8 @@ export default function ExifDataPage() {
                                                                     <h4 className="text-xs font-semibold text-gray-500 uppercase m-0!">GPS</h4>
                                                                 </div>
                                                                 <dl className="space-y-1.5 text-xs">
-                                                                    {exif.gps.lat_ref && <div className="flex justify-between"><dt className="text-gray-400">Lat Ref</dt><dd className="font-medium text-gray-700 m-0!">{exif.gps.lat_ref}</dd></div>}
-                                                                    {exif.gps.lon_ref && <div className="flex justify-between"><dt className="text-gray-400">Lon Ref</dt><dd className="font-medium text-gray-700 m-0!">{exif.gps.lon_ref}</dd></div>}
+                                                                    {exif.gps.latitude && <div className="flex justify-between"><dt className="text-gray-400">Latitude</dt><dd className="font-medium text-gray-700 m-0!">{exif.gps.latitude}</dd></div>}
+                                                                    {exif.gps.longitude && <div className="flex justify-between"><dt className="text-gray-400">Longitude</dt><dd className="font-medium text-gray-700 m-0!">{exif.gps.longitude}</dd></div>}
                                                                     {exif.gps.altitude && <div className="flex justify-between"><dt className="text-gray-400">Altitude</dt><dd className="font-medium text-gray-700 m-0!">{exif.gps.altitude}</dd></div>}
                                                                 </dl>
                                                             </div>
