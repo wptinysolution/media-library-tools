@@ -563,8 +563,8 @@ class ExifDataReader {
 	 * @return array
 	 */
 	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC' ): array {
-		// For EXIF-based sorting (date, camera), fetch a larger pool and sort in PHP.
-		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera' ], true );
+		// For EXIF-based sorting (date, camera, empty), fetch all and sort in PHP.
+		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera', 'empty' ], true );
 		$fetch_limit  = $is_exif_sort ? -1 : $limit;
 		$fetch_offset = $is_exif_sort ? 0 : $offset;
 
@@ -585,10 +585,6 @@ class ExifDataReader {
 		} elseif ( 'title' === $sort ) {
 			$query_args['orderby'] = 'title';
 			$query_args['order'] = $order;
-		} elseif ( 'empty' === $sort ) {
-			// For empty EXIF, fetch all and sort in PHP.
-			$query_args['posts_per_page'] = -1;
-			$query_args['offset'] = 0;
 		}
 
 		$attachments = get_posts( $query_args );
@@ -620,90 +616,55 @@ class ExifDataReader {
 		}
 
 		// PHP-level sorting for EXIF fields.
-		if ( $is_exif_sort || 'empty' === $sort ) {
-			// If empty sort and not already fetching all, fetch all.
-			if ( 'empty' === $sort && ! $is_exif_sort ) {
-				$query_args['posts_per_page'] = -1;
-				$query_args['offset'] = 0;
-				$attachments = get_posts( $query_args );
-				
-				// Re-build images array
-				$images = [];
-				foreach ( $attachments as $attachment ) {
-					$file_path = get_attached_file( $attachment->ID );
-					if ( ! $file_path || ! file_exists( $file_path ) ) {
-						continue;
+		if ( $is_exif_sort && ! empty( $images ) ) {
+			usort(
+				$images,
+				function ( $a, $b ) use ( $sort, $order ) {
+					// Empty EXIF sorting.
+					if ( 'empty' === $sort ) {
+						$has_a = $a['has_exif'] ? 0 : 1; // With EXIF = 0 (first), Without EXIF = 1 (last)
+						$has_b = $b['has_exif'] ? 0 : 1;
+						
+						if ( 'ASC' === $order ) {
+							return $has_a <=> $has_b;
+						} else {
+							return $has_b <=> $has_a;
+						}
 					}
-					$exif_summary = $this->get_exif_summary( $file_path );
-					$has_exif = ! empty( $exif_summary['has_exif'] );
-					$thumb_url = wp_get_attachment_thumb_url( $attachment->ID );
-					if ( ! $thumb_url ) {
-						$thumb_url = wp_get_attachment_url( $attachment->ID );
+
+					$val_a = '';
+					$val_b = '';
+
+					if ( 'exif_date' === $sort ) {
+						$val_a = $a['exif_summary']['other']['date_time_original'] ?? '';
+						$val_b = $b['exif_summary']['other']['date_time_original'] ?? '';
+					} elseif ( 'camera' === $sort ) {
+						$make_a  = $a['exif_summary']['camera']['make'] ?? '';
+						$model_a = $a['exif_summary']['camera']['model'] ?? '';
+						$val_a   = trim( $make_a . ' ' . $model_a );
+
+						$make_b  = $b['exif_summary']['camera']['make'] ?? '';
+						$model_b = $b['exif_summary']['camera']['model'] ?? '';
+						$val_b   = trim( $make_b . ' ' . $model_b );
 					}
-					$images[] = [
-						'attachment_id' => $attachment->ID,
-						'title'         => $attachment->post_title,
-						'url'           => $thumb_url,
-						'has_exif'      => $has_exif,
-						'exif_summary'  => $exif_summary,
-						'stripped'      => false,
-					];
+
+					// Empty values sort last regardless of direction.
+					if ( '' === $val_a && '' !== $val_b ) {
+						return 1;
+					}
+					if ( '' !== $val_a && '' === $val_b ) {
+						return -1;
+					}
+
+					$cmp = strcmp( $val_a, $val_b );
+					return 'DESC' === $order ? -$cmp : $cmp;
 				}
-			}
+			);
+		}
 
-			if ( ! empty( $images ) ) {
-				usort(
-					$images,
-					function ( $a, $b ) use ( $sort, $order ) {
-						if ( 'empty' === $sort ) {
-							// Sort: images WITHOUT EXIF first (or last based on order)
-							$has_a = $a['has_exif'] ?? false;
-							$has_b = $b['has_exif'] ?? false;
-							
-							if ( $has_a === $has_b ) {
-								return 0;
-							}
-							// ASC: no EXIF first (shows empty first)
-							// DESC: has EXIF first (shows non-empty first)
-							if ( 'ASC' === $order ) {
-								return $has_a ? 1 : -1;
-							} else {
-								return $has_a ? -1 : 1;
-							}
-						}
-
-						$val_a = '';
-						$val_b = '';
-
-						if ( 'exif_date' === $sort ) {
-							$val_a = $a['exif_summary']['other']['date_time_original'] ?? '';
-							$val_b = $b['exif_summary']['other']['date_time_original'] ?? '';
-						} elseif ( 'camera' === $sort ) {
-							$make_a  = $a['exif_summary']['camera']['make'] ?? '';
-							$model_a = $a['exif_summary']['camera']['model'] ?? '';
-							$val_a   = trim( $make_a . ' ' . $model_a );
-
-							$make_b  = $b['exif_summary']['camera']['make'] ?? '';
-							$model_b = $b['exif_summary']['camera']['model'] ?? '';
-							$val_b   = trim( $make_b . ' ' . $model_b );
-						}
-
-						// Empty values sort last regardless of direction.
-						if ( '' === $val_a && '' !== $val_b ) {
-							return 1;
-						}
-						if ( '' !== $val_a && '' === $val_b ) {
-							return -1;
-						}
-
-						$cmp = strcmp( $val_a, $val_b );
-						return 'DESC' === $order ? -$cmp : $cmp;
-					}
-				);
-
-				// Apply pagination after sorting.
-				$images = array_slice( $images, $offset, $limit );
-			}
+		// Apply pagination after sorting (only if not already fetching all).
+		if ( ! $is_exif_sort ) {
+			$images = array_slice( $images, $offset, $limit );
 		}
 
 		return $images;
