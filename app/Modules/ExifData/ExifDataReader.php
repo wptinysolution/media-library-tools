@@ -720,9 +720,7 @@ class ExifDataReader {
 			return [];
 		}
 
-		$summary = [
-			'has_exif' => true,
-		];
+		$summary = [];
 
 		// Camera info (IFD0).
 		if ( isset( $exif['IFD0'] ) ) {
@@ -795,6 +793,9 @@ class ExifDataReader {
 		if ( ! empty( $other ) ) {
 			$summary['other'] = $other;
 		}
+
+		// Only mark as having EXIF when meaningful data exists.
+		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['other'] );
 
 		return $summary;
 	}

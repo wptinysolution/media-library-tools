@@ -7,6 +7,7 @@ import ExifEditModal from "@/js/Component/ExifData/ExifEditModal";
 import ExifToolbar from "@/js/Component/ExifData/ExifToolbar";
 import ExifImageRow from "@/js/Component/ExifData/ExifImageRow";
 import ExifStripModal from "@/js/Component/ExifData/ExifStripModal";
+import { useStore } from "@/js/Utils/store";
 
 interface ExifImage {
     attachment_id: number;
@@ -24,6 +25,7 @@ interface ExifImage {
 }
 
 export default function ExifDataPage() {
+    const { setGeneralData } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
     const [images, setImages] = useState<ExifImage[]>([]);
     const [totalImages, setTotalImages] = useState(0);
@@ -157,6 +159,10 @@ export default function ExifDataPage() {
     };
 
     const handleBulkApply = () => {
+        if (!isPro) {
+            setGeneralData({ openProModal: true });
+            return;
+        }
         if (!bulkAction || selectedIds.size === 0) return;
         switch (bulkAction) {
             case 'read_exif':
@@ -256,6 +262,10 @@ export default function ExifDataPage() {
                                 onToggleSelect={() => toggleSelect(image.attachment_id)}
                                 onToggleExpand={() => toggleExpand(image.attachment_id)}
                                 onEdit={() => {
+                                    if (!isPro) {
+                                        setGeneralData({ openProModal: true });
+                                        return;
+                                    }
                                     setEditIds([image.attachment_id]);
                                     setShowEditModal(true);
                                 }}
