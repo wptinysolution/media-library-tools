@@ -451,7 +451,8 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
-= 2.2.2 ( Apr 16, 2026 ) =
+= 2.2.2 ( Apr 17, 2026 ) =
+* Added: EXIF Data Management
 * Fix: Alt Text Issue Resolve
 * Improvement: Settings Page UI Update
 
