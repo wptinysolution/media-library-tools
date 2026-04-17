@@ -23,7 +23,7 @@ export default function ExifDetailPanel({ exif }: ExifDetailPanelProps) {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 space-y-3">
             {hasCamera && (
                 <div className="bg-white rounded-lg p-3.5 border border-gray-200">
                     <div className="flex items-center gap-1.5 mb-2.5">
