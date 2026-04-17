@@ -10,10 +10,12 @@ interface ExifToolbarProps {
     bulkAction: string;
     sortBy: string;
     sortOrder: string;
+    filter: string;
     onToggleSelectAll: () => void;
     onBulkActionChange: (action: string) => void;
     onBulkApply: () => void;
     onSortChange: (sort: string, order: string) => void;
+    onFilterChange: (filter: string) => void;
 }
 
 export default function ExifToolbar({
@@ -26,10 +28,12 @@ export default function ExifToolbar({
     bulkAction,
     sortBy,
     sortOrder,
+    filter,
     onToggleSelectAll,
     onBulkActionChange,
     onBulkApply,
     onSortChange,
+    onFilterChange,
 }: ExifToolbarProps) {
     const sortValue = sortBy === 'default' ? '' : `${sortBy}_${sortOrder}`;
 
@@ -103,6 +107,17 @@ export default function ExifToolbar({
                     <option value="exif_date_ASC">EXIF Date (Oldest)</option>
                     <option value="camera_ASC">Camera (A-Z)</option>
                     <option value="camera_DESC">Camera (Z-A)</option>
+                </select>
+
+                {/* Filter */}
+                <select
+                    className="h-8 px-2.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    value={filter}
+                    onChange={(e) => onFilterChange(e.target.value)}
+                >
+                    <option value="all">All Images</option>
+                    <option value="with_exif">With EXIF</option>
+                    <option value="without_exif">Without EXIF</option>
                 </select>
 
                 {/* Count */}

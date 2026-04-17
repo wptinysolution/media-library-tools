@@ -557,16 +557,21 @@ class ExifDataReader {
 	/**
 	 * Get images with EXIF data for the EXIF Data page (free version - view only).
 	 *
-	 * @param int $limit  Limit per page.
-	 * @param int $offset Offset.
+	 * @param int    $limit  Limit per page.
+	 * @param int    $offset Offset.
+	 * @param string $sort   Sort field.
+	 * @param string $order  Sort order (ASC/DESC).
+	 * @param string $filter Filter: 'all', 'with_exif', 'without_exif'.
 	 *
 	 * @return array
 	 */
-	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC' ): array {
-		// For EXIF-based sorting (date, camera, empty), fetch all and sort in PHP.
-		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera' ], true );
-		$fetch_limit  = $is_exif_sort ? -1 : $limit;
-		$fetch_offset = $is_exif_sort ? 0 : $offset;
+	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC', string $filter = 'all' ): array {
+		// EXIF-based sorting or filtering requires fetching all and processing in PHP.
+		$is_exif_sort   = in_array( $sort, [ 'exif_date', 'camera' ], true );
+		$is_exif_filter = in_array( $filter, [ 'with_exif', 'without_exif' ], true );
+		$needs_php_pass = $is_exif_sort || $is_exif_filter;
+		$fetch_limit    = $needs_php_pass ? -1 : $limit;
+		$fetch_offset   = $needs_php_pass ? 0 : $offset;
 
 		$query_args = [
 			'post_type'      => 'attachment',
@@ -615,6 +620,21 @@ class ExifDataReader {
 			];
 		}
 
+		// PHP-level filtering by EXIF presence.
+		if ( $is_exif_filter && ! empty( $images ) ) {
+			$images = array_values(
+				array_filter(
+					$images,
+					function ( $img ) use ( $filter ) {
+						if ( 'with_exif' === $filter ) {
+							return ! empty( $img['has_exif'] );
+						}
+						return empty( $img['has_exif'] );
+					}
+				)
+			);
+		}
+
 		// PHP-level sorting for EXIF fields.
 		if ( $is_exif_sort && ! empty( $images ) ) {
 			usort(
@@ -650,12 +670,18 @@ class ExifDataReader {
 			);
 		}
 
-		// Apply pagination after PHP-level sorting.
-		if ( $is_exif_sort ) {
+		// When PHP handled sorting/filtering, we know the true filtered total.
+		$filtered_total = $needs_php_pass ? count( $images ) : null;
+
+		// Apply pagination after PHP-level sorting/filtering.
+		if ( $needs_php_pass ) {
 			$images = array_slice( $images, $offset, $limit );
 		}
 
-		return $images;
+		return [
+			'images'         => $images,
+			'filtered_total' => $filtered_total,
+		];
 	}
 
 	/**

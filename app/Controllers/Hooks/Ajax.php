@@ -675,11 +675,14 @@ class Ajax {
 		$offset  = absint( $params['offset'] ?? 0 );
 		$sort    = sanitize_text_field( $params['sort'] ?? 'default' );
 		$order   = in_array( strtoupper( $params['order'] ?? '' ), [ 'ASC', 'DESC' ], true ) ? strtoupper( $params['order'] ) : 'DESC';
-		$images  = ExifDataReader::instance()->get_images_with_exif( $limit, $offset, $sort, $order );
-		$total   = ExifDataReader::instance()->get_attachment_count();
+		$filter  = in_array( $params['filter'] ?? '', [ 'all', 'with_exif', 'without_exif' ], true ) ? $params['filter'] : 'all';
+		$result  = ExifDataReader::instance()->get_images_with_exif( $limit, $offset, $sort, $order, $filter );
+		$total   = null !== $result['filtered_total']
+			? $result['filtered_total']
+			: ExifDataReader::instance()->get_attachment_count();
 		$this->send(
 			[
-				'images' => $images,
+				'images' => $result['images'],
 				'total'  => $total,
 			]
 		);

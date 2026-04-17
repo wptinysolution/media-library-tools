@@ -38,10 +38,12 @@ export default function ExifDataPage() {
     const [bulkAction, setBulkAction] = useState("");
     const [sortBy, setSortBy] = useState("default");
     const [sortOrder, setSortOrder] = useState("DESC");
+    const [filter, setFilter] = useState("all");
     const [showEditModal, setShowEditModal] = useState(false);
     const [editIds, setEditIds] = useState<number[]>([]);
     const isMounted = useRef(false);
     const sortRef = useRef({ sortBy: "default", sortOrder: "DESC" });
+    const filterRef = useRef("all");
 
     const limit = 20;
     const isPro = typeof tsmltParams !== 'undefined' && tsmltParams.hasExtended;
@@ -70,6 +72,7 @@ export default function ExifDataPage() {
                 offset: (page - 1) * limit,
                 sort: sortRef.current.sortBy,
                 order: sortRef.current.sortOrder,
+                filter: filterRef.current,
             }) as any;
             setImages(result.images || []);
             setTotalImages(result.total || 0);
@@ -146,6 +149,13 @@ export default function ExifDataPage() {
         window.location.hash = '#/exifData/';
     };
 
+    const handleFilterChange = (newFilter: string) => {
+        setFilter(newFilter);
+        filterRef.current = newFilter;
+        setCurrentPage(1);
+        loadResults(1);
+    };
+
     const handleBulkApply = () => {
         if (!bulkAction || selectedIds.size === 0) return;
         switch (bulkAction) {
@@ -206,10 +216,12 @@ export default function ExifDataPage() {
                 bulkAction={bulkAction}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                filter={filter}
                 onToggleSelectAll={toggleSelectAll}
                 onBulkActionChange={setBulkAction}
                 onBulkApply={handleBulkApply}
                 onSortChange={handleSortChange}
+                onFilterChange={handleFilterChange}
             />
 
             {/* Table */}
