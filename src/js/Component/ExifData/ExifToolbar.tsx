@@ -95,7 +95,6 @@ export default function ExifToolbar({
                     onChange={(e) => handleSortChange(e.target.value)}
                 >
                     <option value="">Default</option>
-                    <option value="empty_ASC">Empty EXIF</option>
                     <option value="date_DESC">Date (Newest)</option>
                     <option value="date_ASC">Date (Oldest)</option>
                     <option value="title_ASC">Title (A-Z)</option>

@@ -564,7 +564,7 @@ class ExifDataReader {
 	 */
 	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC' ): array {
 		// For EXIF-based sorting (date, camera, empty), fetch all and sort in PHP.
-		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera', 'empty' ], true );
+		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera' ], true );
 		$fetch_limit  = $is_exif_sort ? -1 : $limit;
 		$fetch_offset = $is_exif_sort ? 0 : $offset;
 
@@ -620,18 +620,6 @@ class ExifDataReader {
 			usort(
 				$images,
 				function ( $a, $b ) use ( $sort, $order ) {
-					// Empty EXIF sorting.
-					if ( 'empty' === $sort ) {
-						$has_a = $a['has_exif'] ? 0 : 1; // With EXIF = 0 (first), Without EXIF = 1 (last)
-						$has_b = $b['has_exif'] ? 0 : 1;
-						
-						if ( 'ASC' === $order ) {
-							return $has_a <=> $has_b;
-						} else {
-							return $has_b <=> $has_a;
-						}
-					}
-
 					$val_a = '';
 					$val_b = '';
 
@@ -662,8 +650,8 @@ class ExifDataReader {
 			);
 		}
 
-		// Apply pagination after sorting (only if not already fetching all).
-		if ( ! $is_exif_sort ) {
+		// Apply pagination after PHP-level sorting.
+		if ( $is_exif_sort ) {
 			$images = array_slice( $images, $offset, $limit );
 		}
 
@@ -676,8 +664,17 @@ class ExifDataReader {
 	 * @return int
 	 */
 	public function get_attachment_count(): int {
-		$count = wp_count_posts( 'attachment' );
-		return isset( $count->inherit ) ? (int) $count->inherit : 0;
+		$query = new \WP_Query(
+			[
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'no_found_rows'  => false,
+			]
+		);
+		return (int) $query->found_posts;
 	}
 
 	/**
