@@ -28,7 +28,7 @@ class ExifFilter {
 	public static function apply_filters( array $args, array $params ): array {
 		// Camera model filter.
 		if ( ! empty( $params['exif_camera'] ) ) {
-			$args['meta_query']   = $args['meta_query'] ?? [];
+			$args['meta_query']   = $args['meta_query'] ?? []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary for EXIF camera filtering.
 			$args['meta_query'][] = [
 				'key'     => '_tsmlt_exif_camera',
 				'value'   => sanitize_text_field( $params['exif_camera'] ),
@@ -39,7 +39,7 @@ class ExifFilter {
 		// Date range filter (DateTimeOriginal from EXIF).
 		if ( ! empty( $params['exif_date_from'] ) || ! empty( $params['exif_date_to'] ) ) {
 			if ( ! isset( $args['meta_query'] ) ) {
-				$args['meta_query'] = [];
+				$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary for EXIF date range filtering.
 			}
 
 			$date_query = [
@@ -66,7 +66,7 @@ class ExifFilter {
 		// GPS filter (has GPS / no GPS).
 		if ( ! empty( $params['exif_has_gps'] ) ) {
 			if ( ! isset( $args['meta_query'] ) ) {
-				$args['meta_query'] = [];
+				$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary for EXIF GPS filtering.
 			}
 
 			if ( 'yes' === $params['exif_has_gps'] ) {
