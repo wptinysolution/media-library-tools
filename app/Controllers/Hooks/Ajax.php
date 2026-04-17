@@ -22,6 +22,7 @@ use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
+use TinySolutions\mlt\Modules\ExifData\ExifEditor;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -103,9 +104,16 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_exif_clear_scan', [ $this, 'exif_clear_scan' ] );
 		add_action( 'wp_ajax_tsmlt_exif_get_results', [ $this, 'exif_get_results' ] );
 
-		// EXIF stripping.
+		// EXIF stripping (single image — free feature).
 		add_action( 'wp_ajax_tsmlt_strip_exif_single', [ $this, 'strip_exif_single' ] );
+		add_action( 'wp_ajax_tsmlt_exif_strip_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_check_strippable_exif', [ $this, 'check_strippable_exif' ] );
+
+		// EXIF editable data (single image — free feature).
+		add_action( 'wp_ajax_tsmlt_exif_get_editable', [ $this, 'exif_get_editable' ] );
+
+		// EXIF save (single image — free feature).
+		add_action( 'wp_ajax_tsmlt_exif_save', [ $this, 'exif_save' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -662,11 +670,13 @@ class Ajax {
 
 	/** @return void */
 	public function exif_get_results(): void {
-		$params = $this->verify_and_get_params();
-		$limit  = absint( $params['limit'] ?? 20 );
-		$offset = absint( $params['offset'] ?? 0 );
-		$images = ExifDataReader::instance()->get_images_with_exif( $limit, $offset );
-		$total  = ExifDataReader::instance()->get_attachment_count();
+		$params  = $this->verify_and_get_params();
+		$limit   = absint( $params['limit'] ?? 20 );
+		$offset  = absint( $params['offset'] ?? 0 );
+		$sort    = sanitize_text_field( $params['sort'] ?? 'default' );
+		$order   = in_array( strtoupper( $params['order'] ?? '' ), [ 'ASC', 'DESC' ], true ) ? strtoupper( $params['order'] ) : 'DESC';
+		$images  = ExifDataReader::instance()->get_images_with_exif( $limit, $offset, $sort, $order );
+		$total   = ExifDataReader::instance()->get_attachment_count();
 		$this->send(
 			[
 				'images' => $images,
@@ -689,6 +699,31 @@ class Ajax {
 		}
 
 		$this->send( ExifStripper::instance()->strip_exif_from_attachment( $attachment_id ) );
+	}
+
+	/** @return void */
+	public function exif_get_editable(): void {
+		$params        = $this->verify_and_get_params();
+		$attachment_id = absint( $params['attachment_id'] ?? 0 );
+
+		if ( ! $attachment_id ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Missing attachment_id.', 'media-library-tools' ) ], 400 );
+		}
+
+		$this->send( ExifDataReader::instance()->get_editable_exif( $attachment_id ) );
+	}
+
+	/** @return void */
+	public function exif_save(): void {
+		$params        = $this->verify_and_get_params();
+		$attachment_id = absint( $params['attachment_id'] ?? 0 );
+
+		if ( ! $attachment_id ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Missing attachment_id.', 'media-library-tools' ) ], 400 );
+		}
+
+		$fields = isset( $params['fields'] ) ? (array) $params['fields'] : [];
+		$this->send( ExifEditor::instance()->save_exif( $attachment_id, $fields ) );
 	}
 
 	/** @return void */

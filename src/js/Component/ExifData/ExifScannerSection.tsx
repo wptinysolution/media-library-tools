@@ -19,7 +19,7 @@ export default function ExifScannerSection() {
     const [isScanning, setIsScanning] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string>("");
-    const [showPanel, setShowPanel] = useState(true);
+    const [showPanel, setShowPanel] = useState(false);
     const isMounted = useRef(false);
 
     useEffect(() => {
@@ -46,10 +46,9 @@ export default function ExifScannerSection() {
                     setLastScanTime(result.timestamp as string);
                 }
 
-                // If a previous scan completed, restore the panel.
+                // Mark scan as complete if previous scan finished.
                 if (processed > 0 && total > 0 && processed >= total) {
                     setScanComplete(true);
-                    setShowPanel(true);
                 }
             }
         } catch (error) {
@@ -127,33 +126,42 @@ export default function ExifScannerSection() {
             ? Math.round((scanStatus.processed / scanStatus.total) * 100)
             : 0;
 
-    // Collapsed: just show the scan button
-    if (!showPanel) {
-        return (
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mt-0 mb-1">EXIF Scanner</h3>
-                    <p className="text-xs text-gray-500 m-0!">Scan your media library to identify images with and without EXIF metadata.</p>
-                </div>
-                <button
-                    onClick={startScan}
-                    className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 border-none rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Scan Now
-                </button>
-            </div>
-        );
-    }
-
-    // Expanded: full scanner panel
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-900 m-0!">EXIF Scanner</h3>
+            {/* Header bar — always visible, acts as toggle */}
+            <div
+                className="flex items-center justify-between cursor-pointer select-none"
+                onClick={() => { if (!isScanning) setShowPanel(prev => !prev); }}
+            >
+                <div className="flex items-center gap-2">
+                    <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform ${showPanel ? "rotate-90" : ""}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <h3 className="text-sm font-semibold text-gray-900 m-0!">EXIF Scanner</h3>
+                    {scanComplete && !showPanel && (
+                        <span className="text-[11px] text-gray-400 ml-1">
+                            ({scanStatus.with_exif} with EXIF, {scanStatus.without_exif} without)
+                        </span>
+                    )}
+                </div>
+                {!showPanel && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowPanel(true); startScan(); }}
+                        className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border-none rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        {scanComplete ? "Re-Scan" : "Scan Now"}
+                    </button>
+                )}
             </div>
+
+            {/* Expanded content */}
+            {showPanel && (<div className="mt-4">
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -227,6 +235,8 @@ export default function ExifScannerSection() {
                     </button>
                 )}
             </div>
+            </div>
+        )}
         </div>
     );
 }

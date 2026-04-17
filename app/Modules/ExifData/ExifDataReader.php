@@ -562,18 +562,32 @@ class ExifDataReader {
 	 *
 	 * @return array
 	 */
-	public function get_images_with_exif( int $limit = 20, int $offset = 0 ): array {
-		$attachments = get_posts(
-			[
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => $limit,
-				'offset'         => $offset,
-				'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
-				'orderby'        => 'ID',
-				'order'          => 'DESC',
-			]
-		);
+	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC' ): array {
+		// For EXIF-based sorting (date, camera), fetch a larger pool and sort in PHP.
+		$is_exif_sort = in_array( $sort, [ 'exif_date', 'camera' ], true );
+		$fetch_limit  = $is_exif_sort ? -1 : $limit;
+		$fetch_offset = $is_exif_sort ? 0 : $offset;
+
+		$query_args = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => $fetch_limit,
+			'offset'         => $fetch_offset,
+			'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
+			'orderby'        => 'ID',
+			'order'          => 'DESC',
+		];
+
+		// WP-level sorting for date and title.
+		if ( 'date' === $sort ) {
+			$query_args['orderby'] = 'date';
+			$query_args['order']   = $order;
+		} elseif ( 'title' === $sort ) {
+			$query_args['orderby'] = 'title';
+			$query_args['order']   = $order;
+		}
+
+		$attachments = get_posts( $query_args );
 
 		$images = [];
 		foreach ( $attachments as $attachment ) {
@@ -599,6 +613,44 @@ class ExifDataReader {
 				'exif_summary'  => $exif_summary,
 				'stripped'      => false,
 			];
+		}
+
+		// PHP-level sorting for EXIF fields.
+		if ( $is_exif_sort && ! empty( $images ) ) {
+			usort(
+				$images,
+				function ( $a, $b ) use ( $sort, $order ) {
+					$val_a = '';
+					$val_b = '';
+
+					if ( 'exif_date' === $sort ) {
+						$val_a = $a['exif_summary']['other']['date_time_original'] ?? '';
+						$val_b = $b['exif_summary']['other']['date_time_original'] ?? '';
+					} elseif ( 'camera' === $sort ) {
+						$make_a  = $a['exif_summary']['camera']['make'] ?? '';
+						$model_a = $a['exif_summary']['camera']['model'] ?? '';
+						$val_a   = trim( $make_a . ' ' . $model_a );
+
+						$make_b  = $b['exif_summary']['camera']['make'] ?? '';
+						$model_b = $b['exif_summary']['camera']['model'] ?? '';
+						$val_b   = trim( $make_b . ' ' . $model_b );
+					}
+
+					// Empty values sort last regardless of direction.
+					if ( '' === $val_a && '' !== $val_b ) {
+						return 1;
+					}
+					if ( '' !== $val_a && '' === $val_b ) {
+						return -1;
+					}
+
+					$cmp = strcmp( $val_a, $val_b );
+					return 'DESC' === $order ? -$cmp : $cmp;
+				}
+			);
+
+			// Apply pagination after sorting.
+			$images = array_slice( $images, $offset, $limit );
 		}
 
 		return $images;
@@ -760,5 +812,168 @@ class ExifDataReader {
 			return $value[0] / $value[1];
 		}
 		return 0;
+	}
+
+	/**
+	 * Get editable EXIF fields for an attachment in a flat structure.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 *
+	 * @return array Editable EXIF fields.
+	 */
+	public function get_editable_exif( int $attachment_id ): array {
+		$mime = get_post_mime_type( $attachment_id );
+		if ( ! in_array( $mime, [ 'image/jpeg', 'image/jpg' ], true ) ) {
+			return [
+				'supported' => false,
+				'message'   => esc_html__( 'EXIF editing is only available for JPEG images.', 'media-library-tools' ),
+			];
+		}
+
+		$file_path = get_attached_file( $attachment_id );
+		if ( ! $file_path || ! file_exists( $file_path ) ) {
+			return [
+				'supported' => false,
+				'message'   => esc_html__( 'Image file not found on server.', 'media-library-tools' ),
+			];
+		}
+
+		if ( ! function_exists( 'exif_read_data' ) ) {
+			return [
+				'supported' => false,
+				'message'   => esc_html__( 'PHP EXIF extension is not enabled on this server.', 'media-library-tools' ),
+			];
+		}
+
+		$raw = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( ! is_array( $raw ) || empty( $raw ) ) {
+			return [
+				'supported'          => true,
+				'make'               => '',
+				'model'              => '',
+				'date_time_original' => '',
+				'iso'                => null,
+				'aperture'           => null,
+				'shutter_speed'      => null,
+				'gps_lat'            => null,
+				'gps_lng'            => null,
+			];
+		}
+
+		return [
+			'supported'          => true,
+			'make'               => $this->find_exif_field( $raw, 'Make', '' ),
+			'model'              => $this->find_exif_field( $raw, 'Model', '' ),
+			'date_time_original' => $this->find_exif_field( $raw, 'DateTimeOriginal', '' ),
+			'iso'                => $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) ),
+			'aperture'           => $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) ),
+			'shutter_speed'      => $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) ),
+			'gps_lat'            => $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' ),
+			'gps_lng'            => $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' ),
+		];
+	}
+
+	/**
+	 * Find an EXIF field across IFD0, EXIF, and GPS sections.
+	 *
+	 * @param array  $raw     Raw EXIF data.
+	 * @param string $field   Field name.
+	 * @param mixed  $default Default value.
+	 *
+	 * @return mixed
+	 */
+	private function find_exif_field( array $raw, string $field, $default = null ) {
+		foreach ( [ 'IFD0', 'EXIF', 'GPS' ] as $section ) {
+			if ( isset( $raw[ $section ][ $field ] ) ) {
+				return $raw[ $section ][ $field ];
+			}
+		}
+		return $default;
+	}
+
+	/**
+	 * Parse ISO value from EXIF.
+	 *
+	 * @param mixed $value Raw ISO value.
+	 *
+	 * @return int|null
+	 */
+	private function parse_iso( $value ) {
+		if ( ! $value ) {
+			return null;
+		}
+		if ( is_array( $value ) ) {
+			$value = $value[0];
+		}
+		return (int) $value > 0 ? (int) $value : null;
+	}
+
+	/**
+	 * Parse aperture from EXIF FNumber field.
+	 *
+	 * @param mixed $value Raw FNumber value.
+	 *
+	 * @return float|null
+	 */
+	private function parse_aperture( $value ) {
+		if ( ! $value ) {
+			return null;
+		}
+		$float_val = $this->rational_to_float( $value );
+		return $float_val > 0 ? round( $float_val, 1 ) : null;
+	}
+
+	/**
+	 * Parse shutter speed from EXIF ExposureTime field.
+	 *
+	 * @param mixed $value Raw ExposureTime value.
+	 *
+	 * @return string|null
+	 */
+	private function parse_shutter_speed( $value ) {
+		if ( ! $value ) {
+			return null;
+		}
+		if ( is_string( $value ) && strpos( $value, '/' ) !== false ) {
+			return $value;
+		}
+		if ( is_numeric( $value ) ) {
+			$float = (float) $value;
+			if ( $float > 0 && $float < 1 ) {
+				$denom = (int) round( 1 / $float );
+				return '1/' . $denom;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Parse GPS coordinate from EXIF to decimal degrees.
+	 *
+	 * @param array  $raw         Raw EXIF data.
+	 * @param string $coord_key   GPS coordinate key (GPSLatitude or GPSLongitude).
+	 * @param string $ref_key     GPS reference key (GPSLatitudeRef or GPSLongitudeRef).
+	 * @param string $negative_ref Reference value that makes the result negative (S or W).
+	 *
+	 * @return float|null
+	 */
+	private function parse_gps_decimal( array $raw, string $coord_key, string $ref_key, string $negative_ref ) {
+		if ( ! isset( $raw['GPS'][ $coord_key ] ) ) {
+			return null;
+		}
+
+		$dms = $raw['GPS'][ $coord_key ];
+		if ( ! is_array( $dms ) || count( $dms ) < 3 ) {
+			return null;
+		}
+
+		$decimal = $this->dms_to_decimal( $dms );
+		$ref     = $raw['GPS'][ $ref_key ] ?? '';
+
+		if ( $negative_ref === $ref ) {
+			$decimal = -$decimal;
+		}
+
+		return round( (float) $decimal, 6 );
 	}
 }

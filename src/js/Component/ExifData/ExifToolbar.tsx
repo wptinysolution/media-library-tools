@@ -8,9 +8,12 @@ interface ExifToolbarProps {
     isStripping: boolean;
     stripProgress: { processed: number; total: number };
     bulkAction: string;
+    sortBy: string;
+    sortOrder: string;
     onToggleSelectAll: () => void;
     onBulkActionChange: (action: string) => void;
     onBulkApply: () => void;
+    onSortChange: (sort: string, order: string) => void;
 }
 
 export default function ExifToolbar({
@@ -21,10 +24,26 @@ export default function ExifToolbar({
     isStripping,
     stripProgress,
     bulkAction,
+    sortBy,
+    sortOrder,
     onToggleSelectAll,
     onBulkActionChange,
     onBulkApply,
+    onSortChange,
 }: ExifToolbarProps) {
+    const sortValue = sortBy === 'default' ? '' : `${sortBy}_${sortOrder}`;
+
+    const handleSortChange = (value: string) => {
+        if (!value) {
+            onSortChange('default', 'DESC');
+            return;
+        }
+        const lastUnderscore = value.lastIndexOf('_');
+        const sort = value.substring(0, lastUnderscore);
+        const order = value.substring(lastUnderscore + 1);
+        onSortChange(sort, order);
+    };
+
     return (
         <div className="bg-white rounded-t-xl border border-gray-200">
             <div className="flex items-center gap-3 px-5 py-3">
@@ -65,6 +84,26 @@ export default function ExifToolbar({
                 >
                     Apply
                 </button>
+
+                {/* Divider */}
+                <div className="w-px h-5 bg-gray-200" />
+
+                {/* Sort */}
+                <select
+                    className="h-8 px-2.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    value={sortValue}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                >
+                    <option value="">Default</option>
+                    <option value="date_DESC">Date (Newest)</option>
+                    <option value="date_ASC">Date (Oldest)</option>
+                    <option value="title_ASC">Title (A-Z)</option>
+                    <option value="title_DESC">Title (Z-A)</option>
+                    <option value="exif_date_DESC">EXIF Date (Newest)</option>
+                    <option value="exif_date_ASC">EXIF Date (Oldest)</option>
+                    <option value="camera_ASC">Camera (A-Z)</option>
+                    <option value="camera_DESC">Camera (Z-A)</option>
+                </select>
 
                 {/* Count */}
                 <div className="ml-auto flex items-center gap-2">

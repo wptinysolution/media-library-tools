@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { useStore } from "@/js/Utils/store";
 import { getExifResults, getExifStripStatus, exifStripSingle } from "@/js/Utils/Data";
 import Pagination from "@/js/Component/Common/Pagination";
 import ExifScannerSection from "@/js/Component/ExifData/ExifScannerSection";
@@ -26,7 +25,6 @@ interface ExifImage {
 
 export default function ExifDataPage() {
     const { page: pageParam } = useParams<{ page?: string }>();
-    const { setGeneralData } = useStore();
     const [images, setImages] = useState<ExifImage[]>([]);
     const [totalImages, setTotalImages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,9 +36,12 @@ export default function ExifDataPage() {
     const [isStrippingSingle, setIsStrippingSingle] = useState<number | null>(null);
     const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
     const [bulkAction, setBulkAction] = useState("");
+    const [sortBy, setSortBy] = useState("default");
+    const [sortOrder, setSortOrder] = useState("DESC");
     const [showEditModal, setShowEditModal] = useState(false);
     const [editIds, setEditIds] = useState<number[]>([]);
     const isMounted = useRef(false);
+    const sortRef = useRef({ sortBy: "default", sortOrder: "DESC" });
 
     const limit = 20;
     const isPro = typeof tsmltParams !== 'undefined' && tsmltParams.hasExtended;
@@ -67,6 +68,8 @@ export default function ExifDataPage() {
             const result = await getExifResults({
                 limit,
                 offset: (page - 1) * limit,
+                sort: sortRef.current.sortBy,
+                order: sortRef.current.sortOrder,
             }) as any;
             setImages(result.images || []);
             setTotalImages(result.total || 0);
@@ -79,10 +82,6 @@ export default function ExifDataPage() {
     }, []);
 
     const handleStripSingle = async (attachmentId: number) => {
-        if (!isPro) {
-            setGeneralData({ openProModal: true });
-            return;
-        }
         setIsStrippingSingle(attachmentId);
         try {
             await exifStripSingle({ attachment_id: attachmentId });
@@ -137,12 +136,16 @@ export default function ExifDataPage() {
         }
     };
 
+    const handleSortChange = (sort: string, order: string) => {
+        setSortBy(sort);
+        setSortOrder(order);
+        sortRef.current = { sortBy: sort, sortOrder: order };
+        setCurrentPage(1);
+        loadResults(1);
+    };
+
     const handleBulkApply = () => {
         if (!bulkAction || selectedIds.size === 0) return;
-        if (!isPro) {
-            setGeneralData({ openProModal: true });
-            return;
-        }
         switch (bulkAction) {
             case 'read_exif':
                 setExpandedIds(new Set(selectedIds));
@@ -199,9 +202,12 @@ export default function ExifDataPage() {
                 isStripping={isStripping}
                 stripProgress={stripProgress}
                 bulkAction={bulkAction}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
                 onToggleSelectAll={toggleSelectAll}
                 onBulkActionChange={setBulkAction}
                 onBulkApply={handleBulkApply}
+                onSortChange={handleSortChange}
             />
 
             {/* Table */}
@@ -236,10 +242,6 @@ export default function ExifDataPage() {
                                 onToggleSelect={() => toggleSelect(image.attachment_id)}
                                 onToggleExpand={() => toggleExpand(image.attachment_id)}
                                 onEdit={() => {
-                                    if (!isPro) {
-                                        setGeneralData({ openProModal: true });
-                                        return;
-                                    }
                                     setEditIds([image.attachment_id]);
                                     setShowEditModal(true);
                                 }}
