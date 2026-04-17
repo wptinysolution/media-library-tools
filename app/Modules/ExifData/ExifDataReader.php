@@ -562,10 +562,11 @@ class ExifDataReader {
 	 * @param string $sort   Sort field.
 	 * @param string $order  Sort order (ASC/DESC).
 	 * @param string $filter Filter: 'all', 'with_exif', 'without_exif'.
+	 * @param string $search Optional search term (matches image title).
 	 *
 	 * @return array
 	 */
-	public function get_images_with_exif( int $limit = 20, int $offset = 0, string $sort = 'default', string $order = 'DESC', string $filter = 'all' ): array {
+	public function get_images_with_exif( int $limit = 50, int $offset = 0, string $sort = 'default', string $order = 'DESC', string $filter = 'all', string $search = '' ): array {
 		// EXIF-based sorting or filtering requires fetching all and processing in PHP.
 		$is_exif_sort   = in_array( $sort, [ 'exif_date', 'camera' ], true );
 		$is_exif_filter = in_array( $filter, [ 'with_exif', 'without_exif' ], true );
@@ -578,10 +579,14 @@ class ExifDataReader {
 			'post_status'    => 'inherit',
 			'posts_per_page' => $fetch_limit,
 			'offset'         => $fetch_offset,
-			'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
+			'post_mime_type' => 'image',
 			'orderby'        => 'ID',
 			'order'          => 'DESC',
 		];
+
+		if ( '' !== $search ) {
+			$query_args['s'] = $search;
+		}
 
 		// WP-level sorting for date and title.
 		if ( 'date' === $sort ) {
@@ -596,12 +601,9 @@ class ExifDataReader {
 
 		$images = [];
 		foreach ( $attachments as $attachment ) {
-			$file_path = get_attached_file( $attachment->ID );
-			if ( ! $file_path || ! file_exists( $file_path ) ) {
-				continue;
-			}
-
-			$exif_summary = $this->get_exif_summary( $file_path );
+			$file_path    = get_attached_file( $attachment->ID );
+			$file_exists  = $file_path && file_exists( $file_path );
+			$exif_summary = $file_exists ? $this->get_exif_summary( $file_path ) : [];
 			$has_exif     = ! empty( $exif_summary['has_exif'] );
 
 			// Get thumbnail URL.
@@ -618,6 +620,18 @@ class ExifDataReader {
 				'exif_summary'  => $exif_summary,
 				'stripped'      => false,
 			];
+		}
+
+		// PHP-level search filter (only needed when $needs_php_pass, since WP_Query 's' handled the WP-level path).
+		if ( $needs_php_pass && '' !== $search && ! empty( $images ) ) {
+			$images = array_values(
+				array_filter(
+					$images,
+					function ( $img ) use ( $search ) {
+						return false !== stripos( $img['title'], $search );
+					}
+				)
+			);
 		}
 
 		// PHP-level filtering by EXIF presence.
@@ -694,7 +708,7 @@ class ExifDataReader {
 			[
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
-				'post_mime_type' => [ 'image/jpeg', 'image/jpg', 'image/tiff', 'image/webp' ],
+				'post_mime_type' => 'image',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
 				'no_found_rows'  => false,

@@ -669,7 +669,8 @@ class Ajax {
 		$sort    = sanitize_text_field( $params['sort'] ?? 'default' );
 		$order   = in_array( strtoupper( $params['order'] ?? '' ), [ 'ASC', 'DESC' ], true ) ? strtoupper( $params['order'] ) : 'DESC';
 		$filter  = in_array( $params['filter'] ?? '', [ 'all', 'with_exif', 'without_exif' ], true ) ? $params['filter'] : 'all';
-		$result  = ExifDataReader::instance()->get_images_with_exif( $limit, $offset, $sort, $order, $filter );
+		$search  = sanitize_text_field( $params['search'] ?? '' );
+		$result  = ExifDataReader::instance()->get_images_with_exif( $limit, $offset, $sort, $order, $filter, $search );
 		$total   = null !== $result['filtered_total']
 			? $result['filtered_total']
 			: ExifDataReader::instance()->get_attachment_count();

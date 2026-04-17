@@ -101,21 +101,27 @@ function App() {
 
     const handleBulkModalDataSave = async () => {
         setMediaData({ isLoading: true });
-        const response = await submitBulkMediaAction(bulkSubmitData) as {
-            status: number | string;
-            data: { updated: boolean };
-        };
-        if (200 === parseInt(String(response.status)) && response.data.updated) {
-            setMediaData({
-                isLoading: false,
-                postQuery: {
-                    ...mediaData.postQuery,
-                    isUpdate: !mediaData.postQuery.isUpdate,
-                },
-            });
-            setBulkSubmitData({ ...defaultBulkSubmitData, type: bulkSubmitData.type });
-            setSaveType(null);
+        try {
+            const response = await submitBulkMediaAction(bulkSubmitData) as {
+                status: number | string;
+                data: { updated: boolean };
+            };
+            if (200 === parseInt(String(response.status)) && response.data.updated) {
+                setMediaData({
+                    isLoading: false,
+                    postQuery: {
+                        ...mediaData.postQuery,
+                        isUpdate: !mediaData.postQuery.isUpdate,
+                    },
+                });
+            } else {
+                setMediaData({ isLoading: false });
+            }
+        } catch {
+            setMediaData({ isLoading: false });
         }
+        setBulkSubmitData({ ...defaultBulkSubmitData, type: bulkSubmitData.type });
+        setSaveType(null);
     };
 
     const handleSave = () => {

@@ -11,11 +11,13 @@ interface ExifToolbarProps {
     sortBy: string;
     sortOrder: string;
     filter: string;
+    search: string;
     onToggleSelectAll: () => void;
     onBulkActionChange: (action: string) => void;
     onBulkApply: () => void;
     onSortChange: (sort: string, order: string) => void;
     onFilterChange: (filter: string) => void;
+    onSearchChange: (search: string) => void;
     onReset: () => void;
 }
 
@@ -30,11 +32,13 @@ export default function ExifToolbar({
     sortBy,
     sortOrder,
     filter,
+    search,
     onToggleSelectAll,
     onBulkActionChange,
     onBulkApply,
     onSortChange,
     onFilterChange,
+    onSearchChange,
     onReset,
 }: ExifToolbarProps) {
     const sortValue = sortBy === 'default' ? '' : `${sortBy}_${sortOrder}`;
@@ -123,7 +127,7 @@ export default function ExifToolbar({
                 </select>
 
                 {/* Reset */}
-                {(sortBy !== 'default' || filter !== 'all') && (
+                {(sortBy !== 'default' || filter !== 'all' || search !== '') && (
                     <button
                         type="button"
                         className="h-8 px-2.5 text-xs font-medium text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
@@ -133,10 +137,34 @@ export default function ExifToolbar({
                     </button>
                 )}
 
-                {/* Count */}
-                <div className="ml-auto flex items-center gap-2">
-                    <span className="text-sm text-gray-500">{totalImages} images</span>
+                {/* Search */}
+                <div className="ml-auto relative flex items-center">
+                    <svg className="absolute left-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M16.65 16.65A7 7 0 1116.65 2.35a7 7 0 010 14.3z" />
+                    </svg>
+                    <input
+                        type="text"
+                        className="h-8 pl-8 pr-7 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-44"
+                        placeholder="Search images..."
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                    />
+                    {search && (
+                        <button
+                            type="button"
+                            className="absolute right-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            onClick={() => onSearchChange('')}
+                            aria-label="Clear search"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
+
+                {/* Count */}
+                <span className="text-sm text-gray-500 shrink-0">{totalImages} images</span>
             </div>
 
             {/* Strip progress */}

@@ -363,3 +363,4 @@ export const saveExif = async (prams: object = {}): Promise<Record<string, unkno
     const result = await ajaxPost('tsmlt_exif_save', prams);
     return result.data as Record<string, unknown>;
 };
+

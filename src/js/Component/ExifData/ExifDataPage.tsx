@@ -41,11 +41,14 @@ export default function ExifDataPage() {
     const [sortBy, setSortBy] = useState("default");
     const [sortOrder, setSortOrder] = useState("DESC");
     const [filter, setFilter] = useState("all");
+    const [search, setSearch] = useState("");
     const [showEditModal, setShowEditModal] = useState(false);
     const [editIds, setEditIds] = useState<number[]>([]);
     const isMounted = useRef(false);
     const sortRef = useRef({ sortBy: "default", sortOrder: "DESC" });
     const filterRef = useRef("all");
+    const searchRef = useRef("");
+    const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const limit = 20;
     const isPro = typeof tsmltParams !== 'undefined' && tsmltParams.hasExtended;
@@ -75,6 +78,7 @@ export default function ExifDataPage() {
                 sort: sortRef.current.sortBy,
                 order: sortRef.current.sortOrder,
                 filter: filterRef.current,
+                search: searchRef.current,
             }) as any;
             setImages(result.images || []);
             setTotalImages(result.total || 0);
@@ -147,16 +151,27 @@ export default function ExifDataPage() {
         sortRef.current = { sortBy: sort, sortOrder: order };
         setCurrentPage(1);
         loadResults(1);
-        // Clear page from URL
         window.location.hash = '#/exifData/';
+    };
+
+    const handleSearchChange = (newSearch: string) => {
+        setSearch(newSearch);
+        searchRef.current = newSearch;
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = setTimeout(() => {
+            setCurrentPage(1);
+            loadResults(1);
+        }, 350);
     };
 
     const handleReset = () => {
         setSortBy("default");
         setSortOrder("DESC");
         setFilter("all");
+        setSearch("");
         sortRef.current = { sortBy: "default", sortOrder: "DESC" };
         filterRef.current = "all";
+        searchRef.current = "";
         setCurrentPage(1);
         loadResults(1);
         window.location.hash = '#/exifData/';
@@ -209,14 +224,16 @@ export default function ExifDataPage() {
     const allSelected = images.length > 0 && images.every(img => selectedIds.has(img.attachment_id));
 
     return (
-        <div className="mx-auto px-6 py-8 min-h-screen bg-gray-50">
+        <div className="mx-auto min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
+            <div className="px-6 pt-8 pb-0">
+                <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
                 </div>
-                <p className="text-sm text-gray-500">View, edit, and remove EXIF metadata (GPS, camera info, author) from your images.</p>
+                <p className="text-sm text-gray-500 mb-5">View, edit, and remove EXIF metadata (GPS, camera info, author) from your images.</p>
             </div>
+
+            <div className="px-6 py-8">
 
             {/* Scanner */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
@@ -235,11 +252,13 @@ export default function ExifDataPage() {
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 filter={filter}
+                search={search}
                 onToggleSelectAll={toggleSelectAll}
                 onBulkActionChange={setBulkAction}
                 onBulkApply={handleBulkApply}
                 onSortChange={handleSortChange}
                 onFilterChange={handleFilterChange}
+                onSearchChange={handleSearchChange}
                 onReset={handleReset}
             />
 
@@ -318,6 +337,7 @@ export default function ExifDataPage() {
                 attachmentIds={editIds}
                 onSaved={() => loadResults(currentPage)}
             />
+            </div>
         </div>
     );
 }
