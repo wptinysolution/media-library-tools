@@ -58,10 +58,16 @@ class ExifEditor {
 			}
 		}
 
-		// DateTimeOriginal: optional; if set must match YYYY:MM:DD HH:MM:SS.
+		// DateTimeOriginal: optional; if set must match YYYY:MM:DD HH:MM:SS and not be in the future.
 		if ( isset( $fields['date_time_original'] ) && ! empty( $fields['date_time_original'] ) ) {
 			if ( ! preg_match( '/^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/', $fields['date_time_original'] ) ) {
 				$errors['date_time_original'] = esc_html__( 'Date must be in format YYYY:MM:DD HH:MM:SS.', 'media-library-tools' );
+			} else {
+				$date_str = str_replace( ':', '-', substr( $fields['date_time_original'], 0, 10 ) ) . substr( $fields['date_time_original'], 10 );
+				$timestamp = strtotime( $date_str );
+				if ( false !== $timestamp && $timestamp > time() ) {
+					$errors['date_time_original'] = esc_html__( 'Date Taken cannot be in the future.', 'media-library-tools' );
+				}
 			}
 		}
 

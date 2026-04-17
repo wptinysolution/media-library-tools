@@ -151,11 +151,23 @@ export default function ExifDataPage() {
         window.location.hash = '#/exifData/';
     };
 
+    const handleReset = () => {
+        setSortBy("default");
+        setSortOrder("DESC");
+        setFilter("all");
+        sortRef.current = { sortBy: "default", sortOrder: "DESC" };
+        filterRef.current = "all";
+        setCurrentPage(1);
+        loadResults(1);
+        window.location.hash = '#/exifData/';
+    };
+
     const handleFilterChange = (newFilter: string) => {
         setFilter(newFilter);
         filterRef.current = newFilter;
         setCurrentPage(1);
         loadResults(1);
+        window.location.hash = '#/exifData/';
     };
 
     const handleBulkApply = () => {
@@ -228,6 +240,7 @@ export default function ExifDataPage() {
                 onBulkApply={handleBulkApply}
                 onSortChange={handleSortChange}
                 onFilterChange={handleFilterChange}
+                onReset={handleReset}
             />
 
             {/* Table */}

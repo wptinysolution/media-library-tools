@@ -22,7 +22,6 @@ use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
-use TinySolutions\mlt\Modules\ExifData\ExifEditor;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -111,9 +110,6 @@ class Ajax {
 
 		// EXIF editable data (single image — free feature).
 		add_action( 'wp_ajax_tsmlt_exif_get_editable', [ $this, 'exif_get_editable' ] );
-
-		// EXIF save (single image — free feature).
-		add_action( 'wp_ajax_tsmlt_exif_save', [ $this, 'exif_save' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -714,19 +710,6 @@ class Ajax {
 		}
 
 		$this->send( ExifDataReader::instance()->get_editable_exif( $attachment_id ) );
-	}
-
-	/** @return void */
-	public function exif_save(): void {
-		$params        = $this->verify_and_get_params();
-		$attachment_id = absint( $params['attachment_id'] ?? 0 );
-
-		if ( ! $attachment_id ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Missing attachment_id.', 'media-library-tools' ) ], 400 );
-		}
-
-		$fields = isset( $params['fields'] ) ? (array) $params['fields'] : [];
-		$this->send( ExifEditor::instance()->save_exif( $attachment_id, $fields ) );
 	}
 
 	/** @return void */

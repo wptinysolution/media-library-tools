@@ -16,6 +16,7 @@ interface ExifToolbarProps {
     onBulkApply: () => void;
     onSortChange: (sort: string, order: string) => void;
     onFilterChange: (filter: string) => void;
+    onReset: () => void;
 }
 
 export default function ExifToolbar({
@@ -34,6 +35,7 @@ export default function ExifToolbar({
     onBulkApply,
     onSortChange,
     onFilterChange,
+    onReset,
 }: ExifToolbarProps) {
     const sortValue = sortBy === 'default' ? '' : `${sortBy}_${sortOrder}`;
 
@@ -119,6 +121,17 @@ export default function ExifToolbar({
                     <option value="with_exif">With EXIF</option>
                     <option value="without_exif">Without EXIF</option>
                 </select>
+
+                {/* Reset */}
+                {(sortBy !== 'default' || filter !== 'all') && (
+                    <button
+                        type="button"
+                        className="h-8 px-2.5 text-xs font-medium text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
+                        onClick={onReset}
+                    >
+                        Reset
+                    </button>
+                )}
 
                 {/* Count */}
                 <div className="ml-auto flex items-center gap-2">

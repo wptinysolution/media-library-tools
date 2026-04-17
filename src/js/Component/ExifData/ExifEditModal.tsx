@@ -83,6 +83,11 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
 
         if (date_time_original && !/^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/.test(date_time_original)) {
             errs.push("Date must be YYYY:MM:DD HH:MM:SS");
+        } else if (date_time_original) {
+            const parsed = new Date(date_time_original.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3"));
+            if (parsed.getTime() > Date.now()) {
+                errs.push("Date Taken cannot be in the future");
+            }
         }
         if (iso && (isNaN(Number(iso)) || Number(iso) < 1 || Number(iso) > 102400)) {
             errs.push("ISO must be 1\u2013102400");
@@ -246,6 +251,7 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                             <input
                                 type="datetime-local"
                                 step="1"
+                                max={new Date().toISOString().slice(0, 19)}
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                 value={exifDateToInput(fields.date_time_original)}
                                 onChange={(e) => updateField("date_time_original", inputDateToExif(e.target.value))}
