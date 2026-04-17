@@ -9,6 +9,7 @@ const bulkOptions = [
     { value: 'bulkedit', label: 'Bulk Edit' },
     { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
     { value: 'csv_export', label: 'Export CSV' },
+    { value: 'exif_to_caption', label: 'Insert EXIF To Caption' },
     { value: 'inherit', label: 'Restore' },
     { value: 'searchUses', label: 'Find Where Image Is Used' },
     { value: 'delete', label: 'Delete Permanently' },
@@ -24,7 +25,7 @@ function TheHeader() {
         setSaveType,
     } = useStore();
 
-    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | 'exif_to_caption' | null>(null);
 
     const handleSelectChange = (value: string | null, fieldName: string) => {
         setMediaData({
@@ -64,7 +65,7 @@ function TheHeader() {
     };
 
     const handleBulkSubmit = () => {
-        if ('bulkEditPostTitle' === bulkSubmitData.type && !tsmltParams.hasExtended) {
+        if (('bulkEditPostTitle' === bulkSubmitData.type || 'exif_to_caption' === bulkSubmitData.type) && !tsmltParams.hasExtended) {
             setGeneralData({ openProModal: true });
             return;
         }
@@ -81,7 +82,8 @@ function TheHeader() {
             case 'trash':
             case 'delete':
             case 'searchUses':
-                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete' | 'searchUses');
+            case 'exif_to_caption':
+                setConfirmAction(bulkSubmitData.type as 'trash' | 'delete' | 'searchUses' | 'exif_to_caption');
                 break;
             case 'inherit':
             case 'update':
@@ -182,7 +184,12 @@ function TheHeader() {
         <Modal
             isOpen={!!confirmAction}
             onClose={() => setConfirmAction(null)}
-            title={confirmAction === 'delete' ? 'Delete Permanently?' : confirmAction === 'trash' ? 'Move to Trash?' : 'Search Uses?'}
+            title={
+                confirmAction === 'delete' ? 'Delete Permanently?' :
+                confirmAction === 'trash' ? 'Move to Trash?' :
+                confirmAction === 'exif_to_caption' ? 'Insert EXIF to Caption?' :
+                'Search Uses?'
+            }
             maxWidth="max-w-md"
             closeOnBackdrop={false}
             footer={
@@ -208,7 +215,10 @@ function TheHeader() {
                             setConfirmAction(null);
                         }}
                     >
-                        {confirmAction === 'delete' ? 'Yes, Delete' : confirmAction === 'trash' ? 'Yes, Move to Trash' : 'Yes, Search Uses'}
+                        {confirmAction === 'delete' ? 'Yes, Delete' :
+                         confirmAction === 'trash' ? 'Yes, Move to Trash' :
+                         confirmAction === 'exif_to_caption' ? 'Yes, Insert EXIF' :
+                         'Yes, Search Uses'}
                     </button>
                 </div>
             }
@@ -221,6 +231,10 @@ function TheHeader() {
                 ) : confirmAction === 'trash' ? (
                     <p className="text-sm! text-gray-600 m-0!">
                         You are about to move <strong>{bulkSubmitData.ids.length} item{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong> to the trash. You can restore them later.
+                    </p>
+                ) : confirmAction === 'exif_to_caption' ? (
+                    <p className="text-sm! text-gray-600 m-0!">
+                        This will insert EXIF data (camera, date, exposure) as the caption for <strong>{bulkSubmitData.ids.length} image{bulkSubmitData.ids.length !== 1 ? 's' : ''}</strong>. Existing captions will be replaced.
                     </p>
                 ) : (
                     <p className="text-sm! text-gray-600 m-0!">

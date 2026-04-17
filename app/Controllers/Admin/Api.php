@@ -558,6 +558,16 @@ class Api {
 					$result['message'] = esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
 				}
 				break;
+			/**
+			 * EXIF to Caption (Pro feature, delegated to Pro module)
+			 */
+			case 'exif_to_caption':
+				if ( function_exists( 'tsmltpro' ) ) {
+					$result = apply_filters( 'tsmlt_exif_to_caption', $result, $ids );
+				} else {
+					$result['message'] = esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
+				}
+				break;
 			default:
 				// Unknown operation.
 				break;
