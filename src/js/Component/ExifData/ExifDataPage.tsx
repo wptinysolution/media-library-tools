@@ -261,6 +261,7 @@ export default function ExifDataPage() {
                                 isLast={index === images.length - 1}
                                 onToggleSelect={() => toggleSelect(image.attachment_id)}
                                 onToggleExpand={() => toggleExpand(image.attachment_id)}
+                                isPro={isPro}
                                 onEdit={() => {
                                     if (!isPro) {
                                         setGeneralData({ openProModal: true });

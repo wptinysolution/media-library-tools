@@ -1,4 +1,5 @@
 import ExifDetailPanel from "@/js/Component/ExifData/ExifDetailPanel";
+import ProLabel from "@/js/Component/Badges/ProLabel";
 
 interface ExifSummary {
     has_exif: boolean;
@@ -22,6 +23,7 @@ interface ExifImageRowProps {
     isExpanded: boolean;
     isStripping: boolean;
     isLast: boolean;
+    isPro: boolean;
     onToggleSelect: () => void;
     onToggleExpand: () => void;
     onEdit: () => void;
@@ -38,6 +40,7 @@ export default function ExifImageRow({
     onToggleExpand,
     onEdit,
     onStrip,
+    isPro
 }: ExifImageRowProps) {
     const exif = image.exif_summary;
     const hasGps = exif.gps?.has_location;
@@ -134,6 +137,7 @@ export default function ExifImageRow({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Edit
+                        {!isPro && <ProLabel /> }
                     </button>
                     {image.has_exif && !image.stripped && (
                         <button
