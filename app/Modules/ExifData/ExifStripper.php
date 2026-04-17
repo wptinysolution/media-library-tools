@@ -59,7 +59,7 @@ class ExifStripper {
 		}
 
 		// Check if file is writable.
-		if ( ! is_writable( $file_path ) ) {
+		if ( ! wp_is_writable( $file_path ) ) {
 			return [
 				'success' => false,
 				'message' => esc_html__( 'Image file is not writable. Check file permissions.', 'media-library-tools' ),
@@ -88,7 +88,7 @@ class ExifStripper {
 
 		if ( ! $image ) {
 			// Restore backup.
-			@unlink( $backup_path );
+			wp_delete_file( $backup_path );
 			return [
 				'success' => false,
 				'message' => esc_html__( 'Failed to load image. The file may be corrupted.', 'media-library-tools' ),
@@ -102,8 +102,8 @@ class ExifStripper {
 
 		if ( ! $result ) {
 			// Restore backup.
-			@copy( $backup_path, $file_path );
-			@unlink( $backup_path );
+			@copy( $backup_path, $file_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $backup_path );
 			return [
 				'success' => false,
 				'message' => esc_html__( 'Failed to save image after stripping EXIF.', 'media-library-tools' ),
@@ -111,7 +111,7 @@ class ExifStripper {
 		}
 
 		// Clean up backup.
-		@unlink( $backup_path );
+		wp_delete_file( $backup_path );
 
 		// Clear the EXIF cache.
 		ExifDataReader::clear_cache();
