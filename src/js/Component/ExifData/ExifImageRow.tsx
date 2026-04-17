@@ -87,9 +87,14 @@ export default function ExifImageRow({
 
                 {/* Title + badges */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm mt-0! mb-1 font-medium text-gray-900 truncate">
+                    <h3 className="text-sm mt-0! mb-0.5 font-medium text-gray-900 truncate">
                         {image.title || `Untitled (ID: ${image.attachment_id})`}
                     </h3>
+                    {image.url && (
+                        <p className="text-[11px] text-gray-400 truncate mb-1 m-0!">
+                            {image.url}
+                        </p>
+                    )}
                     <div className="flex flex-wrap gap-1.5">
                         {image.stripped ? (
                             <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">

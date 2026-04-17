@@ -603,7 +603,7 @@ class ExifDataReader {
 		foreach ( $attachments as $attachment ) {
 			$file_path    = get_attached_file( $attachment->ID );
 			$file_exists  = $file_path && file_exists( $file_path );
-			$exif_summary = $file_exists ? $this->get_exif_summary( $file_path ) : [];
+			$exif_summary = $this->get_exif_summary_for_attachment( $attachment->ID, $file_exists ? $file_path : null );
 			$has_exif     = ! empty( $exif_summary['has_exif'] );
 
 			// Get thumbnail URL.
@@ -715,6 +715,72 @@ class ExifDataReader {
 			]
 		);
 		return (int) $query->found_posts;
+	}
+
+	/**
+	 * Get EXIF summary for an attachment, falling back to post meta for non-JPEG types.
+	 *
+	 * @param int         $attachment_id The attachment ID.
+	 * @param string|null $file_path     Path to the image file (null if not available).
+	 *
+	 * @return array
+	 */
+	public function get_exif_summary_for_attachment( int $attachment_id, ?string $file_path ): array {
+		// Try reading EXIF from the file first (works for JPEG/TIFF/WebP).
+		if ( $file_path ) {
+			$summary = $this->get_exif_summary( $file_path );
+			if ( ! empty( $summary ) ) {
+				return $summary;
+			}
+		}
+
+		// Fallback: read from post meta (used for non-JPEG images edited via the editor).
+		$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
+		if ( ! is_array( $meta ) || empty( $meta ) ) {
+			return [];
+		}
+
+		$summary = [];
+
+		if ( ! empty( $meta['make'] ) || ! empty( $meta['model'] ) ) {
+			$camera = [];
+			if ( ! empty( $meta['make'] ) ) {
+				$camera['make'] = $meta['make'];
+			}
+			if ( ! empty( $meta['model'] ) ) {
+				$camera['model'] = $meta['model'];
+			}
+			$summary['camera'] = $camera;
+		}
+
+		if ( ! empty( $meta['gps_lat'] ) || ! empty( $meta['gps_lng'] ) ) {
+			$summary['gps'] = [
+				'latitude'     => $meta['gps_lat'] ?? null,
+				'longitude'    => $meta['gps_lng'] ?? null,
+				'has_location' => true,
+			];
+		}
+
+		$other = [];
+		if ( ! empty( $meta['date_time_original'] ) ) {
+			$other['date_time_original'] = $meta['date_time_original'];
+		}
+		if ( ! empty( $meta['iso'] ) ) {
+			$other['iso'] = $meta['iso'];
+		}
+		if ( ! empty( $meta['aperture'] ) ) {
+			$other['f_number'] = $meta['aperture'];
+		}
+		if ( ! empty( $meta['shutter_speed'] ) ) {
+			$other['exposure_time'] = $meta['shutter_speed'];
+		}
+		if ( ! empty( $other ) ) {
+			$summary['other'] = $other;
+		}
+
+		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['other'] );
+
+		return $summary;
 	}
 
 	/**
@@ -874,12 +940,27 @@ class ExifDataReader {
 	 * @return array Editable EXIF fields.
 	 */
 	public function get_editable_exif( int $attachment_id ): array {
-		$mime = get_post_mime_type( $attachment_id );
-		if ( ! in_array( $mime, [ 'image/jpeg', 'image/jpg' ], true ) ) {
-			return [
-				'supported' => false,
-				'message'   => esc_html__( 'EXIF editing is only available for JPEG images.', 'media-library-tools' ),
-			];
+		$mime     = get_post_mime_type( $attachment_id );
+		$is_jpeg  = in_array( $mime, [ 'image/jpeg', 'image/jpg' ], true );
+
+		// For non-JPEG images, return fields stored in post meta (if any).
+		if ( ! $is_jpeg ) {
+			$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
+			$meta = is_array( $meta ) ? $meta : [];
+			return array_merge(
+				[
+					'supported'          => true,
+					'make'               => '',
+					'model'              => '',
+					'date_time_original' => '',
+					'iso'                => null,
+					'aperture'           => null,
+					'shutter_speed'      => null,
+					'gps_lat'            => null,
+					'gps_lng'            => null,
+				],
+				$meta
+			);
 		}
 
 		$file_path = get_attached_file( $attachment_id );

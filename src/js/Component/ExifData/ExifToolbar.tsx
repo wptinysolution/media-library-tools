@@ -138,7 +138,7 @@ export default function ExifToolbar({
                 )}
 
                 {/* Search */}
-                <div className="ml-auto relative flex items-center">
+                <div className="relative flex items-center">
                     <svg className="absolute left-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M16.65 16.65A7 7 0 1116.65 2.35a7 7 0 010 14.3z" />
                     </svg>

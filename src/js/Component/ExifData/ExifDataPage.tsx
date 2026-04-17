@@ -233,7 +233,7 @@ export default function ExifDataPage() {
                 <p className="text-sm text-gray-500 mb-5">View, edit, and remove EXIF metadata (GPS, camera info, author) from your images.</p>
             </div>
 
-            <div className="px-6 py-8">
+            <div className="px-6 pb-8">
 
             {/* Scanner */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
