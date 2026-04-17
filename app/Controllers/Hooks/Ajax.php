@@ -107,9 +107,6 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_strip_exif_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_exif_strip_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_check_strippable_exif', [ $this, 'check_strippable_exif' ] );
-
-		// EXIF editable data (single image — free feature).
-		add_action( 'wp_ajax_tsmlt_exif_get_editable', [ $this, 'exif_get_editable' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -700,17 +697,6 @@ class Ajax {
 		$this->send( ExifStripper::instance()->strip_exif_from_attachment( $attachment_id ) );
 	}
 
-	/** @return void */
-	public function exif_get_editable(): void {
-		$params        = $this->verify_and_get_params();
-		$attachment_id = absint( $params['attachment_id'] ?? 0 );
-
-		if ( ! $attachment_id ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Missing attachment_id.', 'media-library-tools' ) ], 400 );
-		}
-
-		$this->send( ExifDataReader::instance()->get_editable_exif( $attachment_id ) );
-	}
 
 	/** @return void */
 	public function check_strippable_exif(): void {
