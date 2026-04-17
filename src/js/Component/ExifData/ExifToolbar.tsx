@@ -74,7 +74,7 @@ export default function ExifToolbar({
                     <option value="read_exif">Read EXIF Data</option>
                     <option value="add_exif">Add EXIF Data</option>
                     <option value="edit_exif">Edit EXIF Data</option>
-                    <option value="delete_exif">Delete EXIF Data</option>
+                    <option value="delete_exif">Remove EXIF Data</option>
                 </select>
                 <button
                     type="button"
@@ -95,6 +95,7 @@ export default function ExifToolbar({
                     onChange={(e) => handleSortChange(e.target.value)}
                 >
                     <option value="">Default</option>
+                    <option value="empty_ASC">Empty EXIF</option>
                     <option value="date_DESC">Date (Newest)</option>
                     <option value="date_ASC">Date (Oldest)</option>
                     <option value="title_ASC">Title (A-Z)</option>
