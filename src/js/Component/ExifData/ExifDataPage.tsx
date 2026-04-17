@@ -142,6 +142,8 @@ export default function ExifDataPage() {
         sortRef.current = { sortBy: sort, sortOrder: order };
         setCurrentPage(1);
         loadResults(1);
+        // Clear page from URL
+        window.location.hash = '#/exifData/';
     };
 
     const handleBulkApply = () => {
