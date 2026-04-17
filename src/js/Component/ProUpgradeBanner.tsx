@@ -89,6 +89,42 @@ const proFeatures = [
         title: 'Unused Image Detector — Delete',
         desc: 'Scan and identify unused images across your site. Pro lets you bulk delete detected unused images permanently.',
     },
+    {
+        icon: (
+            <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+            </svg>
+        ),
+        title: 'Edit & Write EXIF Data',
+        desc: 'Add or edit EXIF metadata (camera, date, GPS, exposure) directly on JPEG images. Bulk-edit multiple images at once from the EXIF Data panel.',
+    },
+    {
+        icon: (
+            <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+        ),
+        title: 'Insert EXIF to Caption',
+        desc: 'Bulk-insert EXIF metadata (camera model, date taken, aperture, shutter, ISO) as image captions. Automatically replaces captions across all content.',
+    },
+    {
+        icon: (
+            <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        ),
+        title: 'Bulk Strip & GPS Removal',
+        desc: 'Batch-remove all EXIF data or GPS-only from multiple images. Auto-strip GPS on upload to protect user privacy sitewide.',
+    },
+    {
+        icon: (
+            <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+        ),
+        title: 'EXIF Import / Export & History',
+        desc: 'Export EXIF data to CSV/JSON and bulk-import from file. Full change history with one-click undo for every EXIF edit.',
+    },
 ];
 
 export default function ProUpgradeBanner() {
