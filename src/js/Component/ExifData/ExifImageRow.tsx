@@ -103,7 +103,7 @@ export default function ExifImageRow({
                             <Badge variant="gray" label="No EXIF" />
                         ) : (
                             <>
-                                {hasCamera && <Badge variant="camera" className={'p-4'} />}
+                                {hasCamera && <Badge variant="camera" />}
                                 {hasGps && <Badge variant="gps" />}
                                 {hasOther && <Badge variant="meta" />}
                             </>

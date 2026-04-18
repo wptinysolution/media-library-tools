@@ -1,3 +1,5 @@
+import { cn } from "@/js/lib/utils";
+
 type BadgeVariant = 'beta' | 'camera' | 'gps' | 'meta' | 'success' | 'danger' | 'gray';
 
 interface BadgeProps {
@@ -30,7 +32,11 @@ export default function Badge({ variant = 'gray', label, className = '' }: Badge
     const text = label ?? defaultLabels[variant];
     return (
         <span
-            className={`tsmlt-badge inline-flex items-center px-2 py-0.5 text-[10px] font-semibold border rounded uppercase tracking-wide leading-none ${variantStyles[variant]} ${className}`}
+            className={cn(
+                'tsmlt-badge inline-flex items-center px-2 py-0.5 text-[10px] font-semibold border rounded uppercase tracking-wide leading-none',
+                variantStyles[variant],
+                className
+            )}
         >
             {text}
         </span>
