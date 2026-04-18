@@ -163,7 +163,7 @@ export default function ExifImageRow({
             {/* Expanded EXIF details */}
             {isExpanded && (
                 <div className="px-5 py-4 bg-gray-50/80 border-t border-gray-100">
-                    <ExifDetailPanel exif={exif} />
+                    <ExifDetailPanel exif={exif} onEdit={onEdit} isPro={isPro} />
                 </div>
             )}
         </div>

@@ -12,6 +12,9 @@ interface ExifFields {
     shutter_speed: string;
     gps_lat: string;
     gps_lng: string;
+    copyright: string;
+    artist: string;
+    color_space: string;
 }
 
 const emptyFields: ExifFields = {
@@ -23,6 +26,9 @@ const emptyFields: ExifFields = {
     shutter_speed: "",
     gps_lat: "",
     gps_lng: "",
+    copyright: "",
+    artist: "",
+    color_space: "",
 };
 
 interface ExifEditModalProps {
@@ -66,6 +72,9 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                     shutter_speed: (result.shutter_speed as string) || "",
                     gps_lat: result.gps_lat != null ? String(result.gps_lat) : "",
                     gps_lng: result.gps_lng != null ? String(result.gps_lng) : "",
+                    copyright: (result.copyright as string) || "",
+                    artist: (result.artist as string) || "",
+                    color_space: (result.color_space as string) || "",
                 });
             } else {
                 setErrors([(result.message as string) || "Cannot load EXIF data."]);
@@ -314,6 +323,46 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                                     value={fields.gps_lng}
                                     onChange={(e) => updateField("gps_lng", e.target.value)}
                                     placeholder="-180 to 180"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Colour Space */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Colour Space</label>
+                            <select
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                value={fields.color_space}
+                                onChange={(e) => updateField("color_space", e.target.value)}
+                            >
+                                <option value="">— Not set —</option>
+                                <option value="sRGB">sRGB</option>
+                                <option value="Uncalibrated">Uncalibrated</option>
+                            </select>
+                        </div>
+
+                        {/* Copyright + Artist */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Copyright</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    value={fields.copyright}
+                                    onChange={(e) => updateField("copyright", e.target.value)}
+                                    placeholder="© 2026 Author"
+                                    maxLength={128}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Artist</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    value={fields.artist}
+                                    onChange={(e) => updateField("artist", e.target.value)}
+                                    placeholder="Photographer name"
+                                    maxLength={128}
                                 />
                             </div>
                         </div>

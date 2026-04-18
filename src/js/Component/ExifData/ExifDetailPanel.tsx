@@ -9,32 +9,36 @@ interface ExifSummary {
 
 interface ExifDetailPanelProps {
     exif: ExifSummary;
+    onEdit?: () => void;
+    isPro?: boolean;
 }
 
 function ExifRow({ label, value }: { label: string; value: string | number | undefined | null }) {
     if (!value && value !== 0) return null;
     return (
         <div className="flex justify-between pb-1.5 border-b border-gray-100 last:border-0 last:pb-0">
-            <dt className="text-gray-400">{label}</dt>
-            <dd className="font-medium text-gray-700 m-0! text-right max-w-48 truncate" title={String(value)}>{value}</dd>
+            <dt className="text-gray-400 shrink-0 mr-3">{label}</dt>
+            <dd className="font-medium text-gray-700 m-0! text-right truncate max-w-48" title={String(value)}>{value}</dd>
         </div>
     );
 }
 
 function SectionCard({ color, icon, title, children }: {
-    color: 'blue' | 'red' | 'amber';
+    color: 'blue' | 'red' | 'amber' | 'purple' | 'gray';
     icon: ReactNode;
     title: string;
     children: ReactNode;
 }) {
     const colorMap = {
-        blue:  { ring: 'border-blue-100',  bg: 'bg-blue-50',   text: 'text-blue-600',  heading: 'text-blue-500'  },
-        red:   { ring: 'border-red-100',    bg: 'bg-red-50',    text: 'text-red-600',   heading: 'text-red-500'   },
-        amber: { ring: 'border-amber-100',  bg: 'bg-amber-50',  text: 'text-amber-600', heading: 'text-amber-500' },
+        blue:   { ring: 'border-blue-100',   bg: 'bg-blue-50',    text: 'text-blue-600',   heading: 'text-blue-500'   },
+        red:    { ring: 'border-red-100',     bg: 'bg-red-50',     text: 'text-red-600',    heading: 'text-red-500'    },
+        amber:  { ring: 'border-amber-100',   bg: 'bg-amber-50',   text: 'text-amber-600',  heading: 'text-amber-500'  },
+        purple: { ring: 'border-purple-100',  bg: 'bg-purple-50',  text: 'text-purple-600', heading: 'text-purple-500' },
+        gray:   { ring: 'border-gray-200',    bg: 'bg-gray-50',    text: 'text-gray-500',   heading: 'text-gray-400'   },
     };
     const c = colorMap[color];
     return (
-        <div className={`w-1/3 px-2`}>
+        <div className="w-1/3 px-2">
             <div className={`rounded-xl border ${c.ring} overflow-hidden h-full`}>
                 <div className={`flex items-center gap-2 px-3.5 py-2.5 ${c.bg}`}>
                     <span className={c.text}>{icon}</span>
@@ -68,10 +72,41 @@ const MetaIcon = () => (
     </svg>
 );
 
-export default function ExifDetailPanel({ exif }: ExifDetailPanelProps) {
+const ColorIcon = () => (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+    </svg>
+);
+
+const EditIcon = () => (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+);
+
+// Convert EXIF date "YYYY:MM:DD HH:MM:SS" to "YYYY-MM-DD HH:MM:SS"
+function formatExifDate(value: string | undefined | null): string | undefined {
+    if (!value) return undefined;
+    // Already looks like a normal date (ISO or other) — return as-is
+    if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value;
+    // EXIF format: "2024:03:15 14:30:00" → "2024-03-15 14:30:00"
+    return value.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3");
+}
+
+export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanelProps) {
     const hasCamera = Object.keys(exif.camera || {}).length > 0;
     const hasGps = exif.gps?.has_location;
     const hasOther = Object.keys(exif.other || {}).length > 0;
+
+    // Colour-related fields from other
+    const hasColour = !!(
+        exif.other?.color_space ||
+        exif.other?.color_profile ||
+        exif.other?.alpha_channel ||
+        exif.other?.bit_depth ||
+        exif.other?.bits_per_sample
+    );
+
     const hasAny = hasCamera || hasGps || hasOther;
 
     if (!hasAny) {
@@ -81,6 +116,15 @@ export default function ExifDetailPanel({ exif }: ExifDetailPanelProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <p className="text-xs text-gray-400 m-0!">No EXIF data available for this image.</p>
+                {onEdit && (
+                    <button
+                        type="button"
+                        onClick={onEdit}
+                        className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 cursor-pointer transition-colors"
+                    >
+                        <EditIcon /> {isPro ? 'Add EXIF Data' : 'Add EXIF Data (Pro)'}
+                    </button>
+                )}
             </div>
         );
     }
@@ -96,6 +140,10 @@ export default function ExifDetailPanel({ exif }: ExifDetailPanelProps) {
                     <ExifRow label="Exposure" value={exif.other?.exposure_time} />
                     <ExifRow label="Aperture" value={exif.other?.f_number} />
                     <ExifRow label="Focal Length" value={exif.other?.focal_length} />
+                    <ExifRow label="Flash" value={exif.other?.flash} />
+                    <ExifRow label="White Balance" value={exif.other?.white_balance} />
+                    <ExifRow label="Exposure Mode" value={exif.other?.exposure_mode} />
+                    <ExifRow label="Metering Mode" value={exif.other?.metering_mode} />
                 </SectionCard>
             )}
 
@@ -107,12 +155,27 @@ export default function ExifDetailPanel({ exif }: ExifDetailPanelProps) {
                 </SectionCard>
             )}
 
+            {hasColour && (
+                <SectionCard color="purple" icon={<ColorIcon />} title="Colour">
+                    <ExifRow label="Colour Space" value={exif.other?.color_space} />
+                    <ExifRow label="Colour Profile" value={exif.other?.color_profile} />
+                    <ExifRow label="Alpha Channel" value={exif.other?.alpha_channel} />
+                    <ExifRow label="Bit Depth" value={exif.other?.bit_depth} />
+                    <ExifRow label="Bits/Sample" value={exif.other?.bits_per_sample} />
+                    <ExifRow label="X Resolution" value={exif.other?.x_resolution} />
+                    <ExifRow label="Y Resolution" value={exif.other?.y_resolution} />
+                    <ExifRow label="MIME Type" value={exif.other?.mime_type} />
+                </SectionCard>
+            )}
+
             {hasOther && (
                 <SectionCard color="amber" icon={<MetaIcon />} title="Metadata">
-                    <ExifRow label="Date Taken" value={exif.other?.date_time_original} />
+                    <ExifRow label="Date Taken" value={formatExifDate(exif.other?.date_time_original)} />
                     <ExifRow label="Width" value={exif.other?.image_width} />
                     <ExifRow label="Height" value={exif.other?.image_height} />
                     <ExifRow label="Orientation" value={exif.other?.orientation} />
+                    <ExifRow label="Copyright" value={exif.other?.copyright} />
+                    <ExifRow label="Artist" value={exif.other?.artist} />
                 </SectionCard>
             )}
         </div>

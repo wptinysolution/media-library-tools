@@ -726,24 +726,18 @@ class ExifDataReader {
 	 * @return array
 	 */
 	public function get_exif_summary_for_attachment( int $attachment_id, ?string $file_path ): array {
-		// Try reading EXIF from the file first (works for JPEG/TIFF/WebP).
-		if ( $file_path ) {
-			$summary = $this->get_exif_summary( $file_path );
-			if ( ! empty( $summary ) ) {
-				return $summary;
-			}
-		}
+		// Start with file-based EXIF (works for JPEG/TIFF/WebP; getimagesize fields for all types).
+		$summary = $file_path ? $this->get_exif_summary( $file_path ) : [];
 
-		// Fallback: read from post meta (used for non-JPEG images edited via the editor).
+		// Always overlay post meta on top — meta holds user-edited values for any image type.
 		$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
 		if ( ! is_array( $meta ) || empty( $meta ) ) {
-			return [];
+			return $summary;
 		}
 
-		$summary = [];
-
+		// Merge camera fields from meta.
 		if ( ! empty( $meta['make'] ) || ! empty( $meta['model'] ) ) {
-			$camera = [];
+			$camera = $summary['camera'] ?? [];
 			if ( ! empty( $meta['make'] ) ) {
 				$camera['make'] = $meta['make'];
 			}
@@ -753,26 +747,30 @@ class ExifDataReader {
 			$summary['camera'] = $camera;
 		}
 
-		if ( ! empty( $meta['gps_lat'] ) || ! empty( $meta['gps_lng'] ) ) {
+		// Merge GPS fields from meta.
+		if ( isset( $meta['gps_lat'] ) || isset( $meta['gps_lng'] ) ) {
 			$summary['gps'] = [
-				'latitude'     => $meta['gps_lat'] ?? null,
-				'longitude'    => $meta['gps_lng'] ?? null,
+				'latitude'     => $meta['gps_lat'] ?? ( $summary['gps']['latitude'] ?? null ),
+				'longitude'    => $meta['gps_lng'] ?? ( $summary['gps']['longitude'] ?? null ),
 				'has_location' => true,
 			];
 		}
 
-		$other = [];
-		if ( ! empty( $meta['date_time_original'] ) ) {
-			$other['date_time_original'] = $meta['date_time_original'];
-		}
-		if ( ! empty( $meta['iso'] ) ) {
-			$other['iso'] = $meta['iso'];
-		}
-		if ( ! empty( $meta['aperture'] ) ) {
-			$other['f_number'] = $meta['aperture'];
-		}
-		if ( ! empty( $meta['shutter_speed'] ) ) {
-			$other['exposure_time'] = $meta['shutter_speed'];
+		// Merge all other editable fields from meta, overwriting file-based values.
+		$other = $summary['other'] ?? [];
+		$meta_other_map = [
+			'date_time_original' => 'date_time_original',
+			'iso'                => 'iso',
+			'aperture'           => 'f_number',
+			'shutter_speed'      => 'exposure_time',
+			'copyright'          => 'copyright',
+			'artist'             => 'artist',
+			'color_space'        => 'color_space',
+		];
+		foreach ( $meta_other_map as $meta_key => $other_key ) {
+			if ( isset( $meta[ $meta_key ] ) && '' !== (string) $meta[ $meta_key ] ) {
+				$other[ $other_key ] = (string) $meta[ $meta_key ];
+			}
 		}
 		if ( ! empty( $other ) ) {
 			$summary['other'] = $other;
@@ -841,32 +839,137 @@ class ExifDataReader {
 			$summary['gps']      = $gps;
 		}
 
-		// Other EXIF (EXIF section).
-		$other = [];
+		// Gather data from all sections into $other.
+		$other        = [];
+		$color_space_map = [ 1 => 'sRGB', 65535 => 'Uncalibrated' ];
+
+		// EXIF SubIFD — exposure / camera settings.
 		if ( isset( $exif['EXIF'] ) ) {
 			if ( ! empty( $exif['EXIF']['DateTimeOriginal'] ) ) {
 				$other['date_time_original'] = $exif['EXIF']['DateTimeOriginal'];
 			}
-			if ( ! empty( $exif['EXIF']['ImageWidth'] ) ) {
-				$other['image_width'] = $exif['EXIF']['ImageWidth'];
-			}
-			if ( ! empty( $exif['EXIF']['ImageHeight'] ) ) {
-				$other['image_height'] = $exif['EXIF']['ImageHeight'];
-			}
-			if ( ! empty( $exif['EXIF']['Orientation'] ) ) {
-				$other['orientation'] = $exif['EXIF']['Orientation'];
-			}
 			if ( ! empty( $exif['EXIF']['ISOSpeedRatings'] ) ) {
-				$other['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : $exif['EXIF']['ISOSpeedRatings'];
+				$other['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : (string) $exif['EXIF']['ISOSpeedRatings'];
 			}
 			if ( ! empty( $exif['EXIF']['FocalLength'] ) ) {
-				$other['focal_length'] = $exif['EXIF']['FocalLength'];
+				$other['focal_length'] = $this->format_rational( $exif['EXIF']['FocalLength'] ) . ' mm';
 			}
 			if ( ! empty( $exif['EXIF']['ExposureTime'] ) ) {
-				$other['exposure_time'] = $exif['EXIF']['ExposureTime'];
+				$other['exposure_time'] = $this->format_rational( $exif['EXIF']['ExposureTime'] ) . 's';
 			}
 			if ( ! empty( $exif['EXIF']['FNumber'] ) ) {
-				$other['f_number'] = $exif['EXIF']['FNumber'];
+				$other['f_number'] = 'f/' . $this->format_rational( $exif['EXIF']['FNumber'] );
+			}
+			if ( isset( $exif['EXIF']['Flash'] ) ) {
+				$other['flash'] = ( 0 !== ( (int) $exif['EXIF']['Flash'] & 1 ) ) ? 'Fired' : 'Did not fire';
+			}
+			if ( isset( $exif['EXIF']['WhiteBalance'] ) ) {
+				$wb_map               = [ 0 => 'Auto', 1 => 'Manual' ];
+				$other['white_balance'] = $wb_map[ (int) $exif['EXIF']['WhiteBalance'] ] ?? (string) $exif['EXIF']['WhiteBalance'];
+			}
+			if ( isset( $exif['EXIF']['ExposureMode'] ) ) {
+				$em_map                 = [ 0 => 'Auto', 1 => 'Manual', 2 => 'Auto bracket' ];
+				$other['exposure_mode'] = $em_map[ (int) $exif['EXIF']['ExposureMode'] ] ?? (string) $exif['EXIF']['ExposureMode'];
+			}
+			if ( isset( $exif['EXIF']['MeteringMode'] ) ) {
+				$mm_map                = [ 0 => 'Unknown', 1 => 'Average', 2 => 'Center', 3 => 'Spot', 4 => 'Multi-spot', 5 => 'Pattern', 6 => 'Partial' ];
+				$other['metering_mode'] = $mm_map[ (int) $exif['EXIF']['MeteringMode'] ] ?? (string) $exif['EXIF']['MeteringMode'];
+			}
+			if ( ! empty( $exif['EXIF']['ColorSpace'] ) ) {
+				$other['color_space'] = $color_space_map[ (int) $exif['EXIF']['ColorSpace'] ] ?? (string) $exif['EXIF']['ColorSpace'];
+			}
+		}
+
+		// IFD0 — image-level metadata.
+		if ( isset( $exif['IFD0'] ) ) {
+			// Orientation lives in IFD0, not EXIF SubIFD.
+			if ( ! empty( $exif['IFD0']['Orientation'] ) ) {
+				$orient_map = [
+					1 => 'Normal',
+					2 => 'Flipped horizontal',
+					3 => 'Rotated 180°',
+					4 => 'Flipped vertical',
+					5 => 'Rotated 90° CW + flip',
+					6 => 'Rotated 90° CW',
+					7 => 'Rotated 90° CCW + flip',
+					8 => 'Rotated 90° CCW',
+				];
+				$other['orientation'] = $orient_map[ (int) $exif['IFD0']['Orientation'] ] ?? (string) $exif['IFD0']['Orientation'];
+			}
+			// Dimensions from IFD0 (more reliable than EXIF SubIFD).
+			if ( ! empty( $exif['IFD0']['ImageWidth'] ) ) {
+				$other['image_width'] = (string) $exif['IFD0']['ImageWidth'];
+			}
+			if ( ! empty( $exif['IFD0']['ImageLength'] ) ) {
+				$other['image_height'] = (string) $exif['IFD0']['ImageLength'];
+			}
+			if ( ! empty( $exif['IFD0']['XResolution'] ) ) {
+				$other['x_resolution'] = (string) (int) $this->convert_rational( $exif['IFD0']['XResolution'] ) . ' dpi';
+			}
+			if ( ! empty( $exif['IFD0']['YResolution'] ) ) {
+				$other['y_resolution'] = (string) (int) $this->convert_rational( $exif['IFD0']['YResolution'] ) . ' dpi';
+			}
+			if ( ! empty( $exif['IFD0']['BitsPerSample'] ) ) {
+				$bps                      = $exif['IFD0']['BitsPerSample'];
+				$other['bits_per_sample'] = is_array( $bps ) ? implode( ', ', $bps ) : (string) $bps;
+			}
+			if ( ! empty( $exif['IFD0']['Copyright'] ) ) {
+				$other['copyright'] = $exif['IFD0']['Copyright'];
+			}
+			if ( ! empty( $exif['IFD0']['Artist'] ) ) {
+				$other['artist'] = $exif['IFD0']['Artist'];
+			}
+			// Color space from IFD0 if not already set from EXIF SubIFD.
+			if ( empty( $other['color_space'] ) && ! empty( $exif['IFD0']['ColorSpace'] ) ) {
+				$other['color_space'] = $color_space_map[ (int) $exif['IFD0']['ColorSpace'] ] ?? (string) $exif['IFD0']['ColorSpace'];
+			}
+			// ICC colour profile — binary blob, extract description string.
+			if ( ! empty( $exif['IFD0']['InterColorProfile'] ) ) {
+				$profile_raw = $exif['IFD0']['InterColorProfile'];
+				if ( is_string( $profile_raw ) && strlen( $profile_raw ) > 128 ) {
+					$desc = substr( $profile_raw, 128, 64 );
+					$desc = preg_replace( '/[^\x20-\x7E]/', '', $desc );
+					if ( ! empty( trim( $desc ) ) ) {
+						$other['color_profile'] = trim( $desc );
+					}
+				}
+			}
+		}
+
+		// getimagesize() — reliable for dimensions, bit depth, alpha, mime, channels.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$img_info = @getimagesize( $file_path );
+		if ( is_array( $img_info ) ) {
+			// Dimensions — most reliable source.
+			if ( empty( $other['image_width'] ) && ! empty( $img_info[0] ) ) {
+				$other['image_width'] = (string) $img_info[0];
+			}
+			if ( empty( $other['image_height'] ) && ! empty( $img_info[1] ) ) {
+				$other['image_height'] = (string) $img_info[1];
+			}
+			if ( isset( $img_info['bits'] ) ) {
+				$other['bit_depth'] = (string) $img_info['bits'];
+			}
+			if ( isset( $img_info['channels'] ) ) {
+				// channels: 3 = RGB (no alpha), 4 = RGBA/CMYK (has alpha or CMYK).
+				$other['alpha_channel'] = 4 === (int) $img_info['channels'] ? 'Yes' : 'No';
+			} else {
+				// For PNG, GIF, WebP — PHP doesn't set channels, use image type.
+				$type = $img_info[2] ?? 0;
+				if ( in_array( $type, [ IMAGETYPE_PNG, IMAGETYPE_WEBP ], true ) ) {
+					// Check via GD if alpha channel is present.
+					if ( function_exists( 'imagecreatefrompng' ) && IMAGETYPE_PNG === $type ) {
+						// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+						$im = @imagecreatefrompng( $file_path );
+						if ( $im ) {
+							$other['alpha_channel'] = imageistruecolor( $im ) ? 'Yes' : 'No';
+							imagedestroy( $im );
+						}
+					}
+				}
+			}
+			if ( isset( $img_info['mime'] ) ) {
+				$other['mime_type'] = $img_info['mime'];
 			}
 		}
 
@@ -906,6 +1009,39 @@ class ExifDataReader {
 		// Format with up to 6 decimals, trim trailing zeros.
 		$formatted = rtrim( number_format( $decimal, 6 ), '0' );
 		return rtrim( $formatted, '.' );
+	}
+
+	/**
+	 * Format a rational EXIF value as a human-readable string.
+	 * Keeps fractions like "1/250" intact; simplifies whole numbers like "50/1" → "50".
+	 *
+	 * @param mixed $value Rational value (string "n/d", numeric, or array).
+	 *
+	 * @return string
+	 */
+	private function format_rational( $value ): string {
+		if ( is_string( $value ) && strpos( $value, '/' ) !== false ) {
+			[ $n, $d ] = array_pad( explode( '/', $value, 2 ), 2, 1 );
+			$n = (float) $n;
+			$d = (float) $d;
+			if ( 0.0 === $d ) {
+				return (string) $n;
+			}
+			// Whole number — simplify.
+			if ( 1.0 === $d || 0.0 === fmod( $n, $d ) ) {
+				return (string) (int) ( $n / $d );
+			}
+			// Small fraction (e.g. exposure time) — keep as fraction.
+			if ( $n < $d ) {
+				return (int) $n . '/' . (int) $d;
+			}
+			// Decimal.
+			return rtrim( rtrim( number_format( $n / $d, 2 ), '0' ), '.' );
+		}
+		if ( is_numeric( $value ) ) {
+			return rtrim( rtrim( number_format( (float) $value, 2 ), '0' ), '.' );
+		}
+		return (string) $value;
 	}
 
 	/**
@@ -958,6 +1094,9 @@ class ExifDataReader {
 					'shutter_speed'      => null,
 					'gps_lat'            => null,
 					'gps_lng'            => null,
+					'copyright'          => '',
+					'artist'             => '',
+					'color_space'        => '',
 				],
 				$meta
 			);
@@ -990,8 +1129,15 @@ class ExifDataReader {
 				'shutter_speed'      => null,
 				'gps_lat'            => null,
 				'gps_lng'            => null,
+				'copyright'          => '',
+				'artist'             => '',
+				'color_space'        => '',
 			];
 		}
+
+		$color_space_raw = $this->find_exif_field( $raw, 'ColorSpace' );
+		$color_space_map = [ 1 => 'sRGB', 65535 => 'Uncalibrated' ];
+		$color_space     = isset( $color_space_map[ $color_space_raw ] ) ? $color_space_map[ $color_space_raw ] : ( null !== $color_space_raw ? (string) $color_space_raw : '' );
 
 		return [
 			'supported'          => true,
@@ -1003,6 +1149,9 @@ class ExifDataReader {
 			'shutter_speed'      => $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) ),
 			'gps_lat'            => $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' ),
 			'gps_lng'            => $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' ),
+			'copyright'          => $this->find_exif_field( $raw, 'Copyright', '' ),
+			'artist'             => $this->find_exif_field( $raw, 'Artist', '' ),
+			'color_space'        => $color_space,
 		];
 	}
 
