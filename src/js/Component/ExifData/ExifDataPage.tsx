@@ -8,6 +8,7 @@ import ExifToolbar from "@/js/Component/ExifData/ExifToolbar";
 import ExifImageRow from "@/js/Component/ExifData/ExifImageRow";
 import ExifStripModal from "@/js/Component/ExifData/ExifStripModal";
 import { useStore } from "@/js/Utils/store";
+import Badge from "@/js/Component/Badges/Badge";
 
 interface ExifImage {
     attachment_id: number;
@@ -229,9 +230,7 @@ export default function ExifDataPage() {
             <div className="px-6 pt-8 pb-0">
                 <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-2xl font-semibold text-gray-900 m-0!">EXIF Data</h1>
-                    <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold text-amber-700 bg-amber-100 border border-amber-300 rounded-full tracking-wide uppercase">
-                        Beta
-                    </span>
+                    <Badge variant="beta" />
                 </div>
                 <p className="text-sm text-gray-500 mb-5">View, edit, and remove EXIF metadata (GPS, camera info, author) from your images. This feature is in beta — some behaviour may change in future updates.</p>
             </div>

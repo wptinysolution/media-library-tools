@@ -3,6 +3,7 @@ import { useStore } from "@/js/Utils/store";
 import { clearSchedule } from "@/js/Utils/Data";
 import { Link, useLocation } from "react-router-dom";
 import { useWpAdminBarHeight } from "@/js/Utils/Hooks";
+import Badge from "@/js/Component/Badges/Badge";
 
 interface MenuItem {
     key: string;
@@ -198,9 +199,7 @@ function MainHeader() {
                                 <>
                                     {item.label}
                                     {item.badge && (
-                                        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 bg-amber-100 border border-amber-300 rounded-full uppercase tracking-wide leading-none">
-                                            {item.badge}
-                                        </span>
+                                        <Badge variant="beta" className="ml-auto" />
                                     )}
                                 </>
                             )}

@@ -1,5 +1,6 @@
 import ExifDetailPanel from "@/js/Component/ExifData/ExifDetailPanel";
 import ProLabel from "@/js/Component/Badges/ProLabel";
+import Badge from "@/js/Component/Badges/Badge";
 
 interface ExifSummary {
     has_exif: boolean;
@@ -97,30 +98,14 @@ export default function ExifImageRow({
                     )}
                     <div className="flex flex-wrap gap-1.5">
                         {image.stripped ? (
-                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
-                                Stripped
-                            </span>
+                            <Badge variant="success" label="Stripped" />
                         ) : !image.has_exif ? (
-                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-100 rounded">
-                                No EXIF
-                            </span>
+                            <Badge variant="gray" label="No EXIF" />
                         ) : (
                             <>
-                                {hasCamera && (
-                                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-blue-700 bg-blue-50 rounded">
-                                        Camera
-                                    </span>
-                                )}
-                                {hasGps && (
-                                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-red-700 bg-red-50 rounded">
-                                        GPS
-                                    </span>
-                                )}
-                                {hasOther && (
-                                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
-                                        Meta
-                                    </span>
-                                )}
+                                {hasCamera && <Badge variant="camera" className={'p-4'} />}
+                                {hasGps && <Badge variant="gps" />}
+                                {hasOther && <Badge variant="meta" />}
                             </>
                         )}
                     </div>
