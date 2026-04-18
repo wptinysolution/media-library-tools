@@ -62,11 +62,7 @@ function ProModal() {
                 </div>
             }
         >
-            <div className="px-6 py-5 h-[550px] overflow-y-auto">
-                <p className="text-sm text-gray-700 mb-2 mt-0!">
-                    Pro Feature offers a range of enhanced functionalities and benefits...
-                </p>
-                <hr className="border-gray-200 my-2" />
+            <div className="px-6 py-5 h-137.5 overflow-y-auto">
                 <div className="space-y-1">
                     {data.map((item, index) => (
                         <div key={index} className="flex items-start gap-3 py-2">
