@@ -454,7 +454,7 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 = 2.2.2 ( Apr 17, 2026 ) =
 * Fix: Alt Text Issue Resolve
 * Improvement: Settings Page UI Update
-
+ 
 = 2.2.1 ( Apr 11, 2026 ) =
 * Improvement: Media Where Used Functionality Update
 
