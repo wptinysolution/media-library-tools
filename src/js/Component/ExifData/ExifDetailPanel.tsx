@@ -72,40 +72,17 @@ const MetaIcon = () => (
     </svg>
 );
 
-const ColorIcon = () => (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-    </svg>
-);
-
 const EditIcon = () => (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
     </svg>
 );
 
-// Convert EXIF date "YYYY:MM:DD HH:MM:SS" to "YYYY-MM-DD HH:MM:SS"
-function formatExifDate(value: string | undefined | null): string | undefined {
-    if (!value) return undefined;
-    // Already looks like a normal date (ISO or other) — return as-is
-    if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value;
-    // EXIF format: "2024:03:15 14:30:00" → "2024-03-15 14:30:00"
-    return value.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3");
-}
 
 export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanelProps) {
     const hasCamera = Object.keys(exif.camera || {}).length > 0;
     const hasGps = exif.gps?.has_location;
     const hasOther = Object.keys(exif.other || {}).length > 0;
-
-    // Colour-related fields from other
-    const hasColour = !!(
-        exif.other?.color_space ||
-        exif.other?.color_profile ||
-        exif.other?.alpha_channel ||
-        exif.other?.bit_depth ||
-        exif.other?.bits_per_sample
-    );
 
     const hasAny = hasCamera || hasGps || hasOther;
 
@@ -155,22 +132,8 @@ export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanel
                 </SectionCard>
             )}
 
-            {hasColour && (
-                <SectionCard color="purple" icon={<ColorIcon />} title="Colour">
-                    <ExifRow label="Colour Space" value={exif.other?.color_space} />
-                    <ExifRow label="Colour Profile" value={exif.other?.color_profile} />
-                    <ExifRow label="Alpha Channel" value={exif.other?.alpha_channel} />
-                    <ExifRow label="Bit Depth" value={exif.other?.bit_depth} />
-                    <ExifRow label="Bits/Sample" value={exif.other?.bits_per_sample} />
-                    <ExifRow label="X Resolution" value={exif.other?.x_resolution} />
-                    <ExifRow label="Y Resolution" value={exif.other?.y_resolution} />
-                    <ExifRow label="MIME Type" value={exif.other?.mime_type} />
-                </SectionCard>
-            )}
-
             {hasOther && (
                 <SectionCard color="amber" icon={<MetaIcon />} title="Metadata">
-                    <ExifRow label="Date Taken" value={formatExifDate(exif.other?.date_time_original)} />
                     <ExifRow label="Width" value={exif.other?.image_width} />
                     <ExifRow label="Height" value={exif.other?.image_height} />
                     <ExifRow label="Orientation" value={exif.other?.orientation} />

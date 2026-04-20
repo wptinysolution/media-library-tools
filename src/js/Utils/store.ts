@@ -13,8 +13,6 @@ export interface PostQuery {
     date?: string | null;
     categories?: string | null;
     exif_camera?: string | null;
-    exif_date_from?: string | null;
-    exif_date_to?: string | null;
     exif_has_gps?: string | null;
 }
 

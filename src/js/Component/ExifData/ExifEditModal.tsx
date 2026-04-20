@@ -6,7 +6,6 @@ import { getEditableExif, saveExif } from "@/js/Utils/Data";
 interface ExifFields {
     make: string;
     model: string;
-    date_time_original: string;
     iso: string;
     aperture: string;
     shutter_speed: string;
@@ -14,13 +13,11 @@ interface ExifFields {
     gps_lng: string;
     copyright: string;
     artist: string;
-    color_space: string;
 }
 
 const emptyFields: ExifFields = {
     make: "",
     model: "",
-    date_time_original: "",
     iso: "",
     aperture: "",
     shutter_speed: "",
@@ -28,7 +25,6 @@ const emptyFields: ExifFields = {
     gps_lng: "",
     copyright: "",
     artist: "",
-    color_space: "",
 };
 
 interface ExifEditModalProps {
@@ -66,7 +62,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                 setFields({
                     make: (result.make as string) || "",
                     model: (result.model as string) || "",
-                    date_time_original: (result.date_time_original as string) || "",
                     iso: result.iso != null ? String(result.iso) : "",
                     aperture: result.aperture != null ? String(result.aperture) : "",
                     shutter_speed: (result.shutter_speed as string) || "",
@@ -74,7 +69,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                     gps_lng: result.gps_lng != null ? String(result.gps_lng) : "",
                     copyright: (result.copyright as string) || "",
                     artist: (result.artist as string) || "",
-                    color_space: (result.color_space as string) || "",
                 });
             } else {
                 setErrors([(result.message as string) || "Cannot load EXIF data."]);
@@ -88,16 +82,8 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
 
     const validate = (): string[] => {
         const errs: string[] = [];
-        const { date_time_original, iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
+        const { iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
 
-        if (date_time_original && !/^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/.test(date_time_original)) {
-            errs.push("Date must be YYYY:MM:DD HH:MM:SS");
-        } else if (date_time_original) {
-            const parsed = new Date(date_time_original.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3"));
-            if (parsed.getTime() > Date.now()) {
-                errs.push("Date Taken cannot be in the future");
-            }
-        }
         if (iso && (isNaN(Number(iso)) || Number(iso) < 1 || Number(iso) > 102400)) {
             errs.push("ISO must be 1\u2013102400");
         }
@@ -158,24 +144,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
 
     const updateField = (key: keyof ExifFields, value: string) => {
         setFields(prev => ({ ...prev, [key]: value }));
-    };
-
-    // EXIF date format: "YYYY:MM:DD HH:MM:SS" ↔ HTML datetime-local: "YYYY-MM-DDTHH:MM:SS"
-    const exifDateToInput = (exif: string): string => {
-        if (!exif) return "";
-        // "2024:03:15 14:30:00" → "2024-03-15T14:30:00"
-        return exif.replace(/^(\d{4}):(\d{2}):(\d{2}) /, "$1-$2-$3T");
-    };
-
-    const inputDateToExif = (input: string): string => {
-        if (!input) return "";
-        // "2024-03-15T14:30:00" → "2024:03:15 14:30:00"
-        // "2024-03-15T14:30" (no seconds) → "2024:03:15 14:30:00"
-        const parts = input.split("T");
-        if (parts.length !== 2) return "";
-        const date = parts[0].replace(/-/g, ":");
-        const time = parts[1].length === 5 ? parts[1] + ":00" : parts[1];
-        return `${date} ${time}`;
     };
 
     return (
@@ -254,19 +222,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                             </div>
                         </div>
 
-                        {/* Date */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Date Taken</label>
-                            <input
-                                type="datetime-local"
-                                step="1"
-                                max={new Date().toISOString().slice(0, 19)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                value={exifDateToInput(fields.date_time_original)}
-                                onChange={(e) => updateField("date_time_original", inputDateToExif(e.target.value))}
-                            />
-                        </div>
-
                         {/* Exposure */}
                         <div className="grid grid-cols-3 gap-4">
                             <div>
@@ -325,20 +280,6 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                                     placeholder="-180 to 180"
                                 />
                             </div>
-                        </div>
-
-                        {/* Colour Space */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Colour Space</label>
-                            <select
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                value={fields.color_space}
-                                onChange={(e) => updateField("color_space", e.target.value)}
-                            >
-                                <option value="">— Not set —</option>
-                                <option value="sRGB">sRGB</option>
-                                <option value="Uncalibrated">Uncalibrated</option>
-                            </select>
                         </div>
 
                         {/* Copyright + Artist */}

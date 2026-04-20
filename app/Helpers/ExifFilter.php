@@ -36,33 +36,6 @@ class ExifFilter {
 			];
 		}
 
-		// Date range filter (DateTimeOriginal from EXIF).
-		if ( ! empty( $params['exif_date_from'] ) || ! empty( $params['exif_date_to'] ) ) {
-			if ( ! isset( $args['meta_query'] ) ) {
-				$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Necessary for EXIF date range filtering.
-			}
-
-			$date_query = [
-				'key'     => '_tsmlt_exif_date',
-				'type'    => 'DATETIME',
-				'compare' => 'BETWEEN',
-			];
-
-			$from = sanitize_text_field( $params['exif_date_from'] ?? '' );
-			$to   = sanitize_text_field( $params['exif_date_to'] ?? '' );
-
-			if ( $from ) {
-				$date_query['value'] = [ $from . ' 00:00:00', $to ? $to . ' 23:59:59' : wp_date( 'Y-m-d H:i:s' ) ];
-			} elseif ( $to ) {
-				$date_query['compare'] = '<=';
-				$date_query['value']   = $to . ' 23:59:59';
-			}
-
-			if ( ! empty( $date_query['value'] ) ) {
-				$args['meta_query'][] = $date_query;
-			}
-		}
-
 		// GPS filter (has GPS / no GPS).
 		if ( ! empty( $params['exif_has_gps'] ) ) {
 			if ( ! isset( $args['meta_query'] ) ) {
@@ -124,18 +97,6 @@ class ExifFilter {
 		if ( $make || $model ) {
 			$camera = trim( "$make $model" );
 			update_post_meta( $attachment_id, '_tsmlt_exif_camera', $camera );
-		}
-
-		// Extract date taken.
-		$date = self::get_exif_field( $exif_data, 'DateTimeOriginal', [ 'EXIF' ] );
-		if ( ! $date ) {
-			$date = self::get_exif_field( $exif_data, 'DateTime', [ 'IFD0' ] );
-		}
-		if ( $date ) {
-			// Convert EXIF date "YYYY:MM:DD HH:MM:SS" to MySQL "YYYY-MM-DD HH:MM:SS".
-			// Only replace the first two colons (in the date part).
-			$date = preg_replace( '/:/', '-', $date, 2 );
-			update_post_meta( $attachment_id, '_tsmlt_exif_date', $date );
 		}
 
 		// Extract GPS as decimal coordinates.

@@ -228,8 +228,6 @@ class ExifAutoProcessor {
 			'post_date_gmt'     => get_gmt_from_date( $date_str ),
 		] );
 
-		// Also update post meta with original EXIF date.
-		update_post_meta( $attachment_id, '_tsmlt_exif_date_original', $date_str );
 	}
 
 	/**

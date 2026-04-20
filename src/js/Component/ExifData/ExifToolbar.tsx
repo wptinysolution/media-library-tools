@@ -109,8 +109,6 @@ export default function ExifToolbar({
                     <option value="date_ASC">Date (Oldest)</option>
                     <option value="title_ASC">Title (A-Z)</option>
                     <option value="title_DESC">Title (Z-A)</option>
-                    <option value="exif_date_DESC">EXIF Date (Newest)</option>
-                    <option value="exif_date_ASC">EXIF Date (Oldest)</option>
                     <option value="camera_ASC">Camera (A-Z)</option>
                     <option value="camera_DESC">Camera (Z-A)</option>
                 </select>

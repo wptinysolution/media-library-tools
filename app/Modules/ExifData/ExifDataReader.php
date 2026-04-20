@@ -145,7 +145,6 @@ class ExifDataReader {
 				'ExifImageWidth'  => esc_html__( 'EXIF Width', 'media-library-tools' ),
 				'ExifImageLength' => esc_html__( 'EXIF Height', 'media-library-tools' ),
 				'Orientation'     => esc_html__( 'Orientation', 'media-library-tools' ),
-				'ColorSpace'      => esc_html__( 'Color Space', 'media-library-tools' ),
 				'BitsPerSample'   => esc_html__( 'Bits Per Sample', 'media-library-tools' ),
 			],
 			'exposure' => [
@@ -163,11 +162,6 @@ class ExifDataReader {
 				'GPSLatitude'  => esc_html__( 'Latitude', 'media-library-tools' ),
 				'GPSLongitude' => esc_html__( 'Longitude', 'media-library-tools' ),
 				'GPSAltitude'  => esc_html__( 'Altitude', 'media-library-tools' ),
-			],
-			'date'     => [
-				'DateTime'          => esc_html__( 'Date Modified', 'media-library-tools' ),
-				'DateTimeOriginal'  => esc_html__( 'Date Taken', 'media-library-tools' ),
-				'DateTimeDigitized' => esc_html__( 'Date Digitized', 'media-library-tools' ),
 			],
 			'other'    => [
 				'Artist'           => esc_html__( 'Artist', 'media-library-tools' ),
@@ -354,18 +348,30 @@ class ExifDataReader {
 	 * @return string Camera info or fallback text.
 	 */
 	public function get_camera_display( int $attachment_id ): string {
-		$exif = $this->get_exif_data( $attachment_id );
+		// Check saved post meta first (user-edited value takes priority over file EXIF).
+		$meta  = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
+		$parts = [];
+		if ( is_array( $meta ) ) {
+			if ( ! empty( $meta['make'] ) ) {
+				$parts[] = $meta['make'];
+			}
+			if ( ! empty( $meta['model'] ) ) {
+				$parts[] = $meta['model'];
+			}
+		}
 
+		if ( ! empty( $parts ) ) {
+			return implode( ' ', $parts );
+		}
+
+		// Fall back to raw EXIF from file.
+		$exif = $this->get_exif_data( $attachment_id );
 		if ( ! $exif['has_exif'] || empty( $exif['data'] ) ) {
 			return '—';
 		}
 
 		$camera_data = $exif['data']['camera'] ?? [];
-		if ( empty( $camera_data ) ) {
-			return '—';
-		}
-
-		$parts = [];
+		$parts       = [];
 		if ( ! empty( $camera_data['Make'] ) ) {
 			$parts[] = $camera_data['Make'];
 		}
@@ -374,38 +380,6 @@ class ExifDataReader {
 		}
 
 		return ! empty( $parts ) ? implode( ' ', $parts ) : '—';
-	}
-
-	/**
-	 * Get date taken from EXIF for list column display.
-	 *
-	 * @param int $attachment_id The attachment ID.
-	 *
-	 * @return string Date taken or fallback text.
-	 */
-	public function get_date_taken_display( int $attachment_id ): string {
-		$exif = $this->get_exif_data( $attachment_id );
-
-		if ( ! $exif['has_exif'] || empty( $exif['data'] ) ) {
-			return '—';
-		}
-
-		$date_data = $exif['data']['date'] ?? [];
-
-		// Prefer DateTimeOriginal, fall back to DateTime.
-		$date_str = $date_data['Date Taken'] ?? $date_data['Date Modified'] ?? '';
-
-		if ( empty( $date_str ) ) {
-			return '—';
-		}
-
-		// Convert EXIF date format (YYYY:MM:DD HH:MM:SS) to readable format.
-		$date_obj = \DateTime::createFromFormat( 'Y:m:d H:i:s', $date_str );
-		if ( $date_obj ) {
-			return $date_obj->format( 'Y-m-d H:i' );
-		}
-
-		return '—';
 	}
 
 	/**
@@ -439,37 +413,6 @@ class ExifDataReader {
 		return '—';
 	}
 
-	/**
-	 * Get raw EXIF data for date-based sorting.
-	 *
-	 * @param int $attachment_id The attachment ID.
-	 *
-	 * @return string Date in sortable format or empty string.
-	 */
-	public function get_date_for_sorting( int $attachment_id ): string {
-		$exif = $this->get_exif_data( $attachment_id );
-
-		if ( ! $exif['has_exif'] || empty( $exif['raw'] ) ) {
-			return '';
-		}
-
-		$raw = $exif['raw'];
-
-		// Try to find DateTimeOriginal first, then DateTime.
-		$date_str = $raw['EXIF']['DateTimeOriginal'] ?? $raw['IFD0']['DateTime'] ?? '';
-
-		if ( empty( $date_str ) ) {
-			return '';
-		}
-
-		// Convert to ISO format (YYYY-MM-DD HH:MM:SS) for sorting.
-		$date_obj = \DateTime::createFromFormat( 'Y:m:d H:i:s', $date_str );
-		if ( $date_obj ) {
-			return $date_obj->format( 'Y-m-d H:i:s' );
-		}
-
-		return '';
-	}
 
 	/**
 	 * Render HTML for the EXIF Data panel in the media modal.
@@ -481,26 +424,76 @@ class ExifDataReader {
 	public function render_modal_html( int $attachment_id ): string {
 		$exif_result = $this->get_exif_data( $attachment_id );
 
-		// If EXIF is not supported.
-		if ( ! $exif_result['supported'] ) {
-			$error_html = sprintf(
+		// Overlay saved post meta (user-edited values) on top of live EXIF data.
+		$saved_meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
+
+		// Fetch WP attachment metadata once (used for early-bail check and sizes section).
+		$wp_meta = wp_get_attachment_metadata( $attachment_id );
+
+		// Build display data: start from live EXIF if available, then apply saved meta overrides.
+		$data = [];
+		if ( $exif_result['has_exif'] && ! empty( $exif_result['data'] ) ) {
+			$data = $exif_result['data'];
+		} elseif ( ! $exif_result['has_exif'] && empty( $saved_meta ) && empty( $wp_meta['sizes'] ) ) {
+			// Nothing to show at all — bail early with the error message.
+			return sprintf(
 				'<p style="margin:0;padding:8px 10px;background:#f9f9f9;border-left:3px solid #dcdcde;color:#a7aaad;font-size:12px;">%s</p>',
 				esc_html( $exif_result['error'] )
 			);
-			return $error_html;
 		}
 
-		// If EXIF is supported but no data found.
-		if ( ! $exif_result['has_exif'] ) {
-			$error_html = sprintf(
+		// Overlay saved meta values — these override live EXIF values.
+		if ( is_array( $saved_meta ) && ! empty( $saved_meta ) ) {
+			$label_map = [
+				'make'               => [ 'camera', esc_html__( 'Make', 'media-library-tools' ) ],
+				'model'              => [ 'camera', esc_html__( 'Model', 'media-library-tools' ) ],
+				// 'date_time_original' removed — Date Taken field no longer exposed.
+				'iso'                => [ 'exposure', esc_html__( 'ISO', 'media-library-tools' ) ],
+				'aperture'           => [ 'exposure', esc_html__( 'Aperture', 'media-library-tools' ) ],
+				'shutter_speed'      => [ 'exposure', esc_html__( 'Exposure Time', 'media-library-tools' ) ],
+				'copyright'          => [ 'other', esc_html__( 'Copyright', 'media-library-tools' ) ],
+				'artist'             => [ 'other', esc_html__( 'Artist', 'media-library-tools' ) ],
+			];
+			foreach ( $label_map as $meta_key => $cat_label ) {
+				if ( isset( $saved_meta[ $meta_key ] ) && '' !== (string) $saved_meta[ $meta_key ] ) {
+					[ $cat, $label ] = $cat_label;
+					$value = (string) $saved_meta[ $meta_key ];
+					if ( 'aperture' === $meta_key && is_numeric( $value ) ) {
+						$value = 'f/' . $value;
+					}
+					$data[ $cat ][ $label ] = $value;
+				}
+			}
+			// GPS from meta.
+			if ( isset( $saved_meta['gps_lat'] ) && '' !== (string) $saved_meta['gps_lat'] ) {
+				$data['gps'][ esc_html__( 'Latitude', 'media-library-tools' ) ] = (string) $saved_meta['gps_lat'];
+			}
+			if ( isset( $saved_meta['gps_lng'] ) && '' !== (string) $saved_meta['gps_lng'] ) {
+				$data['gps'][ esc_html__( 'Longitude', 'media-library-tools' ) ] = (string) $saved_meta['gps_lng'];
+			}
+		}
+
+		// Add generated sizes section from WordPress attachment metadata.
+		if ( ! empty( $wp_meta['sizes'] ) && is_array( $wp_meta['sizes'] ) ) {
+			$sizes_data = [];
+			foreach ( $wp_meta['sizes'] as $size_name => $size_info ) {
+				if ( ! empty( $size_info['width'] ) && ! empty( $size_info['height'] ) ) {
+					$label              = ucwords( str_replace( [ '_', '-' ], ' ', $size_name ) );
+					$file               = ! empty( $size_info['file'] ) ? ' (' . $size_info['file'] . ')' : '';
+					$sizes_data[ $label . $file ] = $size_info['width'] . ' × ' . $size_info['height'];
+				}
+			}
+			if ( ! empty( $sizes_data ) ) {
+				$data['sizes'] = $sizes_data;
+			}
+		}
+
+		if ( empty( $data ) ) {
+			return sprintf(
 				'<p style="margin:0;padding:8px 10px;background:#f9f9f9;border-left:3px solid #dcdcde;color:#a7aaad;font-size:12px;">%s</p>',
-				esc_html( $exif_result['error'] )
+				esc_html__( 'No EXIF data found for this image.', 'media-library-tools' )
 			);
-			return $error_html;
 		}
-
-		// Render EXIF data.
-		$data = $exif_result['data'];
 
 		// Category labels for grouping.
 		$category_labels = [
@@ -508,8 +501,8 @@ class ExifDataReader {
 			'image'    => esc_html__( 'Image', 'media-library-tools' ),
 			'exposure' => esc_html__( 'Exposure', 'media-library-tools' ),
 			'gps'      => esc_html__( 'GPS', 'media-library-tools' ),
-			'date'     => esc_html__( 'Date', 'media-library-tools' ),
 			'other'    => esc_html__( 'Other', 'media-library-tools' ),
+			'sizes'    => esc_html__( 'Generated Sizes', 'media-library-tools' ),
 		];
 
 		ob_start();
@@ -568,7 +561,7 @@ class ExifDataReader {
 	 */
 	public function get_images_with_exif( int $limit = 50, int $offset = 0, string $sort = 'default', string $order = 'DESC', string $filter = 'all', string $search = '' ): array {
 		// EXIF-based sorting or filtering requires fetching all and processing in PHP.
-		$is_exif_sort   = in_array( $sort, [ 'exif_date', 'camera' ], true );
+		$is_exif_sort   = in_array( $sort, [ 'camera' ], true );
 		$is_exif_filter = in_array( $filter, [ 'with_exif', 'without_exif' ], true );
 		$needs_php_pass = $is_exif_sort || $is_exif_filter;
 		$fetch_limit    = $needs_php_pass ? -1 : $limit;
@@ -606,16 +599,16 @@ class ExifDataReader {
 			$exif_summary = $this->get_exif_summary_for_attachment( $attachment->ID, $file_exists ? $file_path : null );
 			$has_exif     = ! empty( $exif_summary['has_exif'] );
 
-			// Get thumbnail URL.
-			$thumb_url = wp_get_attachment_thumb_url( $attachment->ID );
-			if ( ! $thumb_url ) {
-				$thumb_url = wp_get_attachment_url( $attachment->ID );
-			}
+			// Get full image URL and a small thumbnail for preview.
+			$full_url  = wp_get_attachment_url( $attachment->ID );
+			$thumb_src = wp_get_attachment_image_src( $attachment->ID, 'thumbnail' );
+			$thumb_url = $thumb_src ? $thumb_src[0] : $full_url;
 
 			$images[] = [
 				'attachment_id' => $attachment->ID,
 				'title'         => $attachment->post_title,
-				'url'           => $thumb_url,
+				'url'           => $full_url,
+				'thumb_url'     => $thumb_url,
 				'has_exif'      => $has_exif,
 				'exif_summary'  => $exif_summary,
 				'stripped'      => false,
@@ -657,10 +650,7 @@ class ExifDataReader {
 					$val_a = '';
 					$val_b = '';
 
-					if ( 'exif_date' === $sort ) {
-						$val_a = $a['exif_summary']['other']['date_time_original'] ?? '';
-						$val_b = $b['exif_summary']['other']['date_time_original'] ?? '';
-					} elseif ( 'camera' === $sort ) {
+					if ( 'camera' === $sort ) {
 						$make_a  = $a['exif_summary']['camera']['make'] ?? '';
 						$model_a = $a['exif_summary']['camera']['model'] ?? '';
 						$val_a   = trim( $make_a . ' ' . $model_a );
@@ -759,13 +749,11 @@ class ExifDataReader {
 		// Merge all other editable fields from meta, overwriting file-based values.
 		$other = $summary['other'] ?? [];
 		$meta_other_map = [
-			'date_time_original' => 'date_time_original',
-			'iso'                => 'iso',
-			'aperture'           => 'f_number',
-			'shutter_speed'      => 'exposure_time',
-			'copyright'          => 'copyright',
-			'artist'             => 'artist',
-			'color_space'        => 'color_space',
+			'iso'          => 'iso',
+			'aperture'     => 'f_number',
+			'shutter_speed' => 'exposure_time',
+			'copyright'    => 'copyright',
+			'artist'       => 'artist',
 		];
 		foreach ( $meta_other_map as $meta_key => $other_key ) {
 			if ( isset( $meta[ $meta_key ] ) && '' !== (string) $meta[ $meta_key ] ) {
@@ -840,14 +828,10 @@ class ExifDataReader {
 		}
 
 		// Gather data from all sections into $other.
-		$other        = [];
-		$color_space_map = [ 1 => 'sRGB', 65535 => 'Uncalibrated' ];
+		$other = [];
 
 		// EXIF SubIFD — exposure / camera settings.
 		if ( isset( $exif['EXIF'] ) ) {
-			if ( ! empty( $exif['EXIF']['DateTimeOriginal'] ) ) {
-				$other['date_time_original'] = $exif['EXIF']['DateTimeOriginal'];
-			}
 			if ( ! empty( $exif['EXIF']['ISOSpeedRatings'] ) ) {
 				$other['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : (string) $exif['EXIF']['ISOSpeedRatings'];
 			}
@@ -875,14 +859,10 @@ class ExifDataReader {
 				$mm_map                = [ 0 => 'Unknown', 1 => 'Average', 2 => 'Center', 3 => 'Spot', 4 => 'Multi-spot', 5 => 'Pattern', 6 => 'Partial' ];
 				$other['metering_mode'] = $mm_map[ (int) $exif['EXIF']['MeteringMode'] ] ?? (string) $exif['EXIF']['MeteringMode'];
 			}
-			if ( ! empty( $exif['EXIF']['ColorSpace'] ) ) {
-				$other['color_space'] = $color_space_map[ (int) $exif['EXIF']['ColorSpace'] ] ?? (string) $exif['EXIF']['ColorSpace'];
-			}
 		}
 
 		// IFD0 — image-level metadata.
 		if ( isset( $exif['IFD0'] ) ) {
-			// Orientation lives in IFD0, not EXIF SubIFD.
 			if ( ! empty( $exif['IFD0']['Orientation'] ) ) {
 				$orient_map = [
 					1 => 'Normal',
@@ -896,7 +876,6 @@ class ExifDataReader {
 				];
 				$other['orientation'] = $orient_map[ (int) $exif['IFD0']['Orientation'] ] ?? (string) $exif['IFD0']['Orientation'];
 			}
-			// Dimensions from IFD0 (more reliable than EXIF SubIFD).
 			if ( ! empty( $exif['IFD0']['ImageWidth'] ) ) {
 				$other['image_width'] = (string) $exif['IFD0']['ImageWidth'];
 			}
@@ -918,21 +897,6 @@ class ExifDataReader {
 			}
 			if ( ! empty( $exif['IFD0']['Artist'] ) ) {
 				$other['artist'] = $exif['IFD0']['Artist'];
-			}
-			// Color space from IFD0 if not already set from EXIF SubIFD.
-			if ( empty( $other['color_space'] ) && ! empty( $exif['IFD0']['ColorSpace'] ) ) {
-				$other['color_space'] = $color_space_map[ (int) $exif['IFD0']['ColorSpace'] ] ?? (string) $exif['IFD0']['ColorSpace'];
-			}
-			// ICC colour profile — binary blob, extract description string.
-			if ( ! empty( $exif['IFD0']['InterColorProfile'] ) ) {
-				$profile_raw = $exif['IFD0']['InterColorProfile'];
-				if ( is_string( $profile_raw ) && strlen( $profile_raw ) > 128 ) {
-					$desc = substr( $profile_raw, 128, 64 );
-					$desc = preg_replace( '/[^\x20-\x7E]/', '', $desc );
-					if ( ! empty( trim( $desc ) ) ) {
-						$other['color_profile'] = trim( $desc );
-					}
-				}
 			}
 		}
 
@@ -1085,18 +1049,16 @@ class ExifDataReader {
 			$meta = is_array( $meta ) ? $meta : [];
 			return array_merge(
 				[
-					'supported'          => true,
-					'make'               => '',
-					'model'              => '',
-					'date_time_original' => '',
-					'iso'                => null,
-					'aperture'           => null,
-					'shutter_speed'      => null,
-					'gps_lat'            => null,
-					'gps_lng'            => null,
-					'copyright'          => '',
-					'artist'             => '',
-					'color_space'        => '',
+					'supported'    => true,
+					'make'         => '',
+					'model'        => '',
+					'iso'          => null,
+					'aperture'     => null,
+					'shutter_speed' => null,
+					'gps_lat'      => null,
+					'gps_lng'      => null,
+					'copyright'    => '',
+					'artist'       => '',
 				],
 				$meta
 			);
@@ -1120,38 +1082,30 @@ class ExifDataReader {
 		$raw = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! is_array( $raw ) || empty( $raw ) ) {
 			return [
-				'supported'          => true,
-				'make'               => '',
-				'model'              => '',
-				'date_time_original' => '',
-				'iso'                => null,
-				'aperture'           => null,
-				'shutter_speed'      => null,
-				'gps_lat'            => null,
-				'gps_lng'            => null,
-				'copyright'          => '',
-				'artist'             => '',
-				'color_space'        => '',
+				'supported'     => true,
+				'make'          => '',
+				'model'         => '',
+				'iso'           => null,
+				'aperture'      => null,
+				'shutter_speed' => null,
+				'gps_lat'       => null,
+				'gps_lng'       => null,
+				'copyright'     => '',
+				'artist'        => '',
 			];
 		}
 
-		$color_space_raw = $this->find_exif_field( $raw, 'ColorSpace' );
-		$color_space_map = [ 1 => 'sRGB', 65535 => 'Uncalibrated' ];
-		$color_space     = isset( $color_space_map[ $color_space_raw ] ) ? $color_space_map[ $color_space_raw ] : ( null !== $color_space_raw ? (string) $color_space_raw : '' );
-
 		return [
-			'supported'          => true,
-			'make'               => $this->find_exif_field( $raw, 'Make', '' ),
-			'model'              => $this->find_exif_field( $raw, 'Model', '' ),
-			'date_time_original' => $this->find_exif_field( $raw, 'DateTimeOriginal', '' ),
-			'iso'                => $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) ),
-			'aperture'           => $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) ),
-			'shutter_speed'      => $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) ),
-			'gps_lat'            => $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' ),
-			'gps_lng'            => $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' ),
-			'copyright'          => $this->find_exif_field( $raw, 'Copyright', '' ),
-			'artist'             => $this->find_exif_field( $raw, 'Artist', '' ),
-			'color_space'        => $color_space,
+			'supported'     => true,
+			'make'          => $this->find_exif_field( $raw, 'Make', '' ),
+			'model'         => $this->find_exif_field( $raw, 'Model', '' ),
+			'iso'           => $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) ),
+			'aperture'      => $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) ),
+			'shutter_speed' => $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) ),
+			'gps_lat'       => $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' ),
+			'gps_lng'       => $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' ),
+			'copyright'     => $this->find_exif_field( $raw, 'Copyright', '' ),
+			'artist'        => $this->find_exif_field( $raw, 'Artist', '' ),
 		];
 	}
 
