@@ -121,7 +121,7 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         if (aperture && (isNaN(Number(aperture)) || Number(aperture) <= 0)) {
             errs.push("Aperture must be a positive number");
         }
-        if (shutter_speed && !/^(1\/\d+|\d*\.?\d+)$/.test(shutter_speed)) {
+        if (shutter_speed && !/^(1\/[1-9]\d*|0\.\d+)$/.test(shutter_speed)) {
             errs.push("Shutter speed must be like 1/250 or 0.5");
         }
         if (gps_lat && (isNaN(Number(gps_lat)) || Number(gps_lat) < -90 || Number(gps_lat) > 90)) {
