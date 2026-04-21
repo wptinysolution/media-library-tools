@@ -114,7 +114,6 @@ class ExifScanner {
 
 			// Try to read EXIF data.
 			$exif = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-
 			if ( is_array( $exif ) && ! empty( $exif ) ) {
 				$with_exif_count++;
 			} else {

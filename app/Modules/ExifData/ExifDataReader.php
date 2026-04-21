@@ -447,7 +447,7 @@ class ExifDataReader {
 			$label_map = [
 				'make'               => [ 'camera', esc_html__( 'Make', 'media-library-tools' ) ],
 				'model'              => [ 'camera', esc_html__( 'Model', 'media-library-tools' ) ],
-				// 'date_time_original' removed — Date Taken field no longer exposed.
+				'date_time_original' => [ 'camera', esc_html__( 'Date Taken', 'media-library-tools' ) ],
 				'iso'                => [ 'exposure', esc_html__( 'ISO', 'media-library-tools' ) ],
 				'aperture'           => [ 'exposure', esc_html__( 'Aperture', 'media-library-tools' ) ],
 				'shutter_speed'      => [ 'exposure', esc_html__( 'Exposure Time', 'media-library-tools' ) ],
@@ -746,6 +746,12 @@ class ExifDataReader {
 			];
 		}
 
+		// Merge date from meta into camera.
+		if ( ! empty( $meta['date_time_original'] ) ) {
+			$summary['camera'] = $summary['camera'] ?? [];
+			$summary['camera']['date_taken'] = $meta['date_time_original'];
+		}
+
 		// Merge exposure fields from meta into $exposure.
 		$exposure = $summary['exposure'] ?? [];
 		$meta_exposure_map = [
@@ -790,8 +796,8 @@ class ExifDataReader {
 
 		$summary = [];
 
-		// Camera info (IFD0).
-		if ( isset( $exif['IFD0'] ) ) {
+		// Camera info (IFD0 + EXIF date).
+		if ( isset( $exif['IFD0'] ) || isset( $exif['EXIF'] ) ) {
 			$camera = [];
 			if ( ! empty( $exif['IFD0']['Make'] ) ) {
 				$camera['make'] = $exif['IFD0']['Make'];
@@ -801,6 +807,11 @@ class ExifDataReader {
 			}
 			if ( ! empty( $exif['IFD0']['Software'] ) ) {
 				$camera['software'] = $exif['IFD0']['Software'];
+			}
+			// Date Taken — prefer DateTimeOriginal (EXIF), fall back to DateTime (IFD0).
+			$date_taken = $exif['EXIF']['DateTimeOriginal'] ?? $exif['IFD0']['DateTime'] ?? '';
+			if ( ! empty( $date_taken ) ) {
+				$camera['date_taken'] = $date_taken;
 			}
 			if ( ! empty( $camera ) ) {
 				$summary['camera'] = $camera;
@@ -1056,16 +1067,17 @@ class ExifDataReader {
 			$meta = is_array( $meta ) ? $meta : [];
 			return array_merge(
 				[
-					'supported'    => true,
-					'make'         => '',
-					'model'        => '',
-					'iso'          => null,
-					'aperture'     => null,
-					'shutter_speed' => null,
-					'gps_lat'      => null,
-					'gps_lng'      => null,
-					'copyright'    => '',
-					'artist'       => '',
+					'supported'          => true,
+					'make'               => '',
+					'model'              => '',
+					'date_time_original' => '',
+					'iso'                => null,
+					'aperture'           => null,
+					'shutter_speed'      => null,
+					'gps_lat'            => null,
+					'gps_lng'            => null,
+					'copyright'          => '',
+					'artist'             => '',
 				],
 				$meta
 			);
@@ -1090,28 +1102,30 @@ class ExifDataReader {
 
 		// Build base fields from file EXIF (may be empty if file has no EXIF sections).
 		$base = [
-			'supported'     => true,
-			'make'          => '',
-			'model'         => '',
-			'iso'           => null,
-			'aperture'      => null,
-			'shutter_speed' => null,
-			'gps_lat'       => null,
-			'gps_lng'       => null,
-			'copyright'     => '',
-			'artist'        => '',
+			'supported'          => true,
+			'make'               => '',
+			'model'              => '',
+			'date_time_original' => '',
+			'iso'                => null,
+			'aperture'           => null,
+			'shutter_speed'      => null,
+			'gps_lat'            => null,
+			'gps_lng'            => null,
+			'copyright'          => '',
+			'artist'             => '',
 		];
 
 		if ( is_array( $raw ) && ! empty( $raw ) ) {
-			$base['make']         = $this->find_exif_field( $raw, 'Make', '' );
-			$base['model']        = $this->find_exif_field( $raw, 'Model', '' );
-			$base['iso']          = $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) );
-			$base['aperture']     = $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) );
-			$base['shutter_speed'] = $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) );
-			$base['gps_lat']      = $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' );
-			$base['gps_lng']      = $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' );
-			$base['copyright']    = $this->find_exif_field( $raw, 'Copyright', '' );
-			$base['artist']       = $this->find_exif_field( $raw, 'Artist', '' );
+			$base['make']                = $this->find_exif_field( $raw, 'Make', '' );
+			$base['model']               = $this->find_exif_field( $raw, 'Model', '' );
+			$base['date_time_original']  = $this->find_exif_field( $raw, 'DateTimeOriginal', '' ) ?: $this->find_exif_field( $raw, 'DateTime', '' );
+			$base['iso']                 = $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) );
+			$base['aperture']            = $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) );
+			$base['shutter_speed']       = $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) );
+			$base['gps_lat']             = $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' );
+			$base['gps_lng']             = $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' );
+			$base['copyright']           = $this->find_exif_field( $raw, 'Copyright', '' );
+			$base['artist']              = $this->find_exif_field( $raw, 'Artist', '' );
 		}
 
 		// Overlay saved meta — user-edited values always take precedence over file-based values.

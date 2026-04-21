@@ -6,6 +6,7 @@ import { getEditableExif, saveExif } from "@/js/Utils/Data";
 interface ExifFields {
     make: string;
     model: string;
+    date_time_original: string;
     iso: string;
     aperture: string;
     shutter_speed: string;
@@ -18,6 +19,7 @@ interface ExifFields {
 const emptyFields: ExifFields = {
     make: "",
     model: "",
+    date_time_original: "",
     iso: "",
     aperture: "",
     shutter_speed: "",
@@ -26,6 +28,23 @@ const emptyFields: ExifFields = {
     copyright: "",
     artist: "",
 };
+
+// Convert EXIF date "YYYY:MM:DD HH:MM:SS" to datetime-local input value "YYYY-MM-DDTHH:MM:SS"
+function exifDateToInput(exif: string): string {
+    if (!exif) return "";
+    // Replace first two colons in date part only
+    const parts = exif.split(" ");
+    if (parts.length !== 2) return "";
+    return parts[0].replace(/:/g, "-") + "T" + parts[1];
+}
+
+// Convert datetime-local input value "YYYY-MM-DDTHH:MM:SS" back to EXIF format "YYYY:MM:DD HH:MM:SS"
+function inputDateToExif(input: string): string {
+    if (!input) return "";
+    const [date, time] = input.split("T");
+    if (!date || !time) return "";
+    return date.replace(/-/g, ":") + " " + time;
+}
 
 interface ExifEditModalProps {
     isOpen: boolean;
@@ -62,6 +81,7 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                 setFields({
                     make: (result.make as string) || "",
                     model: (result.model as string) || "",
+                    date_time_original: (result.date_time_original as string) || "",
                     iso: result.iso != null ? String(result.iso) : "",
                     aperture: result.aperture != null ? String(result.aperture) : "",
                     shutter_speed: (result.shutter_speed as string) || "",
@@ -82,7 +102,18 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
 
     const validate = (): string[] => {
         const errs: string[] = [];
-        const { iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
+        const { date_time_original, iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
+
+        if (date_time_original) {
+            // date_time_original is stored as EXIF format "YYYY:MM:DD HH:MM:SS" — convert to ISO for Date parsing
+            const iso8601 = exifDateToInput(date_time_original).replace("T", " ");
+            const d = new Date(iso8601);
+            if (isNaN(d.getTime())) {
+                errs.push("Date Taken is not a valid date");
+            } else if (d > new Date()) {
+                errs.push("Date Taken cannot be in the future");
+            }
+        }
 
         if (iso && (isNaN(Number(iso)) || Number(iso) < 1 || Number(iso) > 102400)) {
             errs.push("ISO must be 1\u2013102400");
@@ -220,6 +251,19 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                                     placeholder="EOS R5"
                                 />
                             </div>
+                        </div>
+
+                        {/* Date Taken */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date Taken</label>
+                            <input
+                                type="datetime-local"
+                                step="1"
+                                max={new Date().toISOString().slice(0, 19)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                value={exifDateToInput(fields.date_time_original)}
+                                onChange={(e) => updateField("date_time_original", inputDateToExif(e.target.value))}
+                            />
                         </div>
 
                         {/* Exposure */}

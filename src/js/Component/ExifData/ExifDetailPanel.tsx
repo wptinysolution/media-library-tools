@@ -52,6 +52,14 @@ function SectionCard({ color, icon, title, children }: {
     );
 }
 
+// Format EXIF date "YYYY:MM:DD HH:MM:SS" → "YYYY-MM-DD HH:MM"
+function formatExifDate(exif?: string): string | undefined {
+    if (!exif) return undefined;
+    const parts = exif.split(" ");
+    if (parts.length !== 2) return exif;
+    return parts[0].replace(/:/g, "-") + " " + parts[1].slice(0, 5);
+}
+
 const CameraIcon = () => (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -107,6 +115,7 @@ export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanel
                     <ExifRow label="Make" value={exif.camera?.make} />
                     <ExifRow label="Model" value={exif.camera?.model} />
                     <ExifRow label="Software" value={exif.camera?.software} />
+                    <ExifRow label="Date Taken" value={formatExifDate(exif.camera?.date_taken)} />
                     <ExifRow label="ISO" value={exif.exposure?.iso} />
                     <ExifRow label="Exposure" value={exif.exposure?.exposure_time} />
                     <ExifRow label="Aperture" value={exif.exposure?.f_number} />
