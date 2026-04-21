@@ -4,6 +4,7 @@ interface ExifSummary {
     has_exif: boolean;
     camera?: Record<string, string>;
     gps?: Record<string, any>;
+    exposure?: Record<string, string>;
 }
 
 interface ExifDetailPanelProps {
@@ -74,9 +75,10 @@ const EditIcon = () => (
 
 export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanelProps) {
     const hasCamera = Object.keys(exif.camera || {}).length > 0;
+    const hasExposure = Object.keys(exif.exposure || {}).length > 0;
     const hasGps = exif.gps?.has_location;
 
-    const hasAny = hasCamera || hasGps;
+    const hasAny = hasCamera || hasExposure || hasGps;
 
     if (!hasAny) {
         return (
@@ -100,19 +102,19 @@ export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanel
 
     return (
         <div className="flex flex-wrap justify-center gap-y-2 mx-auto max-w-200">
-            {hasCamera && (
+            {(hasCamera || hasExposure) && (
                 <SectionCard color="blue" icon={<CameraIcon />} title="Camera">
                     <ExifRow label="Make" value={exif.camera?.make} />
                     <ExifRow label="Model" value={exif.camera?.model} />
                     <ExifRow label="Software" value={exif.camera?.software} />
-                    <ExifRow label="ISO" value={exif.other?.iso} />
-                    <ExifRow label="Exposure" value={exif.other?.exposure_time} />
-                    <ExifRow label="Aperture" value={exif.other?.f_number} />
-                    <ExifRow label="Focal Length" value={exif.other?.focal_length} />
-                    <ExifRow label="Flash" value={exif.other?.flash} />
-                    <ExifRow label="White Balance" value={exif.other?.white_balance} />
-                    <ExifRow label="Exposure Mode" value={exif.other?.exposure_mode} />
-                    <ExifRow label="Metering Mode" value={exif.other?.metering_mode} />
+                    <ExifRow label="ISO" value={exif.exposure?.iso} />
+                    <ExifRow label="Exposure" value={exif.exposure?.exposure_time} />
+                    <ExifRow label="Aperture" value={exif.exposure?.f_number} />
+                    <ExifRow label="Focal Length" value={exif.exposure?.focal_length} />
+                    <ExifRow label="Flash" value={exif.exposure?.flash} />
+                    <ExifRow label="White Balance" value={exif.exposure?.white_balance} />
+                    <ExifRow label="Exposure Mode" value={exif.exposure?.exposure_mode} />
+                    <ExifRow label="Metering Mode" value={exif.exposure?.metering_mode} />
                 </SectionCard>
             )}
 

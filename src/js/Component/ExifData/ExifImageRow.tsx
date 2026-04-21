@@ -6,6 +6,7 @@ interface ExifSummary {
     has_exif: boolean;
     camera?: Record<string, string>;
     gps?: Record<string, any>;
+    exposure?: Record<string, string>;
 }
 
 interface ExifImage {

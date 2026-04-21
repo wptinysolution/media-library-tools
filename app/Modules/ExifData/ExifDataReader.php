@@ -746,25 +746,27 @@ class ExifDataReader {
 			];
 		}
 
-		// Merge all other editable fields from meta, overwriting file-based values.
-		$other = $summary['other'] ?? [];
-		$meta_other_map = [
+		// Merge exposure fields from meta into $exposure.
+		$exposure = $summary['exposure'] ?? [];
+		$meta_exposure_map = [
 			'iso'          => 'iso',
 			'aperture'     => 'f_number',
 			'shutter_speed' => 'exposure_time',
-			'copyright'    => 'copyright',
-			'artist'       => 'artist',
 		];
-		foreach ( $meta_other_map as $meta_key => $other_key ) {
+		foreach ( $meta_exposure_map as $meta_key => $exposure_key ) {
 			if ( isset( $meta[ $meta_key ] ) && '' !== (string) $meta[ $meta_key ] ) {
-				$other[ $other_key ] = (string) $meta[ $meta_key ];
+				$value = (string) $meta[ $meta_key ];
+				if ( 'aperture' === $meta_key && is_numeric( $value ) ) {
+					$value = 'f/' . $value;
+				}
+				$exposure[ $exposure_key ] = $value;
 			}
 		}
-		if ( ! empty( $other ) ) {
-			$summary['other'] = $other;
+		if ( ! empty( $exposure ) ) {
+			$summary['exposure'] = $exposure;
 		}
 
-		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['other'] );
+		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['exposure'] );
 
 		return $summary;
 	}
@@ -827,37 +829,38 @@ class ExifDataReader {
 			$summary['gps']      = $gps;
 		}
 
-		// Gather data from all sections into $other.
-		$other = [];
+		// Gather exposure fields into $exposure.
+		$exposure = [];
+		$other    = [];
 
 		// EXIF SubIFD — exposure / camera settings.
 		if ( isset( $exif['EXIF'] ) ) {
 			if ( ! empty( $exif['EXIF']['ISOSpeedRatings'] ) ) {
-				$other['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : (string) $exif['EXIF']['ISOSpeedRatings'];
+				$exposure['iso'] = is_array( $exif['EXIF']['ISOSpeedRatings'] ) ? implode( ', ', $exif['EXIF']['ISOSpeedRatings'] ) : (string) $exif['EXIF']['ISOSpeedRatings'];
 			}
 			if ( ! empty( $exif['EXIF']['FocalLength'] ) ) {
-				$other['focal_length'] = $this->format_rational( $exif['EXIF']['FocalLength'] ) . ' mm';
+				$exposure['focal_length'] = $this->format_rational( $exif['EXIF']['FocalLength'] ) . ' mm';
 			}
 			if ( ! empty( $exif['EXIF']['ExposureTime'] ) ) {
-				$other['exposure_time'] = $this->format_rational( $exif['EXIF']['ExposureTime'] ) . 's';
+				$exposure['exposure_time'] = $this->format_rational( $exif['EXIF']['ExposureTime'] ) . 's';
 			}
 			if ( ! empty( $exif['EXIF']['FNumber'] ) ) {
-				$other['f_number'] = 'f/' . $this->format_rational( $exif['EXIF']['FNumber'] );
+				$exposure['f_number'] = 'f/' . $this->format_rational( $exif['EXIF']['FNumber'] );
 			}
 			if ( isset( $exif['EXIF']['Flash'] ) ) {
-				$other['flash'] = ( 0 !== ( (int) $exif['EXIF']['Flash'] & 1 ) ) ? 'Fired' : 'Did not fire';
+				$exposure['flash'] = ( 0 !== ( (int) $exif['EXIF']['Flash'] & 1 ) ) ? 'Fired' : 'Did not fire';
 			}
 			if ( isset( $exif['EXIF']['WhiteBalance'] ) ) {
-				$wb_map               = [ 0 => 'Auto', 1 => 'Manual' ];
-				$other['white_balance'] = $wb_map[ (int) $exif['EXIF']['WhiteBalance'] ] ?? (string) $exif['EXIF']['WhiteBalance'];
+				$wb_map                  = [ 0 => 'Auto', 1 => 'Manual' ];
+				$exposure['white_balance'] = $wb_map[ (int) $exif['EXIF']['WhiteBalance'] ] ?? (string) $exif['EXIF']['WhiteBalance'];
 			}
 			if ( isset( $exif['EXIF']['ExposureMode'] ) ) {
-				$em_map                 = [ 0 => 'Auto', 1 => 'Manual', 2 => 'Auto bracket' ];
-				$other['exposure_mode'] = $em_map[ (int) $exif['EXIF']['ExposureMode'] ] ?? (string) $exif['EXIF']['ExposureMode'];
+				$em_map                   = [ 0 => 'Auto', 1 => 'Manual', 2 => 'Auto bracket' ];
+				$exposure['exposure_mode'] = $em_map[ (int) $exif['EXIF']['ExposureMode'] ] ?? (string) $exif['EXIF']['ExposureMode'];
 			}
 			if ( isset( $exif['EXIF']['MeteringMode'] ) ) {
-				$mm_map                = [ 0 => 'Unknown', 1 => 'Average', 2 => 'Center', 3 => 'Spot', 4 => 'Multi-spot', 5 => 'Pattern', 6 => 'Partial' ];
-				$other['metering_mode'] = $mm_map[ (int) $exif['EXIF']['MeteringMode'] ] ?? (string) $exif['EXIF']['MeteringMode'];
+				$mm_map                  = [ 0 => 'Unknown', 1 => 'Average', 2 => 'Center', 3 => 'Spot', 4 => 'Multi-spot', 5 => 'Pattern', 6 => 'Partial' ];
+				$exposure['metering_mode'] = $mm_map[ (int) $exif['EXIF']['MeteringMode'] ] ?? (string) $exif['EXIF']['MeteringMode'];
 			}
 		}
 
@@ -937,12 +940,16 @@ class ExifDataReader {
 			}
 		}
 
+		if ( ! empty( $exposure ) ) {
+			$summary['exposure'] = $exposure;
+		}
+
 		if ( ! empty( $other ) ) {
 			$summary['other'] = $other;
 		}
 
 		// Only mark as having EXIF when meaningful data exists.
-		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['other'] );
+		$summary['has_exif'] = ! empty( $summary['camera'] ) || ! empty( $summary['gps'] ) || ! empty( $summary['exposure'] );
 
 		return $summary;
 	}
@@ -1080,33 +1087,40 @@ class ExifDataReader {
 		}
 
 		$raw = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		if ( ! is_array( $raw ) || empty( $raw ) ) {
-			return [
-				'supported'     => true,
-				'make'          => '',
-				'model'         => '',
-				'iso'           => null,
-				'aperture'      => null,
-				'shutter_speed' => null,
-				'gps_lat'       => null,
-				'gps_lng'       => null,
-				'copyright'     => '',
-				'artist'        => '',
-			];
+
+		// Build base fields from file EXIF (may be empty if file has no EXIF sections).
+		$base = [
+			'supported'     => true,
+			'make'          => '',
+			'model'         => '',
+			'iso'           => null,
+			'aperture'      => null,
+			'shutter_speed' => null,
+			'gps_lat'       => null,
+			'gps_lng'       => null,
+			'copyright'     => '',
+			'artist'        => '',
+		];
+
+		if ( is_array( $raw ) && ! empty( $raw ) ) {
+			$base['make']         = $this->find_exif_field( $raw, 'Make', '' );
+			$base['model']        = $this->find_exif_field( $raw, 'Model', '' );
+			$base['iso']          = $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) );
+			$base['aperture']     = $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) );
+			$base['shutter_speed'] = $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) );
+			$base['gps_lat']      = $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' );
+			$base['gps_lng']      = $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' );
+			$base['copyright']    = $this->find_exif_field( $raw, 'Copyright', '' );
+			$base['artist']       = $this->find_exif_field( $raw, 'Artist', '' );
 		}
 
-		return [
-			'supported'     => true,
-			'make'          => $this->find_exif_field( $raw, 'Make', '' ),
-			'model'         => $this->find_exif_field( $raw, 'Model', '' ),
-			'iso'           => $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) ),
-			'aperture'      => $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) ),
-			'shutter_speed' => $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) ),
-			'gps_lat'       => $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' ),
-			'gps_lng'       => $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' ),
-			'copyright'     => $this->find_exif_field( $raw, 'Copyright', '' ),
-			'artist'        => $this->find_exif_field( $raw, 'Artist', '' ),
-		];
+		// Overlay saved meta — user-edited values always take precedence over file-based values.
+		$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
+		if ( is_array( $meta ) && ! empty( $meta ) ) {
+			$base = array_merge( $base, array_intersect_key( $meta, $base ) );
+		}
+
+		return $base;
 	}
 
 	/**
