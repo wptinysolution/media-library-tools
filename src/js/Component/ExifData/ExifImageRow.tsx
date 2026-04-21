@@ -6,7 +6,6 @@ interface ExifSummary {
     has_exif: boolean;
     camera?: Record<string, string>;
     gps?: Record<string, any>;
-    other?: Record<string, string>;
 }
 
 interface ExifImage {
@@ -47,7 +46,6 @@ export default function ExifImageRow({
     const exif = image.exif_summary;
     const hasGps = exif.gps?.has_location;
     const hasCamera = Object.keys(exif.camera || {}).length > 0;
-    const hasOther = Object.keys(exif.other || {}).length > 0;
 
     return (
         <div className={!isLast ? 'border-b border-gray-100' : ''}>
@@ -106,7 +104,6 @@ export default function ExifImageRow({
                             <>
                                 {hasCamera && <Badge variant="camera" />}
                                 {hasGps && <Badge variant="gps" />}
-                                {hasOther && <Badge variant="meta" />}
                             </>
                         )}
                     </div>
