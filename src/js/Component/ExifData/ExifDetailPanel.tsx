@@ -4,7 +4,6 @@ interface ExifSummary {
     has_exif: boolean;
     camera?: Record<string, string>;
     gps?: Record<string, any>;
-    other?: Record<string, string>;
 }
 
 interface ExifDetailPanelProps {
@@ -66,12 +65,6 @@ const GpsIcon = () => (
     </svg>
 );
 
-const MetaIcon = () => (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-
 const EditIcon = () => (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -82,9 +75,8 @@ const EditIcon = () => (
 export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanelProps) {
     const hasCamera = Object.keys(exif.camera || {}).length > 0;
     const hasGps = exif.gps?.has_location;
-    const hasOther = Object.keys(exif.other || {}).length > 0;
 
-    const hasAny = hasCamera || hasGps || hasOther;
+    const hasAny = hasCamera || hasGps;
 
     if (!hasAny) {
         return (
@@ -132,15 +124,6 @@ export default function ExifDetailPanel({ exif, onEdit, isPro }: ExifDetailPanel
                 </SectionCard>
             )}
 
-            {hasOther && (
-                <SectionCard color="amber" icon={<MetaIcon />} title="Metadata">
-                    <ExifRow label="Width" value={exif.other?.image_width} />
-                    <ExifRow label="Height" value={exif.other?.image_height} />
-                    <ExifRow label="Orientation" value={exif.other?.orientation} />
-                    <ExifRow label="Copyright" value={exif.other?.copyright} />
-                    <ExifRow label="Artist" value={exif.other?.artist} />
-                </SectionCard>
-            )}
         </div>
     );
 }
