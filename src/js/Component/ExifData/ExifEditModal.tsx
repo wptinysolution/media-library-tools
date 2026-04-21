@@ -105,9 +105,8 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         const { date_time_original, iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
 
         if (date_time_original) {
-            // date_time_original is stored as EXIF format "YYYY:MM:DD HH:MM:SS" — convert to ISO for Date parsing
-            const iso8601 = exifDateToInput(date_time_original).replace("T", " ");
-            const d = new Date(iso8601);
+            // date_time_original is stored as EXIF format "YYYY:MM:DD HH:MM:SS" — convert to ISO 8601 for reliable Date parsing
+            const d = new Date(exifDateToInput(date_time_original));
             if (isNaN(d.getTime())) {
                 errs.push("Date Taken is not a valid date");
             } else if (d > new Date()) {

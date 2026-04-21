@@ -95,9 +95,6 @@ class ActionHooks {
 			);
 		}
 
-		// Get nonce for the button.
-		$nonce = wp_create_nonce( 'tsmlt_strip_exif_' . $attachment_id );
-
 		ob_start();
 		?>
 		<div style="padding:10px 12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:3px;">
@@ -106,7 +103,6 @@ class ActionHooks {
 				class="button button-secondary"
 				id="tsmlt-strip-exif-btn-<?php echo absint( $attachment_id ); ?>"
 				data-attachment-id="<?php echo absint( $attachment_id ); ?>"
-				data-nonce="<?php echo esc_attr( $nonce ); ?>"
 				style="display:inline-block;margin-bottom:8px;">
 				<?php esc_html_e( 'Remove EXIF Data', 'media-library-tools' ); ?>
 			</button>
@@ -156,7 +152,11 @@ class ActionHooks {
 							? 'padding:8px;background:#d4edda;border:1px solid #c3e6cb;border-radius:3px;color:#155724;'
 							: 'padding:8px;background:#f8d7da;border:1px solid #f5c6cb;border-radius:3px;color:#721c24;';
 
-						msgDiv.innerHTML = '<div style="' + msgStyle + '">' + (data.data?.message || data.data) + '</div>';
+						const msgEl = document.createElement('div');
+						msgEl.style.cssText = msgStyle;
+						msgEl.textContent = data.data?.message || data.data || '';
+						msgDiv.innerHTML = '';
+						msgDiv.appendChild(msgEl);
 
 						// Refresh the attachment if successful.
 						if (data.success) {
@@ -168,7 +168,11 @@ class ActionHooks {
 					.catch(error => {
 						btn.disabled = false;
 						btn.textContent = '<?php echo esc_js( __( 'Remove EXIF Data', 'media-library-tools' ) ); ?>';
-						msgDiv.innerHTML = '<div style="padding:8px;background:#f8d7da;border:1px solid #f5c6cb;border-radius:3px;color:#721c24;">Error: ' + error.message + '</div>';
+						const errEl = document.createElement('div');
+						errEl.style.cssText = 'padding:8px;background:#f8d7da;border:1px solid #f5c6cb;border-radius:3px;color:#721c24;';
+						errEl.textContent = 'Error: ' + (error.message || 'Unknown error');
+						msgDiv.innerHTML = '';
+						msgDiv.appendChild(errEl);
 					});
 				});
 			}
