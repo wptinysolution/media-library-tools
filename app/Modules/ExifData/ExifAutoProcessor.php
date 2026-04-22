@@ -258,34 +258,4 @@ class ExifAutoProcessor {
 		return null;
 	}
 
-	/**
-	 * Get available auto-processing options for settings.
-	 *
-	 * @return array
-	 */
-	public static function get_auto_processing_options(): array {
-		return [
-			'auto_process_exif'          => [
-				'label'       => esc_html__( 'Enable EXIF Auto-Processing', 'media-library-tools' ),
-				'description' => esc_html__( 'Automatically process EXIF data when images are uploaded', 'media-library-tools' ),
-				'type'        => 'checkbox',
-			],
-			'auto_remove_gps_on_upload'  => [
-				'label'       => esc_html__( 'Remove GPS Data', 'media-library-tools' ),
-				'description' => esc_html__( 'Automatically strip GPS coordinates from uploaded images (Pro only)', 'media-library-tools' ),
-				'type'        => 'checkbox',
-				'pro'         => true,
-			],
-			'auto_fill_metadata_from_exif' => [
-				'label'       => esc_html__( 'Fill Missing Metadata', 'media-library-tools' ),
-				'description' => esc_html__( 'Use EXIF data to fill missing title, caption, and alt text', 'media-library-tools' ),
-				'type'        => 'checkbox',
-			],
-			'auto_set_date_from_exif'   => [
-				'label'       => esc_html__( 'Set Date from EXIF', 'media-library-tools' ),
-				'description' => esc_html__( 'Use EXIF date taken as attachment date', 'media-library-tools' ),
-				'type'        => 'checkbox',
-			],
-		];
-	}
 }

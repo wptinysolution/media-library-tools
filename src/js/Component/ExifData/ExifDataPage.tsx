@@ -22,7 +22,6 @@ interface ExifImage {
         other?: Record<string, string>;
     };
     stripped: boolean;
-    stripped_info: any;
 }
 
 export default function ExifDataPage() {
