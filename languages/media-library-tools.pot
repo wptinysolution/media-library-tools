@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-18T18:12:02+00:00\n"
+"POT-Creation-Date: 2026-04-22T20:05:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -88,7 +88,7 @@ msgstr ""
 
 #: app/Controllers/Admin/RegisterPostAndTax.php:45
 #: app/Controllers/Admin/RegisterPostAndTax.php:55
-#: app/Controllers/Hooks/FilterHooks.php:392
+#: app/Controllers/Hooks/FilterHooks.php:391
 msgid "Groups"
 msgstr ""
 
@@ -199,120 +199,112 @@ msgstr ""
 msgid "EXIF removal is only available for JPEG images."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:111
-#: app/Controllers/Hooks/ActionHooks.php:153
+#: app/Controllers/Hooks/ActionHooks.php:107
+#: app/Controllers/Hooks/ActionHooks.php:149
 #: app/Controllers/Hooks/ActionHooks.php:170
 msgid "Remove EXIF Data"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:114
+#: app/Controllers/Hooks/ActionHooks.php:110
 msgid "This will remove all metadata (camera info, GPS, dates, etc.) from the image while preserving visual quality."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:131
+#: app/Controllers/Hooks/ActionHooks.php:127
 msgid "Are you sure you want to remove EXIF metadata? This action cannot be undone."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:136
+#: app/Controllers/Hooks/ActionHooks.php:132
 msgid "Removing..."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:195
+#: app/Controllers/Hooks/ActionHooks.php:199
 msgid "EXIF editing is only available for JPEG images."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:203
+#: app/Controllers/Hooks/ActionHooks.php:207
 msgid "Pro Feature"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:204
+#: app/Controllers/Hooks/ActionHooks.php:208
 msgid "EXIF editing is available in the Pro version."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:213
+#: app/Controllers/Hooks/ActionHooks.php:217
 msgid "Edit EXIF Data"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:222
+#: app/Controllers/Hooks/ActionHooks.php:226
 msgid "Before"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:225
+#: app/Controllers/Hooks/ActionHooks.php:229
 msgid "After"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:242
-#: app/Controllers/Hooks/FilterHooks.php:393
-#: app/Modules/ExifData/ExifDataReader.php:507
+#: app/Controllers/Hooks/ActionHooks.php:246
+#: app/Controllers/Hooks/FilterHooks.php:392
+#: app/Modules/ExifData/ExifDataReader.php:500
 msgid "Camera"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:247
+#: app/Controllers/Hooks/ActionHooks.php:251
 #: app/Modules/ExifData/ExifDataReader.php:138
+#: app/Modules/ExifData/ExifDataReader.php:448
 msgid "Make"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:253
+#: app/Controllers/Hooks/ActionHooks.php:257
 #: app/Modules/ExifData/ExifDataReader.php:139
+#: app/Modules/ExifData/ExifDataReader.php:449
 msgid "Model"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:263
-#: app/Modules/ExifData/ExifDataReader.php:511
-msgid "Date"
-msgstr ""
-
 #: app/Controllers/Hooks/ActionHooks.php:267
-#: app/Controllers/Hooks/FilterHooks.php:394
-#: app/Modules/ExifData/ExifDataReader.php:169
-msgid "Date Taken"
-msgstr ""
-
-#: app/Controllers/Hooks/ActionHooks.php:276
-#: app/Modules/ExifData/ExifDataReader.php:509
+#: app/Modules/ExifData/ExifDataReader.php:502
 msgid "Exposure"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:281
-#: app/Modules/ExifData/ExifDataReader.php:154
+#: app/Controllers/Hooks/ActionHooks.php:272
+#: app/Modules/ExifData/ExifDataReader.php:153
+#: app/Modules/ExifData/ExifDataReader.php:451
 msgid "ISO"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:287
+#: app/Controllers/Hooks/ActionHooks.php:278
 msgid "Aperture (f/)"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:294
+#: app/Controllers/Hooks/ActionHooks.php:285
 msgid "Shutter Speed"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:303
+#: app/Controllers/Hooks/ActionHooks.php:294
 msgid "Location"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:308
+#: app/Controllers/Hooks/ActionHooks.php:299
 msgid "Latitude (-90 to 90)"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:314
+#: app/Controllers/Hooks/ActionHooks.php:305
 msgid "Longitude (-180 to 180)"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:327
+#: app/Controllers/Hooks/ActionHooks.php:318
 msgid "Cancel"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:330
-#: app/Controllers/Hooks/ActionHooks.php:539
-#: app/Controllers/Hooks/ActionHooks.php:560
+#: app/Controllers/Hooks/ActionHooks.php:321
+#: app/Controllers/Hooks/ActionHooks.php:526
+#: app/Controllers/Hooks/ActionHooks.php:547
 msgid "Save EXIF"
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:514
+#: app/Controllers/Hooks/ActionHooks.php:502
 msgid "Saving..."
 msgstr ""
 
-#: app/Controllers/Hooks/ActionHooks.php:637
+#: app/Controllers/Hooks/ActionHooks.php:624
 msgid "View"
 msgstr ""
 
@@ -351,66 +343,66 @@ msgid "Every 6 Hours"
 msgstr ""
 
 #. translators: file size
-#: app/Controllers/Hooks/FilterHooks.php:218
+#: app/Controllers/Hooks/FilterHooks.php:217
 #, php-format
 msgid "The uploaded SVG exceeds the maximum allowed file size of %s."
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:233
+#: app/Controllers/Hooks/FilterHooks.php:232
 msgid "This SVG file contains unsafe content and cannot be uploaded."
 msgstr ""
 
 #. translators: %s: Attachment title.
-#: app/Controllers/Hooks/FilterHooks.php:312
+#: app/Controllers/Hooks/FilterHooks.php:311
 #, php-format
 msgid "Move &#8220;%s&#8221; to the Trash"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:313
+#: app/Controllers/Hooks/FilterHooks.php:312
 msgctxt "verb"
 msgid "Trash"
 msgstr ""
 
 #. translators: %s: Attachment title.
-#: app/Controllers/Hooks/FilterHooks.php:321
+#: app/Controllers/Hooks/FilterHooks.php:320
 #, php-format
 msgid "Delete &#8220;%s&#8221; permanently"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:322
+#: app/Controllers/Hooks/FilterHooks.php:321
 msgid "Delete Permanently"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:389
+#: app/Controllers/Hooks/FilterHooks.php:388
 msgid "Alt"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:390
+#: app/Controllers/Hooks/FilterHooks.php:389
 msgid "Caption"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:391
-#: app/Modules/ExifData/ExifDataReader.php:176
+#: app/Controllers/Hooks/FilterHooks.php:390
+#: app/Modules/ExifData/ExifDataReader.php:170
 msgid "Description"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:395
+#: app/Controllers/Hooks/FilterHooks.php:393
 msgid "Dimensions"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:517
+#: app/Controllers/Hooks/FilterHooks.php:458
 msgid "Settings"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:519
+#: app/Controllers/Hooks/FilterHooks.php:460
 msgid "Go Pro"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:534
+#: app/Controllers/Hooks/FilterHooks.php:475
 msgid "Facing issue?"
 msgstr ""
 
-#: app/Controllers/Hooks/FilterHooks.php:534
+#: app/Controllers/Hooks/FilterHooks.php:475
 msgid "Please open a support ticket."
 msgstr ""
 
@@ -490,54 +482,23 @@ msgstr ""
 msgid "Duplicate scan results cleared."
 msgstr ""
 
-#: app/Modules/ExifData/ExifAutoProcessor.php:271
-msgid "Enable EXIF Auto-Processing"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:272
-msgid "Automatically process EXIF data when images are uploaded"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:276
-msgid "Remove GPS Data"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:277
-msgid "Automatically strip GPS coordinates from uploaded images (Pro only)"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:282
-msgid "Fill Missing Metadata"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:283
-msgid "Use EXIF data to fill missing title, caption, and alt text"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:287
-msgid "Set Date from EXIF"
-msgstr ""
-
-#: app/Modules/ExifData/ExifAutoProcessor.php:288
-msgid "Use EXIF date taken as attachment date"
-msgstr ""
-
 #: app/Modules/ExifData/ExifDataReader.php:75
 msgid "EXIF data is only available for JPEG, TIFF, and WebP images."
 msgstr ""
 
 #: app/Modules/ExifData/ExifDataReader.php:87
-#: app/Modules/ExifData/ExifDataReader.php:1109
+#: app/Modules/ExifData/ExifDataReader.php:1090
 #: app/Modules/ExifData/ExifStripper.php:46
 msgid "Image file not found on server."
 msgstr ""
 
 #: app/Modules/ExifData/ExifDataReader.php:98
-#: app/Modules/ExifData/ExifDataReader.php:1116
+#: app/Modules/ExifData/ExifDataReader.php:1097
 msgid "PHP EXIF extension is not enabled on this server."
 msgstr ""
 
 #: app/Modules/ExifData/ExifDataReader.php:111
+#: app/Modules/ExifData/ExifDataReader.php:494
 msgid "No EXIF data found for this image."
 msgstr ""
 
@@ -566,90 +527,92 @@ msgid "Orientation"
 msgstr ""
 
 #: app/Modules/ExifData/ExifDataReader.php:148
-msgid "Color Space"
-msgstr ""
-
-#: app/Modules/ExifData/ExifDataReader.php:149
 msgid "Bits Per Sample"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:152
+#: app/Modules/ExifData/ExifDataReader.php:151
+#: app/Modules/ExifData/ExifDataReader.php:453
 msgid "Exposure Time"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:153
+#: app/Modules/ExifData/ExifDataReader.php:152
+#: app/Modules/ExifData/ExifDataReader.php:452
 msgid "Aperture"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:155
+#: app/Modules/ExifData/ExifDataReader.php:154
 msgid "Exposure Program"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:156
+#: app/Modules/ExifData/ExifDataReader.php:155
 msgid "Exposure Bias"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:157
+#: app/Modules/ExifData/ExifDataReader.php:156
 msgid "Metering Mode"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:158
+#: app/Modules/ExifData/ExifDataReader.php:157
 msgid "Flash"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:159
+#: app/Modules/ExifData/ExifDataReader.php:158
 msgid "Focal Length"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:160
+#: app/Modules/ExifData/ExifDataReader.php:159
 msgid "35mm Focal Length"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:163
+#: app/Modules/ExifData/ExifDataReader.php:162
+#: app/Modules/ExifData/ExifDataReader.php:469
 msgid "Latitude"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:164
+#: app/Modules/ExifData/ExifDataReader.php:163
+#: app/Modules/ExifData/ExifDataReader.php:472
 msgid "Longitude"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:165
+#: app/Modules/ExifData/ExifDataReader.php:164
 msgid "Altitude"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:168
-msgid "Date Modified"
-msgstr ""
-
-#: app/Modules/ExifData/ExifDataReader.php:170
-msgid "Date Digitized"
-msgstr ""
-
-#: app/Modules/ExifData/ExifDataReader.php:173
+#: app/Modules/ExifData/ExifDataReader.php:167
+#: app/Modules/ExifData/ExifDataReader.php:455
 msgid "Artist"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:174
+#: app/Modules/ExifData/ExifDataReader.php:168
+#: app/Modules/ExifData/ExifDataReader.php:454
 msgid "Copyright"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:175
+#: app/Modules/ExifData/ExifDataReader.php:169
 msgid "User Comment"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:508
+#: app/Modules/ExifData/ExifDataReader.php:450
+msgid "Date Taken"
+msgstr ""
+
+#: app/Modules/ExifData/ExifDataReader.php:501
 msgid "Image"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:510
+#: app/Modules/ExifData/ExifDataReader.php:503
 msgid "GPS"
 msgstr ""
 
-#: app/Modules/ExifData/ExifDataReader.php:512
+#: app/Modules/ExifData/ExifDataReader.php:504
 msgid "Other"
 msgstr ""
 
-#: app/Modules/ExifData/ExifScanner.php:187
+#: app/Modules/ExifData/ExifDataReader.php:505
+msgid "Generated Sizes"
+msgstr ""
+
+#: app/Modules/ExifData/ExifScanner.php:180
 msgid "EXIF scan results cleared."
 msgstr ""
 
