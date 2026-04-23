@@ -41,10 +41,23 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
             const item = mediaFiles[i];
             setPercent(Math.floor(100 * i / total));
 
+            if (!item || typeof item !== 'object') {
+                continue;
+            }
+
             if (item['url']?.toString().length || settings.importUpdateContent) {
-                setCurrentFile(item['url'] as string);
-                const importedItem = await importOneByOne({ media: item, settings: exportImport.settings }) as { data: UploadedItem };
-                setUploadedFile(prev => [...prev, importedItem.data]);
+                setCurrentFile(item['url'] as string || '');
+                try {
+                    const importedItem = await importOneByOne({ media: item, settings: exportImport.settings }) as { data: UploadedItem };
+                    const result = importedItem?.data;
+                    if (result && typeof result === 'object') {
+                        setUploadedFile(prev => [...prev, result]);
+                    } else {
+                        setUploadedFile(prev => [...prev, { id: item['ID'] || i, url: item['url'] as string || '', status: 'failed' }]);
+                    }
+                } catch {
+                    setUploadedFile(prev => [...prev, { id: item['ID'] || i, url: item['url'] as string || '', status: 'failed' }]);
+                }
                 setCurrentFile(null);
             }
         }
@@ -126,11 +139,15 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                     <div className="h-100 overflow-auto px-4">
                     {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
-                            <img
-                                src={item.url}
-                                alt=""
-                                className="w-10 h-10 rounded-full object-cover shrink-0"
-                            />
+                            {item.url ? (
+                                <img
+                                    src={item.url}
+                                    alt=""
+                                    className="w-10 h-10 rounded-full object-cover shrink-0"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0 flex items-center justify-center text-gray-400 text-xs">N/A</div>
+                            )}
                             <div className="min-w-0">
                                 <a
                                     target="_blank"
