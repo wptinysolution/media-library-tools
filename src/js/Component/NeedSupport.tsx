@@ -10,7 +10,7 @@ function NeedSupport() {
 
                 <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                     <a
-                        href="https://help.wptinysolutions.com/"
+                        href="https://wptinysolutions.com/help/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group block bg-white rounded-xl p-8 shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300"

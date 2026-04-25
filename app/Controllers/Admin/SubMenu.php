@@ -127,7 +127,7 @@ class SubMenu {
 				<div id="tsmlt-pro-page-footer" class="tsmlt-pro-page-footer">
 					<div class="tsmlt-pro-banner">
 						<span class="tsmlt-pro-banner__highlight">Are you enjoying the free version? Have you got some valuable feedback to share? Have you encountered a bug and found a solution? If so, we might have a special <span class="tsmlt-pro-banner__discount"> discount </span> waiting for you!</span>
-						Contact us via email to receive assistance and get the offer: <a class="tsmlt-pro-banner__link" target="_blank" href="https://help.wptinysolutions.com/"><strong>https://help.wptinysolutions.com/</strong></a>
+						Contact us via email to receive assistance and get the offer: <a class="tsmlt-pro-banner__link" target="_blank" href="https://wptinysolutions.com/help/"><strong>https://wptinysolutions.com/help/</strong></a>
 					</div>
 
 					<div class="tsmlt-pro-faq-container">
@@ -172,7 +172,7 @@ class SubMenu {
 								</li>
 								<li class="tsmlt-pro-faq__item">
 									<h3 class="tsmlt-pro-faq__question">I have other pre-sale questions, can you help?</h3>
-									<p class="tsmlt-pro-faq__answer">Yes! You can ask us any question through our <a href="https://help.wptinysolutions.com/">Our Website</a>.</p>
+									<p class="tsmlt-pro-faq__answer">Yes! You can ask us any question through our <a href="https://wptinysolutions.com/help/">Our Website</a>.</p>
 								</li>
 							</ul>
 						</div>
