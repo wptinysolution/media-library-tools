@@ -427,10 +427,24 @@ class UsedWhereScanner {
 			if ( isset( $this->url_lookup_map[ $rel_path ] ) ) {
 				return $this->url_lookup_map[ $rel_path ];
 			}
-			// 3. Basename match (covers scaled/sized variants like image-300x200.jpg).
+
+			// 3. Basename match.
 			$basename = basename( $rel_path );
 			if ( isset( $this->url_lookup_map[ $basename ] ) ) {
 				return $this->url_lookup_map[ $basename ];
+			}
+
+			// 4. Strip WP size suffix (e.g. image-300x200.jpg → image.jpg)
+			//    to match the original attachment file.
+			$stripped = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $basename );
+			if ( $stripped !== $basename && isset( $this->url_lookup_map[ $stripped ] ) ) {
+				return $this->url_lookup_map[ $stripped ];
+			}
+
+			// 5. Strip size suffix from relative path (e.g. 2026/04/image-300x200.jpg → 2026/04/image.jpg).
+			$stripped_rel = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $rel_path );
+			if ( $stripped_rel !== $rel_path && isset( $this->url_lookup_map[ $stripped_rel ] ) ) {
+				return $this->url_lookup_map[ $stripped_rel ];
 			}
 		}
 
