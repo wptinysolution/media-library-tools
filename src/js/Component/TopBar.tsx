@@ -45,7 +45,7 @@ function TopBar() {
             {/* Right: Action links */}
             <div className="flex items-center gap-0.5">
                 <a
-                    href="https://help.wptinysolutions.com/"
+                    href="https://wptinysolutions.com/help/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors no-underline"

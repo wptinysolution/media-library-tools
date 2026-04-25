@@ -339,7 +339,7 @@ class Review {
 
 				<div class="tsmlt-deactivate-support">
 					<span class="tsmlt-deactivate-support__text"><?php esc_html_e( 'Having trouble? Our support team is here to help.', 'media-library-tools' ); ?></span>
-					<a class="tsmlt-deactivate-support__btn" target="_blank" rel="noopener" href="https://help.wptinysolutions.com/"><?php esc_html_e( 'Contact Support', 'media-library-tools' ); ?> &rarr;</a>
+					<a class="tsmlt-deactivate-support__btn" target="_blank" rel="noopener" href="https://wptinysolutions.com/help/"><?php esc_html_e( 'Contact Support', 'media-library-tools' ); ?> &rarr;</a>
 				</div>
 
 				<div class="tsmlt-deactivate-divider">
