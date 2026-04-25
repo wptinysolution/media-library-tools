@@ -425,6 +425,16 @@ class Ajax {
 		$filter = sanitize_text_field( $params['filter'] ?? 'used' );
 		$search = sanitize_text_field( $params['search'] ?? '' );
 
+		// Only return results if a scan has been completed.
+		$scan_status = get_option( 'tsmlt_used_where_scan_status', [] );
+		if ( empty( $scan_status['processed'] ) ) {
+			$this->send( [
+				'usages' => [],
+				'total'  => 0,
+			] );
+			return;
+		}
+
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
@@ -437,13 +447,24 @@ class Ajax {
 		}
 
 		if ( 'unused' === $filter ) {
-			// Attachments that were scanned but have no recorded usages.
+			// Attachments uploaded before the scan that have no recorded usages.
 			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
 					'key'     => UsedWhereScanner::META_KEY,
 					'compare' => 'NOT EXISTS',
 				],
 			];
+
+			// Only include attachments that existed when the scan was run.
+			if ( ! empty( $scan_status['timestamp'] ) ) {
+				$args['date_query'] = [
+					[
+						'before'    => $scan_status['timestamp'],
+						'inclusive' => true,
+						'column'    => 'post_date',
+					],
+				];
+			}
 		} else {
 			// Default: attachments that have usage meta (used images).
 			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
