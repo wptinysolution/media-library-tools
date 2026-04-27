@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifAutoProcessor;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 
@@ -39,6 +40,34 @@ class ActionHooks {
 		// Hook the function to a cron job.
 		add_action( 'in_admin_header', [ $this, 'remove_all_notices' ], 99 );
 		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
+		// Auto-detect image usage when a post is saved.
+		add_action( 'save_post', [ $this, 'track_image_usage_on_save' ], 99, 2 );
+	}
+
+	/**
+	 * Track image usage when a post/page is saved or updated.
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param \WP_Post $post    Post object.
+	 *
+	 * @return void
+	 */
+	public function track_image_usage_on_save( $post_id, $post ): void {
+		// Skip auto-saves, revisions, and attachments.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+		if ( 'attachment' === $post->post_type ) {
+			return;
+		}
+		if ( 'publish' !== $post->post_status ) {
+			return;
+		}
+
+		UsedWhereScanner::instance()->scan_single_post( $post_id );
 	}
 
 	/**

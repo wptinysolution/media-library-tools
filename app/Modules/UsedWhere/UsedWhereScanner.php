@@ -495,6 +495,57 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * Scan a single post for image usage on save.
+	 *
+	 * Removes old usage records for this post from all attachments,
+	 * then re-detects and records current usages.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return void
+	 */
+	public function scan_single_post( int $post_id ): void {
+		$post = get_post( $post_id );
+		if ( ! $post || 'attachment' === $post->post_type ) {
+			return;
+		}
+
+		// Remove old usage records for this post from all attachments.
+		$meta_rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->get();
+
+		foreach ( ( $meta_rows ?: [] ) as $row ) {
+			$att_id   = absint( $row['post_id'] );
+			$existing = maybe_unserialize( $row['meta_value'] );
+			if ( ! is_array( $existing ) ) {
+				continue;
+			}
+
+			$filtered = array_filter(
+				$existing,
+				fn( $item ) => (int) ( $item['post_id'] ?? 0 ) !== $post_id
+			);
+
+			if ( count( $filtered ) !== count( $existing ) ) {
+				if ( empty( $filtered ) ) {
+					delete_post_meta( $att_id, self::META_KEY );
+				} else {
+					update_post_meta( $att_id, self::META_KEY, array_values( $filtered ) );
+				}
+			}
+		}
+
+		// Build the lookup map and detect usages in this post.
+		$this->build_url_lookup_map();
+		$this->usages_buffer = [];
+		$this->detect_usage_in_post( $post );
+		$this->flush_usages_buffer();
+		$this->url_lookup_map = null;
+	}
+
+	/**
 	 * Get scan status.
 	 *
 	 * @return array{scanned: int, total: int, complete: bool, last_update: string}
