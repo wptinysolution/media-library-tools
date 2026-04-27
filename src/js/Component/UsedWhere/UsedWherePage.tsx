@@ -124,6 +124,8 @@ export default function UsedWherePage() {
                 setScanProgress({ processed: result.processed, total: result.total });
             }
 
+            // Show 100% briefly before hiding the progress bar.
+            await new Promise(resolve => setTimeout(resolve, 1500));
             setIsScanning(false);
             await loadStatus();
             await loadResults(1, activeFilter, searchQuery);
@@ -327,9 +329,12 @@ export default function UsedWherePage() {
             {isScanning && (
                 <div className="px-4 py-4 bg-white border-b border-gray-200">
                     <p className="text-sm text-gray-600 mb-2 mt-0!">
-                        Scanning posts... {scanProgress.processed} / {scanProgress.total}
+                        Scanning {scanProgress.processed} / {scanProgress.total} posts for image usage...
                     </p>
                     <ProgressBar percent={scanPercent} />
+                    <p className="text-xs text-gray-400 mt-1.5 mb-0!">
+                        Checking posts, pages, and custom post types for image references. Images not found in any post will be marked as unused.
+                    </p>
                 </div>
             )}
 

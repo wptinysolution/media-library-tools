@@ -76,7 +76,7 @@ export default function ExifToolbar({
 
                 {/* Bulk actions */}
                 <select
-                    className="pr-20 h-8 px-2.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className={`pr-20 h-8 px-2.5 text-sm border border-gray-300 rounded-md bg-white cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${bulkAction ? 'text-gray-700' : 'text-gray-400'}`}
                     value={bulkAction}
                     onChange={(e) => onBulkActionChange(e.target.value)}
                 >

@@ -16,7 +16,7 @@ AI-Powered Rename, bulk edit metadata, find duplicates, clean, CSV Import & Expo
 
 Whether you run a blog, WooCommerce store, or content-heavy site, Media Library Tools helps you keep your media library clean, organized, and SEO-optimized.
 
-👉 [Documentation](https://wptinysolutions.com/docs/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
+👉 [Documentation](https://wptinysolutions.com/docs/docs-category/media-library-tools/) | [Get Pro](https://www.wptinysolutions.com/tiny-products/media-library-tools/) 👈
 
 [youtube https://www.youtube.com/watch?v=L7F33DYnsZU]
 

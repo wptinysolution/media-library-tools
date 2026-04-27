@@ -94,9 +94,6 @@ class Api {
 	 * @return array
 	 */
 	public function update_option( array $request_data ) {
-		$result     = [
-			'message' => esc_html__( 'Update failed. Maybe change not found. ', 'media-library-tools' ),
-		];
 		$parameters = $this->parse_params( $request_data );
 
 		$total_count = absint( $parameters['media_per_page'] ?? 20 );
@@ -138,13 +135,12 @@ class Api {
 
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 
-		$options = update_option( 'tsmlt_settings', $tsmlt_media );
+		update_option( 'tsmlt_settings', $tsmlt_media );
 
-		$result['updated'] = boolval( $options );
-
-		$result['message'] = ! $result['updated'] ? $result['message'] . esc_html__( 'Please try to fix', 'media-library-tools' ) : esc_html__( 'Updated. Be happy', 'media-library-tools' );
-
-		return $result;
+		return [
+			'updated' => true,
+			'message' => esc_html__( 'Settings saved.', 'media-library-tools' ),
+		];
 	}
 
 	/**

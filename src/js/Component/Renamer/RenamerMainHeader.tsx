@@ -83,7 +83,7 @@ function RenamerMainHeader() {
                 {/* Bulk Actions group */}
                 <div className="flex items-center gap-2">
                     <select
-                        className="px-3! pr-5.5! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! min-w-[220px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        className={`px-3! pr-5.5! py-2! text-sm! bg-white! border! border-gray-300! rounded-md! shadow-none! min-w-[220px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400! ${bulkSubmitData.type ? 'text-gray-900!' : 'text-gray-400!'}`}
                         onChange={(e) => handleChangeBulkType(e.target.value)}
                         value={bulkSubmitData.type || ""}
                     >

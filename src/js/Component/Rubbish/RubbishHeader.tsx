@@ -126,9 +126,9 @@ function RubbishHeader() {
                 {/* Bulk Actions group */}
                 <div className="flex items-center gap-2">
                     <select
-                        className="px-3! py-2! text-sm! text-gray-900! bg-white! border! border-gray-300! rounded-md! shadow-none! w-[150px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400!"
+                        className={`px-3! py-2! text-sm! bg-white! border! border-gray-300! rounded-md! shadow-none! w-[150px] focus:outline-none! focus:border-blue-500! focus:ring-2! focus:ring-blue-500/20! focus:shadow-none! hover:border-gray-400! ${bulkRubbishData.type && bulkRubbishData.type !== 'default' ? 'text-gray-900!' : 'text-gray-400!'}`}
                         onChange={(e) => handleChangeBulkType(e.target.value)}
-                        defaultValue=""
+                        value={bulkRubbishData.type && bulkRubbishData.type !== 'default' ? bulkRubbishData.type : ""}
                     >
                         <option value="" disabled>Bulk Action</option>
                         {options_list.map(option => (
