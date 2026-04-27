@@ -570,6 +570,11 @@ class UsedWhereScanner {
 		$this->clear_all_usage_meta();
 		delete_option( 'tsmlt_used_where_scan_status' );
 
+		// Clear frontend visit tracking flags so posts get re-scanned on next visit.
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_key', '=', '_tsmlt_usage_tracked' )
+			->execute();
+
 		return [
 			'updated' => true,
 			'message' => esc_html__( 'Scan cleared successfully.', 'media-library-tools' ),

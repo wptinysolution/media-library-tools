@@ -42,6 +42,8 @@ class ActionHooks {
 		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
 		// Auto-detect image usage when a post is saved.
 		add_action( 'save_post', [ $this, 'track_image_usage_on_save' ], 99, 2 );
+		// Auto-detect image usage on first frontend visit per post.
+		add_action( 'wp', [ $this, 'track_image_usage_on_visit' ] );
 	}
 
 	/**
@@ -63,11 +65,40 @@ class ActionHooks {
 		if ( 'attachment' === $post->post_type ) {
 			return;
 		}
-		if ( 'publish' !== $post->post_status ) {
+
+		UsedWhereScanner::instance()->scan_single_post( $post_id );
+
+		// Reset the frontend visit flag so the next visit re-scans.
+		delete_post_meta( $post_id, '_tsmlt_usage_tracked' );
+	}
+
+	/**
+	 * Track image usage on the first frontend visit of a singular post.
+	 *
+	 * Uses a post meta flag to ensure the scan runs only once per post.
+	 *
+	 * @return void
+	 */
+	public function track_image_usage_on_visit(): void {
+		if ( is_admin() || ! is_singular() ) {
 			return;
 		}
 
-		UsedWhereScanner::instance()->scan_single_post( $post_id );
+		$post = get_queried_object();
+		if ( ! $post || ! ( $post instanceof \WP_Post ) || 'attachment' === $post->post_type ) {
+			return;
+		}
+
+		// Only run once per post — check a lightweight meta flag.
+		$flag = get_post_meta( $post->ID, '_tsmlt_usage_tracked', true );
+		if ( $flag ) {
+			return;
+		}
+
+		// Set the flag first to avoid repeated scans on concurrent requests.
+		update_post_meta( $post->ID, '_tsmlt_usage_tracked', '1' );
+
+		UsedWhereScanner::instance()->scan_single_post( $post->ID );
 	}
 
 	/**
