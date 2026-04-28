@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import type { Plugin } from "vite";
-import type { OutputBundle } from "rollup";
+import type {OutputBundle} from "rolldown";
 
 /**
  * Wraps one or more specific JS files in an IIFE.
@@ -47,6 +47,10 @@ export default defineConfig({
         outDir: 'assets', // compiled files output
         chunkSizeWarningLimit: 5000, // Increase from default 500 kB
         rollupOptions: {
+            onwarn(warning, warn) {
+                if (warning.code === 'FILE_NAME_CONFLICT') return;
+                warn(warning);
+            },
             input: {
                 'js/backend/admin-settings': path.resolve(__dirname, 'src/js/admin-settings.tsx')
              },

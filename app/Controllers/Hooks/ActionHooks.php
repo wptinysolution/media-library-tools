@@ -42,8 +42,10 @@ class ActionHooks {
 		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
 		// Auto-detect image usage when a post is saved.
 		add_action( 'save_post', [ $this, 'track_image_usage_on_save' ], 99, 2 );
-		// Auto-detect image usage on first frontend visit per post.
-		add_action( 'wp', [ $this, 'track_image_usage_on_visit' ] );
+		// Auto-detect image usage on first frontend visit by scanning rendered HTML.
+		add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
+		// Process captured HTML after response is sent — no delay for visitor.
+		add_action( 'shutdown', [ $this, 'process_captured_html' ] );
 	}
 
 	/**
@@ -73,7 +75,14 @@ class ActionHooks {
 	}
 
 	/**
-	 * Track image usage on the first frontend visit of a singular post.
+	 * Track image usage on the first frontend visit by scanning rendered HTML.
+	 *
+	 * Uses output buffering to capture the full page output (<html> to </html>),
+	 * then scans it for all image URLs (img src, srcset, CSS background-image, etc.).
+	 * This detects images in header, footer, sidebar, widgets, and hardcoded URLs.
+	 *
+	 * The actual scanning runs on the `shutdown` hook (after response is sent)
+	 * so it does NOT delay page delivery for the visitor.
 	 *
 	 * Uses a post meta flag to ensure the scan runs only once per post.
 	 *
@@ -98,7 +107,49 @@ class ActionHooks {
 		// Set the flag first to avoid repeated scans on concurrent requests.
 		update_post_meta( $post->ID, '_tsmlt_usage_tracked', '1' );
 
-		UsedWhereScanner::instance()->scan_single_post( $post->ID );
+		// Start output buffering to capture the full rendered HTML.
+		$post_id = $post->ID;
+		ob_start(
+			function ( $html ) use ( $post_id ) {
+				if ( ! empty( $html ) ) {
+					// Store HTML for processing on shutdown (after response is sent).
+					$this->captured_html     = $html;
+					$this->captured_post_id  = $post_id;
+				}
+				return $html; // Return HTML unchanged — no delay to page output.
+			}
+		);
+	}
+
+	/**
+	 * Captured HTML from output buffer — processed on shutdown.
+	 *
+	 * @var string|null
+	 */
+	private $captured_html = null;
+
+	/**
+	 * Post ID for captured HTML.
+	 *
+	 * @var int|null
+	 */
+	private $captured_post_id = null;
+
+	/**
+	 * Process captured HTML on shutdown (after response is sent to browser).
+	 *
+	 * @return void
+	 */
+	public function process_captured_html(): void {
+		if ( empty( $this->captured_html ) || empty( $this->captured_post_id ) ) {
+			return;
+		}
+
+		UsedWhereScanner::instance()->scan_rendered_html( $this->captured_html, $this->captured_post_id );
+
+		// Free memory.
+		$this->captured_html    = null;
+		$this->captured_post_id = null;
 	}
 
 	/**

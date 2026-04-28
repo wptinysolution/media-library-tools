@@ -425,15 +425,7 @@ class Ajax {
 		$filter = sanitize_text_field( $params['filter'] ?? 'used' );
 		$search = sanitize_text_field( $params['search'] ?? '' );
 
-		// Only return results if a scan has been completed.
 		$scan_status = get_option( 'tsmlt_used_where_scan_status', [] );
-		if ( empty( $scan_status['processed'] ) ) {
-			$this->send( [
-				'usages' => [],
-				'total'  => 0,
-			] );
-			return;
-		}
 
 		$args = [
 			'post_type'      => 'attachment',
@@ -447,6 +439,15 @@ class Ajax {
 		}
 
 		if ( 'unused' === $filter ) {
+			// Unused tab requires a full scan to know which attachments have no usages.
+			if ( empty( $scan_status['processed'] ) ) {
+				$this->send( [
+					'usages' => [],
+					'total'  => 0,
+				] );
+				return;
+			}
+
 			// Attachments uploaded before the scan that have no recorded usages.
 			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
@@ -466,7 +467,8 @@ class Ajax {
 				];
 			}
 		} else {
-			// Default: attachments that have usage meta (used images).
+			// Used tab: show any attachment with usage meta — works even without full scan
+			// (e.g. usage detected on post save or frontend visit).
 			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				[
 					'key'     => UsedWhereScanner::META_KEY,

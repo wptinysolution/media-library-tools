@@ -235,23 +235,21 @@ export default function UsedWherePage() {
     }, []);
 
     // Load results when filter, page, or search changes.
-    // For Used/Unused tabs: only load if scan has been completed (processed > 0)
-    // For Trash tab: always load from DB (trash data is persistent)
+    // Used tab: always loads (post-save and frontend-visit tracking work without full scan).
+    // Unused tab: only loads if a full scan has been completed (processed > 0).
+    // Trash tab: always loads from DB (trash data is persistent).
     useEffect(() => {
-        // Trash tab always loads from DB
-        if (activeFilter === 'trash') {
-            loadResults(currentPageFromUrl, activeFilter, searchQuery);
-        } else if (scanProgress.processed > 0) {
-            // Used/Unused only load if scan has been completed
-            loadResults(currentPageFromUrl, activeFilter, searchQuery);
+        if (activeFilter === 'unused' && scanProgress.processed === 0) {
+            return; // Unused tab requires a full scan.
         }
+        loadResults(currentPageFromUrl, activeFilter, searchQuery);
     }, [activeFilter, currentPageFromUrl, searchQuery, loadResults, scanProgress.processed]);
 
     const scanPercent = scanProgress.total > 0
         ? Math.round((scanProgress.processed / scanProgress.total) * 100)
         : 0;
 
-    const isPreScan = scanProgress.processed === 0 && !isScanning;
+    const isPreScan = scanProgress.processed === 0 && !isScanning && activeFilter !== 'used';
 
     const totalPages = Math.ceil(totalUsages / perPage);
     const allSelected = usages.length > 0 && selectedIds.size === usages.length;

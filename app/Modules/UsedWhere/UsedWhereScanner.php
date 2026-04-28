@@ -79,16 +79,20 @@ class UsedWhereScanner {
 			'post_type'      => $post_types,
 			'posts_per_page' => $batch_size,
 			'offset'         => $offset,
-			'post_status'    => 'publish',
+			'post_status'    => [ 'publish', 'draft', 'pending', 'private', 'future' ],
 			'orderby'        => 'ID',
 			'order'          => 'ASC',
 		] );
 
-		// Count total published posts across all public post types.
+		// Count total posts across all public post types (all relevant statuses).
 		$total_count = 0;
 		foreach ( $post_types as $pt ) {
 			$counts = wp_count_posts( $pt );
 			$total_count += (int) ( $counts->publish ?? 0 );
+			$total_count += (int) ( $counts->draft ?? 0 );
+			$total_count += (int) ( $counts->pending ?? 0 );
+			$total_count += (int) ( $counts->private ?? 0 );
+			$total_count += (int) ( $counts->future ?? 0 );
 		}
 
 		if ( empty( $posts ) ) {
@@ -221,10 +225,13 @@ class UsedWhereScanner {
 			return;
 		}
 
+		// Use the lookup map to verify attachment IDs without DB queries.
+		$attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+
 		foreach ( $data as $key => $value ) {
 			if ( is_numeric( $value ) && in_array( $key, [ 'id', 'image', 'attachment_id' ], true ) ) {
 				$attachment_id = absint( $value );
-				if ( $attachment_id && 'attachment' === get_post_type( $attachment_id ) ) {
+				if ( $attachment_id && isset( $attachment_ids[ $attachment_id ] ) ) {
 					$this->record_usage( $attachment_id, $post, $type );
 				}
 			}
@@ -245,6 +252,9 @@ class UsedWhereScanner {
 	/**
 	 * Detect images in custom post meta fields.
 	 *
+	 * Uses the preloaded lookup map to check numeric IDs instead of
+	 * calling get_post_type() per value (which runs a DB query each time).
+	 *
 	 * @param \WP_Post $post Post object.
 	 *
 	 * @return void
@@ -255,14 +265,20 @@ class UsedWhereScanner {
 			return;
 		}
 
+		// Build a set of known attachment IDs from the lookup map for O(1) checks.
+		$attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+
 		foreach ( $meta as $key => $values ) {
 			if ( strpos( $key, '_' ) === 0 ) {
 				continue;
 			}
 
 			foreach ( (array) $values as $value ) {
-				if ( is_numeric( $value ) && 'attachment' === get_post_type( $value ) ) {
-					$this->record_usage( absint( $value ), $post, 'meta' );
+				if ( is_numeric( $value ) ) {
+					$id = absint( $value );
+					if ( $id && isset( $attachment_ids[ $id ] ) ) {
+						$this->record_usage( $id, $post, 'meta' );
+					}
 				} elseif ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
 					$attachment_id = $this->get_attachment_id_by_url( $value );
 					if ( $attachment_id ) {
@@ -362,11 +378,15 @@ class UsedWhereScanner {
 
 		$this->url_lookup_map = [];
 
-		// 1. Load all _wp_attached_file entries: relative path → post_id.
+		// Single query: load all _wp_attached_file entries (relative path → post_id).
+		// This covers all standard WordPress attachments — one query instead of two.
 		$meta_rows = Fns::DB()->select( 'post_id', 'meta_value' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', '_wp_attached_file' )
 			->get();
+
+		$upload_dir = wp_upload_dir();
+		$base_url   = trailingslashit( $upload_dir['baseurl'] );
 
 		foreach ( ( $meta_rows ?: [] ) as $row ) {
 			$post_id   = absint( $row['post_id'] );
@@ -379,24 +399,10 @@ class UsedWhereScanner {
 			if ( ! isset( $this->url_lookup_map[ $basename ] ) ) {
 				$this->url_lookup_map[ $basename ] = $post_id;
 			}
-			// Also index by relative path for exact matches.
+			// Index by relative path for exact matches.
 			$this->url_lookup_map[ $rel_path ] = $post_id;
-		}
-
-		// 2. Fallback: load GUIDs (full URLs) → ID for non-standard setups.
-		$guid_rows = Fns::DB()->select( 'ID', 'guid' )
-			->from( 'posts' )
-			->where( 'post_type', '=', 'attachment' )
-			->andWhere( 'post_status', '=', 'inherit' )
-			->get();
-
-		foreach ( ( $guid_rows ?: [] ) as $row ) {
-			$att_id = absint( $row['ID'] );
-			$guid   = $row['guid'] ?? '';
-			if ( $att_id && $guid ) {
-				// Store full URL so it can be matched directly.
-				$this->url_lookup_map[ $guid ] = $att_id;
-			}
+			// Index by full URL for direct GUID-style matches.
+			$this->url_lookup_map[ $base_url . $rel_path ] = $post_id;
 		}
 	}
 
@@ -497,7 +503,7 @@ class UsedWhereScanner {
 	/**
 	 * Scan a single post for image usage on save.
 	 *
-	 * Removes old usage records for this post from all attachments,
+	 * Removes old usage records for this post from affected attachments only,
 	 * then re-detects and records current usages.
 	 *
 	 * @param int $post_id Post ID.
@@ -510,13 +516,44 @@ class UsedWhereScanner {
 			return;
 		}
 
-		// Remove old usage records for this post from all attachments.
-		$meta_rows = Fns::DB()->select( 'post_id', 'meta_value' )
-			->from( 'postmeta' )
-			->where( 'meta_key', '=', self::META_KEY )
-			->get();
+		$this->remove_post_usages( $post_id );
 
-		foreach ( ( $meta_rows ?: [] ) as $row ) {
+		// Build the lookup map and detect usages in this post.
+		$this->build_url_lookup_map();
+		$this->usages_buffer = [];
+		$this->detect_usage_in_post( $post );
+		$this->flush_usages_buffer();
+		$this->url_lookup_map = null;
+	}
+
+	/**
+	 * Remove old usage records for a specific post from all affected attachments.
+	 *
+	 * Uses a targeted LIKE query to find only attachments that reference this post_id,
+	 * instead of loading ALL usage meta rows.
+	 *
+	 * WordPress stores arrays via `update_post_meta()` as PHP serialized strings.
+	 * The post_id inside looks like: `s:7:"post_id";i:123;`
+	 *
+	 * @param int $post_id Post ID to remove.
+	 *
+	 * @return void
+	 */
+	private function remove_post_usages( int $post_id ): void {
+		global $wpdb;
+
+		// Match serialized format: s:7:"post_id";i:{ID};
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$affected_rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
+				self::META_KEY,
+				'%' . $wpdb->esc_like( '"post_id";i:' . $post_id . ';' ) . '%'
+			),
+			ARRAY_A
+		);
+
+		foreach ( ( $affected_rows ?: [] ) as $row ) {
 			$att_id   = absint( $row['post_id'] );
 			$existing = maybe_unserialize( $row['meta_value'] );
 			if ( ! is_array( $existing ) ) {
@@ -536,13 +573,6 @@ class UsedWhereScanner {
 				}
 			}
 		}
-
-		// Build the lookup map and detect usages in this post.
-		$this->build_url_lookup_map();
-		$this->usages_buffer = [];
-		$this->detect_usage_in_post( $post );
-		$this->flush_usages_buffer();
-		$this->url_lookup_map = null;
 	}
 
 	/**
@@ -694,6 +724,103 @@ class UsedWhereScanner {
 		$custom_logo_id = absint( get_theme_mod( 'custom_logo', 0 ) );
 		if ( $custom_logo_id && $custom_logo_id !== $site_logo_id && 'attachment' === get_post_type( $custom_logo_id ) ) {
 			$this->record_sitewide_usage( $custom_logo_id, 'site_logo' );
+		}
+	}
+
+	/**
+	 * Scan the fully rendered HTML output of a page to detect all image usages.
+	 *
+	 * Captures every image URL from the entire <html>...</html> output, including
+	 * header, footer, sidebars, widgets, hardcoded images, and inline CSS backgrounds.
+	 *
+	 * @param string $html Full rendered HTML of the page.
+	 * @param int    $post_id The current post ID.
+	 *
+	 * @return void
+	 */
+	public function scan_rendered_html( string $html, int $post_id ): void {
+		$post = get_post( $post_id );
+		if ( ! $post || 'attachment' === $post->post_type ) {
+			return;
+		}
+
+		$this->build_url_lookup_map();
+		$this->usages_buffer = [];
+
+		// 1. Extract all image URLs from <img> src and srcset attributes.
+		if ( preg_match_all( '/<img\s[^>]*>/is', $html, $img_matches ) ) {
+			foreach ( $img_matches[0] as $img_tag ) {
+				// src attribute.
+				if ( preg_match( '/\bsrc=["\']([^"\']+)/i', $img_tag, $src_match ) ) {
+					$this->match_url_to_attachment( $src_match[1], $post, 'rendered' );
+				}
+				// srcset attribute (multiple URLs).
+				if ( preg_match( '/\bsrcset=["\']([^"\']+)/i', $img_tag, $srcset_match ) ) {
+					$srcset_parts = explode( ',', $srcset_match[1] );
+					foreach ( $srcset_parts as $part ) {
+						$url = trim( explode( ' ', trim( $part ) )[0] );
+						if ( $url ) {
+							$this->match_url_to_attachment( $url, $post, 'rendered' );
+						}
+					}
+				}
+			}
+		}
+
+		// 2. Extract image URLs from CSS background-image: url(...).
+		if ( preg_match_all( '/url\s*\(\s*["\']?([^"\')\s]+)["\']?\s*\)/i', $html, $bg_matches ) ) {
+			foreach ( $bg_matches[1] as $bg_url ) {
+				$this->match_url_to_attachment( $bg_url, $post, 'rendered' );
+			}
+		}
+
+		// 3. Extract image URLs from <source> tags (picture element, video poster).
+		if ( preg_match_all( '/<source\s[^>]*srcset=["\']([^"\']+)/i', $html, $source_matches ) ) {
+			foreach ( $source_matches[1] as $srcset_val ) {
+				$srcset_parts = explode( ',', $srcset_val );
+				foreach ( $srcset_parts as $part ) {
+					$url = trim( explode( ' ', trim( $part ) )[0] );
+					if ( $url ) {
+						$this->match_url_to_attachment( $url, $post, 'rendered' );
+					}
+				}
+			}
+		}
+
+		// 4. Extract from <a> href linking to uploads (downloadable images, lightbox, etc.).
+		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|ico))/i', $html, $url_matches ) ) {
+			$upload_dir = wp_upload_dir();
+			$base_url   = trailingslashit( $upload_dir['baseurl'] );
+			foreach ( array_unique( $url_matches[1] ) as $relative_path ) {
+				$full_url      = $base_url . $relative_path;
+				$attachment_id = $this->get_attachment_id_by_url( $full_url );
+				if ( $attachment_id ) {
+					$this->record_usage( $attachment_id, $post, 'rendered' );
+				}
+			}
+		}
+
+		$this->flush_usages_buffer();
+		$this->url_lookup_map = null;
+	}
+
+	/**
+	 * Try to match a URL to an attachment and record usage.
+	 *
+	 * @param string   $url URL to match.
+	 * @param \WP_Post $post Post object.
+	 * @param string   $usage_type Usage type.
+	 *
+	 * @return void
+	 */
+	private function match_url_to_attachment( string $url, \WP_Post $post, string $usage_type ): void {
+		if ( strpos( $url, '/wp-content/uploads/' ) === false ) {
+			return;
+		}
+
+		$attachment_id = $this->get_attachment_id_by_url( $url );
+		if ( $attachment_id ) {
+			$this->record_usage( $attachment_id, $post, $usage_type );
 		}
 	}
 
