@@ -106,6 +106,16 @@ export default function UsedWherePage() {
     const handleTabChange = (filter: FilterTab) => {
         setExpandedId(null);
         setSelectedIds(new Set());
+        if (filter === activeFilter) {
+            // Same tab clicked again: URL won't change, so trigger a reload manually.
+            // Don't clear usages first — keeps current results visible until reload finishes.
+            if (filter === 'unused' && scanProgress.processed === 0) {
+                return;
+            }
+            loadResults(1, filter, searchQuery);
+            navigate(`/usedWhere/${filter}`);
+            return;
+        }
         setUsages([]);
         setTotalUsages(0);
         navigate(`/usedWhere/${filter}`);
@@ -114,6 +124,17 @@ export default function UsedWherePage() {
     const startScan = async () => {
         setIsScanning(true);
         setScanProgress({ processed: 0, total: 0 });
+        // Clear previous results before starting a new scan (re-scan flow).
+        setUsages([]);
+        setTotalUsages(0);
+        setCurrentPage(1);
+        setSelectedIds(new Set());
+        setExpandedId(null);
+        try {
+            await clearUsedWhereScan();
+        } catch (error) {
+            console.error('Error clearing previous results:', error);
+        }
         let offset = 0;
         let complete = false;
 
