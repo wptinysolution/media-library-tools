@@ -589,36 +589,53 @@ export default function UsedWherePage() {
                                         </div>
                                     </div>
 
-                                    {isExpanded && posts.length > 0 && (
-                                        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
-                                            <div className="space-y-1.5">
-                                                {posts.map((post: any, idx: number) => (
-                                                    <div key={idx} className="flex items-center gap-3 text-sm py-2 px-3 bg-white rounded border border-gray-100">
-                                                        <span className="flex-1 min-w-0 truncate font-medium text-gray-800">
-                                                            {post.post_title || `(ID: ${post.post_id})`}
-                                                        </span>
-                                                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 rounded">
-                                                            {post.post_type}
-                                                        </span>
-                                                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
-                                                            {post.usage_type}
-                                                        </span>
-                                                        {post.post_link && (
-                                                            <a
-                                                                href={post.post_link}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="shrink-0 text-xs text-blue-600 hover:text-blue-700"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                View
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                    {isExpanded && posts.length > 0 && (() => {
+                                        // Group by post_id to avoid duplicate rows.
+                                        const grouped = posts.reduce((acc: Record<number, any>, post: any) => {
+                                            const id = post.post_id;
+                                            if (!acc[id]) {
+                                                acc[id] = { ...post, usage_types: [post.usage_type] };
+                                            } else {
+                                                acc[id].usage_types.push(post.usage_type);
+                                            }
+                                            return acc;
+                                        }, {});
+                                        const uniquePosts = Object.values(grouped) as any[];
+
+                                        return (
+                                            <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                                                <div className="space-y-1.5">
+                                                    {uniquePosts.map((post: any, idx: number) => (
+                                                        <div key={idx} className="flex items-center gap-3 text-sm py-2 px-3 bg-white rounded border border-gray-100">
+                                                            {post.post_link ? (
+                                                                <a
+                                                                    href={post.post_link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex-1 min-w-0 truncate font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    {post.post_title || `(ID: ${post.post_id})`}
+                                                                </a>
+                                                            ) : (
+                                                                <span className="flex-1 min-w-0 truncate font-medium text-gray-800">
+                                                                    {post.post_title || `(ID: ${post.post_id})`}
+                                                                </span>
+                                                            )}
+                                                            <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 rounded">
+                                                                {post.post_type}
+                                                            </span>
+                                                            {post.usage_types.map((type: string, i: number) => (
+                                                                <span key={i} className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
+                                                                    {type}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        );
+                                    })()}
                                 </div>
                             );
                         })}

@@ -79,8 +79,9 @@ class ActionHooks {
 		// Clear any previously scheduled scan for this post (avoid duplicates).
 		wp_clear_scheduled_hook( 'tsmlt_scan_post_usage', [ $post_id ] );
 
-		// Schedule scan to run in background (next available cron tick).
-		wp_schedule_single_event( time(), 'tsmlt_scan_post_usage', [ $post_id ] );
+		// Schedule scan to run in background after a short delay.
+		// +10 seconds avoids firing during the immediate post-save redirect.
+		wp_schedule_single_event( time() + 10, 'tsmlt_scan_post_usage', [ $post_id ] );
 	}
 
 	/**

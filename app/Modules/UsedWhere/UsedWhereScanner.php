@@ -678,14 +678,15 @@ class UsedWhereScanner {
 		$by_post = [];
 
 		foreach ( $usages as $usage ) {
-			$type = $usage['usage_type'] ?? 'unknown';
+			$type    = $usage['usage_type'] ?? 'unknown';
+			$post_id = $usage['post_id'] ?? 0;
 			$by_type[ $type ] = ( $by_type[ $type ] ?? 0 ) + 1;
 
 			$by_post[] = [
-				'post_id'    => $usage['post_id'],
+				'post_id'    => $post_id,
 				'post_title' => $usage['post_title'] ?? '',
 				'post_type'  => $usage['post_type'] ?? '',
-				'post_link'  => get_permalink( $usage['post_id'] ),
+				'post_link'  => $post_id ? get_permalink( $post_id ) : '',
 				'usage_type' => $type,
 			];
 		}
