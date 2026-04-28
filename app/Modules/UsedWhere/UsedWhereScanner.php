@@ -146,7 +146,7 @@ class UsedWhereScanner {
 			$this->record_usage( $featured_id, $post, 'featured' );
 		}
 
-		// 2. Images in post content.
+		// 2. Images in post content (URLs + Gutenberg block IDs).
 		$this->detect_images_in_content( $post->post_content, $post, 'content' );
 
 		// 3. Images in post excerpt.
@@ -154,13 +154,19 @@ class UsedWhereScanner {
 			$this->detect_images_in_content( $post->post_excerpt, $post, 'excerpt' );
 		}
 
-		// 4. Elementor (meta-based).
+		// 4. WooCommerce product gallery (comma-separated IDs in _product_image_gallery).
+		$this->detect_woo_gallery( $post );
+
+		// 5. Elementor (meta-based).
 		$elementor_data = get_post_meta( $post->ID, '_elementor_data', true );
 		if ( ! empty( $elementor_data ) ) {
 			$this->detect_images_in_elementor( $elementor_data, $post );
 		}
 
-		// 5. Custom meta fields (if enabled).
+		// 6. Other page builders (Beaver Builder, Divi, Brizy, etc.).
+		$this->detect_images_in_builders( $post );
+
+		// 7. Custom meta fields (if enabled) — includes _prefixed keys with serialized data.
 		$options = Fns::get_options();
 		if ( ! empty( $options['scan_custom_meta_usage'] ) ) {
 			$this->detect_images_in_meta( $post );
@@ -177,18 +183,56 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_images_in_content( string $content, \WP_Post $post, string $type ): void {
-		if ( ! preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $content, $matches ) ) {
+		if ( empty( $content ) ) {
 			return;
 		}
 
-		$upload_dir = wp_upload_dir();
-		$base_url   = trailingslashit( $upload_dir['baseurl'] );
+		// Build a set of known attachment IDs for quick validation.
+		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
 
-		foreach ( $matches[1] as $relative_path ) {
-			$full_url      = $base_url . $relative_path;
-			$attachment_id = $this->get_attachment_id_by_url( $full_url );
-			if ( $attachment_id ) {
-				$this->record_usage( $attachment_id, $post, $type );
+		// 1. Gutenberg block IDs: <!-- wp:image {"id":449} --> or wp:media-text, wp:cover, etc.
+		if ( preg_match_all( '/<!--\s+wp:\S+\s+(\{[^}]+\})\s+-->/i', $content, $block_matches ) ) {
+			foreach ( $block_matches[1] as $json_str ) {
+				$block_attrs = json_decode( $json_str, true );
+				if ( is_array( $block_attrs ) && ! empty( $block_attrs['id'] ) ) {
+					$block_id = absint( $block_attrs['id'] );
+					if ( $block_id && isset( $known_ids[ $block_id ] ) ) {
+						$this->record_usage( $block_id, $post, $type );
+					}
+				}
+				// wp:gallery stores ids as array.
+				if ( is_array( $block_attrs ) && ! empty( $block_attrs['ids'] ) && is_array( $block_attrs['ids'] ) ) {
+					foreach ( $block_attrs['ids'] as $gallery_id ) {
+						$gallery_id = absint( $gallery_id );
+						if ( $gallery_id && isset( $known_ids[ $gallery_id ] ) ) {
+							$this->record_usage( $gallery_id, $post, $type );
+						}
+					}
+				}
+			}
+		}
+
+		// 2. wp-image-{ID} CSS class (both Gutenberg and Classic editor).
+		if ( preg_match_all( '/wp-image-(\d+)/i', $content, $class_matches ) ) {
+			foreach ( $class_matches[1] as $class_id ) {
+				$class_id = absint( $class_id );
+				if ( $class_id && isset( $known_ids[ $class_id ] ) ) {
+					$this->record_usage( $class_id, $post, $type );
+				}
+			}
+		}
+
+		// 3. Image URLs in content (/wp-content/uploads/...).
+		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $content, $matches ) ) {
+			$upload_dir = wp_upload_dir();
+			$base_url   = trailingslashit( $upload_dir['baseurl'] );
+
+			foreach ( $matches[1] as $relative_path ) {
+				$full_url      = $base_url . $relative_path;
+				$attachment_id = $this->get_attachment_id_by_url( $full_url );
+				if ( $attachment_id ) {
+					$this->record_usage( $attachment_id, $post, $type );
+				}
 			}
 		}
 	}
@@ -208,6 +252,82 @@ class UsedWhereScanner {
 		}
 
 		$this->extract_attachment_ids_from_array( $data, $post, 'elementor' );
+	}
+
+	/**
+	 * Detect WooCommerce product gallery images.
+	 *
+	 * The _product_image_gallery meta stores comma-separated attachment IDs.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return void
+	 */
+	private function detect_woo_gallery( \WP_Post $post ): void {
+		if ( 'product' !== $post->post_type ) {
+			return;
+		}
+
+		$gallery = get_post_meta( $post->ID, '_product_image_gallery', true );
+		if ( empty( $gallery ) ) {
+			return;
+		}
+
+		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+
+		$ids = explode( ',', $gallery );
+		foreach ( $ids as $id ) {
+			$id = absint( trim( $id ) );
+			if ( $id && isset( $known_ids[ $id ] ) ) {
+				$this->record_usage( $id, $post, 'woo_gallery' );
+			}
+		}
+	}
+
+	/**
+	 * Detect images stored by other page builders.
+	 *
+	 * Checks known meta keys used by Beaver Builder, Divi, Brizy, and
+	 * other popular builders. Uses the same recursive array search
+	 * as Elementor detection.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return void
+	 */
+	private function detect_images_in_builders( \WP_Post $post ): void {
+		$builder_keys = [
+			'_fl_builder_data'       => 'beaver_builder',   // Beaver Builder.
+			'_et_builder_settings'   => 'divi',             // Divi (JSON).
+			'brizy_post_uid'         => 'brizy',            // Brizy stores data in content, but check meta too.
+			'_wpb_shortcodes_custom_css' => 'wpbakery',     // WPBakery (CSS may have bg images).
+		];
+
+		foreach ( $builder_keys as $meta_key => $builder_name ) {
+			$meta_value = get_post_meta( $post->ID, $meta_key, true );
+			if ( empty( $meta_value ) ) {
+				continue;
+			}
+
+			if ( is_string( $meta_value ) ) {
+				// Try JSON decode first.
+				$decoded = json_decode( $meta_value, true );
+				if ( is_array( $decoded ) ) {
+					$this->extract_attachment_ids_from_array( $decoded, $post, $builder_name );
+					continue;
+				}
+				// Try unserialized.
+				$unserialized = maybe_unserialize( $meta_value );
+				if ( is_array( $unserialized ) ) {
+					$this->extract_attachment_ids_from_array( $unserialized, $post, $builder_name );
+					continue;
+				}
+				// Search for upload URLs in raw string.
+				$this->detect_images_in_content( $meta_value, $post, $builder_name );
+			} elseif ( is_array( $meta_value ) ) {
+				$this->extract_attachment_ids_from_array( $meta_value, $post, $builder_name );
+			}
+		}
 	}
 
 	/**
@@ -252,8 +372,11 @@ class UsedWhereScanner {
 	/**
 	 * Detect images in custom post meta fields.
 	 *
-	 * Uses the preloaded lookup map to check numeric IDs instead of
-	 * calling get_post_type() per value (which runs a DB query each time).
+	 * Scans all meta keys including _prefixed ones. For _prefixed keys, only
+	 * checks serialized arrays/JSON (where ACF, WooCommerce, etc. store IDs).
+	 * For non-prefixed keys, also checks plain numeric values and URLs.
+	 *
+	 * Uses the preloaded lookup map — zero DB queries per value.
 	 *
 	 * @param \WP_Post $post Post object.
 	 *
@@ -268,23 +391,96 @@ class UsedWhereScanner {
 		// Build a set of known attachment IDs from the lookup map for O(1) checks.
 		$attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
 
+		// Keys already handled by dedicated methods — skip to avoid duplicates.
+		$skip_keys = [
+			'_thumbnail_id',
+			'_elementor_data',
+			'_product_image_gallery',
+			'_fl_builder_data',
+			'_et_builder_settings',
+			'brizy_post_uid',
+			'_wpb_shortcodes_custom_css',
+			'_tsmlt_image_usages',
+			'_tsmlt_usage_tracked',
+		];
+
 		foreach ( $meta as $key => $values ) {
-			if ( strpos( $key, '_' ) === 0 ) {
+			if ( in_array( $key, $skip_keys, true ) ) {
 				continue;
 			}
 
+			$is_private = strpos( $key, '_' ) === 0;
+
 			foreach ( (array) $values as $value ) {
+				// For _prefixed keys: only scan serialized arrays and JSON (not plain values).
+				if ( $is_private ) {
+					$this->scan_meta_value_deep( $value, $post, $attachment_ids );
+					continue;
+				}
+
+				// For non-prefixed keys: check plain values too.
 				if ( is_numeric( $value ) ) {
 					$id = absint( $value );
 					if ( $id && isset( $attachment_ids[ $id ] ) ) {
 						$this->record_usage( $id, $post, 'meta' );
 					}
-				} elseif ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
-					$attachment_id = $this->get_attachment_id_by_url( $value );
-					if ( $attachment_id ) {
-						$this->record_usage( $attachment_id, $post, 'meta' );
-					}
+				} elseif ( is_string( $value ) ) {
+					$this->scan_meta_value_deep( $value, $post, $attachment_ids );
 				}
+			}
+		}
+	}
+
+	/**
+	 * Deeply scan a meta value for attachment IDs and URLs.
+	 *
+	 * Handles serialized PHP arrays, JSON strings, comma-separated IDs,
+	 * and plain URLs. Used for both _prefixed and non-prefixed meta keys.
+	 *
+	 * @param mixed    $value          Meta value to scan.
+	 * @param \WP_Post $post           Post object.
+	 * @param array    $attachment_ids Set of known attachment IDs.
+	 *
+	 * @return void
+	 */
+	private function scan_meta_value_deep( $value, \WP_Post $post, array $attachment_ids ): void {
+		if ( ! is_string( $value ) || strlen( $value ) < 2 ) {
+			return;
+		}
+
+		// 1. Try unserialized array.
+		$unserialized = maybe_unserialize( $value );
+		if ( is_array( $unserialized ) ) {
+			$this->extract_attachment_ids_from_array( $unserialized, $post, 'meta' );
+			return;
+		}
+
+		// 2. Try JSON.
+		if ( '{' === $value[0] || '[' === $value[0] ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) ) {
+				$this->extract_attachment_ids_from_array( $decoded, $post, 'meta' );
+				return;
+			}
+		}
+
+		// 3. Comma-separated IDs (e.g. "123,456,789").
+		if ( preg_match( '/^\d+(?:,\s*\d+)+$/', $value ) ) {
+			$ids = explode( ',', $value );
+			foreach ( $ids as $id ) {
+				$id = absint( trim( $id ) );
+				if ( $id && isset( $attachment_ids[ $id ] ) ) {
+					$this->record_usage( $id, $post, 'meta' );
+				}
+			}
+			return;
+		}
+
+		// 4. URL containing /wp-content/uploads/.
+		if ( strpos( $value, '/wp-content/uploads/' ) !== false ) {
+			$attachment_id = $this->get_attachment_id_by_url( $value );
+			if ( $attachment_id ) {
+				$this->record_usage( $attachment_id, $post, 'meta' );
 			}
 		}
 	}
@@ -711,19 +907,152 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_sitewide_usage(): void {
+		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+
+		// 1. Site icon (favicon).
 		$site_icon_id = absint( get_option( 'site_icon', 0 ) );
-		if ( $site_icon_id && 'attachment' === get_post_type( $site_icon_id ) ) {
+		if ( $site_icon_id && isset( $known_ids[ $site_icon_id ] ) ) {
 			$this->record_sitewide_usage( $site_icon_id, 'site_icon' );
 		}
 
+		// 2. Site logo (block theme).
 		$site_logo_id = absint( get_option( 'site_logo', 0 ) );
-		if ( $site_logo_id && 'attachment' === get_post_type( $site_logo_id ) ) {
+		if ( $site_logo_id && isset( $known_ids[ $site_logo_id ] ) ) {
 			$this->record_sitewide_usage( $site_logo_id, 'site_logo' );
 		}
 
+		// 3. Custom logo (classic theme).
 		$custom_logo_id = absint( get_theme_mod( 'custom_logo', 0 ) );
-		if ( $custom_logo_id && $custom_logo_id !== $site_logo_id && 'attachment' === get_post_type( $custom_logo_id ) ) {
+		if ( $custom_logo_id && $custom_logo_id !== $site_logo_id && isset( $known_ids[ $custom_logo_id ] ) ) {
 			$this->record_sitewide_usage( $custom_logo_id, 'site_logo' );
+		}
+
+		// 4. Header image (customizer).
+		$header_image_data = get_custom_header();
+		if ( ! empty( $header_image_data->attachment_id ) ) {
+			$header_id = absint( $header_image_data->attachment_id );
+			if ( $header_id && isset( $known_ids[ $header_id ] ) ) {
+				$this->record_sitewide_usage( $header_id, 'header_image' );
+			}
+		}
+
+		// 5. Background image (customizer).
+		$bg_image_id = absint( get_theme_mod( 'background_image_thumb_id', 0 ) );
+		if ( ! $bg_image_id ) {
+			// Try to resolve from URL.
+			$bg_url = get_theme_mod( 'background_image', '' );
+			if ( $bg_url ) {
+				$bg_image_id = $this->get_attachment_id_by_url( $bg_url );
+			}
+		}
+		if ( $bg_image_id && isset( $known_ids[ $bg_image_id ] ) ) {
+			$this->record_sitewide_usage( $bg_image_id, 'background_image' );
+		}
+
+		// 6. Navigation menu images (Menu Image plugin, etc.).
+		$this->detect_nav_menu_images( $known_ids );
+
+		// 7. Widget images (scan active widget options for upload URLs/IDs).
+		$this->detect_widget_images( $known_ids );
+	}
+
+	/**
+	 * Detect images used in navigation menus.
+	 *
+	 * @param array $known_ids Set of known attachment IDs.
+	 *
+	 * @return void
+	 */
+	private function detect_nav_menu_images( array $known_ids ): void {
+		$nav_menus = wp_get_nav_menus();
+		if ( empty( $nav_menus ) ) {
+			return;
+		}
+
+		foreach ( $nav_menus as $menu ) {
+			$menu_items = wp_get_nav_menu_items( $menu->term_id );
+			if ( empty( $menu_items ) ) {
+				continue;
+			}
+			foreach ( $menu_items as $item ) {
+				// Menu Image plugin stores thumbnail ID in _menu_item_image_id or _thumbnail_id.
+				$img_id = absint( get_post_meta( $item->ID, '_menu_item_image_id', true ) );
+				if ( ! $img_id ) {
+					$img_id = absint( get_post_meta( $item->ID, '_thumbnail_id', true ) );
+				}
+				if ( $img_id && isset( $known_ids[ $img_id ] ) ) {
+					$this->record_sitewide_usage( $img_id, 'nav_menu' );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Detect images used in active widgets.
+	 *
+	 * Scans widget option values for upload URLs.
+	 *
+	 * @param array $known_ids Set of known attachment IDs.
+	 *
+	 * @return void
+	 */
+	private function detect_widget_images( array $known_ids ): void {
+		$sidebars = get_option( 'sidebars_widgets', [] );
+		if ( empty( $sidebars ) || ! is_array( $sidebars ) ) {
+			return;
+		}
+
+		// Collect all active widget IDs.
+		$active_widgets = [];
+		foreach ( $sidebars as $sidebar_id => $widgets ) {
+			if ( 'wp_inactive_widgets' === $sidebar_id || ! is_array( $widgets ) ) {
+				continue;
+			}
+			foreach ( $widgets as $widget_id ) {
+				// Extract widget type: e.g. "media_image-2" → "media_image".
+				$type = preg_replace( '/-\d+$/', '', $widget_id );
+				$active_widgets[ $type ][] = $widget_id;
+			}
+		}
+
+		// Check widget options for known image-related widgets.
+		foreach ( $active_widgets as $type => $widget_ids ) {
+			$option = get_option( 'widget_' . $type, [] );
+			if ( empty( $option ) || ! is_array( $option ) ) {
+				continue;
+			}
+
+			foreach ( $option as $instance ) {
+				if ( ! is_array( $instance ) ) {
+					continue;
+				}
+				// Check attachment_id field (Media Image, Media Gallery widgets).
+				if ( ! empty( $instance['attachment_id'] ) ) {
+					$id = absint( $instance['attachment_id'] );
+					if ( $id && isset( $known_ids[ $id ] ) ) {
+						$this->record_sitewide_usage( $id, 'widget' );
+					}
+				}
+				// Check ids field (Gallery widget).
+				if ( ! empty( $instance['ids'] ) && is_string( $instance['ids'] ) ) {
+					$ids = explode( ',', $instance['ids'] );
+					foreach ( $ids as $id ) {
+						$id = absint( trim( $id ) );
+						if ( $id && isset( $known_ids[ $id ] ) ) {
+							$this->record_sitewide_usage( $id, 'widget' );
+						}
+					}
+				}
+				// Check for upload URLs in text/HTML content fields.
+				foreach ( [ 'text', 'content', 'url' ] as $field ) {
+					if ( ! empty( $instance[ $field ] ) && is_string( $instance[ $field ] ) && strpos( $instance[ $field ], '/wp-content/uploads/' ) !== false ) {
+						$att_id = $this->get_attachment_id_by_url( $instance[ $field ] );
+						if ( $att_id ) {
+							$this->record_sitewide_usage( $att_id, 'widget' );
+						}
+					}
+				}
+			}
 		}
 	}
 

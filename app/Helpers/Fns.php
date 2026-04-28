@@ -90,12 +90,15 @@ class Fns {
 	 */
 	public static function clear_scheduled_events() {
 		$schedule = get_option( 'tsmlt_cron_schedule', [] );
-		if ( empty( $schedule ) ) {
-			return;
+		if ( ! empty( $schedule ) ) {
+			foreach ( $schedule as $v ) {
+				wp_clear_scheduled_hook( $v );
+			}
 		}
-		foreach ( $schedule as $v ) {
-			wp_clear_scheduled_hook( $v );
-		}
+
+		// Clear single-event hooks that use dynamic args (not stored in the list).
+		// wp_unschedule_hook() removes ALL scheduled events for the hook regardless of args.
+		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
 	}
 	/**
 	 * Image attachment details

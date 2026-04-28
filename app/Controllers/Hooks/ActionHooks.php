@@ -40,8 +40,10 @@ class ActionHooks {
 		// Hook the function to a cron job.
 		add_action( 'in_admin_header', [ $this, 'remove_all_notices' ], 99 );
 		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
-		// Auto-detect image usage when a post is saved.
-		add_action( 'save_post', [ $this, 'track_image_usage_on_save' ], 99, 2 );
+		// Schedule image usage scan in background when a post is saved.
+		add_action( 'save_post', [ $this, 'schedule_usage_scan_on_save' ], 99, 2 );
+		// Background cron handler for post-save scan.
+		add_action( 'tsmlt_scan_post_usage', [ $this, 'run_scheduled_post_scan' ] );
 		// Auto-detect image usage on first frontend visit by scanning rendered HTML.
 		add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
 		// Process captured HTML after response is sent — no delay for visitor.
@@ -49,14 +51,17 @@ class ActionHooks {
 	}
 
 	/**
-	 * Track image usage when a post/page is saved or updated.
+	 * Schedule a background cron job to scan image usage when a post is saved.
+	 *
+	 * Does NOT run the scan synchronously — zero delay for the editor.
+	 * WordPress cron picks it up on the next page load (typically within seconds).
 	 *
 	 * @param int      $post_id Post ID.
 	 * @param \WP_Post $post    Post object.
 	 *
 	 * @return void
 	 */
-	public function track_image_usage_on_save( $post_id, $post ): void {
+	public function schedule_usage_scan_on_save( $post_id, $post ): void {
 		// Skip auto-saves, revisions, and attachments.
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
@@ -68,10 +73,30 @@ class ActionHooks {
 			return;
 		}
 
-		UsedWhereScanner::instance()->scan_single_post( $post_id );
-
-		// Reset the frontend visit flag so the next visit re-scans.
+		// Reset the frontend visit flag so the next visit re-scans rendered HTML.
 		delete_post_meta( $post_id, '_tsmlt_usage_tracked' );
+
+		// Clear any previously scheduled scan for this post (avoid duplicates).
+		wp_clear_scheduled_hook( 'tsmlt_scan_post_usage', [ $post_id ] );
+
+		// Schedule scan to run in background (next available cron tick).
+		wp_schedule_single_event( time(), 'tsmlt_scan_post_usage', [ $post_id ] );
+	}
+
+	/**
+	 * Background cron handler: scan a single post for image usage.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return void
+	 */
+	public function run_scheduled_post_scan( $post_id ): void {
+		$post_id = absint( $post_id );
+		if ( ! $post_id ) {
+			return;
+		}
+
+		UsedWhereScanner::instance()->scan_single_post( $post_id );
 	}
 
 	/**
