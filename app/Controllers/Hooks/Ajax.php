@@ -479,9 +479,26 @@ class Ajax {
 
 		$query = new \WP_Query( $args );
 
-		$usages = [];
+		$usages  = [];
+		$skipped = 0;
+
 		foreach ( $query->posts as $post ) {
-			$stats    = UsedWhereScanner::instance()->get_usage_stats( $post->ID );
+			$stats = UsedWhereScanner::instance()->get_usage_stats( $post->ID );
+
+			// Cross-check: skip false positives.
+			// Used tab: skip if meta exists but has 0 actual usages (empty array residue).
+			if ( 'used' === $filter && $stats['total_usage'] < 1 ) {
+				// Clean up the empty meta.
+				delete_post_meta( $post->ID, UsedWhereScanner::META_KEY );
+				$skipped++;
+				continue;
+			}
+			// Unused tab: skip if attachment actually has recorded usages.
+			if ( 'unused' === $filter && $stats['total_usage'] > 0 ) {
+				$skipped++;
+				continue;
+			}
+
 			$usages[] = [
 				'attachment_id' => $post->ID,
 				'title'         => $post->post_title,
@@ -495,7 +512,7 @@ class Ajax {
 
 		$this->send( [
 			'usages' => $usages,
-			'total'  => $query->found_posts,
+			'total'  => $query->found_posts - $skipped,
 		] );
 	}
 

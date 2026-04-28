@@ -103,6 +103,8 @@ export default function UsedWherePage() {
     const handleTabChange = (filter: FilterTab) => {
         setExpandedId(null);
         setSelectedIds(new Set());
+        setUsages([]);
+        setTotalUsages(0);
         navigate(`/usedWhere/${filter}`);
     };
 
