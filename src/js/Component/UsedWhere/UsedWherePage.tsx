@@ -30,7 +30,10 @@ export default function UsedWherePage() {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [perPage, setPerPage] = useState(10);
+    const [perPage, setPerPage] = useState(() => {
+        const saved = localStorage.getItem('mlt_used_where_per_page');
+        return saved ? parseInt(saved, 10) || 10 : 10;
+    });
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     // Bulk delete state (unused and trash tabs).
@@ -302,6 +305,7 @@ export default function UsedWherePage() {
                         value={perPage}
                         onChange={(e) => {
                             const newPerPage = parseInt(e.target.value, 10);
+                            localStorage.setItem('mlt_used_where_per_page', String(newPerPage));
                             setPerPage(newPerPage);
                             setCurrentPage(1);
                             navigate(`/usedWhere/${activeFilter}`);
