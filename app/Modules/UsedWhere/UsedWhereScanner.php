@@ -190,26 +190,10 @@ class UsedWhereScanner {
 		// Build a set of known attachment IDs for quick validation.
 		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
 
-		// 1. Gutenberg block IDs: <!-- wp:image {"id":449} --> or wp:media-text, wp:cover, etc.
-		if ( preg_match_all( '/<!--\s+wp:\S+\s+(\{[^}]+\})\s+-->/i', $content, $block_matches ) ) {
-			foreach ( $block_matches[1] as $json_str ) {
-				$block_attrs = json_decode( $json_str, true );
-				if ( is_array( $block_attrs ) && ! empty( $block_attrs['id'] ) ) {
-					$block_id = absint( $block_attrs['id'] );
-					if ( $block_id && isset( $known_ids[ $block_id ] ) ) {
-						$this->record_usage( $block_id, $post, $type );
-					}
-				}
-				// wp:gallery stores ids as array.
-				if ( is_array( $block_attrs ) && ! empty( $block_attrs['ids'] ) && is_array( $block_attrs['ids'] ) ) {
-					foreach ( $block_attrs['ids'] as $gallery_id ) {
-						$gallery_id = absint( $gallery_id );
-						if ( $gallery_id && isset( $known_ids[ $gallery_id ] ) ) {
-							$this->record_usage( $gallery_id, $post, $type );
-						}
-					}
-				}
-			}
+		// 1. Gutenberg blocks — recursively walk parsed block tree so nested galleries
+		// and blocks with nested attribute objects (style/layout/etc.) are handled.
+		if ( function_exists( 'parse_blocks' ) && false !== strpos( $content, '<!-- wp:' ) ) {
+			$this->collect_block_attachment_ids( parse_blocks( $content ), $known_ids, $post, $type );
 		}
 
 		// 2. wp-image-{ID} CSS class (both Gutenberg and Classic editor).
@@ -233,6 +217,48 @@ class UsedWhereScanner {
 				if ( $attachment_id ) {
 					$this->record_usage( $attachment_id, $post, $type );
 				}
+			}
+		}
+	}
+
+	/**
+	 * Walk a parsed block tree and record any attachment IDs referenced by block attrs.
+	 *
+	 * Handles single-image blocks (`id`), gallery blocks (`ids[]`), and any nested
+	 * inner blocks (e.g. wp:gallery wrapping individual wp:image blocks in WP 5.9+).
+	 *
+	 * @param array    $blocks    Parsed blocks from parse_blocks().
+	 * @param array    $known_ids Map of valid attachment IDs (id => any).
+	 * @param \WP_Post $post      Post being scanned.
+	 * @param string   $type      Usage type.
+	 *
+	 * @return void
+	 */
+	private function collect_block_attachment_ids( array $blocks, array $known_ids, \WP_Post $post, string $type ): void {
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : [];
+
+			if ( ! empty( $attrs['id'] ) ) {
+				$bid = absint( $attrs['id'] );
+				if ( $bid && isset( $known_ids[ $bid ] ) ) {
+					$this->record_usage( $bid, $post, $type );
+				}
+			}
+
+			if ( ! empty( $attrs['ids'] ) && is_array( $attrs['ids'] ) ) {
+				foreach ( $attrs['ids'] as $gid ) {
+					$gid = absint( $gid );
+					if ( $gid && isset( $known_ids[ $gid ] ) ) {
+						$this->record_usage( $gid, $post, $type );
+					}
+				}
+			}
+
+			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+				$this->collect_block_attachment_ids( $block['innerBlocks'], $known_ids, $post, $type );
 			}
 		}
 	}
