@@ -109,6 +109,24 @@ class RegenerateThumbnails {
 				continue;
 			}
 
+			// Check if the image editor supports this file's MIME type.
+			$mime_type = get_post_mime_type( $attachment_id );
+			$editor    = wp_get_image_editor( $file );
+
+			if ( is_wp_error( $editor ) ) {
+				$errors[] = [
+					'id'    => $attachment_id,
+					'file'  => $filename,
+					'error' => sprintf(
+						/* translators: 1: MIME type, 2: error message */
+						esc_html__( 'Image editor cannot handle %1$s: %2$s', 'media-library-tools' ),
+						$mime_type,
+						$editor->get_error_message()
+					),
+				];
+				continue;
+			}
+
 			// ── Step 1: capture old sizes before regenerating ────────────────
 			$old_metadata  = wp_get_attachment_metadata( $attachment_id );
 			$old_sizes     = is_array( $old_metadata ) && ! empty( $old_metadata['sizes'] )
