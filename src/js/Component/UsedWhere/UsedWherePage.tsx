@@ -432,9 +432,14 @@ export default function UsedWherePage() {
                         state={scanState === 'queued' ? 'queued' : 'active'}
                         label={scanState === 'queued' ? 'queued' : `${scanProgress.processed.toLocaleString()} / ${scanProgress.total.toLocaleString()} posts`}
                     />
-                    <p className="text-xs text-gray-400 mt-1.5 mb-0!">
-                        Running in the background — you can safely close this tab and come back later.
-                    </p>
+                    <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
+                        <svg className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-xs text-blue-800 m-0! leading-snug">
+                            Running in the background — you can safely close this tab and come back later. Progress will continue automatically.
+                        </p>
+                    </div>
                 </div>
             )}
 
