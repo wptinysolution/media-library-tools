@@ -219,15 +219,26 @@ class UsedWhereScanner {
 	/**
 	 * Fetch the post's public permalink and scan the rendered HTML for image URLs.
 	 *
-	 * Skipped for non-published posts (drafts don't render publicly) and when the
-	 * `tsmlt_scan_permalink_enabled` filter returns false. Failures are silent —
-	 * the rest of the scan still records what it found.
+	 * Off by default — gated on the `scan_permalink_fetch` setting. When enabled,
+	 * each scanned post triggers a loopback HTTP request that holds a PHP-FPM
+	 * worker for the duration of a full page render; we don't impose that cost
+	 * on visitors of busy stores unless the admin explicitly opts in.
+	 *
+	 * Skipped for non-published posts (drafts don't render publicly) and when
+	 * the `tsmlt_scan_permalink_enabled` per-post filter returns false. Failures
+	 * are silent — the rest of the scan still records what it found.
 	 *
 	 * @param \WP_Post $post Post object.
 	 *
 	 * @return void
 	 */
 	private function detect_images_in_permalink( \WP_Post $post ): void {
+		// Setting-level gate — default off. Operators flip this on when they
+		// specifically need to detect images injected by themes/plugins/shortcodes.
+		if ( ! self::is_permalink_fetch_enabled() ) {
+			return;
+		}
+
 		if ( 'publish' !== $post->post_status ) {
 			return;
 		}
@@ -237,7 +248,8 @@ class UsedWhereScanner {
 			return;
 		}
 
-		// Allow disabling via filter (e.g. for hosts with strict loopback limits).
+		// Per-post override hook — lets users disable the fetch for specific
+		// post types or post IDs even when the setting is on.
 		if ( ! apply_filters( 'tsmlt_scan_permalink_enabled', true, $post ) ) {
 			return;
 		}
@@ -1091,11 +1103,52 @@ class UsedWhereScanner {
 	const SCAN_LOCK_KEY = 'tsmlt_used_where_scan_lock';
 
 	/**
-	 * Default batch size for cron-driven scans. Smaller than the legacy AJAX
-	 * batch because each tick runs inside a single PHP request and may call
-	 * wp_remote_get() per post for permalink scanning.
+	 * Batch size for cron-driven scans when the permalink fetch is OFF.
+	 * 10 posts per tick is a good balance between progress and worker hold time.
 	 */
-	const SCAN_TICK_BATCH = 10;
+	const SCAN_TICK_BATCH_FAST = 10;
+
+	/**
+	 * Batch size when the permalink fetch is ON. Halved because each post may
+	 * trigger a loopback HTTP request, which holds a PHP-FPM worker for the
+	 * duration of a full page render — typically 0.5–3s on Woo stores.
+	 */
+	const SCAN_TICK_BATCH_DEEP = 5;
+
+	/**
+	 * Delay between ticks. Gives PHP-FPM workers breathing room between scan
+	 * batches so concurrent visitor requests don't queue behind back-to-back
+	 * loopback fetches.
+	 */
+	const SCAN_TICK_DELAY = 10;
+
+	/**
+	 * Whether deep permalink-fetch scanning is enabled.
+	 *
+	 * Off by default: catches the common cases (post content, gallery, meta,
+	 * builders) without firing a loopback HTTP request per post. Users who need
+	 * to detect images injected by themes, plugins, shortcodes, or meta-box
+	 * buttons (e.g. size-chart popups) opt in via the setting or the
+	 * `tsmlt_scan_permalink_enabled` filter.
+	 *
+	 * @return bool
+	 */
+	public static function is_permalink_fetch_enabled(): bool {
+		$options = Fns::get_options();
+		// Default on: when the setting is absent, deep scan runs. An admin can
+		// explicitly turn it off by saving `scan_permalink_fetch = 0`.
+		$setting = ! isset( $options['scan_permalink_fetch'] ) || ! empty( $options['scan_permalink_fetch'] );
+		return (bool) apply_filters( 'tsmlt_scan_permalink_enabled_default', $setting );
+	}
+
+	/**
+	 * Resolve the batch size based on whether deep scanning is on.
+	 *
+	 * @return int
+	 */
+	private function tick_batch_size(): int {
+		return self::is_permalink_fetch_enabled() ? self::SCAN_TICK_BATCH_DEEP : self::SCAN_TICK_BATCH_FAST;
+	}
 
 	/**
 	 * Get the scan status surface used by the polling UI.
@@ -1236,7 +1289,7 @@ class UsedWhereScanner {
 				'last_tick_at' => current_time( 'mysql' ),
 			] );
 
-			$result = $this->process_batch( $offset, self::SCAN_TICK_BATCH, 0 === $offset );
+			$result = $this->process_batch( $offset, $this->tick_batch_size(), 0 === $offset );
 
 			$next_offset = (int) $result['processed'];
 			$total       = (int) $result['total'];
@@ -1253,7 +1306,7 @@ class UsedWhereScanner {
 			if ( ! $complete ) {
 				// Schedule the next tick. Small delay lets WP-Cron interleave
 				// other work and prevents tight-loop pile-ups on busy sites.
-				wp_schedule_single_event( time() + 5, self::SCAN_TICK_HOOK, [ $next_offset ] );
+				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $next_offset ] );
 			}
 		} catch ( \Throwable $e ) {
 			$this->update_scan_status( [
