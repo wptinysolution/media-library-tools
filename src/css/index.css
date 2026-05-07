@@ -119,3 +119,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Progress-bar animations used by ProgressBar.tsx during long-running scans.
+ *
+ * `mlt-shimmer` slides a soft highlight across the filled portion of the bar
+ * so it never looks frozen between server polls.
+ *
+ * `mlt-indeterminate` animates a moving gradient across the empty track —
+ * used when we know work is happening but the percentage is still 0
+ * (e.g. waiting for the first cron tick to fire).
+ */
+@keyframes mlt-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes mlt-indeterminate {
+  0% { left: -40%; right: 100%; }
+  60% { left: 100%; right: -20%; }
+  100% { left: 100%; right: -20%; }
+}
+.mlt-progress-shimmer {
+  animation: mlt-shimmer 1.6s linear infinite;
+}
+.mlt-progress-indeterminate {
+  animation: mlt-indeterminate 1.6s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+}

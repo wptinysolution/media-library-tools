@@ -427,7 +427,11 @@ export default function UsedWherePage() {
                             ? 'Queued — waiting for the first batch to start...'
                             : `Scanning ${scanProgress.processed} / ${scanProgress.total} posts for image usage...`}
                     </p>
-                    <ProgressBar percent={scanPercent} />
+                    <ProgressBar
+                        percent={scanPercent}
+                        state={scanState === 'queued' ? 'queued' : 'active'}
+                        label={scanState === 'queued' ? 'queued' : `${scanProgress.processed.toLocaleString()} / ${scanProgress.total.toLocaleString()} posts`}
+                    />
                     <p className="text-xs text-gray-400 mt-1.5 mb-0!">
                         Running in the background — you can safely close this tab and come back later.
                     </p>
