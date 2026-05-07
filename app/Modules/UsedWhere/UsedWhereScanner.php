@@ -207,11 +207,18 @@ class UsedWhereScanner {
 		}
 
 		// 3. Image URLs in content (/wp-content/uploads/...).
-		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+)/i', $content, $matches ) ) {
+		// Excludes whitespace, quotes, angle brackets, and CSS/HTML delimiters
+		// (`)`, `;`, `,`) so inline CSS like `url(.../file.jpg)` is captured cleanly.
+		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $content, $matches ) ) {
 			$upload_dir = wp_upload_dir();
 			$base_url   = trailingslashit( $upload_dir['baseurl'] );
 
 			foreach ( $matches[1] as $relative_path ) {
+				// Trim any stray trailing punctuation that survived the character class.
+				$relative_path = rtrim( $relative_path, ").,;:!?" );
+				if ( '' === $relative_path ) {
+					continue;
+				}
 				$full_url      = $base_url . $relative_path;
 				$attachment_id = $this->get_attachment_id_by_url( $full_url );
 				if ( $attachment_id ) {
