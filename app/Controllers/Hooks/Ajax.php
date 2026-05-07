@@ -82,6 +82,8 @@ class Ajax {
 
 		// Used-Where image usage tracking.
 		add_action( 'wp_ajax_tsmlt_used_where_scan_batch', [ $this, 'used_where_scan_batch' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_scan_start', [ $this, 'used_where_scan_start' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_scan_cancel', [ $this, 'used_where_scan_cancel' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_get_results', [ $this, 'used_where_get_results' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
@@ -107,6 +109,10 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_strip_exif_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_exif_strip_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_check_strippable_exif', [ $this, 'check_strippable_exif' ] );
+
+		// Nonce refresh — long-running scans can outlive the 12-hour nonce window.
+		// Capability-gated, no nonce required (chicken-and-egg).
+		add_action( 'wp_ajax_tsmlt_refresh_nonce', [ $this, 'refresh_nonce' ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -163,6 +169,38 @@ class Ajax {
 	 */
 	private function send( $result ): void {
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Mint a fresh nonce for the calling admin user.
+	 *
+	 * Long-running batch scans (Used-Where, Duplicate, EXIF, Regenerate) can
+	 * outlive the 12-hour nonce window. The frontend calls this endpoint when a
+	 * batch fails with a stale-nonce error, then retries the original action.
+	 *
+	 * Cannot rely on `verify_and_get_params()` because that requires a valid
+	 * nonce — instead we gate on auth + capability, which is the same posture
+	 * every other endpoint enforces. Returning a nonce to a lower-role user
+	 * would be useless (nonces are bound to user ID + action and the action
+	 * endpoints all require manage_options anyway), but we still refuse so we
+	 * never expose the value below the role boundary.
+	 *
+	 * @return void
+	 */
+	public function refresh_nonce(): void {
+		if ( ! wp_doing_ajax() ) {
+			wp_die( esc_html__( 'Invalid request.', 'media-library-tools' ), 400 );
+		}
+
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+			wp_die( esc_html__( 'Method not allowed.', 'media-library-tools' ), 405 );
+		}
+
+		if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized.', 'media-library-tools' ) ], 403 );
+		}
+
+		wp_send_json_success( [ 'nonce' => wp_create_nonce( Fns::NONCE_ID ) ] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -405,7 +443,14 @@ class Ajax {
 	// Used-Where image usage tracking
 	// -------------------------------------------------------------------------
 
-	/** @return void */
+	/**
+	 * Legacy AJAX-driven batch handler.
+	 *
+	 * Kept for backwards compatibility while the cron-driven flow is the
+	 * primary path. New callers should use used_where_scan_start instead.
+	 *
+	 * @return void
+	 */
 	public function used_where_scan_batch(): void {
 		$params = $this->verify_and_get_params();
 		$offset = absint( $params['offset'] ?? 0 );
@@ -414,6 +459,41 @@ class Ajax {
 		// Update scan status in options.
 		update_option( 'tsmlt_used_where_scan_status', array_merge( $result, [ 'timestamp' => current_time( 'mysql' ) ] ) );
 		$this->send( $result );
+	}
+
+	/**
+	 * Start a cron-driven full scan.
+	 *
+	 * Wipes prior usage data, resets the status row to `queued`, and schedules
+	 * the first cron tick. The browser polls used_where_get_status to follow
+	 * progress; the scan continues even if the user closes the tab.
+	 *
+	 * @return void
+	 */
+	public function used_where_scan_start(): void {
+		$this->verify_and_get_params();
+
+		$status = UsedWhereScanner::instance()->start_scheduled_scan();
+
+		// Spawn WP-Cron immediately so the first tick fires now instead of
+		// waiting for the next incoming request. Non-blocking — we don't
+		// care about the response, only that wp-cron.php is poked.
+		spawn_cron();
+
+		$this->send( $status );
+	}
+
+	/**
+	 * Cancel an in-progress cron-driven scan.
+	 *
+	 * Unschedules every queued tick and marks the status as cancelled. Existing
+	 * usage data is preserved (use used_where_clear to wipe).
+	 *
+	 * @return void
+	 */
+	public function used_where_scan_cancel(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->cancel_scheduled_scan() );
 	}
 
 	/** @return void */

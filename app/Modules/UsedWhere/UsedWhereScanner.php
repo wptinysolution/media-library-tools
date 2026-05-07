@@ -49,9 +49,30 @@ class UsedWhereScanner {
 	private $url_lookup_map = null;
 
 	/**
+	 * Cached uploads base URL (with trailing slash). Avoids repeated
+	 * wp_upload_dir() calls inside hot extraction loops.
+	 *
+	 * @var string|null
+	 */
+	private $upload_base_url = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
+
+	/**
+	 * Return the uploads base URL (with trailing slash), cached per scan batch.
+	 *
+	 * @return string
+	 */
+	private function get_uploads_base_url(): string {
+		if ( null === $this->upload_base_url ) {
+			$upload_dir            = wp_upload_dir();
+			$this->upload_base_url = trailingslashit( $upload_dir['baseurl'] );
+		}
+		return $this->upload_base_url;
+	}
 
 	/**
 	 * Scan all posts and detect where images (attachments) are used.
@@ -65,11 +86,28 @@ class UsedWhereScanner {
 	 * @return array{processed: int, total: int, complete: bool}
 	 */
 	public function scan_batch( int $offset = 0, int $batch_size = 20 ): array {
-		// Clear old usage meta on first batch only.
+		// Legacy AJAX-driven path: clear old usage meta on first batch.
+		// Cron-driven scans clear once at start and call process_batch() instead.
 		if ( 0 === $offset ) {
 			$this->clear_all_usage_meta();
 		}
+		return $this->process_batch( $offset, $batch_size, 0 === $offset );
+	}
 
+	/**
+	 * Scan one batch of posts. Pure batch worker — caller decides when to clear.
+	 *
+	 * Used by both the legacy AJAX path (via scan_batch) and the cron-driven
+	 * tick handler. Does not touch the scan status option; the caller writes
+	 * status so the polling UI sees consistent state.
+	 *
+	 * @param int  $offset           Offset into the post list.
+	 * @param int  $batch_size       Max posts to process this tick.
+	 * @param bool $detect_sitewide  Whether to run sitewide detection (favicon, logo) — only the first batch.
+	 *
+	 * @return array{processed: int, total: int, complete: bool}
+	 */
+	public function process_batch( int $offset, int $batch_size, bool $detect_sitewide ): array {
 		// Scan all public post types (post, page, product, portfolio, etc.).
 		$post_types = get_post_types( [ 'public' => true ], 'names' );
 		unset( $post_types['attachment'] );
@@ -110,8 +148,7 @@ class UsedWhereScanner {
 		// Reset buffer for this batch.
 		$this->usages_buffer = [];
 
-		// On first batch: detect site-wide image usage (favicon, site logo).
-		if ( 0 === $offset ) {
+		if ( $detect_sitewide ) {
 			$this->detect_sitewide_usage();
 		}
 
@@ -124,6 +161,7 @@ class UsedWhereScanner {
 
 		// Free the map; it will be rebuilt on the next batch call.
 		$this->url_lookup_map = null;
+		$this->upload_base_url = null;
 
 		return [
 			'processed' => $offset + count( $posts ),
@@ -166,11 +204,211 @@ class UsedWhereScanner {
 		// 6. Other page builders (Beaver Builder, Divi, Brizy, etc.).
 		$this->detect_images_in_builders( $post );
 
-		// 7. Custom meta fields (if enabled) — includes _prefixed keys with serialized data.
-		$options = Fns::get_options();
-		if ( ! empty( $options['scan_custom_meta_usage'] ) ) {
-			$this->detect_images_in_meta( $post );
+		// 7. Custom meta fields — includes _prefixed keys with serialized data,
+		//     HTML stored in meta-box fields (e.g. size-chart data-image attributes),
+		//     and any uploads URL embedded in serialized/JSON/HTML meta values.
+		$this->detect_images_in_meta( $post );
+
+		// 8. Fetch the public permalink and extract every image URL from the
+		//    fully rendered HTML. Catches images injected by themes, plugins,
+		//    shortcodes, meta-box buttons, and source-code-rendered output that
+		//    isn't reachable from post_content / post_meta inspection alone.
+		$this->detect_images_in_permalink( $post );
+	}
+
+	/**
+	 * Fetch the post's public permalink and scan the rendered HTML for image URLs.
+	 *
+	 * Skipped for non-published posts (drafts don't render publicly) and when the
+	 * `tsmlt_scan_permalink_enabled` filter returns false. Failures are silent —
+	 * the rest of the scan still records what it found.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return void
+	 */
+	private function detect_images_in_permalink( \WP_Post $post ): void {
+		if ( 'publish' !== $post->post_status ) {
+			return;
 		}
+
+		// Skip post types that have no public single template (e.g. attachment-like CPTs).
+		if ( ! is_post_type_viewable( $post->post_type ) ) {
+			return;
+		}
+
+		// Allow disabling via filter (e.g. for hosts with strict loopback limits).
+		if ( ! apply_filters( 'tsmlt_scan_permalink_enabled', true, $post ) ) {
+			return;
+		}
+
+		// Avoid loopback recursion: if this request was itself spawned by us,
+		// don't fetch again.
+		if ( ! empty( $_SERVER['HTTP_X_TSMLT_SCAN'] ) ) {
+			return;
+		}
+
+		// Skip the HTTP fetch when nothing on this post has changed since the
+		// last successful permalink scan. The fingerprint covers the post's
+		// content, modified-time, and the size-chart-style meta blobs that the
+		// permalink fetch is designed to catch in the first place.
+		$fingerprint = $this->build_permalink_fingerprint( $post );
+		$last_print  = (string) get_post_meta( $post->ID, '_tsmlt_permalink_fp', true );
+		if ( $fingerprint && $fingerprint === $last_print ) {
+			return;
+		}
+
+		$permalink = get_permalink( $post );
+		if ( empty( $permalink ) ) {
+			return;
+		}
+
+		$response = wp_remote_get(
+			$permalink,
+			[
+				'timeout'     => 10,
+				'redirection' => 3,
+				'sslverify'   => false,
+				'headers'     => [
+					'X-TSMLT-Scan' => '1',
+				],
+				'user-agent'  => 'TSMLT/UsedWhereScanner',
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 400 ) {
+			return;
+		}
+
+		$html = wp_remote_retrieve_body( $response );
+		if ( empty( $html ) ) {
+			return;
+		}
+
+		$this->extract_image_urls_from_html( $html, $post, 'permalink' );
+
+		// Stamp the fingerprint only after a successful extraction so a
+		// transient HTTP failure doesn't poison future scans.
+		if ( $fingerprint ) {
+			update_post_meta( $post->ID, '_tsmlt_permalink_fp', $fingerprint );
+		}
+	}
+
+	/**
+	 * Build a short fingerprint of the post state that can change rendered output.
+	 *
+	 * Used to skip the permalink HTTP fetch when nothing has changed. Includes
+	 * post_modified_gmt (covers content, title, status edits) plus the meta
+	 * keys most likely to inject extra images on render.
+	 *
+	 * @param \WP_Post $post Post object.
+	 *
+	 * @return string md5 fingerprint or empty string on failure.
+	 */
+	private function build_permalink_fingerprint( \WP_Post $post ): string {
+		$parts = [
+			$post->post_modified_gmt,
+			(string) get_post_meta( $post->ID, '_thumbnail_id', true ),
+			(string) get_post_meta( $post->ID, '_product_image_gallery', true ),
+		];
+		return md5( implode( '|', $parts ) );
+	}
+
+	/**
+	 * Extract every uploads-image URL from an HTML blob.
+	 *
+	 * Phase 1 of the two-phase scan pipeline. Returns a deduplicated set of
+	 * relative paths (keys), suitable for batch resolution against the
+	 * url_lookup_map. Pure string work — no DB / no record writes.
+	 *
+	 * @param string $html HTML to scan.
+	 *
+	 * @return array<string, true> Map keyed by relative path (after /uploads/).
+	 */
+	private function extract_uploads_urls_from_html( string $html ): array {
+		$pattern = '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|ico))/i';
+		$seen    = [];
+
+		// 1. Raw HTML pass — the common case, no decode cost.
+		if ( preg_match_all( $pattern, $html, $matches ) ) {
+			foreach ( $matches[1] as $rel ) {
+				$rel = rtrim( $rel, ").,;:!?" );
+				if ( '' !== $rel ) {
+					$seen[ $rel ] = true;
+				}
+			}
+		}
+
+		// 2. Entity-decoded pass — only when body contains encoded markup
+		//    (`&lt;`, `&quot;`, `&amp;`). Catches URLs hidden inside encoded
+		//    attribute payloads like data-image="&lt;img src=&quot;...&quot;&gt;".
+		if ( false !== strpos( $html, '&lt;' ) || false !== strpos( $html, '&quot;' ) || false !== strpos( $html, '&amp;' ) ) {
+			$decoded = html_entity_decode( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			if ( $decoded !== $html && preg_match_all( $pattern, $decoded, $dec_matches ) ) {
+				foreach ( $dec_matches[1] as $rel ) {
+					$rel = rtrim( $rel, ").,;:!?" );
+					if ( '' !== $rel ) {
+						$seen[ $rel ] = true;
+					}
+				}
+			}
+		}
+
+		return $seen;
+	}
+
+	/**
+	 * Resolve a set of relative uploads paths to attachment IDs and record usages.
+	 *
+	 * Phase 2 of the two-phase scan pipeline. Looks up each URL in the cached
+	 * url_lookup_map, dedupes by attachment_id (so /file.jpg and
+	 * /file-300x200.jpg don't both record), and writes one usage per ID.
+	 *
+	 * @param array<string, true> $relative_paths Output of extract_uploads_urls_from_html().
+	 * @param \WP_Post            $post           Post being scanned.
+	 * @param string              $type           Usage type label.
+	 *
+	 * @return void
+	 */
+	private function record_usages_from_urls( array $relative_paths, \WP_Post $post, string $type ): void {
+		if ( empty( $relative_paths ) ) {
+			return;
+		}
+
+		$base_url     = $this->get_uploads_base_url();
+		$resolved_ids = [];
+
+		foreach ( array_keys( $relative_paths ) as $relative_path ) {
+			$attachment_id = $this->get_attachment_id_by_url( $base_url . $relative_path );
+			if ( $attachment_id && ! isset( $resolved_ids[ $attachment_id ] ) ) {
+				$resolved_ids[ $attachment_id ] = true;
+			}
+		}
+
+		foreach ( array_keys( $resolved_ids ) as $attachment_id ) {
+			$this->record_usage( (int) $attachment_id, $post, $type );
+		}
+	}
+
+	/**
+	 * Convenience wrapper: extract URLs from HTML, then resolve+record in one call.
+	 *
+	 * Used by both `detect_images_in_permalink()` and `scan_rendered_html()`.
+	 *
+	 * @param string   $html HTML to scan.
+	 * @param \WP_Post $post Post being scanned.
+	 * @param string   $type Usage type label.
+	 *
+	 * @return void
+	 */
+	private function extract_image_urls_from_html( string $html, \WP_Post $post, string $type ): void {
+		$urls = $this->extract_uploads_urls_from_html( $html );
+		$this->record_usages_from_urls( $urls, $post, $type );
 	}
 
 	/**
@@ -210,8 +448,7 @@ class UsedWhereScanner {
 		// Excludes whitespace, quotes, angle brackets, and CSS/HTML delimiters
 		// (`)`, `;`, `,`) so inline CSS like `url(.../file.jpg)` is captured cleanly.
 		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $content, $matches ) ) {
-			$upload_dir = wp_upload_dir();
-			$base_url   = trailingslashit( $upload_dir['baseurl'] );
+			$base_url = $this->get_uploads_base_url();
 
 			foreach ( $matches[1] as $relative_path ) {
 				// Trim any stray trailing punctuation that survived the character class.
@@ -399,8 +636,7 @@ class UsedWhereScanner {
 				// Then scan the value as a content blob — catches CSS `background-image:url(...)`,
 				// rich-text fields, and any string holding multiple uploads URLs.
 				if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $value, $url_matches ) ) {
-					$upload_dir = wp_upload_dir();
-					$base_url   = trailingslashit( $upload_dir['baseurl'] );
+					$base_url = $this->get_uploads_base_url();
 					foreach ( $url_matches[1] as $rel ) {
 						$rel = rtrim( $rel, ").,;:!?" );
 						if ( '' === $rel ) {
@@ -527,11 +763,30 @@ class UsedWhereScanner {
 			return;
 		}
 
-		// 4. URL containing /wp-content/uploads/.
+		// 4. URL or content containing /wp-content/uploads/.
 		if ( strpos( $value, '/wp-content/uploads/' ) !== false ) {
+			// 4a. Try the value as a single direct URL first (plain URL meta fields).
 			$attachment_id = $this->get_attachment_id_by_url( $value );
 			if ( $attachment_id ) {
 				$this->record_usage( $attachment_id, $post, 'meta' );
+			}
+
+			// 4b. Decode HTML entities so URLs inside encoded attributes
+			//     (e.g. data-image="&lt;img src=&quot;...&quot;&gt;") are reachable,
+			//     then extract every uploads URL from the blob.
+			$decoded = html_entity_decode( $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $decoded, $url_matches ) ) {
+				$base_url = $this->get_uploads_base_url();
+				foreach ( $url_matches[1] as $rel ) {
+					$rel = rtrim( $rel, ").,;:!?" );
+					if ( '' === $rel ) {
+						continue;
+					}
+					$blob_id = $this->get_attachment_id_by_url( $base_url . $rel );
+					if ( $blob_id ) {
+						$this->record_usage( $blob_id, $post, 'meta' );
+					}
+				}
 			}
 		}
 	}
@@ -632,8 +887,7 @@ class UsedWhereScanner {
 			->where( 'meta_key', '=', '_wp_attached_file' )
 			->get();
 
-		$upload_dir = wp_upload_dir();
-		$base_url   = trailingslashit( $upload_dir['baseurl'] );
+		$base_url = $this->get_uploads_base_url();
 
 		foreach ( ( $meta_rows ?: [] ) as $row ) {
 			$post_id   = absint( $row['post_id'] );
@@ -772,6 +1026,7 @@ class UsedWhereScanner {
 		$this->detect_usage_in_post( $post );
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
+		$this->upload_base_url = null;
 	}
 
 	/**
@@ -824,19 +1079,217 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Get scan status.
+	 * Cron hook name for the self-rescheduling scan tick.
+	 */
+	const SCAN_TICK_HOOK = 'tsmlt_used_where_scan_tick';
+
+	/**
+	 * Transient key used to serialise concurrent tick handlers. WP-Cron can fire
+	 * the same scheduled event twice on simultaneous incoming requests; the
+	 * lock makes the second one bail.
+	 */
+	const SCAN_LOCK_KEY = 'tsmlt_used_where_scan_lock';
+
+	/**
+	 * Default batch size for cron-driven scans. Smaller than the legacy AJAX
+	 * batch because each tick runs inside a single PHP request and may call
+	 * wp_remote_get() per post for permalink scanning.
+	 */
+	const SCAN_TICK_BATCH = 10;
+
+	/**
+	 * Get the scan status surface used by the polling UI.
 	 *
-	 * @return array{scanned: int, total: int, complete: bool, last_update: string}
+	 * Returns a richer shape than the legacy contract: `state` is the source of
+	 * truth for the frontend (idle | queued | running | complete | cancelled |
+	 * error), with `scanned` / `total` / `complete` retained for backwards
+	 * compatibility with callers that haven't migrated to `state` yet.
+	 *
+	 * @return array
 	 */
 	public function get_scan_status(): array {
-		$last_scan = get_option( 'tsmlt_used_where_scan_status', [] );
+		$status = get_option( 'tsmlt_used_where_scan_status', [] );
+
+		$state     = (string) ( $status['state'] ?? ( $status['complete'] ?? false ? 'complete' : 'idle' ) );
+		$processed = (int) ( $status['processed'] ?? 0 );
+		$total     = (int) ( $status['total'] ?? 0 );
 
 		return [
-			'scanned'     => $last_scan['processed'] ?? 0,
-			'total'       => $last_scan['total'] ?? 0,
-			'complete'    => $last_scan['complete'] ?? false,
-			'last_update' => $last_scan['timestamp'] ?? '',
+			'state'        => $state,
+			'scanned'      => $processed,
+			'total'        => $total,
+			'complete'     => 'complete' === $state,
+			'resumable'    => in_array( $state, [ 'queued', 'running' ], true ) && $processed > 0,
+			'last_update'  => (string) ( $status['timestamp'] ?? '' ),
+			'last_tick_at' => (string) ( $status['last_tick_at'] ?? '' ),
+			'started_at'   => (string) ( $status['started_at'] ?? '' ),
+			'last_error'   => (string) ( $status['last_error'] ?? '' ),
+			'next_offset'  => (int) ( $status['next_offset'] ?? 0 ),
 		];
+	}
+
+	/**
+	 * Persist the scan status row used by polling UI and tick handlers.
+	 *
+	 * Always merges into the existing row so callers only need to pass changed
+	 * fields. Stamps `timestamp` on every write so we can detect stalled scans.
+	 *
+	 * @param array $changes Fields to merge in.
+	 *
+	 * @return void
+	 */
+	private function update_scan_status( array $changes ): void {
+		$current = get_option( 'tsmlt_used_where_scan_status', [] );
+		if ( ! is_array( $current ) ) {
+			$current = [];
+		}
+		$next              = array_merge( $current, $changes );
+		$next['timestamp'] = current_time( 'mysql' );
+		update_option( 'tsmlt_used_where_scan_status', $next, false );
+	}
+
+	/**
+	 * Start a cron-driven full scan.
+	 *
+	 * Wipes existing usage data, resets the status row to `queued`, and
+	 * schedules the first tick. Subsequent ticks self-reschedule until the
+	 * scan completes or is cancelled. Safe to call when a scan is already
+	 * running — it will hard-restart from offset 0.
+	 *
+	 * @return array Status snapshot for the response.
+	 */
+	public function start_scheduled_scan(): array {
+		// Cancel any in-flight scan so we don't race the old tick chain.
+		$this->cancel_scheduled_scan();
+
+		// Wipe old usage data once, here. The tick handler must NOT clear.
+		$this->clear_all_usage_meta();
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_key', '=', '_tsmlt_usage_tracked' )
+			->execute();
+
+		// Compute the initial total so the progress bar has a denominator
+		// from the very first poll, before any tick has run.
+		$post_types = get_post_types( [ 'public' => true ], 'names' );
+		unset( $post_types['attachment'] );
+		$total = 0;
+		foreach ( array_values( $post_types ) as $pt ) {
+			$counts = wp_count_posts( $pt );
+			$total += (int) ( $counts->publish ?? 0 );
+			$total += (int) ( $counts->draft ?? 0 );
+			$total += (int) ( $counts->pending ?? 0 );
+			$total += (int) ( $counts->private ?? 0 );
+			$total += (int) ( $counts->future ?? 0 );
+		}
+
+		$now_mysql = current_time( 'mysql' );
+		update_option( 'tsmlt_used_where_scan_status', [
+			'state'        => 'queued',
+			'processed'    => 0,
+			'total'        => $total,
+			'complete'     => false,
+			'next_offset'  => 0,
+			'started_at'   => $now_mysql,
+			'last_tick_at' => '',
+			'last_error'   => '',
+			'timestamp'    => $now_mysql,
+		], false );
+
+		// Schedule the first tick. Args are passed by reference to identify
+		// the event for cancellation later, so always pass them explicitly.
+		wp_schedule_single_event( time() + 1, self::SCAN_TICK_HOOK, [ 0 ] );
+
+		return $this->get_scan_status();
+	}
+
+	/**
+	 * Run one batch tick and reschedule the next.
+	 *
+	 * Invoked by WP-Cron for the SCAN_TICK_HOOK action. Uses a transient lock
+	 * to prevent two simultaneous workers from racing on the same offset, and
+	 * bails cleanly if the user has cancelled the scan.
+	 *
+	 * @param int $offset Offset to process this tick.
+	 *
+	 * @return void
+	 */
+	public function run_tick_batch( $offset = 0 ): void {
+		$offset = absint( $offset );
+
+		// Bail if the user cancelled or cleared mid-scan.
+		$status = get_option( 'tsmlt_used_where_scan_status', [] );
+		$state  = (string) ( $status['state'] ?? 'idle' );
+		if ( ! in_array( $state, [ 'queued', 'running' ], true ) ) {
+			return;
+		}
+
+		// Concurrency guard. A failed worker will leave a stale lock; the TTL
+		// auto-clears it so the watchdog (Phase 2) can revive the scan.
+		if ( get_transient( self::SCAN_LOCK_KEY ) ) {
+			return;
+		}
+		set_transient( self::SCAN_LOCK_KEY, time(), 120 );
+
+		try {
+			$this->update_scan_status( [
+				'state'        => 'running',
+				'last_tick_at' => current_time( 'mysql' ),
+			] );
+
+			$result = $this->process_batch( $offset, self::SCAN_TICK_BATCH, 0 === $offset );
+
+			$next_offset = (int) $result['processed'];
+			$total       = (int) $result['total'];
+			$complete    = (bool) $result['complete'];
+
+			$this->update_scan_status( [
+				'processed'   => $next_offset,
+				'total'       => $total,
+				'next_offset' => $next_offset,
+				'state'       => $complete ? 'complete' : 'running',
+				'complete'    => $complete,
+			] );
+
+			if ( ! $complete ) {
+				// Schedule the next tick. Small delay lets WP-Cron interleave
+				// other work and prevents tight-loop pile-ups on busy sites.
+				wp_schedule_single_event( time() + 5, self::SCAN_TICK_HOOK, [ $next_offset ] );
+			}
+		} catch ( \Throwable $e ) {
+			$this->update_scan_status( [
+				'state'      => 'error',
+				'last_error' => $e->getMessage(),
+			] );
+		} finally {
+			delete_transient( self::SCAN_LOCK_KEY );
+		}
+	}
+
+	/**
+	 * Cancel an in-progress cron-driven scan.
+	 *
+	 * Marks the status row as `cancelled` (any running tick will bail on its
+	 * next status read) and unschedules every queued tick instance regardless
+	 * of its offset argument.
+	 *
+	 * @return array Status snapshot for the response.
+	 */
+	public function cancel_scheduled_scan(): array {
+		// Remove every queued tick for this hook, regardless of args.
+		wp_unschedule_hook( self::SCAN_TICK_HOOK );
+
+		// Drop the lock so a stuck worker can't keep the scan "running".
+		delete_transient( self::SCAN_LOCK_KEY );
+
+		$status = get_option( 'tsmlt_used_where_scan_status', [] );
+		$state  = (string) ( $status['state'] ?? 'idle' );
+		if ( in_array( $state, [ 'queued', 'running' ], true ) ) {
+			$this->update_scan_status( [
+				'state' => 'cancelled',
+			] );
+		}
+
+		return $this->get_scan_status();
 	}
 
 	/**
@@ -845,6 +1298,10 @@ class UsedWhereScanner {
 	 * @return array
 	 */
 	public function clear_scan(): array {
+		// Stop any cron-driven scan in flight before wiping data.
+		wp_unschedule_hook( self::SCAN_TICK_HOOK );
+		delete_transient( self::SCAN_LOCK_KEY );
+
 		$this->clear_all_usage_meta();
 		delete_option( 'tsmlt_used_where_scan_status' );
 
@@ -897,6 +1354,7 @@ class UsedWhereScanner {
 
 		// Also reset the URL lookup map to avoid stale data.
 		$this->url_lookup_map = null;
+		$this->upload_base_url = null;
 	}
 
 	/**
@@ -1168,21 +1626,14 @@ class UsedWhereScanner {
 			}
 		}
 
-		// 4. Extract from <a> href linking to uploads (downloadable images, lightbox, etc.).
-		if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|ico))/i', $html, $url_matches ) ) {
-			$upload_dir = wp_upload_dir();
-			$base_url   = trailingslashit( $upload_dir['baseurl'] );
-			foreach ( array_unique( $url_matches[1] ) as $relative_path ) {
-				$full_url      = $base_url . $relative_path;
-				$attachment_id = $this->get_attachment_id_by_url( $full_url );
-				if ( $attachment_id ) {
-					$this->record_usage( $attachment_id, $post, 'rendered' );
-				}
-			}
-		}
+		// 4-5. Catch-all uploads-URL extraction (covers <a> hrefs, JSON blobs,
+		//      and entity-encoded attribute payloads like data-image="&lt;img...&gt;").
+		//      Shared helper handles dedup, conditional entity decode, and base URL caching.
+		$this->extract_image_urls_from_html( $html, $post, 'rendered' );
 
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
+		$this->upload_base_url = null;
 	}
 
 	/**

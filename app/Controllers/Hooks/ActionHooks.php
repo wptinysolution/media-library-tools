@@ -44,6 +44,8 @@ class ActionHooks {
 		add_action( 'save_post', [ $this, 'schedule_usage_scan_on_save' ], 99, 2 );
 		// Background cron handler for post-save scan.
 		add_action( 'tsmlt_scan_post_usage', [ $this, 'run_scheduled_post_scan' ] );
+		// Cron-driven full-scan tick — self-reschedules until complete.
+		add_action( UsedWhereScanner::SCAN_TICK_HOOK, [ UsedWhereScanner::instance(), 'run_tick_batch' ], 10, 1 );
 		// Auto-detect image usage on first frontend visit by scanning rendered HTML.
 		add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
 		// Process captured HTML after response is sent — no delay for visitor.

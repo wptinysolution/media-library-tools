@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usedWhereScanBatch, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan, usedWhereBulkDelete, usedWhereTrash, usedWhereUntrash, getUsedWhereTrashed } from "@/js/Utils/Data";
+import { startUsedWhereScan, cancelUsedWhereScan, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan, usedWhereBulkDelete, usedWhereTrash, usedWhereUntrash, getUsedWhereTrashed } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import SearchInput from "@/js/Component/Common/SearchInput";
@@ -21,7 +21,6 @@ export default function UsedWherePage() {
     const activeFilter: FilterTab = filterParam === 'used' ? 'used' : filterParam === 'trash' ? 'trash' : 'unused';
     const currentPageFromUrl = parseInt(pageParam || '1', 10);
 
-    const [isScanning, setIsScanning] = useState(false);
     const [scanProgress, setScanProgress] = useState({ processed: 0, total: 0 });
     const [usages, setUsages] = useState<any[]>([]);
     const [totalUsages, setTotalUsages] = useState(0);
@@ -58,18 +57,6 @@ export default function UsedWherePage() {
         setSearchQuery('');
         navigate(`/usedWhere/${activeFilter}`);
     };
-
-    const loadStatus = useCallback(async () => {
-        try {
-            const status = await getUsedWhereStatus() as any;
-            setScanProgress({
-                processed: status.scanned || 0,
-                total: status.total || 0,
-            });
-        } catch (error) {
-            console.error('Error loading status:', error);
-        }
-    }, []);
 
     const loadResults = useCallback(async (page = 1, filter: FilterTab = activeFilter, search: string = searchQuery, limit: number = perPage) => {
         setIsLoading(true);
@@ -121,52 +108,106 @@ export default function UsedWherePage() {
         navigate(`/usedWhere/${filter}`);
     };
 
+    // Cron-driven scan flow. The browser is a passive observer: it kicks off
+    // the scan, then polls server status every few seconds. The actual work
+    // happens in WP-Cron tick handlers, so closing the tab does not stop the
+    // scan and reopening it picks up wherever the server has progressed to.
+    const [scanState, setScanState] = useState<string>('idle'); // idle | queued | running | complete | cancelled | error
+    const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const isScanning = scanState === 'queued' || scanState === 'running';
+
+    // Stop any pending poll. Idempotent — safe to call when nothing is queued.
+    const stopPolling = useCallback(() => {
+        if (pollTimerRef.current) {
+            clearTimeout(pollTimerRef.current);
+            pollTimerRef.current = null;
+        }
+    }, []);
+
+    // Single poll tick. Refreshes status, updates progress, and either
+    // schedules the next tick or finalises (loads results, clears the timer).
+    const pollOnce = useCallback(async () => {
+        try {
+            const status = await getUsedWhereStatus() as any;
+            const state = String(status?.state ?? 'idle');
+            setScanState(state);
+            setScanProgress({
+                processed: Number(status?.scanned ?? 0),
+                total: Number(status?.total ?? 0),
+            });
+
+            if (state === 'queued' || state === 'running') {
+                // Adaptive cadence: faster while running, slower while queued
+                // (the first tick is waiting on cron and may take a few seconds).
+                const delay = state === 'running' ? 2000 : 4000;
+                pollTimerRef.current = setTimeout(pollOnce, delay);
+                return;
+            }
+
+            // Terminal state — stop polling and refresh results.
+            stopPolling();
+            if (state === 'complete') {
+                await loadResults(1, activeFilter, searchQuery);
+            }
+        } catch (error) {
+            console.error('Error polling scan status:', error);
+            // Back off on error rather than tight-loop. Next poll in 10s.
+            pollTimerRef.current = setTimeout(pollOnce, 10000);
+        }
+    }, [activeFilter, searchQuery, loadResults, stopPolling]);
+
     const startScan = async () => {
-        setIsScanning(true);
+        // Optimistic UI: show queued state immediately so the user sees a
+        // response to their click before the first poll fires.
+        setScanState('queued');
         setScanProgress({ processed: 0, total: 0 });
-        // Clear previous results before starting a new scan (re-scan flow).
         setUsages([]);
         setTotalUsages(0);
         setCurrentPage(1);
         setSelectedIds(new Set());
         setExpandedId(null);
         try {
-            await clearUsedWhereScan();
+            const status = await startUsedWhereScan() as any;
+            setScanState(String(status?.state ?? 'queued'));
+            setScanProgress({
+                processed: Number(status?.scanned ?? 0),
+                total: Number(status?.total ?? 0),
+            });
+            stopPolling();
+            pollTimerRef.current = setTimeout(pollOnce, 1500);
         } catch (error) {
-            console.error('Error clearing previous results:', error);
-        }
-        let offset = 0;
-        let complete = false;
-
-        try {
-            while (!complete) {
-                const response = await usedWhereScanBatch({
-                    offset,
-                    batch_size: 20,
-                }) as any;
-                const result = response.data || response;
-                offset = result.processed;
-                complete = result.complete;
-                setScanProgress({ processed: result.processed, total: result.total });
-            }
-
-            // Show 100% briefly before hiding the progress bar.
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            setIsScanning(false);
-            await loadStatus();
-            await loadResults(1, activeFilter, searchQuery);
-        } catch (error) {
-            console.error('Error during scan:', error);
-            setIsScanning(false);
+            console.error('Error starting scan:', error);
+            setScanState('error');
         }
     };
+
+    const cancelScan = async () => {
+        if (!confirm('Cancel the in-progress scan? Existing data is preserved — you can start a fresh scan later.')) {
+            return;
+        }
+        try {
+            const status = await cancelUsedWhereScan() as any;
+            setScanState(String(status?.state ?? 'cancelled'));
+            stopPolling();
+        } catch (error) {
+            console.error('Error cancelling scan:', error);
+        }
+    };
+
+    // Cleanup poll timer on unmount.
+    useEffect(() => {
+        return () => stopPolling();
+    }, [stopPolling]);
 
     const handleClear = async () => {
         if (!confirm('Are you sure you want to clear all scan results?')) {
             return;
         }
         try {
+            stopPolling();
             await clearUsedWhereScan();
+            setScanState('idle');
             setUsages([]);
             setTotalUsages(0);
             setScanProgress({ processed: 0, total: 0 });
@@ -255,9 +296,28 @@ export default function UsedWherePage() {
         }
     };
 
-    // Load status on mount.
+    // On mount: read server-side scan state. The cron tick handler is the
+    // source of truth — if it says a scan is running, attach the poller.
+    // Reload, browser crash, role change, all converge to the same behaviour:
+    // the UI reflects whatever the server reports.
     useEffect(() => {
-        loadStatus();
+        (async () => {
+            try {
+                const status = await getUsedWhereStatus() as any;
+                const state = String(status?.state ?? 'idle');
+                setScanState(state);
+                setScanProgress({
+                    processed: Number(status?.scanned ?? 0),
+                    total: Number(status?.total ?? 0),
+                });
+                if (state === 'queued' || state === 'running') {
+                    pollTimerRef.current = setTimeout(pollOnce, 1500);
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Load results when filter, page, or search changes.
@@ -301,14 +361,23 @@ export default function UsedWherePage() {
 
             {/* Actions bar */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white rounded-t-lg">
-                <button
-                    type="button"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
-                    onClick={startScan}
-                    disabled={isScanning}
-                >
-                    {isScanning ? 'Scanning...' : (scanProgress.processed > 0 ? 'Re-scan' : 'Scan Media Usage ')}
-                </button>
+                {isScanning ? (
+                    <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer transition-colors"
+                        onClick={cancelScan}
+                    >
+                        Cancel Scan
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                        onClick={startScan}
+                    >
+                        {scanProgress.processed > 0 ? 'Re-scan' : 'Scan Media Usage '}
+                    </button>
+                )}
                 <button
                     type="button"
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
@@ -354,11 +423,13 @@ export default function UsedWherePage() {
             {isScanning && (
                 <div className="px-4 py-4 bg-white border-b border-gray-200">
                     <p className="text-sm text-gray-600 mb-2 mt-0!">
-                        Scanning {scanProgress.processed} / {scanProgress.total} posts for image usage...
+                        {scanState === 'queued'
+                            ? 'Queued — waiting for the first batch to start...'
+                            : `Scanning ${scanProgress.processed} / ${scanProgress.total} posts for image usage...`}
                     </p>
                     <ProgressBar percent={scanPercent} />
                     <p className="text-xs text-gray-400 mt-1.5 mb-0!">
-                        Checking posts, pages, and custom post types for image references. Images not found in any post will be marked as unused.
+                        Running in the background — you can safely close this tab and come back later.
                     </p>
                 </div>
             )}

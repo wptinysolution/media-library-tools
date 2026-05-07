@@ -99,6 +99,7 @@ class Fns {
 		// Clear single-event hooks that use dynamic args (not stored in the list).
 		// wp_unschedule_hook() removes ALL scheduled events for the hook regardless of args.
 		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
+		wp_unschedule_hook( 'tsmlt_used_where_scan_tick' );
 	}
 	/**
 	 * Image attachment details
