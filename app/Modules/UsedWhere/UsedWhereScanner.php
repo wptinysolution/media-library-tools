@@ -390,9 +390,27 @@ class UsedWhereScanner {
 			}
 
 			if ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
+				// Try the value as a single URL first (covers ACF image URL, plain URL fields).
 				$attachment_id = $this->get_attachment_id_by_url( $value );
 				if ( $attachment_id ) {
 					$this->record_usage( $attachment_id, $post, $type );
+				}
+
+				// Then scan the value as a content blob — catches CSS `background-image:url(...)`,
+				// rich-text fields, and any string holding multiple uploads URLs.
+				if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $value, $url_matches ) ) {
+					$upload_dir = wp_upload_dir();
+					$base_url   = trailingslashit( $upload_dir['baseurl'] );
+					foreach ( $url_matches[1] as $rel ) {
+						$rel = rtrim( $rel, ").,;:!?" );
+						if ( '' === $rel ) {
+							continue;
+						}
+						$blob_id = $this->get_attachment_id_by_url( $base_url . $rel );
+						if ( $blob_id ) {
+							$this->record_usage( $blob_id, $post, $type );
+						}
+					}
 				}
 			}
 
