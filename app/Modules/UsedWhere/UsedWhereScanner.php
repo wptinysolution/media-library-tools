@@ -177,6 +177,19 @@ class UsedWhereScanner {
 	private function get_scannable_post_types(): array {
 		$types = get_post_types( [], 'names' );
 		unset( $types['attachment'] );
+
+		// When WooCommerce HPOS is active, orders live in `wp_wc_orders` and
+		// are scanned via the dedicated HPOS pass. Skip the legacy post-table
+		// `shop_order*` CPTs to avoid double-scanning every order in HPOS sync
+		// mode (and to dodge orphan rows left by the HPOS migration).
+		if ( $this->is_hpos_active() ) {
+			unset(
+				$types['shop_order'],
+				$types['shop_order_refund'],
+				$types['shop_subscription']
+			);
+		}
+
 		$types = array_values( $types );
 
 		/**
@@ -408,10 +421,13 @@ class UsedWhereScanner {
 		}
 
 		// Flush buffer: save usages to post meta and set post_parent.
-		$this->flush_usages_buffer();
+		// On the first batch the start handler already wiped existing usage
+		// meta, so skip the per-attachment read-merge step entirely.
+		$this->flush_usages_buffer( 0 === $offset );
 
 		// Free batch-scoped caches; they'll be rebuilt on the next batch.
 		$this->url_lookup_map = null;
+		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 
@@ -911,9 +927,21 @@ class UsedWhereScanner {
 					$this->record_usage( $attachment_id, $post, $type );
 				}
 
+				// Decode HTML entities when the value is encoded HTML — covers
+				// the case where a serialized array contains a string like
+				// `data-image="&lt;img src=&quot;...&quot;&gt;"`. Without decoding
+				// the regex would capture trailing `&quot` fragments and the
+				// lookup would miss. Conditional check avoids the cost on
+				// already-clean strings (CSS url(...), plain URLs, etc.).
+				$haystack = $value;
+				if ( false !== strpos( $value, '&lt;' ) || false !== strpos( $value, '&quot;' ) || false !== strpos( $value, '&amp;' ) ) {
+					$haystack = html_entity_decode( $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+				}
+
 				// Then scan the value as a content blob — catches CSS `background-image:url(...)`,
-				// rich-text fields, and any string holding multiple uploads URLs.
-				if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $value, $url_matches ) ) {
+				// rich-text fields, encoded-attribute payloads, and any string
+				// holding multiple uploads URLs.
+				if ( preg_match_all( '/\/wp-content\/uploads\/([^\s"\'<>)\\\;,]+)/i', $haystack, $url_matches ) ) {
 					$base_url = $this->get_uploads_base_url();
 					foreach ( $url_matches[1] as $rel ) {
 						$rel = rtrim( $rel, ").,;:!?" );
@@ -1101,27 +1129,37 @@ class UsedWhereScanner {
 	/**
 	 * Flush the usages buffer to post meta and set post_parent.
 	 *
+	 * @param bool $is_first_batch When true, skip the read-merge step. The
+	 *                             scan-start handler clears all usage meta
+	 *                             before the first batch runs, so there's
+	 *                             nothing to merge — saving one DB read per
+	 *                             affected attachment on the first batch.
+	 *
 	 * @return void
 	 */
-	private function flush_usages_buffer(): void {
+	private function flush_usages_buffer( bool $is_first_batch = false ): void {
 		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
 			$new_usages = array_values( $entries );
 
-			// Merge with any existing meta (from previous batches).
-			$existing = get_post_meta( $attachment_id, self::META_KEY, true );
-			if ( ! empty( $existing ) && is_array( $existing ) ) {
-				// Deduplicate by key.
-				$existing_keys = [];
-				foreach ( $existing as $item ) {
-					$existing_keys[ $item['post_id'] . ':' . $item['usage_type'] ] = true;
-				}
-				foreach ( $new_usages as $item ) {
-					$k = $item['post_id'] . ':' . $item['usage_type'];
-					if ( ! isset( $existing_keys[ $k ] ) ) {
-						$existing[] = $item;
+			// Merge with any existing meta from previous batches. Skipped on
+			// the first batch because clear_all_usage_meta() just wiped the
+			// keyspace — the read would always come back empty.
+			if ( ! $is_first_batch ) {
+				$existing = get_post_meta( $attachment_id, self::META_KEY, true );
+				if ( ! empty( $existing ) && is_array( $existing ) ) {
+					// Deduplicate by key.
+					$existing_keys = [];
+					foreach ( $existing as $item ) {
+						$existing_keys[ $item['post_id'] . ':' . $item['usage_type'] ] = true;
 					}
+					foreach ( $new_usages as $item ) {
+						$k = $item['post_id'] . ':' . $item['usage_type'];
+						if ( ! isset( $existing_keys[ $k ] ) ) {
+							$existing[] = $item;
+						}
+					}
+					$new_usages = $existing;
 				}
-				$new_usages = $existing;
 			}
 
 			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
@@ -1304,6 +1342,7 @@ class UsedWhereScanner {
 		$this->detect_usage_in_post( $post );
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
+		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 	}
@@ -1488,6 +1527,16 @@ class UsedWhereScanner {
 			->where( 'meta_key', '=', '_tsmlt_usage_tracked' )
 			->execute();
 
+		// Reset the per-post permalink fingerprints. Without this, the deep
+		// scan would short-circuit on every post that was scanned previously
+		// (the fingerprint compares post_modified_gmt + thumbnail_id +
+		// _product_image_gallery — none of which change between scans), so
+		// the rendered-HTML pass would silently skip everything. Wiping the
+		// fingerprints forces the next scan to actually fetch each permalink.
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_key', '=', '_tsmlt_permalink_fp' )
+			->execute();
+
 		// Compute the initial total so the progress bar has a denominator
 		// from the very first poll, before any tick has run. Mirrors the
 		// total computed inside process_batch() — posts first, then HPOS
@@ -1632,6 +1681,13 @@ class UsedWhereScanner {
 			->where( 'meta_key', '=', '_tsmlt_usage_tracked' )
 			->execute();
 
+		// Reset permalink-fingerprints so the next scan's deep pass actually
+		// re-fetches each post (otherwise the fingerprint short-circuit would
+		// skip every post that was scanned before).
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_key', '=', '_tsmlt_permalink_fp' )
+			->execute();
+
 		return [
 			'updated' => true,
 			'message' => esc_html__( 'Scan cleared successfully.', 'media-library-tools' ),
@@ -1676,6 +1732,7 @@ class UsedWhereScanner {
 
 		// Also reset the URL lookup map to avoid stale data.
 		$this->url_lookup_map = null;
+		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 	}
@@ -1956,6 +2013,7 @@ class UsedWhereScanner {
 
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
+		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 	}
