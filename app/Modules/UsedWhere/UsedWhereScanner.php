@@ -49,6 +49,18 @@ class UsedWhereScanner {
 	private $url_lookup_map = null;
 
 	/**
+	 * Set of valid attachment IDs derived from the URL lookup map. Used by
+	 * the recursive walker to validate numeric `id` / `image` / `attachment_id`
+	 * keys without rebuilding the set on every recursion level.
+	 *
+	 * Built lazily by `get_known_attachment_ids()` and reset alongside
+	 * `url_lookup_map`.
+	 *
+	 * @var array<int, true>|null Map keyed by attachment ID for O(1) checks.
+	 */
+	private $known_attachment_ids = null;
+
+	/**
 	 * Cached uploads base URL (with trailing slash). Avoids repeated
 	 * wp_upload_dir() calls inside hot extraction loops.
 	 *
@@ -83,6 +95,28 @@ class UsedWhereScanner {
 			$this->upload_base_url = trailingslashit( $upload_dir['baseurl'] );
 		}
 		return $this->upload_base_url;
+	}
+
+	/**
+	 * Return the set of valid attachment IDs as an O(1)-lookup map.
+	 *
+	 * Built once per batch and reset alongside the URL lookup map. Used by
+	 * the recursive array walker (`extract_attachment_ids_from_array`) and
+	 * other detection paths that need to validate "is this number actually
+	 * an attachment ID?" without hitting the DB.
+	 *
+	 * Replaces the previous pattern of `array_flip(array_values($map))`
+	 * inside hot loops, which rebuilt the same set hundreds of times per
+	 * builder-heavy post.
+	 *
+	 * @return array<int, true>
+	 */
+	private function get_known_attachment_ids(): array {
+		if ( null !== $this->known_attachment_ids ) {
+			return $this->known_attachment_ids;
+		}
+		$this->known_attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		return $this->known_attachment_ids;
 	}
 
 	/**
@@ -123,6 +157,164 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * Return the list of post types we scan for image usage.
+	 *
+	 * Returns every registered post type minus `attachment` (the thing we're
+	 * scanning FOR, not OF). Builder template CPTs (Elementor, Bricks, Divi,
+	 * Oxygen, Brizy, Beaver, Breakdance, …) and reusable blocks (`wp_block`)
+	 * are picked up automatically — no per-builder allowlist needed.
+	 *
+	 * Revisions are excluded by `get_posts()` itself; statuses are filtered at
+	 * the query level (`publish, draft, pending, private, future`), so log /
+	 * queue / cache CPTs that store data under unusual statuses contribute
+	 * little or nothing to scan time.
+	 *
+	 * Extensible via the `tsmlt_used_where_scannable_post_types` filter so
+	 * sites can remove specific CPTs (e.g. high-volume log post types).
+	 *
+	 * @return string[] Post type slugs.
+	 */
+	private function get_scannable_post_types(): array {
+		$types = get_post_types( [], 'names' );
+		unset( $types['attachment'] );
+		$types = array_values( $types );
+
+		/**
+		 * Filter the post types scanned for image usage.
+		 *
+		 * Default includes every registered post type except `attachment`.
+		 *
+		 * @param string[] $types List of post type slugs.
+		 */
+		$types = apply_filters( 'tsmlt_used_where_scannable_post_types', $types );
+		return array_values( array_unique( array_filter( (array) $types, 'is_string' ) ) );
+	}
+
+	/**
+	 * Whether WooCommerce HPOS (custom orders table) is the authoritative
+	 * order store on this site.
+	 *
+	 * When true, orders no longer live in `wp_posts` / `wp_postmeta` — they
+	 * live in `wp_wc_orders` and `wp_wc_orders_meta`. Our standard post-table
+	 * iteration won't see them, so we run a separate HPOS pass after the
+	 * normal post batches finish.
+	 *
+	 * Both Woo presence and HPOS activation are checked at runtime — no-op
+	 * on non-Woo or HPOS-disabled sites.
+	 *
+	 * @return bool
+	 */
+	private function is_hpos_active(): bool {
+		if ( ! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) ) {
+			return false;
+		}
+		if ( ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return false;
+		}
+		return (bool) \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	/**
+	 * Total number of HPOS orders eligible for scanning.
+	 *
+	 * Excludes drafts and trashed orders. Cached per batch via the static
+	 * to avoid re-querying for both the count step and the iteration step.
+	 *
+	 * @return int
+	 */
+	private function get_hpos_order_total(): int {
+		global $wpdb;
+		if ( ! $this->is_hpos_active() ) {
+			return 0;
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders WHERE status NOT IN ('trash', 'auto-draft')"
+		);
+		return (int) $count;
+	}
+
+	/**
+	 * Fetch a slice of HPOS order IDs ordered by id ASC.
+	 *
+	 * @param int $offset Offset within the orders table.
+	 * @param int $limit  Number of order IDs to return.
+	 *
+	 * @return int[] Order IDs.
+	 */
+	private function get_hpos_order_ids( int $offset, int $limit ): array {
+		global $wpdb;
+		if ( ! $this->is_hpos_active() || $limit < 1 ) {
+			return [];
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}wc_orders WHERE status NOT IN ('trash', 'auto-draft') ORDER BY id ASC LIMIT %d OFFSET %d",
+				$limit,
+				$offset
+			)
+		);
+		return array_map( 'absint', (array) $ids );
+	}
+
+	/**
+	 * Scan a single HPOS order for image references.
+	 *
+	 * Pulls the order's meta from `wp_wc_orders_meta` and feeds each value
+	 * through the same `scan_meta_value_deep` pipeline used for normal post
+	 * meta. Synthesises a minimal WP_Post stub so `record_usage` keeps the
+	 * `{post_id, post_title, post_type}` shape every consumer already
+	 * expects — no signature changes ripple through the codebase.
+	 *
+	 * @param int $order_id HPOS order ID.
+	 *
+	 * @return void
+	 */
+	private function detect_usage_in_hpos_order( int $order_id ): void {
+		if ( ! class_exists( '\WC_Order' ) ) {
+			return;
+		}
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		// Synthesise a stub WP_Post so existing record_usage / get_post_link
+		// helpers work unchanged. The fields consumers actually read are ID,
+		// post_type, and post_title.
+		$stub             = new \stdClass();
+		$stub->ID         = $order_id;
+		$stub->post_type  = 'shop_order';
+		$stub->post_title = sprintf(
+			/* translators: %d: order number */
+			esc_html__( 'Order #%d', 'media-library-tools' ),
+			$order_id
+		);
+		$stub->post_status = (string) $order->get_status();
+		$stub_post         = new \WP_Post( $stub );
+
+		$attachment_ids = $this->get_known_attachment_ids();
+
+		// Walk the order's meta. wc_get_order returns a hydrated object; pull
+		// the meta keys via the public API so plugins that store data via
+		// get_meta() / update_meta_data() are visible too.
+		foreach ( $order->get_meta_data() as $meta ) {
+			$value = $meta->value;
+			if ( is_string( $value ) ) {
+				$this->scan_meta_value_deep( $value, $stub_post, $attachment_ids );
+			} elseif ( is_array( $value ) ) {
+				$this->extract_attachment_ids_from_array( $value, $stub_post, 'meta' );
+			} elseif ( is_numeric( $value ) ) {
+				$id = absint( $value );
+				if ( $id && isset( $attachment_ids[ $id ] ) ) {
+					$this->record_usage( $id, $stub_post, 'meta' );
+				}
+			}
+		}
+	}
+
+	/**
 	 * Scan all posts and detect where images (attachments) are used.
 	 *
 	 * Processes in batches to avoid timeouts. Stores results as post meta
@@ -156,66 +348,78 @@ class UsedWhereScanner {
 	 * @return array{processed: int, total: int, complete: bool}
 	 */
 	public function process_batch( int $offset, int $batch_size, bool $detect_sitewide ): array {
-		// Scan all public post types (post, page, product, portfolio, etc.).
-		$post_types = get_post_types( [ 'public' => true ], 'names' );
-		unset( $post_types['attachment'] );
-		$post_types = array_values( $post_types );
+		$post_types = $this->get_scannable_post_types();
 
-		$posts = get_posts( [
-			'post_type'      => $post_types,
-			'posts_per_page' => $batch_size,
-			'offset'         => $offset,
-			'post_status'    => [ 'publish', 'draft', 'pending', 'private', 'future' ],
-			'orderby'        => 'ID',
-			'order'          => 'ASC',
-		] );
-
-		// Count total posts across all public post types (all relevant statuses).
-		$total_count = 0;
+		// Compute totals up front so the progress denominator includes both
+		// post-table posts and HPOS orders (when active). The two queues are
+		// scanned sequentially: posts first, then HPOS orders once posts run out.
+		$post_total = 0;
 		foreach ( $post_types as $pt ) {
 			$counts = wp_count_posts( $pt );
-			$total_count += (int) ( $counts->publish ?? 0 );
-			$total_count += (int) ( $counts->draft ?? 0 );
-			$total_count += (int) ( $counts->pending ?? 0 );
-			$total_count += (int) ( $counts->private ?? 0 );
-			$total_count += (int) ( $counts->future ?? 0 );
+			$post_total += (int) ( $counts->publish ?? 0 );
+			$post_total += (int) ( $counts->draft ?? 0 );
+			$post_total += (int) ( $counts->pending ?? 0 );
+			$post_total += (int) ( $counts->private ?? 0 );
+			$post_total += (int) ( $counts->future ?? 0 );
 		}
+		$hpos_total  = $this->get_hpos_order_total();
+		$total_count = $post_total + $hpos_total;
 
-		if ( empty( $posts ) ) {
-			return [
-				'processed' => $offset,
-				'total'     => $total_count,
-				'complete'  => true,
-			];
-		}
-
-		// Build the site-wide URL→ID lookup map once per batch (2 queries total
-		// instead of 1–2 queries per URL found in content).
+		// Build the site-wide URL→ID lookup map once per batch.
 		$this->build_url_lookup_map();
-
-		// Reset buffer for this batch.
 		$this->usages_buffer = [];
 
 		if ( $detect_sitewide ) {
 			$this->detect_sitewide_usage();
 		}
 
-		foreach ( $posts as $post ) {
-			$this->detect_usage_in_post( $post );
+		// ── Phase A: post-table posts ────────────────────────────────────────
+		$processed_in_batch = 0;
+		if ( $offset < $post_total ) {
+			$posts = get_posts( [
+				'post_type'      => $post_types,
+				'posts_per_page' => $batch_size,
+				'offset'         => $offset,
+				'post_status'    => [ 'publish', 'draft', 'pending', 'private', 'future' ],
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			] );
+
+			foreach ( $posts as $post ) {
+				$this->detect_usage_in_post( $post );
+				$processed_in_batch++;
+			}
+		}
+
+		// ── Phase B: HPOS orders ────────────────────────────────────────────
+		// Kicks in once the post queue is exhausted. The scan offset becomes
+		// `post_total + hpos_offset`, so the polling UI sees one continuous
+		// progress curve regardless of which queue is currently being worked.
+		if ( $hpos_total > 0 && $processed_in_batch < $batch_size ) {
+			$remaining   = $batch_size - $processed_in_batch;
+			$hpos_offset = max( 0, ( $offset + $processed_in_batch ) - $post_total );
+			if ( $hpos_offset < $hpos_total ) {
+				$order_ids = $this->get_hpos_order_ids( $hpos_offset, $remaining );
+				foreach ( $order_ids as $order_id ) {
+					$this->detect_usage_in_hpos_order( $order_id );
+					$processed_in_batch++;
+				}
+			}
 		}
 
 		// Flush buffer: save usages to post meta and set post_parent.
 		$this->flush_usages_buffer();
 
-		// Free the map; it will be rebuilt on the next batch call.
+		// Free batch-scoped caches; they'll be rebuilt on the next batch.
 		$this->url_lookup_map = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 
+		$next_offset = $offset + $processed_in_batch;
 		return [
-			'processed' => $offset + count( $posts ),
+			'processed' => $next_offset,
 			'total'     => $total_count,
-			'complete'  => ( $offset + $batch_size ) >= $total_count,
+			'complete'  => $next_offset >= $total_count,
 		];
 	}
 
@@ -500,7 +704,7 @@ class UsedWhereScanner {
 		}
 
 		// Build a set of known attachment IDs for quick validation.
-		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		$known_ids = $this->get_known_attachment_ids();
 
 		// 1. Gutenberg blocks — recursively walk parsed block tree so nested galleries
 		// and blocks with nested attribute objects (style/layout/etc.) are handled.
@@ -617,7 +821,7 @@ class UsedWhereScanner {
 			return;
 		}
 
-		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		$known_ids = $this->get_known_attachment_ids();
 
 		$ids = explode( ',', $gallery );
 		foreach ( $ids as $id ) {
@@ -690,7 +894,7 @@ class UsedWhereScanner {
 		}
 
 		// Use the lookup map to verify attachment IDs without DB queries.
-		$attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		$attachment_ids = $this->get_known_attachment_ids();
 
 		foreach ( $data as $key => $value ) {
 			if ( is_numeric( $value ) && in_array( $key, [ 'id', 'image', 'attachment_id' ], true ) ) {
@@ -750,7 +954,7 @@ class UsedWhereScanner {
 		}
 
 		// Build a set of known attachment IDs from the lookup map for O(1) checks.
-		$attachment_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		$attachment_ids = $this->get_known_attachment_ids();
 
 		// Keys already handled by dedicated methods — skip to avoid duplicates.
 		$skip_keys = [
@@ -1285,11 +1489,12 @@ class UsedWhereScanner {
 			->execute();
 
 		// Compute the initial total so the progress bar has a denominator
-		// from the very first poll, before any tick has run.
-		$post_types = get_post_types( [ 'public' => true ], 'names' );
-		unset( $post_types['attachment'] );
+		// from the very first poll, before any tick has run. Mirrors the
+		// total computed inside process_batch() — posts first, then HPOS
+		// orders when WooCommerce HPOS is active.
+		$post_types = $this->get_scannable_post_types();
 		$total = 0;
-		foreach ( array_values( $post_types ) as $pt ) {
+		foreach ( $post_types as $pt ) {
 			$counts = wp_count_posts( $pt );
 			$total += (int) ( $counts->publish ?? 0 );
 			$total += (int) ( $counts->draft ?? 0 );
@@ -1297,6 +1502,7 @@ class UsedWhereScanner {
 			$total += (int) ( $counts->private ?? 0 );
 			$total += (int) ( $counts->future ?? 0 );
 		}
+		$total += $this->get_hpos_order_total();
 
 		$now_mysql = current_time( 'mysql' );
 		update_option( 'tsmlt_used_where_scan_status', [
@@ -1534,7 +1740,7 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_sitewide_usage(): void {
-		$known_ids = array_flip( array_values( $this->url_lookup_map ?? [] ) );
+		$known_ids = $this->get_known_attachment_ids();
 
 		// 1. Site icon (favicon).
 		$site_icon_id = absint( get_option( 'site_icon', 0 ) );
