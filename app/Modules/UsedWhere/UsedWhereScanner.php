@@ -57,6 +57,17 @@ class UsedWhereScanner {
 	private $upload_base_url = null;
 
 	/**
+	 * Attachment IDs that show up as automatic fallbacks in rendered HTML
+	 * (e.g. WooCommerce's `woocommerce-placeholder.webp` for products without
+	 * a featured image). Suppressed during permalink / rendered scans so they
+	 * don't get marked as "used" on every post; still recorded if genuinely
+	 * referenced via featured image / content / gallery.
+	 *
+	 * @var array<int, true>|null Map keyed by attachment ID.
+	 */
+	private $fallback_attachment_ids = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -72,6 +83,43 @@ class UsedWhereScanner {
 			$this->upload_base_url = trailingslashit( $upload_dir['baseurl'] );
 		}
 		return $this->upload_base_url;
+	}
+
+	/**
+	 * Return the set of attachment IDs treated as automatic fallbacks.
+	 *
+	 * Built once per batch and reset alongside the other batch-scoped caches.
+	 * Currently includes WooCommerce's placeholder image; extensible via the
+	 * `tsmlt_used_where_fallback_attachment_ids` filter so themes/plugins can
+	 * register their own fallback IDs (logo placeholders, etc.).
+	 *
+	 * @return array<int, true> Map keyed by attachment ID for O(1) checks.
+	 */
+	private function get_fallback_attachment_ids(): array {
+		if ( null !== $this->fallback_attachment_ids ) {
+			return $this->fallback_attachment_ids;
+		}
+
+		$ids = [];
+
+		// WooCommerce placeholder. Stored as an attachment ID in this option
+		// since Woo 3.0+. Older versions stored the URL; ignore those.
+		$woo_id = (int) get_option( 'woocommerce_placeholder_image', 0 );
+		if ( $woo_id > 0 ) {
+			$ids[ $woo_id ] = true;
+		}
+
+		/**
+		 * Filter the set of attachment IDs that should be ignored during
+		 * permalink / rendered-HTML scans because they appear as automatic
+		 * fallbacks (Woo placeholder, theme logo placeholders, etc.).
+		 *
+		 * @param array<int, true> $ids Map keyed by attachment ID.
+		 */
+		$ids = apply_filters( 'tsmlt_used_where_fallback_attachment_ids', $ids );
+
+		$this->fallback_attachment_ids = is_array( $ids ) ? $ids : [];
+		return $this->fallback_attachment_ids;
 	}
 
 	/**
@@ -162,6 +210,7 @@ class UsedWhereScanner {
 		// Free the map; it will be rebuilt on the next batch call.
 		$this->url_lookup_map = null;
 		$this->upload_base_url = null;
+		$this->fallback_attachment_ids = null;
 
 		return [
 			'processed' => $offset + count( $posts ),
@@ -395,9 +444,22 @@ class UsedWhereScanner {
 		$base_url     = $this->get_uploads_base_url();
 		$resolved_ids = [];
 
+		// Suppress automatic fallbacks (e.g. Woo's woocommerce-placeholder.webp)
+		// only on HTML-scan paths. Featured-image / content / gallery detection
+		// is unaffected — if a post genuinely references the placeholder, it
+		// still records.
+		$is_html_scan = ( 'permalink' === $type || 'rendered' === $type );
+		$fallbacks    = $is_html_scan ? $this->get_fallback_attachment_ids() : [];
+
 		foreach ( array_keys( $relative_paths ) as $relative_path ) {
 			$attachment_id = $this->get_attachment_id_by_url( $base_url . $relative_path );
-			if ( $attachment_id && ! isset( $resolved_ids[ $attachment_id ] ) ) {
+			if ( ! $attachment_id ) {
+				continue;
+			}
+			if ( isset( $fallbacks[ $attachment_id ] ) ) {
+				continue;
+			}
+			if ( ! isset( $resolved_ids[ $attachment_id ] ) ) {
 				$resolved_ids[ $attachment_id ] = true;
 			}
 		}
@@ -1039,6 +1101,7 @@ class UsedWhereScanner {
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
 		$this->upload_base_url = null;
+		$this->fallback_attachment_ids = null;
 	}
 
 	/**
@@ -1408,6 +1471,7 @@ class UsedWhereScanner {
 		// Also reset the URL lookup map to avoid stale data.
 		$this->url_lookup_map = null;
 		$this->upload_base_url = null;
+		$this->fallback_attachment_ids = null;
 	}
 
 	/**
@@ -1687,6 +1751,7 @@ class UsedWhereScanner {
 		$this->flush_usages_buffer();
 		$this->url_lookup_map = null;
 		$this->upload_base_url = null;
+		$this->fallback_attachment_ids = null;
 	}
 
 	/**

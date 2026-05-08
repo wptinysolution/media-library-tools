@@ -322,14 +322,20 @@ export default function UsedWherePage() {
 
     // Load results when filter, page, or search changes.
     // Used tab: always loads (post-save and frontend-visit tracking work without full scan).
-    // Unused tab: only loads if a full scan has been completed (processed > 0).
+    // Unused tab: requires a *completed* scan — loading mid-scan would show
+    //   not-yet-checked images as "unused", risking accidental deletion of
+    //   images the scan hadn't reached yet.
     // Trash tab: always loads from DB (trash data is persistent).
     useEffect(() => {
-        if (activeFilter === 'unused' && scanProgress.processed === 0) {
-            return; // Unused tab requires a full scan.
+        if (activeFilter === 'unused' && (scanProgress.processed === 0 || isScanning)) {
+            // Clear stale results from a previous completed scan so the user
+            // doesn't see old data while the new scan is still running.
+            setUsages([]);
+            setTotalUsages(0);
+            return;
         }
         loadResults(currentPageFromUrl, activeFilter, searchQuery);
-    }, [activeFilter, currentPageFromUrl, searchQuery, loadResults, scanProgress.processed]);
+    }, [activeFilter, currentPageFromUrl, searchQuery, loadResults, scanProgress.processed, isScanning]);
 
     const scanPercent = scanProgress.total > 0
         ? Math.round((scanProgress.processed / scanProgress.total) * 100)
@@ -559,7 +565,18 @@ export default function UsedWherePage() {
                     </div>
                 ) : usages.length === 0 ? (
                     <div className="text-center py-12">
-                        {isPreScan && activeFilter !== 'trash' ? (
+                        {isScanning && activeFilter === 'unused' ? (
+                            <>
+                                <svg className="w-12 h-12 mx-auto text-blue-300 mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                <p className="text-gray-700 text-sm font-medium mb-1">Scan in progress — Unused list will appear when it finishes.</p>
+                                <p className="text-xs text-gray-500 mb-0!">
+                                    Showing partial results now could mark images as unused before the scan has checked them. The progress bar above tracks how far we've gotten.
+                                </p>
+                            </>
+                        ) : isPreScan && activeFilter !== 'trash' ? (
                             <>
                                 <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
