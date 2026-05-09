@@ -1424,9 +1424,11 @@ class UsedWhereScanner {
 	/**
 	 * Delay between ticks. Gives PHP-FPM workers breathing room between scan
 	 * batches so concurrent visitor requests don't queue behind back-to-back
-	 * loopback fetches.
+	 * loopback fetches. 30s spaces out the worker pressure enough that even
+	 * tiny hosts (2-worker pools) keep capacity for real visitors during a
+	 * scan window.
 	 */
-	const SCAN_TICK_DELAY = 10;
+	const SCAN_TICK_DELAY = 30;
 
 	/**
 	 * Whether deep permalink-fetch scanning is enabled.
@@ -1473,18 +1475,43 @@ class UsedWhereScanner {
 		$processed = (int) ( $status['processed'] ?? 0 );
 		$total     = (int) ( $status['total'] ?? 0 );
 
+		// `notified` tracks whether the user has been shown a "scan finished"
+		// toast for this run. Set false when a scan is started, flipped true
+		// when the frontend acknowledges. Only meaningful in terminal states
+		// (complete / cancelled / error). Absent on legacy rows — treated as
+		// already-notified so we don't fire notices for scans that finished
+		// before this feature shipped.
+		$notified = array_key_exists( 'notified', $status )
+			? (bool) $status['notified']
+			: true;
+
 		return [
 			'state'        => $state,
 			'scanned'      => $processed,
 			'total'        => $total,
 			'complete'     => 'complete' === $state,
 			'resumable'    => in_array( $state, [ 'queued', 'running' ], true ) && $processed > 0,
+			'notified'     => $notified,
 			'last_update'  => (string) ( $status['timestamp'] ?? '' ),
 			'last_tick_at' => (string) ( $status['last_tick_at'] ?? '' ),
 			'started_at'   => (string) ( $status['started_at'] ?? '' ),
 			'last_error'   => (string) ( $status['last_error'] ?? '' ),
 			'next_offset'  => (int) ( $status['next_offset'] ?? 0 ),
 		];
+	}
+
+	/**
+	 * Mark the latest terminal scan state as acknowledged by the user.
+	 *
+	 * The polling UI calls this after showing a "scan complete" / "scan
+	 * cancelled" / "scan failed" toast on first visit, so the toast doesn't
+	 * fire again on subsequent page loads.
+	 *
+	 * @return array Status snapshot.
+	 */
+	public function acknowledge_scan_status(): array {
+		$this->update_scan_status( [ 'notified' => true ] );
+		return $this->get_scan_status();
 	}
 
 	/**
@@ -1563,6 +1590,7 @@ class UsedWhereScanner {
 			'started_at'   => $now_mysql,
 			'last_tick_at' => '',
 			'last_error'   => '',
+			'notified'     => false, // arm a "scan finished" toast for whenever this run terminates.
 			'timestamp'    => $now_mysql,
 		], false );
 

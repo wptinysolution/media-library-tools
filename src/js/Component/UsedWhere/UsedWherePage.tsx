@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { startUsedWhereScan, cancelUsedWhereScan, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan, usedWhereBulkDelete, usedWhereTrash, usedWhereUntrash, getUsedWhereTrashed } from "@/js/Utils/Data";
+import toast from "react-hot-toast";
+import { startUsedWhereScan, cancelUsedWhereScan, acknowledgeUsedWhereScan, getUsedWhereResults, getUsedWhereStatus, clearUsedWhereScan, usedWhereBulkDelete, usedWhereTrash, usedWhereUntrash, getUsedWhereTrashed } from "@/js/Utils/Data";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
 import SearchInput from "@/js/Component/Common/SearchInput";
@@ -118,7 +119,57 @@ export default function UsedWherePage() {
     const [scanState, setScanState] = useState<string>('idle'); // idle | queued | running | complete | cancelled | error
     const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // Surfaces an inline success/error card on first visit after a scan
+    // terminates (complete / cancelled / error). Cleared when the user
+    // dismisses the card or starts a new scan.
+    const [completionNotice, setCompletionNotice] = useState<{
+        kind: 'complete' | 'cancelled' | 'error';
+        scanned: number;
+        total: number;
+        error?: string;
+    } | null>(null);
+
     const isScanning = scanState === 'queued' || scanState === 'running';
+
+    // Show the "scan finished" toast + inline card if the server says we
+    // haven't been notified about this terminal state yet, then immediately
+    // acknowledge so it doesn't fire again. Idempotent.
+    const announceTerminalStateOnce = useCallback(async (status: any) => {
+        if (!status || status.notified !== false) {
+            return;
+        }
+        const state = String(status.state ?? '');
+        const scanned = Number(status.scanned ?? 0);
+        const total = Number(status.total ?? 0);
+        const error = String(status.last_error ?? '');
+
+        if (state === 'complete') {
+            toast.success(
+                total > 0
+                    ? `Scan complete · checked ${scanned.toLocaleString()} of ${total.toLocaleString()} posts`
+                    : 'Scan complete',
+                { duration: 6000 }
+            );
+            setCompletionNotice({ kind: 'complete', scanned, total });
+        } else if (state === 'cancelled') {
+            toast('Scan was cancelled. Existing data is preserved.', { duration: 5000 });
+            setCompletionNotice({ kind: 'cancelled', scanned, total });
+        } else if (state === 'error') {
+            toast.error(`Scan failed${error ? `: ${error}` : ''}`, { duration: 8000 });
+            setCompletionNotice({ kind: 'error', scanned, total, error });
+        } else {
+            return; // not a terminal state we surface
+        }
+
+        try {
+            await acknowledgeUsedWhereScan();
+        } catch (e) {
+            // Acknowledge is best-effort; if it fails, the worst case is we
+            // re-show the toast on next mount, which is mildly annoying but
+            // not broken.
+            console.warn('Failed to acknowledge scan completion:', e);
+        }
+    }, []);
 
     // Stop any pending poll. Idempotent — safe to call when nothing is queued.
     const stopPolling = useCallback(() => {
@@ -148,17 +199,19 @@ export default function UsedWherePage() {
                 return;
             }
 
-            // Terminal state — stop polling and refresh results.
+            // Terminal state — stop polling, refresh results, surface a
+            // toast + inline card if the user hasn't already been notified.
             stopPolling();
             if (state === 'complete') {
                 await loadResults(1, activeFilter, searchQuery);
             }
+            await announceTerminalStateOnce(status);
         } catch (error) {
             console.error('Error polling scan status:', error);
             // Back off on error rather than tight-loop. Next poll in 10s.
             pollTimerRef.current = setTimeout(pollOnce, 10000);
         }
-    }, [activeFilter, searchQuery, loadResults, stopPolling]);
+    }, [activeFilter, searchQuery, loadResults, stopPolling, announceTerminalStateOnce]);
 
     const startScan = async () => {
         // Optimistic UI: show queued state immediately so the user sees a
@@ -170,6 +223,7 @@ export default function UsedWherePage() {
         setCurrentPage(1);
         setSelectedIds(new Set());
         setExpandedId(null);
+        setCompletionNotice(null);
 
         // Surface the "you can leave this tab" reassurance modal once.
         // Users who've ticked "don't show again" skip it.
@@ -225,6 +279,7 @@ export default function UsedWherePage() {
             setSelectedIds(new Set());
             setSearchInput('');
             setSearchQuery('');
+            setCompletionNotice(null);
             // Navigate to base route to ensure clean state
             navigate('/usedWhere/unused');
         } catch (error) {
@@ -322,6 +377,10 @@ export default function UsedWherePage() {
                 });
                 if (state === 'queued' || state === 'running') {
                     pollTimerRef.current = setTimeout(pollOnce, 1500);
+                } else {
+                    // Terminal state on first mount — fire the "scan finished"
+                    // toast + inline card if the server hasn't seen us yet.
+                    await announceTerminalStateOnce(status);
                 }
             } catch (error) {
                 console.error('Error loading status:', error);
@@ -434,6 +493,80 @@ export default function UsedWherePage() {
                     />
                 </div>
             </div>
+
+            {/* Scan-completed notice — surfaced on first visit after a scan
+                terminates while the user was away. Inline card complements
+                the toast (which auto-dismisses), giving a durable signal
+                that pre-existing data on the page is from a fresh run. */}
+            {completionNotice && !isScanning && (
+                <div className={`flex items-start gap-3 px-4 py-3 border-b ${
+                    completionNotice.kind === 'complete'
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : completionNotice.kind === 'cancelled'
+                            ? 'bg-amber-50 border-amber-200'
+                            : 'bg-red-50 border-red-200'
+                }`}>
+                    <div className={`shrink-0 mt-0.5 ${
+                        completionNotice.kind === 'complete'
+                            ? 'text-emerald-600'
+                            : completionNotice.kind === 'cancelled'
+                                ? 'text-amber-600'
+                                : 'text-red-600'
+                    }`}>
+                        {completionNotice.kind === 'complete' ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        ) : completionNotice.kind === 'cancelled' ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            </svg>
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold m-0! leading-snug ${
+                            completionNotice.kind === 'complete'
+                                ? 'text-emerald-900'
+                                : completionNotice.kind === 'cancelled'
+                                    ? 'text-amber-900'
+                                    : 'text-red-900'
+                        }`}>
+                            {completionNotice.kind === 'complete' && 'Scan complete'}
+                            {completionNotice.kind === 'cancelled' && 'Scan was cancelled'}
+                            {completionNotice.kind === 'error' && 'Scan failed'}
+                        </p>
+                        <p className={`text-xs mt-1 mb-0! leading-relaxed ${
+                            completionNotice.kind === 'complete'
+                                ? 'text-emerald-800'
+                                : completionNotice.kind === 'cancelled'
+                                    ? 'text-amber-800'
+                                    : 'text-red-800'
+                        }`}>
+                            {completionNotice.kind === 'complete' && (
+                                completionNotice.total > 0
+                                    ? `Checked ${completionNotice.scanned.toLocaleString()} of ${completionNotice.total.toLocaleString()} posts. Results below are up to date.`
+                                    : 'Results below are up to date.'
+                            )}
+                            {completionNotice.kind === 'cancelled' && 'Existing usage data is preserved. Start a new scan when you\'re ready.'}
+                            {completionNotice.kind === 'error' && (completionNotice.error || 'Try clearing results and starting a new scan.')}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        className="shrink-0 p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                        onClick={() => setCompletionNotice(null)}
+                        aria-label="Dismiss"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
 
             {/* Scan progress */}
             {isScanning && (

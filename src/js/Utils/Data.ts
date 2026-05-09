@@ -299,6 +299,13 @@ export const cancelUsedWhereScan = async (): Promise<Record<string, unknown>> =>
     return result.data as Record<string, unknown>;
 };
 
+// Mark the latest terminal scan as acknowledged so the "scan finished"
+// toast doesn't fire again on subsequent page loads. Server-side flag.
+export const acknowledgeUsedWhereScan = async (): Promise<Record<string, unknown>> => {
+    const result = await ajaxPost('tsmlt_used_where_scan_acknowledge');
+    return result.data as Record<string, unknown>;
+};
+
 export const getUsedWhereResults = async (prams: object = {}): Promise<Record<string, unknown>> => {
     const result = await ajaxPost('tsmlt_used_where_get_results', prams);
     return result.data as Record<string, unknown>;

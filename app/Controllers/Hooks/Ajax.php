@@ -84,6 +84,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_used_where_scan_batch', [ $this, 'used_where_scan_batch' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_scan_start', [ $this, 'used_where_scan_start' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_scan_cancel', [ $this, 'used_where_scan_cancel' ] );
+		add_action( 'wp_ajax_tsmlt_used_where_scan_acknowledge', [ $this, 'used_where_scan_acknowledge' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_get_results', [ $this, 'used_where_get_results' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_get_status', [ $this, 'used_where_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_used_where_clear', [ $this, 'used_where_clear' ] );
@@ -494,6 +495,20 @@ class Ajax {
 	public function used_where_scan_cancel(): void {
 		$this->verify_and_get_params();
 		$this->send( UsedWhereScanner::instance()->cancel_scheduled_scan() );
+	}
+
+	/**
+	 * Acknowledge the latest terminal scan state.
+	 *
+	 * Called by the polling UI right after it shows a "scan finished" /
+	 * "scan cancelled" / "scan failed" toast on first visit, so the same
+	 * toast doesn't fire again on subsequent page loads.
+	 *
+	 * @return void
+	 */
+	public function used_where_scan_acknowledge(): void {
+		$this->verify_and_get_params();
+		$this->send( UsedWhereScanner::instance()->acknowledge_scan_status() );
 	}
 
 	/** @return void */
