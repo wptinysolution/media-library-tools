@@ -594,13 +594,25 @@ class Ajax {
 				continue;
 			}
 
+			// `used_in_posts` is meant to mean "how many distinct posts use this
+			// image" — so dedupe by post_id before counting. Without this, an
+			// image referenced as featured + meta + permalink on the same post
+			// would count as 3, mismatching the grouped expanded list (which
+			// shows one row per post).
+			$distinct_post_ids = [];
+			foreach ( $stats['by_post'] as $usage ) {
+				if ( ! empty( $usage['post_id'] ) ) {
+					$distinct_post_ids[ (int) $usage['post_id'] ] = true;
+				}
+			}
+
 			$usages[] = [
 				'attachment_id' => $post->ID,
 				'title'         => $post->post_title,
 				'url'           => wp_get_attachment_url( $post->ID ),
 				'usage_count'   => $stats['total_usage'],
 				'usage_by_type' => $stats['by_type'],
-				'used_in_posts' => count( $stats['by_post'] ),
+				'used_in_posts' => count( $distinct_post_ids ),
 				'posts'         => $stats['by_post'],
 			];
 		}

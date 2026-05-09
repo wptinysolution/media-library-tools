@@ -34,6 +34,35 @@ class UsedWhereScanner {
 	const META_KEY = '_tsmlt_image_usages';
 
 	/**
+	 * Usage types that indicate a post genuinely "owns" the image.
+	 *
+	 * When any of these appear in an attachment's usage list, the post
+	 * concretely references the image via a structured field — featured
+	 * image, post content, gallery, builder data, custom meta. Any
+	 * `permalink` or `rendered` records on OTHER posts (not in this owning
+	 * set) are almost certainly contamination from related-products widgets,
+	 * schema markup, lazy-load placeholders, sidebar / footer / header
+	 * fragments, etc. — and get dropped during reconciliation.
+	 *
+	 * `meta` is included because it covers everything the meta scanner
+	 * walks (ACF, Woo product galleries via _product_image_gallery, plugin
+	 * meta blobs like size charts, etc.) — far stronger than a permalink
+	 * regex hit.
+	 */
+	const OWNING_USAGE_TYPES = [
+		'featured',
+		'content',
+		'excerpt',
+		'woo_gallery',
+		'elementor',
+		'beaver_builder',
+		'divi',
+		'brizy',
+		'wpbakery',
+		'meta',
+	];
+
+	/**
 	 * Buffer: accumulates usages per attachment_id during a batch scan.
 	 *
 	 * @var array<int, array>
@@ -176,7 +205,17 @@ class UsedWhereScanner {
 	 */
 	private function get_scannable_post_types(): array {
 		$types = get_post_types( [], 'names' );
-		unset( $types['attachment'] );
+
+		// `attachment` is the target of the scan, not the subject. The rest
+		// are WordPress / FSE plumbing CPTs that never legitimately reference
+		// uploads URLs in user-authored content — including them just inflates
+		// the progress denominator without adding signal.
+		unset(
+			$types['attachment'],
+			$types['revision'],
+			$types['wp_font_family'],
+			$types['wp_font_face']
+		);
 
 		// When WooCommerce HPOS is active, orders live in `wp_wc_orders` and
 		// are scanned via the dedicated HPOS pass. Skip the legacy post-table
@@ -453,18 +492,27 @@ class UsedWhereScanner {
 			$this->record_usage( $featured_id, $post, 'featured' );
 		}
 
-		// 2. Images in post content (URLs + Gutenberg block IDs).
-		$this->detect_images_in_content( $post->post_content, $post, 'content' );
+		// On Elementor-built pages, `post_content` is just a render-cache
+		// fallback Elementor maintains for SEO crawlers — the URLs in it are
+		// auto-generated copies of what `_elementor_data` already holds, not
+		// independent evidence of usage. Skip the content/excerpt scans and
+		// let the Elementor meta walk be authoritative for these posts.
+		$is_elementor_built = (string) get_post_meta( $post->ID, '_elementor_edit_mode', true ) === 'builder';
 
-		// 3. Images in post excerpt.
-		if ( ! empty( $post->post_excerpt ) ) {
-			$this->detect_images_in_content( $post->post_excerpt, $post, 'excerpt' );
+		if ( ! $is_elementor_built ) {
+			// 2. Images in post content (URLs + Gutenberg block IDs).
+			$this->detect_images_in_content( $post->post_content, $post, 'content' );
+
+			// 3. Images in post excerpt.
+			if ( ! empty( $post->post_excerpt ) ) {
+				$this->detect_images_in_content( $post->post_excerpt, $post, 'excerpt' );
+			}
 		}
 
 		// 4. WooCommerce product gallery (comma-separated IDs in _product_image_gallery).
 		$this->detect_woo_gallery( $post );
 
-		// 5. Elementor (meta-based).
+		// 5. Elementor (meta-based). Authoritative for Elementor-built posts.
 		$elementor_data = get_post_meta( $post->ID, '_elementor_data', true );
 		if ( ! empty( $elementor_data ) ) {
 			$this->detect_images_in_elementor( $elementor_data, $post );
@@ -1205,21 +1253,67 @@ class UsedWhereScanner {
 
 		$base_url = $this->get_uploads_base_url();
 
+		// Two-pass build so we can detect ambiguous keys.
+		//
+		// Pass 1: relative path + full URL. Both are unique per attachment and
+		// always safe to record.
+		// Pass 2: basename + size-stripped basename. These can collide between
+		// attachments (e.g. two `hero.jpg` files in different year/month
+		// folders). When they collide we mark the slot with a sentinel `0`
+		// so the lookup refuses to guess — better to miss a match than
+		// pin the URL on the wrong attachment and inflate "used" counts
+		// across the site.
+		$basename_seen = [];          // basename => first post_id seen
+		$basename_amb  = [];          // basename => true once any collision detected
+		$stripped_seen = [];
+		$stripped_amb  = [];
+
 		foreach ( ( $meta_rows ?: [] ) as $row ) {
-			$post_id   = absint( $row['post_id'] );
-			$rel_path  = $row['meta_value'] ?? '';
+			$post_id  = absint( $row['post_id'] );
+			$rel_path = $row['meta_value'] ?? '';
 			if ( ! $post_id || ! $rel_path ) {
 				continue;
 			}
-			// Index by basename for quick lookup (handles scaled/sized filenames too).
+
+			// Pass 1: unique paths.
+			$this->url_lookup_map[ $rel_path ]              = $post_id;
+			$this->url_lookup_map[ $base_url . $rel_path ]  = $post_id;
+
+			// Pass 2 collision tracking — basename.
 			$basename = basename( $rel_path );
-			if ( ! isset( $this->url_lookup_map[ $basename ] ) ) {
-				$this->url_lookup_map[ $basename ] = $post_id;
+			if ( '' === $basename ) {
+				continue;
 			}
-			// Index by relative path for exact matches.
-			$this->url_lookup_map[ $rel_path ] = $post_id;
-			// Index by full URL for direct GUID-style matches.
-			$this->url_lookup_map[ $base_url . $rel_path ] = $post_id;
+			if ( isset( $basename_seen[ $basename ] ) && $basename_seen[ $basename ] !== $post_id ) {
+				$basename_amb[ $basename ] = true;
+			} else {
+				$basename_seen[ $basename ] = $post_id;
+			}
+
+			// Pass 2 collision tracking — size-stripped basename
+			// (so `hero-300x200.jpg` and `hero-1024x768.jpg` both fold
+			// into `hero.jpg`).
+			$stripped = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $basename );
+			if ( $stripped !== $basename ) {
+				if ( isset( $stripped_seen[ $stripped ] ) && $stripped_seen[ $stripped ] !== $post_id ) {
+					$stripped_amb[ $stripped ] = true;
+				} else {
+					$stripped_seen[ $stripped ] = $post_id;
+				}
+			}
+		}
+
+		// Commit only unambiguous basenames. Ambiguous slots get a sentinel
+		// `0` which `get_attachment_id_by_url` treats as a no-match (refuses
+		// to guess between candidates).
+		foreach ( $basename_seen as $basename => $post_id ) {
+			$this->url_lookup_map[ $basename ] = isset( $basename_amb[ $basename ] ) ? 0 : $post_id;
+		}
+		foreach ( $stripped_seen as $stripped => $post_id ) {
+			// Don't overwrite an unambiguous direct basename hit.
+			if ( ! isset( $this->url_lookup_map[ $stripped ] ) ) {
+				$this->url_lookup_map[ $stripped ] = isset( $stripped_amb[ $stripped ] ) ? 0 : $post_id;
+			}
 		}
 	}
 
@@ -1244,30 +1338,39 @@ class UsedWhereScanner {
 		}
 
 		// 2. Extract the relative path after /uploads/ and try that.
+		// Path-based slots are unique per attachment (built unconditionally
+		// in pass 1 of build_url_lookup_map) so a hit here is always trusted.
 		$pos = strpos( $url, '/uploads/' );
 		if ( false !== $pos ) {
 			$rel_path = ltrim( substr( $url, $pos + strlen( '/uploads/' ) ), '/' );
-			if ( isset( $this->url_lookup_map[ $rel_path ] ) ) {
+			if ( isset( $this->url_lookup_map[ $rel_path ] ) && $this->url_lookup_map[ $rel_path ] > 0 ) {
 				return $this->url_lookup_map[ $rel_path ];
 			}
 
-			// 3. Basename match.
+			// 5. Strip size suffix from relative path (e.g. 2026/04/image-300x200.jpg → 2026/04/image.jpg).
+			// Try this BEFORE the basename fallback because a path-anchored
+			// stripped match is unambiguous, while a basename match is not.
+			$stripped_rel = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $rel_path );
+			if ( $stripped_rel !== $rel_path && isset( $this->url_lookup_map[ $stripped_rel ] ) && $this->url_lookup_map[ $stripped_rel ] > 0 ) {
+				return $this->url_lookup_map[ $stripped_rel ];
+			}
+
+			// 3. Basename fallback. The map stores `0` for any basename that
+			// collides between attachments (e.g. two `hero.jpg` files in
+			// different folders). A `0` value means "refuse to guess" — we
+			// return no match rather than silently pinning the URL on the
+			// wrong attachment and inflating usage counts site-wide.
 			$basename = basename( $rel_path );
-			if ( isset( $this->url_lookup_map[ $basename ] ) ) {
+			if ( ! empty( $this->url_lookup_map[ $basename ] ) ) {
 				return $this->url_lookup_map[ $basename ];
 			}
 
 			// 4. Strip WP size suffix (e.g. image-300x200.jpg → image.jpg)
-			//    to match the original attachment file.
+			//    to match the original attachment file. Same collision-safe
+			//    semantics — sentinel 0 falls through.
 			$stripped = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $basename );
-			if ( $stripped !== $basename && isset( $this->url_lookup_map[ $stripped ] ) ) {
+			if ( $stripped !== $basename && ! empty( $this->url_lookup_map[ $stripped ] ) ) {
 				return $this->url_lookup_map[ $stripped ];
-			}
-
-			// 5. Strip size suffix from relative path (e.g. 2026/04/image-300x200.jpg → 2026/04/image.jpg).
-			$stripped_rel = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $rel_path );
-			if ( $stripped_rel !== $rel_path && isset( $this->url_lookup_map[ $stripped_rel ] ) ) {
-				return $this->url_lookup_map[ $stripped_rel ];
 			}
 		}
 
@@ -1641,6 +1744,16 @@ class UsedWhereScanner {
 			$total       = (int) $result['total'];
 			$complete    = (bool) $result['complete'];
 
+			// Final-batch reconciliation pass. Removes incidental
+			// `permalink` / `rendered` usages on posts that don't actually
+			// own the image — these come from related-products widgets,
+			// schema markup, lazy-load placeholders, sidebar widgets, etc.
+			// Runs once when the last batch finishes; cheap because it
+			// touches only attachments that have an owning + incidental mix.
+			if ( $complete ) {
+				$this->reconcile_incidental_usages();
+			}
+
 			$this->update_scan_status( [
 				'processed'   => $next_offset,
 				'total'       => $total,
@@ -1744,6 +1857,106 @@ class UsedWhereScanner {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Drop incidental `permalink` / `rendered` usages when the image is
+	 * already owned by stronger signals on a different set of posts.
+	 *
+	 * Final-batch reconciliation pass. For each attachment that has BOTH:
+	 *   - at least one "owning" usage (featured / content / gallery / meta /
+	 *     builder), AND
+	 *   - one or more `permalink` / `rendered` usages on posts NOT in the
+	 *     owning set,
+	 * we strip the latter. Those records are almost always artifacts of:
+	 *   - related-products widgets ("you may also like…") rendering an image
+	 *     belonging to another product on this product's permalink,
+	 *   - JSON-LD product schema / OpenGraph meta tags repeating an image URL
+	 *     in `<head>` of every page,
+	 *   - lazy-load placeholders, sidebar widgets, recently-viewed sections,
+	 *   - cart / checkout / account pages displaying the user's basket items.
+	 *
+	 * The owning signals are unambiguous: the post's own structured fields
+	 * actually reference the image. So when those exist, an HTML hit on a
+	 * different post is incidental, not real usage.
+	 *
+	 * Cheap to run because it touches only attachments that have any meta
+	 * row at all, and most attachments either have no usages or have only
+	 * owning usages (nothing to drop).
+	 *
+	 * @return void
+	 */
+	private function reconcile_incidental_usages(): void {
+		$attached_rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->get();
+
+		if ( empty( $attached_rows ) ) {
+			return;
+		}
+
+		$incidental_types = [ 'permalink', 'rendered' ];
+		$owning_types     = array_flip( self::OWNING_USAGE_TYPES );
+
+		foreach ( $attached_rows as $row ) {
+			$attachment_id = absint( $row['post_id'] ?? 0 );
+			$usages        = maybe_unserialize( $row['meta_value'] ?? '' );
+
+			if ( ! $attachment_id || ! is_array( $usages ) || empty( $usages ) ) {
+				continue;
+			}
+
+			// First pass: collect post_ids that have an owning usage on this attachment.
+			$owning_post_ids = [];
+			$has_incidental  = false;
+
+			foreach ( $usages as $usage ) {
+				$type = (string) ( $usage['usage_type'] ?? '' );
+				$pid  = (int) ( $usage['post_id'] ?? 0 );
+				if ( ! $pid ) {
+					continue;
+				}
+				if ( isset( $owning_types[ $type ] ) ) {
+					$owning_post_ids[ $pid ] = true;
+				} elseif ( in_array( $type, $incidental_types, true ) ) {
+					$has_incidental = true;
+				}
+			}
+
+			// Nothing to do if there's no owning signal (we trust the
+			// permalink hits as the only evidence) or no incidental records
+			// to drop.
+			if ( empty( $owning_post_ids ) || ! $has_incidental ) {
+				continue;
+			}
+
+			// Second pass: keep every owning usage; keep incidental usages
+			// only if they're on a post that already owns the image (then
+			// they're confirmation, not contamination).
+			$cleaned = [];
+			foreach ( $usages as $usage ) {
+				$type = (string) ( $usage['usage_type'] ?? '' );
+				$pid  = (int) ( $usage['post_id'] ?? 0 );
+
+				if ( in_array( $type, $incidental_types, true ) ) {
+					if ( ! isset( $owning_post_ids[ $pid ] ) ) {
+						continue; // drop incidental on non-owning post
+					}
+				}
+				$cleaned[] = $usage;
+			}
+
+			if ( count( $cleaned ) === count( $usages ) ) {
+				continue; // nothing changed
+			}
+
+			if ( empty( $cleaned ) ) {
+				delete_post_meta( $attachment_id, self::META_KEY );
+			} else {
+				update_post_meta( $attachment_id, self::META_KEY, array_values( $cleaned ) );
+			}
+		}
+	}
+
 	private function clear_all_usage_meta(): void {
 		// 1. Find which attachment IDs have our meta key.
 		$affected_rows = Fns::DB()->select( 'post_id' )
