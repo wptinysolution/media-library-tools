@@ -199,19 +199,19 @@ export default function UsedWherePage() {
                 return;
             }
 
-            // Terminal state — stop polling, refresh results, surface a
-            // toast + inline card if the user hasn't already been notified.
+            // Terminal state — stop polling and surface the toast + inline
+            // card if the user hasn't been notified yet. Results auto-reload
+            // because the filter-effect re-fires when isScanning flips to
+            // false (the effect's `loadResults` call is the single source of
+            // truth for fetching the list — no race with a manual fetch).
             stopPolling();
-            if (state === 'complete') {
-                await loadResults(1, activeFilter, searchQuery);
-            }
             await announceTerminalStateOnce(status);
         } catch (error) {
             console.error('Error polling scan status:', error);
             // Back off on error rather than tight-loop. Next poll in 10s.
             pollTimerRef.current = setTimeout(pollOnce, 10000);
         }
-    }, [activeFilter, searchQuery, loadResults, stopPolling, announceTerminalStateOnce]);
+    }, [stopPolling, announceTerminalStateOnce]);
 
     const startScan = async () => {
         // Optimistic UI: show queued state immediately so the user sees a
