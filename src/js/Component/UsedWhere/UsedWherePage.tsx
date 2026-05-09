@@ -40,6 +40,9 @@ export default function UsedWherePage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showTrashModal, setShowTrashModal] = useState(false);
+    // Reassurance modal shown right after the user kicks off a scan, telling
+    // them the scan runs in the background and they can leave the tab.
+    const [showStartModal, setShowStartModal] = useState(false);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -167,6 +170,13 @@ export default function UsedWherePage() {
         setCurrentPage(1);
         setSelectedIds(new Set());
         setExpandedId(null);
+
+        // Surface the "you can leave this tab" reassurance modal once.
+        // Users who've ticked "don't show again" skip it.
+        if (localStorage.getItem('mlt_used_where_hide_start_modal') !== '1') {
+            setShowStartModal(true);
+        }
+
         try {
             const status = await startUsedWhereScan() as any;
             setScanState(String(status?.state ?? 'queued'));
@@ -438,13 +448,21 @@ export default function UsedWherePage() {
                         state={scanState === 'queued' ? 'queued' : 'active'}
                         label={scanState === 'queued' ? 'queued' : `${scanProgress.processed.toLocaleString()} / ${scanProgress.total.toLocaleString()} posts`}
                     />
-                    <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
-                        <svg className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="text-xs text-blue-800 m-0! leading-snug">
-                            Running in the background — you can safely close this tab and come back later. Progress will continue automatically.
-                        </p>
+                    <div className="mt-4 flex items-start gap-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-md shadow-sm">
+                        <div className="relative shrink-0 mt-0.5">
+                            <span className="absolute inset-0 rounded-full bg-blue-500 opacity-30 animate-ping" />
+                            <svg className="relative w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-blue-900 m-0! leading-snug">
+                                Running in the background — safe to close this tab.
+                            </p>
+                            <p className="text-xs text-blue-800 mt-1 mb-0! leading-relaxed">
+                                You can close this tab or even your browser. The scan keeps progressing on the server and will pick up automatically when you come back.
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
@@ -770,6 +788,78 @@ export default function UsedWherePage() {
                     </div>
                 )}
             </div>
+
+            {/* Scan-started reassurance modal — appears once after the user
+                clicks Start. The scan is cron-driven, so this tells users
+                they don't have to babysit the page. Has a "don't show again"
+                preference persisted in localStorage. */}
+            <Modal
+                isOpen={showStartModal}
+                onClose={() => setShowStartModal(false)}
+                title={
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 shrink-0">
+                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 m-0!">Scan started</h3>
+                    </div>
+                }
+                maxWidth="max-w-[520px]"
+                closeOnBackdrop={true}
+                footer={
+                    <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-200">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        localStorage.setItem('mlt_used_where_hide_start_modal', '1');
+                                    } else {
+                                        localStorage.removeItem('mlt_used_where_hide_start_modal');
+                                    }
+                                }}
+                            />
+                            <span className="text-xs text-gray-600">Don't show this again</span>
+                        </label>
+                        <button
+                            type="button"
+                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                            onClick={() => setShowStartModal(false)}
+                        >
+                            Got it
+                        </button>
+                    </div>
+                }
+            >
+                <div className="px-6 py-5 space-y-4">
+                    <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 border-l-4 border-blue-500 rounded-md">
+                        <svg className="w-5 h-5 mt-0.5 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <p className="text-sm font-semibold text-blue-900 m-0! leading-snug">
+                            The scan is now running in the background.
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-gray-700 mt-0! mb-2">You can:</p>
+                        <ul className="text-sm text-gray-700 space-y-1.5 list-disc pl-5 m-0!">
+                            <li>Close this tab or your entire browser.</li>
+                            <li>Switch to a different page in WordPress admin.</li>
+                            <li>Come back later — progress will resume automatically.</li>
+                        </ul>
+                    </div>
+
+                    <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-md">
+                        <p className="text-xs text-gray-600 m-0! leading-relaxed">
+                            <strong className="text-gray-900">Tip:</strong> The scan runs on your server's schedule (WordPress Cron). On low-traffic sites, you may need an occasional visit to your site to keep the scan progressing.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Move to Trash confirmation modal */}
             <Modal
