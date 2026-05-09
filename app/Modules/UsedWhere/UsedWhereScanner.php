@@ -1428,7 +1428,7 @@ class UsedWhereScanner {
 	 * tiny hosts (2-worker pools) keep capacity for real visitors during a
 	 * scan window.
 	 */
-	const SCAN_TICK_DELAY = 30;
+	const SCAN_TICK_DELAY = 20;
 
 	/**
 	 * Whether deep permalink-fetch scanning is enabled.
