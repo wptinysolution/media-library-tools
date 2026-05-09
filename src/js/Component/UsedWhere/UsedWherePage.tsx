@@ -677,7 +677,7 @@ export default function UsedWherePage() {
                                             <p className="text-xs mt-0! mb-0! text-gray-500 truncate">{usage.url}</p>
                                         </div>
 
-                                        <div className="shrink-0 flex flex-col items-start gap-3 text-xs">
+                                        <div className="mlt-meta-area shrink-0 flex flex-col items-start gap-3 text-xs">
                                             <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
                                                 ID: #{usage?.attachment_id}
                                             </span>
