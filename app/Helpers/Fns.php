@@ -626,8 +626,15 @@ class Fns {
 			return false;
 		}
 
+		// Always re-run the search when invoked. If a parent is already set,
+		// detach it first so the new lookup can produce a fresh, possibly
+		// different answer — e.g. when the user moved the image to another
+		// post or when the original parent was deleted.
 		if ( get_post_field( 'post_parent', $attachment_id ) ) {
-			return false;
+			wp_update_post( [
+				'ID'          => $attachment_id,
+				'post_parent' => 0,
+			] );
 		}
 
 		$result         = self::DB()->select( 'post_id' )
@@ -666,13 +673,12 @@ class Fns {
 		if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
 			$parent_id = reset( $post_ids );
 		}
-		// Update the attachment's parent ID.
-		$attachment_data = [
+		// Update the attachment's parent ID. If no match was found the parent
+		// stays at 0 (cleared above), so a stale parent doesn't survive.
+		wp_update_post( [
 			'ID'          => $attachment_id,
-			'post_parent' => $parent_id,
-		];
-		// Update the attachment using wp_update_post.
-		wp_update_post( $attachment_data );
+			'post_parent' => $parent_id ? (int) $parent_id : 0,
+		] );
 		return $parent_id;
 	}
 
