@@ -1625,6 +1625,17 @@ class UsedWhereScanner {
 				// Schedule the next tick. Small delay lets WP-Cron interleave
 				// other work and prevents tight-loop pile-ups on busy sites.
 				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $next_offset ] );
+
+				// Self-perpetuate: trigger WP-Cron immediately instead of
+				// waiting for the next incoming visitor. Without this, scans
+				// stall on quiet sites between ticks. spawn_cron() does a
+				// non-blocking loopback POST to wp-cron.php with a 0.01s
+				// timeout — cheap, and silent on hosts that block loopback
+				// (we'd just fall back to visitor-triggered cron, no worse
+				// than before).
+				if ( function_exists( 'spawn_cron' ) ) {
+					spawn_cron();
+				}
 			}
 		} catch ( \Throwable $e ) {
 			$this->update_scan_status( [
