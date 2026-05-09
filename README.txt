@@ -452,8 +452,8 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
-= 2.2.5 ( May 08, 2026 ) =
-Improvement: Media Usage Tracker Improvement
+= 2.2.5 ( May 09, 2026 ) =
+Improvement: Media Usage Tracker Functionality Improvement
 
 = 2.2.4 ( Apr 26, 2026 ) =
 Fix: Update The experimental feature.
