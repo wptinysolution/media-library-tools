@@ -190,7 +190,7 @@ function App() {
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />
                     <Route path="/duplicates" element={<DuplicatePage />} />
                     <Route path="/duplicates/page/:page" element={<DuplicatePage />} />
-                    <Route path="/usedWhere" element={<UsedWherePage />} />
+                    <Route path="/usageUnused" element={<UsedWherePage />} />
                     <Route path="/usedWhere/:filter" element={<UsedWherePage />} />
                     <Route path="/usedWhere/:filter/page/:page" element={<UsedWherePage />} />
                     <Route path="/exifData" element={<ExifDataPage />} />
