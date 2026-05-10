@@ -1578,6 +1578,26 @@ class UsedWhereScanner {
 		$processed = (int) ( $status['processed'] ?? 0 );
 		$total     = (int) ( $status['total'] ?? 0 );
 
+		// Stall recovery. If the scan is meant to be active but no tick has
+		// run for a while (server restart, worker crash, cron not firing,
+		// loopback blocked), heal it: drop any stale lock and re-arm the
+		// chain with a fresh single event. Cheap because get_scan_status is
+		// called by the polling UI every few seconds — recovery happens
+		// automatically the next time the admin has the page open.
+		if ( in_array( $state, [ 'queued', 'running' ], true ) && ! empty( $status['last_tick_at'] ) ) {
+			$last_tick_ts = (int) strtotime( get_gmt_from_date( (string) $status['last_tick_at'] ) );
+			$stalled_secs = $last_tick_ts > 0 ? ( time() - $last_tick_ts ) : 0;
+			// 3 minutes without progress is well past any healthy tick.
+			if ( $stalled_secs > 180 ) {
+				delete_transient( self::SCAN_LOCK_KEY );
+				$next_offset = (int) ( $status['next_offset'] ?? 0 );
+				wp_schedule_single_event( time() + 1, self::SCAN_TICK_HOOK, [ $next_offset ] );
+				if ( function_exists( 'spawn_cron' ) ) {
+					spawn_cron();
+				}
+			}
+		}
+
 		// `notified` tracks whether the user has been shown a "scan finished"
 		// toast for this run. Set false when a scan is started, flipped true
 		// when the frontend acknowledges. Only meaningful in terminal states
@@ -1725,10 +1745,15 @@ class UsedWhereScanner {
 			return;
 		}
 
-		// Concurrency guard. A failed worker will leave a stale lock; the TTL
-		// auto-clears it so the watchdog (Phase 2) can revive the scan.
-		if ( get_transient( self::SCAN_LOCK_KEY ) ) {
-			return;
+		// Concurrency guard. The lock value is the unix timestamp it was set
+		// at, so we can age-check it: if the lock is older than 90s it almost
+		// certainly belongs to a worker that died (server restart, OOM,
+		// timeout) — proceed and overwrite. Catches the case where a normal
+		// transient TTL expiration would still leave us blocked for up to
+		// 120s after a real worker died.
+		$lock = get_transient( self::SCAN_LOCK_KEY );
+		if ( $lock && ( time() - (int) $lock ) < 90 ) {
+			return; // another worker is genuinely running
 		}
 		set_transient( self::SCAN_LOCK_KEY, time(), 120 );
 
