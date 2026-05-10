@@ -850,41 +850,12 @@ export default function UsedWherePage() {
                                                         // Every usage_type is a yes/no detection signal — the
                                                         // record_usage buffer dedupes by (attachment, post, type)
                                                         // so the per-type count is essentially always 1 per post.
-                                                        // Hide the per-type badges in the summary row (too much
-                                                        // visual noise) and reveal them as a CSS-only tooltip when
-                                                        // the user hovers the "Found in N ways" pill.
-                                                        const detectionTypes = Object.keys(usage.usage_by_type || {});
+                                                        // Per-type breakdown lives in the expanded list (click the
+                                                        // row); the summary stays clean with just two pills.
                                                         return (
                                                             <div className="flex items-center gap-1">
-                                                                <span
-                                                                    className="group relative inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded cursor-help"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    tabIndex={0}
-                                                                >
+                                                                <span className="inline-flex items-center px-2 py-1 font-medium text-gray-700 bg-gray-100 rounded">
                                                                     Found in {waysFound} way{waysFound !== 1 ? 's' : ''}
-                                                                    {/* Tooltip: appears on hover or keyboard focus.
-                                                                        Positioned above the trigger so it never
-                                                                        gets clipped by the row's overflow. */}
-                                                                    <span
-                                                                        role="tooltip"
-                                                                        className="invisible group-hover:visible group-focus:visible opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-150 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20 px-3 py-2 min-w-[180px] bg-gray-900 text-white rounded-md shadow-lg pointer-events-none"
-                                                                    >
-                                                                        <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-300 mb-1">
-                                                                            Detected via
-                                                                        </span>
-                                                                        <ul className="m-0 p-0 list-none space-y-0.5">
-                                                                            {detectionTypes.map((type) => (
-                                                                                <li key={type} className="flex items-center gap-1.5 text-xs">
-                                                                                    <svg className="w-3 h-3 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                                                    </svg>
-                                                                                    <span className="font-medium">{type}</span>
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                        {/* Tooltip arrow */}
-                                                                        <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-900" aria-hidden="true" />
-                                                                    </span>
                                                                 </span>
                                                                 <span className="inline-flex items-center px-2 py-1 font-medium text-blue-700 bg-blue-50 rounded">
                                                                     {usage.used_in_posts} post{usage.used_in_posts !== 1 ? 's' : ''}
