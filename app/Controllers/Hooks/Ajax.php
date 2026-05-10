@@ -594,15 +594,46 @@ class Ajax {
 				continue;
 			}
 
-			// `used_in_posts` is meant to mean "how many distinct posts use this
-			// image" — so dedupe by post_id before counting. Without this, an
-			// image referenced as featured + meta + permalink on the same post
-			// would count as 3, mismatching the grouped expanded list (which
-			// shows one row per post).
+			// Compute display counts that match the user's mental model.
+			//
+			// `used_in_posts` — distinct posts that reference this image.
+			//
+			// `usage_count` — distinct semantic placements. `permalink` and
+			// `rendered` are HTML-scan confirmations of placements already
+			// detected by structured paths (featured / content / gallery /
+			// builder / meta), so they don't add to the count when an owning
+			// type is present for the same post. Without this, an image used
+			// once on one product reads as "3 usages" because elementor +
+			// permalink + rendered all caught it — confusing.
+			$incidental_types  = [ 'permalink' => true, 'rendered' => true ];
 			$distinct_post_ids = [];
+			$has_owning_per_post = []; // post_id => true once an owning type recorded
+			$count_keys          = []; // (post_id . ':' . type) for owning, post_id . ':*' for incidental-only
+
 			foreach ( $stats['by_post'] as $usage ) {
-				if ( ! empty( $usage['post_id'] ) ) {
-					$distinct_post_ids[ (int) $usage['post_id'] ] = true;
+				$pid  = (int) ( $usage['post_id'] ?? 0 );
+				$type = (string) ( $usage['usage_type'] ?? '' );
+				if ( ! $pid ) {
+					continue;
+				}
+				$distinct_post_ids[ $pid ] = true;
+
+				if ( ! isset( $incidental_types[ $type ] ) ) {
+					// Owning placement on this post — counts once per (post, type).
+					$count_keys[ $pid . ':' . $type ] = true;
+					$has_owning_per_post[ $pid ]      = true;
+				}
+			}
+			// Second pass: fold in incidental records only for posts that
+			// have NO owning record (otherwise they're confirmation noise).
+			foreach ( $stats['by_post'] as $usage ) {
+				$pid  = (int) ( $usage['post_id'] ?? 0 );
+				$type = (string) ( $usage['usage_type'] ?? '' );
+				if ( ! $pid || ! isset( $incidental_types[ $type ] ) ) {
+					continue;
+				}
+				if ( ! isset( $has_owning_per_post[ $pid ] ) ) {
+					$count_keys[ $pid . ':*' ] = true;
 				}
 			}
 
@@ -610,7 +641,7 @@ class Ajax {
 				'attachment_id' => $post->ID,
 				'title'         => $post->post_title,
 				'url'           => wp_get_attachment_url( $post->ID ),
-				'usage_count'   => $stats['total_usage'],
+				'usage_count'   => count( $count_keys ),
 				'usage_by_type' => $stats['by_type'],
 				'used_in_posts' => count( $distinct_post_ids ),
 				'posts'         => $stats['by_post'],
