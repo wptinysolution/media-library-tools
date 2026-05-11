@@ -46,6 +46,13 @@ function inputDateToExif(input: string): string {
     return date.replace(/-/g, ":") + " " + time;
 }
 
+// Current local wall-clock as "YYYY-MM-DDTHH:MM:SS" — matches what <input type="datetime-local"> emits.
+function nowLocalISO(): string {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 interface ExifEditModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -58,8 +65,17 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
+    const [maxDate, setMaxDate] = useState<string>(nowLocalISO());
 
     const isSingle = attachmentIds.length === 1;
+
+    // Tick max forward so the picker can never offer a future second.
+    useEffect(() => {
+        if (!isOpen) return;
+        setMaxDate(nowLocalISO());
+        const t = setInterval(() => setMaxDate(nowLocalISO()), 1000);
+        return () => clearInterval(t);
+    }, [isOpen]);
 
     // Load existing EXIF for single edit.
     useEffect(() => {
@@ -105,12 +121,10 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         const { date_time_original, iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
 
         if (date_time_original) {
-            // date_time_original is stored as EXIF format "YYYY:MM:DD HH:MM:SS" — convert to ISO 8601 for reliable Date parsing
-            const d = new Date(exifDateToInput(date_time_original));
-            if (isNaN(d.getTime())) {
+            // Picker clamps to nowLocalISO() onChange, so only shape validation remains.
+            const input = exifDateToInput(date_time_original);
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(input) || isNaN(new Date(input).getTime())) {
                 errs.push("Date Taken is not a valid date");
-            } else if (d > new Date()) {
-                errs.push("Date Taken cannot be in the future");
             }
         }
 
@@ -258,10 +272,22 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                             <input
                                 type="datetime-local"
                                 step="1"
-                                max={new Date().toISOString().slice(0, 19)}
+                                max={maxDate}
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                 value={exifDateToInput(fields.date_time_original)}
-                                onChange={(e) => updateField("date_time_original", inputDateToExif(e.target.value))}
+                                onChange={(e) => {
+                                    const picked = e.target.value;
+                                    const now = nowLocalISO();
+                                    const clamped = picked && picked > now ? now : picked;
+                                    updateField("date_time_original", inputDateToExif(clamped));
+                                }}
+                                onBlur={(e) => {
+                                    const picked = e.target.value;
+                                    const now = nowLocalISO();
+                                    if (picked && picked > now) {
+                                        updateField("date_time_original", inputDateToExif(now));
+                                    }
+                                }}
                             />
                         </div>
 
