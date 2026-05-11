@@ -60,6 +60,7 @@ class UsedWhereScanner {
 		'brizy',
 		'wpbakery',
 		'meta',
+		'term_meta',
 	];
 
 	/**
@@ -2121,6 +2122,9 @@ class UsedWhereScanner {
 
 		// 7. Widget images (scan active widget options for upload URLs/IDs).
 		$this->detect_widget_images( $known_ids );
+
+		// 8. Taxonomy term meta images (category thumbnails, featured images, SEO images).
+		$this->detect_term_meta_images( $known_ids );
 	}
 
 	/**
@@ -2216,6 +2220,122 @@ class UsedWhereScanner {
 						$att_id = $this->get_attachment_id_by_url( $instance[ $field ] );
 						if ( $att_id ) {
 							$this->record_sitewide_usage( $att_id, 'widget' );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Detect images stored as taxonomy term meta.
+	 *
+	 * Covers category/tag/custom taxonomy images set by plugins like:
+	 * - WooCommerce (`thumbnail_id` term meta for product categories)
+	 * - Categories Images / Category Image plugins (`category_image_id`, `term_image_id`)
+	 * - ACF term fields (numeric attachment IDs in term meta)
+	 * - Yoast SEO (`wpseo_taxonomy_meta` option with `wpseo_opengraph-image-id`)
+	 * - Rank Math (`rank_math_facebook_image_id`, `rank_math_twitter_image_id`)
+	 *
+	 * Also scans all term meta values for upload URLs to catch URL-based
+	 * category image implementations.
+	 *
+	 * @param array<int, true> $known_ids Set of known attachment IDs.
+	 *
+	 * @return void
+	 */
+	private function detect_term_meta_images( array $known_ids ): void {
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'names' );
+		if ( empty( $taxonomies ) ) {
+			return;
+		}
+
+		// Well-known term meta keys that store attachment IDs.
+		$id_meta_keys = [
+			'thumbnail_id',                   // WooCommerce product categories.
+			'category_image_id',              // Categories Images plugin.
+			'term_image_id',                  // Category Image plugin variants.
+			'brand_thumbnail_id',             // WooCommerce Brands.
+			'rank_math_facebook_image_id',    // Rank Math SEO.
+			'rank_math_twitter_image_id',     // Rank Math SEO.
+			'_flavor_term_image',             // flavor theme.
+		];
+
+		/**
+		 * Filter the list of term meta keys that are known to store attachment IDs.
+		 *
+		 * Plugins that store category/term images can add their meta key here so
+		 * the used-where scanner picks them up.
+		 *
+		 * @param string[] $id_meta_keys Meta key names.
+		 */
+		$id_meta_keys = apply_filters( 'tsmlt_used_where_term_image_meta_keys', $id_meta_keys );
+
+		// Well-known term meta keys that store image URLs.
+		$url_meta_keys = [
+			'category_image',     // Categories Images plugin (URL variant).
+			'term_image',         // Generic category image plugins.
+		];
+
+		/**
+		 * Filter the list of term meta keys that are known to store image URLs.
+		 *
+		 * @param string[] $url_meta_keys Meta key names.
+		 */
+		$url_meta_keys = apply_filters( 'tsmlt_used_where_term_image_url_meta_keys', $url_meta_keys );
+
+		$terms = get_terms(
+			[
+				'taxonomy'   => array_values( $taxonomies ),
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			]
+		);
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return;
+		}
+
+		foreach ( $terms as $term_id ) {
+			$term_id = absint( $term_id );
+
+			// Check ID-based meta keys.
+			foreach ( $id_meta_keys as $meta_key ) {
+				$img_id = absint( get_term_meta( $term_id, $meta_key, true ) );
+				if ( $img_id && isset( $known_ids[ $img_id ] ) ) {
+					$this->record_sitewide_usage( $img_id, 'term_meta' );
+				}
+			}
+
+			// Check URL-based meta keys.
+			foreach ( $url_meta_keys as $meta_key ) {
+				$url = get_term_meta( $term_id, $meta_key, true );
+				if ( ! empty( $url ) && is_string( $url ) && strpos( $url, '/wp-content/uploads/' ) !== false ) {
+					$att_id = $this->get_attachment_id_by_url( $url );
+					if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+						$this->record_sitewide_usage( $att_id, 'term_meta' );
+					}
+				}
+			}
+		}
+
+		// Yoast SEO stores taxonomy OG/Twitter images in a single option blob.
+		$yoast_tax_meta = get_option( 'wpseo_taxonomy_meta', [] );
+		if ( is_array( $yoast_tax_meta ) ) {
+			foreach ( $yoast_tax_meta as $taxonomy => $terms_data ) {
+				if ( ! is_array( $terms_data ) ) {
+					continue;
+				}
+				foreach ( $terms_data as $tid => $meta ) {
+					if ( ! is_array( $meta ) ) {
+						continue;
+					}
+					foreach ( [ 'wpseo_opengraph-image-id', 'wpseo_twitter-image-id' ] as $yoast_key ) {
+						if ( ! empty( $meta[ $yoast_key ] ) ) {
+							$img_id = absint( $meta[ $yoast_key ] );
+							if ( $img_id && isset( $known_ids[ $img_id ] ) ) {
+								$this->record_sitewide_usage( $img_id, 'term_meta' );
+							}
 						}
 					}
 				}
