@@ -38,12 +38,14 @@ function exifDateToInput(exif: string): string {
     return parts[0].replace(/:/g, "-") + "T" + parts[1];
 }
 
-// Convert datetime-local input value "YYYY-MM-DDTHH:MM:SS" back to EXIF format "YYYY:MM:DD HH:MM:SS"
+// Convert datetime-local input value "YYYY-MM-DDTHH:MM[:SS]" back to EXIF format "YYYY:MM:DD HH:MM:SS"
+// Some browsers (notably Firefox) emit HH:MM without seconds even when step="1"; pad to :00.
 function inputDateToExif(input: string): string {
     if (!input) return "";
     const [date, time] = input.split("T");
     if (!date || !time) return "";
-    return date.replace(/-/g, ":") + " " + time;
+    const fullTime = /^\d{2}:\d{2}$/.test(time) ? `${time}:00` : time;
+    return date.replace(/-/g, ":") + " " + fullTime;
 }
 
 // Current local wall-clock as "YYYY-MM-DDTHH:MM:SS" — matches what <input type="datetime-local"> emits.
@@ -51,6 +53,21 @@ function nowLocalISO(): string {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// Normalize picker value to a comparable "YYYY-MM-DDTHH:MM:SS" — pads missing seconds.
+function normalizePickerValue(v: string): string {
+    if (!v) return "";
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v) ? `${v}:00` : v;
+}
+
+// True when the picker value is meaningfully in the future. 60-second grace absorbs
+// picker rounding, the maxDate setInterval tick, and clock skew so "now" is never flagged.
+function isFuture(pickerValue: string): boolean {
+    if (!pickerValue) return false;
+    const picked = new Date(normalizePickerValue(pickerValue)).getTime();
+    if (isNaN(picked)) return false;
+    return picked - Date.now() > 60_000;
 }
 
 interface ExifEditModalProps {
@@ -121,9 +138,8 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         const { date_time_original, iso, aperture, shutter_speed, gps_lat, gps_lng } = fields;
 
         if (date_time_original) {
-            // Picker clamps to nowLocalISO() onChange, so only shape validation remains.
-            const input = exifDateToInput(date_time_original);
-            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(input) || isNaN(new Date(input).getTime())) {
+            // EXIF format is "YYYY:MM:DD HH:MM:SS" — accept that exact shape.
+            if (!/^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/.test(date_time_original) || isNaN(new Date(exifDateToInput(date_time_original)).getTime())) {
                 errs.push("Date Taken is not a valid date");
             }
         }
@@ -276,16 +292,14 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                 value={exifDateToInput(fields.date_time_original)}
                                 onChange={(e) => {
-                                    const picked = e.target.value;
-                                    const now = nowLocalISO();
-                                    const clamped = picked && picked > now ? now : picked;
+                                    const picked = normalizePickerValue(e.target.value);
+                                    const clamped = isFuture(picked) ? nowLocalISO() : picked;
                                     updateField("date_time_original", inputDateToExif(clamped));
                                 }}
                                 onBlur={(e) => {
-                                    const picked = e.target.value;
-                                    const now = nowLocalISO();
-                                    if (picked && picked > now) {
-                                        updateField("date_time_original", inputDateToExif(now));
+                                    const picked = normalizePickerValue(e.target.value);
+                                    if (isFuture(picked)) {
+                                        updateField("date_time_original", inputDateToExif(nowLocalISO()));
                                     }
                                 }}
                             />
