@@ -106,15 +106,36 @@ async function runZip() {
 }
 
 /**
+ * Check if vendor prefixed dependencies exist
+ */
+async function checkVendorPrefixed() {
+    const vendorPrefixedDir = path.join(packagePath, "vendor_prefixed");
+    const autoloadFile = path.join(packagePath, "autoload.php");
+
+    const hasVendorPrefixed = await fs.pathExists(vendorPrefixedDir);
+    const hasAutoload = await fs.pathExists(autoloadFile);
+
+    if (!hasVendorPrefixed || !hasAutoload) {
+        console.error(cliColor.red(`\n${emojic.x} Build failed: Vendor prefixed dependencies are missing.\n`));
+        console.error(cliColor.yellow("Please run the following commands first:"));
+        console.error(cliColor.white("  1. composer install"));
+        console.error(cliColor.white("  2. composer prefix-vendor\n"));
+        process.exit(1);
+    }
+}
+
+/**
  * Main handler
  */
 async function main() {
     const mode = process.env.NODE_ENV;
     if (mode === "package") {
+        await checkVendorPrefixed();
         await runPackage();
         return;
     }
     if (mode === "zip") {
+        await checkVendorPrefixed();
         await runZip();
         return;
     }
