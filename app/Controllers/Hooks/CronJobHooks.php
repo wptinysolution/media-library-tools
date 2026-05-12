@@ -41,9 +41,22 @@ class CronJobHooks {
 		// Rubbish Cron Job.
 		add_action( 'init', [ $this, 'schedule_rubbish_file_cron_job' ] );
 		add_action( 'tsmlt_upload_inner_file_scan', [ $this, 'scan_rubbish_file_cron_job' ] );
-		// Thumbnail Cron Job (5 times a day).
-		add_action( 'init', [ $this, 'schedule_thumbnail_cron_job' ] );
-		add_action( 'tsmlt_five_times_thumbnail_event', [ $this, 'execute_thumbnail_cron_job' ] );
+		// Unschedule legacy thumbnail parent cron on existing installs — superseded by UsedWhereScanner.
+		add_action( 'init', [ $this, 'unschedule_legacy_thumbnail_cron' ] );
+	}
+
+	/**
+	 * Clear the obsolete `tsmlt_five_times_thumbnail_event` cron from prior installs.
+	 *
+	 * Parent-post detection is now handled by `UsedWhereScanner` (on-demand + on save).
+	 *
+	 * @return void
+	 */
+	public function unschedule_legacy_thumbnail_cron() {
+		if ( wp_next_scheduled( 'tsmlt_five_times_thumbnail_event' ) ) {
+			wp_clear_scheduled_hook( 'tsmlt_five_times_thumbnail_event' );
+		}
+		delete_option( 'tsmlt_thumbnail_cron_offset' );
 	}
 
 	/**
@@ -58,54 +71,6 @@ class CronJobHooks {
 			'display'  => __( 'Every 6 Hours', 'media-library-tools' ),
 		];
 		return $schedules;
-	}
-
-	/**
-	 * Schedule the thumbnail cron job to run 5 times a day.
-	 *
-	 * @return void
-	 */
-	public function schedule_thumbnail_cron_job() {
-		$event_hook = 'tsmlt_five_times_thumbnail_event';
-		if ( ! wp_next_scheduled( $event_hook ) ) {
-			wp_clear_scheduled_hook( $event_hook );
-			wp_schedule_event( time(), 'every_six_hours', $event_hook );
-			Fns::add_to_scheduled_hook_list( $event_hook );
-		}
-	}
-
-	/**
-	 * Execute the thumbnail cron job in batches of 100.
-	 *
-	 * @return void
-	 */
-	public function execute_thumbnail_cron_job() {
-		 $batch_size        = 100;
-		 $offset_option_key = 'tsmlt_thumbnail_cron_offset';
-		$offset             = (int) get_option( $offset_option_key, 0 );
-		$args               = [
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'posts_per_page' => $batch_size,
-			'post_parent'    => 0,
-			'offset'         => $offset,
-			'fields'         => 'ids',
-			'order'          => 'DESC',
-			'orderby'        => 'ID',
-		];
-		$media_files        = get_posts( $args );
-		if ( ! empty( $media_files ) ) {
-			foreach ( $media_files as $media_id ) {
-				delete_post_meta( $media_id, '_parent_post_found' );
-				Fns::set_thumbnail_parent_id( $media_id );
-			}
-			// Update offset for the next batch.
-			$offset += $batch_size;
-			update_option( $offset_option_key, $offset );
-		} else {
-			// Reset the offset when no more media files are found.
-			update_option( $offset_option_key, 0 );
-		}
 	}
 
 	/**

@@ -1213,13 +1213,27 @@ class UsedWhereScanner {
 
 			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
 
-			// Set post_parent if not already set.
+			// Set post_parent if not already set. Prefer a 'featured' usage
+			// (the image is the post's thumbnail) over any other usage type,
+			// since featured-image attachment is the strongest signal of ownership.
 			$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
-			if ( ! $current_parent && ! empty( $new_usages[0]['post_id'] ) ) {
-				wp_update_post( [
-					'ID'          => $attachment_id,
-					'post_parent' => (int) $new_usages[0]['post_id'],
-				] );
+			if ( ! $current_parent ) {
+				$parent_post_id = 0;
+				foreach ( $new_usages as $usage ) {
+					if ( ( $usage['usage_type'] ?? '' ) === 'featured' && ! empty( $usage['post_id'] ) ) {
+						$parent_post_id = (int) $usage['post_id'];
+						break;
+					}
+				}
+				if ( ! $parent_post_id && ! empty( $new_usages[0]['post_id'] ) ) {
+					$parent_post_id = (int) $new_usages[0]['post_id'];
+				}
+				if ( $parent_post_id ) {
+					wp_update_post( [
+						'ID'          => $attachment_id,
+						'post_parent' => $parent_post_id,
+					] );
+				}
 			}
 		}
 
