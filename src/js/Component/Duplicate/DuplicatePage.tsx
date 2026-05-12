@@ -2,7 +2,15 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
 import type { DuplicateGroup } from "@/js/Utils/store";
-import { duplicateScanBatch, getDuplicateResults, getDuplicateStatus, clearDuplicateScan, mergeDuplicates } from "@/js/Utils/Data";
+import {
+    clearDuplicateScan,
+    duplicateScanCancel,
+    duplicateScanGetProgress,
+    duplicateScanStart,
+    getDuplicateResults,
+    getDuplicateStatus,
+    mergeDuplicates,
+} from "@/js/Utils/Data";
 import DuplicateHeader from "./DuplicateHeader";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
@@ -17,6 +25,8 @@ function formatBytes(bytes: number): string {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+const POLL_INTERVAL_MS = 3000;
+
 export default function DuplicatePage() {
     const { duplicateData, setDuplicateData, setGeneralData } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
@@ -24,7 +34,16 @@ export default function DuplicatePage() {
     const [mergeGroup, setMergeGroup] = useState<DuplicateGroup | null>(null);
     const [keepId, setKeepId] = useState<number>(0);
     const [merging, setMerging] = useState(false);
+    const [actionPending, setActionPending] = useState(false);
     const isMounted = useRef(false);
+    const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const stopPolling = useCallback(() => {
+        if (pollTimer.current) {
+            clearTimeout(pollTimer.current);
+            pollTimer.current = null;
+        }
+    }, []);
 
     const loadStatus = useCallback(async () => {
         const status = await getDuplicateStatus() as { total_attachments: number; scanned: number; duplicate_groups: number; potential_savings: number };
@@ -70,22 +89,69 @@ export default function DuplicatePage() {
         });
     }, [setDuplicateData, navigate]);
 
-    const startScan = async () => {
-        setDuplicateData({ isScanning: true, scanProgress: { processed: 0, total: 0 } });
-        let offset = 0;
-        let complete = false;
+    const pollOnce = useCallback(async () => {
+        try {
+            const next = await duplicateScanGetProgress();
+            if (!isMounted.current) return;
 
-        while (!complete) {
-            const result = await duplicateScanBatch({ offset, batch_size: 50 }) as { data: { processed: number; total: number; complete: boolean } };
-            const data = result.data;
-            offset = data.processed;
-            complete = data.complete;
-            setDuplicateData({ scanProgress: { processed: data.processed, total: data.total } });
+            setDuplicateData({
+                isScanning: next.status === 'running',
+                scanProgress: { processed: next.offset, total: next.total },
+            });
+
+            if (next.status === 'running') {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            } else if (next.status === 'done' || next.status === 'cancelled') {
+                // Refresh derived state and result table once the run lands.
+                await loadStatus();
+                await loadResults(1);
+            }
+        } catch {
+            // Transient error — back off and retry.
+            if (isMounted.current) {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            }
         }
+    }, [setDuplicateData, loadStatus, loadResults]);
 
-        setDuplicateData({ isScanning: false });
-        await loadStatus();
-        await loadResults(1);
+    const startScan = async () => {
+        if (actionPending) return;
+        setActionPending(true);
+        stopPolling();
+        try {
+            const next = await duplicateScanStart();
+            if (!isMounted.current) return;
+            setDuplicateData({
+                isScanning: next.status === 'running',
+                scanProgress: { processed: next.offset, total: next.total },
+            });
+            if (next.status === 'running') {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            } else {
+                // total === 0 → status went straight to 'done'; refresh once.
+                await loadStatus();
+                await loadResults(1);
+            }
+        } finally {
+            if (isMounted.current) setActionPending(false);
+        }
+    };
+
+    const cancelScan = async () => {
+        if (actionPending) return;
+        setActionPending(true);
+        stopPolling();
+        try {
+            const next = await duplicateScanCancel();
+            if (!isMounted.current) return;
+            setDuplicateData({
+                isScanning: false,
+                scanProgress: { processed: next.offset, total: next.total },
+            });
+            await loadStatus();
+        } finally {
+            if (isMounted.current) setActionPending(false);
+        }
     };
 
     const handleClear = async () => {
@@ -135,12 +201,36 @@ export default function DuplicatePage() {
 
     useEffect(() => {
         const pageFromUrl = parseInt(pageParam || '1', 10);
+
+        // Resume polling if a background scan is already running (tab-reopen case).
+        // Run alongside the initial status/results load so we don't block on it.
+        (async () => {
+            try {
+                const progress = await duplicateScanGetProgress();
+                if (!isMounted.current && progress.status !== 'running') return;
+                if (progress.status === 'running') {
+                    setDuplicateData({
+                        isScanning: true,
+                        scanProgress: { processed: progress.offset, total: progress.total },
+                    });
+                    pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+                }
+            } catch {
+                // Ignore — first-mount only.
+            }
+        })();
+
         loadStatus().then(() => {
             const { scanned } = useStore.getState().duplicateData;
             if (scanned > 0) loadResults(pageFromUrl);
         }).finally(() => {
             isMounted.current = true;
         });
+
+        return () => {
+            isMounted.current = false;
+            stopPolling();
+        };
     }, []);
 
     useEffect(() => {
@@ -172,10 +262,20 @@ export default function DuplicatePage() {
                     type="button"
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50"
                     onClick={startScan}
-                    disabled={duplicateData.isScanning}
+                    disabled={duplicateData.isScanning || actionPending}
                 >
                     {duplicateData.isScanning ? 'Scanning...' : (duplicateData.scanned > 0 ? 'Re-scan' : 'Scan for Duplicates')}
                 </button>
+                {duplicateData.isScanning && (
+                    <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
+                        onClick={cancelScan}
+                        disabled={actionPending}
+                    >
+                        Stop
+                    </button>
+                )}
                 {duplicateData.scanned > 0 && !duplicateData.isScanning && (
                     <button
                         type="button"
@@ -190,8 +290,11 @@ export default function DuplicatePage() {
             {/* Scan progress */}
             {duplicateData.isScanning && (
                 <div className="px-4 py-4 bg-white border-b border-gray-200">
-                    <p className="text-sm text-gray-600 mb-2 mt-0!">
-                        Scanning attachments... {duplicateData.scanProgress.processed} / {duplicateData.scanProgress.total}
+                    <p className="text-sm text-gray-600 mb-1 mt-0!">
+                        Scanning attachments… {duplicateData.scanProgress.processed} / {duplicateData.scanProgress.total}
+                    </p>
+                    <p className="text-[11px] text-blue-600 mt-0 mb-2">
+                        Scan runs in the background — you can close this tab and come back to check progress.
                     </p>
                     <ProgressBar percent={scanPercent} />
                 </div>

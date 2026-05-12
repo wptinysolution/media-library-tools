@@ -424,6 +424,9 @@ class RubbishScanner {
 		// Map of post_id → relative dir, built from _wp_attached_file, used to
 		// resolve thumbnail paths without a second inner loop.
 		$post_id_to_dir = [];
+		// Map of post_id → relative file path, used to resolve attachment IDs
+		// stored in term meta / option meta back to disk paths.
+		$post_id_to_path = [];
 
 		// 1. Fetch every _wp_attached_file value (1 query via query builder).
 		$rows = Fns::DB()->select( 'post_id', 'meta_value' )
@@ -436,8 +439,10 @@ class RubbishScanner {
 			if ( ! $rel_path ) {
 				continue;
 			}
-			$paths[ $rel_path ]                    = true;
-			$post_id_to_dir[ (int) $row['post_id'] ] = dirname( $rel_path );
+			$post_id                                 = (int) $row['post_id'];
+			$paths[ $rel_path ]                      = true;
+			$post_id_to_dir[ $post_id ]              = dirname( $rel_path );
+			$post_id_to_path[ $post_id ]             = $rel_path;
 		}
 
 		// 2. Fetch _wp_attachment_metadata to capture generated thumbnail filenames (1 query).
@@ -466,7 +471,57 @@ class RubbishScanner {
 			}
 		}
 
-		$lookup = [ 'paths' => $paths, 'basenames' => $basenames ];
+		// 3. Term meta — WooCommerce category/brand thumbnails and similar.
+		// Pulls every termmeta row whose key looks like an attachment-id field.
+		// We don't try to be exhaustive; we just resolve any value that maps to a
+		// known attachment ID. If the value isn't a real attachment ID we ignore it.
+		if ( function_exists( 'get_terms' ) ) {
+			$term_meta_keys = apply_filters(
+				'tsmlt_registered_term_meta_attachment_keys',
+				[
+					'thumbnail_id',         // WooCommerce product_cat thumbnail.
+					'brand_thumbnail_id',   // WooCommerce Brands.
+					'product_brand_thumb',  // Other brand plugins.
+					'category_image_id',    // Generic.
+				]
+			);
+			if ( ! empty( $term_meta_keys ) && is_array( $term_meta_keys ) ) {
+				$tm_rows = Fns::DB()->select( 'meta_value' )
+					->from( 'termmeta' )
+					->whereIn( 'meta_key', ...array_values( $term_meta_keys ) )
+					->get();
+				foreach ( (array) $tm_rows as $row ) {
+					$att_id = (int) ( $row['meta_value'] ?? 0 );
+					if ( $att_id && isset( $post_id_to_path[ $att_id ] ) ) {
+						$paths[ $post_id_to_path[ $att_id ] ] = true;
+					}
+				}
+			}
+		}
+
+		// 4. site_logo / custom_logo option — site identity images.
+		$logo_id = (int) get_option( 'site_logo' );
+		if ( ! $logo_id ) {
+			$logo_id = (int) get_theme_mod( 'custom_logo' );
+		}
+		if ( $logo_id && isset( $post_id_to_path[ $logo_id ] ) ) {
+			$paths[ $post_id_to_path[ $logo_id ] ] = true;
+		}
+
+		// 5. Filter — let Pro/third parties append paths (e.g. Elementor library,
+		// ACF image fields that store paths instead of IDs, Customizer images, etc.).
+		// Filter receives the partial lookup so it can also append basenames.
+		$lookup = apply_filters(
+			'tsmlt_registered_file_lookup',
+			[ 'paths' => $paths, 'basenames' => $basenames ],
+			$post_id_to_path
+		);
+
+		// Defend against filters returning a wrong shape.
+		if ( ! is_array( $lookup ) || ! isset( $lookup['paths'], $lookup['basenames'] ) ) {
+			$lookup = [ 'paths' => $paths, 'basenames' => $basenames ];
+		}
+
 		wp_cache_set( $cache_key, $lookup, '', 300 ); // Cache for 5 minutes.
 		return $lookup;
 	}
@@ -525,6 +580,18 @@ class RubbishScanner {
 		// instead of `in_array` over a 20-item array per iteration.
 		$ext_lookup = array_flip( self::default_file_extensions() );
 
+		// Extensions that should never be auto-deleted during scan even when
+		// the user opts into instant deletion. These file types are commonly
+		// referenced from places this scanner can't see (term meta, theme
+		// settings, page builders), so the safer default is to flag them as
+		// rubbish for review rather than delete them outright.
+		$instant_delete_excluded = array_flip(
+			(array) apply_filters(
+				'tsmlt_instant_delete_excluded_extensions',
+				[ 'svg', 'pdf' ]
+			)
+		);
+
 		foreach ( $files as $file_path ) {
 			// `scan_file_in_directory()` already filtered to real files; the transient
 			// keeps the list fresh for 10 minutes, so a per-file `file_exists()` here
@@ -558,7 +625,12 @@ class RubbishScanner {
 			$dot           = strrpos( $bn, '.' );
 			$fileextension = ( false === $dot ) ? '' : substr( $bn, $dot + 1 );
 
-			if ( $instantDeletion && wp_doing_ajax() && isset( $ext_lookup[ $fileextension ] ) ) {
+			if (
+				$instantDeletion
+				&& wp_doing_ajax()
+				&& isset( $ext_lookup[ $fileextension ] )
+				&& ! isset( $instant_delete_excluded[ $fileextension ] )
+			) {
 				do_action( 'tsmlt_do_ajax_instant_action', $file_path, $table_name );
 				continue;
 			}

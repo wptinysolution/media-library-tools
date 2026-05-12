@@ -80,6 +80,9 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_duplicate_get_results', [ $this, 'duplicate_get_results' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_get_status', [ $this, 'duplicate_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_clear', [ $this, 'duplicate_clear' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_start', [ $this, 'duplicate_scan_start' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_cancel', [ $this, 'duplicate_scan_cancel' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_scan_get_progress', [ $this, 'duplicate_scan_get_progress' ] );
 
 		// Used-Where image usage tracking.
 		add_action( 'wp_ajax_tsmlt_used_where_scan_batch', [ $this, 'used_where_scan_batch' ] );
@@ -451,6 +454,24 @@ class Ajax {
 	public function duplicate_clear(): void {
 		$this->verify_and_get_params();
 		$this->send( DuplicateScanner::instance()->clear_scan() );
+	}
+
+	/** @return void */
+	public function duplicate_scan_start(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->start() );
+	}
+
+	/** @return void */
+	public function duplicate_scan_cancel(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->cancel() );
+	}
+
+	/** @return void */
+	public function duplicate_scan_get_progress(): void {
+		$this->verify_and_get_params();
+		$this->send( DuplicateScanner::instance()->get_progress() );
 	}
 
 	// -------------------------------------------------------------------------

@@ -21,6 +21,30 @@ use TinySolutions\mlt\Traits\SingletonTrait;
 class DuplicateScanner {
 
 	/**
+	 * Option key for persistent scan state. Survives tab closes so background
+	 * ticks can pick up where the user left off.
+	 */
+	const STATE_OPTION = 'tsmlt_duplicate_scan_state';
+
+	/**
+	 * Single-event hook fired between batches. Each tick processes one
+	 * batch and self-reschedules until the scan completes or the user cancels.
+	 */
+	const TICK_HOOK = 'tsmlt_duplicate_scan_tick';
+
+	/**
+	 * Seconds between background ticks. Kept short so WP-Cron fires the
+	 * next batch on the next visitor request.
+	 */
+	const TICK_INTERVAL = 1;
+
+	/**
+	 * Per-tick batch size. md5_file() is disk-bound; 100 files comfortably
+	 * fits under a 30s tick budget on typical SSDs.
+	 */
+	const TICK_BATCH_SIZE = 100;
+
+	/**
 	 * Singleton
 	 */
 	use SingletonTrait;
@@ -350,6 +374,10 @@ class DuplicateScanner {
 	 * @return array{updated: bool, message: string}
 	 */
 	public function clear_scan(): array {
+		// Drop any in-flight background tick so a clear during scan stops everything.
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+		delete_option( self::STATE_OPTION );
+
 		Fns::DB()->truncate( 'tsmlt_duplicate_file' );
 		Fns::DB()->alter( 'tsmlt_duplicate_file' )->modify( 'id' )->int()->autoIncrement()->execute();
 
@@ -357,5 +385,148 @@ class DuplicateScanner {
 			'updated' => true,
 			'message' => esc_html__( 'Duplicate scan results cleared.', 'media-library-tools' ),
 		];
+	}
+
+	// -------------------------------------------------------------------------
+	// Background scan (self-chaining single events)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Default shape for the persisted scan state.
+	 *
+	 * @return array
+	 */
+	private function default_state(): array {
+		return [
+			'status'     => 'idle',
+			'offset'     => 0,
+			'total'      => 0,
+			'started_at' => 0,
+			'updated_at' => 0,
+		];
+	}
+
+	/**
+	 * Read the persisted scan state, merged with defaults so callers always
+	 * see the full shape even when older runs left partial data.
+	 *
+	 * @return array
+	 */
+	public function get_progress(): array {
+		$stored = get_option( self::STATE_OPTION, [] );
+		if ( ! is_array( $stored ) ) {
+			$stored = [];
+		}
+		$state = array_merge( $this->default_state(), $stored );
+
+		$state['tick_scheduled'] = (bool) wp_next_scheduled( self::TICK_HOOK );
+
+		return $state;
+	}
+
+	/**
+	 * Start a fresh background scan. Snapshots the current total, marks the
+	 * run as running, and schedules the first tick.
+	 *
+	 * Does not truncate `tsmlt_duplicate_file` — already-scanned rows are
+	 * skipped by `scan_batch()`, so a re-start gracefully resumes any work
+	 * that survived a prior cancellation.
+	 *
+	 * @return array Progress after start.
+	 */
+	public function start(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
+		$total_result = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->get();
+		$total        = (int) ( $total_result[0]['total'] ?? 0 );
+
+		$now   = time();
+		$state = array_merge(
+			$this->default_state(),
+			[
+				'status'     => $total > 0 ? 'running' : 'done',
+				'offset'     => 0,
+				'total'      => $total,
+				'started_at' => $now,
+				'updated_at' => $now,
+			]
+		);
+		update_option( self::STATE_OPTION, $state, false );
+
+		if ( $total > 0 ) {
+			// First tick fires almost immediately — no benefit to idling on Start.
+			wp_schedule_single_event( $now + 1, self::TICK_HOOK );
+		}
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Cancel an in-flight scan. Marks the run as cancelled and unschedules
+	 * the pending tick. Already-scanned rows in `tsmlt_duplicate_file` are
+	 * left in place so the user can still view partial results.
+	 *
+	 * @return array Progress after cancel.
+	 */
+	public function cancel(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
+		$state               = $this->get_progress();
+		$state['status']     = 'cancelled';
+		$state['updated_at'] = time();
+		unset( $state['tick_scheduled'] );
+		update_option( self::STATE_OPTION, $state, false );
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Background tick handler. Processes one batch, updates the state row,
+	 * then self-reschedules unless the scan finished or the user cancelled
+	 * mid-batch.
+	 *
+	 * Registered against `self::TICK_HOOK` in `CronJobHooks`.
+	 *
+	 * @return void
+	 */
+	public static function run_tick(): void {
+		$self  = self::instance();
+		$state = $self->get_progress();
+
+		// Bail if cancelled or already finished — no rescheduling.
+		if ( 'running' !== ( $state['status'] ?? '' ) ) {
+			return;
+		}
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		$batch_size = (int) apply_filters( 'tsmlt_duplicate_scan_tick_batch_size', self::TICK_BATCH_SIZE );
+		$batch_size = max( 1, min( 500, $batch_size ) );
+
+		$result = $self->scan_batch( (int) $state['offset'], $batch_size );
+
+		$state['offset']     = (int) $result['processed'];
+		$state['total']      = (int) $result['total'];
+		$state['updated_at'] = time();
+
+		if ( $result['complete'] ) {
+			$state['status'] = 'done';
+		}
+
+		unset( $state['tick_scheduled'] );
+		update_option( self::STATE_OPTION, $state, false );
+
+		// Re-read after the batch — status may have flipped to cancelled while we ran.
+		$fresh = get_option( self::STATE_OPTION, [] );
+		if ( is_array( $fresh ) && 'running' === ( $fresh['status'] ?? '' ) ) {
+			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
+		}
 	}
 }

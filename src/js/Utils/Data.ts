@@ -279,6 +279,30 @@ export const clearDuplicateScan = async (): Promise<AxiosResponse> => {
     return response;
 };
 
+export interface DuplicateScanProgress {
+    status: 'idle' | 'running' | 'done' | 'cancelled';
+    offset: number;
+    total: number;
+    started_at: number;
+    updated_at: number;
+    tick_scheduled: boolean;
+}
+
+export const duplicateScanStart = async (): Promise<DuplicateScanProgress> => {
+    const result = await ajaxPost('tsmlt_duplicate_scan_start');
+    return result.data as DuplicateScanProgress;
+};
+
+export const duplicateScanCancel = async (): Promise<DuplicateScanProgress> => {
+    const result = await ajaxPost('tsmlt_duplicate_scan_cancel');
+    return result.data as DuplicateScanProgress;
+};
+
+export const duplicateScanGetProgress = async (): Promise<DuplicateScanProgress> => {
+    const result = await ajaxPost('tsmlt_duplicate_scan_get_progress');
+    return result.data as DuplicateScanProgress;
+};
+
 export const mergeDuplicates = async (prams: object = {}): Promise<AxiosResponse> => {
     const response = await ajaxPost('tsmlt_duplicate_merge', prams);
     notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);

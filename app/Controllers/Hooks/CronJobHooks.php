@@ -15,6 +15,7 @@ use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
+use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -40,6 +41,8 @@ class CronJobHooks {
 		add_action( RegenerateThumbnails::TICK_HOOK, [ RegenerateThumbnails::class, 'run_tick' ] );
 		// Handler for user-initiated, self-chaining EXIF data scanner ticks.
 		add_action( ExifScanner::TICK_HOOK, [ ExifScanner::class, 'run_tick' ] );
+		// Handler for user-initiated, self-chaining duplicate file scanner ticks.
+		add_action( DuplicateScanner::TICK_HOOK, [ DuplicateScanner::class, 'run_tick' ] );
 		// Unschedule legacy recurring crons on existing installs — replaced by on-demand scans.
 		add_action( 'init', [ $this, 'unschedule_legacy_crons' ] );
 	}
