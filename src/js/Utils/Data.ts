@@ -423,6 +423,33 @@ export const clearExifScan = async (): Promise<AxiosResponse> => {
     return response;
 };
 
+export interface ExifScanProgress {
+    status: 'idle' | 'running' | 'done' | 'cancelled';
+    processed: number;
+    total: number;
+    with_exif: number;
+    without_exif: number;
+    started_at: number;
+    updated_at: number;
+    timestamp: string;
+    tick_scheduled: boolean;
+}
+
+export const exifScanStart = async (): Promise<ExifScanProgress> => {
+    const result = await ajaxPost('tsmlt_exif_scan_start');
+    return result.data as ExifScanProgress;
+};
+
+export const exifScanCancel = async (): Promise<ExifScanProgress> => {
+    const result = await ajaxPost('tsmlt_exif_scan_cancel');
+    return result.data as ExifScanProgress;
+};
+
+export const exifScanGetProgress = async (): Promise<ExifScanProgress> => {
+    const result = await ajaxPost('tsmlt_exif_scan_get_progress');
+    return result.data as ExifScanProgress;
+};
+
 // EXIF Scanner batch processor (handles pagination and delays internally).
 export const runExifScanBatch = async (onProgress?: (data: Record<string, unknown>) => void): Promise<void> => {
     let offset = 0;

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-12T19:08:43+00:00\n"
+"POT-Creation-Date: 2026-05-12T19:43:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -300,36 +300,36 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:137
-#: app/Controllers/Hooks/Ajax.php:194
-#: app/Controllers/Hooks/Ajax.php:219
+#: app/Controllers/Hooks/Ajax.php:140
+#: app/Controllers/Hooks/Ajax.php:197
+#: app/Controllers/Hooks/Ajax.php:222
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:142
-#: app/Controllers/Hooks/Ajax.php:198
+#: app/Controllers/Hooks/Ajax.php:145
+#: app/Controllers/Hooks/Ajax.php:201
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:150
-#: app/Controllers/Hooks/Ajax.php:202
-#: app/Controllers/Hooks/Ajax.php:225
+#: app/Controllers/Hooks/Ajax.php:153
+#: app/Controllers/Hooks/Ajax.php:205
+#: app/Controllers/Hooks/Ajax.php:228
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:159
+#: app/Controllers/Hooks/Ajax.php:162
 msgid "Malformed request payload."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:682
-#: app/Controllers/Hooks/Ajax.php:701
-#: app/Controllers/Hooks/Ajax.php:720
+#: app/Controllers/Hooks/Ajax.php:685
+#: app/Controllers/Hooks/Ajax.php:704
+#: app/Controllers/Hooks/Ajax.php:723
 msgid "No IDs provided."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:819
-#: app/Controllers/Hooks/Ajax.php:880
-#: app/Controllers/Hooks/Ajax.php:893
+#: app/Controllers/Hooks/Ajax.php:840
+#: app/Controllers/Hooks/Ajax.php:901
+#: app/Controllers/Hooks/Ajax.php:914
 msgid "Missing attachment_id."
 msgstr ""
 
@@ -635,17 +635,17 @@ msgstr ""
 msgid "EXIF metadata stripped successfully."
 msgstr ""
 
-#: app/Modules/Regenerate/RegenerateThumbnails.php:107
+#: app/Modules/Regenerate/RegenerateThumbnails.php:142
 msgid "File not found on disk."
 msgstr ""
 
 #. translators: 1: MIME type, 2: error message
-#: app/Modules/Regenerate/RegenerateThumbnails.php:122
+#: app/Modules/Regenerate/RegenerateThumbnails.php:157
 #, php-format
 msgid "Image editor cannot handle %1$s: %2$s"
 msgstr ""
 
-#: app/Modules/Regenerate/RegenerateThumbnails.php:152
+#: app/Modules/Regenerate/RegenerateThumbnails.php:187
 msgid "Could not generate metadata (unsupported format?)."
 msgstr ""
 

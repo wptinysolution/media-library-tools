@@ -108,6 +108,9 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_exif_scan_batch', [ $this, 'exif_scan_batch' ] );
 		add_action( 'wp_ajax_tsmlt_exif_get_status', [ $this, 'exif_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_exif_clear_scan', [ $this, 'exif_clear_scan' ] );
+		add_action( 'wp_ajax_tsmlt_exif_scan_start', [ $this, 'exif_scan_start' ] );
+		add_action( 'wp_ajax_tsmlt_exif_scan_cancel', [ $this, 'exif_scan_cancel' ] );
+		add_action( 'wp_ajax_tsmlt_exif_scan_get_progress', [ $this, 'exif_scan_get_progress' ] );
 		add_action( 'wp_ajax_tsmlt_exif_get_results', [ $this, 'exif_get_results' ] );
 
 		// EXIF stripping (single image — free feature).
@@ -865,6 +868,24 @@ class Ajax {
 	public function exif_clear_scan(): void {
 		$this->verify_and_get_params();
 		$this->send( ExifScanner::instance()->clear_scan() );
+	}
+
+	/** @return void */
+	public function exif_scan_start(): void {
+		$this->verify_and_get_params();
+		$this->send( ExifScanner::instance()->start() );
+	}
+
+	/** @return void */
+	public function exif_scan_cancel(): void {
+		$this->verify_and_get_params();
+		$this->send( ExifScanner::instance()->cancel() );
+	}
+
+	/** @return void */
+	public function exif_scan_get_progress(): void {
+		$this->verify_and_get_params();
+		$this->send( ExifScanner::instance()->get_progress() );
 	}
 
 	/** @return void */

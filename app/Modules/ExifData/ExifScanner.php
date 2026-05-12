@@ -31,6 +31,25 @@ class ExifScanner {
 	const SCAN_STATUS_KEY = 'tsmlt_exif_scan_status';
 
 	/**
+	 * Single-event hook fired between batches by WP-Cron. Each tick
+	 * processes one batch and self-reschedules until the run completes
+	 * or the user cancels.
+	 */
+	const TICK_HOOK = 'tsmlt_exif_scan_tick';
+
+	/**
+	 * Seconds between background ticks. Kept short so WP-Cron picks up
+	 * the next batch on the next visitor request.
+	 */
+	const TICK_INTERVAL = 1;
+
+	/**
+	 * Per-tick batch size. EXIF header parsing is fast (1–10ms per JPEG),
+	 * so we can process many images per tick without timeout risk.
+	 */
+	const TICK_BATCH_SIZE = 100;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -170,6 +189,9 @@ class ExifScanner {
 	 * @return array{updated: bool, message: string}
 	 */
 	public function clear_scan(): array {
+		// Make sure a background tick isn't left scheduled after a clear.
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
 		delete_option( self::SCAN_STATUS_KEY );
 
 		// Reset the static cache in ExifDataReader.
@@ -179,5 +201,159 @@ class ExifScanner {
 			'updated' => true,
 			'message' => esc_html__( 'EXIF scan results cleared.', 'media-library-tools' ),
 		];
+	}
+
+	// -------------------------------------------------------------------------
+	// Background scan (self-chaining single events)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Default shape for the persisted state row. Keeps the legacy keys
+	 * (`processed`, `total`, `with_exif`, `without_exif`, `timestamp`) so
+	 * existing callers of `get_scan_status` keep working, and adds a
+	 * `status` field for the start/cancel/done lifecycle.
+	 *
+	 * @return array
+	 */
+	private function default_state(): array {
+		return [
+			'status'       => 'idle',
+			'processed'    => 0,
+			'total'        => 0,
+			'with_exif'    => 0,
+			'without_exif' => 0,
+			'started_at'   => 0,
+			'updated_at'   => 0,
+			'timestamp'    => '',
+		];
+	}
+
+	/**
+	 * Read the persisted scan state, merged with defaults so callers always
+	 * see the full shape even when older runs left a partial option payload.
+	 *
+	 * @return array
+	 */
+	public function get_progress(): array {
+		$stored = get_option( self::SCAN_STATUS_KEY, [] );
+		if ( ! is_array( $stored ) ) {
+			$stored = [];
+		}
+		$state = array_merge( $this->default_state(), $stored );
+
+		// If the option came from a legacy (pre-tick) scan, it won't have a
+		// status field but it will have `processed/total`. Infer status so
+		// the UI can still resume / display correctly.
+		if ( empty( $stored['status'] ) ) {
+			$state['status'] = ( $state['processed'] > 0 && $state['processed'] >= $state['total'] ) ? 'done' : 'idle';
+		}
+
+		$state['tick_scheduled'] = (bool) wp_next_scheduled( self::TICK_HOOK );
+
+		return $state;
+	}
+
+	/**
+	 * Start a fresh background scan. Wipes accumulated counts, snapshots the
+	 * current total, marks the run as running, and schedules the first tick.
+	 *
+	 * @return array Progress after start.
+	 */
+	public function start(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
+		$total_result = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->get();
+		$total        = (int) ( $total_result[0]['total'] ?? 0 );
+
+		$now   = time();
+		$state = array_merge(
+			$this->default_state(),
+			[
+				'status'     => $total > 0 ? 'running' : 'done',
+				'total'      => $total,
+				'started_at' => $now,
+				'updated_at' => $now,
+				'timestamp'  => current_time( 'mysql' ),
+			]
+		);
+		update_option( self::SCAN_STATUS_KEY, $state, false );
+
+		if ( $total > 0 ) {
+			// First tick fires almost immediately — no benefit to idling on Start.
+			wp_schedule_single_event( $now + 1, self::TICK_HOOK );
+		}
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Cancel an in-flight scan. Marks the run as cancelled and unschedules
+	 * the pending tick. Accumulated counts stay visible until the next start.
+	 *
+	 * @return array Progress after cancel.
+	 */
+	public function cancel(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
+		$state               = $this->get_progress();
+		$state['status']     = 'cancelled';
+		$state['updated_at'] = time();
+		unset( $state['tick_scheduled'] );
+		update_option( self::SCAN_STATUS_KEY, $state, false );
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Background tick handler. Processes one batch, updates the persisted
+	 * state, then self-reschedules unless the scan finished or the user
+	 * cancelled mid-batch.
+	 *
+	 * Registered against `self::TICK_HOOK` in `CronJobHooks`.
+	 *
+	 * @return void
+	 */
+	public static function run_tick(): void {
+		$self  = self::instance();
+		$state = $self->get_progress();
+
+		// Bail if cancelled or already finished — no rescheduling.
+		if ( 'running' !== ( $state['status'] ?? '' ) ) {
+			return;
+		}
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		$batch_size = (int) apply_filters( 'tsmlt_exif_scan_tick_batch_size', self::TICK_BATCH_SIZE );
+		$batch_size = max( 1, min( 500, $batch_size ) );
+
+		// `scan_batch()` already updates the option row with new counters.
+		// We re-read after it to layer our status/lifecycle fields on top
+		// without dropping anything it just wrote.
+		$result = $self->scan_batch( (int) $state['processed'], $batch_size );
+
+		$persisted = get_option( self::SCAN_STATUS_KEY, [] );
+		if ( ! is_array( $persisted ) ) {
+			$persisted = [];
+		}
+
+		$persisted['status']     = $result['complete'] ? 'done' : ( $persisted['status'] ?? 'running' );
+		$persisted['updated_at'] = time();
+		$persisted['timestamp']  = current_time( 'mysql' );
+
+		update_option( self::SCAN_STATUS_KEY, $persisted, false );
+
+		// Re-read status — it may have flipped to cancelled while we ran.
+		$fresh = get_option( self::SCAN_STATUS_KEY, [] );
+		if ( is_array( $fresh ) && 'running' === ( $fresh['status'] ?? '' ) ) {
+			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
+		}
 	}
 }
