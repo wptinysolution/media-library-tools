@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.2.5
+Stable tag: 2.2.6
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -451,6 +451,11 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+
+= 1.4.6 ( May 12, 2026 )=
+* Fixed: Used/Un-Used Image Scanning WooCommerce Category Issue Resolve
+* Improvement: Used/Un-Used Image Scanning More Functional
+* Improvement: EXIF Data Edit Functionality More Functional
 
 = 2.2.5 ( May 09, 2026 ) =
 Improvement: Media Usage Tracker Functionality Improvement
