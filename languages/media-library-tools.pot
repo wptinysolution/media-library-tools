@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-12T17:47:50+00:00\n"
+"POT-Creation-Date: 2026-05-12T19:08:43+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -51,8 +51,8 @@ msgstr ""
 #: app/Controllers/Admin/Api.php:542
 #: app/Modules/Rename/RenameModule.php:43
 #: app/Modules/Rename/RenameModule.php:152
-#: app/Modules/Rubbish/RubbishScanner.php:125
-#: app/Modules/Rubbish/RubbishScanner.php:144
+#: app/Modules/Rubbish/RubbishScanner.php:191
+#: app/Modules/Rubbish/RubbishScanner.php:210
 msgid "Update failed. Please try to fix"
 msgstr ""
 
@@ -300,41 +300,37 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:136
-#: app/Controllers/Hooks/Ajax.php:193
-#: app/Controllers/Hooks/Ajax.php:218
+#: app/Controllers/Hooks/Ajax.php:137
+#: app/Controllers/Hooks/Ajax.php:194
+#: app/Controllers/Hooks/Ajax.php:219
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:141
-#: app/Controllers/Hooks/Ajax.php:197
+#: app/Controllers/Hooks/Ajax.php:142
+#: app/Controllers/Hooks/Ajax.php:198
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:149
-#: app/Controllers/Hooks/Ajax.php:201
-#: app/Controllers/Hooks/Ajax.php:224
+#: app/Controllers/Hooks/Ajax.php:150
+#: app/Controllers/Hooks/Ajax.php:202
+#: app/Controllers/Hooks/Ajax.php:225
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:158
+#: app/Controllers/Hooks/Ajax.php:159
 msgid "Malformed request payload."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:675
-#: app/Controllers/Hooks/Ajax.php:694
-#: app/Controllers/Hooks/Ajax.php:713
+#: app/Controllers/Hooks/Ajax.php:682
+#: app/Controllers/Hooks/Ajax.php:701
+#: app/Controllers/Hooks/Ajax.php:720
 msgid "No IDs provided."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:812
-#: app/Controllers/Hooks/Ajax.php:873
-#: app/Controllers/Hooks/Ajax.php:886
+#: app/Controllers/Hooks/Ajax.php:819
+#: app/Controllers/Hooks/Ajax.php:880
+#: app/Controllers/Hooks/Ajax.php:893
 msgid "Missing attachment_id."
-msgstr ""
-
-#: app/Controllers/Hooks/CronJobHooks.php:58
-msgid "Every 6 Hours"
 msgstr ""
 
 #. translators: file size
@@ -691,47 +687,51 @@ msgstr ""
 msgid "Update failed. Please try to fix."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:89
+#: app/Modules/Rubbish/RubbishScanner.php:74
+msgid "Scan started. Directories will be processed in the background."
+msgstr ""
+
+#: app/Modules/Rubbish/RubbishScanner.php:156
 msgid "Schedule Will Execute Soon."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:94
+#: app/Modules/Rubbish/RubbishScanner.php:161
 msgid "Schedule Will Execute Soon For Directory List."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:144
+#: app/Modules/Rubbish/RubbishScanner.php:210
 msgid "Done, Be happy."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:157
-msgid "Schedule Cleared. Will Execute Soon."
+#: app/Modules/Rubbish/RubbishScanner.php:222
+msgid "Background scan cancelled."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:731
+#: app/Modules/Rubbish/RubbishScanner.php:818
 msgid "Delete failed."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:739
+#: app/Modules/Rubbish/RubbishScanner.php:826
 msgid "No directory specified."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:750
+#: app/Modules/Rubbish/RubbishScanner.php:837
 msgid "Invalid directory path."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:756
+#: app/Modules/Rubbish/RubbishScanner.php:843
 msgid "Path is not a directory."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:764
+#: app/Modules/Rubbish/RubbishScanner.php:851
 msgid "Directory is not empty."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:775
+#: app/Modules/Rubbish/RubbishScanner.php:862
 msgid "Empty directory deleted successfully."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:777
+#: app/Modules/Rubbish/RubbishScanner.php:864
 msgid "Could not delete directory. Check file permissions."
 msgstr ""
 
@@ -741,11 +741,11 @@ msgstr ""
 msgid "Order #%d"
 msgstr ""
 
-#: app/Modules/UsedWhere/UsedWhereScanner.php:1871
+#: app/Modules/UsedWhere/UsedWhereScanner.php:1885
 msgid "Scan cleared successfully."
 msgstr ""
 
-#: app/Modules/UsedWhere/UsedWhereScanner.php:2462
+#: app/Modules/UsedWhere/UsedWhereScanner.php:2476
 msgid "Site Settings"
 msgstr ""
 

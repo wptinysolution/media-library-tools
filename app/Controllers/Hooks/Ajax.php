@@ -97,6 +97,9 @@ class Ajax {
 		// Regenerate thumbnails.
 		add_action( 'wp_ajax_tsmlt_regenerate_batch', [ $this, 'regenerate_batch' ] );
 		add_action( 'wp_ajax_tsmlt_regenerate_get_status', [ $this, 'regenerate_get_status' ] );
+		add_action( 'wp_ajax_tsmlt_regenerate_start', [ $this, 'regenerate_start' ] );
+		add_action( 'wp_ajax_tsmlt_regenerate_get_progress', [ $this, 'regenerate_get_progress' ] );
+		add_action( 'wp_ajax_tsmlt_regenerate_cancel', [ $this, 'regenerate_cancel' ] );
 
 		// EXIF data reading.
 		add_action( 'wp_ajax_tsmlt_get_exif_data', [ $this, 'get_exif_data' ] );
@@ -804,6 +807,24 @@ class Ajax {
 			'total'       => RegenerateThumbnails::instance()->get_total(),
 			'image_sizes' => $sizes,
 		] );
+	}
+
+	/** @return void */
+	public function regenerate_start(): void {
+		$this->verify_and_get_params();
+		$this->send( RegenerateThumbnails::instance()->start() );
+	}
+
+	/** @return void */
+	public function regenerate_get_progress(): void {
+		$this->verify_and_get_params();
+		$this->send( RegenerateThumbnails::instance()->get_progress() );
+	}
+
+	/** @return void */
+	public function regenerate_cancel(): void {
+		$this->verify_and_get_params();
+		$this->send( RegenerateThumbnails::instance()->cancel() );
 	}
 
 	// -------------------------------------------------------------------------

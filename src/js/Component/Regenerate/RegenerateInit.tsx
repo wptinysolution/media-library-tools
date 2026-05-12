@@ -1,30 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/js/Utils/store';
-import { regenerateBatch, regenerateGetStatus } from '@/js/Utils/Data';
+import {
+    regenerateCancel,
+    regenerateGetProgress,
+    regenerateGetStatus,
+    regenerateStart,
+} from '@/js/Utils/Data';
+import type { RegenerateProgress } from '@/js/Utils/Data';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface BatchError {
-    id: number;
-    file: string;
-    error: string;
-}
-
-interface BatchSucceeded {
-    id: number;
-    file: string;
-    deleted_sizes: string[];
-}
-
-interface BatchResponse {
-    processed: number;
-    total: number;
-    complete: boolean;
-    deleted_total: number;
-    errors: BatchError[];
-    succeeded: BatchSucceeded[];
-}
 
 interface ImageSize {
     name: string;
@@ -33,86 +18,122 @@ interface ImageSize {
     crop: boolean;
 }
 
-type Status = 'idle' | 'running' | 'stopped' | 'done';
-
-const BATCH_SIZE = 10;
+const POLL_INTERVAL_MS = 3000;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 function RegenerateInit() {
-    const [total, setTotal]           = useState<number | null>(null);
+    const [progress, setProgress]     = useState<RegenerateProgress | null>(null);
     const [imageSizes, setImageSizes] = useState<ImageSize[]>([]);
-    const [processed, setProcessed]   = useState(0);
-    const [status, setStatus]         = useState<Status>('idle');
-    const [errors, setErrors]         = useState<BatchError[]>([]);
-    const [history, setHistory]       = useState<BatchSucceeded[]>([]);
     const [dismissedErrors, setDismissedErrors] = useState<Set<number>>(new Set());
+    const [actionPending, setActionPending] = useState(false);
 
     const navigate           = useNavigate();
     const { setGeneralData } = useStore();
-    const stopRef            = useRef(false);
+    const pollTimer          = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mountedRef         = useRef(true);
 
-    // ── Load total + image sizes on mount ───────────────────────────────────
-    useEffect(() => {
-        regenerateGetStatus().then(({ total: t, image_sizes }) => {
-            setTotal(t);
-            if (Array.isArray(image_sizes)) setImageSizes(image_sizes as ImageSize[]);
-        });
+    // ── Polling ─────────────────────────────────────────────────────────────
+    const stopPolling = useCallback(() => {
+        if (pollTimer.current) {
+            clearTimeout(pollTimer.current);
+            pollTimer.current = null;
+        }
     }, []);
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
-
-    const reset = () => {
-        setProcessed(0);
-        setErrors([]);
-        setHistory([]);
-        setDismissedErrors(new Set());
-    };
-
-    // ── Start / Stop ────────────────────────────────────────────────────────
-
-    const handleStart = async () => {
-        if (total === null) return;
-        reset();
-        stopRef.current = false;
-        setStatus('running');
-
-        let offset = 0;
-
-        while (!stopRef.current) {
-            let data: BatchResponse;
-            try {
-                const response = await regenerateBatch({ offset, batch_size: BATCH_SIZE });
-                data = response.data as BatchResponse;
-            } catch {
-                setStatus('stopped');
-                return;
+    const pollOnce = useCallback(async () => {
+        try {
+            const next = await regenerateGetProgress();
+            if (!mountedRef.current) return;
+            setProgress(next);
+            if (next.status === 'running') {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
             }
-
-            offset = data.processed;
-
-            if (data.errors.length)    setErrors(prev => [...prev, ...data.errors]);
-            if (data.succeeded.length) setHistory(prev => [...prev, ...data.succeeded]);
-
-            setProcessed(offset);
-
-            if (data.complete || stopRef.current) break;
+        } catch {
+            // Transient error — back off and try again.
+            if (mountedRef.current) {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            }
         }
+    }, []);
 
-        setStatus(stopRef.current ? 'stopped' : 'done');
-    };
+    // ── Mount: load image sizes + initial progress (resume case) ─────────────
+    useEffect(() => {
+        mountedRef.current = true;
 
-    const handleStop = () => { stopRef.current = true; };
+        (async () => {
+            try {
+                const status = await regenerateGetStatus();
+                if (!mountedRef.current) return;
+                if (Array.isArray(status.image_sizes)) {
+                    setImageSizes(status.image_sizes as ImageSize[]);
+                }
+
+                const initial = await regenerateGetProgress();
+                if (!mountedRef.current) return;
+                setProgress(initial);
+
+                // If a run is already in progress (e.g. user closed the tab and came back),
+                // start polling immediately so the UI reflects live state.
+                if (initial.status === 'running') {
+                    pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+                }
+            } catch {
+                // Leave UI in null/idle state — user can still click Start.
+            }
+        })();
+
+        return () => {
+            mountedRef.current = false;
+            stopPolling();
+        };
+    }, [pollOnce, stopPolling]);
+
+    // ── Start ────────────────────────────────────────────────────────────────
+    const handleStart = useCallback(async () => {
+        if (actionPending) return;
+        setActionPending(true);
+        stopPolling();
+        setDismissedErrors(new Set());
+        try {
+            const next = await regenerateStart();
+            setProgress(next);
+            if (next.status === 'running') {
+                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            }
+        } finally {
+            setActionPending(false);
+        }
+    }, [actionPending, pollOnce, stopPolling]);
+
+    // ── Stop ────────────────────────────────────────────────────────────────
+    const handleStop = useCallback(async () => {
+        if (actionPending) return;
+        setActionPending(true);
+        stopPolling();
+        try {
+            const next = await regenerateCancel();
+            setProgress(next);
+        } finally {
+            setActionPending(false);
+        }
+    }, [actionPending, stopPolling]);
 
     const dismissError = (id: number) => {
         setDismissedErrors(prev => new Set(prev).add(id));
     };
 
     // ── Derived values ───────────────────────────────────────────────────────
+    const status       = progress?.status ?? 'idle';
+    const safeTotal    = progress?.total ?? 0;
+    const processed    = progress?.offset ?? 0;
+    const successCount = progress?.success_count ?? 0;
+    const errorsCount  = progress?.errors_count ?? 0;
+    const recentDone   = progress?.recent_done ?? [];
+    const recentErrors = progress?.recent_errors ?? [];
 
-    const safeTotal     = total ?? 0;
     const percent       = safeTotal > 0 ? Math.min(100, Math.round((processed / safeTotal) * 100)) : 0;
-    const visibleErrors = errors.filter(e => !dismissedErrors.has(e.id));
+    const visibleErrors = recentErrors.filter(e => !dismissedErrors.has(e.id));
     const isRunning     = status === 'running';
     const hasStarted    = status !== 'idle';
 
@@ -129,8 +150,8 @@ function RegenerateInit() {
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
                         Regenerates all registered thumbnail sizes for every image, and automatically
-                        deletes orphan files for any sizes that are no longer registered.
-                        Processing happens in batches of {BATCH_SIZE} to avoid server timeouts.
+                        deletes orphan files for any sizes that are no longer registered. The process
+                        runs in the background — you can close this tab and come back later to check progress.
                     </p>
                 </div>
 
@@ -154,13 +175,13 @@ function RegenerateInit() {
                             </div>
                             <div className="text-center">
                                 <p className="text-3xl font-bold text-green-600">
-                                    {history.length.toLocaleString()}
+                                    {successCount.toLocaleString()}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-0.5">Succeeded</p>
                             </div>
                             <div className="text-center">
                                 <p className="text-3xl font-bold text-red-500">
-                                    {errors.length.toLocaleString()}
+                                    {errorsCount.toLocaleString()}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-0.5">Errors</p>
                             </div>
@@ -179,7 +200,7 @@ function RegenerateInit() {
                                     className={`h-3 rounded-full transition-all duration-300 ${
                                         status === 'done'
                                             ? 'bg-green-500'
-                                            : status === 'stopped'
+                                            : status === 'cancelled'
                                             ? 'bg-amber-400'
                                             : 'bg-blue-500'
                                     }`}
@@ -194,20 +215,21 @@ function RegenerateInit() {
                         {!isRunning ? (
                             <button
                                 type="button"
-                                disabled={total === null || total === 0}
+                                disabled={actionPending}
                                 onClick={handleStart}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                {status === 'idle' ? 'Start Regenerating' : 'Restart'}
+                                {status === 'idle' ? 'Start Regenerating' : 'Restart from Beginning'}
                             </button>
                         ) : (
                             <button
                                 type="button"
+                                disabled={actionPending}
                                 onClick={handleStop}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
                             >
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                     <rect x="6" y="6" width="12" height="12" rx="1" />
@@ -216,32 +238,20 @@ function RegenerateInit() {
                             </button>
                         )}
 
-                        {(status === 'stopped' || status === 'done') && (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={handleStart}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Restart from Beginning
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setGeneralData({ isDirModalOpen: true, autoStartScan: false });
-                                        navigate('/rubbishFile');
-                                    }}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Check Rubbish Files
-                                </button>
-                            </>
+                        {(status === 'cancelled' || status === 'done') && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setGeneralData({ isDirModalOpen: true, autoStartScan: false });
+                                    navigate('/rubbishFile');
+                                }}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Check Rubbish Files
+                            </button>
                         )}
                     </div>
 
@@ -254,12 +264,12 @@ function RegenerateInit() {
                             All {safeTotal.toLocaleString()} images processed.
                         </div>
                     )}
-                    {status === 'stopped' && (
+                    {status === 'cancelled' && (
                         <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                             </svg>
-                            Stopped at {processed.toLocaleString()} of {safeTotal.toLocaleString()}. Click "Restart" to process from the beginning.
+                            Cancelled at {processed.toLocaleString()} of {safeTotal.toLocaleString()}. Click "Restart from Beginning" to process again.
                         </div>
                     )}
                     {isRunning && (
@@ -268,19 +278,19 @@ function RegenerateInit() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
-                            Regenerating thumbnails and cleaning orphan sizes… do not close this page.
+                            Regenerating in the background. You can close this tab — progress will continue and resume when you return.
                         </div>
                     )}
                 </div>
 
                 {/* History list */}
-                {history.length > 0 && (
+                {recentDone.length > 0 && (
                     <div className="bg-white mb-6 rounded-lg border border-gray-200 overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                             <span className="text-sm font-medium text-gray-700">
-                                Regenerated ({history.length.toLocaleString()})
-                                {history.length > 10 && (
-                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last 10</span>
+                                Recently regenerated ({successCount.toLocaleString()})
+                                {successCount > recentDone.length && (
+                                    <span className="ml-1.5 text-xs font-normal text-gray-400">showing last {recentDone.length}</span>
                                 )}
                             </span>
                             {isRunning && (
@@ -294,7 +304,7 @@ function RegenerateInit() {
                             )}
                         </div>
                         <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                            {history.slice(-10).reverse().map(item => (
+                            {recentDone.slice(-10).reverse().map(item => (
                                 <li key={item.id} className="px-4 py-2.5 hover:bg-gray-50">
                                     <div className="flex items-center gap-3">
                                         <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,10 +366,13 @@ function RegenerateInit() {
                         <div className="flex items-center justify-between px-4 py-3 border-b border-red-100 bg-red-50">
                             <span className="text-sm font-medium text-red-700">
                                 {visibleErrors.length} error{visibleErrors.length !== 1 ? 's' : ''}
+                                {errorsCount > recentErrors.length && (
+                                    <span className="ml-1.5 text-xs font-normal text-red-400">showing last {recentErrors.length} of {errorsCount.toLocaleString()}</span>
+                                )}
                             </span>
                             <button
                                 type="button"
-                                onClick={() => setDismissedErrors(new Set(errors.map(e => e.id)))}
+                                onClick={() => setDismissedErrors(new Set(recentErrors.map(e => e.id)))}
                                 className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
                             >
                                 Dismiss all

@@ -354,6 +354,35 @@ export const regenerateGetStatus = async (): Promise<{ total: number; image_size
     return result.data as { total: number; image_sizes: unknown[] };
 };
 
+export interface RegenerateProgress {
+    status: 'idle' | 'running' | 'done' | 'cancelled';
+    offset: number;
+    total: number;
+    started_at: number;
+    updated_at: number;
+    errors_count: number;
+    success_count: number;
+    deleted_total: number;
+    recent_errors: { id: number; file: string; error: string }[];
+    recent_done: { id: number; file: string; deleted_sizes: string[] }[];
+    tick_scheduled: boolean;
+}
+
+export const regenerateStart = async (): Promise<RegenerateProgress> => {
+    const result = await ajaxPost('tsmlt_regenerate_start');
+    return result.data as RegenerateProgress;
+};
+
+export const regenerateGetProgress = async (): Promise<RegenerateProgress> => {
+    const result = await ajaxPost('tsmlt_regenerate_get_progress');
+    return result.data as RegenerateProgress;
+};
+
+export const regenerateCancel = async (): Promise<RegenerateProgress> => {
+    const result = await ajaxPost('tsmlt_regenerate_cancel');
+    return result.data as RegenerateProgress;
+};
+
 // EXIF Stripper functions (handled by Pro plugin).
 export const exifStripBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_exif_strip_batch', prams);
