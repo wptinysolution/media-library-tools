@@ -60,6 +60,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_get_rubbish_filetype', [ $this, 'get_rubbish_filetype' ] );
 		add_action( 'wp_ajax_tsmlt_get_rubbish_file', [ $this, 'get_rubbish_file' ] );
 		add_action( 'wp_ajax_tsmlt_get_dir_list', [ $this, 'get_dir_list' ] );
+		add_action( 'wp_ajax_tsmlt_start_rubbish_scan', [ $this, 'start_rubbish_scan' ] );
 		add_action( 'wp_ajax_tsmlt_rescan_dir', [ $this, 'rescan_dir' ] );
 		add_action( 'wp_ajax_tsmlt_search_file_by_dir', [ $this, 'search_file_by_dir' ] );
 		add_action( 'wp_ajax_tsmlt_truncate_unlisted_file', [ $this, 'truncate_unlisted_file' ] );
@@ -332,6 +333,12 @@ class Ajax {
 	public function get_dir_list(): void {
 		$this->verify_and_get_params();
 		$this->send( RubbishScanner::instance()->get_dir_list() );
+	}
+
+	/** @return void */
+	public function start_rubbish_scan(): void {
+		$this->verify_and_get_params();
+		$this->send( RubbishScanner::instance()->start_scan() );
 	}
 
 	/** @return void */

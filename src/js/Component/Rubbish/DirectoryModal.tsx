@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "@/js/Utils/store";
-import { rescanDir, truncateUnlistedFile } from "@/js/Utils/Data";
+import { startRubbishScan, truncateUnlistedFile } from "@/js/Utils/Data";
 import Axios from 'axios';
 import Modal from "@/js/Component/Common/Modal";
 import { trimPath } from "@/js/Component/Rubbish/DirectoryList";
@@ -121,8 +121,8 @@ function DirectoryModal() {
         let newList: Record<string, DirStatusItem> = {};
         try {
             await truncateUnlistedFile();
-            const res = await rescanDir({ dir: 'all' }) as { data: { thedirlist: Record<string, DirStatusItem> } };
-            newList = res.data.thedirlist ?? {};
+            const res = await startRubbishScan() as { data: { dirlist: Record<string, DirStatusItem> } };
+            newList = res.data.dirlist ?? {};
         } catch {
             setPhase('stopped');
             return;

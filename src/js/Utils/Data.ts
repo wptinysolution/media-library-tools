@@ -150,6 +150,10 @@ export const getDirList = async (): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_get_dir_list');
 };
 
+export const startRubbishScan = async (): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_start_rubbish_scan');
+};
+
 export const getRubbishFile = async (prams: object = {}): Promise<Record<string, unknown>> => {
     const result = await ajaxPost('tsmlt_get_rubbish_file', prams);
     return JSON.parse(result.data);

@@ -22,6 +22,18 @@ use TinySolutions\mlt\Traits\SingletonTrait;
 class RubbishScanner {
 
 	/**
+	 * Single-event hook name for self-chaining background scan ticks.
+	 */
+	const SCAN_TICK_HOOK = 'tsmlt_rubbish_scan_tick';
+
+	/**
+	 * Seconds between scan ticks. Short enough to feel responsive on an
+	 * active session, long enough to let WP-Cron release the lock so the
+	 * next request can pick it up.
+	 */
+	const SCAN_TICK_INTERVAL = 15;
+
+	/**
 	 * Singleton
 	 */
 	use SingletonTrait;
@@ -30,6 +42,65 @@ class RubbishScanner {
 	 * Construct
 	 */
 	private function __construct() {}
+
+	/**
+	 * Start a user-initiated rubbish scan.
+	 *
+	 * Synchronously builds the directory list, then schedules the first
+	 * background file-scan tick. The tick handler re-schedules itself
+	 * until every directory is fully scanned, then stops — no recurring
+	 * cron runs in the background otherwise.
+	 *
+	 * @return array
+	 */
+	public function start_scan(): array {
+		// Drop any in-flight tick so we don't double-fire when a user restarts.
+		wp_clear_scheduled_hook( self::SCAN_TICK_HOOK );
+
+		// Fresh directory list — clears `tsmlt_get_directory_list` and walks uploads/.
+		self::clear_scan_transients();
+		self::get_directory_list_cron_job( true );
+
+		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
+
+		// Only schedule a tick if there's actually work to do.
+		if ( ! empty( $dirlist ) ) {
+			wp_schedule_single_event( time() + self::SCAN_TICK_INTERVAL, self::SCAN_TICK_HOOK );
+		}
+
+		return [
+			'updated' => true,
+			'dirlist' => $dirlist,
+			'message' => esc_html__( 'Scan started. Directories will be processed in the background.', 'media-library-tools' ),
+		];
+	}
+
+	/**
+	 * Background tick: scan one directory, then re-schedule for the next one
+	 * if any unscanned directories remain. Self-terminates when complete.
+	 *
+	 * @return void
+	 */
+	public static function run_scan_tick(): void {
+		self::scan_rubbish_file_cron_job();
+
+		// Decide whether more work remains.
+		$dirlist = get_option( 'tsmlt_get_directory_list', [] );
+		if ( empty( $dirlist ) ) {
+			return;
+		}
+
+		foreach ( $dirlist as $item ) {
+			$fully_scanned = ( absint( $item['total_items'] ) && absint( $item['total_items'] ) <= absint( $item['counted'] ) )
+				|| ( absint( $item['total_items'] ) === 0 && ! empty( $item['scanned'] ) );
+			$blocked       = 'available' !== ( $item['status'] ?? 'available' );
+			if ( ! $fully_scanned && ! $blocked ) {
+				wp_schedule_single_event( time() + self::SCAN_TICK_INTERVAL, self::SCAN_TICK_HOOK );
+				return;
+			}
+		}
+		// No unscanned directories left — chain terminates here.
+	}
 
 	// -------------------------------------------------------------------------
 	// Parameter helper
@@ -54,27 +125,23 @@ class RubbishScanner {
 	 * @return false|string
 	 */
 	public function get_dir_list() {
-
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-
 		$directory_list = get_option( 'tsmlt_get_directory_list', [] );
 
-		// Get the timestamp of the next scheduled event.
-		$next_scheduled_timestamp = wp_next_scheduled( 'tsmlt_upload_dir_scan' );
-
-		// Get WordPress timezone.
-		$wordpress_timezone = get_option( 'timezone_string' );
-
-		// Set a default timezone in case the WordPress timezone is not set or invalid.
-		$timezone = $wordpress_timezone ? new \DateTimeZone( $wordpress_timezone ) : new \DateTimeZone( 'UTC' );
-
-		// Create a DateTime object with the scheduled timestamp and set the timezone.
-		$next_scheduled_datetime = new \DateTime( "@$next_scheduled_timestamp" );
-		$next_scheduled_datetime->setTimezone( $timezone );
+		// Surface whether a background tick is in flight so the UI can show progress state.
+		$next_tick_ts = wp_next_scheduled( self::SCAN_TICK_HOOK );
+		$next_tick    = '';
+		if ( $next_tick_ts ) {
+			$wordpress_timezone = get_option( 'timezone_string' );
+			$timezone           = $wordpress_timezone ? new \DateTimeZone( $wordpress_timezone ) : new \DateTimeZone( 'UTC' );
+			$next_tick_dt       = new \DateTime( "@$next_tick_ts" );
+			$next_tick_dt->setTimezone( $timezone );
+			$next_tick = $next_tick_dt->format( 'Y-m-d h:i:sa' );
+		}
 
 		$data = [
 			'dirList'      => $directory_list,
-			'nextSchedule' => $next_scheduled_datetime->format( 'Y-m-d h:i:sa' ),
+			'nextSchedule' => $next_tick,
+			'scanning'     => (bool) $next_tick_ts,
 		];
 		return json_encode( $data );
 	}
@@ -105,8 +172,7 @@ class RubbishScanner {
 				update_option( 'tsmlt_get_directory_list', $directory_list );
 			}
 		}
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+		wp_clear_scheduled_hook( self::SCAN_TICK_HOOK );
 		return [
 			'updated'    => true,
 			'thedirlist' => get_option( 'tsmlt_get_directory_list', [] ),
@@ -149,12 +215,11 @@ class RubbishScanner {
 	 * @return array
 	 */
 	public function clear_schedule() {
-		wp_clear_scheduled_hook( 'tsmlt_upload_inner_file_scan' );
-		wp_clear_scheduled_hook( 'tsmlt_upload_dir_scan' );
+		wp_clear_scheduled_hook( self::SCAN_TICK_HOOK );
 		return [
 			'updated' => true,
 			'dirlist' => get_option( 'tsmlt_get_directory_list', [] ),
-			'message' => esc_html__( 'Schedule Cleared. Will Execute Soon.', 'media-library-tools' ),
+			'message' => esc_html__( 'Background scan cancelled.', 'media-library-tools' ),
 		];
 	}
 
@@ -300,7 +365,7 @@ class RubbishScanner {
 	 * @return array The list of found files.
 	 */
 	public static function scan_file_in_directory( $directory ) {
-		if ( ! $directory ) {
+		if ( ! $directory || ! is_dir( $directory ) ) {
 			return [];
 		}
 
@@ -311,22 +376,23 @@ class RubbishScanner {
 			return $cached;
 		}
 
-		$filesystem = Fns::get_wp_filesystem_instance();
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
+		// FilesystemIterator uses the dirent type from `readdir`, so `isFile()`
+		// answers from kernel cache without an extra `stat` per entry — what
+		// the previous WP_Filesystem path was paying on every file.
+		try {
+			$iterator = new \FilesystemIterator(
+				$directory,
+				\FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS
+			);
+		} catch ( \UnexpectedValueException $e ) {
 			return [];
 		}
+
 		$scanned_files = [];
-		$files         = $filesystem->dirlist( $directory );
-		if ( ! is_array( $files ) ) {
-			return [];
-		}
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
-			if ( $filesystem->is_dir( $file_path ) ) {
-				continue;
+		foreach ( $iterator as $entry ) {
+			if ( $entry->isFile() ) {
+				$scanned_files[] = $entry->getPathname();
 			}
-			$scanned_files[] = $file_path;
 		}
 
 		// Cache for 10 minutes — long enough to survive the full batch run.
@@ -452,20 +518,25 @@ class RubbishScanner {
 		$existing_set    = array_flip( array_column( (array) $existing_rows, 'file_path' ) );
 
 		// ── Collect rows to bulk-insert ───────────────────────────────────────
-		$rows_to_insert = [];
+		$rows_to_insert  = [];
+		$uploaddir_token = $uploaddir . '/';
+		$token_len       = strlen( $uploaddir_token );
+		// Flip the extension list once so per-file membership check is O(1)
+		// instead of `in_array` over a 20-item array per iteration.
+		$ext_lookup = array_flip( self::default_file_extensions() );
 
 		foreach ( $files as $file_path ) {
-			if ( ! file_exists( $file_path ) ) {
+			// `scan_file_in_directory()` already filtered to real files; the transient
+			// keeps the list fresh for 10 minutes, so a per-file `file_exists()` here
+			// would just re-stat thousands of paths we just enumerated.
+
+			// Cheap prefix strip — avoids `explode()` allocating a 2-element array per file.
+			$pos = strpos( $file_path, $uploaddir_token );
+			if ( false === $pos ) {
 				continue;
 			}
-
-			$search_string = '';
-			$str           = explode( $uploaddir . '/', $file_path );
-			if ( is_array( $str ) && ! empty( $str[1] ) ) {
-				$search_string = $str[1];
-			}
-
-			if ( ! $search_string ) {
+			$search_string = substr( $file_path, $pos + $token_len );
+			if ( '' === $search_string ) {
 				continue;
 			}
 
@@ -482,10 +553,12 @@ class RubbishScanner {
 				continue; // Matches a known thumbnail basename — skip.
 			}
 
-			$fileextension      = pathinfo( $search_string, PATHINFO_EXTENSION );
-			$matchFileExtension = in_array( $fileextension, self::default_file_extensions(), true );
+			// Derive extension from the basename we already computed instead of a
+			// separate `pathinfo()` call. Fall back to '' for extension-less files.
+			$dot           = strrpos( $bn, '.' );
+			$fileextension = ( false === $dot ) ? '' : substr( $bn, $dot + 1 );
 
-			if ( $instantDeletion && wp_doing_ajax() && $matchFileExtension ) {
+			if ( $instantDeletion && wp_doing_ajax() && isset( $ext_lookup[ $fileextension ] ) ) {
 				do_action( 'tsmlt_do_ajax_instant_action', $file_path, $table_name );
 				continue;
 			}
@@ -542,15 +615,10 @@ class RubbishScanner {
 	 * @return array The list of directories with their paths.
 	 */
 	public static function scan_directory_list( $directory ) {
-		if ( ! $directory || ! is_string( $directory ) ) {
+		if ( ! $directory || ! is_string( $directory ) || ! is_dir( $directory ) ) {
 			return [];
 		}
-		$filesystem  = Fns::get_wp_filesystem_instance();
-		$directories = [];
-		// Ensure the directory exists before scanning.
-		if ( ! $filesystem->is_dir( $directory ) ) {
-			return [];
-		}
+
 		$paths_to_ignore = self::paths_to_ignore();
 		foreach ( $paths_to_ignore as $path ) {
 			if ( strpos( $directory, $path ) !== false ) {
@@ -558,24 +626,43 @@ class RubbishScanner {
 			}
 		}
 
-		$files = $filesystem->dirlist( $directory );
-		foreach ( $files as $file ) {
-			$file_path = trailingslashit( $directory ) . $file['name'];
+		// Native recursive iterator: walks the tree in C, no PHP recursion frames,
+		// and `dirname()` keys give us O(1) dedupe via `isset` instead of `in_array`.
+		try {
+			$flags    = \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS;
+			$iterator = new \RecursiveIteratorIterator(
+				new \RecursiveDirectoryIterator( $directory, $flags ),
+				\RecursiveIteratorIterator::LEAVES_ONLY,
+				\RecursiveIteratorIterator::CATCH_GET_CHILD
+			);
+		} catch ( \UnexpectedValueException $e ) {
+			return [];
+		}
 
-			if ( $filesystem->is_dir( $file_path ) ) {
-				$subdirectories = self::scan_directory_list( $file_path );
-				$directories    = array_merge( $directories, $subdirectories );
-			} else {
-				// Extract the directory path from the file path.
-				$dir_path = dirname( $file_path );
-				// Add the directory to the list if it doesn't exist.
-				if ( ! in_array( $dir_path, $directories, true ) ) {
-					$directories[ $dir_path ] = [
-						'total_items' => 0,
-						'counted'     => 0,
-						'status'      => 'available',
-					];
+		$directories  = [];
+		$default_meta = [
+			'total_items' => 0,
+			'counted'     => 0,
+			'status'      => 'available',
+		];
+
+		foreach ( $iterator as $file ) {
+			if ( ! $file->isFile() ) {
+				continue;
+			}
+
+			$file_path = $file->getPathname();
+
+			// Honor the ignore list — substring match on the full path matches the legacy behavior.
+			foreach ( $paths_to_ignore as $ignore ) {
+				if ( strpos( $file_path, $ignore ) !== false ) {
+					continue 2;
 				}
+			}
+
+			$dir_path = $file->getPath();
+			if ( ! isset( $directories[ $dir_path ] ) ) {
+				$directories[ $dir_path ] = $default_meta;
 			}
 		}
 
