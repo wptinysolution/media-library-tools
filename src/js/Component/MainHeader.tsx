@@ -183,7 +183,7 @@ function MainHeader() {
                             to={item.key}
                             onClick={() => onMenuSelect(item.key)}
                             title={isCollapsed ? item.label : undefined}
-                            className={`relative flex items-center gap-3 py-2.5 text-[13px] font-medium transition-colors no-underline shadow-none! outline-0! focus:outline-0! whitespace-nowrap border-b border-gray-100 ${
+                            className={`relative flex items-center gap-1.5 py-2.5 text-[13px] font-medium transition-colors no-underline shadow-none! outline-0! focus:outline-0! whitespace-nowrap border-b border-gray-100 ${
                                 isCollapsed ? 'justify-center px-3' : 'px-4'
                             } ${
                                 isActive
