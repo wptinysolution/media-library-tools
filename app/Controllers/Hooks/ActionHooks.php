@@ -859,7 +859,10 @@ class ActionHooks {
 					}
 
 					/* translators: used between list items, there is a space after the comma */
-					echo esc_html( join( ', ', $out ) );
+					// Each $out entry is already a complete anchor built from
+					// esc_url() + esc_html() — do not run esc_html() over the
+					// joined string or the <a> tags render as literal text.
+					echo wp_kses_post( join( ', ', $out ) );
 				}
 				break;
 			case 'tsmlt_exif_camera':
