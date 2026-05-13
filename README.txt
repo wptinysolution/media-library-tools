@@ -233,8 +233,6 @@ Descriptive, keyword-rich filenames help search engines understand your images, 
 
 == Frequently Asked Questions ==
 
--- MEDIA TABLE --
-
 = How do I view and manage all my media files in one place? =
 Go to **Media > Media Tools > Media Table**. You will see your entire WordPress media library in a fast, paginated table with columns for thumbnail, filename, title, alt text, caption, description, attached post, and file type. You can sort by any column, filter by date, category, or keyword, and perform bulk actions on selected items.
 
