@@ -971,7 +971,10 @@ class UsedWhereScanner {
 
 			if ( is_string( $value ) && strpos( $value, '/wp-content/uploads/' ) !== false ) {
 				// Try the value as a single URL first (covers ACF image URL, plain URL fields).
-				$attachment_id = $this->get_attachment_id_by_url( $value );
+				// Meta values store full uploads paths verbatim — disable the
+				// basename fallback so a value of `.../another/audio.mp3` cannot
+				// be pinned onto an unrelated attachment with the same basename.
+				$attachment_id = $this->get_attachment_id_by_url( $value, false );
 				if ( $attachment_id ) {
 					$this->record_usage( $attachment_id, $post, $type );
 				}
@@ -997,7 +1000,7 @@ class UsedWhereScanner {
 						if ( '' === $rel ) {
 							continue;
 						}
-						$blob_id = $this->get_attachment_id_by_url( $base_url . $rel );
+						$blob_id = $this->get_attachment_id_by_url( $base_url . $rel, false );
 						if ( $blob_id ) {
 							$this->record_usage( $blob_id, $post, $type );
 						}
@@ -1121,7 +1124,10 @@ class UsedWhereScanner {
 		// 4. URL or content containing /wp-content/uploads/.
 		if ( strpos( $value, '/wp-content/uploads/' ) !== false ) {
 			// 4a. Try the value as a single direct URL first (plain URL meta fields).
-			$attachment_id = $this->get_attachment_id_by_url( $value );
+			// Meta values store full uploads paths verbatim — disable basename
+			// fallback so unrelated entries that share a common filename
+			// (e.g. `audio.mp3`, `logo.png`) can't be pinned onto this post.
+			$attachment_id = $this->get_attachment_id_by_url( $value, false );
 			if ( $attachment_id ) {
 				$this->record_usage( $attachment_id, $post, 'meta' );
 			}
@@ -1137,7 +1143,7 @@ class UsedWhereScanner {
 					if ( '' === $rel ) {
 						continue;
 					}
-					$blob_id = $this->get_attachment_id_by_url( $base_url . $rel );
+					$blob_id = $this->get_attachment_id_by_url( $base_url . $rel, false );
 					if ( $blob_id ) {
 						$this->record_usage( $blob_id, $post, 'meta' );
 					}
@@ -1337,11 +1343,22 @@ class UsedWhereScanner {
 	 *
 	 * Falls back to basename lookup for scaled/sized variants (e.g., image-300x200.jpg).
 	 *
-	 * @param string $url Attachment URL or partial path.
+	 * Path-anchored lookups are always safe — relative paths are unique per
+	 * attachment in the map. The basename fallback exists for HTML where
+	 * size-suffixed image URLs (`hero-300x200.jpg`) need to fold onto the
+	 * original. Callers operating on user-set or builder-stored single-value
+	 * URLs (meta, theme mods, widget options, term meta) should pass
+	 * `$allow_basename_fallback = false` — those sources record full paths
+	 * verbatim, so a basename-only hit there is always a false positive
+	 * pinning unrelated content onto an attachment that happens to share a
+	 * common filename (`audio.mp3`, `logo.png`, etc.).
+	 *
+	 * @param string $url                     Attachment URL or partial path.
+	 * @param bool   $allow_basename_fallback Allow basename / stripped-basename matches.
 	 *
 	 * @return int Attachment ID, or 0 if not found.
 	 */
-	private function get_attachment_id_by_url( string $url ): int {
+	private function get_attachment_id_by_url( string $url, bool $allow_basename_fallback = true ): int {
 		if ( null === $this->url_lookup_map ) {
 			// Safety fallback if called outside a batch context.
 			$this->build_url_lookup_map();
@@ -1368,6 +1385,10 @@ class UsedWhereScanner {
 			$stripped_rel = preg_replace( '/-\d+x\d+(\.[a-zA-Z]+)$/', '$1', $rel_path );
 			if ( $stripped_rel !== $rel_path && isset( $this->url_lookup_map[ $stripped_rel ] ) && $this->url_lookup_map[ $stripped_rel ] > 0 ) {
 				return $this->url_lookup_map[ $stripped_rel ];
+			}
+
+			if ( ! $allow_basename_fallback ) {
+				return 0;
 			}
 
 			// 3. Basename fallback. The map stores `0` for any basename that
@@ -2124,7 +2145,7 @@ class UsedWhereScanner {
 			// Try to resolve from URL.
 			$bg_url = get_theme_mod( 'background_image', '' );
 			if ( $bg_url ) {
-				$bg_image_id = $this->get_attachment_id_by_url( $bg_url );
+				$bg_image_id = $this->get_attachment_id_by_url( $bg_url, false );
 			}
 		}
 		if ( $bg_image_id && isset( $known_ids[ $bg_image_id ] ) ) {
@@ -2228,10 +2249,13 @@ class UsedWhereScanner {
 						}
 					}
 				}
-				// Check for upload URLs in text/HTML content fields.
+				// Check for upload URLs in text/HTML content fields. Widget
+				// option strings store full URLs verbatim, so disable the
+				// basename fallback to keep generic filenames from collapsing
+				// onto unrelated attachments.
 				foreach ( [ 'text', 'content', 'url' ] as $field ) {
 					if ( ! empty( $instance[ $field ] ) && is_string( $instance[ $field ] ) && strpos( $instance[ $field ], '/wp-content/uploads/' ) !== false ) {
-						$att_id = $this->get_attachment_id_by_url( $instance[ $field ] );
+						$att_id = $this->get_attachment_id_by_url( $instance[ $field ], false );
 						if ( $att_id ) {
 							$this->record_sitewide_usage( $att_id, 'widget' );
 						}
@@ -2321,11 +2345,13 @@ class UsedWhereScanner {
 				}
 			}
 
-			// Check URL-based meta keys.
+			// Check URL-based meta keys. Term meta stores full URLs verbatim
+			// — disable basename fallback to avoid pinning unrelated entries
+			// onto attachments with common filenames.
 			foreach ( $url_meta_keys as $meta_key ) {
 				$url = get_term_meta( $term_id, $meta_key, true );
 				if ( ! empty( $url ) && is_string( $url ) && strpos( $url, '/wp-content/uploads/' ) !== false ) {
-					$att_id = $this->get_attachment_id_by_url( $url );
+					$att_id = $this->get_attachment_id_by_url( $url, false );
 					if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
 						$this->record_sitewide_usage( $att_id, 'term_meta' );
 					}
