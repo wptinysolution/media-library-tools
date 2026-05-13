@@ -214,6 +214,7 @@ export interface DuplicateItem {
     title: string;
     url: string;
     thumbnail: string;
+    mime_type: string;
     file_path: string;
     file_size: number;
     used_in: { title: string; permalink: string }[];

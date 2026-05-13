@@ -9,6 +9,7 @@ import RubbishNotice from "@/js/Component/Rubbish/RubbishNotice";
 import EmptyDirectories from "@/js/Component/Rubbish/EmptyDirectories";
 import Pagination from "@/js/Component/Common/Pagination";
 import Modal from "@/js/Component/Common/Modal";
+import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 import { rubbishSingleDeleteAction, rubbishSingleIgnoreAction, rubbishSingleShowAction, rubbishSingleRestoreAction } from "@/js/Utils/Data";
 
 type ConfirmState = { record: RubbishMediaFile; action: string } | null;
@@ -236,14 +237,12 @@ function RubbishFile() {
 
                                         {/* Thumbnail */}
                                         <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                            <img
-                                                className="w-full h-full object-cover"
-                                                src={fileUrl}
+                                            <MediaThumbnail
+                                                url={fileUrl}
+                                                fileName={record.file_path}
                                                 alt=""
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>';
-                                                }}
+                                                className="w-full h-full object-cover"
+                                                iconClassName="w-6 h-6 text-gray-400"
                                             />
                                         </div>
 

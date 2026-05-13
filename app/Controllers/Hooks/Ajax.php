@@ -675,6 +675,7 @@ class Ajax {
 				'attachment_id' => $post->ID,
 				'title'         => $post->post_title,
 				'url'           => wp_get_attachment_url( $post->ID ),
+				'mime_type'     => $post->post_mime_type,
 				'usage_count'   => count( $count_keys ),
 				'usage_by_type' => $stats['by_type'],
 				'used_in_posts' => count( $distinct_post_ids ),

@@ -9,35 +9,17 @@ import AiButton from "@/js/Component/Common/AiButton";
 import { CopyToClipboard } from "@/js/Component/CopyToClipboard";
 import * as Types from "@/js/Utils/actionType";
 import MissingBadge from "@/js/Component/Badges/MissingBadge";
+import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 
-const theImage = (record: MediaPost) => {
-    const typeParts = record.post_mime_type.split('/');
-    const type = Array.isArray(typeParts) ? typeParts[0] : '';
-    let url: string;
-    switch (type) {
-        case 'image':
-            url = record.uploaddir + '/' + record.thefile.file;
-            break;
-        case 'audio':
-            url = `${tsmltParams.includesUrl}/images/media/audio.png`;
-            break;
-        case 'video':
-            url = `${tsmltParams.includesUrl}/images/media/video.png`;
-            break;
-        case 'application':
-            if ('application/zip' === record.post_mime_type) {
-                url = `${tsmltParams.includesUrl}/images/media/archive.png`;
-            } else if ('application/pdf' === record.post_mime_type) {
-                url = `${tsmltParams.includesUrl}/images/media/document.png`;
-            } else {
-                url = `${tsmltParams.includesUrl}/images/media/text.png`;
-            }
-            break;
-        default:
-            url = `${tsmltParams.includesUrl}/images/media/text.png`;
-    }
-    return <img className="w-full h-full object-cover" src={url} alt={record.post_mime_type} />;
-};
+const theImage = (record: MediaPost) => (
+    <MediaThumbnail
+        url={`${record.uploaddir}/${record.thefile.file}`}
+        mimeType={record.post_mime_type}
+        fileName={record.thefile?.file}
+        alt={record.post_mime_type}
+        className="w-full h-full object-cover"
+    />
+);
 
 type SortField = 'id' | 'alt' | 'title' | 'post_parents';
 

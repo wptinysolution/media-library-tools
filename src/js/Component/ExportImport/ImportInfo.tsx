@@ -4,6 +4,7 @@ import { importOneByOne } from "@/js/Utils/Data";
 import { Link } from "react-router-dom";
 import type { ExportImportSettings } from "@/js/Utils/store";
 import { loadImportHistory, saveImportHistory } from "./ExportCSV";
+import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 
 interface UploadedItem {
     id: string | number;
@@ -140,11 +141,15 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                     {reversedFiles.map((item) => (
                         <div key={item.id} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             {item.url ? (
-                                <img
-                                    src={item.url}
-                                    alt=""
-                                    className="w-10 h-10 rounded-full object-cover shrink-0"
-                                />
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                                    <MediaThumbnail
+                                        url={item.url}
+                                        fileName={item.url}
+                                        alt=""
+                                        className="w-full h-full object-cover"
+                                        iconClassName="w-5 h-5 text-gray-400"
+                                    />
+                                </div>
                             ) : (
                                 <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0 flex items-center justify-center text-gray-400 text-xs">N/A</div>
                             )}

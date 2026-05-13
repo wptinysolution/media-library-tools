@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-12T19:43:16+00:00\n"
+"POT-Creation-Date: 2026-05-13T20:06:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-library-tools\n"
@@ -300,36 +300,36 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:140
-#: app/Controllers/Hooks/Ajax.php:197
-#: app/Controllers/Hooks/Ajax.php:222
+#: app/Controllers/Hooks/Ajax.php:146
+#: app/Controllers/Hooks/Ajax.php:203
+#: app/Controllers/Hooks/Ajax.php:228
 msgid "Invalid request."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:145
-#: app/Controllers/Hooks/Ajax.php:201
+#: app/Controllers/Hooks/Ajax.php:151
+#: app/Controllers/Hooks/Ajax.php:207
 msgid "Method not allowed."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:153
-#: app/Controllers/Hooks/Ajax.php:205
-#: app/Controllers/Hooks/Ajax.php:228
+#: app/Controllers/Hooks/Ajax.php:159
+#: app/Controllers/Hooks/Ajax.php:211
+#: app/Controllers/Hooks/Ajax.php:234
 msgid "Unauthorized."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:162
+#: app/Controllers/Hooks/Ajax.php:168
 msgid "Malformed request payload."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:685
-#: app/Controllers/Hooks/Ajax.php:704
-#: app/Controllers/Hooks/Ajax.php:723
+#: app/Controllers/Hooks/Ajax.php:710
+#: app/Controllers/Hooks/Ajax.php:729
+#: app/Controllers/Hooks/Ajax.php:748
 msgid "No IDs provided."
 msgstr ""
 
-#: app/Controllers/Hooks/Ajax.php:840
-#: app/Controllers/Hooks/Ajax.php:901
-#: app/Controllers/Hooks/Ajax.php:914
+#: app/Controllers/Hooks/Ajax.php:865
+#: app/Controllers/Hooks/Ajax.php:944
+#: app/Controllers/Hooks/Ajax.php:957
 msgid "Missing attachment_id."
 msgstr ""
 
@@ -469,7 +469,7 @@ msgstr ""
 msgid "Sending…"
 msgstr ""
 
-#: app/Modules/Duplicate/DuplicateScanner.php:358
+#: app/Modules/Duplicate/DuplicateScanner.php:388
 msgid "Duplicate scan results cleared."
 msgstr ""
 
@@ -603,7 +603,7 @@ msgstr ""
 msgid "Generated Sizes"
 msgstr ""
 
-#: app/Modules/ExifData/ExifScanner.php:180
+#: app/Modules/ExifData/ExifScanner.php:202
 msgid "EXIF scan results cleared."
 msgstr ""
 
@@ -707,31 +707,31 @@ msgstr ""
 msgid "Background scan cancelled."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:818
+#: app/Modules/Rubbish/RubbishScanner.php:890
 msgid "Delete failed."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:826
+#: app/Modules/Rubbish/RubbishScanner.php:898
 msgid "No directory specified."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:837
+#: app/Modules/Rubbish/RubbishScanner.php:909
 msgid "Invalid directory path."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:843
+#: app/Modules/Rubbish/RubbishScanner.php:915
 msgid "Path is not a directory."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:851
+#: app/Modules/Rubbish/RubbishScanner.php:923
 msgid "Directory is not empty."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:862
+#: app/Modules/Rubbish/RubbishScanner.php:934
 msgid "Empty directory deleted successfully."
 msgstr ""
 
-#: app/Modules/Rubbish/RubbishScanner.php:864
+#: app/Modules/Rubbish/RubbishScanner.php:936
 msgid "Could not delete directory. Check file permissions."
 msgstr ""
 

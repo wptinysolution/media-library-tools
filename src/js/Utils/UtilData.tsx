@@ -3,6 +3,7 @@ import { useStore } from "@/js/Utils/store";
 import type { MediaPost, BulkSubmitData } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
 import AiButton from "@/js/Component/Common/AiButton";
+import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 
 export interface ColumnDef<T = Record<string, unknown>> {
     title: React.ReactNode;
@@ -41,39 +42,15 @@ export const defaultBulkSubmitData: BulkSubmitData = {
     post_categories: [],
 };
 
-const theImage = (record: MediaPost): React.ReactElement => {
-    const typeParts = record.post_mime_type.split('/');
-    const type = Array.isArray(typeParts) ? typeParts[0] : '';
-    const width = 80;
-    let url: string;
-    switch (type) {
-        case 'image':
-            url = record.uploaddir + '/' + record.thefile.file;
-            break;
-        case 'audio':
-            url = `${tsmltParams.includesUrl}/images/media/audio.png`;
-            break;
-        case 'video':
-            url = `${tsmltParams.includesUrl}/images/media/video.png`;
-            break;
-        case 'application':
-            if ('application/zip' === record.post_mime_type) {
-                url = `${tsmltParams.includesUrl}/images/media/archive.png`;
-            } else if ('application/pdf' === record.post_mime_type) {
-                url = `${tsmltParams.includesUrl}/images/media/document.png`;
-            } else {
-                url = `${tsmltParams.includesUrl}/images/media/text.png`;
-            }
-            break;
-        case 'text':
-            url = `${tsmltParams.includesUrl}/images/media/text.png`;
-            break;
-        default:
-            url = `${tsmltParams.includesUrl}/images/media/text.png`;
-    }
-
-    return <img width={width} src={url} alt={record.post_mime_type} />;
-};
+const theImage = (record: MediaPost): React.ReactElement => (
+    <MediaThumbnail
+        url={`${record.uploaddir}/${record.thefile.file}`}
+        mimeType={record.post_mime_type}
+        fileName={record.thefile?.file}
+        alt={record.post_mime_type}
+        width={80}
+    />
+);
 
 const SortIcon = () => (
     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

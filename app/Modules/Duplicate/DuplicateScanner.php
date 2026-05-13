@@ -259,6 +259,7 @@ class DuplicateScanner {
 
 				$thumbnail = wp_get_attachment_image_url( $att_id, 'thumbnail' );
 				$url       = wp_get_attachment_url( $att_id );
+				$mime_type = get_post_mime_type( $att_id );
 
 				// Find all posts/pages where this image is used.
 				$used_in    = [];
@@ -291,6 +292,7 @@ class DuplicateScanner {
 					'title'         => $post->post_title,
 					'url'           => $url ?: '',
 					'thumbnail'     => $thumbnail ?: '',
+					'mime_type'     => $mime_type ?: '',
 					'file_path'     => $item['file_path'],
 					'file_size'     => (int) $item['file_size'],
 					'used_in'       => $used_in,

@@ -699,6 +699,56 @@ class Fns {
 	}
 
 	/**
+	 * Whether an attachment can be rendered as an <img> in the admin UI.
+	 *
+	 * Single source of truth for "is this an image?" checks used when
+	 * deciding between a real thumbnail and a MIME-type placeholder. Accepts
+	 * either an attachment ID or a raw mime string. SVGs count as images
+	 * because WordPress treats them as image/svg+xml when SVG support is on.
+	 *
+	 * @param int|string $attachment_or_mime Attachment ID or mime string.
+	 * @return bool
+	 */
+	public static function is_image_attachment( $attachment_or_mime ): bool {
+		$mime = is_numeric( $attachment_or_mime )
+			? (string) get_post_mime_type( (int) $attachment_or_mime )
+			: (string) $attachment_or_mime;
+
+		return '' !== $mime && 0 === strpos( strtolower( $mime ), 'image/' );
+	}
+
+	/**
+	 * Resolve the best thumbnail URL for an attachment.
+	 *
+	 * Returns an actual thumbnail size URL for images, or an empty string
+	 * for non-images so the frontend renders its MIME-aware placeholder
+	 * instead of a broken <img>. Pass `$fallback_to_full` when callers want
+	 * the full-size URL as a last resort (still only for images).
+	 *
+	 * @param int    $attachment_id     Attachment ID.
+	 * @param string $size              Image size slug, defaults to "thumbnail".
+	 * @param bool   $fallback_to_full  Fall back to the full URL if the size is missing.
+	 * @return string Empty string when the attachment is not an image.
+	 */
+	public static function get_attachment_thumbnail_url( int $attachment_id, string $size = 'thumbnail', bool $fallback_to_full = true ): string {
+		if ( $attachment_id <= 0 || ! self::is_image_attachment( $attachment_id ) ) {
+			return '';
+		}
+
+		$thumb = wp_get_attachment_image_url( $attachment_id, $size );
+		if ( $thumb ) {
+			return $thumb;
+		}
+
+		if ( $fallback_to_full ) {
+			$full = wp_get_attachment_url( $attachment_id );
+			return $full ?: '';
+		}
+
+		return '';
+	}
+
+	/**
 	 * Image attachment details
 	 *
 	 * @param init $attachment_id image id.
