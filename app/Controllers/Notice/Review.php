@@ -451,17 +451,17 @@ class Review {
 			}
 
 			.ui-draggable .ui-dialog-titlebar {
-				padding: 16px 20px;
+				padding: 10px 18px;
 				border-bottom: 1px solid #f0f0f0;
 				background: #f9f9f9;
 			}
 
 			/* ── Modal body ── */
 			.tsmlt-deactivate-modal {
-				padding: 20px 20px 8px;
+				padding: 12px 18px 4px;
 				display: flex;
 				flex-direction: column;
-				gap: 14px;
+				gap: 8px;
 			}
 
 			/* Intro text */
@@ -469,7 +469,7 @@ class Review {
 				font-size: 13px;
 				color: #50575e;
 				margin: 0;
-				line-height: 1.6;
+				line-height: 1.45;
 			}
 
 			/* Support banner */
@@ -477,11 +477,11 @@ class Review {
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				gap: 12px;
+				gap: 10px;
 				background: #f0f7ff;
 				border: 1px solid #bdd7f5;
 				border-radius: 6px;
-				padding: 10px 14px;
+				padding: 6px 12px;
 			}
 
 			.tsmlt-deactivate-support__text {
@@ -532,14 +532,14 @@ class Review {
 			.tsmlt-deactivate-reasons {
 				display: flex;
 				flex-direction: column;
-				gap: 4px;
+				gap: 2px;
 			}
 
 			.tsmlt-deactivate-reason {
 				display: flex;
 				align-items: center;
 				gap: 5px;
-				padding: 8px 12px;
+				padding: 5px 10px;
 				border-radius: 6px;
 				border: 1px solid transparent;
 				cursor: pointer;
@@ -572,15 +572,15 @@ class Review {
 			}
 
 			.tsmlt-deactivate-reason__text {
-				font-size: 15px;
+				font-size: 13px;
 				color: #1d2327;
-				line-height: 1.4;
+				line-height: 1.3;
 			}
 
 			/* "Better plugin" name input — hidden until its radio is checked */
 			.tsmlt-deactivate-better-plugin {
 				display: none;
-				padding: 4px 12px 4px 48px;
+				padding: 2px 12px 2px 40px;
 			}
 
 			.tsmlt-deactivate-better-plugin__input {
@@ -608,10 +608,10 @@ class Review {
 
 			.tsmlt-deactivate-textarea-wrap textarea {
 				width: 100%;
-				min-height: 80px;
+				min-height: 56px;
 				border: 1px solid #c3c4c7;
 				border-radius: 4px;
-				padding: 10px;
+				padding: 8px 10px;
 				font-size: 13px;
 				color: #1d2327;
 				resize: vertical;
@@ -629,8 +629,12 @@ class Review {
 			.tsmlt-deactivate-error {
 				font-size: 12px;
 				color: #d63638;
-				min-height: 16px;
+				min-height: 0;
 				display: block;
+			}
+
+			.tsmlt-deactivate-error:empty {
+				display: none;
 			}
 
 			/* Warning notice */
@@ -638,17 +642,17 @@ class Review {
 				background: #fff8e5;
 				border-left: 3px solid #dba617;
 				border-radius: 0 4px 4px 0;
-				padding: 9px 12px;
+				padding: 6px 10px;
 				font-size: 12px;
 				color: #50575e;
-				line-height: 1.5;
+				line-height: 1.4;
 			}
 
 			/* ── Button bar ── */
 			.ui-dialog-buttonset {
 				background: #fff;
 				border-top: 1px solid #f0f0f0;
-				padding: 14px 20px;
+				padding: 10px 18px;
 				display: flex;
 				gap: 10px;
 				justify-content: flex-end;
