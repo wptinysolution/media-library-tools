@@ -946,14 +946,25 @@ class UsedWhereScanner {
 	/**
 	 * Recursively extract attachment IDs from nested arrays.
 	 *
-	 * @param array    $data Array to search.
-	 * @param \WP_Post $post Post object.
-	 * @param string   $type Usage type.
-	 * @param int      $depth Current recursion depth (max 10).
+	 * The numeric-key extraction (`id`/`image`/`attachment_id` => 123) only
+	 * fires when the walk is inside a known builder/block context — either
+	 * because the caller declared one via `$type` (Elementor, Beaver, Divi,
+	 * Brizy, WPBakery), or because an ancestor array in the walk carried a
+	 * builder marker (`widgetType`, `elType`, `blockName`, `settings`, etc).
+	 *
+	 * Without this gate, every CPT meta whose generic `id` field happens
+	 * to match an attachment ID gets recorded as a usage — that's how a
+	 * freshly uploaded file ends up "used" across unrelated posts.
+	 *
+	 * @param array    $data               Array to search.
+	 * @param \WP_Post $post               Post object.
+	 * @param string   $type               Usage type label.
+	 * @param int      $depth              Current recursion depth (max 10).
+	 * @param bool     $in_builder_context Whether the walk is already inside a builder/block structure.
 	 *
 	 * @return void
 	 */
-	private function extract_attachment_ids_from_array( array $data, \WP_Post $post, string $type, int $depth = 0 ): void {
+	private function extract_attachment_ids_from_array( array $data, \WP_Post $post, string $type, int $depth = 0, bool $in_builder_context = false ): void {
 		if ( $depth > 10 ) {
 			return;
 		}
@@ -961,8 +972,23 @@ class UsedWhereScanner {
 		// Use the lookup map to verify attachment IDs without DB queries.
 		$attachment_ids = $this->get_known_attachment_ids();
 
+		// At the top level, callers that explicitly target a builder (Elementor,
+		// Beaver, Divi, Brizy, WPBakery) opt into the numeric-key extraction
+		// for free — their input shape is guaranteed to be widget data. The
+		// generic `'meta'` and `'elementor'` legacy paths must earn it by
+		// matching a structural marker below.
+		if ( ! $in_builder_context && $this->is_builder_caller_type( $type ) ) {
+			$in_builder_context = true;
+		}
+
+		// Promote to builder context when this array itself carries a builder
+		// marker. We look once per array, not per key, so the cost is fixed.
+		if ( ! $in_builder_context && $this->array_has_builder_marker( $data ) ) {
+			$in_builder_context = true;
+		}
+
 		foreach ( $data as $key => $value ) {
-			if ( is_numeric( $value ) && in_array( $key, [ 'id', 'image', 'attachment_id' ], true ) ) {
+			if ( $in_builder_context && is_numeric( $value ) && in_array( $key, [ 'id', 'image', 'attachment_id' ], true ) ) {
 				$attachment_id = absint( $value );
 				if ( $attachment_id && isset( $attachment_ids[ $attachment_id ] ) ) {
 					$this->record_usage( $attachment_id, $post, $type );
@@ -1009,9 +1035,52 @@ class UsedWhereScanner {
 			}
 
 			if ( is_array( $value ) ) {
-				$this->extract_attachment_ids_from_array( $value, $post, $type, $depth + 1 );
+				$this->extract_attachment_ids_from_array( $value, $post, $type, $depth + 1, $in_builder_context );
 			}
 		}
+	}
+
+	/**
+	 * Whether the caller-provided `$type` label opts the walk straight into
+	 * builder context. These are the entry points that hand us shape-checked
+	 * widget data (Elementor JSON, builder meta blobs) — never generic post
+	 * meta — so the numeric-key extraction is safe from the first level.
+	 *
+	 * @param string $type Caller-provided usage type.
+	 * @return bool
+	 */
+	private function is_builder_caller_type( string $type ): bool {
+		return in_array(
+			$type,
+			[ 'elementor', 'beaver_builder', 'divi', 'brizy', 'wpbakery' ],
+			true
+		);
+	}
+
+	/**
+	 * Whether an array's own keys identify it as a builder/block structure.
+	 *
+	 * Used to promote a generic-meta walk into builder context once it
+	 * descends into a widget/block payload. Markers are intentionally
+	 * structural identifiers used by the major page builders and the
+	 * Gutenberg block parser — not generic field names — so that we don't
+	 * mis-promote arbitrary CPT meta that happens to use words like
+	 * `'image'` or `'id'`.
+	 *
+	 * @param array $data Array to inspect.
+	 * @return bool
+	 */
+	private function array_has_builder_marker( array $data ): bool {
+		// Markers are looked up by isset() — cheap, no full key walk.
+		// Only structural identifiers go here. We deliberately avoid generic
+		// names like `settings` or `type` because ACF / random CPT meta use
+		// them too, and a false promote here would re-introduce the noise
+		// this gate exists to suppress.
+		return isset( $data['widgetType'] )       // Elementor widget.
+			|| isset( $data['elType'] )           // Elementor element.
+			|| isset( $data['blockName'] )        // Gutenberg parsed block.
+			|| isset( $data['et_pb_module_type'] )// Divi module marker.
+			|| ( isset( $data['type'] ) && isset( $data['node'] ) ); // Beaver Builder node.
 	}
 
 	/**
