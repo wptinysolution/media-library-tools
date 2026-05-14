@@ -330,38 +330,31 @@ class Review {
 		$this->deactivation_scripts();
 		$td = esc_attr( $this->textdomain );
 		?>
-		<div id="deactivation-dialog-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already escaped above ?>" title="<?php esc_attr_e( 'Quick Feedback: How can we improve the plugin?', 'media-library-tools' ); ?>">
+		<div id="deactivation-dialog-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already escaped above ?>" title="<?php esc_attr_e( 'Before you go…', 'media-library-tools' ); ?>">
 			<div class="tsmlt-deactivate-modal">
 
-				<p class="tsmlt-deactivate-intro">
-					<?php esc_html_e( "We're sorry to see you go! Before you leave, could you spare a moment to tell us why? Your feedback helps us make the plugin better for everyone.", 'media-library-tools' ); ?>
+				<div class="tsmlt-deactivate-hero">
+					<div class="tsmlt-deactivate-hero__icon" aria-hidden="true">✨</div>
+					<div class="tsmlt-deactivate-hero__body">
+						<h3 class="tsmlt-deactivate-hero__title"><?php esc_html_e( 'Wait — keeping the plugin active still helps.', 'media-library-tools' ); ?></h3>
+						<p class="tsmlt-deactivate-hero__text">
+							<?php esc_html_e( 'If you keep this plugin active, it can continue helping your website with better SEO optimization and a cleaner, more organized media management experience.', 'media-library-tools' ); ?>
+						</p>
+					</div>
+				</div>
+
+				<p class="tsmlt-deactivate-prompt">
+					<?php esc_html_e( 'If you still want to leave, a quick note about why helps us improve.', 'media-library-tools' ); ?>
 				</p>
-
-				<div class="tsmlt-deactivate-support">
-					<span class="tsmlt-deactivate-support__text"><?php esc_html_e( 'Having trouble? Our support team is here to help.', 'media-library-tools' ); ?></span>
-					<a class="tsmlt-deactivate-support__btn" target="_blank" rel="noopener" href="https://wptinysolutions.com/help/"><?php esc_html_e( 'Contact Support', 'media-library-tools' ); ?> &rarr;</a>
-				</div>
-
-				<div class="tsmlt-deactivate-divider">
-					<span><?php esc_html_e( 'Or tell us why you\'re leaving', 'media-library-tools' ); ?></span>
-				</div>
 
 				<div class="tsmlt-deactivate-reasons" id="feedback-form-body-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
 
 					<label class="tsmlt-deactivate-reason">
 						<input class="tsmlt-deactivate-reason__radio" type="radio" name="reason_key"
-							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-bug_issue_detected"
-							   value="bug_issue_detected">
-						<span class="tsmlt-deactivate-reason__icon">🐛</span>
-						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Bug or issue detected', 'media-library-tools' ); ?></span>
-					</label>
-
-					<label class="tsmlt-deactivate-reason">
-						<input class="tsmlt-deactivate-reason__radio" type="radio" name="reason_key"
-							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-no_longer_needed"
-							   value="no_longer_needed">
-						<span class="tsmlt-deactivate-reason__icon">👋</span>
-						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'I no longer need the plugin', 'media-library-tools' ); ?></span>
+							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-missing_feature"
+							   value="missing_feature">
+						<span class="tsmlt-deactivate-reason__icon">🧩</span>
+						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Missing feature', 'media-library-tools' ); ?></span>
 					</label>
 
 					<label class="tsmlt-deactivate-reason">
@@ -369,19 +362,7 @@ class Review {
 							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-found_a_better_plugin"
 							   value="found_a_better_plugin">
 						<span class="tsmlt-deactivate-reason__icon">🔍</span>
-						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'I found a better plugin', 'media-library-tools' ); ?></span>
-					</label>
-					<div class="tsmlt-deactivate-better-plugin" id="tsmlt-better-plugin-input-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-						<input class="tsmlt-deactivate-better-plugin__input" type="text" name="reason_found_a_better_plugin"
-							   placeholder="<?php esc_attr_e( 'Which plugin did you switch to?', 'media-library-tools' ); ?>">
-					</div>
-
-					<label class="tsmlt-deactivate-reason">
-						<input class="tsmlt-deactivate-reason__radio" type="radio" name="reason_key"
-							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-couldnt_get_the_plugin_to_work"
-							   value="couldnt_get_the_plugin_to_work">
-						<span class="tsmlt-deactivate-reason__icon">⚙️</span>
-						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( "I couldn't get the plugin to work", 'media-library-tools' ); ?></span>
+						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Found a better plugin', 'media-library-tools' ); ?></span>
 					</label>
 
 					<label class="tsmlt-deactivate-reason">
@@ -389,20 +370,45 @@ class Review {
 							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-temporary_deactivation"
 							   value="temporary_deactivation">
 						<span class="tsmlt-deactivate-reason__icon">⏸️</span>
-						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( "It's a temporary deactivation", 'media-library-tools' ); ?></span>
+						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Temporary deactivation', 'media-library-tools' ); ?></span>
 					</label>
 
-					<span class="tsmlt-deactivate-error" id="tsmlt-reason-error-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></span>
+					<label class="tsmlt-deactivate-reason">
+						<input class="tsmlt-deactivate-reason__radio" type="radio" name="reason_key"
+							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-performance_issue"
+							   value="performance_issue">
+						<span class="tsmlt-deactivate-reason__icon">⚡</span>
+						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Performance issue', 'media-library-tools' ); ?></span>
+					</label>
+
+					<label class="tsmlt-deactivate-reason tsmlt-deactivate-reason--full">
+						<input class="tsmlt-deactivate-reason__radio" type="radio" name="reason_key"
+							   id="feedback-deactivate-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>-other"
+							   value="other">
+						<span class="tsmlt-deactivate-reason__icon">💬</span>
+						<span class="tsmlt-deactivate-reason__text"><?php esc_html_e( 'Other', 'media-library-tools' ); ?></span>
+					</label>
 				</div>
 
+				<div class="tsmlt-deactivate-better-plugin" id="tsmlt-better-plugin-input-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
+					<input class="tsmlt-deactivate-better-plugin__input" type="text" name="reason_found_a_better_plugin"
+						   placeholder="<?php esc_attr_e( 'Which plugin did you switch to?', 'media-library-tools' ); ?>">
+				</div>
+
+				<span class="tsmlt-deactivate-error" id="tsmlt-reason-error-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></span>
+
 				<div class="tsmlt-deactivate-textarea-wrap" id="tsmlt-textarea-wrap-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
+					<label class="tsmlt-deactivate-textarea-wrap__label" for="deactivation-feedback-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
+						<?php esc_html_e( 'Why are you deactivating the plugin?', 'media-library-tools' ); ?>
+					</label>
 					<textarea id="deactivation-feedback-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"
-							  placeholder="<?php esc_attr_e( 'How can we improve the plugin? Any details help...', 'media-library-tools' ); ?>"></textarea>
+							  placeholder="<?php esc_attr_e( 'A sentence or two is plenty — what made you decide to deactivate?', 'media-library-tools' ); ?>"></textarea>
 					<span class="tsmlt-deactivate-error" id="tsmlt-feedback-error-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></span>
 				</div>
 
-				<div class="tsmlt-deactivate-warning">
-					⚠️ <?php esc_html_e( 'Deactivating will disable scheduled features like the rubbish file scanner. See the Settings page for details.', 'media-library-tools' ); ?>
+				<div class="tsmlt-deactivate-support">
+					<span class="tsmlt-deactivate-support__text"><?php esc_html_e( 'Having trouble? Our support team is here to help.', 'media-library-tools' ); ?></span>
+					<a class="tsmlt-deactivate-support__btn" target="_blank" rel="noopener" href="https://wptinysolutions.com/help/"><?php esc_html_e( 'Contact Support', 'media-library-tools' ); ?> &rarr;</a>
 				</div>
 
 			</div>
@@ -439,121 +445,130 @@ class Review {
 				padding: 0;
 				overflow: hidden;
 				z-index: 99999;
+				/* Pin to the viewport center regardless of page scroll.
+				   jQuery UI sets top/left once on open; if the user has
+				   scrolled, the dialog ends up off-screen. !important
+				   overrides UI's inline absolute positioning. */
+				position: fixed !important;
+				top: 50% !important;
+				left: 50% !important;
+				transform: translate(-50%, -50%);
+				max-height: calc(100vh - 40px);
+				display: flex;
+				flex-direction: column;
+			}
+
+			/* Let the body scroll inside the dialog instead of pushing
+			   the buttonset off the bottom of the viewport. */
+			.ui-dialog[aria-describedby="deactivation-dialog-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"] #deactivation-dialog-<?php echo $td; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> {
+				flex: 1 1 auto;
+				overflow-y: auto;
+				min-height: 0;
 			}
 
 			/* ── Title bar ── */
 			.ui-dialog-titlebar-close { display: none; }
 
 			.ui-dialog-title {
-				font-size: 16px;
-				font-weight: 700;
-				color: #1d2327;
+				font-size: 14px;
+				font-weight: 600;
+				color: #50575e;
+				letter-spacing: 0.01em;
 			}
 
 			.ui-draggable .ui-dialog-titlebar {
 				padding: 10px 18px;
 				border-bottom: 1px solid #f0f0f0;
-				background: #f9f9f9;
+				background: #fafbfc;
 			}
 
 			/* ── Modal body ── */
 			.tsmlt-deactivate-modal {
-				padding: 12px 18px 4px;
+				padding: 16px 20px 4px;
 				display: flex;
 				flex-direction: column;
-				gap: 8px;
+				gap: 12px;
 			}
 
-			/* Intro text */
-			.tsmlt-deactivate-intro {
-				font-size: 13px;
-				color: #50575e;
-				margin: 0;
-				line-height: 1.45;
-			}
-
-			/* Support banner */
-			.tsmlt-deactivate-support {
+			/* Hero retention block */
+			.tsmlt-deactivate-hero {
 				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				gap: 10px;
-				background: #f0f7ff;
-				border: 1px solid #bdd7f5;
-				border-radius: 6px;
-				padding: 6px 12px;
+				gap: 12px;
+				align-items: flex-start;
+				background: linear-gradient(135deg, #eef6ff 0%, #f6f0ff 100%);
+				border: 1px solid #d8e3f5;
+				border-radius: 8px;
+				padding: 12px 14px;
 			}
 
-			.tsmlt-deactivate-support__text {
-				font-size: 13px;
-				color: #1d2327;
-				font-weight: 500;
+			.tsmlt-deactivate-hero__icon {
+				font-size: 22px;
+				line-height: 1;
+				flex-shrink: 0;
+				margin-top: 1px;
 			}
 
-			.tsmlt-deactivate-support__btn {
-				display: inline-block;
-				background: #2271b1;
-				color: #fff;
-				font-size: 12px;
+			.tsmlt-deactivate-hero__body { min-width: 0; }
+
+			.tsmlt-deactivate-hero__title {
+				margin-top: 0;
+				margin-right: 0;
+				margin-bottom: 4px;
+				margin-left: 0;
+				padding: 0;
+				font-size: 14px;
 				font-weight: 600;
-				padding: 6px 14px;
-				border-radius: 4px;
-				text-decoration: none;
-				white-space: nowrap;
-				transition: background 0.2s;
+				color: #1d2327;
+				line-height: 1.35;
 			}
 
-			.tsmlt-deactivate-support__btn:hover {
-				background: #135e96;
-				color: #fff;
+			.tsmlt-deactivate-hero__text {
+				margin: 0;
+				font-size: 13px;
+				line-height: 1.5;
+				color: #4a5159;
 			}
 
-			/* OR divider */
-			.tsmlt-deactivate-divider {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				font-size: 12px;
-				color: #8c8f94;
+			/* Prompt above reasons */
+			.tsmlt-deactivate-prompt {
+				margin: 0;
+				font-size: 13px;
 				font-weight: 500;
-				text-transform: uppercase;
-				letter-spacing: 0.05em;
+				color: #1d2327;
 			}
 
-			.tsmlt-deactivate-divider::before,
-			.tsmlt-deactivate-divider::after {
-				content: '';
-				flex: 1;
-				height: 1px;
-				background: #e0e0e0;
-			}
-
-			/* Reasons list */
+			/* Reasons grid — 2 columns, last item spans both */
 			.tsmlt-deactivate-reasons {
-				display: flex;
-				flex-direction: column;
-				gap: 2px;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 6px;
+			}
+
+			.tsmlt-deactivate-reason--full {
+				grid-column: 1 / -1;
 			}
 
 			.tsmlt-deactivate-reason {
 				display: flex;
 				align-items: center;
-				gap: 5px;
-				padding: 5px 10px;
+				gap: 8px;
+				padding: 8px 12px;
 				border-radius: 6px;
-				border: 1px solid transparent;
+				border: 1px solid #e3e5e8;
+				background: #fff;
 				cursor: pointer;
-				transition: background 0.15s, border-color 0.15s;
+				transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 			}
 
 			.tsmlt-deactivate-reason:hover {
 				background: #f6f7f7;
-				border-color: #e0e0e0;
+				border-color: #c3c4c7;
 			}
 
 			.tsmlt-deactivate-reason:has(input:checked) {
 				background: #f0f7ff;
-				border-color: #bdd7f5;
+				border-color: #2271b1;
+				box-shadow: inset 0 0 0 1px #2271b1;
 			}
 
 			.tsmlt-deactivate-reason__radio {
@@ -580,14 +595,13 @@ class Review {
 			/* "Better plugin" name input — hidden until its radio is checked */
 			.tsmlt-deactivate-better-plugin {
 				display: none;
-				padding: 2px 12px 2px 40px;
 			}
 
 			.tsmlt-deactivate-better-plugin__input {
 				width: 100%;
 				border: 1px solid #c3c4c7;
 				border-radius: 4px;
-				padding: 6px 10px;
+				padding: 7px 10px;
 				font-size: 13px;
 				color: #1d2327;
 				box-sizing: border-box;
@@ -603,20 +617,28 @@ class Review {
 			.tsmlt-deactivate-textarea-wrap {
 				display: flex;
 				flex-direction: column;
-				gap: 4px;
+				gap: 6px;
+			}
+
+			.tsmlt-deactivate-textarea-wrap__label {
+				font-size: 12px;
+				font-weight: 600;
+				color: #50575e;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 			}
 
 			.tsmlt-deactivate-textarea-wrap textarea {
 				width: 100%;
-				min-height: 56px;
+				min-height: 60px;
 				border: 1px solid #c3c4c7;
-				border-radius: 4px;
-				padding: 8px 10px;
+				border-radius: 6px;
+				padding: 9px 11px;
 				font-size: 13px;
 				color: #1d2327;
 				resize: vertical;
 				box-sizing: border-box;
-				transition: border-color 0.15s;
+				transition: border-color 0.15s, box-shadow 0.15s;
 			}
 
 			.tsmlt-deactivate-textarea-wrap textarea:focus {
@@ -637,36 +659,68 @@ class Review {
 				display: none;
 			}
 
-			/* Warning notice */
-			.tsmlt-deactivate-warning {
-				background: #fff8e5;
-				border-left: 3px solid #dba617;
-				border-radius: 0 4px 4px 0;
-				padding: 6px 10px;
-				font-size: 12px;
+			/* Support banner */
+			.tsmlt-deactivate-support {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				background: #f6f7f7;
+				border: 1px solid #e3e5e8;
+				border-radius: 6px;
+				padding: 8px 12px;
+			}
+
+			.tsmlt-deactivate-support__text {
+				font-size: 12.5px;
 				color: #50575e;
-				line-height: 1.4;
+				font-weight: 500;
+			}
+
+			.tsmlt-deactivate-support__btn,
+			.tsmlt-deactivate-support__btn:visited {
+				display: inline-block;
+				background: #2271b1;
+				color: #ffffff !important;
+				font-size: 12px;
+				font-weight: 600;
+				padding: 6px 14px;
+				border-radius: 4px;
+				text-decoration: none;
+				white-space: nowrap;
+				border: 1px solid #2271b1;
+				box-shadow: none;
+				transition: background 0.2s, border-color 0.2s, color 0.2s;
+			}
+
+			.tsmlt-deactivate-support__btn:hover,
+			.tsmlt-deactivate-support__btn:focus {
+				background: #135e96;
+				border-color: #135e96;
+				color: #ffffff !important;
+				text-decoration: none;
+				outline: none;
 			}
 
 			/* ── Button bar ── */
 			.ui-dialog-buttonset {
 				background: #fff;
 				border-top: 1px solid #f0f0f0;
-				padding: 10px 18px;
+				padding: 12px 20px;
 				display: flex;
 				gap: 10px;
 				justify-content: flex-end;
 			}
 
 			.ui-dialog-buttonset button {
-				min-width: 140px;
-				height: 36px;
-				padding: 0 16px;
-				border-radius: 5px;
+				min-width: 150px;
+				height: 38px;
+				padding: 0 18px;
+				border-radius: 6px;
 				font-size: 13px;
 				font-weight: 600;
 				cursor: pointer;
-				transition: background 0.2s, color 0.2s;
+				transition: background 0.2s, color 0.2s, border-color 0.2s;
 				display: inline-flex;
 				align-items: center;
 				justify-content: center;
@@ -676,34 +730,42 @@ class Review {
 				color: #1d2327;
 			}
 
-			/* "Send Feedback & Deactivate" — primary action */
+			/* "Keep Plugin Active" — primary retention CTA */
 			.ui-dialog-buttonset button:first-child {
-				background: #2271b1;
-				border-color: #2271b1;
+				background: #00a32a;
+				border-color: #00a32a;
 				color: #fff;
 			}
 
 			.ui-dialog-buttonset button:first-child:hover {
-				background: #135e96;
-				border-color: #135e96;
+				background: #008a20;
+				border-color: #008a20;
 			}
 
-			.ui-dialog-buttonset button:first-child:hover .deactive-loading-spinner {
-				border-color: #fff;
+			/* "Deactivate Anyway" — secondary, low-emphasis destructive */
+			.ui-dialog-buttonset button:nth-child(2) {
+				background: #fff;
+				border-color: #c3c4c7;
+				color: #50575e;
+			}
+
+			.ui-dialog-buttonset button:nth-child(2):hover {
+				background: #fcf0f1;
+				border-color: #d63638;
+				color: #d63638;
+			}
+
+			.ui-dialog-buttonset button:nth-child(2):hover .deactive-loading-spinner {
+				border-color: #d63638;
 				border-top-color: transparent;
 			}
 
-			/* "Skip & Deactivate" — secondary action */
-			.ui-dialog-buttonset button:nth-child(2):hover {
-				background: #dcdcde;
-			}
-
-			/* Loading spinner */
+			/* Loading spinner — colour adapts to the host button on hover. */
 			.deactive-loading-spinner {
 				display: inline-block;
 				width: 10px;
 				height: 10px;
-				border: 2px solid #fff;
+				border: 2px solid #50575e;
 				border-top-color: transparent;
 				border-radius: 50%;
 				animation: tsmlt-spin 0.8s linear infinite;
@@ -747,7 +809,11 @@ class Review {
 					$('#tsmlt-feedback-error-' + td).text('');
 				});
 
-				// Open dialog when Deactivate link is clicked
+				// Open dialog when Deactivate link is clicked.
+				// Button order: first = Keep Plugin Active (retention CTA,
+				// just closes the dialog), second = Deactivate Anyway
+				// (sends feedback if provided, then follows through with
+				// the original deactivation URL).
 				$deactLink.on('click', function (e) {
 					e.preventDefault();
 					var deactivateHref = $deactLink.attr('href');
@@ -758,27 +824,26 @@ class Review {
 						show: { effect: 'fadeIn',  duration: 250 },
 						hide: { effect: 'fadeOut', duration: 150 },
 						buttons: {
-							Submit: function () {
-								var $btn = $(this).parents('.ui-dialog.ui-front').find('.ui-dialog-buttonset button.ui-button:first-child');
-								submitFeedback($btn, deactivateHref);
-							},
-							Cancel: function () {
+							KeepActive: function () {
 								$(this).dialog('close');
-								window.location.href = deactivateHref;
+							},
+							DeactivateAnyway: function () {
+								var $btn = $(this).parents('.ui-dialog.ui-front').find('.ui-dialog-buttonset button.ui-button:nth-child(2)');
+								submitFeedback($btn, deactivateHref);
 							}
 						}
 					});
 
-					// Close on overlay click
+					// Close on overlay click — same as Keep Plugin Active.
 					$(document).off('click.tsmlt-deactivate').on('click.tsmlt-deactivate', '.ui-widget-overlay.ui-front', function (e) {
 						if ($(e.target).closest(dialogbox.parent()).length === 0) {
 							dialogbox.dialog('close');
 						}
 					});
 
-					// Rename buttons
-					$('.ui-dialog-buttonpane button:contains("Submit")').text(<?php echo wp_json_encode( __( 'Send Feedback & Deactivate', 'media-library-tools' ) ); ?>);
-					$('.ui-dialog-buttonpane button:contains("Cancel")').text(<?php echo wp_json_encode( __( 'Skip & Deactivate', 'media-library-tools' ) ); ?>);
+					// Rename buttons (jQuery UI uses the object keys as default labels).
+					$('.ui-dialog-buttonpane button:contains("KeepActive")').text(<?php echo wp_json_encode( __( 'Keep Plugin Active', 'media-library-tools' ) ); ?>);
+					$('.ui-dialog-buttonpane button:contains("DeactivateAnyway")').text(<?php echo wp_json_encode( __( 'Deactivate Anyway', 'media-library-tools' ) ); ?>);
 				});
 
 				function submitFeedback($btn, deactivateHref) {
