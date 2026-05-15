@@ -556,8 +556,7 @@ class UsedWhereScanner {
 		// 7. Custom meta fields — includes _prefixed keys with serialized data,
 		//     HTML stored in meta-box fields (e.g. size-chart data-image attributes),
 		//     and any uploads URL embedded in serialized/JSON/HTML meta values.
-		// TEMP DISABLED FOR TESTING — re-enable to scan custom meta keys.
-		// $this->detect_images_in_meta( $post );
+		$this->detect_images_in_meta( $post );
 
 		// 8. Fetch the public permalink and extract every image URL from the
 		//    fully rendered HTML. Catches images injected by themes, plugins,
