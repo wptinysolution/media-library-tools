@@ -127,6 +127,23 @@ class UsedWhereScanner {
 	private $fallback_attachment_ids = null;
 
 	/**
+	 * Attachment ID → owning post_id for featured images, built once per batch.
+	 *
+	 * Used by `record_usages_from_urls()` to drop `permalink` / `rendered` hits
+	 * that come from a *different* post's featured image being shown in a
+	 * related-posts / recent-posts / popular-posts sidebar widget on the
+	 * currently-scanned page. The thumbnail is rendered HTML on this post but
+	 * is actually owned by the featured-image post — recording it here would
+	 * incorrectly mark the image as "used" on every post that runs the widget.
+	 *
+	 * Map only — we only need to know whether *some other* post owns the
+	 * attachment via featured image, not the complete list of owners.
+	 *
+	 * @var array<int, int>|null Map keyed by attachment ID → first post_id seen.
+	 */
+	private $featured_image_owners = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -487,6 +504,7 @@ class UsedWhereScanner {
 		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
+		$this->featured_image_owners = null;
 
 		$next_offset = $offset + $processed_in_batch;
 		return [
@@ -751,6 +769,14 @@ class UsedWhereScanner {
 		$is_html_scan = ( 'permalink' === $type || 'rendered' === $type );
 		$fallbacks    = $is_html_scan ? $this->get_fallback_attachment_ids() : [];
 
+		// On HTML-scan paths, also suppress thumbnails of *other* posts being
+		// shown by related-posts / recent-posts widgets, schema markup, etc.
+		// If the matched attachment is the featured image of a different post,
+		// the hit on this post is incidental and should not be recorded.
+		if ( $is_html_scan ) {
+			$this->build_featured_image_owners();
+		}
+
 		foreach ( array_keys( $relative_paths ) as $relative_path ) {
 			$attachment_id = $this->get_attachment_id_by_url( $base_url . $relative_path );
 			if ( ! $attachment_id ) {
@@ -758,6 +784,12 @@ class UsedWhereScanner {
 			}
 			if ( isset( $fallbacks[ $attachment_id ] ) ) {
 				continue;
+			}
+			if ( $is_html_scan ) {
+				$owner = $this->featured_image_owners[ $attachment_id ] ?? 0;
+				if ( $owner && $owner !== $post->ID ) {
+					continue; // related-posts widget thumbnail — belongs to $owner, not $post
+				}
 			}
 			if ( ! isset( $resolved_ids[ $attachment_id ] ) ) {
 				$resolved_ids[ $attachment_id ] = true;
@@ -1554,6 +1586,43 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * Build attachment_id → owning post_id map for featured images.
+	 *
+	 * Single `_thumbnail_id` postmeta query, joined against published posts.
+	 * Used by `record_usages_from_urls()` to drop `permalink` / `rendered`
+	 * hits where the matched attachment is the featured image of a *different*
+	 * post — i.e. a related-posts / recent-posts widget rendering another
+	 * post's thumbnail on this page.
+	 *
+	 * @return void
+	 */
+	private function build_featured_image_owners(): void {
+		if ( null !== $this->featured_image_owners ) {
+			return;
+		}
+
+		$this->featured_image_owners = [];
+
+		$rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', '_thumbnail_id' )
+			->get();
+
+		foreach ( ( $rows ?: [] ) as $row ) {
+			$post_id       = absint( $row['post_id'] ?? 0 );
+			$attachment_id = absint( $row['meta_value'] ?? 0 );
+			if ( ! $post_id || ! $attachment_id ) {
+				continue;
+			}
+			// First-seen wins — we only need to know that *some* post owns the
+			// attachment via featured image, not the full list.
+			if ( ! isset( $this->featured_image_owners[ $attachment_id ] ) ) {
+				$this->featured_image_owners[ $attachment_id ] = $post_id;
+			}
+		}
+	}
+
+	/**
 	 * Get attachment ID by its URL using the preloaded lookup map.
 	 *
 	 * Falls back to basename lookup for scaled/sized variants (e.g., image-300x200.jpg).
@@ -1699,6 +1768,7 @@ class UsedWhereScanner {
 		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
+		$this->featured_image_owners = null;
 	}
 
 	/**
@@ -2282,6 +2352,7 @@ class UsedWhereScanner {
 		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
+		$this->featured_image_owners = null;
 	}
 
 	/**
@@ -2687,6 +2758,7 @@ class UsedWhereScanner {
 		$this->known_attachment_ids = null;
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
+		$this->featured_image_owners = null;
 	}
 
 	/**
@@ -2704,9 +2776,23 @@ class UsedWhereScanner {
 		}
 
 		$attachment_id = $this->get_attachment_id_by_url( $url );
-		if ( $attachment_id ) {
-			$this->record_usage( $attachment_id, $post, $usage_type );
+		if ( ! $attachment_id ) {
+			return;
 		}
+
+		// Same rule as record_usages_from_urls(): on HTML-scan paths, drop
+		// thumbnails of *other* posts being shown by related-posts widgets,
+		// schema markup, etc. The image is owned by the featured-image post,
+		// not by whatever post happens to render the widget.
+		if ( 'permalink' === $usage_type || 'rendered' === $usage_type ) {
+			$this->build_featured_image_owners();
+			$owner = $this->featured_image_owners[ $attachment_id ] ?? 0;
+			if ( $owner && $owner !== $post->ID ) {
+				return;
+			}
+		}
+
+		$this->record_usage( $attachment_id, $post, $usage_type );
 	}
 
 	/**
