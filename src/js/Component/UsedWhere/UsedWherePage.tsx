@@ -890,6 +890,9 @@ export default function UsedWherePage() {
                                                 <div className="space-y-1.5">
                                                     {uniquePosts.map((post: any, idx: number) => (
                                                         <div key={idx} className="flex items-center gap-3 text-sm py-2 px-3 bg-white rounded border border-gray-100">
+                                                            <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded">
+                                                                ID#{post.post_id}
+                                                            </span>
                                                             {post.post_link ? (
                                                                 <a
                                                                     href={post.post_link}
