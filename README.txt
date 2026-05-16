@@ -450,7 +450,7 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
-= 1.4.6 ( May 12, 2026 )=
+= 1.4.6 ( May 16, 2026 )=
 * Fixed: Used/Un-Used Image Scanning WooCommerce Category Issue Resolve
 * Improvement: Used/Un-Used Image Scanning More Functional
 * Improvement: EXIF Data Edit Functionality More Functional
