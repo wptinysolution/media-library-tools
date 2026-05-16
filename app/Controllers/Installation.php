@@ -96,4 +96,79 @@ class Installation {
 			->column( 'file_path' )->string( 255 )->required()
 			->execute();
 	}
+
+	/**
+	 * Uninstall callback — wipes plugin data when `delete_data_on_uninstall` is on.
+	 *
+	 * Registered via `register_uninstall_hook()` in the main plugin file. Must be
+	 * static: WordPress calls this in a fresh process with no plugin instance.
+	 *
+	 * @return void
+	 */
+	public static function uninstall() {
+		$settings = get_option( 'tsmlt_settings', [] );
+		if ( empty( $settings['delete_data_on_uninstall'] ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		// 1. Cron events — clear list-tracked + dynamic-arg hooks.
+		$schedule = get_option( 'tsmlt_cron_schedule', [] );
+		if ( is_array( $schedule ) ) {
+			foreach ( $schedule as $hook ) {
+				wp_clear_scheduled_hook( $hook );
+			}
+		}
+		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
+		wp_unschedule_hook( 'tsmlt_used_where_scan_tick' );
+
+		// 2. Tables — drop both feature tables.
+		$tables = [
+			$wpdb->prefix . 'tsmlt_unlisted_file',
+			$wpdb->prefix . 'tsmlt_duplicate_file',
+		];
+		foreach ( $tables as $table ) {
+			$wpdb->query( "DROP TABLE IF EXISTS `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
+		}
+
+		// 3. Post meta — wipe all plugin-owned attachment/post meta keys.
+		$meta_keys = [
+			'_tsmlt_image_usages',
+			'_tsmlt_usage_tracked',
+			'_tsmlt_permalink_fp',
+			'_tsmlt_exif_camera',
+			'_tsmlt_exif_gps_lat',
+			'_tsmlt_exif_gps_lng',
+			'_tsmlt_exif_logs',
+			'_tsmlt_exif_meta',
+		];
+		foreach ( $meta_keys as $meta_key ) {
+			delete_post_meta_by_key( $meta_key );
+		}
+
+		// 4. Options — enumerated keys (safe through WP API, fires hooks, busts cache).
+		$options = [
+			'tsmlt_settings',
+			'tsmlt_plugin_version',
+			'tsmlt_plugin_activation_time',
+			'tsmlt_cron_schedule',
+			'tsmlt_get_directory_list',
+			'tsmlt_used_where_scan_status',
+			'tsmlt_exif_scan_status',
+			'tsmlt_exif_strip_status',
+			'tsmlt_thumbnail_cron_offset',
+			'tsmlt_spare_me',
+			'tsmlt_rated',
+			'tsmlt_remind_me',
+		];
+		foreach ( $options as $option ) {
+			delete_option( $option );
+		}
+
+		// 5. Transients — wildcard delete (no WP core API for "delete all by
+		//    prefix"; raw query is the only option). Covers tsmlt_dir_scan_*,
+		//    tsmlt_tables_checked_*, tsmlt_date_query_*, plus pro transients.
+		$wpdb->query( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE '\_transient\_tsmlt\_%' OR option_name LIKE '\_transient\_timeout\_tsmlt\_%' OR option_name LIKE '\_transient\_tsmltpro\_%' OR option_name LIKE '\_transient\_timeout\_tsmltpro\_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+	}
 }

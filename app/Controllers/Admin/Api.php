@@ -122,6 +122,8 @@ class Api {
 
 		$tsmlt_media['deregistered_image_sizes'] = $parameters['deregistered_image_sizes'] ?? [];
 
+		$tsmlt_media['delete_data_on_uninstall'] = ! empty( $parameters['delete_data_on_uninstall'] ) ? 1 : 0;
+
 		$tsmlt_media['ai_provider']      = in_array( $parameters['ai_provider'] ?? '', [ 'chatgpt', 'gemini', 'claude' ], true ) ? $parameters['ai_provider'] : 'gemini';
 		$ai_max                          = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 		$tsmlt_media['ai_send_image']    = $ai_max > 1 && ! empty( $parameters['ai_send_image'] );

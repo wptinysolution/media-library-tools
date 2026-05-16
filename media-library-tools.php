@@ -4,7 +4,7 @@
  * Plugin Name:       Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export
  * Plugin URI:        https://www.wptinysolutions.com/tiny-products/media-library-tools/
  * Description:       AI-Powered Bulk Rename media file, Bulk Edit Title, ALT tags, captions, and descriptions of your media files can improve the organization and SEO score.
- * Version:           2.2.6
+ * Version:           2.2.7-rc-1
  * Author:            Tiny Solutions
  * Author URI:        https://www.wptinysolutions.com/
  * Text Domain:       media-library-tools
@@ -50,6 +50,8 @@ register_activation_hook(
 );
 // Register Plugin Deactivate Hook.
 register_deactivation_hook( TSMLT_FILE, [ Installation::class, 'deactivation' ] );
+// Register Plugin Uninstall Hook — wipes data when `delete_data_on_uninstall` setting is enabled.
+register_uninstall_hook( TSMLT_FILE, [ Installation::class, 'uninstall' ] );
 add_action(
 	'admin_init',
 	function () {

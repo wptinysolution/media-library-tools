@@ -450,6 +450,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
+= 2.2.7 ( xx xx, 2026 )=
+* Added: Delete Plugin Data on Uninstall
+
+
 = 2.2.6 ( May 16, 2026 )=
 * Fixed: Used/Un-Used Image Scanning WooCommerce Category Issue Resolve
 * Improvement: Used/Un-Used Image Scanning More Functional
