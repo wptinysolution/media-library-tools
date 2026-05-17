@@ -93,3 +93,4 @@ _ext_**
 
 # Scoped vendor (build artifact, regenerate with: composer prefix-vendor)
 vendor_prefixed/
+languages/media-library-tools.pot
