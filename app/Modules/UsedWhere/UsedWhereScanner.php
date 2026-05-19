@@ -144,6 +144,20 @@ class UsedWhereScanner {
 	private $featured_image_owners = null;
 
 	/**
+	 * Set of attachment IDs that are attributed as site-wide (post_id=0).
+	 *
+	 * Built once per batch from the current `usages_buffer` plus already-persisted
+	 * `_tsmlt_image_usages` meta with `post_id=0` rows. Used by HTML-scan paths
+	 * (`permalink` / `rendered`) to suppress per-post hits for images that render
+	 * on every page because they live in an option / theme mod / widget / term
+	 * meta (site logo, header, custom CSS image, etc.). Recording such a hit on
+	 * every post visited would falsely list the whole site as a user of the image.
+	 *
+	 * @var array<int, bool>|null Set keyed by attachment ID.
+	 */
+	private $sitewide_attachment_ids = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -505,6 +519,7 @@ class UsedWhereScanner {
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 		$this->featured_image_owners = null;
+		$this->sitewide_attachment_ids = null;
 
 		$next_offset = $offset + $processed_in_batch;
 		return [
@@ -773,8 +788,12 @@ class UsedWhereScanner {
 		// shown by related-posts / recent-posts widgets, schema markup, etc.
 		// If the matched attachment is the featured image of a different post,
 		// the hit on this post is incidental and should not be recorded.
+		// Additionally suppress site-wide images (logo/header/option/term_meta)
+		// that render on every page — recording each visit would falsely list
+		// every post as a user of the image.
 		if ( $is_html_scan ) {
 			$this->build_featured_image_owners();
+			$this->build_sitewide_attachment_ids();
 		}
 
 		foreach ( array_keys( $relative_paths ) as $relative_path ) {
@@ -786,6 +805,9 @@ class UsedWhereScanner {
 				continue;
 			}
 			if ( $is_html_scan ) {
+				if ( isset( $this->sitewide_attachment_ids[ $attachment_id ] ) ) {
+					continue; // site-wide image (logo/header/option) — already recorded as Site Settings
+				}
 				$owner = $this->featured_image_owners[ $attachment_id ] ?? 0;
 				if ( $owner && $owner !== $post->ID ) {
 					continue; // related-posts widget thumbnail — belongs to $owner, not $post
@@ -1623,6 +1645,61 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * Build the set of attachment IDs known to be site-wide for this batch.
+	 *
+	 * Sources, in order:
+	 *  - The current `usages_buffer` — covers batch 1, where `detect_sitewide_usage()`
+	 *    has just populated `post_id=0` entries that haven't been flushed yet.
+	 *  - Persisted `_tsmlt_image_usages` postmeta — covers batches 2+ and rendered-HTML
+	 *    scans, where the site-wide entries were saved in a prior flush.
+	 *
+	 * An attachment is considered site-wide as soon as it has *any* entry with
+	 * `post_id=0` (site_settings, term_meta, widget, option, etc.).
+	 *
+	 * @return void
+	 */
+	private function build_sitewide_attachment_ids(): void {
+		if ( null !== $this->sitewide_attachment_ids ) {
+			return;
+		}
+
+		$this->sitewide_attachment_ids = [];
+
+		// 1. Current in-memory buffer (batch 1 path — site-wide just detected).
+		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
+			foreach ( $entries as $entry ) {
+				if ( 0 === (int) ( $entry['post_id'] ?? 0 ) ) {
+					$this->sitewide_attachment_ids[ (int) $attachment_id ] = true;
+					break;
+				}
+			}
+		}
+
+		// 2. Persisted meta (batches 2+ and scan_rendered_html() path).
+		$rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->get();
+
+		foreach ( ( $rows ?: [] ) as $row ) {
+			$attachment_id = absint( $row['post_id'] ?? 0 );
+			if ( ! $attachment_id || isset( $this->sitewide_attachment_ids[ $attachment_id ] ) ) {
+				continue;
+			}
+			$usages = maybe_unserialize( $row['meta_value'] ?? '' );
+			if ( ! is_array( $usages ) ) {
+				continue;
+			}
+			foreach ( $usages as $usage ) {
+				if ( 0 === (int) ( $usage['post_id'] ?? 0 ) ) {
+					$this->sitewide_attachment_ids[ $attachment_id ] = true;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Get attachment ID by its URL using the preloaded lookup map.
 	 *
 	 * Falls back to basename lookup for scaled/sized variants (e.g., image-300x200.jpg).
@@ -1769,6 +1846,7 @@ class UsedWhereScanner {
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 		$this->featured_image_owners = null;
+		$this->sitewide_attachment_ids = null;
 	}
 
 	/**
@@ -2353,6 +2431,7 @@ class UsedWhereScanner {
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 		$this->featured_image_owners = null;
+		$this->sitewide_attachment_ids = null;
 	}
 
 	/**
@@ -2373,6 +2452,17 @@ class UsedWhereScanner {
 		$existing = get_post_meta( $attachment_id, self::META_KEY, true );
 		if ( ! is_array( $existing ) ) {
 			$existing = [];
+		}
+
+		// If the image is already attributed as site-wide (site_settings, term_meta,
+		// widget, logo, favicon, header, background, option, etc. — all stored with
+		// post_id=0), it renders on many pages by design. Do not record a per-post
+		// entry for every visitor page-hit — that would falsely list every post as
+		// a user of the image.
+		foreach ( $existing as $item ) {
+			if ( 0 === (int) ( $item['post_id'] ?? 0 ) ) {
+				return;
+			}
 		}
 
 		// Check for duplicate.
@@ -2759,6 +2849,7 @@ class UsedWhereScanner {
 		$this->upload_base_url = null;
 		$this->fallback_attachment_ids = null;
 		$this->featured_image_owners = null;
+		$this->sitewide_attachment_ids = null;
 	}
 
 	/**
@@ -2783,9 +2874,15 @@ class UsedWhereScanner {
 		// Same rule as record_usages_from_urls(): on HTML-scan paths, drop
 		// thumbnails of *other* posts being shown by related-posts widgets,
 		// schema markup, etc. The image is owned by the featured-image post,
-		// not by whatever post happens to render the widget.
+		// not by whatever post happens to render the widget. Also drop
+		// site-wide images (logo/header/option/term_meta) that render on
+		// every page.
 		if ( 'permalink' === $usage_type || 'rendered' === $usage_type ) {
 			$this->build_featured_image_owners();
+			$this->build_sitewide_attachment_ids();
+			if ( isset( $this->sitewide_attachment_ids[ $attachment_id ] ) ) {
+				return;
+			}
 			$owner = $this->featured_image_owners[ $attachment_id ] ?? 0;
 			if ( $owner && $owner !== $post->ID ) {
 				return;
