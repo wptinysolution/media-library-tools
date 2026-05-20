@@ -2798,11 +2798,17 @@ class UsedWhereScanner {
 		// holds a serialized image-shaped key (e.g. `s:5:"image";i:7`).
 		// Either condition is necessary for the row to contain something we
 		// can record, so anything else can be eliminated at the DB layer.
+		//
+		// LIKE pattern uses bare `uploads/` so both raw (`/uploads/`) and
+		// JSON-escaped (`\/uploads\/`) forms match — Elementor, ACF, and any
+		// plugin storing JSON inside a serialized option will use the
+		// escaped form, and a stricter `%/uploads/%` pattern would silently
+		// drop them.
 		$regexp = 's:[0-9]+:"[^"]*(image|logo|icon|favicon|photo|picture|thumb|banner|avatar|cover|media|attachment)';
 
 		$rows = Fns::DB()->select( 'option_name', 'option_value' )
 			->from( 'options' )
-			->where( 'option_value', 'LIKE', '%/uploads/%' )
+			->where( 'option_value', 'LIKE', '%uploads/%' )
 			->orWhere( 'option_value', 'REGEXP', $regexp )
 			->get();
 
@@ -2878,7 +2884,8 @@ class UsedWhereScanner {
 			$is_serialized = isset( $value[1] )
 				&& ( 'a' === $value[0] || 'O' === $value[0] )
 				&& ':' === $value[1];
-			$is_url_blob   = false !== strpos( $value, '/uploads/' );
+			// Match both raw and JSON-escaped uploads paths.
+			$is_url_blob   = false !== strpos( $value, 'uploads/' );
 
 			if ( ! $is_serialized && ! $is_url_blob ) {
 				continue;
