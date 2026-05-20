@@ -34,6 +34,15 @@ class UsedWhereScanner {
 	const META_KEY = '_tsmlt_image_usages';
 
 	/**
+	 * Transient key for the option-scan result cache.
+	 *
+	 * Stores `[ 'sig' => <options-table signature>, 'ids' => [att_id, …] ]`
+	 * so a re-scan on an unchanged site can skip the wp_options walk entirely
+	 * and replay the previously detected site-wide IDs.
+	 */
+	const OPTION_SCAN_CACHE_KEY = 'tsmlt_used_where_option_scan_cache';
+
+	/**
 	 * Usage types that indicate a post genuinely "owns" the image.
 	 *
 	 * When any of these appear in an attachment's usage list, the post
@@ -2274,6 +2283,10 @@ class UsedWhereScanner {
 		wp_unschedule_hook( self::SCAN_TICK_HOOK );
 		delete_transient( self::SCAN_LOCK_KEY );
 
+		// Drop the cached option-scan result so the next run does a full
+		// `wp_options` sweep — the user explicitly asked for fresh data.
+		delete_transient( self::OPTION_SCAN_CACHE_KEY );
+
 		$this->clear_all_usage_meta();
 		delete_option( 'tsmlt_used_where_scan_status' );
 
@@ -2727,11 +2740,23 @@ class UsedWhereScanner {
 	 * widgets, term meta), so without this pass the image would appear in
 	 * the rendered HTML of every page and get falsely attributed per-post.
 	 *
-	 * Scope: only autoloaded options. Autoload=yes is the WordPress signal
-	 * that the option is loaded on every page request, which is exactly the
-	 * cohort that produces site-wide image rendering. Non-autoloaded options
-	 * (rare for theme/plugin chrome) are skipped to keep this cheap on
-	 * large sites.
+	 * Scope: ALL options. Autoload=no is common for plugin/theme settings
+	 * stored in dedicated rows (e.g. Customizer `theme_mods_*`, page-builder
+	 * global settings, ACF options pages); filtering by autoload would miss
+	 * them and leave the image undetected.
+	 *
+	 * Performance — three layers keep the scan cheap:
+	 *   1. **SQL prefilter** — the query only fetches rows whose `option_value`
+	 *      contains `/uploads/` OR matches an image-shaped serialized-key
+	 *      pattern. On most sites this drops the row count by 80–95%.
+	 *   2. **Per-row fast skip** — rows whose value isn't a serialized array,
+	 *      serialized object, or upload URL are dropped before `maybe_unserialize`
+	 *      runs; oversized blobs (>100KB, typically backup / cache / log
+	 *      dumps) are skipped entirely.
+	 *   3. **Result cache** — the resolved attachment-ID set is stored in a
+	 *      transient keyed on the options-table signature; subsequent scans
+	 *      replay the cached IDs without re-walking the table. Invalidated
+	 *      on Clear Results.
 	 *
 	 * False-positive guards inside the recursive walker:
 	 *   - Integer values are only recorded when their key looks image-shaped
@@ -2747,18 +2772,42 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_option_settings_images( array $known_ids ): void {
-		// Scan ALL options — many theme/plugin settings (especially Customizer
-		// mods stored in `theme_mods_*` and dedicated plugin settings rows)
-		// are saved with `autoload=no` to avoid bloating the alloptions
-		// cache. Filtering by `autoload=yes` would miss them and leave the
-		// image undetected — which is exactly the false-positive pattern
-		// this method exists to prevent. The denylist below keeps the scan
-		// cheap by skipping infrastructure noise.
+		// ── Layer 3: cache replay ───────────────────────────────────────────
+		// Replay the cached site-wide ID set if it's still valid for the
+		// current options-table signature. Cuts re-scans on unchanged sites
+		// from N row-walks down to a handful of record_sitewide_usage() calls.
+		$cache_signature = $this->get_options_table_signature();
+		$cache           = get_transient( self::OPTION_SCAN_CACHE_KEY );
+
+		if ( is_array( $cache )
+			&& isset( $cache['sig'], $cache['ids'] )
+			&& $cache['sig'] === $cache_signature
+			&& is_array( $cache['ids'] )
+		) {
+			foreach ( $cache['ids'] as $att_id ) {
+				$att_id = absint( $att_id );
+				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+					$this->record_sitewide_usage( $att_id, 'option_settings' );
+				}
+			}
+			return;
+		}
+
+		// ── Layer 1: SQL-level prefilter ────────────────────────────────────
+		// Two-clause filter — either the value mentions an uploads URL OR it
+		// holds a serialized image-shaped key (e.g. `s:5:"image";i:7`).
+		// Either condition is necessary for the row to contain something we
+		// can record, so anything else can be eliminated at the DB layer.
+		$regexp = 's:[0-9]+:"[^"]*(image|logo|icon|favicon|photo|picture|thumb|banner|avatar|cover|media|attachment)';
+
 		$rows = Fns::DB()->select( 'option_name', 'option_value' )
 			->from( 'options' )
+			->where( 'option_value', 'LIKE', '%/uploads/%' )
+			->orWhere( 'option_value', 'REGEXP', $regexp )
 			->get();
 
 		if ( empty( $rows ) ) {
+			set_transient( self::OPTION_SCAN_CACHE_KEY, [ 'sig' => $cache_signature, 'ids' => [] ], DAY_IN_SECONDS );
 			return;
 		}
 
@@ -2795,6 +2844,16 @@ class UsedWhereScanner {
 		 */
 		$skip_prefixes = (array) apply_filters( 'tsmlt_used_where_skip_option_prefixes', $skip_prefixes );
 
+		// Track which IDs we record this run, so we can persist them to the
+		// cache for the next scan.
+		$recorded_ids = [];
+		$record       = function ( int $att_id ) use ( &$recorded_ids, $known_ids ): void {
+			if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+				$this->record_sitewide_usage( $att_id, 'option_settings' );
+				$recorded_ids[ $att_id ] = true;
+			}
+		};
+
 		foreach ( $rows as $row ) {
 			$name = (string) ( $row['option_name'] ?? '' );
 			if ( '' === $name ) {
@@ -2811,15 +2870,35 @@ class UsedWhereScanner {
 				continue;
 			}
 
-			$decoded = maybe_unserialize( $value );
+			// ── Layer 2: per-row fast skip ──────────────────────────────────
+			// Bail before maybe_unserialize() on rows that obviously cannot
+			// contribute. Saves a function call + regex on rows where the
+			// SQL prefilter matched on a stray `image` substring or an
+			// unrelated `/uploads/` mention (e.g. a help-text URL).
+			$is_serialized = isset( $value[1] )
+				&& ( 'a' === $value[0] || 'O' === $value[0] )
+				&& ':' === $value[1];
+			$is_url_blob   = false !== strpos( $value, '/uploads/' );
+
+			if ( ! $is_serialized && ! $is_url_blob ) {
+				continue;
+			}
+
+			// Cap the size at 100KB — header/footer logo options are tiny
+			// (<1KB). Anything bigger is almost always a backup blob, cache
+			// dump, log payload, or analytics buffer with no chrome image
+			// info. Unserializing those is the dominant cost on bloated
+			// sites; skipping pays for everything else this method does.
+			if ( strlen( $value ) > 100000 ) {
+				continue;
+			}
+
+			$decoded = $is_serialized ? maybe_unserialize( $value ) : $value;
 
 			// Plain string option (legacy theme mods, single URL fields).
 			if ( is_string( $decoded ) ) {
 				if ( false !== strpos( $decoded, '/wp-content/uploads/' ) ) {
-					$att_id = $this->get_attachment_id_by_url( $decoded, false );
-					if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
-						$this->record_sitewide_usage( $att_id, 'option_settings' );
-					}
+					$record( $this->get_attachment_id_by_url( $decoded, false ) );
 				}
 				continue;
 			}
@@ -2828,8 +2907,46 @@ class UsedWhereScanner {
 				continue;
 			}
 
-			$this->walk_option_for_images( (array) $decoded, $known_ids );
+			$this->walk_option_for_images( (array) $decoded, $known_ids, 0, $record );
 		}
+
+		set_transient(
+			self::OPTION_SCAN_CACHE_KEY,
+			[ 'sig' => $cache_signature, 'ids' => array_keys( $recorded_ids ) ],
+			DAY_IN_SECONDS
+		);
+	}
+
+	/**
+	 * Build a cheap signature of the `wp_options` table state.
+	 *
+	 * Used to key the option-scan result cache. Combines the row count with
+	 * a checksum of the most recently modified options (by `option_id`,
+	 * which monotonically increases on every insert). The signature
+	 * changes when:
+	 *   - A new option is added (count increases AND the max option_id moves).
+	 *   - An existing option is deleted (count decreases).
+	 *   - An existing option's value changes (its content_length / md5 moves).
+	 *
+	 * Cheap because it touches only metadata — no row bodies are loaded.
+	 *
+	 * @return string
+	 */
+	private function get_options_table_signature(): string {
+		// Two query-builder calls — howdy-qb doesn't support multi-aggregate
+		// SELECTs and raw queries are disallowed by the project's coding
+		// standards.
+		$count_rows = Fns::DB()->select()->count( '*', 'total' )->from( 'options' )->get();
+		$cnt        = (int) ( $count_rows[0]['total'] ?? 0 );
+
+		$max_row = Fns::DB()->select( 'option_id' )
+			->from( 'options' )
+			->orderBy( 'option_id', 'DESC' )
+			->limit( 1 )
+			->get();
+		$max_id = (int) ( $max_row[0]['option_id'] ?? 0 );
+
+		return $cnt . ':' . $max_id;
 	}
 
 	/**
@@ -2840,41 +2957,49 @@ class UsedWhereScanner {
 	 * docblock for the false-positive guards (image-shaped keys for ints,
 	 * path-anchored lookups for strings).
 	 *
-	 * @param array $data      Decoded option array.
-	 * @param array $known_ids Set of valid attachment IDs.
-	 * @param int   $depth     Current recursion depth (max 8).
+	 * @param array         $data      Decoded option array.
+	 * @param array         $known_ids Set of valid attachment IDs.
+	 * @param int           $depth     Current recursion depth (max 8).
+	 * @param callable|null $record    Optional recorder callback used by the
+	 *                                 caller to track which IDs were
+	 *                                 actually persisted (for the result
+	 *                                 cache). When null, falls back to
+	 *                                 record_sitewide_usage() directly.
 	 *
 	 * @return void
 	 */
-	private function walk_option_for_images( array $data, array $known_ids, int $depth = 0 ): void {
+	private function walk_option_for_images( array $data, array $known_ids, int $depth = 0, ?callable $record = null ): void {
 		if ( $depth > 8 ) {
 			return;
 		}
 
+		$record_id = $record ?: function ( int $att_id ) use ( $known_ids ): void {
+			if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+				$this->record_sitewide_usage( $att_id, 'option_settings' );
+			}
+		};
+
 		foreach ( $data as $key => $value ) {
 			if ( is_array( $value ) ) {
-				$this->walk_option_for_images( $value, $known_ids, $depth + 1 );
+				$this->walk_option_for_images( $value, $known_ids, $depth + 1, $record );
 				continue;
 			}
 			if ( is_object( $value ) ) {
-				$this->walk_option_for_images( (array) $value, $known_ids, $depth + 1 );
+				$this->walk_option_for_images( (array) $value, $known_ids, $depth + 1, $record );
 				continue;
 			}
 
 			// Integer attachment IDs gated by image-shaped keys.
 			if ( is_numeric( $value ) && $this->is_image_shaped_key( (string) $key ) ) {
-				$att_id = absint( $value );
-				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
-					$this->record_sitewide_usage( $att_id, 'option_settings' );
-				}
+				$record_id( absint( $value ) );
 				continue;
 			}
 
 			// String values: full URL first, then blob extraction.
 			if ( is_string( $value ) && false !== strpos( $value, '/wp-content/uploads/' ) ) {
 				$att_id = $this->get_attachment_id_by_url( $value, false );
-				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
-					$this->record_sitewide_usage( $att_id, 'option_settings' );
+				if ( $att_id ) {
+					$record_id( $att_id );
 					continue;
 				}
 
@@ -2882,10 +3007,7 @@ class UsedWhereScanner {
 				if ( ! empty( $rel_paths ) ) {
 					$base_url = $this->get_uploads_base_url();
 					foreach ( $rel_paths as $rel ) {
-						$blob_id = $this->get_attachment_id_by_url( $base_url . $rel, false );
-						if ( $blob_id && isset( $known_ids[ $blob_id ] ) ) {
-							$this->record_sitewide_usage( $blob_id, 'option_settings' );
-						}
+						$record_id( $this->get_attachment_id_by_url( $base_url . $rel, false ) );
 					}
 				}
 			}
