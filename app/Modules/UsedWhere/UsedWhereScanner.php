@@ -78,6 +78,7 @@ class UsedWhereScanner {
 		'background_image',
 		'nav_menu',
 		'widget',
+		'option_settings',
 	];
 
 	/**
@@ -470,6 +471,20 @@ class UsedWhereScanner {
 		$this->build_url_lookup_map();
 		$this->usages_buffer = [];
 
+		// PHASE 0 — Options-first sweep.
+		//
+		// Before scanning a single post, walk `wp_options` for images that
+		// live in plugin/theme settings (logos, banners, favicons stored as
+		// attachment IDs or upload URLs inside serialized arrays). Any image
+		// flagged here is recorded with `post_id=0` and goes straight into
+		// `sitewide_attachment_ids` for the rest of the batch — so the
+		// per-post permalink / rendered scans that follow will skip it
+		// instead of falsely attributing the header/footer image to every
+		// page that renders it.
+		//
+		// Runs only on the first batch — the result is persisted as
+		// attachment meta and re-read on every subsequent batch by
+		// `build_sitewide_attachment_ids()`.
 		if ( $detect_sitewide ) {
 			$this->detect_sitewide_usage();
 		}
@@ -2175,6 +2190,16 @@ class UsedWhereScanner {
 			// Runs once when the last batch finishes; cheap because it
 			// touches only attachments that have an owning + incidental mix.
 			if ( $complete ) {
+				// Threshold heuristic FIRST: any image that appears via
+				// permalink / rendered on a large share of scanned posts —
+				// and has no owning or already-known sitewide signal — is
+				// almost certainly chrome stored in a custom plugin/theme
+				// option (header logo, footer banner, theme builder
+				// template image, ACF options field, etc.). Tag it as
+				// site-wide (`option_settings`) so reconcile_incidental_usages()
+				// below drops every per-post permalink/rendered entry via its
+				// existing `$has_sitewide` branch.
+				$this->reclassify_pervasive_as_sitewide( $total );
 				$this->reconcile_incidental_usages();
 			}
 
@@ -2281,6 +2306,130 @@ class UsedWhereScanner {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Threshold heuristic — reclassify images that render on a large share
+	 * of the site as site-wide.
+	 *
+	 * Catches the common false-positive pattern where a single image lives
+	 * in a custom plugin/theme option (header logo, footer banner, theme
+	 * builder template image, ACF options field, mega-menu icon, etc.) and
+	 * therefore appears in the rendered HTML of every page — but is NOT
+	 * registered with any of the well-known WordPress site-wide locations
+	 * (`site_logo`, `custom_logo`, `header_image`, customizer background,
+	 * widgets, nav menus, term meta). Without this pass, every post that
+	 * was scanned would falsely list itself as a "user" of the image.
+	 *
+	 * Algorithm — for each attachment:
+	 *   1. Skip if it already has any owning usage (featured / content /
+	 *      gallery / builder / meta) — the structural signal is trusted and
+	 *      the existing reconcile pass handles the cleanup.
+	 *   2. Skip if it already has any site-wide usage (post_id=0) — handled
+	 *      by the existing reconcile pass.
+	 *   3. Count distinct `post_id`s that appear in `permalink` / `rendered`
+	 *      entries.
+	 *   4. If that count is ≥ N% of total scanned posts AND ≥ a small
+	 *      absolute floor (avoids triggering on tiny sites where one shared
+	 *      image looks pervasive), record a synthetic site-wide entry with
+	 *      `usage_type = option_settings`. The subsequent
+	 *      `reconcile_incidental_usages()` call strips every per-post
+	 *      permalink/rendered entry via its existing `$has_sitewide` branch.
+	 *
+	 * The threshold and floor are filterable so site owners can tune
+	 * sensitivity on edge cases.
+	 *
+	 * @param int $total_scanned Total posts processed in this scan.
+	 *
+	 * @return void
+	 */
+	private function reclassify_pervasive_as_sitewide( int $total_scanned ): void {
+		/**
+		 * Filter the minimum share of scanned posts an image must appear on
+		 * (via permalink/rendered only) before it is reclassified as
+		 * site-wide. Expressed as a fraction 0–1.
+		 *
+		 * @param float $ratio Default 0.5 (50%).
+		 */
+		$ratio = (float) apply_filters( 'tsmlt_used_where_sitewide_pervasive_ratio', 0.5 );
+		$ratio = max( 0.1, min( 1.0, $ratio ) );
+
+		/**
+		 * Filter the absolute minimum distinct-post count required before an
+		 * image is reclassified as site-wide. Prevents the heuristic from
+		 * triggering on very small sites where any shared image dominates.
+		 *
+		 * @param int $floor Default 5.
+		 */
+		$floor = (int) apply_filters( 'tsmlt_used_where_sitewide_pervasive_floor', 5 );
+		$floor = max( 2, $floor );
+
+		if ( $total_scanned < $floor ) {
+			return;
+		}
+
+		$threshold = max( $floor, (int) ceil( $total_scanned * $ratio ) );
+
+		$rows = Fns::DB()->select( 'post_id', 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', self::META_KEY )
+			->get();
+
+		if ( empty( $rows ) ) {
+			return;
+		}
+
+		$owning_types   = array_flip( self::OWNING_USAGE_TYPES );
+		$sitewide_types = array_flip( self::SITEWIDE_USAGE_TYPES );
+
+		foreach ( $rows as $row ) {
+			$attachment_id = absint( $row['post_id'] ?? 0 );
+			$usages        = maybe_unserialize( $row['meta_value'] ?? '' );
+
+			if ( ! $attachment_id || ! is_array( $usages ) || empty( $usages ) ) {
+				continue;
+			}
+
+			$has_owning       = false;
+			$has_sitewide     = false;
+			$incidental_posts = [];
+
+			foreach ( $usages as $usage ) {
+				$type = (string) ( $usage['usage_type'] ?? '' );
+				$pid  = (int) ( $usage['post_id'] ?? 0 );
+
+				if ( 0 === $pid || isset( $sitewide_types[ $type ] ) ) {
+					$has_sitewide = true;
+					continue;
+				}
+				if ( isset( $owning_types[ $type ] ) ) {
+					$has_owning = true;
+					continue;
+				}
+				if ( 'permalink' === $type || 'rendered' === $type ) {
+					$incidental_posts[ $pid ] = true;
+				}
+			}
+
+			if ( $has_owning || $has_sitewide ) {
+				continue; // existing reconcile pass handles these
+			}
+
+			if ( count( $incidental_posts ) < $threshold ) {
+				continue;
+			}
+
+			// Append the synthetic site-wide marker; reconcile_incidental_usages()
+			// will then strip the per-post permalink/rendered records.
+			$usages[] = [
+				'post_id'    => 0,
+				'post_title' => esc_html__( 'Site Settings', 'media-library-tools' ),
+				'post_type'  => 'site_settings',
+				'usage_type' => 'option_settings',
+			];
+
+			update_post_meta( $attachment_id, self::META_KEY, $usages );
+		}
+	}
+
 	/**
 	 * Drop incidental `permalink` / `rendered` usages when the image is
 	 * already owned by stronger signals on a different set of posts.
@@ -2507,6 +2656,15 @@ class UsedWhereScanner {
 	private function detect_sitewide_usage(): void {
 		$known_ids = $this->get_known_attachment_ids();
 
+		// 0. Plugin/theme option settings (serialized arrays containing image
+		// IDs or upload URLs — header/footer logos, banners, favicons that
+		// live outside the well-known WordPress slots).
+		//
+		// Runs first so every other check that follows — and every per-post
+		// scan after `detect_sitewide_usage()` returns — already sees these
+		// IDs as site-wide via `build_sitewide_attachment_ids()`.
+		$this->detect_option_settings_images( $known_ids );
+
 		// 1. Site icon (favicon).
 		$site_icon_id = absint( get_option( 'site_icon', 0 ) );
 		if ( $site_icon_id && isset( $known_ids[ $site_icon_id ] ) ) {
@@ -2555,6 +2713,235 @@ class UsedWhereScanner {
 
 		// 8. Taxonomy term meta images (category thumbnails, featured images, SEO images).
 		$this->detect_term_meta_images( $known_ids );
+	}
+
+	/**
+	 * Detect images stored inside plugin/theme settings (`wp_options`).
+	 *
+	 * Targets the common case where a header logo, footer banner, mobile
+	 * logo, login-page background, etc. is stored as an attachment ID or
+	 * upload URL inside a serialized option array — e.g.
+	 *   `s:5:"image";i:7;`  /  `'header_logo' => 12`  /  `'site_image_url' => '.../uploads/2025/01/x.png'`
+	 * These never reach `detect_sitewide_usage()`'s WordPress-native slots
+	 * (`site_logo`, `custom_logo`, `header_image`, customizer background,
+	 * widgets, term meta), so without this pass the image would appear in
+	 * the rendered HTML of every page and get falsely attributed per-post.
+	 *
+	 * Scope: only autoloaded options. Autoload=yes is the WordPress signal
+	 * that the option is loaded on every page request, which is exactly the
+	 * cohort that produces site-wide image rendering. Non-autoloaded options
+	 * (rare for theme/plugin chrome) are skipped to keep this cheap on
+	 * large sites.
+	 *
+	 * False-positive guards inside the recursive walker:
+	 *   - Integer values are only recorded when their key looks image-shaped
+	 *     (`image`, `logo`, `icon`, `photo`, `picture`, `banner`, `thumb`,
+	 *     `thumbnail`, `avatar`, `cover`, `favicon`, `*_image`, `*_logo`, …)
+	 *     AND the integer resolves to a known attachment ID. A bare numeric
+	 *     ID in an option array is not enough on its own.
+	 *   - String values must contain `/wp-content/uploads/` AND resolve via
+	 *     the path-anchored lookup (no basename fallback).
+	 *
+	 * @param array $known_ids Set of valid attachment IDs (O(1) lookup).
+	 *
+	 * @return void
+	 */
+	private function detect_option_settings_images( array $known_ids ): void {
+		// Scan ALL options — many theme/plugin settings (especially Customizer
+		// mods stored in `theme_mods_*` and dedicated plugin settings rows)
+		// are saved with `autoload=no` to avoid bloating the alloptions
+		// cache. Filtering by `autoload=yes` would miss them and leave the
+		// image undetected — which is exactly the false-positive pattern
+		// this method exists to prevent. The denylist below keeps the scan
+		// cheap by skipping infrastructure noise.
+		$rows = Fns::DB()->select( 'option_name', 'option_value' )
+			->from( 'options' )
+			->get();
+
+		if ( empty( $rows ) ) {
+			return;
+		}
+
+		// Skip option names that are infrastructure noise — transients, cron,
+		// nonces, rewrite rules, internal plugin state, etc. They never
+		// store user-visible chrome and including them would waste cycles
+		// unserializing large JSON/PHP blobs we never need to look at.
+		$skip_prefixes = [
+			'_transient_',
+			'_site_transient_',
+			'auth_',
+			'cron',
+			'rewrite_rules',
+			'nonce_',
+			'session_tokens',
+			'wp_user_roles',
+			'recently_activated',
+			'_tsmlt_',
+			'tsmlt_used_where_',
+			'mlt_',
+			'action_scheduler_',
+			'wc_admin_',
+			'wpseo_sitemap_cache_',
+			'_amn_',           // Action Scheduler / admin notice manager noise
+			'jetpack_sync_',
+		];
+
+		/**
+		 * Filter the set of option-name prefixes skipped during the site-wide
+		 * option scan. Add custom prefixes for noisy options that don't
+		 * contain image references.
+		 *
+		 * @param array $skip_prefixes List of prefixes.
+		 */
+		$skip_prefixes = (array) apply_filters( 'tsmlt_used_where_skip_option_prefixes', $skip_prefixes );
+
+		foreach ( $rows as $row ) {
+			$name = (string) ( $row['option_name'] ?? '' );
+			if ( '' === $name ) {
+				continue;
+			}
+			foreach ( $skip_prefixes as $prefix ) {
+				if ( '' !== $prefix && 0 === strpos( $name, $prefix ) ) {
+					continue 2;
+				}
+			}
+
+			$value = $row['option_value'] ?? '';
+			if ( '' === $value || ! is_string( $value ) ) {
+				continue;
+			}
+
+			$decoded = maybe_unserialize( $value );
+
+			// Plain string option (legacy theme mods, single URL fields).
+			if ( is_string( $decoded ) ) {
+				if ( false !== strpos( $decoded, '/wp-content/uploads/' ) ) {
+					$att_id = $this->get_attachment_id_by_url( $decoded, false );
+					if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+						$this->record_sitewide_usage( $att_id, 'option_settings' );
+					}
+				}
+				continue;
+			}
+
+			if ( ! is_array( $decoded ) && ! is_object( $decoded ) ) {
+				continue;
+			}
+
+			$this->walk_option_for_images( (array) $decoded, $known_ids );
+		}
+	}
+
+	/**
+	 * Recursively walk a decoded option array looking for attachment IDs
+	 * and upload URLs that represent site-wide images.
+	 *
+	 * Companion to `detect_option_settings_images()`. See that method's
+	 * docblock for the false-positive guards (image-shaped keys for ints,
+	 * path-anchored lookups for strings).
+	 *
+	 * @param array $data      Decoded option array.
+	 * @param array $known_ids Set of valid attachment IDs.
+	 * @param int   $depth     Current recursion depth (max 8).
+	 *
+	 * @return void
+	 */
+	private function walk_option_for_images( array $data, array $known_ids, int $depth = 0 ): void {
+		if ( $depth > 8 ) {
+			return;
+		}
+
+		foreach ( $data as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$this->walk_option_for_images( $value, $known_ids, $depth + 1 );
+				continue;
+			}
+			if ( is_object( $value ) ) {
+				$this->walk_option_for_images( (array) $value, $known_ids, $depth + 1 );
+				continue;
+			}
+
+			// Integer attachment IDs gated by image-shaped keys.
+			if ( is_numeric( $value ) && $this->is_image_shaped_key( (string) $key ) ) {
+				$att_id = absint( $value );
+				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+					$this->record_sitewide_usage( $att_id, 'option_settings' );
+				}
+				continue;
+			}
+
+			// String values: full URL first, then blob extraction.
+			if ( is_string( $value ) && false !== strpos( $value, '/wp-content/uploads/' ) ) {
+				$att_id = $this->get_attachment_id_by_url( $value, false );
+				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
+					$this->record_sitewide_usage( $att_id, 'option_settings' );
+					continue;
+				}
+
+				$rel_paths = $this->extract_upload_paths_from_string( $value );
+				if ( ! empty( $rel_paths ) ) {
+					$base_url = $this->get_uploads_base_url();
+					foreach ( $rel_paths as $rel ) {
+						$blob_id = $this->get_attachment_id_by_url( $base_url . $rel, false );
+						if ( $blob_id && isset( $known_ids[ $blob_id ] ) ) {
+							$this->record_sitewide_usage( $blob_id, 'option_settings' );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Whether an option-array key suggests its integer value is an
+	 * attachment ID for a site-chrome image.
+	 *
+	 * Conservative match: substring check against a fixed vocabulary so
+	 * unrelated fields like `'user_id'` or `'post_id'` don't promote
+	 * arbitrary integers to "site-wide image" status.
+	 *
+	 * @param string $key Array key being inspected.
+	 *
+	 * @return bool
+	 */
+	private function is_image_shaped_key( string $key ): bool {
+		if ( '' === $key ) {
+			return false;
+		}
+		$key = strtolower( $key );
+
+		$tokens = [
+			'image',
+			'logo',
+			'icon',
+			'favicon',
+			'photo',
+			'picture',
+			'thumb',     // matches thumb, thumbnail
+			'banner',
+			'avatar',
+			'cover',
+			'media',
+			'attachment',
+		];
+
+		/**
+		 * Filter the vocabulary of substrings used to identify image-shaped
+		 * option keys. Matched case-insensitively as substrings, so a token
+		 * of `'logo'` matches `'logo'`, `'header_logo'`, `'mobile_logo_id'`,
+		 * etc.
+		 *
+		 * @param array  $tokens Vocabulary list.
+		 * @param string $key    Key being inspected (lowercased).
+		 */
+		$tokens = (array) apply_filters( 'tsmlt_used_where_image_shaped_key_tokens', $tokens, $key );
+
+		foreach ( $tokens as $token ) {
+			if ( '' !== $token && false !== strpos( $key, $token ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
