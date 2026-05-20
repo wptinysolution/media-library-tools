@@ -554,6 +554,31 @@ class UsedWhereScanner {
 			}
 		}
 
+		// EARLY RECLASSIFICATION — runs after batch 1 only, before the flush.
+		//
+		// Any image that appears on a large share of THIS batch's posts via
+		// `permalink` / `rendered` only (no owning signal, no pre-existing
+		// site-wide entry) is almost certainly chrome stored somewhere the
+		// option scanner didn't catch — a custom theme builder template,
+		// an ACF flexible-content field, an obscure plugin option, etc.
+		//
+		// Reclassifying it now (in the in-memory buffer, before the flush)
+		// achieves two things:
+		//   1. The per-post entries get dropped from the buffer so the
+		//      flush never writes them — zero wasted DB writes.
+		//   2. A synthetic `option_settings` site-wide entry takes their
+		//      place; subsequent batches read it via
+		//      `build_sitewide_attachment_ids()` and suppress the same
+		//      image from per-post recording for the rest of the scan.
+		//
+		// Conservative thresholds keep the false-positive rate at zero:
+		// runs only when batch 1 has ≥ 8 posts, requires the image to
+		// appear on ≥ 80% of them, and skips any attachment with even one
+		// owning hit.
+		if ( 0 === $offset ) {
+			$this->reclassify_per_batch_pervasive( $processed_in_batch );
+		}
+
 		// Flush buffer: save usages to post meta and set post_parent.
 		// On the first batch the start handler already wiped existing usage
 		// meta, so skip the per-attachment read-merge step entirely.
@@ -2349,6 +2374,124 @@ class UsedWhereScanner {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Early per-batch reclassification — drop chrome image hits BEFORE flush.
+	 *
+	 * Companion to `reclassify_pervasive_as_sitewide()` which runs once at
+	 * the very end of the scan against persisted DB rows. This version
+	 * runs after EVERY first batch against the in-memory `usages_buffer`
+	 * so chrome images that the option scanner missed are caught
+	 * immediately — before any wasted `update_post_meta` write happens.
+	 *
+	 * For each attachment with entries in the current batch buffer:
+	 *   1. Skip if it already has any owning usage (featured / content /
+	 *      gallery / builder / meta).
+	 *   2. Skip if it already has any site-wide entry (post_id=0).
+	 *   3. Count distinct `post_id`s with `permalink`/`rendered` entries
+	 *      *within this batch*.
+	 *   4. If that count is ≥ 80% of the batch size AND ≥ 8 posts,
+	 *      replace the per-post entries with a single `option_settings`
+	 *      site-wide entry. The flush then writes only that one entry,
+	 *      and `build_sitewide_attachment_ids()` picks it up on every
+	 *      subsequent batch — suppressing the image from the per-post
+	 *      scan path for the rest of the scan.
+	 *
+	 * Effect: a header/footer image that the option scanner missed costs
+	 * ~8 wasted records during batch 1 instead of ~N (where N = total
+	 * post count). On a 1000-post site that's a ~125× reduction in
+	 * incidental writes.
+	 *
+	 * The 8-post / 80% thresholds are deliberately conservative so a
+	 * legitimately popular image (e.g. one used in 9 out of 10 first
+	 * posts but not afterwards) is the worst-case false positive — and
+	 * even then it'd be reclassified as site-wide, which is at worst a
+	 * cosmetic mis-label.
+	 *
+	 * @param int $batch_size Number of posts processed in this batch.
+	 *
+	 * @return void
+	 */
+	private function reclassify_per_batch_pervasive( int $batch_size ): void {
+		/**
+		 * Filter the per-batch reclassification ratio. Default 0.8 (80%).
+		 *
+		 * @param float $ratio Share of batch posts an image must appear on.
+		 */
+		$ratio = (float) apply_filters( 'tsmlt_used_where_per_batch_pervasive_ratio', 0.8 );
+		$ratio = max( 0.5, min( 1.0, $ratio ) );
+
+		/**
+		 * Filter the per-batch reclassification absolute minimum. Default 8.
+		 *
+		 * @param int $floor Minimum distinct posts needed before reclassification triggers.
+		 */
+		$floor = (int) apply_filters( 'tsmlt_used_where_per_batch_pervasive_floor', 8 );
+		$floor = max( 5, $floor );
+
+		if ( $batch_size < $floor ) {
+			return;
+		}
+
+		$threshold      = max( $floor, (int) ceil( $batch_size * $ratio ) );
+		$owning_types   = array_flip( self::OWNING_USAGE_TYPES );
+		$sitewide_types = array_flip( self::SITEWIDE_USAGE_TYPES );
+
+		foreach ( $this->usages_buffer as $att_id => $entries ) {
+			$has_owning      = false;
+			$has_sitewide    = false;
+			$incidental_keys = [];
+			$incidental_pids = [];
+
+			foreach ( $entries as $key => $entry ) {
+				$type = (string) ( $entry['usage_type'] ?? '' );
+				$pid  = (int) ( $entry['post_id'] ?? 0 );
+
+				if ( 0 === $pid || isset( $sitewide_types[ $type ] ) ) {
+					$has_sitewide = true;
+					continue;
+				}
+				if ( isset( $owning_types[ $type ] ) ) {
+					$has_owning = true;
+					continue;
+				}
+				if ( 'permalink' === $type || 'rendered' === $type ) {
+					$incidental_keys[]       = $key;
+					$incidental_pids[ $pid ] = true;
+				}
+			}
+
+			if ( $has_owning || $has_sitewide ) {
+				continue;
+			}
+			if ( count( $incidental_pids ) < $threshold ) {
+				continue;
+			}
+
+			// Pervasive in this batch — reclassify.
+			// 1. Remove the per-post incidental entries from the buffer
+			//    so the flush never writes them.
+			foreach ( $incidental_keys as $k ) {
+				unset( $this->usages_buffer[ $att_id ][ $k ] );
+			}
+
+			// 2. Insert a synthetic site-wide entry in their place.
+			$sw_key = $att_id . ':0:option_settings';
+			$this->usages_buffer[ $att_id ][ $sw_key ] = [
+				'post_id'    => 0,
+				'post_title' => esc_html__( 'Site Settings', 'media-library-tools' ),
+				'post_type'  => 'site_settings',
+				'usage_type' => 'option_settings',
+			];
+
+			$this->log_debug( sprintf(
+				'early-reclassify: att_id=%d incidental_pids=%d threshold=%d → reclassified as site-wide',
+				$att_id,
+				count( $incidental_pids ),
+				$threshold
+			) );
+		}
+	}
+
 	/**
 	 * Threshold heuristic — reclassify images that render on a large share
 	 * of the site as site-wide.
