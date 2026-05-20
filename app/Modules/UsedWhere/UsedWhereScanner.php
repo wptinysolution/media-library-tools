@@ -43,6 +43,28 @@ class UsedWhereScanner {
 	const OPTION_SCAN_CACHE_KEY = 'tsmlt_used_where_option_scan_cache';
 
 	/**
+	 * Master switch for the self-contained scanner debug log.
+	 *
+	 * When `true`, the scanner writes diagnostic events to a dedicated log
+	 * file under the uploads directory (see `log_debug()`). Pure plugin
+	 * setting — does NOT require `WP_DEBUG`, `WP_DEBUG_LOG`, or any
+	 * `wp-config.php` edit — so non-developer site owners can flip it on
+	 * for a support session without touching server config.
+	 *
+	 * Default: `false`. Flip to `true` only for diagnosis; leave off in
+	 * shipped releases.
+	 */
+	const DEBUG_LOG = true;
+
+	/**
+	 * Subdirectory inside the uploads dir where the debug log lives.
+	 *
+	 * The directory is created on first write and protected from public
+	 * web access via a deny-all `.htaccess` and an empty `index.php`.
+	 */
+	const DEBUG_LOG_SUBDIR = 'media-library-tools-debug';
+
+	/**
 	 * Usage types that indicate a post genuinely "owns" the image.
 	 *
 	 * When any of these appear in an attachment's usage list, the post
@@ -818,6 +840,14 @@ class UsedWhereScanner {
 		if ( $is_html_scan ) {
 			$this->build_featured_image_owners();
 			$this->build_sitewide_attachment_ids();
+
+			// DEBUG: log the sitewide set the first time it's built per batch
+			// so we can confirm option_settings IDs actually made it in.
+			static $debug_sitewide_logged = false;
+			if ( self::DEBUG_LOG && ! $debug_sitewide_logged ) {
+				$this->log_debug( 'suppression sitewide_attachment_ids = [' . implode( ',', array_keys( $this->sitewide_attachment_ids ?: [] ) ) . ']' );
+				$debug_sitewide_logged = true;
+			}
 		}
 
 		foreach ( array_keys( $relative_paths ) as $relative_path ) {
@@ -2772,6 +2802,8 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function detect_option_settings_images( array $known_ids ): void {
+		$this->log_debug( 'option-scan START — known_ids count: ' . count( $known_ids ) );
+
 		// ── Layer 3: cache replay ───────────────────────────────────────────
 		// Replay the cached site-wide ID set if it's still valid for the
 		// current options-table signature. Cuts re-scans on unchanged sites
@@ -2784,6 +2816,7 @@ class UsedWhereScanner {
 			&& $cache['sig'] === $cache_signature
 			&& is_array( $cache['ids'] )
 		) {
+			$this->log_debug( 'option-scan CACHE HIT — replaying IDs: [' . implode( ',', $cache['ids'] ) . ']' );
 			foreach ( $cache['ids'] as $att_id ) {
 				$att_id = absint( $att_id );
 				if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
@@ -2792,6 +2825,7 @@ class UsedWhereScanner {
 			}
 			return;
 		}
+		$this->log_debug( 'option-scan CACHE MISS — running full sweep' );
 
 		// ── Layer 1: SQL-level prefilter ────────────────────────────────────
 		// Two-clause filter — either the value mentions an uploads URL OR it
@@ -2812,7 +2846,10 @@ class UsedWhereScanner {
 			->orWhere( 'option_value', 'REGEXP', $regexp )
 			->get();
 
+		$this->log_debug( 'option-scan SQL prefilter returned ' . count( $rows ?: [] ) . ' rows' );
+
 		if ( empty( $rows ) ) {
+			$this->log_debug( 'option-scan NO ROWS — caching empty set' );
 			set_transient( self::OPTION_SCAN_CACHE_KEY, [ 'sig' => $cache_signature, 'ids' => [] ], DAY_IN_SECONDS );
 			return;
 		}
@@ -2852,13 +2889,23 @@ class UsedWhereScanner {
 
 		// Track which IDs we record this run, so we can persist them to the
 		// cache for the next scan.
-		$recorded_ids = [];
-		$record       = function ( int $att_id ) use ( &$recorded_ids, $known_ids ): void {
+		$recorded_ids   = [];
+		$debug_seen     = [];
+		$current_option = '';
+		$record         = function ( int $att_id ) use ( &$recorded_ids, $known_ids, &$debug_seen, &$current_option ): void {
 			if ( $att_id && isset( $known_ids[ $att_id ] ) ) {
 				$this->record_sitewide_usage( $att_id, 'option_settings' );
 				$recorded_ids[ $att_id ] = true;
+				if ( self::DEBUG_LOG ) {
+					$debug_seen[] = $att_id . '@' . $current_option;
+				}
 			}
 		};
+
+		$debug_skipped_prefix = 0;
+		$debug_skipped_fast   = 0;
+		$debug_skipped_size   = 0;
+		$debug_walked         = 0;
 
 		foreach ( $rows as $row ) {
 			$name = (string) ( $row['option_name'] ?? '' );
@@ -2867,9 +2914,11 @@ class UsedWhereScanner {
 			}
 			foreach ( $skip_prefixes as $prefix ) {
 				if ( '' !== $prefix && 0 === strpos( $name, $prefix ) ) {
+					$debug_skipped_prefix++;
 					continue 2;
 				}
 			}
+			$current_option = $name;
 
 			$value = $row['option_value'] ?? '';
 			if ( '' === $value || ! is_string( $value ) ) {
@@ -2888,6 +2937,7 @@ class UsedWhereScanner {
 			$is_url_blob   = false !== strpos( $value, 'uploads/' );
 
 			if ( ! $is_serialized && ! $is_url_blob ) {
+				$debug_skipped_fast++;
 				continue;
 			}
 
@@ -2897,8 +2947,10 @@ class UsedWhereScanner {
 			// info. Unserializing those is the dominant cost on bloated
 			// sites; skipping pays for everything else this method does.
 			if ( strlen( $value ) > 100000 ) {
+				$debug_skipped_size++;
 				continue;
 			}
+			$debug_walked++;
 
 			$decoded = $is_serialized ? maybe_unserialize( $value ) : $value;
 
@@ -2916,6 +2968,16 @@ class UsedWhereScanner {
 
 			$this->walk_option_for_images( (array) $decoded, $known_ids, 0, $record );
 		}
+
+		$this->log_debug( sprintf(
+			'option-scan DONE — skipped(prefix=%d, fast=%d, size=%d) walked=%d recorded_ids=[%s] hits=[%s]',
+			$debug_skipped_prefix,
+			$debug_skipped_fast,
+			$debug_skipped_size,
+			$debug_walked,
+			implode( ',', array_keys( $recorded_ids ) ),
+			implode( '; ', $debug_seen )
+		) );
 
 		set_transient(
 			self::OPTION_SCAN_CACHE_KEY,
@@ -3436,5 +3498,69 @@ class UsedWhereScanner {
 			'post_type'  => 'site_settings',
 			'usage_type' => $usage_type,
 		];
+	}
+
+	/**
+	 * Append a diagnostic line to the scanner's own debug log.
+	 *
+	 * Self-contained — does not depend on `WP_DEBUG`, `WP_DEBUG_LOG`, or
+	 * any wp-config.php constant, so a non-developer site owner can flip
+	 * the master switch (`self::DEBUG_LOG`) for a support session without
+	 * touching server config.
+	 *
+	 * Log file location:
+	 *   `wp-content/uploads/<DEBUG_LOG_SUBDIR>/used-where.log`
+	 *
+	 * The directory is created on first write with a deny-all `.htaccess`
+	 * and an empty `index.php` to block direct web access. Log lines are
+	 * timestamped with the WordPress site timezone.
+	 *
+	 * Soft cap: the log is truncated when it exceeds 2 MB so a forgotten
+	 * `DEBUG_LOG=true` won't fill the disk on a busy site.
+	 *
+	 * @param string $message Human-readable diagnostic message.
+	 *
+	 * @return void
+	 */
+	private function log_debug( string $message ): void {
+		if ( ! self::DEBUG_LOG ) {
+			return;
+		}
+
+		$upload_dir = wp_upload_dir();
+		if ( ! empty( $upload_dir['error'] ) ) {
+			return;
+		}
+
+		$log_dir = trailingslashit( $upload_dir['basedir'] ) . self::DEBUG_LOG_SUBDIR;
+		if ( ! is_dir( $log_dir ) ) {
+			wp_mkdir_p( $log_dir );
+
+			// Block direct web access to the log directory.
+			$htaccess = $log_dir . '/.htaccess';
+			if ( ! file_exists( $htaccess ) ) {
+				@file_put_contents(
+					$htaccess,
+					"Order Deny,Allow\nDeny from all\n",
+					LOCK_EX
+				);
+			}
+			$index = $log_dir . '/index.php';
+			if ( ! file_exists( $index ) ) {
+				@file_put_contents( $index, "<?php\n// Silence is golden.\n", LOCK_EX );
+			}
+		}
+
+		$log_file = $log_dir . '/used-where.log';
+
+		// Soft size cap: truncate at 2 MB so a forgotten DEBUG_LOG=true
+		// can't fill the disk. Cheap stat() check, only triggers
+		// occasionally.
+		if ( file_exists( $log_file ) && filesize( $log_file ) > 2097152 ) {
+			@file_put_contents( $log_file, '', LOCK_EX );
+		}
+
+		$line = '[' . current_time( 'mysql' ) . '] ' . $message . PHP_EOL;
+		@file_put_contents( $log_file, $line, FILE_APPEND | LOCK_EX );
 	}
 }
