@@ -798,6 +798,17 @@ class Fns {
 		if ( isset( self::$cache[ $keys_attachment ] ) ) {
 			return self::$cache[ $keys_attachment ];
 		}
+
+		// Heavy DISTINCT meta_key JOIN on postmeta — cache in a transient so it
+		// runs at most once per day on large libraries (was timing out on sites
+		// with hundreds of thousands of attachment-meta rows).
+		$transient_key = 'tsmlt_attachment_meta_keys';
+		$cached        = get_transient( $transient_key );
+		if ( is_array( $cached ) ) {
+			self::$cache[ $keys_attachment ] = $cached;
+			return $cached;
+		}
+
 		$result    = self::DB()->select( 'pm.meta_key' )
 			->distinct()
 			->from( 'postmeta pm' )
@@ -810,6 +821,7 @@ class Fns {
 		// Remove by value.
 		$meta_keys = array_values( array_diff( $meta_keys, $remove_keys ) );
 
+		set_transient( $transient_key, $meta_keys, DAY_IN_SECONDS );
 		self::$cache[ $keys_attachment ] = $meta_keys;
 		return $meta_keys;
 	}

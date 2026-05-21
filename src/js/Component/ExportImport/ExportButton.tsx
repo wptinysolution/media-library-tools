@@ -53,6 +53,8 @@ function ExportButton() {
             setExportImport({ mediaFiles: allMedia, fileCount: allMedia.length, percent: 100, totalPage: totalPages });
         } catch (error) {
             console.error('Export failed:', error);
+            setExportImport({ isExport: false });
+            setPercent(0);
         }
     };
 

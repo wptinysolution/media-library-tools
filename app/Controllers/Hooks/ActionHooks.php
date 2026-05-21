@@ -37,6 +37,11 @@ class ActionHooks {
 		add_action( 'manage_media_custom_column', [ $this, 'display_column_value' ], 10, 2 );
 		add_action( 'add_attachment', [ $this, 'add_image_info_to' ] );
 		add_action( 'add_attachment', [ $this, 'process_exif_on_upload' ], 15 ); // After add_image_info_to.
+		// Invalidate the cached attachment meta-key list whenever the set of
+		// attachments changes — keeps Fns::get_all_necessary_meta_keys() fresh
+		// without re-running the slow DISTINCT query on every AJAX request.
+		add_action( 'add_attachment', [ $this, 'flush_attachment_meta_keys_cache' ] );
+		add_action( 'delete_attachment', [ $this, 'flush_attachment_meta_keys_cache' ] );
 		// Hook the function to a cron job.
 		add_action( 'in_admin_header', [ $this, 'remove_all_notices' ], 99 );
 		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_field' ], 10, 2 );
@@ -50,6 +55,15 @@ class ActionHooks {
 		add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
 		// Process captured HTML after response is sent — no delay for visitor.
 		add_action( 'shutdown', [ $this, 'process_captured_html' ] );
+	}
+
+	/**
+	 * Clear the cached attachment meta-key list when attachments change.
+	 *
+	 * @return void
+	 */
+	public function flush_attachment_meta_keys_cache() {
+		delete_transient( 'tsmlt_attachment_meta_keys' );
 	}
 
 	/**
