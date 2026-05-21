@@ -84,9 +84,7 @@ _ext_dev
 dist
 freemius
 .idea
-assets/css
-assets/js
-assets/modules
+assets
 tmp
 _ext_**
 .fleet
