@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWpAdminBarHeight, useWpMenuWidth } from "@/js/Utils/Hooks";
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
 import {
@@ -33,6 +33,14 @@ import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
 import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
 import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
 import ExifDataPage from "@/js/Component/ExifData/ExifDataPage";
+
+function ScrollToTopOnRouteChange({ targetRef }: { targetRef: React.RefObject<HTMLDivElement> }) {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        targetRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, [pathname]);
+    return null;
+}
 
 function App() {
     const {
@@ -158,12 +166,15 @@ function App() {
     const adminBarHeight = useWpAdminBarHeight();
     const wpMenuWidth = useWpMenuWidth();
     const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
+    const contentRef = useRef<HTMLDivElement>(null);
 
     return (
         <HashRouter>
             <TopBar />
             <MainHeader />
+            <ScrollToTopOnRouteChange targetRef={contentRef} />
             <div
+                ref={contentRef}
                 className={'tsmlt-main-content-section z-9 bg-white overflow-y-auto'}
                 style={{
                     position: 'fixed',
