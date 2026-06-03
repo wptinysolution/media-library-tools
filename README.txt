@@ -126,6 +126,9 @@ Most WordPress sites accumulate hundreds or thousands of media files over time â
 * Select which columns to include before exporting
 * Visual progress indicator during export
 
+[Documentation](https://www.wptinysolutions.com/docs/docs/media-library-tools/csv-export/#CSV-Export-Free-version)
+
+
 ---
 
 == Pro Features ==
