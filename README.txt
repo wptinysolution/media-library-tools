@@ -452,6 +452,9 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
+= 2.2.9 (Jun 21, 2026)=
+* Improvement: Improvement Export Import UI
+
 = 2.2.8 ( May 21, 2026 )=
 * Optimize: Uses Images Detection Functionality makes More Optimize.
 

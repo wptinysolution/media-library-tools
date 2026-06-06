@@ -10,6 +10,7 @@ interface UploadedItem {
     id: string | number;
     url: string;
     status: string;
+    message?: string;
 }
 
 function ImportInfo({ onComplete }: { onComplete?: () => void }) {
@@ -46,21 +47,46 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                 continue;
             }
 
-            if (item['url']?.toString().length || settings.importUpdateContent) {
-                setCurrentFile(item['url'] as string || '');
-                try {
-                    const importedItem = await importOneByOne({ media: item, settings: exportImport.settings }) as { data: UploadedItem };
-                    const result = importedItem?.data;
-                    if (result && typeof result === 'object') {
-                        setUploadedFile(prev => [...prev, result]);
-                    } else {
-                        setUploadedFile(prev => [...prev, { id: item['ID'] || i, url: item['url'] as string || '', status: 'failed' }]);
-                    }
-                } catch {
-                    setUploadedFile(prev => [...prev, { id: item['ID'] || i, url: item['url'] as string || '', status: 'failed' }]);
-                }
-                setCurrentFile(null);
+            const url = (item['url'] as string) || '';
+            const idCell = (item['ID'] as string | number | undefined)?.toString().trim() ?? '';
+            const slugCell = (item['slug'] as string | undefined)?.toString().trim() ?? '';
+            const hasUrl = url.toString().length > 0;
+            const hasMatchKey = idCell.length > 0 || slugCell.length > 0;
+            const isUpdateMode = !!settings.importUpdateContent;
+
+            // Send the row when:
+            //  - update mode + ID/slug is present (update existing attachment), OR
+            //  - a URL is present (create new attachment).
+            // Skip and report rows that have neither so the user sees what was ignored
+            // instead of a phantom "100% done" with no changes.
+            const shouldSend = (isUpdateMode && hasMatchKey) || hasUrl;
+
+            if (!shouldSend) {
+                const reason = isUpdateMode
+                    ? 'No ID or slug in this row — cannot match an existing attachment.'
+                    : 'No URL in this row — enable "Update existing content" to edit by ID/slug.';
+                setUploadedFile(prev => [...prev, {
+                    id: item['ID'] || i,
+                    url,
+                    status: 'skipped',
+                    message: reason,
+                }]);
+                continue;
             }
+
+            setCurrentFile(url);
+            try {
+                const importedItem = await importOneByOne({ media: item, settings: exportImport.settings }) as { data: UploadedItem };
+                const result = importedItem?.data;
+                if (result && typeof result === 'object') {
+                    setUploadedFile(prev => [...prev, result]);
+                } else {
+                    setUploadedFile(prev => [...prev, { id: item['ID'] || i, url, status: 'failed' }]);
+                }
+            } catch {
+                setUploadedFile(prev => [...prev, { id: item['ID'] || i, url, status: 'failed' }]);
+            }
+            setCurrentFile(null);
         }
 
         setPercent(100);
@@ -158,13 +184,21 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                                     target="_blank"
                                     href={item.url}
                                     className={`text-sm font-medium no-underline ${
-                                        'uploaded' === item.status ? 'text-green-600' : 'text-red-600'
+                                        'uploaded' === item.status
+                                            ? item.message ? 'text-amber-600' : 'text-green-600'
+                                            : 'skipped' === item.status || 'not_found' === item.status || 'not_allowed' === item.status
+                                                ? 'text-amber-600'
+                                                : 'text-red-600'
                                     }`}
                                 >
-                                    {item.url && getFileNameFromURL(item.url)}
+                                    {item.url ? getFileNameFromURL(item.url) : `Row ID(${item.id})`}
                                 </a>
                                 <p className="text-xs text-gray-500 mt-0.5">
-                                    {'uploaded' === item.status ? 'Successfully upload' : `CSV ID(${item.id}) : Upload Failed`}
+                                    {'uploaded' === item.status && (item.message ? `Imported (with warning): ${item.message}` : 'Successfully imported')}
+                                    {'skipped' === item.status && `Skipped: ${item.message ?? 'no actionable data in this row'}`}
+                                    {'not_found' === item.status && `No matching attachment: ${item.message ?? `ID ${item.id}`}`}
+                                    {'not_allowed' === item.status && `Not allowed: ${item.message ?? 'this file type is disabled in settings'}`}
+                                    {('uploaded' !== item.status && 'skipped' !== item.status && 'not_found' !== item.status && 'not_allowed' !== item.status) && `CSV ID(${item.id}) : Import failed${item.message ? ` — ${item.message}` : ''}`}
                                 </p>
                             </div>
                         </div>
