@@ -99,6 +99,15 @@ export default function Datatable() {
         });
     }, [search]);
 
+    // Force a refetch every time the user navigates back to this page so
+    // recent imports / renames / external edits are visible without a full reload.
+    useEffect(() => {
+        setMediaData({
+            postQuery: { ...mediaData.postQuery, isUpdate: !mediaData.postQuery.isUpdate }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const renderModal = () => {
         if (bulkSubmitData.isModalOpen) return <BulkModal />;
         if (bulkExport.isModalOpen) return <BulkModalForCSV />;

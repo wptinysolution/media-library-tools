@@ -116,6 +116,12 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
 
     const reversedFiles = useMemo(() => uploadedFile.slice(-10).reverse(), [uploadedFile]);
 
+    const counts = useMemo(() => {
+        const imported = uploadedFile.filter(f => f.status === 'uploaded').length;
+        const failed = uploadedFile.length - imported;
+        return { imported, failed };
+    }, [uploadedFile]);
+
     return (
         <div className="max-w-375 mx-auto w-full">
             <h3 className="text-2xl font-semibold text-gray-900 mb-1">
@@ -157,11 +163,18 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
                         <span className="text-sm font-medium text-gray-700">
-                            Imported ({uploadedFile.length})
+                            Imported (<span className="text-green-600">{counts.imported}</span>)
                         </span>
-                        {uploadedFile.length > 10 && (
-                            <span className="text-xs text-gray-400">showing last 10</span>
-                        )}
+                        <div className="flex items-center gap-3">
+                            {counts.failed > 0 && (
+                                <span className="text-sm font-medium text-red-600">
+                                    Failed ({counts.failed})
+                                </span>
+                            )}
+                            {uploadedFile.length > 10 && (
+                                <span className="text-xs text-gray-400">showing last 10</span>
+                            )}
+                        </div>
                     </div>
                     <div className="h-100 overflow-auto px-4">
                     {reversedFiles.map((item) => (

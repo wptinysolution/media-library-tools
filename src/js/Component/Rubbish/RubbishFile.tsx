@@ -93,6 +93,15 @@ function RubbishFile() {
         getTheRubbishFile();
     }, [rubbishMedia.postQuery, saveType]);
 
+    // Force a refetch when the user navigates back to this page so newly imported
+    // / deleted / restored files are visible without a full reload.
+    useEffect(() => {
+        setRubbishMedia({
+            postQuery: { ...rubbishMedia.postQuery, isQueryUpdate: !rubbishMedia.postQuery.isQueryUpdate }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const onRubbishBulkCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
         const postsId = event.target.checked ? posts.map(item => item.id) : [];
         const files = event.target.checked
