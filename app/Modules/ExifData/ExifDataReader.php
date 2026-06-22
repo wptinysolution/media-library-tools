@@ -274,7 +274,7 @@ class ExifDataReader {
 
 		if ( is_string( $value ) && strpos( $value, '/' ) !== false ) {
 			$parts = explode( '/', $value );
-			if ( count( $parts ) === 2 && is_numeric( $parts[0] ) && is_numeric( $parts[1] ) ) {
+			if ( count( $parts ) === 2 && is_numeric( $parts[0] ) && is_numeric( $parts[1] ) && (float) $parts[1] !== 0.0 ) {
 				return (float) $parts[0] / (float) $parts[1];
 			}
 		}
