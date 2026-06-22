@@ -452,6 +452,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 
+= 2.2.10 (xx xx, 2026)=
+* Fixed: Fatal "Division by zero" error when reading EXIF GPS data containing zero-denominator rationals (e.g. "0/0") in the attachment modal.
+* Fixed: SVG upload no longer crashes when the temporary file cannot be read; a clear error is shown instead.
+
 = 2.2.9 (Jun 21, 2026)=
 * Improvement: Improvement Export Import UI
 

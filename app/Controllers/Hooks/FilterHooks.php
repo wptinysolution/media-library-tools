@@ -226,6 +226,10 @@ class FilterHooks {
 		$sanitizer->minify( true );
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$svg_content = file_get_contents( $file['tmp_name'] );
+		if ( false === $svg_content ) {
+			$file['error'] = esc_html__( 'Unable to read the uploaded SVG file.', 'media-library-tools' );
+			return $file;
+		}
 		$clean_svg   = $sanitizer->sanitize( $svg_content );
 		// If the file is not safe, return an error.
 		if ( false === $clean_svg ) {
