@@ -440,13 +440,18 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 01. Media Table — view, filter, sort, and inline-edit all media files
 02. Media File Rename table with inline editing and AI suggestions
-03. Rubbish File notice and scan prompt
-04. Rubbish File table showing orphaned files with filter and action buttons
+03. Garbage File notice and scan prompt
+04. EXIF Data
 05. Directory list with scan history for targeted rubbish scanning
 06. Media Table in single-item edit mode
-07. Media Table in bulk edit mode
-08. Plugin settings page — AI, rename, alt text, image sizes, and more
-09. AI Content Generator showing multiple field suggestions
+07. Media Usage & Unused Finder
+08. Duplicate Files
+09. Regenerate Thumbnails
+10. Button For Download Media File
+11. Image Size Settings
+12. Media Table Settings
+13. AI Suggestions — text
+14. Ai Settings
 
 ---
 
