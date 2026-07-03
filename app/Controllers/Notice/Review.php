@@ -58,8 +58,8 @@ class Review {
 
 		$install_date = get_option( 'tsmlt_plugin_activation_time' );
 
-		// Don't show the notice until the plugin has been installed for at least 2 days.
-		$past_date = strtotime( '+2 days', $install_date );
+		// Don't show the notice until the plugin has been installed for at least 10 days.
+		$past_date = strtotime( '+10 days', $install_date );
 
 		if ( $now < $past_date ) {
 			return;
