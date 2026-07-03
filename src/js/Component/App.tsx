@@ -222,8 +222,19 @@ function App() {
                     position: 'fixed',
                 }}
                 toastOptions={{
-                    style: { fontSize: '1rem', color: '#fff', backgroundColor: 'var(--color-blue-600)' },
+                    style: {
+                        fontSize: '1rem',
+                        color: '#fff',
+                        backgroundColor: 'var(--color-blue-600)',
+                        maxWidth: 'min(90vw, 520px)',
+                        width: 'auto',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere',
+                        whiteSpace: 'pre-line',
+                        textAlign: 'left',
+                    },
                     duration: 3000,
+                    error: { duration: 8000 },
                 }}
             />
         </HashRouter>
