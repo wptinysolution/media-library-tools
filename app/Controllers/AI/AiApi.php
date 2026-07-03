@@ -153,8 +153,21 @@ class AiApi {
 		switch ( $provider ) {
 			case 'gemini':
 				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
-				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.0-flash';
-				$text  = $this->call_gemini( $key, $prompt, $model );
+				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.5-flash';
+				// Retired Gemini models return HTTP 404 on the generateContent endpoint;
+				// transparently map saved settings to a currently supported equivalent.
+				$retired_gemini_models = [
+					'gemini-2.0-flash'      => 'gemini-2.5-flash',
+					'gemini-2.0-flash-lite' => 'gemini-2.5-flash-lite',
+					'gemini-1.5-flash'      => 'gemini-2.5-flash',
+					'gemini-1.5-pro'        => 'gemini-2.5-pro',
+					'gemini-1.0-pro'        => 'gemini-2.5-pro',
+					'gemini-pro'            => 'gemini-2.5-pro',
+				];
+				if ( isset( $retired_gemini_models[ $model ] ) ) {
+					$model = $retired_gemini_models[ $model ];
+				}
+				$text = $this->call_gemini( $key, $prompt, $model );
 				break;
 			case 'claude':
 				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );

@@ -1,5 +1,6 @@
 import Axios from 'axios';
 import type { AxiosResponse } from 'axios';
+import { createElement } from 'react';
 import toast from 'react-hot-toast';
 
 /**
@@ -83,7 +84,39 @@ export const notifications = (isTrue: boolean, text?: string): void => {
             },
         });
     } else {
-        toast.error(text || 'Error');
+        // Render errors with an explicit close button so long messages that
+        // outlive their auto-dismiss (or that the user wants gone) can be
+        // dismissed manually.
+        toast.error(
+            (t) =>
+                createElement(
+                    'div',
+                    { style: { display: 'flex', alignItems: 'flex-start', gap: '8px' } },
+                    createElement('span', { style: { flex: 1 } }, text || 'Error'),
+                    createElement(
+                        'button',
+                        {
+                            type: 'button',
+                            onClick: () => toast.dismiss(t.id),
+                            'aria-label': 'Dismiss',
+                            style: {
+                                flexShrink: 0,
+                                cursor: 'pointer',
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#fff',
+                                fontSize: '16px',
+                                lineHeight: 1,
+                                padding: '0 2px',
+                                marginTop: '-1px',
+                                opacity: 0.85,
+                            },
+                        },
+                        '✕'
+                    )
+                ),
+            { duration: 8000 }
+        );
     }
 };
 

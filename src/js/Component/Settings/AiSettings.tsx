@@ -168,13 +168,12 @@ export default function AiSettings() {
                             <select
                                 name="ai_gemini_model"
                                 className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={(options.ai_gemini_model as string) || 'gemini-2.0-flash'}
+                                value={(options.ai_gemini_model as string) || 'gemini-2.5-flash'}
                                 onChange={(e) => setOptions({ ai_gemini_model: e.target.value })}
                             >
-                                <option value="gemini-2.0-flash">gemini-2.0-flash (default)</option>
-                                <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-                                <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-                                <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                                <option value="gemini-2.5-flash">gemini-2.5-flash (default)</option>
+                                <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+                                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
                             </select>
                         </SettingRow>
                     </>
