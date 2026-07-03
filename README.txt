@@ -449,8 +449,8 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 09. Regenerate Thumbnails
 10. Button For Download Media File
 11. Image Size Settings
-12. Media Table Settings
-13. AI Suggestions — text
+12. AI Suggestions — text
+13. Media Table Settings
 14. Ai Settings
 
 ---
