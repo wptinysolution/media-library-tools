@@ -58,18 +58,22 @@ class Review {
 
 		$install_date = get_option( 'tsmlt_plugin_activation_time' );
 
+		// Don't show the notice until the plugin has been installed for at least 2 days.
 		$past_date = strtotime( '+2 days', $install_date );
 
-		$remind_time = get_option( 'tsmlt_remind_me' );
-
-		if ( ! $remind_time ) {
-			$remind_time = $install_date;
+		if ( $now < $past_date ) {
+			return;
 		}
 
-		$remind_due = strtotime( '+10 days', $remind_time );
+		// If the user asked to be reminded later, wait 10 days from that point before showing again.
+		$remind_time = get_option( 'tsmlt_remind_me' );
 
-		if ( ! $now > $past_date || $now < $remind_due ) {
-			return;
+		if ( $remind_time ) {
+			$remind_due = strtotime( '+10 days', $remind_time );
+
+			if ( $now < $remind_due ) {
+				return;
+			}
 		}
 
 		 add_action( 'admin_notices', [ $this, 'tsmlt_display_admin_notice' ] );
