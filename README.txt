@@ -450,14 +450,19 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 10. Button For Download Media File
 11. Image Size Settings
 12. AI Suggestions — text
-13. Media Table Settings
-14. Ai Settings
+13. CSV Export
+14. CSV Import
+15. Media Table Settings
+16. Ai Settings
 
 ---
 
 == Changelog ==
 
-= 2.2.10 (xx xx, 2026)=
+= 2.2.10 (Jul 03, 2026)=
+* Added: Updated Google Gemini model options to the current 2.5 family (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro).
+* Improvement: Retired Gemini models saved in existing settings are now automatically mapped to a supported 2.5 equivalent, preventing HTTP 404 errors during AI generation.
+* Improvement: Error notifications now include a manual close button, wrap long messages, and stay visible longer so they're easier to read and dismiss.
 * Fixed: Fatal "Division by zero" error when reading EXIF GPS data containing zero-denominator rationals (e.g. "0/0") in the attachment modal.
 * Fixed: SVG upload no longer crashes when the temporary file cannot be read; a clear error is shown instead.
 
