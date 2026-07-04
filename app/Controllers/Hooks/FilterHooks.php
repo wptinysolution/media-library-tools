@@ -42,10 +42,24 @@ class FilterHooks {
 		// Used-Where frontend detection (lightweight tracking).
 		add_filter( 'tsmlt/settings/before/save', [ __CLASS__, 'settings_before_save_used_where' ], 10, 2 );
 		add_action( 'wp_footer', [ __CLASS__, 'track_frontend_image_usage' ], 99 );
-		// Suppress trashed attachments on frontend (protect like WordPress does for trashed posts).
-		add_filter( 'wp_get_attachment_url', [ __CLASS__, 'suppress_trashed_attachment_url' ], 10, 2 );
-		add_filter( 'wp_get_attachment_image_src', [ __CLASS__, 'suppress_trashed_attachment_image_src' ], 10, 4 );
-		add_filter( 'wp_get_attachment_image', [ __CLASS__, 'suppress_trashed_attachment_image' ], 10, 5 );
+
+		// Suppress trashed attachments on frontend (protect like WordPress does
+		// for trashed posts). These filters call get_post() on every image
+		// render, so only register them when at least one attachment is actually
+		// in the trash — the overwhelmingly common case (no trashed media) then
+		// pays zero per-render cost.
+		if ( self::has_trashed_attachments() ) {
+			add_filter( 'wp_get_attachment_url', [ __CLASS__, 'suppress_trashed_attachment_url' ], 10, 2 );
+			add_filter( 'wp_get_attachment_image_src', [ __CLASS__, 'suppress_trashed_attachment_image_src' ], 10, 4 );
+			add_filter( 'wp_get_attachment_image', [ __CLASS__, 'suppress_trashed_attachment_image' ], 10, 5 );
+		}
+		// Invalidate the cached trashed-attachment count whenever any post is
+		// trashed / restored / deleted, so the suppression filters register (or
+		// stop registering) on the next request. Uses the canonical WordPress
+		// hooks so every trash path is covered — AJAX, native media UI, WP-CLI.
+		add_action( 'trashed_post', [ __CLASS__, 'flush_trashed_attachments_cache' ] );
+		add_action( 'untrashed_post', [ __CLASS__, 'flush_trashed_attachments_cache' ] );
+		add_action( 'deleted_post', [ __CLASS__, 'flush_trashed_attachments_cache' ] );
 		if ( Fns::is_support_mime_type( 'svg' ) ) {
 			// SVG File Permission.
 			add_filter( 'mime_types', [ __CLASS__, 'add_support_mime_types' ], 99 );
@@ -557,6 +571,51 @@ class FilterHooks {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Whether the site currently has any attachments in the trash.
+	 *
+	 * Result is cached in a transient (invalidated by
+	 * flush_trashed_attachments_cache() on every trash / restore / delete) so
+	 * the count query runs at most once per cache lifetime rather than on every
+	 * request. Used to decide whether the suppress_trashed_* filters need to be
+	 * registered at all — on the common case of zero trashed media, they are
+	 * skipped entirely and add no per-render overhead.
+	 *
+	 * @return bool True if one or more attachments are trashed.
+	 */
+	public static function has_trashed_attachments(): bool {
+		$cached = get_transient( 'tsmlt_trashed_attachments_count' );
+		if ( false !== $cached ) {
+			return (int) $cached > 0;
+		}
+
+		$count_rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'trash' )
+			->get();
+		$count      = (int) ( $count_rows[0]['total'] ?? 0 );
+
+		// Store as string so a legitimate 0 is distinguishable from the
+		// transient-miss `false` returned above.
+		set_transient( 'tsmlt_trashed_attachments_count', (string) $count, DAY_IN_SECONDS );
+
+		return $count > 0;
+	}
+
+	/**
+	 * Invalidate the cached trashed-attachment count.
+	 *
+	 * Hooked on trashed_post / untrashed_post / deleted_post so the suppression
+	 * filters re-evaluate whether they need to register on the next request.
+	 *
+	 * @return void
+	 */
+	public static function flush_trashed_attachments_cache(): void {
+		delete_transient( 'tsmlt_trashed_attachments_count' );
 	}
 
 	/**

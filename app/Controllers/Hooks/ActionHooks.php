@@ -51,10 +51,18 @@ class ActionHooks {
 		add_action( 'tsmlt_scan_post_usage', [ $this, 'run_scheduled_post_scan' ] );
 		// Cron-driven full-scan tick — self-reschedules until complete.
 		add_action( UsedWhereScanner::SCAN_TICK_HOOK, [ UsedWhereScanner::instance(), 'run_tick_batch' ], 10, 1 );
-		// Auto-detect image usage on first frontend visit by scanning rendered HTML.
-		add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
-		// Process captured HTML after response is sent — no delay for visitor.
-		add_action( 'shutdown', [ $this, 'process_captured_html' ] );
+		// Auto-detect image usage on first frontend visit by scanning rendered
+		// HTML. Only registered when passive frontend tracking is enabled —
+		// otherwise the shutdown handler would build a site-wide attachment
+		// lookup map (one postmeta row per attachment) on the first visit to
+		// every post/page, even though the feature is off. The backend "Start
+		// Scan" workflow is unaffected by this gate.
+		$options = Fns::get_options();
+		if ( ! empty( $options['track_frontend_usage'] ) ) {
+			add_action( 'template_redirect', [ $this, 'track_image_usage_on_visit' ] );
+			// Process captured HTML after response is sent — no delay for visitor.
+			add_action( 'shutdown', [ $this, 'process_captured_html' ] );
+		}
 	}
 
 	/**
@@ -132,6 +140,14 @@ class ActionHooks {
 	 */
 	public function track_image_usage_on_visit(): void {
 		if ( is_admin() || ! is_singular() ) {
+			return;
+		}
+
+		// Defense-in-depth: the hook is only registered when this setting is on
+		// (see init), but re-check here so a stray direct call can't trigger the
+		// expensive shutdown scan while the feature is disabled.
+		$options = Fns::get_options();
+		if ( empty( $options['track_frontend_usage'] ) ) {
 			return;
 		}
 
