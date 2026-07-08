@@ -2971,23 +2971,40 @@ class UsedWhereScanner {
 		$this->log_debug( 'option-scan CACHE MISS — running full sweep' );
 
 		// ── Layer 1: SQL-level prefilter ────────────────────────────────────
-		// Two-clause filter — either the value mentions an uploads URL OR it
-		// holds a serialized image-shaped key (e.g. `s:5:"image";i:7`).
+		// OR-of-conditions filter — a row survives if it mentions an uploads
+		// URL OR it holds a serialized image-shaped key (e.g. `s:5:"image"`).
 		// Either condition is necessary for the row to contain something we
 		// can record, so anything else can be eliminated at the DB layer.
 		//
-		// LIKE pattern uses bare `uploads/` so both raw (`/uploads/`) and
+		// The uploads LIKE uses bare `uploads/` so both raw (`/uploads/`) and
 		// JSON-escaped (`\/uploads\/`) forms match — Elementor, ACF, and any
 		// plugin storing JSON inside a serialized option will use the
 		// escaped form, and a stricter `%/uploads/%` pattern would silently
 		// drop them.
-		$regexp = 's:[0-9]+:"[^"]*(image|logo|icon|favicon|photo|picture|thumb|banner|avatar|cover|media|attachment)';
+		//
+		// The image-key terms are matched with a set of plain LIKE clauses
+		// rather than a single `REGEXP`. MySQL 8's ICU regex engine enforces a
+		// per-row match-time budget (`regexp_time_limit`, ~32ms default), and
+		// the old `[^"]*` pattern backtracks catastrophically on large blobs
+		// (page-builder caches, log/analytics buffers) — a single such row
+		// aborts the whole query with "Timeout exceeded in regular expression
+		// match". LIKE has no time limit and is a strict superset here: the
+		// precise serialized-structure matching already happens later in
+		// walk_option_for_images(), so this layer only needs a cheap, safe
+		// over-match. Terms are wrapped in `"…"` to target serialized string
+		// values (`s:N:"image"`) and keep the filter from matching arbitrary
+		// substrings inside unrelated blobs.
+		$image_key_terms = [ 'image', 'logo', 'icon', 'favicon', 'photo', 'picture', 'thumb', 'banner', 'avatar', 'cover', 'media', 'attachment' ];
 
-		$rows = Fns::DB()->select( 'option_name', 'option_value' )
+		$query = Fns::DB()->select( 'option_name', 'option_value' )
 			->from( 'options' )
-			->where( 'option_value', 'LIKE', '%uploads/%' )
-			->orWhere( 'option_value', 'REGEXP', $regexp )
-			->get();
+			->where( 'option_value', 'LIKE', '%uploads/%' );
+
+		foreach ( $image_key_terms as $term ) {
+			$query->orWhere( 'option_value', 'LIKE', '%"' . $term . '"%' );
+		}
+
+		$rows = $query->get();
 
 		$this->log_debug( 'option-scan SQL prefilter returned ' . count( $rows ?: [] ) . ' rows' );
 
