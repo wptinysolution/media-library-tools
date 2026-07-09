@@ -11,8 +11,8 @@ import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 type FilterTab = 'used' | 'unused' | 'trash';
 
 const tabs: { key: FilterTab; label: string }[] = [
-    { key: 'unused', label: 'Unused' },
     { key: 'used', label: 'Used' },
+    { key: 'unused', label: 'Unused' },
     { key: 'trash', label: 'Trash' },
 ];
 

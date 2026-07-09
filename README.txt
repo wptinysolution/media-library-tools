@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-AI-Powered Rename, bulk edit metadata, find duplicates, clean, CSV Import & Export, and track image usage.
+AI-Powered Rename, bulk edit metadata, find duplicates, Find Unused Media.
 
 == Description ==
 
@@ -458,6 +458,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+
+= 2.2.11 (Jul 10, 2026)=
+* Fixed: Usage/Unused scan no longer times out on large sites.
+* Improvement: Reordered Usage/Unused tabs (Used first).
 
 = 2.2.10 (Jul 03, 2026)=
 * Added: Updated Google Gemini model options to the current 2.5 family (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro).
