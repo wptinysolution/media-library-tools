@@ -345,7 +345,7 @@ class RegenerateThumbnails {
 		// Try to extend the PHP execution limit for this tick. Safe-mode and
 		// some FastCGI configs ignore this; treat the call as best-effort.
 		if ( function_exists( 'set_time_limit' ) ) {
-			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged
 		}
 
 		$batch_size = (int) apply_filters( 'tsmlt_regenerate_tick_batch_size', self::TICK_BATCH_SIZE );

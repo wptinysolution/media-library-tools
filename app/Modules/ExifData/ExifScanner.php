@@ -328,7 +328,7 @@ class ExifScanner {
 		}
 
 		if ( function_exists( 'set_time_limit' ) ) {
-			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged
 		}
 
 		$batch_size = (int) apply_filters( 'tsmlt_exif_scan_tick_batch_size', self::TICK_BATCH_SIZE );

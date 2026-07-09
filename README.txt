@@ -1,7 +1,7 @@
 === Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
-Requires at least: 5.5
+Requires at least: 6.5
 Tested up to: 7.0
 Stable tag: 2.2.11
 Requires PHP: 7.4
