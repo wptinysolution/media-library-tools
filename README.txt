@@ -8,7 +8,7 @@ Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-AI-Powered Rename, bulk edit metadata, find duplicates, Find Unused Media.
+AI-powered bulk rename, bulk edit metadata, find duplicate images, clean up unused media, and more.
 
 == Description ==
 
