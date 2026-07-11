@@ -460,8 +460,8 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 == Changelog ==
 
 = 2.2.11 (Jul 10, 2026)=
-* Fixed: Usage/Unused scan no longer times out on large sites.
 * Improvement: Reordered Usage/Unused tabs (Used first).
+* Fixed: Usage/Unused scan no longer times out on large sites.
 
 = 2.2.10 (Jul 03, 2026)=
 * Added: Updated Google Gemini model options to the current 2.5 family (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro).
@@ -469,16 +469,6 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 * Improvement: Error notifications now include a manual close button, wrap long messages, and stay visible longer so they're easier to read and dismiss.
 * Fixed: Fatal "Division by zero" error when reading EXIF GPS data containing zero-denominator rationals (e.g. "0/0") in the attachment modal.
 * Fixed: SVG upload no longer crashes when the temporary file cannot be read; a clear error is shown instead.
-
-= 2.2.9 (Jun 21, 2026)=
-* Improvement: Improvement Export Import UI
-
-= 2.2.8 ( May 21, 2026 )=
-* Optimize: Uses Images Detection Functionality makes More Optimize.
-
-= 2.2.7 ( May 20, 2026 )=
-* Added: Option For Delete Plugin Data on Uninstall
-* Fixed: Settings Pages Images Count as uses currently.
 
 [See changelog for all versions.](https://raw.githubusercontent.com/wptinysolution/WP-Changelog/refs/heads/main/media-library-tools.txt)
 
