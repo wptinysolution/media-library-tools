@@ -26,6 +26,9 @@
     "prefix-vendor": [
       "php-scoper add-prefix --output-dir=vendor_prefixed --force",
       "@php generate-autoload.php"
+    ],
+    "post-autoload-dump": [
+      "@prefix-vendor"
     ]
   }
 }
