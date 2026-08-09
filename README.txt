@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 2.2.11
+Stable tag: 2.2.12
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -458,6 +458,14 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.2.12 (Aug 10, 2026)=
+* Improvement: CSV Import now defaults to updating existing media instead of creating new attachments, preventing accidental duplicates when re-importing an exported CSV.
+* Improvement: Replaced the "Update existing media" checkbox with two clearly labelled choices — "Update existing media" and "Import as new media" — so both outcomes are visible before running the importer.
+* Improvement: The import button now states exactly what will happen, e.g. "Update 42 media items" or "Create 42 new media items".
+* Improvement: Added a confirmation step before creating new media, and a warning when a CSV containing an ID column is about to be imported as new media.
+* Improvement: The selected CSV filename and row count are now shown at the top of the importer, with a "Choose a different file" option.
+* Improvement: Added Cancel buttons to the CSV Import screens so the importer can be exited without reloading the page.
+* Improvement: Redesigned the "rename using rename_to column" option to sit under the update mode it belongs to, and clarified that renaming changes file URLs.
 
 = 2.2.11 (Jul 10, 2026)=
 * Improvement: Reordered Usage/Unused tabs (Used first).

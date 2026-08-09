@@ -295,7 +295,9 @@ export const initialExportImport: ExportImportState = {
     totalPage: 0,
     fileCount: 0,
     percent: 0,
-    settings: [],
+    // Default to update mode: the common workflow is CSV Export -> edit -> import,
+    // and create mode duplicates the whole library if run on an export file.
+    settings: { importUpdateContent: 'update' },
     csvFilename: '',
 };
 

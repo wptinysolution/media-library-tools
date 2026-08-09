@@ -64,7 +64,7 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
             if (!shouldSend) {
                 const reason = isUpdateMode
                     ? 'No ID or slug in this row — cannot match an existing attachment.'
-                    : 'No URL in this row — enable "Update existing content" to edit by ID/slug.';
+                    : 'No URL in this row — choose "Update existing media" to edit by ID/slug instead.';
                 setUploadedFile(prev => [...prev, {
                     id: item['ID'] || i,
                     url,
