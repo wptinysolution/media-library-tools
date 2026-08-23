@@ -165,7 +165,7 @@ function App() {
 
     const adminBarHeight = useWpAdminBarHeight();
     const wpMenuWidth = useWpMenuWidth();
-    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 200;
+    const sidebarWidth = generalData.sidebarCollapsed ? 48 : 215;
     const contentRef = useRef<HTMLDivElement>(null);
 
     return (

@@ -458,6 +458,9 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.2.13 (XX XX, 2026)=
+* Improvement: Font Size Improvement
+
 = 2.2.12 (Aug 10, 2026)=
 * Improvement: CSV Import now defaults to updating existing media instead of creating new attachments, preventing accidental duplicates when re-importing an exported CSV.
 * Improvement: Replaced the "Update existing media" checkbox with two clearly labelled choices — "Update existing media" and "Import as new media" — so both outcomes are visible before running the importer.
@@ -466,17 +469,6 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 * Improvement: The selected CSV filename and row count are now shown at the top of the importer, with a "Choose a different file" option.
 * Improvement: Added Cancel buttons to the CSV Import screens so the importer can be exited without reloading the page.
 * Improvement: Redesigned the "rename using rename_to column" option to sit under the update mode it belongs to, and clarified that renaming changes file URLs.
-
-= 2.2.11 (Jul 10, 2026)=
-* Improvement: Reordered Usage/Unused tabs (Used first).
-* Fixed: Usage/Unused scan no longer times out on large sites.
-
-= 2.2.10 (Jul 03, 2026)=
-* Added: Updated Google Gemini model options to the current 2.5 family (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro).
-* Improvement: Retired Gemini models saved in existing settings are now automatically mapped to a supported 2.5 equivalent, preventing HTTP 404 errors during AI generation.
-* Improvement: Error notifications now include a manual close button, wrap long messages, and stay visible longer so they're easier to read and dismiss.
-* Fixed: Fatal "Division by zero" error when reading EXIF GPS data containing zero-denominator rationals (e.g. "0/0") in the attachment modal.
-* Fixed: SVG upload no longer crashes when the temporary file cannot be read; a clear error is shown instead.
 
 [See changelog for all versions.](https://raw.githubusercontent.com/wptinysolution/WP-Changelog/refs/heads/main/media-library-tools.txt)
 
