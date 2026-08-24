@@ -2,8 +2,8 @@
 Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 6.5
-Tested up to: 7.0
-Stable tag: 2.2.12
+Tested up to: 7.1
+Stable tag: 2.2.13
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -458,7 +458,7 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
-= 2.2.13 (XX XX, 2026)=
+= 2.2.13 (Aug 24, 2026)=
 * Improvement: Font Size Improvement
 
 = 2.2.12 (Aug 10, 2026)=
