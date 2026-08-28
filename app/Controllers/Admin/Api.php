@@ -411,6 +411,9 @@ class Api {
 					'permalink' => $parent_permalink,
 					'sku'       => esc_attr( $parent_sku ),
 				],
+				// Raw native attachment fields, exposed for CSV export/import round-tripping.
+				'post_parent'    => absint( $post->post_parent ),
+				'menu_order'     => absint( $post->menu_order ),
 				'caption'        => esc_attr( $post->post_excerpt ),
 				'description'    => esc_attr( $post->post_content ),
 				'slug'           => esc_attr( $post->post_name ),

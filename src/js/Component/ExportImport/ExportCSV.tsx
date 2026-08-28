@@ -90,6 +90,9 @@ function ExportCSV() {
                 alt_text: item.alt_text,
                 // Comma-separated group names — the same format the CSV importer parses.
                 groups: parseGroupNames(item.categories),
+                // Native attachment fields, exported raw so they round-trip on import.
+                post_parent: item.post_parent ?? 0,
+                menu_order: item.menu_order ?? 0,
                 ...flatMeta,
             };
             const finalKeys = Array.from(new Set(['ID', 'slug', ...selectedKeys]));

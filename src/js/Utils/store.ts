@@ -24,6 +24,8 @@ export interface MediaPost {
     description: string;
     post_mime_type: string;
     post_parents: { title?: string; permalink?: string; sku?: string };
+    post_parent: number;
+    menu_order: number;
     categories: string;
     uploaddir: string;
     thefile: { file: string; filebasename: string; fileextension: string; mainfilename: string; originalname?: string };
@@ -304,7 +306,7 @@ export const initialExportImport: ExportImportState = {
 
 export const initialBulkExport: BulkExportState = {
     isModalOpen: false,
-    selectedKeys: ['ID', 'slug', 'url', 'title', 'caption', 'description', 'alt_text', 'groups'],
+    selectedKeys: ['ID', 'slug', 'url', 'title', 'caption', 'description', 'alt_text', 'groups', 'post_parent', 'menu_order'],
 };
 
 export const useStore = create<StoreState>((set) => ({
