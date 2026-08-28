@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.2.13
+Stable tag: 2.2.14
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,7 +28,7 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 
 * **SEO** — Rename files to keyword-rich slugs, bulk-fill missing alt text, and generate AI-optimized metadata.
 * **Performance** — Find and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
-* **Organization** — Categorize media, track image usage across posts and pages, and filter by any column.
+* **Organization** — Group media, track image usage across posts and pages, and filter by any column.
 * **Automation** — Auto-rename on upload, auto-fill metadata from post titles, and inject missing alt text on the frontend.
 
 ---
@@ -38,7 +38,7 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 = Media Table =
 * View your entire media library in a fast, paginated, and filterable table
 * Sort by filename, date, alt text, caption, and description
-* Filter by date range, media category, status, or keyword search
+* Filter by date range, Group, status, or keyword search
 * Inline single-item editing — title, alt text, caption, and description
 * Bulk edit multiple items at once with a single save action
 * Move selected images to trash or restore them; permanently delete when ready
@@ -92,11 +92,13 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Disable default sizes: Thumbnail, Medium, Large, Medium Large (768px), 1536×1536, 2048×2048, and the "Big" scaled size
 * Works with sizes added by your theme or other plugins
 
-= Media Categories =
-* Organize your media library with a custom category taxonomy
-* Bulk-assign categories from the media table
-* Filter media by category using the dropdown filter
-* Categories appear as clickable links in the native WordPress media list view
+= Media Groups =
+* Organize your media library with a custom Groups taxonomy
+* Assign media to Groups from the media table — per item in Edit Mode, or in bulk via Bulk Edit
+* Choose whether a bulk assignment adds to, replaces, or removes the selected Groups
+* Filter media by Group using the dropdown filter
+* Import and export Group assignments with the `groups` CSV column
+* Groups appear as clickable links in the native WordPress media list view
 
 = Media Download Shortcode =
 * Add styled download buttons anywhere on your site using a simple shortcode:
@@ -238,7 +240,7 @@ Descriptive, keyword-rich filenames help search engines understand your images, 
 == Frequently Asked Questions ==
 
 = How do I view and manage all my media files in one place? =
-Go to **Media > Media Tools > Media Table**. You will see your entire WordPress media library in a fast, paginated table with columns for thumbnail, filename, title, alt text, caption, description, attached post, and file type. You can sort by any column, filter by date, category, or keyword, and perform bulk actions on selected items.
+Go to **Media > Media Tools > Media Table**. You will see your entire WordPress media library in a fast, paginated table with columns for thumbnail, filename, title, alt text, caption, description, attached post, and file type. You can sort by any column, filter by date, Group, or keyword, and perform bulk actions on selected items.
 
 = How do I inline-edit a single media item's metadata? =
 In the Media Table, click the **Enable Edit Mode** button on any row. The row expands to show editable fields for title, alt text, caption, and description. Make your changes and save. This is the fastest way to update metadata for individual images without leaving the table.
@@ -252,8 +254,8 @@ Yes — this is a Pro feature. Select images in the Media Table, choose **Bulk E
 = How do I move media files to trash or delete them permanently? =
 Select items in the Media Table, then choose **Move to Trash** or **Delete Permanently** from the Bulk Actions dropdown. Trashed items can be restored at any time before you empty the trash.
 
-= How do I create and assign media categories? =
-Select items in the Media Table and choose **Bulk Edit**. In the modal you can assign a media category to all selected items. You can also filter the Media Table by category using the category dropdown filter at the top. Categories appear as clickable links in the native WordPress Media Library list view as well.
+= How do I create and assign media Groups? =
+Create Groups under **Media > Groups**. To assign them, either turn on Edit Mode in the Media Table and tick the Groups checkboxes on an individual item, or select several items and choose **Bulk Edit** — the modal lets you pick Groups and decide whether to add to, replace, or remove them. You can also filter the Media Table by Group using the dropdown filter at the top, or assign Groups in bulk through CSV import using the `groups` column. Groups appear as clickable links in the native WordPress Media Library list view as well.
 
 = How do I copy a media file URL quickly? =
 Each row in the Media Table has a copy-to-clipboard icon next to the filename. Clicking it copies the full file URL to your clipboard instantly — no need to open the attachment edit screen.
@@ -460,6 +462,16 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.2.14 (Aug XX, 2026)=
+* Feature: Media can now be assigned to Groups. Previously Groups could be created and filtered by, but there was no way to assign media to them.
+* Feature: Assign Groups to many items at once from Bulk Actions > Bulk Edit.
+* Feature: Bulk Group assignment can add to, replace, or remove the selected Groups.
+* Feature: Assign Groups to a single item by ticking the Groups checkboxes in Edit Mode.
+* Feature: Added `groups`, `post_parent`, and `menu_order` columns to CSV export.
+* Fix: Bulk Group assignment no longer removes the Groups an item already belongs to. It now adds to them by default, with replacing available as an explicit choice.
+* Improvement: The Media Table now exports the attachment's parent post ID and menu order, so both can be edited in a spreadsheet and re-imported.
+* Improvement: Renamed "Media Categories" to "Groups" throughout the documentation to match the plugin interface.
+
 = 2.2.13 (Aug 24, 2026)=
 * Improvement: Font Size Improvement
 
