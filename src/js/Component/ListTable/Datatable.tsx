@@ -14,6 +14,7 @@ import { useSearchDebounce } from "@/js/Utils/Hooks";
 import * as Types from "@/js/Utils/actionType";
 import MissingBadge from "@/js/Component/Badges/MissingBadge";
 import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
+import CheckboxField from "@/js/Component/Common/CheckboxField";
 
 const theImage = (record: MediaPost) => (
     <MediaThumbnail
@@ -490,6 +491,28 @@ export default function Datatable() {
                                                             {record.description ? record.description : <MissingBadge />}
                                                         </p>
                                                     )}
+
+                                                    {/* Groups */}
+                                                    {formEdited && (generalData.termsList?.length ?? 0) > 0 && (
+                                                        <div className="max-w-full">
+                                                            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5 block">Groups</label>
+                                                            <div className="flex flex-wrap gap-x-5 gap-y-2 max-h-24 overflow-y-auto py-1">
+                                                                {generalData.termsList.map(term => {
+                                                                    const termId = String(term.value);
+                                                                    const isAssigned = categories.some(item => String(item.id) === termId);
+                                                                    return (
+                                                                        <CheckboxField
+                                                                            key={termId}
+                                                                            value={termId}
+                                                                            checked={isAssigned}
+                                                                            onChange={(e) => handleGroupToggle(i, termId, e.target.checked)}
+                                                                            label={term.label}
+                                                                        />
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Right side info */}
@@ -507,37 +530,7 @@ export default function Datatable() {
                                                         </span>
                                                     )}
 
-                                                    {formEdited ? (
-                                                        (generalData.termsList?.length ?? 0) > 0 && (
-                                                            <div className="flex flex-wrap gap-1.5 justify-end items-center">
-                                                                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Groups</span>
-                                                                {generalData.termsList.map(term => {
-                                                                    const termId = String(term.value);
-                                                                    const isAssigned = categories.some(item => String(item.id) === termId);
-                                                                    return (
-                                                                        <button
-                                                                            key={termId}
-                                                                            type="button"
-                                                                            title={isAssigned ? `Remove from ${term.label}` : `Add to ${term.label}`}
-                                                                            onClick={() => handleGroupToggle(i, termId, !isAssigned)}
-                                                                            className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border cursor-pointer transition-colors ${
-                                                                                isAssigned
-                                                                                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                                                                                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600'
-                                                                            }`}
-                                                                        >
-                                                                            {isAssigned && (
-                                                                                <svg className="w-2.5 h-2.5 mr-1" viewBox="0 0 12 12" fill="none">
-                                                                                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                </svg>
-                                                                            )}
-                                                                            {term.label}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )
-                                                    ) : categories.length > 0 && (
+                                                    {!formEdited && categories.length > 0 && (
                                                         <div className="flex flex-wrap gap-1 justify-end">
                                                             Groups: {categories.map(item => item.id && (
                                                             <span key={String(item.id)} className="inline-flex px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
