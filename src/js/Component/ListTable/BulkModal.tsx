@@ -25,18 +25,37 @@ function BulkModal() {
             [event.target.name]: event.target.value
         };
         setBulkSubmitData({ data });
-        const changeDetected = Object.values(data).some(value => value !== '');
-        setIsButtonDisabled(!bulkSubmitData.ids.length || !changeDetected);
+        setIsButtonDisabled(
+            !bulkSubmitData.ids.length || !hasChanges(data, bulkSubmitData.post_categories)
+        );
     };
+
+    // A group-only selection is a valid edit, so it must count as a change on its
+    // own — otherwise "Done" stays disabled when no text field was touched.
+    const hasChanges = (data: typeof bulkSubmitData.data, groups: string[]) =>
+        Object.values(data).some(value => value !== '') || !!groups.length;
 
     const isTheButtonDisabled = () => {
         let changeDetected = false;
         if ('bulkEditPostTitle' === bulkSubmitData.type) {
             changeDetected = !!bulkSubmitData.will_attached_post_title.length;
         } else {
-            changeDetected = Object.values(bulkSubmitData.data).some(value => value !== '');
+            changeDetected = hasChanges(bulkSubmitData.data, bulkSubmitData.post_categories);
         }
         setIsButtonDisabled(!bulkSubmitData.ids.length || !changeDetected);
+    };
+
+    const onToggleGroup = (value: string, checked: boolean) => {
+        const current = bulkSubmitData.post_categories || [];
+        const list = checked ? [...current, value] : current.filter(v => v !== value);
+        setBulkSubmitData({ post_categories: list });
+        setIsButtonDisabled(
+            !bulkSubmitData.ids.length || !hasChanges(bulkSubmitData.data, list)
+        );
+    };
+
+    const onGroupModeChange = (mode: typeof bulkSubmitData.post_categories_mode) => {
+        setBulkSubmitData({ post_categories_mode: mode });
     };
 
     const addDataRecursively = async (prams: typeof bulkSubmitData): Promise<{ status: number } | undefined> => {
@@ -126,6 +145,10 @@ function BulkModal() {
                     <BulkEditForm
                         data={bulkSubmitData.data}
                         onChange={balkModalDataChange}
+                        selectedGroups={bulkSubmitData.post_categories}
+                        onToggleGroup={onToggleGroup}
+                        groupMode={bulkSubmitData.post_categories_mode}
+                        onGroupModeChange={onGroupModeChange}
                     />
                 )}
             </div>

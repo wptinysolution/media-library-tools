@@ -46,6 +46,17 @@ export const redownloadCsv = (id: string, filename: string): boolean => {
     }
 };
 
+// `categories` arrives as a JSON string of {id, name} objects. Export the names as a
+// comma-separated list so an exported file can be re-imported without translation.
+export const parseGroupNames = (categories: unknown): string => {
+    try {
+        const parsed = JSON.parse(String(categories)) as Array<{ name?: string }>;
+        return parsed.map(item => item.name).filter(Boolean).join(', ');
+    } catch {
+        return '';
+    }
+};
+
 const escapeValues = (obj: Record<string, unknown>): Record<string, unknown> => {
     const escaped: Record<string, unknown> = {};
     for (const key in obj) {
@@ -77,6 +88,8 @@ function ExportCSV() {
                 caption: item.caption,
                 description: item.description,
                 alt_text: item.alt_text,
+                // Comma-separated group names — the same format the CSV importer parses.
+                groups: parseGroupNames(item.categories),
                 ...flatMeta,
             };
             const finalKeys = Array.from(new Set(['ID', 'slug', ...selectedKeys]));

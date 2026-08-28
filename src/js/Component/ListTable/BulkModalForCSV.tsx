@@ -19,7 +19,9 @@ function BulkModalForCSV() {
         const item = filteredData[0];
         const keys: string[] = [];
         defaultKeys.forEach((key) => {
-            if (Object.prototype.hasOwnProperty.call(item, key)) {
+            // The CSV column is "groups"; it is derived from the item's "categories" field.
+            const sourceKey = 'groups' === key ? 'categories' : key;
+            if (Object.prototype.hasOwnProperty.call(item, sourceKey)) {
                 keys.push(key);
             }
         });

@@ -155,6 +155,36 @@ export default function Datatable() {
         setSaveType(Types.UPDATE_SINGLE_MEDIA);
     };
 
+    // Toggle one group on a single attachment. The full resulting set is sent so
+    // the backend can apply it verbatim, including clearing the last group.
+    const handleGroupToggle = (currentItem: number, termId: string, checked: boolean) => {
+        const posts = [...mediaData.posts];
+        const record = posts[currentItem];
+
+        let current: Array<{ id?: string | number; name?: string }> = [];
+        try {
+            current = JSON.parse(record.categories);
+        } catch { /* ignore */ }
+
+        const term = generalData.termsList?.find(item => String(item.value) === termId);
+        const next = checked
+            ? [...current, { id: termId, name: term?.label }]
+            : current.filter(item => String(item.id) !== termId);
+
+        posts[currentItem] = { ...record, categories: JSON.stringify(next) };
+        setMediaData({ posts, isLoading: false });
+
+        setSingleMedia({
+            alt_text: null,
+            post_content: null,
+            post_excerpt: null,
+            post_title: null,
+            ID: record.ID,
+            post_categories: next.map(item => String(item.id)),
+        });
+        setSaveType(Types.UPDATE_SINGLE_MEDIA);
+    };
+
     const handleSortClick = (field: string) => {
         const { orderby, order } = mediaData.postQuery;
         setMediaData({
@@ -477,7 +507,37 @@ export default function Datatable() {
                                                         </span>
                                                     )}
 
-                                                    {categories.length > 0 && (
+                                                    {formEdited ? (
+                                                        (generalData.termsList?.length ?? 0) > 0 && (
+                                                            <div className="flex flex-wrap gap-1.5 justify-end items-center">
+                                                                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Groups</span>
+                                                                {generalData.termsList.map(term => {
+                                                                    const termId = String(term.value);
+                                                                    const isAssigned = categories.some(item => String(item.id) === termId);
+                                                                    return (
+                                                                        <button
+                                                                            key={termId}
+                                                                            type="button"
+                                                                            title={isAssigned ? `Remove from ${term.label}` : `Add to ${term.label}`}
+                                                                            onClick={() => handleGroupToggle(i, termId, !isAssigned)}
+                                                                            className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border cursor-pointer transition-colors ${
+                                                                                isAssigned
+                                                                                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                                                                                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600'
+                                                                            }`}
+                                                                        >
+                                                                            {isAssigned && (
+                                                                                <svg className="w-2.5 h-2.5 mr-1" viewBox="0 0 12 12" fill="none">
+                                                                                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                </svg>
+                                                                            )}
+                                                                            {term.label}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )
+                                                    ) : categories.length > 0 && (
                                                         <div className="flex flex-wrap gap-1 justify-end">
                                                             Groups: {categories.map(item => item.id && (
                                                             <span key={String(item.id)} className="inline-flex px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-full">

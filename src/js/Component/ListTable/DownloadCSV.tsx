@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@/js/Utils/store';
+import { parseGroupNames } from '@/js/Component/ExportImport/ExportCSV';
 import Papa from 'papaparse';
 
 const escapeValues = (obj: Record<string, unknown>): Record<string, unknown> => {
@@ -35,6 +36,8 @@ function DownloadCSV() {
                 caption: item.caption,
                 description: item.description,
                 alt_text: item.alt_text,
+                // Comma-separated group names — the same format the CSV importer parses.
+                groups: parseGroupNames(item.categories),
                 ...flatMeta,
             };
 

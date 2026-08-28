@@ -40,6 +40,7 @@ export const defaultBulkSubmitData: BulkSubmitData = {
     },
     will_attached_post_title: [],
     post_categories: [],
+    post_categories_mode: 'add',
 };
 
 const theImage = (record: MediaPost): React.ReactElement => (

@@ -72,6 +72,7 @@ export interface BulkSubmitData {
     data: BulkSubmitDataItem;
     will_attached_post_title: string[];
     post_categories: string[];
+    post_categories_mode: 'add' | 'replace' | 'remove';
 }
 
 export interface RenameState {
@@ -303,7 +304,7 @@ export const initialExportImport: ExportImportState = {
 
 export const initialBulkExport: BulkExportState = {
     isModalOpen: false,
-    selectedKeys: ['ID', 'slug', 'url', 'title', 'caption', 'description', 'alt_text'],
+    selectedKeys: ['ID', 'slug', 'url', 'title', 'caption', 'description', 'alt_text', 'groups'],
 };
 
 export const useStore = create<StoreState>((set) => ({

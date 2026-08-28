@@ -184,6 +184,18 @@ class RenameModule {
 			unset( $parameters['description'] );
 		}
 
+		// Groups (tsmlt_category taxonomy). Sent as the full desired set for this
+		// attachment, so an empty array legitimately means "clear all groups" —
+		// hence isset() rather than ! empty() here.
+		if ( isset( $parameters['post_categories'] ) ) {
+			$group_ids = array_filter( array_map( 'absint', (array) $parameters['post_categories'] ) );
+			$set_terms = wp_set_object_terms( $parameters['ID'], $group_ids, Fns::CATEGORY );
+			if ( ! is_wp_error( $set_terms ) ) {
+				$result['updated'] = true;
+				$result['message'] = esc_html__( 'Groups have been saved.', 'media-library-tools' );
+			}
+		}
+
 		$submit = [];
 		foreach ( $post_fields as $field => $message ) {
 			if ( isset( $parameters[ $field ] ) ) {
