@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, cleaner, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.2.14
+Stable tag: 2.2.15
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -462,7 +462,7 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
-= 2.2.14 (Aug XX, 2026)=
+= 2.2.15 (Aug XX, 2026)=
 * Feature: Media can now be assigned to Groups. Previously Groups could be created and filtered by, but there was no way to assign media to them.
 * Feature: Assign Groups to many items at once from Bulk Actions > Bulk Edit.
 * Feature: Bulk Group assignment can add to, replace, or remove the selected Groups.
@@ -471,6 +471,11 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 * Fix: Bulk Group assignment no longer removes the Groups an item already belongs to. It now adds to them by default, with replacing available as an explicit choice.
 * Improvement: The Media Table now exports the attachment's parent post ID and menu order, so both can be edited in a spreadsheet and re-imported.
 * Improvement: Renamed "Media Categories" to "Groups" throughout the documentation to match the plugin interface.
+* Fix: Editing a title, alt text, caption, or description could re-apply a Group selection made on a different item moments earlier, assigning that item's Groups to the wrong media file.
+* Fix: A negative menu order value is now exported correctly instead of losing its sign, so it survives a CSV export and re-import.
+
+= 2.2.14 (Aug 24, 2026)=
+* Maintenance release.
 
 = 2.2.13 (Aug 24, 2026)=
 * Improvement: Font Size Improvement

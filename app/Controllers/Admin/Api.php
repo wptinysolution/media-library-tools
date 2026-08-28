@@ -413,7 +413,9 @@ class Api {
 				],
 				// Raw native attachment fields, exposed for CSV export/import round-tripping.
 				'post_parent'    => absint( $post->post_parent ),
-				'menu_order'     => absint( $post->menu_order ),
+				// Not absint(): WordPress permits a negative menu_order, and the CSV
+				// importer accepts one, so exporting it unsigned would break the round-trip.
+				'menu_order'     => (int) $post->menu_order,
 				'caption'        => esc_attr( $post->post_excerpt ),
 				'description'    => esc_attr( $post->post_content ),
 				'slug'           => esc_attr( $post->post_name ),

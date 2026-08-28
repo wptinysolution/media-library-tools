@@ -148,6 +148,10 @@ export default function Datatable() {
             post_content: null,
             post_excerpt: null,
             post_title: null,
+            // singleMedia is merged, not replaced, and is never cleared after a save.
+            // Drop any group selection left over from a previous toggle so a text edit
+            // never re-applies a stale set — possibly to a different attachment.
+            post_categories: undefined,
             ...currentData,
         });
     };
@@ -371,7 +375,7 @@ export default function Datatable() {
                                                                             const updatedPosts = [...mediaData.posts];
                                                                             updatedPosts[i] = { ...updatedPosts[i], title: value };
                                                                             setMediaData({ posts: updatedPosts });
-                                                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, title: value });
+                                                                            setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, post_categories: undefined, ID: record.ID, title: value });
                                                                             setSaveType(Types.UPDATE_SINGLE_MEDIA);
                                                                         }}
                                                                     />
@@ -407,7 +411,7 @@ export default function Datatable() {
                                                                         const updatedPosts = [...mediaData.posts];
                                                                         updatedPosts[i] = { ...updatedPosts[i], alt_text: value };
                                                                         setMediaData({ posts: updatedPosts });
-                                                                        setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, ID: record.ID });
+                                                                        setSingleMedia({ alt_text: value, post_content: null, post_excerpt: null, post_title: null, post_categories: undefined, ID: record.ID });
                                                                         setSaveType(Types.UPDATE_SINGLE_MEDIA);
                                                                     }}
                                                                 />
@@ -443,7 +447,7 @@ export default function Datatable() {
                                                                         const updatedPosts = [...mediaData.posts];
                                                                         updatedPosts[i] = { ...updatedPosts[i], caption: value };
                                                                         setMediaData({ posts: updatedPosts });
-                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, caption: value });
+                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, post_categories: undefined, ID: record.ID, caption: value });
                                                                         setSaveType(Types.UPDATE_SINGLE_MEDIA);
                                                                     }}
                                                                 />
@@ -479,7 +483,7 @@ export default function Datatable() {
                                                                         const updatedPosts = [...mediaData.posts];
                                                                         updatedPosts[i] = { ...updatedPosts[i], description: value };
                                                                         setMediaData({ posts: updatedPosts });
-                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, ID: record.ID, description: value });
+                                                                        setSingleMedia({ alt_text: null, post_content: null, post_excerpt: null, post_title: null, post_categories: undefined, ID: record.ID, description: value });
                                                                         setSaveType(Types.UPDATE_SINGLE_MEDIA);
                                                                     }}
                                                                 />
