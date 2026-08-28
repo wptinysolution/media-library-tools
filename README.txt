@@ -136,9 +136,11 @@ All free features, plus:
 
 = CSV Import =
 * Upload a CSV file to bulk-update existing media metadata or create new attachments from external URLs
-* Supported columns: `ID`, `slug`, `url`, `rename_to`, `title`, `caption`, `description`, `alt_text`, `custom_meta:_key`
+* Supported columns: `ID`, `slug`, `url`, `rename_to`, `title`, `caption`, `description`, `alt_text`, `post_parent`, `menu_order`, `groups`, `custom_meta:_key`
 * Batch processing with progress tracking — handles large libraries without timeouts
 * Rename files during import using the `rename_to` column
+* Assign media to Groups with the `groups` column (comma-separated group names; missing groups are created)
+* Set the attached post and sort order with the `post_parent` and `menu_order` columns
 
 [youtube https://www.youtube.com/watch?v=CxBf8m3dTpo]
 [youtube https://www.youtube.com/watch?v=uQ1KQqTLFss]
@@ -380,7 +382,7 @@ This is a Pro feature. Go to **Settings > Image Size Settings** and scroll to th
 Go to **Media > Media Tools > CSV Export**. Choose which columns to include (ID, slug, URL, title, alt text, caption, description, and custom meta fields) and click Export. The plugin processes your entire library in batches and downloads a CSV file you can open in Excel, Google Sheets, or any spreadsheet application.
 
 = How do I bulk-update media metadata using a CSV file? (Pro) =
-This is a Pro feature. Go to **Media > Media Tools > CSV Import**, upload your CSV file, and click Import. The plugin matches rows by ID or slug and updates each media record. Supported columns include `rename_to`, `title`, `alt_text`, `caption`, `description`, and custom meta fields using the `custom_meta:_key` format. Files can also be renamed during import using the `rename_to` column.
+This is a Pro feature. Go to **Media > Media Tools > CSV Import**, upload your CSV file, and click Import. The plugin matches rows by ID or slug and updates each media record. Supported columns include `rename_to`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`, and custom meta fields using the `custom_meta:_key` format. Files can also be renamed during import using the `rename_to` column. The `groups` column accepts comma-separated group names and creates any that do not exist yet. Empty cells leave the existing value unchanged.
 
 -- SVG SUPPORT --
 

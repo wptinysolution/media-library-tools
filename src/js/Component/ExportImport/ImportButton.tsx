@@ -80,7 +80,12 @@ function ImportButton() {
                     <p className="m-0!">If import fails, try importing in smaller batches — performance depends on your server capacity.</p>
                     <p className="mt-1 m-0!">
                         Accepted column headers:{' '}
-                        <strong>ID, slug, url, rename_to, title, caption, description, alt_text, custom_meta:_key</strong>
+                        <strong>ID, slug, url, rename_to, title, caption, description, alt_text, post_parent, menu_order, groups, custom_meta:_key</strong>
+                    </p>
+                    <p className="mt-1 m-0!">
+                        <strong>groups</strong> takes comma-separated group names (e.g. <em>Folder 1, Folder 2</em>) and creates any that
+                        do not exist yet. <strong>post_parent</strong> is the attached post ID (use <em>0</em> to detach) and{' '}
+                        <strong>menu_order</strong> is the sort order. Empty cells leave the existing value unchanged.
                     </p>
                 </div>
 
