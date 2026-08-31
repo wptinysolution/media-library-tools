@@ -252,11 +252,8 @@ export interface DuplicateState {
 }
 
 export interface CompressionState {
-    isModalOpen: boolean;
     isLoading: boolean;
     isProcessing: boolean;
-    /** Attachment IDs the modal will submit. Server revalidates every one. */
-    selectedIds: number[];
     settings: CompressionSettings | null;
     access: CompressionAccess | null;
     modes: { value: CompressionMode; label: string; description: string }[];
@@ -468,10 +465,8 @@ export const useStore = create<StoreState>((set) => ({
     setDuplicateData: (update) => set((state) => ({ duplicateData: { ...state.duplicateData, ...update } })),
 
     compression: {
-        isModalOpen: false,
         isLoading: false,
         isProcessing: false,
-        selectedIds: [],
         settings: null,
         access: null,
         modes: [],

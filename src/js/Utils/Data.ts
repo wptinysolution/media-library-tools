@@ -563,6 +563,24 @@ export const compressionStart = async (prams: object = {}): Promise<CompressionP
     return result.data as CompressionProgress;
 };
 
+export interface CompressionLibraryStatus {
+    total: number;
+    compressed: number;
+    remaining: number;
+    progress: CompressionProgress;
+    access: CompressionAccess;
+}
+
+export const compressionGetLibraryStatus = async (): Promise<CompressionLibraryStatus> => {
+    const result = await ajaxPost('tsmlt_compression_get_library_status');
+    return result.data as CompressionLibraryStatus;
+};
+
+export const compressionStartLibrary = async (prams: object = {}): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_start_library', prams);
+    return result.data as CompressionProgress;
+};
+
 export const compressionGetProgress = async (): Promise<CompressionProgress> => {
     const result = await ajaxPost('tsmlt_compression_get_progress');
     return result.data as CompressionProgress;

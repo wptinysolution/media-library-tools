@@ -122,6 +122,34 @@ class CompressModule {
 	}
 
 	/**
+	 * Library-wide compression figures for the Compress Images page.
+	 *
+	 * @return array
+	 */
+	public function get_library_status(): array {
+		$job = CompressionJob::instance();
+
+		return array_merge(
+			$job->get_library_stats(),
+			[
+				'progress' => $job->get_progress(),
+				'access'   => CompressionAccess::instance()->to_array(),
+			]
+		);
+	}
+
+	/**
+	 * Start a job covering every not-yet-compressed image in the library.
+	 *
+	 * @param array $params Request parameters.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function start_library_job( array $params ) {
+		return CompressionJob::instance()->start_library( $params );
+	}
+
+	/**
 	 * Current job progress.
 	 *
 	 * @return array

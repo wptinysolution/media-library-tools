@@ -4,12 +4,10 @@ import { useStore } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
 import { notifications } from "@/js/Utils/Data";
 import Modal from "@/js/Component/Common/Modal";
-import CompressModal from "@/js/Component/Compress/CompressModal";
 
 const bulkOptions = [
     { value: 'bulkedit', label: 'Bulk Edit' },
     { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
-    { value: 'compress', label: 'Compress Images' },
     { value: 'csv_export', label: 'Export CSV' },
     { value: 'exif_to_caption', label: 'Insert EXIF To Caption' },
     { value: 'inherit', label: 'Restore' },
@@ -24,7 +22,6 @@ function TheHeader() {
         mediaData, setMediaData,
         generalData, setGeneralData,
         bulkSubmitData, setBulkSubmitData,setBulkExport,
-        setCompression,
         setSaveType,
     } = useStore();
 
@@ -79,11 +76,6 @@ function TheHeader() {
         }
 
         switch (bulkSubmitData.type) {
-            case 'compress':
-                // Server revalidates every ID, applies the Free-tier limit and
-                // enforces per-attachment permissions before any work starts.
-                setCompression({ isModalOpen: true, selectedIds: bulkSubmitData.ids });
-                break;
             case 'csv_export':
                 setBulkExport({ isModalOpen: true });
                 break;
@@ -251,8 +243,6 @@ function TheHeader() {
                 )}
             </div>
         </Modal>
-
-        <CompressModal />
         </>
     );
 }

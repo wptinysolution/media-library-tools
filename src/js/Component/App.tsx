@@ -31,6 +31,7 @@ import MediaDownload from "@/js/Component/MediaDownload/MediaDownload";
 import DuplicatePage from "@/js/Component/Duplicate/DuplicatePage";
 import UsedWherePage from "@/js/Component/UsedWhere/UsedWherePage";
 import RegenerateInit from "@/js/Component/Regenerate/RegenerateInit";
+import CompressPage from "@/js/Component/Compress/CompressPage";
 import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
 import ExifDataPage from "@/js/Component/ExifData/ExifDataPage";
 
@@ -196,6 +197,7 @@ function App() {
                     <Route path="/import" element={<ImportButton />} />
                     <Route path="/imageSize" element={<ImageSize />} />
                     <Route path="/regenerate" element={<RegenerateInit />} />
+                    <Route path="/compress" element={<CompressPage />} />
                     <Route path="/mediaDownload" element={<MediaDownload />} />
                     <Route path="/rubbishFile" element={<RubbishFile />} />
                     <Route path="/rubbishFile/page/:page" element={<RubbishFile />} />

@@ -126,6 +126,8 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_compression_get_settings', [ $this, 'compression_get_settings' ] );
 		add_action( 'wp_ajax_tsmlt_compression_save_settings', [ $this, 'compression_save_settings' ] );
 		add_action( 'wp_ajax_tsmlt_compression_start', [ $this, 'compression_start' ] );
+		add_action( 'wp_ajax_tsmlt_compression_get_library_status', [ $this, 'compression_get_library_status' ] );
+		add_action( 'wp_ajax_tsmlt_compression_start_library', [ $this, 'compression_start_library' ] );
 		add_action( 'wp_ajax_tsmlt_compression_get_progress', [ $this, 'compression_get_progress' ] );
 		add_action( 'wp_ajax_tsmlt_compression_process_batch', [ $this, 'compression_process_batch' ] );
 		add_action( 'wp_ajax_tsmlt_compression_cancel', [ $this, 'compression_cancel' ] );
@@ -1027,6 +1029,18 @@ class Ajax {
 	public function compression_get_progress(): void {
 		$this->verify_and_get_params();
 		$this->send( CompressModule::instance()->get_job_progress() );
+	}
+
+	/** @return void */
+	public function compression_get_library_status(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->get_library_status() );
+	}
+
+	/** @return void */
+	public function compression_start_library(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->start_library_job( $params ) );
 	}
 
 	/** @return void */

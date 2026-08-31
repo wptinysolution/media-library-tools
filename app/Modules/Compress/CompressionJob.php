@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -137,6 +138,14 @@ class CompressionJob {
 	public function get_progress(): array {
 		$state = $this->get_state();
 
+		// A job with nothing left in the queue cannot make progress, so it must
+		// never be reported as running — otherwise the UI reattaches to it on
+		// load and appears to start a run the user never asked for.
+		if ( 'running' === $state['status'] && empty( $state['queue'] ) ) {
+			$state['status'] = $state['failed'] > 0 ? 'partial' : 'completed';
+			$this->save_state( $state );
+		}
+
 		$total     = (int) $state['total'];
 		$processed = (int) $state['processed'];
 		$percent   = $total > 0 ? (int) floor( ( $processed / $total ) * 100 ) : 0;
@@ -240,6 +249,112 @@ class CompressionJob {
 	}
 
 	/**
+	 * Count the compressible images in the library and how many are already done.
+	 *
+	 * Two aggregate queries rather than loading IDs, so the figure stays cheap on
+	 * libraries with tens of thousands of attachments.
+	 *
+	 * @return array{total: int, compressed: int, remaining: int}
+	 */
+	public function get_library_stats(): array {
+		$mime_types = CompressionManager::SUPPORTED_MIME_TYPES;
+
+		$total_rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->andIn( 'post_mime_type', ...$mime_types )
+			->get();
+
+		$total = (int) ( $total_rows[0]['total'] ?? 0 );
+
+		// Attachments carrying the compression meta key have already been run.
+		$done_rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', CompressionMetadata::META_KEY )
+			->get();
+
+		$compressed = min( $total, (int) ( $done_rows[0]['total'] ?? 0 ) );
+
+		return [
+			'total'      => $total,
+			'compressed' => $compressed,
+			'remaining'  => max( 0, $total - $compressed ),
+		];
+	}
+
+	/**
+	 * Queue every not-yet-compressed image in the library.
+	 *
+	 * Only IDs that still need work are selected, so re-running after a partial
+	 * pass picks up where the last one stopped instead of revisiting finished
+	 * images. The Free-tier cap is applied by `start()` exactly as it is for a
+	 * hand-picked selection.
+	 *
+	 * @param array $params Raw request parameters for run settings.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function start_library( array $params ) {
+		global $wpdb;
+
+		$limit = CompressionAccess::instance()->get_compression_limit();
+
+		// "Include already compressed" re-runs the whole library. Needed when the
+		// user turns on backups or generated sizes after an initial pass: those
+		// images carry compression data but still have outstanding work, so the
+		// default exclusion would wrongly report nothing to do.
+		$include_done = ! empty( $params['include_compressed'] );
+
+		// Attachments that already carry the compression meta key are finished.
+		// The query builder has no LEFT JOIN, so the exclusion is expressed as a
+		// subquery through `raw()` — the meta key is a class constant and the
+		// MIME list is a fixed whitelist, so no request data reaches the SQL.
+		$excluded = $wpdb->prepare(
+			"AND ID NOT IN ( SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s )",
+			CompressionMetadata::META_KEY
+		);
+
+		// Free installs only ever process up to the cap, so there is no reason to
+		// pull more IDs than that. Pro fetches everything outstanding.
+		$query = Fns::DB()->select( 'ID' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->andIn( 'post_mime_type', ...CompressionManager::SUPPORTED_MIME_TYPES );
+
+		if ( ! $include_done ) {
+			$query->raw( $excluded );
+		}
+
+		$query->orderBy( 'ID', 'DESC' );
+
+		if ( $limit > 0 ) {
+			$query->limit( $limit );
+		}
+
+		$rows = $query->get();
+		$ids  = [];
+
+		foreach ( ( $rows ?: [] ) as $row ) {
+			$ids[] = (int) $row['ID'];
+		}
+
+		if ( empty( $ids ) ) {
+			return new WP_Error(
+				'tsmlt_compression_nothing_to_do',
+				$include_done
+					? esc_html__( 'There are no supported images to compress.', 'media-library-tools' )
+					: esc_html__( 'Every supported image has already been compressed.', 'media-library-tools' )
+			);
+		}
+
+		return $this->start( $ids, $params );
+	}
+
+	/**
 	 * Reduce a raw ID list to the attachments this user may actually compress.
 	 *
 	 * @param int[] $attachment_ids Requested attachment IDs.
@@ -278,7 +393,10 @@ class CompressionJob {
 
 		$state = $this->get_state();
 
-		if ( 'running' === $state['status'] ) {
+		// Anything not already finished becomes cancelled. Testing only for
+		// 'running' left a window where a batch that flipped the status first
+		// kept the job resumable, so reopening the page restarted it.
+		if ( ! in_array( $state['status'], [ 'completed', 'partial', 'failed', 'idle' ], true ) ) {
 			$state['status'] = 'cancelled';
 		}
 
@@ -378,12 +496,21 @@ class CompressionJob {
 
 		$state = $this->process_batch( $state, $batch_size );
 
-		$this->save_state( $state );
-
-		// Re-read: the user may have cancelled while this batch was running.
+		// A batch takes seconds, so the user may have cancelled while it ran.
+		// `$state` still carries the status captured before that, and writing it
+		// back verbatim would resurrect a cancelled job — which is why Stop had
+		// to be pressed repeatedly. Re-read first and let the cancellation win,
+		// while still keeping the counts this batch produced.
 		$fresh = $this->get_state();
 
-		if ( $reschedule && 'running' === $fresh['status'] && ! empty( $fresh['queue'] ) ) {
+		if ( 'running' !== $fresh['status'] ) {
+			$state['status'] = $fresh['status'];
+			$state['queue']  = [];
+		}
+
+		$this->save_state( $state );
+
+		if ( $reschedule && 'running' === $state['status'] && ! empty( $state['queue'] ) ) {
 			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
 		}
 

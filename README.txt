@@ -108,11 +108,12 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Forces a browser download prompt — works with images, PDFs, documents, audio, video, archives, and more
 
 = Compress Images =
-* Compress JPEG, PNG, and WebP images directly from the Media Table — no external service or API key required
-* Select one or more images, choose a compression level, and start — progress is shown in real time
+* Compress JPEG, PNG, and WebP images from a dedicated Compress Images page — no external service or API key required
+* See at a glance how many images your library has, how many are already compressed, and how many remain
+* Choose a compression level and compress everything that is left in one click — progress is shown in real time
 * Three compression presets: **High Quality** (smallest visual change), **Balanced** (recommended), and **Maximum Compression** (largest savings)
 * Uses the image library already installed on your server — ImageMagick where available, otherwise GD
-* Compress a single image straight from its row in the Media Table, without opening the bulk window
+* Compress or restore an individual image straight from its row in the Media Table
 * Results show the before and after size, the percentage saved, and the total disk space reclaimed
 * Images that are already fully optimised are marked **skipped** rather than reported as failures — a file is never made larger
 * Originals are never overwritten directly: each image is compressed to a temporary file that is validated before it replaces the original
@@ -313,7 +314,7 @@ Go to **Media > Media Tools > Regenerate Thumbs**. Click **Start Regenerating** 
 Yes. Click the **Stop** button at any time to pause. The progress bar turns amber to indicate a stopped state. You can resume by clicking **Restart from Beginning** or proceed to clean up orphaned files using the **Check Rubbish Files** button.
 
 = How do I compress images in my WordPress media library? =
-Go to **Media > Media Tools > Media Table**, tick the images you want to compress, choose **Compress Images** from the Bulk Actions dropdown, and click **Apply**. Pick a compression level in the window that opens and start. You can also compress a single image using the **Compress image** link on its row.
+Go to **Media > Media Tools > Compress Images**. The page shows how many images your library contains, how many are already compressed, and how many remain. Pick a compression level and click the compress button to process the remaining images. You can also compress a single image using the **Compress image** link on its row in the Media Table.
 
 = Which image formats can be compressed? =
 JPEG, PNG, and WebP. Other file types are ignored and never modified.
@@ -487,13 +488,15 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 14. CSV Import
 15. Media Table Settings
 16. Ai Settings
-17. Compress Images Settings
+17. Compress Images — library overview and compression level
+18. Compress Images — live progress with compressed, skipped, and failed counts
+19. Compress Images Settings
 
 ---
 
 == Changelog ==
 = 2.3.0 (Sep XX, 2026)=
-* Feature: Compress Images — compress JPEG, PNG, and WebP images from the Media Table. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
+* Feature: Compress Images — new page for compressing JPEG, PNG, and WebP images across your media library. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
 * Fix: The page number in the URL could disagree with the page shown in the table.
 
 = 2.2.15 (Aug XX, 2026)=
