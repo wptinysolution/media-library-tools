@@ -406,30 +406,30 @@ class Api {
 				foreach ( $all_meta_keys as $name ) {
 					$_value = $get_meta[ $name ][0] ?? '';
 					if ( ! is_array( $_value ) ) {
-						$custom_meta[ 'custom_meta:' . $name ] = esc_attr( $_value );
+						$custom_meta[ 'custom_meta:' . $name ] = Fns::prepare_text_for_json( $_value );
 					}
 				}
 			}
 			$get_posts[] = [
 				'ID'             => $post->ID,
 				'url'            => wp_get_attachment_url( $post->ID ),
-				'title'          => esc_attr( $post->post_title ),
+				'title'          => Fns::prepare_text_for_json( $post->post_title ),
 				'post_parents'   => [
-					'title'     => esc_attr( $parent_title ),
+					'title'     => Fns::prepare_text_for_json( $parent_title ),
 					'permalink' => $parent_permalink,
-					'sku'       => esc_attr( $parent_sku ),
+					'sku'       => Fns::prepare_text_for_json( $parent_sku ),
 				],
 				// Raw native attachment fields, exposed for CSV export/import round-tripping.
 				'post_parent'    => absint( $post->post_parent ),
 				// Not absint(): WordPress permits a negative menu_order, and the CSV
 				// importer accepts one, so exporting it unsigned would break the round-trip.
 				'menu_order'     => (int) $post->menu_order,
-				'caption'        => esc_attr( $post->post_excerpt ),
-				'description'    => esc_attr( $post->post_content ),
-				'slug'           => esc_attr( $post->post_name ),
+				'caption'        => Fns::prepare_text_for_json( $post->post_excerpt ),
+				'description'    => Fns::prepare_text_for_json( $post->post_content ),
+				'slug'           => Fns::prepare_text_for_json( $post->post_name ),
 				'guid'           => $post->guid,
 				'uploaddir'      => $uploaddir,
-				'alt_text'       => esc_attr( get_post_meta( $post->ID, '_wp_attachment_image_alt', true ) ),
+				'alt_text'       => Fns::prepare_text_for_json( get_post_meta( $post->ID, '_wp_attachment_image_alt', true ) ),
 				'categories'     => wp_json_encode( $tsmlt_category ),
 				'metadata'       => $metadata,
 				'thefile'        => $thefile,

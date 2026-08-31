@@ -544,6 +544,27 @@ class Fns {
 	}
 
 	/**
+	 * Prepare a stored text value for a JSON response.
+	 *
+	 * These values are consumed by React, which escapes everything it renders,
+	 * so HTML-escaping here would show up as literal entities in the UI — a
+	 * title of "Usage & Unused" rendering as "Usage &amp; Unused". WordPress
+	 * also stores some punctuation pre-encoded (`&#038;`), so entities are
+	 * decoded to their plain characters first.
+	 *
+	 * @param mixed $value Stored value.
+	 *
+	 * @return string
+	 */
+	public static function prepare_text_for_json( $value ): string {
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		return html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' );
+	}
+
+	/**
 	 * @return false|string
 	 */
 	public static function get_options() {
