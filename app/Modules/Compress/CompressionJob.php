@@ -339,12 +339,34 @@ class CompressionJob {
 	 * @return void
 	 */
 	public static function run_tick(): void {
-		$self  = self::instance();
-		$state = $self->get_state();
+		self::instance()->run_batch( true );
+	}
 
-		// Cancelled or finished between ticks — stop the chain.
+	/**
+	 * Process one batch of the current job.
+	 *
+	 * Shared by both drivers so their behaviour cannot drift:
+	 *
+	 * - WP-Cron ticks (`run_tick()`), which keep a job moving after the browser
+	 *   has gone away;
+	 * - the AJAX endpoint the open modal calls, which keeps a job moving on
+	 *   installs where WP-Cron is disabled or simply never fires because the
+	 *   site receives no other traffic.
+	 *
+	 * Both are safe to run concurrently: each batch splices its items off the
+	 * front of the stored queue before processing, and `AttachmentProcessor`
+	 * holds a per-attachment lock, so an image is never compressed twice.
+	 *
+	 * @param bool $reschedule Whether to queue the next WP-Cron tick.
+	 *
+	 * @return array Progress after the batch.
+	 */
+	public function run_batch( bool $reschedule = false ): array {
+		$state = $this->get_state();
+
+		// Cancelled or finished between batches — stop here.
 		if ( 'running' !== $state['status'] ) {
-			return;
+			return $this->get_progress();
 		}
 
 		if ( function_exists( 'set_time_limit' ) ) {
@@ -354,16 +376,18 @@ class CompressionJob {
 		$batch_size = (int) apply_filters( 'tsmlt_compression_tick_batch_size', self::TICK_BATCH_SIZE );
 		$batch_size = max( 1, min( self::MAX_BATCH_SIZE, $batch_size ) );
 
-		$state = $self->process_batch( $state, $batch_size );
+		$state = $this->process_batch( $state, $batch_size );
 
-		$self->save_state( $state );
+		$this->save_state( $state );
 
 		// Re-read: the user may have cancelled while this batch was running.
-		$fresh = $self->get_state();
+		$fresh = $this->get_state();
 
-		if ( 'running' === $fresh['status'] && ! empty( $fresh['queue'] ) ) {
+		if ( $reschedule && 'running' === $fresh['status'] && ! empty( $fresh['queue'] ) ) {
 			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
 		}
+
+		return $this->get_progress();
 	}
 
 	/**

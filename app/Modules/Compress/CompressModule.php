@@ -131,6 +131,19 @@ class CompressModule {
 	}
 
 	/**
+	 * Process one batch of the running job and return the updated progress.
+	 *
+	 * Called repeatedly by the open modal. This is what keeps a job moving on
+	 * installs where WP-Cron is disabled (`DISABLE_WP_CRON`) or never fires
+	 * because the site gets no other traffic while the user waits.
+	 *
+	 * @return array
+	 */
+	public function process_job_batch(): array {
+		return CompressionJob::instance()->run_batch();
+	}
+
+	/**
 	 * Cancel the running job.
 	 *
 	 * @return array

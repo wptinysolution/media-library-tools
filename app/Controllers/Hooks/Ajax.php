@@ -127,6 +127,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_compression_save_settings', [ $this, 'compression_save_settings' ] );
 		add_action( 'wp_ajax_tsmlt_compression_start', [ $this, 'compression_start' ] );
 		add_action( 'wp_ajax_tsmlt_compression_get_progress', [ $this, 'compression_get_progress' ] );
+		add_action( 'wp_ajax_tsmlt_compression_process_batch', [ $this, 'compression_process_batch' ] );
 		add_action( 'wp_ajax_tsmlt_compression_cancel', [ $this, 'compression_cancel' ] );
 		add_action( 'wp_ajax_tsmlt_compression_retry', [ $this, 'compression_retry' ] );
 		add_action( 'wp_ajax_tsmlt_compression_reset', [ $this, 'compression_reset' ] );
@@ -1026,6 +1027,12 @@ class Ajax {
 	public function compression_get_progress(): void {
 		$this->verify_and_get_params();
 		$this->send( CompressModule::instance()->get_job_progress() );
+	}
+
+	/** @return void */
+	public function compression_process_batch(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->process_job_batch() );
 	}
 
 	/** @return void */

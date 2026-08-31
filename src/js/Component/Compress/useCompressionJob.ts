@@ -4,6 +4,7 @@ import {
     compressionCancel,
     compressionGetProgress,
     compressionGetSettings,
+    compressionProcessBatch,
     compressionRetry,
     compressionStart,
     notifications,
@@ -11,11 +12,11 @@ import {
 import type { CompressionProgress } from '@/js/Utils/Data';
 
 /**
- * Poll interval while a job is running. Batches are processed server-side by
- * WP-Cron, so this only controls how often the UI refreshes — not how fast
- * images are compressed.
+ * Delay between batch requests. Kept short because each request performs real
+ * work rather than only reporting status; the gap just yields to the browser
+ * and avoids hammering the server back-to-back.
  */
-const POLL_INTERVAL_MS = 2000;
+const POLL_INTERVAL_MS = 500;
 
 /** Job states that mean the server has stopped working. */
 const TERMINAL_STATUSES = ['completed', 'partial', 'failed', 'cancelled', 'idle'];
@@ -48,22 +49,39 @@ export function useCompressionJob() {
         return isRunning;
     }, [setCompression]);
 
+    /**
+     * Drive one batch, then schedule the next.
+     *
+     * The modal actively processes batches rather than only watching progress:
+     * relying on WP-Cron alone stalls at 0% whenever `DISABLE_WP_CRON` is set,
+     * or when no other request reaches the site while the user waits. The
+     * `inFlight` guard keeps exactly one batch request outstanding at a time.
+     */
     const pollOnce = useCallback(async () => {
         if (inFlight.current) return;
         inFlight.current = true;
 
         try {
-            const next = await compressionGetProgress();
+            const next = await compressionProcessBatch();
             if (!mountedRef.current) return;
 
             if (applyProgress(next)) {
                 pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
             }
         } catch {
-            // Transient failure (nonce refresh, brief network blip) — keep
-            // polling rather than abandoning a job that is still running.
-            if (mountedRef.current) {
-                pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            // Transient failure (nonce refresh, brief network blip). Fall back to
+            // a read-only progress check so a job that the cron ticks are still
+            // advancing is not abandoned by the UI.
+            if (!mountedRef.current) return;
+            try {
+                const next = await compressionGetProgress();
+                if (mountedRef.current && applyProgress(next)) {
+                    pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+                }
+            } catch {
+                if (mountedRef.current) {
+                    pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+                }
             }
         } finally {
             inFlight.current = false;
@@ -88,9 +106,17 @@ export function useCompressionJob() {
             const progress = await compressionGetProgress();
             if (!mountedRef.current) return;
 
-            // Resume a run that is still going from a previous session.
-            if (applyProgress(progress)) {
+            if ('running' === progress.status) {
+                // A run is still going (e.g. the user closed the modal and came
+                // back, or another tab started one) — reattach to it.
+                applyProgress(progress);
                 pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+            } else {
+                // A finished job from an earlier selection must not be shown as
+                // if it were this one — otherwise opening the modal for a new
+                // page of images displays the previous run's results and hides
+                // the start button. Clear it so the settings picker is shown.
+                setCompression({ progress: null, isProcessing: false });
             }
         } catch {
             if (mountedRef.current) {

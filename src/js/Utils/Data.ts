@@ -568,6 +568,18 @@ export const compressionGetProgress = async (): Promise<CompressionProgress> => 
     return result.data as CompressionProgress;
 };
 
+/**
+ * Process one batch server-side and return the updated progress.
+ *
+ * The modal calls this in a loop so a job still finishes on installs where
+ * WP-Cron is disabled or never fires. Safe alongside the cron ticks: each
+ * batch claims its items off the queue before working on them.
+ */
+export const compressionProcessBatch = async (): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_process_batch');
+    return result.data as CompressionProgress;
+};
+
 export const compressionCancel = async (): Promise<CompressionProgress> => {
     const result = await ajaxPost('tsmlt_compression_cancel');
     return result.data as CompressionProgress;
