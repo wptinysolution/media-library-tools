@@ -144,6 +144,7 @@ class Installation {
 			'_tsmlt_exif_meta',
 			'_tsmlt_compression_data',
 			'_tsmlt_compression_lock',
+			'_tsmlt_compression_run',
 		];
 		foreach ( $meta_keys as $meta_key ) {
 			delete_post_meta_by_key( $meta_key );

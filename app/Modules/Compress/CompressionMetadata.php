@@ -34,6 +34,15 @@ class CompressionMetadata {
 	const META_KEY = '_tsmlt_compression_data';
 
 	/**
+	 * Unix timestamp of the last processing pass over this attachment.
+	 *
+	 * Kept out of the main structure so it can be sorted on directly in SQL —
+	 * a capped re-run orders by it to rotate through the library instead of
+	 * repeatedly picking the same images.
+	 */
+	const RUN_META_KEY = '_tsmlt_compression_run';
+
+	/**
 	 * Current schema version of the stored structure.
 	 */
 	const SCHEMA_VERSION = 1;
@@ -72,6 +81,7 @@ class CompressionMetadata {
 		$data['version'] = self::SCHEMA_VERSION;
 
 		update_post_meta( $attachment_id, self::META_KEY, $data );
+		update_post_meta( $attachment_id, self::RUN_META_KEY, time() );
 	}
 
 	/**
@@ -83,6 +93,7 @@ class CompressionMetadata {
 	 */
 	public function delete( int $attachment_id ): void {
 		delete_post_meta( $attachment_id, self::META_KEY );
+		delete_post_meta( $attachment_id, self::RUN_META_KEY );
 	}
 
 	/**

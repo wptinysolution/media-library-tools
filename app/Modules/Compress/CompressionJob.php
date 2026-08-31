@@ -329,7 +329,21 @@ class CompressionJob {
 			$query->raw( $excluded );
 		}
 
-		$query->orderBy( 'ID', 'DESC' );
+		if ( $include_done && $limit > 0 ) {
+			// A capped re-run must not keep picking the same newest images, or
+			// repeated runs would never reach the rest of the library. The run
+			// marker is rewritten on every pass, so ordering by it oldest-first
+			// rotates through the library. Never-processed images have no marker
+			// and sort first, which is the order we want anyway.
+			$query->raw(
+				$wpdb->prepare(
+					"ORDER BY COALESCE( ( SELECT pm2.meta_value + 0 FROM {$wpdb->postmeta} pm2 WHERE pm2.post_id = {$wpdb->posts}.ID AND pm2.meta_key = %s LIMIT 1 ), 0 ) ASC, {$wpdb->posts}.ID DESC",
+					CompressionMetadata::RUN_META_KEY
+				)
+			);
+		} else {
+			$query->orderBy( 'ID', 'DESC' );
+		}
 
 		if ( $limit > 0 ) {
 			$query->limit( $limit );
