@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 
 interface PaginationProps {
@@ -17,6 +17,18 @@ export default function Pagination({ currentPage, totalPages, totalPosts, postsP
 
     // Strip any existing /page/N suffix to get the base route path
     const basePath = pathname.replace(/\/page\/\d+$/, '');
+
+    // Keep the URL honest when something other than the pager changes the page —
+    // applying a filter, searching, or changing "per page" all reset to page 1
+    // without touching the route, which would otherwise leave a stale /page/N in
+    // the address bar and a mismatched highlighted page number.
+    const pageInUrl = parseInt(pathname.match(/\/page\/(\d+)$/)?.[1] || '1', 10);
+    useEffect(() => {
+        if (totalPages <= 0 || currentPage < 1) return;
+        if (pageInUrl !== currentPage) {
+            navigate(1 === currentPage ? basePath : `${basePath}/page/${currentPage}`, { replace: true });
+        }
+    }, [currentPage, pageInUrl, basePath, totalPages, navigate]);
 
     if (totalPages <= 0) return null;
 

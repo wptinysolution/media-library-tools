@@ -80,21 +80,30 @@ export default function Datatable() {
     const [search, searchQuery, setSearch] = useSearchDebounce();
 
     const handlePagination = (current: number) => {
+        // Read the latest query off the store rather than the value captured when
+        // this callback was created. The URL-sync effect below can fire in the
+        // same commit as the mount refetch, and a stale closure here would write
+        // back an old `paged`, leaving the table on page 1 while the URL says /page/N.
+        const { postQuery } = useStore.getState().mediaData;
         setMediaData({
             isLoading: true,
             postQuery: {
-                ...mediaData.postQuery,
+                ...postQuery,
                 paged: current,
             }
         });
         setBulkSubmitData(defaultBulkSubmitData);
     };
 
+    // Keep the table in sync with the /page/N segment — covers back/forward
+    // navigation and pasted or bookmarked URLs, not just clicks on the pager.
     useEffect(() => {
         const pageFromUrl = parseInt(pageParam || '1', 10);
-        if (pageFromUrl !== (mediaData.postQuery.paged || 1)) {
+        const current = useStore.getState().mediaData.postQuery.paged || 1;
+        if (Number.isFinite(pageFromUrl) && pageFromUrl !== current) {
             handlePagination(pageFromUrl);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pageParam]);
 
     useEffect(() => {
@@ -107,8 +116,17 @@ export default function Datatable() {
     // Force a refetch every time the user navigates back to this page so
     // recent imports / renames / external edits are visible without a full reload.
     useEffect(() => {
+        // Seed `paged` from the URL in the same update that triggers the refetch.
+        // Doing these as two separate writes let the stale-closure spread below
+        // race the URL-sync effect and reset the table to page 1.
+        const { postQuery } = useStore.getState().mediaData;
+        const pageFromUrl = parseInt(pageParam || '1', 10);
         setMediaData({
-            postQuery: { ...mediaData.postQuery, isUpdate: !mediaData.postQuery.isUpdate }
+            postQuery: {
+                ...postQuery,
+                paged: Number.isFinite(pageFromUrl) ? pageFromUrl : (postQuery.paged || 1),
+                isUpdate: !postQuery.isUpdate,
+            }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
