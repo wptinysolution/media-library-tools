@@ -12,6 +12,7 @@ use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
+use TinySolutions\mlt\Modules\Compress\CompressModule;
 
 // Do not allow directly accessing this file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,5 +42,6 @@ class ModuleInit {
 		ExifDataReader::instance();
 		ExifScanner::instance();
 		ExifStripper::instance();
+		CompressModule::instance();
 	}
 }

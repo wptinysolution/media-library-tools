@@ -7,6 +7,7 @@ import CaptionSettings from '@/js/Component/Settings/CaptionSettings';
 import DescriptionSettings from '@/js/Component/Settings/DescriptionSettings';
 import RenamerSettings from '@/js/Component/Settings/RenamerSettings';
 import AiSettings from '@/js/Component/Settings/AiSettings';
+import CompressionSettings from '@/js/Component/Settings/CompressionSettings';
 import MiscSettings from '@/js/Component/Settings/MiscSettings';
 
 function Settings() {
@@ -30,6 +31,7 @@ function Settings() {
                             </div>
                             <RenamerSettings />
                             <AiSettings />
+                            <CompressionSettings />
                             <MiscSettings />
                         </div>
                     )}

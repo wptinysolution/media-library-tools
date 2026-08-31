@@ -1,0 +1,472 @@
+<?php
+/**
+ * Persistent compression job queue.
+ *
+ * @package TinySolutions\mlt
+ */
+
+namespace TinySolutions\mlt\Modules\Compress;
+
+// Do not allow directly accessing this file.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit( 'This script cannot be accessed directly.' );
+}
+
+use TinySolutions\mlt\Traits\SingletonTrait;
+use WP_Error;
+
+/**
+ * Runs bulk compression as a resumable background job.
+ *
+ * Follows the same model as the plugin's other long-running features
+ * (Regenerate Thumbnails, EXIF Scanner, Duplicate Scanner): one option row
+ * holds the job state and a self-rescheduling WP-Cron single event processes
+ * one batch per tick. Because progress lives server-side, closing the browser
+ * never loses a run — the UI simply polls the same state when it returns.
+ */
+class CompressionJob {
+
+	/**
+	 * Singleton
+	 */
+	use SingletonTrait;
+
+	/**
+	 * Option key holding the current job state.
+	 */
+	const STATE_OPTION = 'tsmlt_compression_job';
+
+	/**
+	 * Single-event hook fired between batches.
+	 */
+	const TICK_HOOK = 'tsmlt_compression_tick';
+
+	/**
+	 * Seconds between background ticks. Kept at 1 so WP-Cron picks up the next
+	 * batch on the very next request; WP-Cron's own locking prevents overlap.
+	 */
+	const TICK_INTERVAL = 1;
+
+	/**
+	 * Images processed per tick.
+	 *
+	 * Compression is far heavier than metadata work, so this is deliberately
+	 * small — a handful of large JPEGs can take several seconds each.
+	 */
+	const TICK_BATCH_SIZE = 5;
+
+	/**
+	 * Hard ceiling on the batch size, whatever a caller or filter requests.
+	 */
+	const MAX_BATCH_SIZE = 25;
+
+	/**
+	 * Cap on retained per-image result entries, keeping the option row bounded.
+	 */
+	const RECENT_CAP = 50;
+
+	/**
+	 * Construct
+	 */
+	private function __construct() {}
+
+	/**
+	 * The empty job shape.
+	 *
+	 * @return array
+	 */
+	private function default_state(): array {
+		return [
+			'job_id'         => '',
+			'status'         => 'idle',
+			'queue'          => [],
+			'failed_ids'     => [],
+			'total'          => 0,
+			'processed'      => 0,
+			'succeeded'      => 0,
+			'skipped'        => 0,
+			'failed'         => 0,
+			'saved_bytes'    => 0,
+			'current_id'     => 0,
+			'settings'       => [],
+			'started_at'     => 0,
+			'updated_at'     => 0,
+			'recent_results' => [],
+			'recent_errors'  => [],
+			'last_error'     => '',
+		];
+	}
+
+	/**
+	 * Read the current job state, merged over defaults.
+	 *
+	 * @return array
+	 */
+	public function get_state(): array {
+		$stored = get_option( self::STATE_OPTION, [] );
+
+		if ( ! is_array( $stored ) ) {
+			$stored = [];
+		}
+
+		return array_merge( $this->default_state(), $stored );
+	}
+
+	/**
+	 * Persist the job state.
+	 *
+	 * Stored with autoload disabled: the queue can hold thousands of IDs and
+	 * must never be loaded on every page request.
+	 *
+	 * @param array $state State to store.
+	 *
+	 * @return void
+	 */
+	private function save_state( array $state ): void {
+		update_option( self::STATE_OPTION, $state, false );
+	}
+
+	/**
+	 * Progress payload for the UI.
+	 *
+	 * The queue itself is deliberately omitted — the browser has no use for
+	 * thousands of IDs, and sending them would bloat every poll.
+	 *
+	 * @return array
+	 */
+	public function get_progress(): array {
+		$state = $this->get_state();
+
+		$total     = (int) $state['total'];
+		$processed = (int) $state['processed'];
+		$percent   = $total > 0 ? (int) floor( ( $processed / $total ) * 100 ) : 0;
+
+		return [
+			'job_id'         => (string) $state['job_id'],
+			'status'         => (string) $state['status'],
+			'total'          => $total,
+			'processed'      => $processed,
+			'succeeded'      => (int) $state['succeeded'],
+			'skipped'        => (int) $state['skipped'],
+			'failed'         => (int) $state['failed'],
+			'remaining'      => max( 0, $total - $processed ),
+			'percent'        => min( 100, max( 0, $percent ) ),
+			'current_id'     => (int) $state['current_id'],
+			'saved_bytes'    => (int) $state['saved_bytes'],
+			'saved_readable' => size_format( (int) $state['saved_bytes'], 1 ),
+			'settings'       => (array) $state['settings'],
+			'recent_results' => (array) $state['recent_results'],
+			'recent_errors'  => (array) $state['recent_errors'],
+			'last_error'     => (string) $state['last_error'],
+			'has_failed'     => ! empty( $state['failed_ids'] ),
+			'tick_scheduled' => (bool) wp_next_scheduled( self::TICK_HOOK ),
+		];
+	}
+
+	/**
+	 * Create and start a compression job.
+	 *
+	 * Every submitted ID is revalidated here — existence, post type, MIME type
+	 * and per-attachment edit capability — so IDs from the browser are never
+	 * trusted. The Free-tier limit is applied to the validated list, after
+	 * unusable IDs are dropped, so a user is not charged quota for images that
+	 * were never eligible.
+	 *
+	 * @param int[] $attachment_ids Requested attachment IDs.
+	 * @param array $params         Raw request parameters for run settings.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function start( array $attachment_ids, array $params ) {
+		$access = CompressionAccess::instance();
+
+		if ( ! $access->is_compression_feature_available() ) {
+			return new WP_Error(
+				'tsmlt_compression_engine_unavailable',
+				esc_html__( 'No image compression library (ImageMagick or GD) is available on this server.', 'media-library-tools' )
+			);
+		}
+
+		$state = $this->get_state();
+
+		if ( 'running' === $state['status'] ) {
+			return new WP_Error(
+				'tsmlt_compression_job_running',
+				esc_html__( 'A compression job is already running. Wait for it to finish or cancel it first.', 'media-library-tools' )
+			);
+		}
+
+		$eligible = $this->filter_eligible( $attachment_ids );
+
+		if ( empty( $eligible ) ) {
+			return new WP_Error(
+				'tsmlt_compression_no_images',
+				esc_html__( 'None of the selected items are images that can be compressed.', 'media-library-tools' )
+			);
+		}
+
+		// Server-side Free-tier enforcement. The frontend shows the same limit,
+		// but this is what actually binds.
+		$limit         = $access->get_compression_limit();
+		$limit_applied = false;
+
+		if ( $limit > 0 && count( $eligible ) > $limit ) {
+			$eligible      = array_slice( $eligible, 0, $limit );
+			$limit_applied = true;
+		}
+
+		$run_settings = CompressionSettings::instance()->resolve_run_settings( $params );
+		$now          = time();
+
+		$state               = $this->default_state();
+		$state['job_id']     = uniqid( 'tsmlt_', false );
+		$state['status']     = 'running';
+		$state['queue']      = $eligible;
+		$state['total']      = count( $eligible );
+		$state['settings']   = $run_settings;
+		$state['started_at'] = $now;
+		$state['updated_at'] = $now;
+
+		$this->save_state( $state );
+
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+		wp_schedule_single_event( $now + 1, self::TICK_HOOK );
+
+		$progress                  = $this->get_progress();
+		$progress['limit_applied'] = $limit_applied;
+		$progress['limit']         = $limit;
+
+		return $progress;
+	}
+
+	/**
+	 * Reduce a raw ID list to the attachments this user may actually compress.
+	 *
+	 * @param int[] $attachment_ids Requested attachment IDs.
+	 *
+	 * @return int[]
+	 */
+	private function filter_eligible( array $attachment_ids ): array {
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', $attachment_ids ) ) ) );
+
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		// One primed cache instead of a query per attachment.
+		_prime_post_caches( $ids, false, true );
+
+		$processor = AttachmentProcessor::instance();
+		$eligible  = [];
+
+		foreach ( $ids as $attachment_id ) {
+			if ( ! is_wp_error( $processor->validate_attachment( $attachment_id ) ) ) {
+				$eligible[] = $attachment_id;
+			}
+		}
+
+		return $eligible;
+	}
+
+	/**
+	 * Cancel the running job, keeping results collected so far.
+	 *
+	 * @return array
+	 */
+	public function cancel(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+
+		$state = $this->get_state();
+
+		if ( 'running' === $state['status'] ) {
+			$state['status'] = 'cancelled';
+		}
+
+		$state['queue']      = [];
+		$state['current_id'] = 0;
+		$state['updated_at'] = time();
+
+		$this->save_state( $state );
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Requeue the images that failed in the last run.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function retry() {
+		$state = $this->get_state();
+
+		if ( 'running' === $state['status'] ) {
+			return new WP_Error(
+				'tsmlt_compression_job_running',
+				esc_html__( 'A compression job is already running.', 'media-library-tools' )
+			);
+		}
+
+		if ( empty( $state['failed_ids'] ) ) {
+			return new WP_Error(
+				'tsmlt_compression_nothing_to_retry',
+				esc_html__( 'There are no failed images to retry.', 'media-library-tools' )
+			);
+		}
+
+		// Reuse the original run settings so a retry reproduces the same run.
+		$params = is_array( $state['settings'] ) ? $state['settings'] : [];
+
+		return $this->start( (array) $state['failed_ids'], $params );
+	}
+
+	/**
+	 * Discard the stored job so the UI returns to its idle state.
+	 *
+	 * @return array
+	 */
+	public function reset(): array {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+		delete_option( self::STATE_OPTION );
+
+		return $this->get_progress();
+	}
+
+	/**
+	 * Process one batch and reschedule until the queue drains.
+	 *
+	 * Registered against `self::TICK_HOOK` in `CronJobHooks`.
+	 *
+	 * @return void
+	 */
+	public static function run_tick(): void {
+		$self  = self::instance();
+		$state = $self->get_state();
+
+		// Cancelled or finished between ticks — stop the chain.
+		if ( 'running' !== $state['status'] ) {
+			return;
+		}
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- Best effort; ignored by some SAPIs.
+		}
+
+		$batch_size = (int) apply_filters( 'tsmlt_compression_tick_batch_size', self::TICK_BATCH_SIZE );
+		$batch_size = max( 1, min( self::MAX_BATCH_SIZE, $batch_size ) );
+
+		$state = $self->process_batch( $state, $batch_size );
+
+		$self->save_state( $state );
+
+		// Re-read: the user may have cancelled while this batch was running.
+		$fresh = $self->get_state();
+
+		if ( 'running' === $fresh['status'] && ! empty( $fresh['queue'] ) ) {
+			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
+		}
+	}
+
+	/**
+	 * Compress up to `$batch_size` images from the front of the queue.
+	 *
+	 * @param array $state      Current job state.
+	 * @param int   $batch_size Images to process this tick.
+	 *
+	 * @return array Updated state.
+	 */
+	private function process_batch( array $state, int $batch_size ): array {
+		$processor    = AttachmentProcessor::instance();
+		$run_settings = is_array( $state['settings'] ) ? $state['settings'] : [];
+		$queue        = (array) $state['queue'];
+		$batch        = array_splice( $queue, 0, $batch_size );
+
+		if ( ! empty( $batch ) ) {
+			_prime_post_caches( $batch, false, true );
+		}
+
+		foreach ( $batch as $attachment_id ) {
+			$attachment_id       = absint( $attachment_id );
+			$state['current_id'] = $attachment_id;
+
+			$result = $processor->process( $attachment_id, $run_settings );
+
+			++$state['processed'];
+
+			if ( is_wp_error( $result ) ) {
+				++$state['failed'];
+				$state['failed_ids'][] = $attachment_id;
+				$state['last_error']   = $result->get_error_message();
+
+				$state['recent_errors'] = array_slice(
+					array_merge(
+						(array) $state['recent_errors'],
+						[
+							[
+								'id'    => $attachment_id,
+								'title' => $this->get_title( $attachment_id ),
+								'error' => $result->get_error_message(),
+							],
+						]
+					),
+					-self::RECENT_CAP
+				);
+
+				continue;
+			}
+
+			if ( 'completed' === $result['status'] ) {
+				++$state['succeeded'];
+				$state['saved_bytes'] += max( 0, (int) $result['before'] - (int) $result['after'] );
+			} else {
+				++$state['skipped'];
+			}
+
+			$state['recent_results'] = array_slice(
+				array_merge(
+					(array) $state['recent_results'],
+					[
+						[
+							'id'              => $attachment_id,
+							'title'           => $this->get_title( $attachment_id ),
+							'status'          => $result['status'],
+							'reason'          => $result['reason'],
+							'before'          => (int) $result['before'],
+							'after'           => (int) $result['after'],
+							'before_readable' => size_format( (int) $result['before'], 1 ),
+							'after_readable'  => size_format( (int) $result['after'], 1 ),
+							'saved_percent'   => (float) $result['saved_percent'],
+						],
+					]
+				),
+				-self::RECENT_CAP
+			);
+		}
+
+		$state['queue']      = array_values( $queue );
+		$state['current_id'] = 0;
+		$state['updated_at'] = time();
+
+		if ( empty( $state['queue'] ) ) {
+			// "partial" distinguishes a run that finished with failures from a
+			// clean one, so the UI can offer a retry without re-reading errors.
+			$state['status'] = $state['failed'] > 0
+				? ( $state['succeeded'] > 0 || $state['skipped'] > 0 ? 'partial' : 'failed' )
+				: 'completed';
+		}
+
+		return $state;
+	}
+
+	/**
+	 * Attachment title for result rows, falling back to the ID.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 *
+	 * @return string
+	 */
+	private function get_title( int $attachment_id ): string {
+		$title = get_the_title( $attachment_id );
+
+		return '' !== $title ? $title : sprintf( '#%d', $attachment_id );
+	}
+}

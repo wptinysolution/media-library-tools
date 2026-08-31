@@ -440,6 +440,167 @@ export const regenerateCancel = async (): Promise<RegenerateProgress> => {
     return result.data as RegenerateProgress;
 };
 
+// Compress Images.
+
+export type CompressionMode = 'high_quality' | 'balanced' | 'maximum';
+
+export type CompressionJobStatus =
+    | 'idle'
+    | 'running'
+    | 'completed'
+    | 'partial'
+    | 'failed'
+    | 'cancelled';
+
+export interface CompressionSettings {
+    mode: CompressionMode;
+    quality: number;
+    use_custom_quality: boolean;
+    backup_originals: boolean;
+    compress_generated_sizes: boolean;
+    auto_compress_on_upload: boolean;
+}
+
+export interface CompressionAccess {
+    is_pro: boolean;
+    feature_available: boolean;
+    /** Images allowed per job; 0 means unlimited. */
+    job_limit: number;
+    can_backup: boolean;
+    can_restore: boolean;
+    can_generated_sizes: boolean;
+    can_custom_quality: boolean;
+    can_auto_compress: boolean;
+}
+
+export interface CompressionSettingsPayload {
+    settings: CompressionSettings;
+    modes: { value: CompressionMode; label: string; description: string }[];
+    access: CompressionAccess;
+    engines: { id: string; label: string }[];
+    mimeTypes: string[];
+}
+
+export interface CompressionResultItem {
+    id: number;
+    title: string;
+    status: 'completed' | 'skipped' | 'failed';
+    reason: string;
+    before: number;
+    after: number;
+    before_readable: string;
+    after_readable: string;
+    saved_percent: number;
+}
+
+export interface CompressionProgress {
+    job_id: string;
+    status: CompressionJobStatus;
+    total: number;
+    processed: number;
+    succeeded: number;
+    skipped: number;
+    failed: number;
+    remaining: number;
+    percent: number;
+    current_id: number;
+    saved_bytes: number;
+    saved_readable: string;
+    settings: Partial<CompressionSettings>;
+    recent_results: CompressionResultItem[];
+    recent_errors: { id: number; title: string; error: string }[];
+    last_error: string;
+    has_failed: boolean;
+    tick_scheduled: boolean;
+    /** Present on start when the Free-tier limit trimmed the selection. */
+    limit_applied?: boolean;
+    limit?: number;
+}
+
+export interface CompressionSizeDetail {
+    name: string;
+    before: number;
+    after: number;
+    before_readable: string;
+    after_readable: string;
+    status: string;
+    reason: string;
+}
+
+export interface CompressionDetail {
+    has_data: boolean;
+    status: string;
+    original_size?: number;
+    current_size?: number;
+    original_size_readable?: string;
+    current_size_readable?: string;
+    saved_bytes?: number;
+    saved_bytes_readable?: string;
+    saved_percent?: number;
+    mode?: string;
+    quality?: number;
+    engine?: string;
+    generated_sizes?: boolean;
+    compressed_at?: string;
+    backup_enabled?: boolean;
+    restore_available: boolean;
+    has_backup?: boolean;
+    last_error?: string;
+    sizes?: CompressionSizeDetail[];
+}
+
+export const compressionGetSettings = async (): Promise<CompressionSettingsPayload> => {
+    const result = await ajaxPost('tsmlt_compression_get_settings');
+    return result.data as CompressionSettingsPayload;
+};
+
+export const compressionSaveSettings = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_compression_save_settings', prams);
+};
+
+export const compressionStart = async (prams: object = {}): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_start', prams);
+    return result.data as CompressionProgress;
+};
+
+export const compressionGetProgress = async (): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_get_progress');
+    return result.data as CompressionProgress;
+};
+
+export const compressionCancel = async (): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_cancel');
+    return result.data as CompressionProgress;
+};
+
+export const compressionRetry = async (): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_retry');
+    return result.data as CompressionProgress;
+};
+
+export const compressionReset = async (): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_compression_reset');
+    return result.data as CompressionProgress;
+};
+
+export const compressionCompressSingle = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_compression_compress_single', prams);
+};
+
+export const compressionRestoreSingle = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_compression_restore_single', prams);
+};
+
+export const compressionGetAttachment = async (prams: object = {}): Promise<{ attachment_id: number; compression: CompressionDetail }> => {
+    const result = await ajaxPost('tsmlt_compression_get_attachment', prams);
+    return result.data as { attachment_id: number; compression: CompressionDetail };
+};
+
+export const compressionGetBulk = async (prams: object = {}): Promise<{ items: Record<number, CompressionDetail> }> => {
+    const result = await ajaxPost('tsmlt_compression_get_bulk', prams);
+    return result.data as { items: Record<number, CompressionDetail> };
+};
+
 // EXIF Stripper functions (handled by Pro plugin).
 export const exifStripBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_exif_strip_batch', prams);

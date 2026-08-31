@@ -560,6 +560,14 @@ class Fns {
 			'media_auto_rename_text' => '',
 			'media_rename_prefix'    => '',
 			'media_rename_suffix'    => '',
+			// Compression defaults — Pro-only keys default off so an install
+			// without a licence never has backup or auto-compression active.
+			'compression_mode'               => 'balanced',
+			'compression_quality'            => 0,
+			'compression_use_custom_quality' => 0,
+			'compression_backup_originals'   => 0,
+			'compression_generated_sizes'    => 0,
+			'compression_auto_on_upload'     => 0,
 
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );

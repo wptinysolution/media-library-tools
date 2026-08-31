@@ -10,6 +10,7 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
+use TinySolutions\mlt\Modules\Compress\CompressionSettings;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Query;
 
@@ -134,6 +135,13 @@ class Api {
 		$tsmlt_media['ai_gemini_model']  = sanitize_text_field( $parameters['ai_gemini_model']  ?? '' );
 		$tsmlt_media['ai_claude_key']    = sanitize_text_field( $parameters['ai_claude_key']    ?? '' );
 		$tsmlt_media['ai_claude_model']  = sanitize_text_field( $parameters['ai_claude_model']  ?? '' );
+
+		// Free-tier compression settings. Pro-only compression keys are added by
+		// the Pro plugin on `tsmlt/settings/before/save` below.
+		$tsmlt_media = array_merge(
+			$tsmlt_media,
+			CompressionSettings::instance()->sanitize_free_settings( $parameters )
+		);
 
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );
 

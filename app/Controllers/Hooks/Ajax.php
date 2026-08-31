@@ -22,6 +22,7 @@ use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
+use TinySolutions\mlt\Modules\Compress\CompressModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -120,6 +121,19 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_strip_exif_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_exif_strip_single', [ $this, 'strip_exif_single' ] );
 		add_action( 'wp_ajax_tsmlt_check_strippable_exif', [ $this, 'check_strippable_exif' ] );
+
+		// Image compression.
+		add_action( 'wp_ajax_tsmlt_compression_get_settings', [ $this, 'compression_get_settings' ] );
+		add_action( 'wp_ajax_tsmlt_compression_save_settings', [ $this, 'compression_save_settings' ] );
+		add_action( 'wp_ajax_tsmlt_compression_start', [ $this, 'compression_start' ] );
+		add_action( 'wp_ajax_tsmlt_compression_get_progress', [ $this, 'compression_get_progress' ] );
+		add_action( 'wp_ajax_tsmlt_compression_cancel', [ $this, 'compression_cancel' ] );
+		add_action( 'wp_ajax_tsmlt_compression_retry', [ $this, 'compression_retry' ] );
+		add_action( 'wp_ajax_tsmlt_compression_reset', [ $this, 'compression_reset' ] );
+		add_action( 'wp_ajax_tsmlt_compression_compress_single', [ $this, 'compression_compress_single' ] );
+		add_action( 'wp_ajax_tsmlt_compression_restore_single', [ $this, 'compression_restore_single' ] );
+		add_action( 'wp_ajax_tsmlt_compression_get_attachment', [ $this, 'compression_get_attachment' ] );
+		add_action( 'wp_ajax_tsmlt_compression_get_bulk', [ $this, 'compression_get_bulk' ] );
 
 		// Nonce refresh — long-running scans can outlive the 12-hour nonce window.
 		// Capability-gated, no nonce required (chicken-and-egg).
@@ -958,6 +972,102 @@ class Ajax {
 		}
 
 		$this->send( ExifStripper::instance()->check_strippable_exif( $attachment_id ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Image Compression
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Send a module result, converting a WP_Error into a JSON error response.
+	 *
+	 * Compression methods report failure as WP_Error so the file-handling code
+	 * stays free of transport concerns; this is where that becomes an HTTP
+	 * response. Only the human-readable message is exposed — error codes and
+	 * server paths stay on the server.
+	 *
+	 * @param mixed $result Result from a CompressModule method.
+	 *
+	 * @return void
+	 */
+	private function send_or_error( $result ): void {
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error(
+				[
+					'message' => $result->get_error_message(),
+					'code'    => $result->get_error_code(),
+				],
+				400
+			);
+		}
+
+		$this->send( $result );
+	}
+
+	/** @return void */
+	public function compression_get_settings(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->get_settings_payload() );
+	}
+
+	/** @return void */
+	public function compression_save_settings(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( CompressModule::instance()->save_settings( $params ) );
+	}
+
+	/** @return void */
+	public function compression_start(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->start_job( $params ) );
+	}
+
+	/** @return void */
+	public function compression_get_progress(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->get_job_progress() );
+	}
+
+	/** @return void */
+	public function compression_cancel(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->cancel_job() );
+	}
+
+	/** @return void */
+	public function compression_retry(): void {
+		$this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->retry_job() );
+	}
+
+	/** @return void */
+	public function compression_reset(): void {
+		$this->verify_and_get_params();
+		$this->send( CompressModule::instance()->reset_job() );
+	}
+
+	/** @return void */
+	public function compression_compress_single(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->compress_single( $params ) );
+	}
+
+	/** @return void */
+	public function compression_restore_single(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->restore_single( $params ) );
+	}
+
+	/** @return void */
+	public function compression_get_attachment(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( CompressModule::instance()->get_attachment_details( $params ) );
+	}
+
+	/** @return void */
+	public function compression_get_bulk(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( CompressModule::instance()->get_bulk_details( $params ) );
 	}
 
 }

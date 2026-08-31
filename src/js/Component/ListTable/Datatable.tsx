@@ -15,6 +15,9 @@ import * as Types from "@/js/Utils/actionType";
 import MissingBadge from "@/js/Component/Badges/MissingBadge";
 import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 import CheckboxField from "@/js/Component/Common/CheckboxField";
+import CompressionDetails from "@/js/Component/Compress/CompressionDetails";
+import { compressionGetBulk, compressionGetSettings } from "@/js/Utils/Data";
+import type { CompressionDetail } from "@/js/Utils/Data";
 
 const theImage = (record: MediaPost) => (
     <MediaThumbnail
@@ -70,6 +73,7 @@ export default function Datatable() {
         bulkSubmitData, setBulkSubmitData,
         options, setOptions,
         bulkExport, generalData,
+        compression, setCompression,
         setSaveType,
     } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
@@ -108,6 +112,53 @@ export default function Datatable() {
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Load compression entitlements once — they gate which row actions render.
+    useEffect(() => {
+        if (compression.access) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const payload = await compressionGetSettings();
+                if (!cancelled) {
+                    setCompression({ access: payload.access, settings: payload.settings, modes: payload.modes, engines: payload.engines });
+                }
+            } catch {
+                // Row actions simply stay hidden if this fails.
+            }
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Fetch compression summaries for the visible page in a single request.
+    // Doing this per row would mean one AJAX call and one meta query per image.
+    useEffect(() => {
+        const ids = mediaData.posts
+            .filter(item => String(item.post_mime_type || '').startsWith('image/'))
+            .map(item => item.ID);
+
+        if (!ids.length) return;
+
+        let cancelled = false;
+        (async () => {
+            try {
+                const response = await compressionGetBulk({ ids });
+                if (!cancelled && response?.items) {
+                    setCompression({ details: { ...compression.details, ...response.items } });
+                }
+            } catch {
+                // Summaries are supplementary; the table renders fine without them.
+            }
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mediaData.posts]);
+
+    /** Merge one row's refreshed compression summary back into the store. */
+    const handleCompressionChanged = (attachmentId: number, detail: CompressionDetail) => {
+        setCompression({ details: { ...compression.details, [attachmentId]: detail } });
+    };
 
     const renderModal = () => {
         if (bulkSubmitData.isModalOpen) return <BulkModal />;
@@ -522,6 +573,13 @@ export default function Datatable() {
                                                 {/* Right side info */}
                                                 <div className="shrink-0 flex flex-col items-end gap-2">
                                                     <span className="text-xs text-gray-400">ID: #{record.ID}</span>
+
+                                                    <CompressionDetails
+                                                        attachmentId={record.ID}
+                                                        mimeType={record.post_mime_type}
+                                                        onChanged={(detail) => handleCompressionChanged(record.ID, detail)}
+                                                    />
+
                                                     {parent?.title && (
                                                         <span className={'flex'} title={'Parent Post: Where Attached The image'}>
                                                             Attached Post: <a

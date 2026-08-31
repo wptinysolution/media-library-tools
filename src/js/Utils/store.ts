@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import { defaultBulkSubmitData, localRetrieveData } from '@/js/Utils/UtilData';
+import type {
+    CompressionAccess,
+    CompressionDetail,
+    CompressionMode,
+    CompressionProgress,
+    CompressionSettings,
+} from '@/js/Utils/Data';
 
 export interface PostQuery {
     status: string | null;
@@ -244,6 +251,22 @@ export interface DuplicateState {
     postsPerPage: number;
 }
 
+export interface CompressionState {
+    isModalOpen: boolean;
+    isLoading: boolean;
+    isProcessing: boolean;
+    /** Attachment IDs the modal will submit. Server revalidates every one. */
+    selectedIds: number[];
+    settings: CompressionSettings | null;
+    access: CompressionAccess | null;
+    modes: { value: CompressionMode; label: string; description: string }[];
+    engines: { id: string; label: string }[];
+    progress: CompressionProgress | null;
+    /** Per-attachment summaries for the media table, keyed by attachment ID. */
+    details: Record<number, CompressionDetail>;
+    error: string;
+}
+
 export interface StoreState {
     saveType: string | null;
     setSaveType: (saveType: string | null) => void;
@@ -286,6 +309,9 @@ export interface StoreState {
 
     duplicateData: DuplicateState;
     setDuplicateData: (update: Partial<DuplicateState>) => void;
+
+    compression: CompressionState;
+    setCompression: (update: Partial<CompressionState>) => void;
 }
 
 export const initialExportImport: ExportImportState = {
@@ -440,4 +466,19 @@ export const useStore = create<StoreState>((set) => ({
         postsPerPage: 20,
     },
     setDuplicateData: (update) => set((state) => ({ duplicateData: { ...state.duplicateData, ...update } })),
+
+    compression: {
+        isModalOpen: false,
+        isLoading: false,
+        isProcessing: false,
+        selectedIds: [],
+        settings: null,
+        access: null,
+        modes: [],
+        engines: [],
+        progress: null,
+        details: {},
+        error: '',
+    },
+    setCompression: (update) => set((state) => ({ compression: { ...state.compression, ...update } })),
 }));
