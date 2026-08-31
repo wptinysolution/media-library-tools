@@ -1,18 +1,18 @@
 === Media Library Tools - AI-Powered Rename, Clean & CSV Import/Export ===
 Contributors: tinysolution, mehediihasan
-Tags: rename, duplicate, cleaner, csv export import, alt text
+Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.2.15
+Stable tag: 2.3.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-AI-powered bulk rename, bulk edit metadata, find duplicate images, clean up unused media, and more.
+AI-powered bulk rename, bulk edit metadata, compress images, find duplicates, clean up unused media, and more.
 
 == Description ==
 
-**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — export your entire library to CSV, bulk-import metadata updates, rename files for better SEO, bulk edit alt text, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
+**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — export your entire library to CSV, bulk-import metadata updates, rename files for better SEO, bulk edit alt text, compress JPEG, PNG, and WebP images to speed up your site, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
 
 Whether you run a blog, WooCommerce store, or content-heavy site, Media Library Tools helps you keep your media library clean, organized, and SEO-optimized.
 
@@ -27,9 +27,9 @@ Whether you run a blog, WooCommerce store, or content-heavy site, Media Library 
 Most WordPress sites accumulate hundreds or thousands of media files over time — poorly named, missing alt text, duplicated across posts, and cluttered with orphaned files that waste disk space. Media Library Tools solves all of this from a single, intuitive admin interface:
 
 * **SEO** — Rename files to keyword-rich slugs, bulk-fill missing alt text, and generate AI-optimized metadata.
-* **Performance** — Find and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
+* **Performance** — Compress JPEG, PNG, and WebP images to cut page weight, and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
 * **Organization** — Group media, track image usage across posts and pages, and filter by any column.
-* **Automation** — Auto-rename on upload, auto-fill metadata from post titles, and inject missing alt text on the frontend.
+* **Automation** — Auto-rename on upload, auto-compress new uploads, auto-fill metadata from post titles, and inject missing alt text on the frontend.
 
 ---
 
@@ -106,6 +106,18 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Also supports direct file URLs:
   `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
 * Forces a browser download prompt — works with images, PDFs, documents, audio, video, archives, and more
+
+= Compress Images =
+* Compress JPEG, PNG, and WebP images directly from the Media Table — no external service or API key required
+* Select one or more images, choose a compression level, and start — progress is shown in real time
+* Three compression presets: **High Quality** (smallest visual change), **Balanced** (recommended), and **Maximum Compression** (largest savings)
+* Uses the image library already installed on your server — ImageMagick where available, otherwise GD
+* Compress a single image straight from its row in the Media Table, without opening the bulk window
+* Results show the before and after size, the percentage saved, and the total disk space reclaimed
+* Images that are already fully optimised are marked **skipped** rather than reported as failures — a file is never made larger
+* Originals are never overwritten directly: each image is compressed to a temporary file that is validated before it replaces the original
+* Compression runs on the server, so you can close the window and the job keeps going
+* Free version compresses up to 20 images per run
 
 = Regenerate Thumbnails =
 * Regenerate all registered image thumbnail sizes for every image in your media library in a single click
@@ -197,6 +209,16 @@ All free features, plus:
 * Sizes are prefixed with `tsmlt_` to avoid conflicts
 * Reduce storage waste by generating only the sizes your theme actually uses
 
+= Compress Images Pro =
+* **Unlimited compression** — compress your entire media library instead of 20 images per run
+* **Backup Original Images** — keep a pristine copy of every original before it is replaced, stored inside your uploads folder with the same year/month structure
+* **Restore Original Images** — put any original back with one click; restores the full-size image and every backed-up thumbnail
+* **Compress Generated Image Sizes** — also compress thumbnails, medium, large, and any custom registered image size, for substantially larger savings
+* **Custom Compression Quality** — set an exact quality value from 1 to 100 instead of using a preset
+* **Automatic Compression on Upload** — newly uploaded images are compressed automatically, after WordPress has finished generating all image sizes
+* **Compression history** — see each image's original size, current size, percentage saved, engine used, quality, and compression date
+* Backups are never deleted automatically, so a restore stays available for as long as you need it
+
 = Enhanced AI Features =
 * Send the actual image to the AI provider for visual analysis — get far more accurate alt text and captions
 * Up to 10 AI suggestions per field to choose from (vs. 1 in the free version)
@@ -260,8 +282,6 @@ Create Groups under **Media > Groups**. To assign them, either turn on Edit Mode
 = How do I copy a media file URL quickly? =
 Each row in the Media Table has a copy-to-clipboard icon next to the filename. Clicking it copies the full file URL to your clipboard instantly — no need to open the attachment edit screen.
 
--- MEDIA FILE RENAMER --
-
 = How do I rename a WordPress media file for better SEO? =
 Go to **Media > Media Tools > Media Rename**. The rename table shows all your media files sorted by ID (newest first). Click into the filename field for any row, type your new SEO-friendly slug (no extension needed), and save. The plugin updates the filename on disk, the database record, all post content references, featured images, and Elementor data automatically.
 
@@ -286,15 +306,47 @@ Yes — this is a Pro feature. Enable **Auto Rename on Upload** in **Settings > 
 = Does renaming a file break existing links or images on my site? =
 No. When you rename a file, the plugin automatically updates the database record, all `<img>` tags in post content, featured image assignments, Elementor page builder data, and custom meta fields. Your site continues to work normally. We still recommend testing on a staging site first and clearing your cache after any bulk rename.
 
--- REGENERATE THUMBNAILS --
-
 = How do I regenerate all image thumbnails after changing image sizes? =
 Go to **Media > Media Tools > Regenerate Thumbs**. Click **Start Regenerating** to process all images in batches of 10 at a time. A progress bar shows real-time status. The process also automatically deletes orphaned thumbnail files for image sizes that are no longer registered, freeing up disk space.
 
 = Can I stop the thumbnail regeneration process partway through? =
 Yes. Click the **Stop** button at any time to pause. The progress bar turns amber to indicate a stopped state. You can resume by clicking **Restart from Beginning** or proceed to clean up orphaned files using the **Check Rubbish Files** button.
 
--- DUPLICATE IMAGE FINDER --
+= How do I compress images in my WordPress media library? =
+Go to **Media > Media Tools > Media Table**, tick the images you want to compress, choose **Compress Images** from the Bulk Actions dropdown, and click **Apply**. Pick a compression level in the window that opens and start. You can also compress a single image using the **Compress image** link on its row.
+
+= Which image formats can be compressed? =
+JPEG, PNG, and WebP. Other file types are ignored and never modified.
+
+= Does compression need an API key or an external service? =
+No. Compression happens entirely on your own server using the image library it already has installed — ImageMagick if available, otherwise GD. Your images are never uploaded anywhere.
+
+= What do the compression levels mean? =
+**High Quality** applies the lightest compression with the smallest visual change. **Balanced** is the recommended default and usually saves a significant amount with no visible quality loss. **Maximum Compression** produces the smallest files, and quality loss may be visible on detailed images. Pro users can also set an exact quality value from 1 to 100.
+
+= Will compression ever make my images larger or corrupt them? =
+No. Every image is compressed to a temporary file first, which is validated as a proper image and compared against the original. If the result is not smaller, it is discarded and the original is kept untouched — the image is marked **skipped**, which is a normal outcome for files that are already optimised, not an error.
+
+= How many images can I compress in the free version? =
+The free version compresses up to 20 images per run. You can run it as many times as you like. Pro removes the limit entirely.
+
+= Can I get my original images back after compressing? (Pro) =
+Yes, if **Backup Original Images** was enabled before the compression ran. Pro stores a pristine copy of each original inside your uploads folder and adds a **Restore original** link to the image's row. Backups are never deleted automatically. If backups were switched off during the run, there is nothing to restore from.
+
+= Does it compress thumbnails and other image sizes too? (Pro) =
+Only when **Compress Generated Image Sizes** is enabled, which is a Pro feature and off by default. With it on, every size WordPress generated is compressed as well — thumbnail, medium, large, and any custom size registered by your theme or plugins — which typically increases total savings considerably.
+
+= Can new uploads be compressed automatically? (Pro) =
+Yes. Enable **Automatic Compression on Upload** in **Media Settings > Compress Images**. It is off by default. Compression runs after WordPress has finished generating all image sizes, so thumbnails are never affected, and an upload never fails because of it.
+
+= What happens if my server has neither ImageMagick nor GD? =
+The feature disables itself and explains that no image compression library is available, so nothing is ever modified. In practice this is rare — WordPress itself needs one of these to create thumbnails.
+
+= Do I have to keep the browser open while images compress? =
+No. Compression runs on the server. You can close the window and the job continues; reopening it reattaches to the run in progress.
+
+= Will compressing images break my site or change image URLs? =
+No. Filenames, URLs, and image dimensions all stay exactly the same — only the file contents are optimised. Nothing else on your site needs updating.
 
 = How do I find duplicate images in my WordPress media library? =
 Go to **Media > Media Tools > Duplicates**. Click **Scan for Duplicates**. The plugin compares every media file using MD5 hash fingerprinting — so it finds exact byte-for-byte duplicates regardless of filename. Results are grouped by file, showing how many copies exist, the file size, and the total wasted disk space across the group.
@@ -307,8 +359,6 @@ Merging is a Pro feature. In the duplicate group, click **Merge**, select the co
 
 = Is merging duplicates reversible? =
 No. Merged (deleted) files are permanently removed from disk and the media library. We strongly recommend reviewing which copy to keep and backing up before running a merge operation.
-
--- RUBBISH FILE FINDER (MEDIA CLEANER) --
 
 = What is a rubbish file? =
 A rubbish file is a file that physically exists in your WordPress uploads directory but is not registered in the media library database. These are typically leftover files from deleted plugins, failed uploads, manual FTP operations, theme switches, or old image size variations that WordPress no longer generates. They waste disk space without serving any purpose.
@@ -325,8 +375,6 @@ Deleting and restoring are Pro features. With Pro you can: **Bulk Delete** all s
 = Can rubbish files be deleted automatically during the scan? (Pro) =
 Yes — this is a Pro option. In the directory scan modal, enable **Instant delete rubbish file during scan** before starting. Files identified as rubbish are deleted immediately as they are found. Note: this action is irreversible.
 
--- IMAGE USAGE TRACKER (USED WHERE) --
-
 = How do I find out where a specific image is being used on my WordPress site? =
 Go to **Media > Media Tools > Used Where** and click **Scan All Posts**. The plugin scans all your posts, pages, and custom post types in batches, detecting images used in post content, featured images, Elementor data, and custom meta fields. After scanning, click on any image in the results to expand a list of every post it appears in — with post type, usage type, and a direct View link.
 
@@ -342,8 +390,6 @@ The scanner detects images used in: post content (via `<img>` tags and URLs), fe
 = Does the unused image list update in real time? =
 The unused image list reflects the last completed scan. To get up-to-date results, click **Re-scan** after publishing new content or making changes to your media library. The scan processes posts in batches of 20 with a live progress bar so it handles large sites without timeouts.
 
--- AUTO METADATA ON UPLOAD --
-
 = Can WordPress automatically fill in alt text when I upload an image? =
 Yes. Go to **Settings > Alt Text Settings** and enable **Use Image Name as Alt Text** or **Custom Text**. When enabled, every newly uploaded image automatically gets alt text set from its filename or your custom default text — no manual entry needed.
 
@@ -352,8 +398,6 @@ Yes — this is a Pro feature. Enable **Default Alt Text Based on Post Title**, 
 
 = Can missing alt text be automatically injected on the frontend without editing every image? (Pro) =
 Yes — this is a Pro feature. Enable **Auto Inject Alt Text** in **Settings > Renamer Settings**. When WordPress renders image tags on the frontend, the plugin fills in any missing `alt` attribute using a priority fallback: post title → filename → custom default text. This improves both SEO and WCAG 2.1 accessibility across your entire site without touching individual media records.
-
--- AI CONTENT GENERATOR --
 
 = How does the AI content generator work? =
 Go to **Settings > AI Settings**, select your AI provider (ChatGPT, Google Gemini, or Anthropic Claude), enter your API key, and choose a model. Then open the **Media Table** or **Media Rename** table and click the **AI** button on any media item. The plugin sends the file metadata (and the image itself in Pro) to the AI and returns SEO-optimized suggestions for title, alt text, caption, description, and filename.
@@ -370,15 +414,11 @@ In the free version, only text metadata (filename, existing alt text, post title
 = Do I need to pay for AI generation? =
 The plugin itself does not charge for AI generation. You need an API key from your chosen provider (OpenAI, Google AI Studio, or Anthropic). Each provider has their own pricing — most offer a generous free tier that covers typical media library use. You are billed directly by the provider based on usage.
 
--- IMAGE SIZES --
-
 = How do I disable WordPress from generating unnecessary thumbnail sizes? =
 Go to **Settings > Image Size Settings**. You will see a list of all registered image sizes — including default WordPress sizes and any added by your theme or plugins. Check the sizes you want to disable and save. WordPress will no longer generate those sizes for new uploads, saving disk space. Already-generated thumbnails are not deleted automatically; use Regenerate Thumbnails or the Rubbish File Finder to clean those up.
 
 = How do I register new custom image sizes? (Pro) =
 This is a Pro feature. Go to **Settings > Image Size Settings** and scroll to the **Register Custom Image Sizes** section. Click **Add New Size**, enter a name, width, height, and choose whether to crop. Save your settings. WordPress will generate this size for every new upload. You can edit or delete custom sizes at any time.
-
--- CSV EXPORT / IMPORT --
 
 = How do I export my media library metadata to CSV? =
 Go to **Media > Media Tools > CSV Export**. Choose which columns to include (ID, slug, URL, title, alt text, caption, description, and custom meta fields) and click Export. The plugin processes your entire library in batches and downloads a CSV file you can open in Excel, Google Sheets, or any spreadsheet application.
@@ -386,20 +426,14 @@ Go to **Media > Media Tools > CSV Export**. Choose which columns to include (ID,
 = How do I bulk-update media metadata using a CSV file? (Pro) =
 This is a Pro feature. Go to **Media > Media Tools > CSV Import**, upload your CSV file, and click Import. The plugin matches rows by ID or slug and updates each media record. Supported columns include `rename_to`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`, and custom meta fields using the `custom_meta:_key` format. Files can also be renamed during import using the `rename_to` column. The `groups` column accepts comma-separated group names and creates any that do not exist yet. Empty cells leave the existing value unchanged.
 
--- SVG SUPPORT --
-
 = Does the plugin allow SVG file uploads in WordPress? =
 Yes. The plugin enables secure SVG uploads to WordPress. Every SVG file is sanitized on upload to remove XSS vulnerabilities, remote references, and embedded scripts. Proper width and height metadata is generated automatically. The maximum allowed SVG file size is 500KB by default (adjustable via the `tsmlt_upload_max_svg_file_size` filter).
-
--- MEDIA DOWNLOAD SHORTCODE --
 
 = How do I add a download button for a media file in my content? =
 Use the `[tsmlt_download_button]` shortcode anywhere in your posts, pages, or widgets:
 * By attachment ID: `[tsmlt_download_button id='123' text='Download Now' /]`
 * By direct URL: `[tsmlt_download_button url='https://example.com/file.pdf' text='Download PDF' /]`
 The button forces a browser download prompt and works with images, PDFs, audio, video, archives, and documents.
-
--- REGENERATE THUMBNAILS --
 
 = How do I regenerate all image thumbnail sizes in WordPress? =
 Go to **Media > Media Tools > Regenerate Thumbs** and click **Start Regenerating**. The plugin processes your entire media library in batches of 10 images at a time, regenerating every registered thumbnail size for each image. A real-time progress bar shows total images, processed count, succeeded, and any errors. This is useful after changing image sizes in your theme, installing a new page builder, or adding new registered sizes.
@@ -413,12 +447,8 @@ Yes. Click the **Stop** button at any time. The progress bar turns amber to indi
 = What should I do if some images fail during thumbnail regeneration? =
 Any failed images are listed in the error log below the progress bar. Each error shows the filename and the error message. You can dismiss individual errors or all at once. Common causes are unreadable files, unsupported file types, or insufficient server memory for very large images. Check your server's PHP `memory_limit` setting if you see repeated failures.
 
--- EMPTY DIRECTORIES --
-
 = How do I find and delete empty folders in my WordPress uploads directory? =
 Go to **Media > Media Tools > Rubbish Files**. The page includes an **Empty Directories** section that lists all empty folders found in your uploads directory. You can delete them one by one or click **Delete All Empty Directories** to remove them all at once. Empty directories are commonly left behind after deleting media files, switching themes, or removing plugins.
-
--- GENERAL --
 
 = Does the plugin slow down my WordPress site? =
 No. The plugin only loads its code in the WordPress admin on the Media Library Tools pages. No scripts, styles, or database queries are added to your frontend (except for optional frontend tracking and alt text injection, both of which are opt-in and lightweight). Admin scanning operations run via AJAX in batches specifically to avoid server timeouts.
@@ -438,7 +468,6 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 = Where is the source code? =
 👉 [Official GitHub Repository](https://github.com/wptinysolution/media-library-tools) 👈
 
----
 
 == Screenshots ==
 
@@ -458,10 +487,15 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 14. CSV Import
 15. Media Table Settings
 16. Ai Settings
+17. Compress Images Settings
 
 ---
 
 == Changelog ==
+= 2.3.0 (Sep XX, 2026)=
+* Feature: Compress Images — compress JPEG, PNG, and WebP images from the Media Table. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
+* Fix: The page number in the URL could disagree with the page shown in the table.
+
 = 2.2.15 (Aug XX, 2026)=
 * Feature: Media can now be assigned to Groups. Previously Groups could be created and filtered by, but there was no way to assign media to them.
 * Feature: Assign Groups to many items at once from Bulk Actions > Bulk Edit.
