@@ -23,6 +23,7 @@ use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
 use TinySolutions\mlt\Modules\Compress\CompressModule;
+use TinySolutions\mlt\Modules\Compress\Conversion\ConvertModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\AI\AiApi;
@@ -137,6 +138,18 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_compression_restore_single', [ $this, 'compression_restore_single' ] );
 		add_action( 'wp_ajax_tsmlt_compression_get_attachment', [ $this, 'compression_get_attachment' ] );
 		add_action( 'wp_ajax_tsmlt_compression_get_bulk', [ $this, 'compression_get_bulk' ] );
+
+		// Image format conversion (WebP / AVIF).
+		add_action( 'wp_ajax_tsmlt_conversion_get_capabilities', [ $this, 'conversion_get_capabilities' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_save_settings', [ $this, 'conversion_save_settings' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_start', [ $this, 'conversion_start' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_start_library', [ $this, 'conversion_start_library' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_get_library_status', [ $this, 'conversion_get_library_status' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_convert_single', [ $this, 'conversion_convert_single' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_get_attachment', [ $this, 'conversion_get_attachment' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_get_bulk', [ $this, 'conversion_get_bulk' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_delete', [ $this, 'conversion_delete' ] );
+		add_action( 'wp_ajax_tsmlt_conversion_regenerate', [ $this, 'conversion_regenerate' ] );
 
 		// Nonce refresh — long-running scans can outlive the 12-hour nonce window.
 		// Capability-gated, no nonce required (chicken-and-egg).
@@ -1089,6 +1102,74 @@ class Ajax {
 	public function compression_get_bulk(): void {
 		$params = $this->verify_and_get_params();
 		$this->send( CompressModule::instance()->get_bulk_details( $params ) );
+	}
+
+
+	// -------------------------------------------------------------------------
+	// Image Format Conversion (WebP / AVIF)
+	//
+	// Progress, cancel, retry and batch processing are shared with compression:
+	// both run through the same job queue, distinguished by its `job_type`.
+	// -------------------------------------------------------------------------
+
+	/** @return void */
+	public function conversion_get_capabilities(): void {
+		$this->verify_and_get_params();
+		$this->send( ConvertModule::instance()->get_capabilities() );
+	}
+
+	/** @return void */
+	public function conversion_save_settings(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( ConvertModule::instance()->save_settings( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_start(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->start_job( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_start_library(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->start_library_job( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_get_library_status(): void {
+		$this->verify_and_get_params();
+		$this->send( ConvertModule::instance()->get_library_status() );
+	}
+
+	/** @return void */
+	public function conversion_convert_single(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->convert_single( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_get_attachment(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->get_attachment_conversion( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_get_bulk(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( ConvertModule::instance()->get_bulk_conversions( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_delete(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->delete_conversion( $params ) );
+	}
+
+	/** @return void */
+	public function conversion_regenerate(): void {
+		$params = $this->verify_and_get_params();
+		$this->send_or_error( ConvertModule::instance()->regenerate_conversion( $params ) );
 	}
 
 }

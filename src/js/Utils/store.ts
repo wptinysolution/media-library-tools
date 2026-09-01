@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { defaultBulkSubmitData, localRetrieveData } from '@/js/Utils/UtilData';
 import type {
+    ConversionAccess,
+    ConversionCapabilityInfo,
+    ConversionDetail,
+    ConversionSettingsData,
     CompressionAccess,
     CompressionDetail,
     CompressionMode,
@@ -264,6 +268,19 @@ export interface CompressionState {
     error: string;
 }
 
+export interface ConversionState {
+    isLoading: boolean;
+    isProcessing: boolean;
+    settings: ConversionSettingsData | null;
+    capabilities: ConversionCapabilityInfo | null;
+    access: ConversionAccess | null;
+    available: boolean;
+    progress: CompressionProgress | null;
+    /** Per-attachment summaries for listings, keyed by attachment ID. */
+    details: Record<number, ConversionDetail>;
+    error: string;
+}
+
 export interface StoreState {
     saveType: string | null;
     setSaveType: (saveType: string | null) => void;
@@ -309,6 +326,9 @@ export interface StoreState {
 
     compression: CompressionState;
     setCompression: (update: Partial<CompressionState>) => void;
+
+    conversion: ConversionState;
+    setConversion: (update: Partial<ConversionState>) => void;
 }
 
 export const initialExportImport: ExportImportState = {
@@ -476,4 +496,17 @@ export const useStore = create<StoreState>((set) => ({
         error: '',
     },
     setCompression: (update) => set((state) => ({ compression: { ...state.compression, ...update } })),
+
+    conversion: {
+        isLoading: false,
+        isProcessing: false,
+        settings: null,
+        capabilities: null,
+        access: null,
+        available: true,
+        progress: null,
+        details: {},
+        error: '',
+    },
+    setConversion: (update) => set((state) => ({ conversion: { ...state.conversion, ...update } })),
 }));

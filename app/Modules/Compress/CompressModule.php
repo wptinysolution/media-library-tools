@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Modules\Compress\Conversion\ConvertModule;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -43,6 +44,7 @@ class CompressModule {
 		AttachmentProcessor::instance();
 		RestoreManager::instance();
 		CompressionJob::instance();
+		ConvertModule::instance();
 	}
 
 	/**

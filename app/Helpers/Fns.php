@@ -589,6 +589,14 @@ class Fns {
 			'compression_backup_originals'   => 0,
 			'compression_generated_sizes'    => 0,
 			'compression_auto_on_upload'     => 0,
+			// Conversion defaults — WebP on, AVIF and the Pro-only options off.
+			'conversion_webp_enabled'        => 1,
+			'conversion_avif_enabled'        => 0,
+			'conversion_webp_quality'        => 82,
+			'conversion_avif_quality'        => 70,
+			'conversion_use_custom_quality'  => 0,
+			'conversion_generated_sizes'     => 0,
+			'conversion_auto_on_upload'      => 0,
 
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );

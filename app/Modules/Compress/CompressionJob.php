@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Compress\Conversion\AttachmentConverter;
+use TinySolutions\mlt\Modules\Compress\Conversion\ConversionCapabilities;
+use TinySolutions\mlt\Modules\Compress\Conversion\ConversionSettings;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -38,6 +41,16 @@ class CompressionJob {
 	const STATE_OPTION = 'tsmlt_compression_job';
 
 	/**
+	 * Job type: re-encode images in place to reduce file size.
+	 */
+	const TYPE_COMPRESSION = 'compression';
+
+	/**
+	 * Job type: generate WebP/AVIF companions alongside the originals.
+	 */
+	const TYPE_CONVERSION = 'conversion';
+
+	/**
 	 * Single-event hook fired between batches.
 	 */
 	const TICK_HOOK = 'tsmlt_compression_tick';
@@ -55,6 +68,14 @@ class CompressionJob {
 	 * small — a handful of large JPEGs can take several seconds each.
 	 */
 	const TICK_BATCH_SIZE = 5;
+
+	/**
+	 * Images per batch when AVIF output is requested.
+	 *
+	 * AVIF encoding is roughly 5x slower than WebP, so fewer images per batch
+	 * keeps a request comfortably inside typical execution limits.
+	 */
+	const AVIF_BATCH_SIZE = 2;
 
 	/**
 	 * Hard ceiling on the batch size, whatever a caller or filter requests.
@@ -79,6 +100,9 @@ class CompressionJob {
 	private function default_state(): array {
 		return [
 			'job_id'         => '',
+			// Which processor drives this run. Defaults to compression so job
+			// rows written before conversion existed keep working unchanged.
+			'job_type'       => self::TYPE_COMPRESSION,
 			'status'         => 'idle',
 			'queue'          => [],
 			'failed_ids'     => [],
@@ -246,6 +270,117 @@ class CompressionJob {
 		$progress['limit']         = $limit;
 
 		return $progress;
+	}
+
+	/**
+	 * Create and start a conversion job over the given attachments.
+	 *
+	 * Mirrors `start()` but validates against conversion rules and stores a
+	 * `job_type` of `conversion`, which is what makes `process_batch()` dispatch
+	 * to the converter instead of the compressor.
+	 *
+	 * @param int[] $attachment_ids Requested attachment IDs.
+	 * @param array $params         Raw request parameters for run settings.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function start_conversion( array $attachment_ids, array $params ) {
+		$access = CompressionAccess::instance();
+
+		if ( ! ConversionCapabilities::instance()->is_available() ) {
+			return new WP_Error(
+				'tsmlt_conversion_engine_unavailable',
+				esc_html__( 'This server cannot produce WebP or AVIF images. Ask your host to enable ImageMagick or GD with WebP support.', 'media-library-tools' )
+			);
+		}
+
+		$state = $this->get_state();
+
+		if ( 'running' === $state['status'] ) {
+			return new WP_Error(
+				'tsmlt_compression_job_running',
+				esc_html__( 'A job is already running. Wait for it to finish or cancel it first.', 'media-library-tools' )
+			);
+		}
+
+		$run_settings = ConversionSettings::instance()->resolve_run_settings( $params );
+
+		if ( empty( $run_settings['formats'] ) ) {
+			return new WP_Error(
+				'tsmlt_conversion_no_formats',
+				esc_html__( 'Select at least one output format that this server and your licence support.', 'media-library-tools' )
+			);
+		}
+
+		$eligible = $this->filter_eligible_for_conversion( $attachment_ids );
+
+		if ( empty( $eligible ) ) {
+			return new WP_Error(
+				'tsmlt_conversion_no_images',
+				esc_html__( 'None of the selected items are images that can be converted.', 'media-library-tools' )
+			);
+		}
+
+		// Server-side Free-tier enforcement; the frontend limit is cosmetic.
+		$limit         = $access->get_conversion_limit();
+		$limit_applied = false;
+
+		if ( $limit > 0 && count( $eligible ) > $limit ) {
+			$eligible      = array_slice( $eligible, 0, $limit );
+			$limit_applied = true;
+		}
+
+		$now = time();
+
+		$state               = $this->default_state();
+		$state['job_id']     = uniqid( 'tsmlt_', false );
+		$state['job_type']   = self::TYPE_CONVERSION;
+		$state['status']     = 'running';
+		$state['queue']      = $eligible;
+		$state['total']      = count( $eligible );
+		$state['settings']   = $run_settings;
+		$state['started_at'] = $now;
+		$state['updated_at'] = $now;
+
+		$this->save_state( $state );
+
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+		wp_schedule_single_event( $now + 1, self::TICK_HOOK );
+
+		$progress                  = $this->get_progress();
+		$progress['limit_applied'] = $limit_applied;
+		$progress['limit']         = $limit;
+
+		return $progress;
+	}
+
+	/**
+	 * Reduce a raw ID list to attachments this user may actually convert.
+	 *
+	 * @param int[] $attachment_ids Requested attachment IDs.
+	 *
+	 * @return int[]
+	 */
+	private function filter_eligible_for_conversion( array $attachment_ids ): array {
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', $attachment_ids ) ) ) );
+
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		// One primed cache instead of a query per attachment.
+		_prime_post_caches( $ids, false, true );
+
+		$converter = AttachmentConverter::instance();
+		$eligible  = [];
+
+		foreach ( $ids as $attachment_id ) {
+			if ( ! is_wp_error( $converter->validate_attachment( $attachment_id ) ) ) {
+				$eligible[] = $attachment_id;
+			}
+		}
+
+		return $eligible;
 	}
 
 	/**
@@ -505,7 +640,7 @@ class CompressionJob {
 			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, Squiz.PHP.DiscouragedFunctions.Discouraged -- Best effort; ignored by some SAPIs.
 		}
 
-		$batch_size = (int) apply_filters( 'tsmlt_compression_tick_batch_size', self::TICK_BATCH_SIZE );
+		$batch_size = (int) apply_filters( 'tsmlt_compression_tick_batch_size', $this->get_batch_size( $state ) );
 		$batch_size = max( 1, min( self::MAX_BATCH_SIZE, $batch_size ) );
 
 		$state = $this->process_batch( $state, $batch_size );
@@ -532,6 +667,30 @@ class CompressionJob {
 	}
 
 	/**
+	 * Images to process per batch for the given job.
+	 *
+	 * AVIF encoding is several times slower than WebP or JPEG re-encoding — on
+	 * this codebase's own benchmark roughly 5x — so a batch including AVIF is
+	 * deliberately smaller to stay well inside `max_execution_time` on shared
+	 * hosting. The value is never taken from the browser.
+	 *
+	 * @param array $state Current job state.
+	 *
+	 * @return int
+	 */
+	private function get_batch_size( array $state ): int {
+		$is_conversion = self::TYPE_CONVERSION === ( $state['job_type'] ?? self::TYPE_COMPRESSION );
+
+		if ( ! $is_conversion ) {
+			return self::TICK_BATCH_SIZE;
+		}
+
+		$formats = (array) ( $state['settings']['formats'] ?? [] );
+
+		return in_array( 'avif', $formats, true ) ? self::AVIF_BATCH_SIZE : self::TICK_BATCH_SIZE;
+	}
+
+	/**
 	 * Compress up to `$batch_size` images from the front of the queue.
 	 *
 	 * @param array $state      Current job state.
@@ -540,10 +699,13 @@ class CompressionJob {
 	 * @return array Updated state.
 	 */
 	private function process_batch( array $state, int $batch_size ): array {
-		$processor    = AttachmentProcessor::instance();
-		$run_settings = is_array( $state['settings'] ) ? $state['settings'] : [];
-		$queue        = (array) $state['queue'];
-		$batch        = array_splice( $queue, 0, $batch_size );
+		$is_conversion = self::TYPE_CONVERSION === ( $state['job_type'] ?? self::TYPE_COMPRESSION );
+		$processor     = $is_conversion
+			? AttachmentConverter::instance()
+			: AttachmentProcessor::instance();
+		$run_settings  = is_array( $state['settings'] ) ? $state['settings'] : [];
+		$queue         = (array) $state['queue'];
+		$batch         = array_splice( $queue, 0, $batch_size );
 
 		if ( ! empty( $batch ) ) {
 			_prime_post_caches( $batch, false, true );
@@ -553,7 +715,9 @@ class CompressionJob {
 			$attachment_id       = absint( $attachment_id );
 			$state['current_id'] = $attachment_id;
 
-			$result = $processor->process( $attachment_id, $run_settings );
+			$result = $is_conversion
+				? $processor->convert( $attachment_id, $run_settings )
+				: $processor->process( $attachment_id, $run_settings );
 
 			++$state['processed'];
 
@@ -577,6 +741,24 @@ class CompressionJob {
 				);
 
 				continue;
+			}
+
+			// Normalise the two processors onto one result shape so the counters
+			// and result rows below stay identical for both job types. For a
+			// conversion, "before" is the source and "after" the generated
+			// output, which makes the saved figure the space the modern format
+			// would serve instead of the original.
+			if ( $is_conversion ) {
+				$result = [
+					'status'        => 'partial' === $result['status'] ? 'completed' : $result['status'],
+					'reason'        => $result['skipped'] > 0 && 0 === $result['succeeded'] ? 'same_format' : '',
+					'before'        => (int) $result['source_size'],
+					'after'         => (int) $result['output_size'],
+					'saved_percent' => $result['source_size'] > 0 && $result['output_size'] > 0
+						? round( ( 1 - $result['output_size'] / $result['source_size'] ) * 100, 2 )
+						: 0.0,
+					'formats'       => $result['formats'],
+				];
 			}
 
 			if ( 'completed' === $result['status'] ) {

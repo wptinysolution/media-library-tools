@@ -145,6 +145,8 @@ class Installation {
 			'_tsmlt_compression_data',
 			'_tsmlt_compression_lock',
 			'_tsmlt_compression_run',
+			'_tsmlt_image_conversion_data',
+			'_tsmlt_conversion_lock',
 		];
 		foreach ( $meta_keys as $meta_key ) {
 			delete_post_meta_by_key( $meta_key );

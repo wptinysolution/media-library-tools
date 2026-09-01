@@ -11,6 +11,7 @@ use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\Compress\CompressionSettings;
+use TinySolutions\mlt\Modules\Compress\Conversion\ConversionSettings;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Query;
 
@@ -140,7 +141,8 @@ class Api {
 		// the Pro plugin on `tsmlt/settings/before/save` below.
 		$tsmlt_media = array_merge(
 			$tsmlt_media,
-			CompressionSettings::instance()->sanitize_free_settings( $parameters )
+			CompressionSettings::instance()->sanitize_free_settings( $parameters ),
+			ConversionSettings::instance()->sanitize_free_settings( $parameters )
 		);
 
 		$tsmlt_media = apply_filters( 'tsmlt/settings/before/save', $tsmlt_media, $parameters );

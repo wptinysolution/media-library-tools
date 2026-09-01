@@ -127,6 +127,47 @@ export default function CompressionSettings() {
                     </p>
                 </SettingRow>
 
+                <SettingRow label="Convert to WebP / AVIF:" bordered>
+                    <CheckboxField
+                        name="conversion_webp_enabled"
+                        value="conversion_webp_enabled"
+                        checked={!!options.conversion_webp_enabled}
+                        onChange={(e) => setOptions({ conversion_webp_enabled: e.target.checked ? 1 : 0 })}
+                        label="Generate WebP copies by default"
+                        isPro={false}
+                    />
+                    <CheckboxField
+                        name="conversion_avif_enabled"
+                        value="conversion_avif_enabled"
+                        checked={isPro && !!options.conversion_avif_enabled}
+                        onChange={(e) => setProOption('conversion_avif_enabled', e.target.checked)}
+                        label="Generate AVIF copies by default"
+                        isPro={!isPro}
+                    />
+                    <CheckboxField
+                        name="conversion_generated_sizes"
+                        value="conversion_generated_sizes"
+                        checked={isPro && !!options.conversion_generated_sizes}
+                        onChange={(e) => setProOption('conversion_generated_sizes', e.target.checked)}
+                        label="Also convert generated image sizes"
+                        isPro={!isPro}
+                    />
+                    <CheckboxField
+                        name="conversion_auto_on_upload"
+                        value="conversion_auto_on_upload"
+                        checked={isPro && !!options.conversion_auto_on_upload}
+                        onChange={(e) => setProOption('conversion_auto_on_upload', e.target.checked)}
+                        label="Convert new uploads automatically"
+                        isPro={!isPro}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">
+                        Converted files are saved next to the originals &mdash; your media library keeps one
+                        entry per image and nothing is replaced. Run conversions from
+                        <strong> Convert to WebP/AVIF</strong>. Formats your server cannot produce
+                        are disabled there automatically.
+                    </p>
+                </SettingRow>
+
                 <SettingRow label="Automatic Compression on Upload:" bordered>
                     <CheckboxField
                         name="compression_auto_on_upload"

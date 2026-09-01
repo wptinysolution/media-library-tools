@@ -12,7 +12,7 @@ AI-powered bulk rename, bulk edit metadata, compress images, find duplicates, cl
 
 == Description ==
 
-**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — export your entire library to CSV, bulk-import metadata updates, rename files for better SEO, bulk edit alt text, compress JPEG, PNG, and WebP images to speed up your site, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
+**Media Library Tools** is the most complete WordPress media management plugin available. It gives you full control over your media library — export your entire library to CSV, bulk-import metadata updates, rename files for better SEO, bulk edit alt text, compress JPEG, PNG, and WebP images and convert them to modern WebP/AVIF to speed up your site, find and remove duplicate images, clean up orphaned files, track where every image is used, and generate AI-powered metadata using ChatGPT, Gemini, or Claude.
 
 Whether you run a blog, WooCommerce store, or content-heavy site, Media Library Tools helps you keep your media library clean, organized, and SEO-optimized.
 
@@ -27,7 +27,7 @@ Whether you run a blog, WooCommerce store, or content-heavy site, Media Library 
 Most WordPress sites accumulate hundreds or thousands of media files over time — poorly named, missing alt text, duplicated across posts, and cluttered with orphaned files that waste disk space. Media Library Tools solves all of this from a single, intuitive admin interface:
 
 * **SEO** — Rename files to keyword-rich slugs, bulk-fill missing alt text, and generate AI-optimized metadata.
-* **Performance** — Compress JPEG, PNG, and WebP images to cut page weight, and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
+* **Performance** — Compress images and generate modern WebP/AVIF copies to cut page weight, and delete duplicate images, rubbish files, and unnecessary image sizes to reduce server storage.
 * **Organization** — Group media, track image usage across posts and pages, and filter by any column.
 * **Automation** — Auto-rename on upload, auto-compress new uploads, auto-fill metadata from post titles, and inject missing alt text on the frontend.
 
@@ -119,6 +119,17 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 * Originals are never overwritten directly: each image is compressed to a temporary file that is validated before it replaces the original
 * Compression runs on the server, so you can close the window and the job keeps going
 * Free version compresses up to 20 images per run
+
+= Convert to WebP/AVIF =
+* Generate modern WebP copies of your JPEG and PNG images to cut page weight
+* Converted files are saved alongside the originals — `image.jpg` keeps its place in the media library and `image.webp` is created next to it
+* Your original images are never replaced, and the media library keeps one entry per image
+* Detects what your server can actually produce and disables any format it cannot
+* Uses the image library already installed on your server — ImageMagick where available, otherwise GD
+* See how many images are convertible, how many are done, and how many remain
+* Progress runs on the server, so you can close the window and the job keeps going
+* Delete or regenerate the generated files at any time
+* Free version converts up to 20 images per run
 
 = Regenerate Thumbnails =
 * Regenerate all registered image thumbnail sizes for every image in your media library in a single click
@@ -219,6 +230,13 @@ All free features, plus:
 * **Automatic Compression on Upload** — newly uploaded images are compressed automatically, after WordPress has finished generating all image sizes
 * **Compression history** — see each image's original size, current size, percentage saved, engine used, quality, and compression date
 * Backups are never deleted automatically, so a restore stays available for as long as you need it
+
+= Convert to WebP/AVIF Pro =
+* **AVIF conversion** — the smallest modern format, typically 20–30% below WebP
+* **Unlimited conversion** — convert your whole library instead of 20 images per run
+* **Convert generated image sizes** — also produce thumbnails and custom registered sizes in each format
+* **Custom quality per format** — set WebP and AVIF quality independently
+* **Automatic conversion on upload** — new uploads get their modern copies straight away
 
 = Enhanced AI Features =
 * Send the actual image to the AI provider for visual analysis — get far more accurate alt text and captions
@@ -348,6 +366,27 @@ No. Compression runs on the server. You can close the window and the job continu
 
 = Will compressing images break my site or change image URLs? =
 No. Filenames, URLs, and image dimensions all stay exactly the same — only the file contents are optimised. Nothing else on your site needs updating.
+
+= How do I convert my images to WebP or AVIF? =
+Go to **Media > Media Tools > Convert to WebP/AVIF**. Choose the formats you want, then start the conversion. The page shows how many images are convertible, how many are already done, and how many remain.
+
+= Does converting replace my original images? =
+No. Converted files are written alongside the originals — `image.jpg` stays exactly where it is and `image.webp` is created next to it. Your media library keeps one entry per image, and nothing is overwritten.
+
+= What is the difference between Compress and Convert? =
+Compress re-saves an image in its existing format at a smaller file size, replacing the file. Convert leaves the original untouched and generates an extra copy in a modern format. They work well together: compress first, then convert.
+
+= Which is better, WebP or AVIF? =
+AVIF files are usually 20–30% smaller than WebP, but take considerably longer to generate and need a slightly newer browser. WebP is supported almost everywhere. Generating both lets a browser pick whichever it can display.
+
+= Why is AVIF greyed out? =
+Either your server's image library was built without AVIF support, or AVIF conversion is a Pro feature on your licence. The page states which of the two applies.
+
+= How do my visitors receive the converted files? =
+Generating the files is the first step. Serving them requires either a plugin or a server rule that offers the modern format when the browser supports it — this feature creates the files, it does not change how your site delivers images.
+
+= Can I remove the converted files later? =
+Yes. Deleting a conversion removes every generated file for that image and leaves the original untouched. You can also regenerate them after changing formats or quality.
 
 = How do I find duplicate images in my WordPress media library? =
 Go to **Media > Media Tools > Duplicates**. Click **Scan for Duplicates**. The plugin compares every media file using MD5 hash fingerprinting — so it finds exact byte-for-byte duplicates regardless of filename. Results are grouped by file, showing how many copies exist, the file size, and the total wasted disk space across the group.
@@ -488,15 +527,15 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 14. CSV Import
 15. Media Table Settings
 16. Ai Settings
-17. Compress Images — library overview and compression level
-18. Compress Images — live progress with compressed, skipped, and failed counts
-19. Compress Images Settings
+17. Compress Images Settings
+18. Convert to WebP/AVIF
 
 ---
 
 == Changelog ==
 = 2.3.0 (Sep XX, 2026)=
 * Feature: Compress Images — new page for compressing JPEG, PNG, and WebP images across your media library. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
+* Feature: Convert to WebP/AVIF — generate modern WebP copies alongside your originals without replacing them. Pro adds AVIF, unlimited conversion, generated image sizes, custom quality, and automatic conversion on upload.
 * Fix: The page number in the URL could disagree with the page shown in the table.
 
 = 2.2.15 (Aug XX, 2026)=

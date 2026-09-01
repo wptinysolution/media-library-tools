@@ -62,6 +62,15 @@ function MainHeader() {
             ),
         },
         {
+            key: '/convert',
+            label: 'Convert to WebP/AVIF',
+            icon: (
+                <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M20 9A8 8 0 006.3 5.3M4 15a8 8 0 0013.7 3.7" />
+                </svg>
+            ),
+        },
+        {
             key: '/regenerate',
             label: 'Regenerate Thumbs',
             icon: (

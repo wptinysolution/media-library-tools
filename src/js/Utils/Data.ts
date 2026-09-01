@@ -631,6 +631,118 @@ export const compressionGetBulk = async (prams: object = {}): Promise<{ items: R
     return result.data as { items: Record<number, CompressionDetail> };
 };
 
+// Convert Images (WebP / AVIF).
+
+export type ConversionFormat = 'webp' | 'avif';
+
+export interface ConversionCapabilityInfo {
+    formats: Record<ConversionFormat, boolean>;
+    engines: Record<string, { available: boolean; webp: boolean; avif: boolean }>;
+}
+
+export interface ConversionAccess {
+    is_pro: boolean;
+    /** Images allowed per job; 0 means unlimited. */
+    job_limit: number;
+    can_avif: boolean;
+    can_generated_sizes: boolean;
+    can_custom_quality: boolean;
+    can_auto_convert: boolean;
+}
+
+export interface ConversionSettingsData {
+    webp_enabled: boolean;
+    avif_enabled: boolean;
+    webp_quality: number;
+    avif_quality: number;
+    use_custom_quality: boolean;
+    generated_sizes: boolean;
+    auto_on_upload: boolean;
+}
+
+export interface ConversionPayload {
+    settings: ConversionSettingsData;
+    capabilities: ConversionCapabilityInfo;
+    access: ConversionAccess;
+    sources: string[];
+    available: boolean;
+}
+
+export interface ConversionFormatDetail {
+    format: ConversionFormat;
+    status: string;
+    size: number;
+    size_readable: string;
+    saved_percent: number;
+    quality: number;
+    generated_at: string;
+    sizes_count: number;
+    reason: string;
+}
+
+export interface ConversionDetail {
+    has_data: boolean;
+    status: string;
+    source_size?: number;
+    source_size_readable?: string;
+    formats: ConversionFormatDetail[];
+    is_stale?: boolean;
+    last_error?: string;
+}
+
+export interface ConversionLibraryStatus {
+    total: number;
+    converted: number;
+    remaining: number;
+    progress: CompressionProgress;
+}
+
+export const conversionGetCapabilities = async (): Promise<ConversionPayload> => {
+    const result = await ajaxPost('tsmlt_conversion_get_capabilities');
+    return result.data as ConversionPayload;
+};
+
+export const conversionSaveSettings = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_conversion_save_settings', prams);
+};
+
+export const conversionGetLibraryStatus = async (): Promise<ConversionLibraryStatus> => {
+    const result = await ajaxPost('tsmlt_conversion_get_library_status');
+    return result.data as ConversionLibraryStatus;
+};
+
+export const conversionStartLibrary = async (prams: object = {}): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_conversion_start_library', prams);
+    return result.data as CompressionProgress;
+};
+
+export const conversionStart = async (prams: object = {}): Promise<CompressionProgress> => {
+    const result = await ajaxPost('tsmlt_conversion_start', prams);
+    return result.data as CompressionProgress;
+};
+
+export const conversionConvertSingle = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_conversion_convert_single', prams);
+};
+
+export const conversionGetAttachment = async (prams: object = {}): Promise<{ attachment_id: number; conversion: ConversionDetail }> => {
+    const result = await ajaxPost('tsmlt_conversion_get_attachment', prams);
+    return result.data as { attachment_id: number; conversion: ConversionDetail };
+};
+
+export const conversionGetBulk = async (prams: object = {}): Promise<{ items: Record<number, ConversionDetail> }> => {
+    const result = await ajaxPost('tsmlt_conversion_get_bulk', prams);
+    return result.data as { items: Record<number, ConversionDetail> };
+};
+
+export const conversionDelete = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_conversion_delete', prams);
+};
+
+export const conversionRegenerate = async (prams: object = {}): Promise<AxiosResponse> => {
+    return await ajaxPost('tsmlt_conversion_regenerate', prams);
+};
+
 // EXIF Stripper functions (handled by Pro plugin).
 export const exifStripBatch = async (prams: object = {}): Promise<AxiosResponse> => {
     return await ajaxPost('tsmlt_exif_strip_batch', prams);

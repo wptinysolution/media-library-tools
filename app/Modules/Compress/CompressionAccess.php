@@ -130,6 +130,76 @@ class CompressionAccess {
 	}
 
 	/**
+	 * Whether AVIF output is permitted.
+	 *
+	 * AVIF is a Pro format. Server support is a separate question, answered by
+	 * `ConversionCapabilities` — both must hold before AVIF can be produced.
+	 *
+	 * @return bool
+	 */
+	public function can_convert_avif(): bool {
+		return $this->is_pro();
+	}
+
+	/**
+	 * Whether WordPress-generated sizes may also be converted.
+	 *
+	 * @return bool
+	 */
+	public function can_convert_generated_sizes(): bool {
+		return $this->is_pro();
+	}
+
+	/**
+	 * Whether an explicit per-format quality may override the default.
+	 *
+	 * @return bool
+	 */
+	public function can_use_custom_conversion_quality(): bool {
+		return $this->is_pro();
+	}
+
+	/**
+	 * Whether newly uploaded images may be converted automatically.
+	 *
+	 * @return bool
+	 */
+	public function can_auto_convert_on_upload(): bool {
+		return $this->is_pro();
+	}
+
+	/**
+	 * Maximum number of attachments allowed in one conversion job.
+	 *
+	 * Shares the compression limit so the Free tier presents one consistent
+	 * number rather than two competing ones. Zero means unlimited.
+	 *
+	 * @return int
+	 */
+	public function get_conversion_limit(): int {
+		return $this->get_compression_limit();
+	}
+
+	/**
+	 * Export the conversion entitlement matrix for the React layer.
+	 *
+	 * Purely for shaping the UI; every value is re-checked server-side before
+	 * any work is performed.
+	 *
+	 * @return array<string, bool|int>
+	 */
+	public function conversion_to_array(): array {
+		return [
+			'is_pro'              => $this->is_pro(),
+			'job_limit'           => $this->get_conversion_limit(),
+			'can_avif'            => $this->can_convert_avif(),
+			'can_generated_sizes' => $this->can_convert_generated_sizes(),
+			'can_custom_quality'  => $this->can_use_custom_conversion_quality(),
+			'can_auto_convert'    => $this->can_auto_convert_on_upload(),
+		];
+	}
+
+	/**
 	 * Capability + ownership check for a single attachment.
 	 *
 	 * Used by every attachment-scoped operation. The AJAX layer already gates on
