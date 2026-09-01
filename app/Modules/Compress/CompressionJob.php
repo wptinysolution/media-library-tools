@@ -176,6 +176,10 @@ class CompressionJob {
 
 		return [
 			'job_id'         => (string) $state['job_id'],
+			// Which feature owns this run. Both the Compress and Convert screens
+			// poll the same job row, so each needs this to tell whether the
+			// running job is theirs before showing progress or driving batches.
+			'job_type'       => (string) ( $state['job_type'] ?? self::TYPE_COMPRESSION ),
 			'status'         => (string) $state['status'],
 			'total'          => $total,
 			'processed'      => $processed,

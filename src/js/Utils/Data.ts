@@ -493,8 +493,12 @@ export interface CompressionResultItem {
     saved_percent: number;
 }
 
+export type JobType = 'compression' | 'conversion';
+
 export interface CompressionProgress {
     job_id: string;
+    /** Which feature owns this run — Compress and Convert share one job queue. */
+    job_type: JobType;
     status: CompressionJobStatus;
     total: number;
     processed: number;

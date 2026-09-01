@@ -50,7 +50,20 @@ export function useCompressionJob() {
         }
     }, []);
 
+    /**
+     * Store progress for a compression run and report whether it is still going.
+     *
+     * Compress and Convert share one job queue, so a run started on the other
+     * screen shows up here too. Ignoring it keeps this page from displaying a
+     * conversion's progress as if it were a compression — and, more importantly,
+     * from driving batches on a job it does not own.
+     */
     const applyProgress = useCallback((next: CompressionProgress) => {
+        if (next.job_type && 'compression' !== next.job_type) {
+            setCompression({ progress: null, isProcessing: false });
+            return false;
+        }
+
         const isRunning = 'running' === next.status;
         setCompression({ progress: next, isProcessing: isRunning });
         return isRunning;
@@ -127,7 +140,7 @@ export function useCompressionJob() {
             // Only reattach to a run that is genuinely still going: status
             // "running" *and* work left to do. Resuming on status alone meant a
             // stopped or drained job restarted itself when the page reopened.
-            if ('running' === progress.status && progress.remaining > 0) {
+            if ('running' === progress.status && progress.remaining > 0 && 'conversion' !== progress.job_type) {
                 applyProgress(progress);
                 pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
             } else {

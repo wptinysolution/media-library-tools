@@ -45,7 +45,19 @@ export function useConversionJob() {
         }
     }, []);
 
+    /**
+     * Store progress for a conversion run and report whether it is still going.
+     *
+     * The job queue is shared with compression, so a compression run surfaces
+     * here too. Ignoring it stops this page showing someone else's progress or
+     * driving batches on a job it does not own.
+     */
     const applyProgress = useCallback((next: CompressionProgress) => {
+        if ('conversion' !== next.job_type) {
+            setConversion({ progress: null, isProcessing: false });
+            return false;
+        }
+
         const isRunning = 'running' === next.status;
         setConversion({ progress: next, isProcessing: isRunning });
         return isRunning;
@@ -105,7 +117,7 @@ export function useConversionJob() {
             if (!mountedRef.current) return;
 
             // Only reattach to a run that is genuinely still going.
-            if ('running' === progress.status && progress.remaining > 0) {
+            if ('running' === progress.status && progress.remaining > 0 && 'conversion' === progress.job_type) {
                 applyProgress(progress);
                 pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
             } else {
