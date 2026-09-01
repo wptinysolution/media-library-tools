@@ -41,6 +41,10 @@ class ConvertModule {
 		ConversionMetadata::instance();
 		AttachmentConverter::instance();
 		ConversionManager::instance();
+
+		// Frontend URL rewriting. Registers nothing on admin screens, so the
+		// media library keeps showing the real attachment files.
+		ModernImageDelivery::instance()->register_hooks();
 	}
 
 	/**

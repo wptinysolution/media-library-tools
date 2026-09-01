@@ -52,6 +52,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\Compress\\Conversion\\Converters\\GDConverter' => __DIR__ . '/app/Modules/Compress/Conversion/Converters/GDConverter.php',
 		'TinySolutions\\mlt\\Modules\\Compress\\Conversion\\Converters\\ImageConverterInterface' => __DIR__ . '/app/Modules/Compress/Conversion/Converters/ImageConverterInterface.php',
 		'TinySolutions\\mlt\\Modules\\Compress\\Conversion\\Converters\\ImagickConverter' => __DIR__ . '/app/Modules/Compress/Conversion/Converters/ImagickConverter.php',
+		'TinySolutions\\mlt\\Modules\\Compress\\Conversion\\ModernImageDelivery' => __DIR__ . '/app/Modules/Compress/Conversion/ModernImageDelivery.php',
 		'TinySolutions\\mlt\\Modules\\Compress\\RestoreManager' => __DIR__ . '/app/Modules/Compress/RestoreManager.php',
 		'TinySolutions\\mlt\\Modules\\DownloadMedia' => __DIR__ . '/app/Modules/DownloadMedia.php',
 		'TinySolutions\\mlt\\Modules\\Duplicate\\DuplicateScanner' => __DIR__ . '/app/Modules/Duplicate/DuplicateScanner.php',

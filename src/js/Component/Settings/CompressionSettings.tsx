@@ -168,6 +168,34 @@ export default function CompressionSettings() {
                     </p>
                 </SettingRow>
 
+                <SettingRow label="Serve Modern Formats:" bordered>
+                    <CheckboxField
+                        name="conversion_serve_modern"
+                        value="conversion_serve_modern"
+                        checked={!!options.conversion_serve_modern}
+                        onChange={(e) => setOptions({ conversion_serve_modern: e.target.checked ? 1 : 0 })}
+                        label="Serve WebP/AVIF to browsers that support them"
+                        isPro={false}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">
+                        <strong>This is what actually speeds up your site.</strong> Converting creates the
+                        files; this setting makes visitors download them. Images are swapped only when a
+                        converted file exists and the visitor&rsquo;s browser advertises support &mdash;
+                        everyone else still gets the original, so nothing breaks.
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2!">
+                        Your media library is unaffected: only the URLs rendered on the frontend change, and
+                        turning this off restores the originals immediately.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded p-3 mt-3">
+                        <p className="text-sm text-amber-900 m-0!">
+                            <strong>Using a CDN or page cache?</strong> Clear it after enabling this, and make
+                            sure it respects the <code>Vary: Accept</code> header &mdash; otherwise a cached
+                            WebP page could be served to a browser that cannot display it.
+                        </p>
+                    </div>
+                </SettingRow>
+
                 <SettingRow label="Automatic Compression on Upload:" bordered>
                     <CheckboxField
                         name="compression_auto_on_upload"

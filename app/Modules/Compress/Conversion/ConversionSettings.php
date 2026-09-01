@@ -192,6 +192,10 @@ class ConversionSettings {
 			$out['conversion_webp_enabled'] = ! empty( $params['conversion_webp_enabled'] ) ? 1 : 0;
 		}
 
+		if ( array_key_exists( 'conversion_serve_modern', $params ) ) {
+			$out['conversion_serve_modern'] = ! empty( $params['conversion_serve_modern'] ) ? 1 : 0;
+		}
+
 		return $out;
 	}
 

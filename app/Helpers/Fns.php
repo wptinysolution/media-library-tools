@@ -597,6 +597,7 @@ class Fns {
 			'conversion_use_custom_quality'  => 0,
 			'conversion_generated_sizes'     => 0,
 			'conversion_auto_on_upload'      => 0,
+			'conversion_serve_modern'        => 0,
 
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );
