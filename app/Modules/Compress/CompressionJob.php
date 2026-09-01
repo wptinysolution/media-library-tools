@@ -833,7 +833,10 @@ class CompressionJob {
 	 * @return string
 	 */
 	private function get_title( int $attachment_id ): string {
-		$title = get_the_title( $attachment_id );
+		// Decoded, not escaped: this value is JSON-encoded for React, which
+		// escapes whatever it renders. Leaving WordPress's stored entities in
+		// place would surface them literally, e.g. "Usage &#038; Unused".
+		$title = Fns::prepare_text_for_json( get_the_title( $attachment_id ) );
 
 		return '' !== $title ? $title : sprintf( '#%d', $attachment_id );
 	}

@@ -6,13 +6,17 @@ interface CompressionProgressProps {
 }
 
 /**
- * Live progress for a running compression job.
+ * Live progress for a running compression or conversion job.
+ *
+ * Both features share one job queue, so the success label follows the job's
+ * type — a conversion run reporting "Compressed" would be misleading.
  *
  * Batches run server-side, so the counters here reflect work that continues
  * even if the browser is closed.
  */
 export default function CompressionProgress({ progress }: CompressionProgressProps) {
     const isRunning = 'running' === progress.status;
+    const successLabel = 'conversion' === progress.job_type ? 'Converted' : 'Compressed';
 
     return (
         <div className="space-y-4">
@@ -29,7 +33,7 @@ export default function CompressionProgress({ progress }: CompressionProgressPro
                 </div>
                 <div className="bg-green-50 rounded-md py-2">
                     <div className="text-lg font-semibold text-green-700">{progress.succeeded}</div>
-                    <div className="text-xs text-gray-500">Compressed</div>
+                    <div className="text-xs text-gray-500">{successLabel}</div>
                 </div>
                 <div className="bg-amber-50 rounded-md py-2">
                     <div className="text-lg font-semibold text-amber-700">{progress.skipped}</div>
@@ -41,6 +45,26 @@ export default function CompressionProgress({ progress }: CompressionProgressPro
                 </div>
             </div>
 
+            {/* A stopped or partly-failed run leaves the bar short of 100%, which
+                reads as "still going" without an explicit outcome. */}
+            {'cancelled' === progress.status && (
+                <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+                    <p className="text-sm text-amber-900 m-0!">
+                        Stopped at {progress.processed} of {progress.total}. Everything finished so far is
+                        kept &mdash; run it again to continue with the rest.
+                    </p>
+                </div>
+            )}
+
+            {'partial' === progress.status && (
+                <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+                    <p className="text-sm text-amber-900 m-0!">
+                        Finished with {progress.failed} failure{1 === progress.failed ? '' : 's'}.
+                        Successful images are kept.
+                    </p>
+                </div>
+            )}
+
             <div className="flex items-center justify-between px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
                 <span className="text-sm text-blue-900">Total space saved</span>
                 <span className="text-sm font-semibold text-blue-900">{progress.saved_readable}</span>
@@ -48,8 +72,8 @@ export default function CompressionProgress({ progress }: CompressionProgressPro
 
             {isRunning && (
                 <p className="text-xs text-gray-500 m-0!">
-                    Compression runs on the server. You can close this window &mdash; the job will keep
-                    going and progress is kept.
+                    {'conversion' === progress.job_type ? 'Conversion' : 'Compression'} runs on the server.
+                    You can close this window &mdash; the job will keep going and progress is kept.
                 </p>
             )}
         </div>

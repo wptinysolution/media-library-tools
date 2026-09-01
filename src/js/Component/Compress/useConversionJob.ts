@@ -87,8 +87,11 @@ export function useConversionJob() {
                     pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
                 }
             } catch {
+                // Both the batch and the progress check failed. Stop rather than
+                // looping: retrying blindly kept driving a job the user had
+                // already cancelled, which is how Stop appeared not to work.
                 if (!isStale()) {
-                    pollTimer.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+                    setConversion({ isProcessing: false });
                 }
             }
         } finally {
