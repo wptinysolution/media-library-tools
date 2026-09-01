@@ -258,6 +258,8 @@ export interface DuplicateState {
 export interface CompressionState {
     isLoading: boolean;
     isProcessing: boolean;
+    /** A stop request is in flight; the job is not confirmed stopped yet. */
+    isCancelling: boolean;
     settings: CompressionSettings | null;
     access: CompressionAccess | null;
     modes: { value: CompressionMode; label: string; description: string }[];
@@ -271,6 +273,8 @@ export interface CompressionState {
 export interface ConversionState {
     isLoading: boolean;
     isProcessing: boolean;
+    /** A stop request is in flight; the job is not confirmed stopped yet. */
+    isCancelling: boolean;
     settings: ConversionSettingsData | null;
     capabilities: ConversionCapabilityInfo | null;
     access: ConversionAccess | null;
@@ -487,6 +491,7 @@ export const useStore = create<StoreState>((set) => ({
     compression: {
         isLoading: false,
         isProcessing: false,
+        isCancelling: false,
         settings: null,
         access: null,
         modes: [],
@@ -500,6 +505,7 @@ export const useStore = create<StoreState>((set) => ({
     conversion: {
         isLoading: false,
         isProcessing: false,
+        isCancelling: false,
         settings: null,
         capabilities: null,
         access: null,

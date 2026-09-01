@@ -20,6 +20,7 @@ function Settings() {
                         <Loader fullScreen />
                     ) : (
                         <div className="space-y-4">
+                            <AiSettings />
                             <div className="bg-white rounded-lg border border-gray-200">
                                 <div className="px-6 py-5 border-b border-gray-200">
                                     <h3 className="text-xl m-0! font-semibold text-gray-900">Media Table Settings</h3>
@@ -30,7 +31,6 @@ function Settings() {
                                 <DescriptionSettings />
                             </div>
                             <RenamerSettings />
-                            <AiSettings />
                             <CompressionSettings />
                             <MiscSettings />
                         </div>

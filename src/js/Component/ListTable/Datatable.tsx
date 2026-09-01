@@ -16,8 +16,9 @@ import MissingBadge from "@/js/Component/Badges/MissingBadge";
 import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 import CheckboxField from "@/js/Component/Common/CheckboxField";
 import CompressionDetails from "@/js/Component/Compress/CompressionDetails";
-import { compressionGetBulk, compressionGetSettings } from "@/js/Utils/Data";
-import type { CompressionDetail } from "@/js/Utils/Data";
+import ConversionDetails from "@/js/Component/Compress/ConversionDetails";
+import { compressionGetBulk, compressionGetSettings, conversionGetBulk, conversionGetCapabilities } from "@/js/Utils/Data";
+import type { CompressionDetail, ConversionDetail } from "@/js/Utils/Data";
 
 const theImage = (record: MediaPost) => (
     <MediaThumbnail
@@ -74,6 +75,7 @@ export default function Datatable() {
         options, setOptions,
         bulkExport, generalData,
         compression, setCompression,
+        conversion, setConversion,
         setSaveType,
     } = useStore();
     const { page: pageParam } = useParams<{ page?: string }>();
@@ -149,6 +151,30 @@ export default function Datatable() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Conversion capabilities, loaded once — they decide whether the row offers
+    // a convert action at all.
+    useEffect(() => {
+        if (conversion.capabilities) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const payload = await conversionGetCapabilities();
+                if (!cancelled) {
+                    setConversion({
+                        capabilities: payload.capabilities,
+                        access: payload.access,
+                        settings: payload.settings,
+                        available: payload.available,
+                    });
+                }
+            } catch {
+                // Row actions stay hidden if this fails.
+            }
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Fetch compression summaries for the visible page in a single request.
     // Doing this per row would mean one AJAX call and one meta query per image.
     useEffect(() => {
@@ -172,6 +198,36 @@ export default function Datatable() {
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mediaData.posts]);
+
+    // One batched request per page for conversion summaries, for the same
+    // reason as compression: per-row fetching would be an AJAX call and a meta
+    // query per image.
+    useEffect(() => {
+        const ids = mediaData.posts
+            .filter(item => String(item.post_mime_type || '').startsWith('image/'))
+            .map(item => item.ID);
+
+        if (!ids.length) return;
+
+        let cancelled = false;
+        (async () => {
+            try {
+                const response = await conversionGetBulk({ ids });
+                if (!cancelled && response?.items) {
+                    setConversion({ details: { ...conversion.details, ...response.items } });
+                }
+            } catch {
+                // Summaries are supplementary; the table renders fine without them.
+            }
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mediaData.posts]);
+
+    /** Merge one row's refreshed conversion summary back into the store. */
+    const handleConversionChanged = (attachmentId: number, detail: ConversionDetail) => {
+        setConversion({ details: { ...conversion.details, [attachmentId]: detail } });
+    };
 
     /** Merge one row's refreshed compression summary back into the store. */
     const handleCompressionChanged = (attachmentId: number, detail: CompressionDetail) => {
@@ -596,6 +652,12 @@ export default function Datatable() {
                                                         attachmentId={record.ID}
                                                         mimeType={record.post_mime_type}
                                                         onChanged={(detail) => handleCompressionChanged(record.ID, detail)}
+                                                    />
+
+                                                    <ConversionDetails
+                                                        attachmentId={record.ID}
+                                                        mimeType={record.post_mime_type}
+                                                        onChanged={(detail) => handleConversionChanged(record.ID, detail)}
                                                     />
 
                                                     {parent?.title && (

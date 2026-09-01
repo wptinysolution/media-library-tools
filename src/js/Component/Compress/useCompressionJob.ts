@@ -221,22 +221,27 @@ export function useCompressionJob() {
     }, [applyProgress, pollOnce, setCompression, stopPolling]);
 
     const cancelJob = useCallback(async () => {
+        // Tear the loop down first so no further batch is scheduled behind this
+        // request, then keep the UI in a "stopping" state until the server has
+        // confirmed. Flipping straight to idle hid the button while the request
+        // was still in flight, and a reload at that moment lost the cancel.
         stopPolling();
-
-        // Reflect the stop straight away. An in-flight batch can still be
-        // finishing server-side, so waiting for the round-trip would leave the
-        // button looking unresponsive for a second or more.
-        setCompression({ isProcessing: false });
+        setCompression({ isCancelling: true });
 
         try {
             const next = await compressionCancel();
             if (mountedRef.current) {
-                // Keep the final counts, but never let a stale "running" status
-                // from a batch that landed first restart the UI.
-                setCompression({ progress: next, isProcessing: false });
+                setCompression({ progress: next, isProcessing: false, isCancelling: false });
             }
         } catch {
-            if (mountedRef.current) setCompression({ isProcessing: false });
+            // The job is still running server-side. Say so rather than showing a
+            // stopped UI that the next page load would contradict.
+            if (mountedRef.current) {
+                setCompression({
+                    isCancelling: false,
+                    error: 'Could not stop the job. Check your connection and try again.',
+                });
+            }
         }
     }, [setCompression, stopPolling]);
 

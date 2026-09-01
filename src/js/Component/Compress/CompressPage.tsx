@@ -27,7 +27,7 @@ export default function CompressPage() {
         isFinished,
     } = useCompressionJob();
 
-    const { isLoading, isProcessing, settings, access, modes, engines, progress } = compression;
+    const { isLoading, isProcessing, isCancelling, settings, access, modes, engines, progress } = compression;
 
     const [stats, setStats] = useState<{ total: number; compressed: number; remaining: number } | null>(null);
     const [mode, setMode] = useState<CompressionMode>('balanced');
@@ -75,7 +75,7 @@ export default function CompressPage() {
     const limit = access?.job_limit ?? 0;
     const featureAvailable = access?.feature_available ?? true;
     const remaining = stats?.remaining ?? 0;
-    const showProgress = isProcessing || (progress && 'idle' !== progress.status && progress.total > 0);
+    const showProgress = isProcessing || isCancelling || (progress && 'idle' !== progress.status && progress.total > 0);
 
     // With nothing left uncompressed the only way to act is to re-run over the
     // whole library. That is exactly what turning on backups or generated sizes
@@ -184,13 +184,14 @@ export default function CompressPage() {
                                         {isFinished && <CompressionResults progress={progress} />}
 
                                         <div className="flex items-center gap-2">
-                                            {isProcessing && (
+                                            {(isProcessing || isCancelling) && (
                                                 <button
                                                     type="button"
-                                                    className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                    className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                     onClick={cancelJob}
+                                                    disabled={isCancelling}
                                                 >
-                                                    Stop
+                                                    {isCancelling ? 'Stopping…' : 'Stop'}
                                                 </button>
                                             )}
                                             {isFinished && progress.has_failed && (

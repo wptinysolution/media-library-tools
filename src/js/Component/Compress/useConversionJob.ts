@@ -163,16 +163,27 @@ export function useConversionJob() {
     }, [applyProgress, pollOnce, setConversion, stopPolling]);
 
     const cancelJob = useCallback(async () => {
+        // Tear the loop down first so no further batch is scheduled behind this
+        // request, then keep the UI in a "stopping" state until the server has
+        // confirmed. Flipping straight to idle hid the button while the request
+        // was still in flight, and a reload at that moment lost the cancel.
         stopPolling();
-        setConversion({ isProcessing: false });
+        setConversion({ isCancelling: true });
 
         try {
             const next = await compressionCancel();
             if (mountedRef.current) {
-                setConversion({ progress: next, isProcessing: false });
+                setConversion({ progress: next, isProcessing: false, isCancelling: false });
             }
         } catch {
-            if (mountedRef.current) setConversion({ isProcessing: false });
+            // The job is still running server-side. Say so rather than showing a
+            // stopped UI that the next page load would contradict.
+            if (mountedRef.current) {
+                setConversion({
+                    isCancelling: false,
+                    error: 'Could not stop the job. Check your connection and try again.',
+                });
+            }
         }
     }, [setConversion, stopPolling]);
 

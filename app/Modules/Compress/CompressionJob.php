@@ -673,9 +673,14 @@ class CompressionJob {
 		// while still keeping the counts this batch produced.
 		$fresh = $this->get_state();
 
-		if ( 'running' !== $fresh['status'] ) {
-			$state['status'] = $fresh['status'];
-			$state['queue']  = [];
+		// `cancelled_at` is checked as well as the status: a cancel that lands
+		// while this batch is mid-flight sets both, and testing the status alone
+		// let the pre-cancel snapshot write `running` straight back — which is
+		// why Stop appeared to work until the page was reloaded.
+		if ( 'running' !== $fresh['status'] || ! empty( $fresh['cancelled_at'] ) ) {
+			$state['status']       = 'running' !== $fresh['status'] ? $fresh['status'] : 'cancelled';
+			$state['cancelled_at'] = (int) ( $fresh['cancelled_at'] ?? 0 );
+			$state['queue']        = [];
 		}
 
 		$this->save_state( $state );

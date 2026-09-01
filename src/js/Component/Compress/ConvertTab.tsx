@@ -25,7 +25,7 @@ export default function ConvertTab() {
         isFinished,
     } = useConversionJob();
 
-    const { isLoading, isProcessing, settings, capabilities, access, available, progress } = conversion;
+    const { isLoading, isProcessing, isCancelling, settings, capabilities, access, available, progress } = conversion;
 
     const [stats, setStats] = useState<{ total: number; converted: number; remaining: number } | null>(null);
     const [formats, setFormats] = useState<Record<ConversionFormat, boolean>>({ webp: true, avif: false });
@@ -79,7 +79,7 @@ export default function ConvertTab() {
     const rerunAll = nothingRemaining && (stats?.total ?? 0) > 0;
     const targetCount = rerunAll ? (stats?.total ?? 0) : (stats?.remaining ?? 0);
     const willTrim = limit > 0 && targetCount > limit;
-    const showProgress = isProcessing || (progress && 'idle' !== progress.status && progress.total > 0);
+    const showProgress = isProcessing || isCancelling || (progress && 'idle' !== progress.status && progress.total > 0);
 
     const handleStart = () => {
         startLibraryJob({
@@ -164,13 +164,14 @@ export default function ConvertTab() {
                     {isFinished && <CompressionResults progress={progress} />}
 
                     <div className="flex items-center gap-2">
-                        {isProcessing && (
+                        {(isProcessing || isCancelling) && (
                             <button
                                 type="button"
-                                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={cancelJob}
+                                disabled={isCancelling}
                             >
-                                Stop
+                                {isCancelling ? 'Stopping…' : 'Stop'}
                             </button>
                         )}
                         {isFinished && (
