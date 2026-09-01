@@ -119,6 +119,7 @@ class CompressionJob {
 			'recent_results' => [],
 			'recent_errors'  => [],
 			'last_error'     => '',
+			'cancelled_at'   => 0,
 		];
 	}
 
@@ -161,6 +162,15 @@ class CompressionJob {
 	 */
 	public function get_progress(): array {
 		$state = $this->get_state();
+
+		// A cancelled job stays cancelled. Without this a batch request that was
+		// already in flight when the user pressed Stop could write `running`
+		// back, and the next page load would resume a job they had stopped.
+		if ( ! empty( $state['cancelled_at'] ) && 'running' === $state['status'] ) {
+			$state['status'] = 'cancelled';
+			$state['queue']  = [];
+			$this->save_state( $state );
+		}
 
 		// A job with nothing left in the queue cannot make progress, so it must
 		// never be reported as running — otherwise the UI reattaches to it on
@@ -336,9 +346,10 @@ class CompressionJob {
 
 		$now = time();
 
-		$state               = $this->default_state();
-		$state['job_id']     = uniqid( 'tsmlt_', false );
-		$state['job_type']   = self::TYPE_CONVERSION;
+		$state                 = $this->default_state();
+		$state['job_id']       = uniqid( 'tsmlt_', false );
+		$state['job_type']     = self::TYPE_CONVERSION;
+		$state['cancelled_at'] = 0;
 		$state['status']     = 'running';
 		$state['queue']      = $eligible;
 		$state['total']      = count( $eligible );
@@ -556,6 +567,10 @@ class CompressionJob {
 		$state['queue']      = [];
 		$state['current_id'] = 0;
 		$state['updated_at'] = time();
+		// Stamp the cancellation so a late batch response — or a page reload that
+		// still believes the run is live — cannot restart it. `run_batch()` and
+		// `get_progress()` both refuse to revive a job carrying this marker.
+		$state['cancelled_at'] = time();
 
 		$this->save_state( $state );
 
@@ -635,8 +650,10 @@ class CompressionJob {
 	public function run_batch( bool $reschedule = false ): array {
 		$state = $this->get_state();
 
-		// Cancelled or finished between batches — stop here.
-		if ( 'running' !== $state['status'] ) {
+		// Cancelled or finished between batches — stop here. The `cancelled_at`
+		// check also covers a request that was already in flight when Stop was
+		// pressed, which would otherwise process one more batch.
+		if ( 'running' !== $state['status'] || ! empty( $state['cancelled_at'] ) ) {
 			return $this->get_progress();
 		}
 
