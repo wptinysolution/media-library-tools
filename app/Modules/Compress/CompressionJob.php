@@ -685,7 +685,13 @@ class CompressionJob {
 
 		$this->save_state( $state );
 
-		if ( $reschedule && 'running' === $state['status'] && ! empty( $state['queue'] ) ) {
+		// `cancelled_at` is checked alongside the status so a tick that was
+		// already mid-flight when the user pressed Stop cannot queue the next
+		// one. Without it the chain could outlive the cancel by one tick.
+		if ( $reschedule
+			&& 'running' === $state['status']
+			&& empty( $state['cancelled_at'] )
+			&& ! empty( $state['queue'] ) ) {
 			wp_schedule_single_event( time() + self::TICK_INTERVAL, self::TICK_HOOK );
 		}
 

@@ -64,8 +64,11 @@ export function useCompressionJob() {
             return false;
         }
 
+        // A cancel can arrive from another tab, or from a Stop pressed before
+        // this page was reloaded. Treat any non-running status as terminal so
+        // the loop stops and the UI settles instead of showing a live bar.
         const isRunning = 'running' === next.status;
-        setCompression({ progress: next, isProcessing: isRunning });
+        setCompression({ progress: next, isProcessing: isRunning, isCancelling: false });
         return isRunning;
     }, [setCompression]);
 

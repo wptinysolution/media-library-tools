@@ -58,8 +58,11 @@ export function useConversionJob() {
             return false;
         }
 
+        // A cancel can arrive from another tab, or from a Stop pressed before
+        // this page was reloaded. Treat any non-running status as terminal so
+        // the loop stops and the UI settles instead of showing a live bar.
         const isRunning = 'running' === next.status;
-        setConversion({ progress: next, isProcessing: isRunning });
+        setConversion({ progress: next, isProcessing: isRunning, isCancelling: false });
         return isRunning;
     }, [setConversion]);
 
