@@ -1,10 +1,10 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useStore } from "@/js/Utils/store";
 import Papa from 'papaparse';
 import toast from 'react-hot-toast';
 import type { ExportImportSettings } from "@/js/Utils/store";
 
-function UploadCsv() {
+function UploadCsv({ autoOpen = false, onParsingChange }: { autoOpen?: boolean; onParsingChange?: (parsing: boolean) => void }) {
     const { exportImport, setExportImport } = useStore();
     const [filename, setFilename] = useState('');
     const [parsing, setParsing] = useState(false);
@@ -27,16 +27,22 @@ function UploadCsv() {
         setParsing(true);
         setFilename(file.name);
 
-        const reader = new FileReader();
-        reader.onerror = () => {
+        // A rejected file with nothing loaded would leave an empty screen, so
+        // drop back to the landing card. An earlier file stays selected.
+        const failParse = (message: string) => {
             setParsing(false);
-            toast.error('Failed to read the CSV file.');
+            toast.error(message);
+            if (!exportImport.fileCount) {
+                handleCancelImport();
+            }
         };
+
+        const reader = new FileReader();
+        reader.onerror = () => failParse('Failed to read the CSV file.');
         reader.onload = (e) => {
             let csvText = e.target?.result as string;
             if (!csvText) {
-                setParsing(false);
-                toast.error('CSV file is empty.');
+                failParse('CSV file is empty.');
                 return;
             }
 
@@ -50,11 +56,9 @@ function UploadCsv() {
                 skipEmptyLines: 'greedy',
             });
 
-            setParsing(false);
-
             const rawRows = results.data as string[][];
             if (!rawRows.length || rawRows.length < 2) {
-                toast.error('CSV file has no data rows.');
+                failParse('CSV file has no data rows.');
                 return;
             }
 
@@ -74,9 +78,11 @@ function UploadCsv() {
             }
 
             if (!rows.length) {
-                toast.error('No valid rows found in CSV file. Check the file format.');
+                failParse('No valid rows found in CSV file. Check the file format.');
                 return;
             }
+
+            setParsing(false);
 
             const sessionId = Date.now().toString();
             try {
@@ -94,16 +100,10 @@ function UploadCsv() {
         reader.readAsText(file, 'UTF-8');
     };
 
-    // Drop the parsed file but stay on the import screen so another CSV can be picked.
+    // Swap the parsed file for another one by reopening the picker directly.
+    // Cancelling the dialog leaves the current file in place.
     const handleClearFile = () => {
-        setFilename('');
-        setExportImport({
-            mediaFiles: [],
-            fileCount: 0,
-            percent: 0,
-            totalPage: 0,
-            csvFilename: '',
-        });
+        fileInputRef.current?.click();
     };
 
     // Leave the importer entirely, back to the CSV Import landing screen.
@@ -141,6 +141,39 @@ function UploadCsv() {
         // Reset so the same file can be re-selected if needed.
         e.target.value = '';
     };
+
+    // Dismissing the picker with no file loaded would leave nothing on screen,
+    // so go back to the landing card. With a file already parsed, stay put.
+    // Bound natively because React's input types do not declare onCancel.
+    const onFileCancel = useRef<() => void>(() => {});
+    onFileCancel.current = () => {
+        if (!exportImport.fileCount) {
+            handleCancelImport();
+        }
+    };
+
+    useEffect(() => {
+        const input = fileInputRef.current;
+        if (!input) return;
+        const handler = () => onFileCancel.current();
+        input.addEventListener('cancel', handler);
+        return () => input.removeEventListener('cancel', handler);
+    }, []);
+
+    // Let the parent hand this component the panel while a file is parsing,
+    // since there is no fileCount yet to signal that something is happening.
+    useEffect(() => {
+        onParsingChange?.(parsing);
+    }, [parsing, onParsingChange]);
+
+    // Entering the importer from the landing card means the user already asked
+    // to pick a file, so open the picker instead of showing a second button.
+    // Runs after the cancel listener above is attached.
+    useEffect(() => {
+        if (autoOpen) {
+            fileInputRef.current?.click();
+        }
+    }, [autoOpen]);
 
     return (
         <>
@@ -304,40 +337,13 @@ function UploadCsv() {
                 </>
             ) : ''}
 
-            {!exportImport.fileCount ? (
-                <div className="flex flex-col items-center gap-3">
-                    <button
-                        type="button"
-                        className="w-70 h-17.5 text-2xl! flex items-center justify-center gap-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 cursor-pointer transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={parsing}
-                    >
-                        {parsing ? (
-                            <>
-                                <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                                Parsing CSV...
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                Upload CSV File
-                            </>
-                        )}
-                    </button>
-                    {!parsing && (
-                        <button
-                            type="button"
-                            className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer transition-colors bg-transparent border-0 p-0"
-                            onClick={handleCancelImport}
-                        >
-                            Cancel
-                        </button>
-                    )}
+            {parsing ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-6">
+                    <svg className="w-8 h-8 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <p className="text-sm text-gray-500 m-0!">Parsing CSV...</p>
                 </div>
             ) : ''}
         </>

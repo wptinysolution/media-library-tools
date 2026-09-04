@@ -533,37 +533,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
-= 2.3.0 (Sep XX, 2026)=
+= 2.3.0 (Sep 05, 2026)=
 * Feature: Compress Images — new page for compressing JPEG, PNG, and WebP images across your media library. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
 * Feature: Convert to WebP/AVIF — generate modern WebP copies alongside your originals without replacing them. Pro adds AVIF, unlimited conversion, generated image sizes, custom quality, and automatic conversion on upload.
 * Fix: The page number in the URL could disagree with the page shown in the table.
-
-= 2.2.15 (Aug XX, 2026)=
-* Feature: Media can now be assigned to Groups. Previously Groups could be created and filtered by, but there was no way to assign media to them.
-* Feature: Assign Groups to many items at once from Bulk Actions > Bulk Edit.
-* Feature: Bulk Group assignment can add to, replace, or remove the selected Groups.
-* Feature: Assign Groups to a single item by ticking the Groups checkboxes in Edit Mode.
-* Feature: Added `groups`, `post_parent`, and `menu_order` columns to CSV export.
-* Fix: Bulk Group assignment no longer removes the Groups an item already belongs to. It now adds to them by default, with replacing available as an explicit choice.
-* Improvement: The Media Table now exports the attachment's parent post ID and menu order, so both can be edited in a spreadsheet and re-imported.
-* Improvement: Renamed "Media Categories" to "Groups" throughout the documentation to match the plugin interface.
-* Fix: Editing a title, alt text, caption, or description could re-apply a Group selection made on a different item moments earlier, assigning that item's Groups to the wrong media file.
-* Fix: A negative menu order value is now exported correctly instead of losing its sign, so it survives a CSV export and re-import.
-
-= 2.2.14 (Aug 24, 2026)=
-* Maintenance release.
-
-= 2.2.13 (Aug 24, 2026)=
-* Improvement: Font Size Improvement
-
-= 2.2.12 (Aug 10, 2026)=
-* Improvement: CSV Import now defaults to updating existing media instead of creating new attachments, preventing accidental duplicates when re-importing an exported CSV.
-* Improvement: Replaced the "Update existing media" checkbox with two clearly labelled choices — "Update existing media" and "Import as new media" — so both outcomes are visible before running the importer.
-* Improvement: The import button now states exactly what will happen, e.g. "Update 42 media items" or "Create 42 new media items".
-* Improvement: Added a confirmation step before creating new media, and a warning when a CSV containing an ID column is about to be imported as new media.
-* Improvement: The selected CSV filename and row count are now shown at the top of the importer, with a "Choose a different file" option.
-* Improvement: Added Cancel buttons to the CSV Import screens so the importer can be exited without reloading the page.
-* Improvement: Redesigned the "rename using rename_to column" option to sit under the update mode it belongs to, and clarified that renaming changes file URLs.
 
 [See changelog for all versions.](https://raw.githubusercontent.com/wptinysolution/WP-Changelog/refs/heads/main/media-library-tools.txt)
 

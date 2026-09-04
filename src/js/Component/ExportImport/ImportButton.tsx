@@ -9,8 +9,18 @@ import type { ImportRecord } from "./ExportCSV";
 function ImportButton() {
     const { exportImport, setExportImport, setGeneralData } = useStore();
     const [history, setHistory] = useState<ImportRecord[]>(() => [...loadImportHistory()].reverse());
+    // Set only when the user clicked the landing button, so the file picker
+    // opens straight away instead of asking for a second click.
+    const [autoOpenPicker, setAutoOpenPicker] = useState(false);
 
     const isImport = exportImport.isImport;
+
+    const [isParsing, setIsParsing] = useState(false);
+
+    // Only give the importer the panel once it has something to draw: a parsed
+    // file, a parse in flight, or a run in progress. Waiting on the file dialog
+    // keeps the card, so the panel is never blank.
+    const showImporter = isImport && (!!exportImport.fileCount || isParsing || exportImport.runImporter);
 
     const deleteRecord = (id: string) => {
         const updated = loadImportHistory().filter(r => r.id !== id);
@@ -35,6 +45,7 @@ function ImportButton() {
             const raw = sessionStorage.getItem(`tsmlt_import_${record.sessionId}`);
             if (!raw) return;
             const parsed = JSON.parse(raw) as never[];
+            setAutoOpenPicker(false);
             setExportImport({
                 isImport: true,
                 runImporter: false,
@@ -53,6 +64,7 @@ function ImportButton() {
             setGeneralData({ openProModal: true });
             return;
         }
+        setAutoOpenPicker(true);
         setExportImport({
             isImport: true,
             runImporter: false,
@@ -90,17 +102,19 @@ function ImportButton() {
                 </div>
 
                 <div className="bg-white rounded-lg border border-gray-200 p-10">
-                    {isImport ? (
-                        <>
-                            {exportImport.runImporter ? (
-                                <ImportInfo onComplete={refreshHistory} />
-                            ) : (
-                                <div className="flex flex-col justify-center">
-                                    <UploadCsv />
-                                </div>
-                            )}
-                        </>
-                    ) : (
+                    {/* UploadCsv owns the hidden file input, so it stays mounted even on
+                        the landing card — that is what the card's button clicks. The card
+                        remains visible until there is real content to swap in, otherwise
+                        the panel would sit empty while the file dialog is open. */}
+                    <div className={showImporter ? 'flex flex-col justify-center' : 'hidden'}>
+                        <UploadCsv autoOpen={autoOpenPicker} onParsingChange={setIsParsing} />
+                    </div>
+
+                    {isImport && exportImport.runImporter ? (
+                        <ImportInfo onComplete={refreshHistory} />
+                    ) : ''}
+
+                    {!showImporter && !exportImport.runImporter ? (
                         <div className="text-center">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,12 +131,12 @@ function ImportButton() {
                                 onClick={handleImport}
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                 </svg>
-                                Start Import
+                                Upload CSV File
                             </button>
                         </div>
-                    )}
+                    ) : ''}
                 </div>
 
                 {/* Import history */}
