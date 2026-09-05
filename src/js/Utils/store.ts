@@ -135,6 +135,8 @@ export interface OptionsState {
     ai_gemini_model?: string;
     ai_claude_key?: string;
     ai_claude_model?: string;
+    ai_language?: string;
+    ai_custom_instruction?: string;
     [key: string]: unknown;
 }
 

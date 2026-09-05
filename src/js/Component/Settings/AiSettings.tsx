@@ -16,6 +16,15 @@ const EyeOffIcon = () => (
     </svg>
 );
 
+// Kept in sync with AiApi::LOCALE_LANGUAGES on the PHP side.
+const AI_LANGUAGES = [
+    'English', 'German', 'French', 'Spanish', 'Italian', 'Dutch', 'Portuguese',
+    'Polish', 'Swedish', 'Danish', 'Norwegian', 'Finnish', 'Czech', 'Slovak',
+    'Hungarian', 'Romanian', 'Greek', 'Turkish', 'Russian', 'Ukrainian',
+    'Arabic', 'Hebrew', 'Hindi', 'Bengali', 'Indonesian', 'Vietnamese',
+    'Thai', 'Japanese', 'Korean', 'Chinese',
+] as const;
+
 export default function AiSettings() {
     const { options, setOptions, setGeneralData } = useStore();
     const [showKey, setShowKey] = useState(false);
@@ -90,6 +99,33 @@ export default function AiSettings() {
                         </select>
                         {(options.ai_max_suggestion_count ?? 1) <= 1 && <ProLabel /> }
                     </div>
+                </SettingRow>
+
+                <SettingRow label="Content Language:" bordered>
+                    <select
+                        name="ai_language"
+                        className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        value={(options.ai_language as string) || ''}
+                        onChange={(e) => setOptions({ ai_language: e.target.value })}
+                    >
+                        <option value="">Site language (default)</option>
+                        {AI_LANGUAGES.map((lang) => (
+                            <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                    </select>
+                    <p className="text-sm text-gray-500 mt-0!">Language used for AI-generated titles, alt text, captions and descriptions. &quot;Site language&quot; follows your WordPress language setting. AI-generated filenames always stay ASCII-safe (for example, ä becomes ae).</p>
+                </SettingRow>
+
+                <SettingRow label="Custom AI Instruction:" bordered>
+                    <textarea
+                        name="ai_custom_instruction"
+                        rows={3}
+                        className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. Use natural, SEO-friendly wording and avoid keyword stuffing."
+                        value={(options.ai_custom_instruction as string) || ''}
+                        onChange={(e) => setOptions({ ai_custom_instruction: e.target.value })}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">Optional. Added to every AI request after the built-in instructions, so it takes precedence over them. Leave empty to use the defaults.</p>
                 </SettingRow>
 
                 {provider === 'chatgpt' && (

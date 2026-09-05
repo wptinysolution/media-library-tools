@@ -34,6 +34,46 @@ class AiApi {
 	];
 
 	/**
+	 * Language names keyed by WordPress locale prefix, used to turn the site
+	 * locale into wording the model reliably understands.
+	 *
+	 * @var array<string, string>
+	 */
+	private const LOCALE_LANGUAGES = [
+		'de' => 'German',
+		'fr' => 'French',
+		'es' => 'Spanish',
+		'it' => 'Italian',
+		'nl' => 'Dutch',
+		'pt' => 'Portuguese',
+		'pl' => 'Polish',
+		'sv' => 'Swedish',
+		'da' => 'Danish',
+		'nb' => 'Norwegian',
+		'nn' => 'Norwegian',
+		'fi' => 'Finnish',
+		'cs' => 'Czech',
+		'sk' => 'Slovak',
+		'hu' => 'Hungarian',
+		'ro' => 'Romanian',
+		'el' => 'Greek',
+		'tr' => 'Turkish',
+		'ru' => 'Russian',
+		'uk' => 'Ukrainian',
+		'ar' => 'Arabic',
+		'he' => 'Hebrew',
+		'hi' => 'Hindi',
+		'bn' => 'Bengali',
+		'id' => 'Indonesian',
+		'vi' => 'Vietnamese',
+		'th' => 'Thai',
+		'ja' => 'Japanese',
+		'ko' => 'Korean',
+		'zh' => 'Chinese',
+		'en' => 'English',
+	];
+
+	/**
 	 * Base64-encoded image data set by the Pro plugin via set_image_data().
 	 * Empty string when Pro is not active or image sending is disabled.
 	 *
@@ -59,6 +99,35 @@ class AiApi {
 	public function set_image_data( string $base64, string $mime ): void {
 		$this->image_base64 = $base64;
 		$this->image_mime   = $mime;
+	}
+
+	/**
+	 * Resolve the configured language setting into a language name for the prompt.
+	 *
+	 * An empty setting means "site default", which maps the WordPress locale to a
+	 * language name. English resolves to an empty string because the built-in
+	 * prompts are already English and need no extra instruction.
+	 *
+	 * @param string $setting Stored ai_language value ('' for site default, or a language name).
+	 *
+	 * @return string Language name, or empty string when no instruction is needed.
+	 */
+	private static function resolve_language( string $setting ): string {
+		$setting = trim( $setting );
+
+		if ( '' !== $setting ) {
+			return 'English' === $setting ? '' : $setting;
+		}
+
+		// Site default: derive from the locale, e.g. de_DE / de_DE_formal -> German.
+		$locale = (string) apply_filters( 'tsmlt_ai_locale', get_locale() );
+		$prefix = strtolower( substr( $locale, 0, 2 ) );
+
+		if ( ! isset( self::LOCALE_LANGUAGES[ $prefix ] ) || 'en' === $prefix ) {
+			return '';
+		}
+
+		return self::LOCALE_LANGUAGES[ $prefix ];
 	}
 
 	/**
@@ -149,6 +218,39 @@ class AiApi {
 			' Provide %d different suggestions. Number each one (e.g. "1. suggestion"). Put each suggestion on its own line. Return only the numbered list, nothing else.',
 			$count
 		);
+
+		// Output language. Empty means "site default", resolved from the WordPress
+		// locale so a German site produces German output without configuration.
+		$language = self::resolve_language( $settings['ai_language'] ?? '' );
+		if ( '' !== $language ) {
+			if ( 'filename' === $field_type ) {
+				// Filenames stay ASCII-safe: non-ASCII characters break on some
+				// servers, so ask for transliteration rather than native script.
+				$prompt .= sprintf(
+					' Base the filename on %1$s wording, but transliterate it to plain ASCII (for example, ä becomes ae, ß becomes ss). Use only lowercase a-z and hyphens.',
+					$language
+				);
+			} else {
+				$prompt .= sprintf( ' Write every suggestion in %s.', $language );
+			}
+		}
+
+		// User instruction is appended last so it takes precedence over the
+		// built-in wording above.
+		$custom_instruction = trim( (string) ( $settings['ai_custom_instruction'] ?? '' ) );
+		if ( '' !== $custom_instruction ) {
+			$prompt .= ' ' . $custom_instruction;
+		}
+
+		/**
+		 * Filter the final prompt sent to the AI provider.
+		 *
+		 * @param string $prompt        Complete prompt text.
+		 * @param string $field_type    Field being generated (title, alt_text, caption, description, filename).
+		 * @param int    $attachment_id Attachment post ID.
+		 * @param array  $settings      Plugin settings array.
+		 */
+		$prompt = (string) apply_filters( 'tsmlt_ai_prompt', $prompt, $field_type, $attachment_id, $settings );
 
 		switch ( $provider ) {
 			case 'gemini':

@@ -581,6 +581,10 @@ class Fns {
 			'media_auto_rename_text' => '',
 			'media_rename_prefix'    => '',
 			'media_rename_suffix'    => '',
+			// AI output language: empty = follow the site locale. Custom instruction
+			// is appended after the built-in prompt so it takes precedence.
+			'ai_language'            => '',
+			'ai_custom_instruction'  => '',
 			// Compression defaults — Pro-only keys default off so an install
 			// without a licence never has backup or auto-compression active.
 			'compression_mode'               => 'balanced',
