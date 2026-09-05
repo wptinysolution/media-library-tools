@@ -337,6 +337,109 @@ class RubbishScanner {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Remove rubbish rows that point at plugin-generated files.
+	 *
+	 * Earlier versions built the registered-file lookup from `_wp_attached_file`
+	 * and `_wp_attachment_metadata` only, so WebP/AVIF conversions and compression
+	 * backups — which are not attachments — were recorded as unlisted "rubbish".
+	 * Those rows are stale the moment the lookup learns about generated files, but
+	 * they persist until the user rescans, still offering the files for deletion.
+	 *
+	 * Runs once on upgrade. Deletes rows only; the files on disk are never touched.
+	 *
+	 * @return int Number of rows removed.
+	 */
+	public static function purge_generated_file_rows(): int {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'tsmlt_unlisted_file';
+
+		// Nothing to do when the table has not been created yet — this runs on
+		// upgrade, which can fire before create_tables() on a partial install.
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL -- Table existence check; no caching layer applies.
+		if ( $exists !== $table ) {
+			return 0;
+		}
+
+		$removed = 0;
+
+		// 1. Compression backups — matched by directory prefix, since every file
+		// under the backup dir is ours by definition.
+		$backup_rows = Fns::DB()->select( 'file_path' )
+			->from( 'tsmlt_unlisted_file' )
+			->where( 'file_path', 'LIKE', BackupManager::BACKUP_DIRNAME . '/%' )
+			->get();
+
+		foreach ( (array) $backup_rows as $row ) {
+			if ( empty( $row['file_path'] ) ) {
+				continue;
+			}
+			Fns::DB()->delete( 'tsmlt_unlisted_file' )
+				->where( 'file_path', '=', $row['file_path'] )
+				->execute();
+			++$removed;
+		}
+
+		// 2. Conversion outputs — collect every registered generated path, then
+		// delete only rows matching one. Reuses the same filter the scanner uses,
+		// so anything a third party registers is cleaned up too.
+		$lookup = apply_filters(
+			'tsmlt_registered_file_lookup',
+			[ 'paths' => [], 'basenames' => [] ],
+			[]
+		);
+
+		if ( ! is_array( $lookup ) || empty( $lookup['paths'] ) || ! is_array( $lookup['paths'] ) ) {
+			self::flush_rubbish_caches( $removed );
+			return $removed;
+		}
+
+		$generated = array_keys( $lookup['paths'] );
+
+		// Chunked so a large library doesn't build a single oversized query.
+		foreach ( array_chunk( $generated, 200 ) as $chunk ) {
+			$existing = Fns::DB()->select( 'file_path' )
+				->from( 'tsmlt_unlisted_file' )
+				->whereIn( 'file_path', ...$chunk )
+				->get();
+
+			foreach ( (array) $existing as $row ) {
+				if ( empty( $row['file_path'] ) ) {
+					continue;
+				}
+				Fns::DB()->delete( 'tsmlt_unlisted_file' )
+					->where( 'file_path', '=', $row['file_path'] )
+					->execute();
+				++$removed;
+			}
+		}
+
+		self::flush_rubbish_caches( $removed );
+
+		return $removed;
+	}
+
+	/**
+	 * Drop cached rubbish queries after rows are removed.
+	 *
+	 * Result sets are cached under hashed keys in the default group, so there is
+	 * no group to flush selectively; the distinct-filetypes key is the one fixed
+	 * key worth clearing, and stale paginated results expire on their own.
+	 *
+	 * @param int $removed Number of rows removed; nothing to flush when zero.
+	 *
+	 * @return void
+	 */
+	private static function flush_rubbish_caches( int $removed ): void {
+		if ( $removed < 1 ) {
+			return;
+		}
+
+		wp_cache_delete( 'tsmlt_unlisted_filetypes' );
+		self::clear_scan_transients();
+	}
+
 	private static function clear_scan_transients(): void {
 		// Also clear the registered-file lookup cache.
 		wp_cache_delete( 'tsmlt_registered_file_lookup' );

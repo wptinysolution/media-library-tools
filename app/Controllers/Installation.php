@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 
 /**
  * Installation class.
@@ -41,6 +42,11 @@ class Installation {
 		// Existing installs upgrading — create all tables if not exist.
 		if ( $current_version && version_compare( $current_version, TSMLT_VERSION, '<' ) ) {
 			self::create_tables();
+			// Earlier versions flagged our own generated files (WebP/AVIF
+			// conversions, compression backups) as rubbish. Drop those stale rows
+			// so they are no longer offered for deletion. Rows only — the files on
+			// disk are untouched.
+			RubbishScanner::purge_generated_file_rows();
 			update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 		}
 	}
@@ -56,6 +62,10 @@ class Installation {
 			return;
 		}
 		self::create_tables();
+		// Same stale-rubbish cleanup as activation(): this path is what actually
+		// runs for most sites, since a plugin update bumps the version without
+		// firing the activation hook.
+		RubbishScanner::purge_generated_file_rows();
 		update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 	}
 
