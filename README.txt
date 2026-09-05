@@ -533,6 +533,11 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.3.1 (Sep 05, 2026)=
+* Feature: AI Content Language — generate metadata in your site language instead of English.
+* Feature: Custom AI Instruction — add your own wording to every AI request.
+* Fix: "Attached Post" could show internal WordPress records instead of a real post.
+
 = 2.3.0 (Sep 05, 2026)=
 * Feature: Compress Images — new page for compressing JPEG, PNG, and WebP images across your media library. Pro adds unlimited compression, original backups and restore, generated image sizes, custom quality, and automatic compression on upload.
 * Feature: Convert to WebP/AVIF — generate modern WebP copies alongside your originals without replacing them. Pro adds AVIF, unlimited conversion, generated image sizes, custom quality, and automatic conversion on upload.
