@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { notifications } from '@/js/Utils/Data';
+import ProLabel from '@/js/Component/Badges/ProLabel';
 import Axios from 'axios';
 
 interface AiButtonProps {
@@ -13,17 +14,36 @@ interface AiButtonProps {
 export default function AiButton({ attachmentId, fieldType, onSuccess, className = '' }: AiButtonProps) {
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    // Modal visibility is tracked separately from `suggestions` so it can open
+    // before anything is generated — the user gets to write an instruction first.
+    const [open, setOpen] = useState(false);
+    // One-off instruction for this image only; intentionally not persisted, and
+    // cleared when the modal closes so it never carries over to another image.
+    const [instruction, setInstruction] = useState('');
+    // Inline upgrade notice, shown when a free user clicks the instruction field.
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     const isPro = !!tsmltParams.hasExtended;
 
-    const handleClick = async () => {
+    const closeModal = () => {
+        setOpen(false);
+        setSuggestions([]);
+        setInstruction('');
+        setShowUpgrade(false);
+    };
+
+    const handleGenerate = async () => {
         setSuggestions([]);
         setLoading(true);
         try {
             const body = new URLSearchParams({
                 action: 'tsmlt_ai_generate',
                 nonce: tsmltParams.tsmlt_wpnonce,
-                params: JSON.stringify({ attachment_id: attachmentId, field_type: fieldType }),
+                params: JSON.stringify({
+                    attachment_id: attachmentId,
+                    field_type: fieldType,
+                    instruction: instruction.trim(),
+                }),
             });
             const response = await Axios.post(tsmltParams.ajaxUrl, body);
             const envelope = response.data;
@@ -53,7 +73,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
 
     const handleSelect = (value: string) => {
         onSuccess(value);
-        setSuggestions([]);
+        closeModal();
     };
 
     const fieldLabel = fieldType.replace(/_/g, ' ');
@@ -62,7 +82,7 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
         <div className={`${className}`}>
             <button
                 type="button"
-                onClick={handleClick}
+                onClick={() => setOpen(true)}
                 disabled={loading}
                 title={`Generate ${fieldLabel} with AI`}
                 className="inline-flex text-purple-700 items-center justify-center gap-0.5 w-12 h-8.5 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 disabled:opacity-50 cursor-pointer text-xs font-semibold"
@@ -82,30 +102,32 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                 )}
             </button>
 
-            {suggestions.length > 0 && createPortal(
+            {open && createPortal(
                 <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 999999 }}>
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/40"
-                        onClick={() => setSuggestions([])}
+                        onClick={closeModal}
                     />
 
                     {/* Modal panel */}
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
 
                         {/* Header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-purple-50">
+                        <div className="flex items-center justify-between px-5 py-3.5">
                             <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.4 4.8L8 14 2 9.2h7.6z" />
-                                </svg>
-                                <span className="text-sm font-semibold text-purple-800 capitalize">
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-100">
+                                    <svg className="w-3.5 h-3.5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.4 4.8L8 14 2 9.2h7.6z" />
+                                    </svg>
+                                </span>
+                                <span className="text-sm font-semibold text-gray-800 capitalize">
                                     AI Suggestions — {fieldLabel}
                                 </span>
                             </div>
                             <button
                                 type="button"
-                                onClick={() => setSuggestions([])}
+                                onClick={closeModal}
                                 className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors rounded"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +136,93 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                             </button>
                         </div>
 
+                        {/* One-off instruction for this image, then generate */}
+                        <div className="px-5 pt-3 pb-3.5">
+                            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+                                Extra instruction for this image
+                                <span className="text-gray-300">(optional)</span>
+                                {!isPro && <ProLabel />}
+                            </label>
+                            <textarea
+                                rows={2}
+                                value={instruction}
+                                // readOnly rather than disabled: a disabled field swallows
+                                // click events, so the upgrade hint would never appear.
+                                readOnly={!isPro}
+                                onChange={(e) => { if (isPro) setInstruction(e.target.value); }}
+                                // Reveal an inline notice instead of navigating away — the user
+                                // is mid-edit, and opening a tab here loses their place.
+                                onClick={() => { if (!isPro) setShowUpgrade(true); }}
+                                placeholder={isPro
+                                    ? 'e.g. Emphasise the grey fabric and mention it is height-adjustable.'
+                                    : 'Custom instructions are a Pro feature.'}
+                                className={`w-full px-3 py-2 text-sm border rounded-lg resize-none transition-shadow focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 focus:outline-none ${
+                                    isPro
+                                        ? 'border-gray-200 placeholder:text-gray-300'
+                                        : 'border-gray-200 bg-gray-50 text-gray-400 cursor-pointer placeholder:text-gray-400'
+                                }`}
+                            />
+
+                            {!isPro && showUpgrade && (
+                                <div className="mt-2 flex items-start gap-2 px-3 py-2 text-[11px] leading-snug text-amber-800 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <svg className="w-3.5 h-3.5 shrink-0 mt-px" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>
+                                        Custom instructions are a Pro feature.{' '}
+                                        <a
+                                            href={tsmltParams.proLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-semibold underline hover:no-underline"
+                                        >
+                                            Upgrade to Pro
+                                        </a>{' '}
+                                        to guide each generation. You can still generate using your default settings.
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between gap-3 mt-2.5">
+                                <p className="text-[11px] leading-snug text-gray-400">
+                                    {isPro
+                                        ? 'Applies to this generation only — not saved.'
+                                        : 'Generation uses your default settings.'}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerate}
+                                    disabled={loading}
+                                    className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 active:bg-purple-800 disabled:opacity-60 disabled:cursor-default cursor-pointer transition-colors"
+                                >
+                                    {loading ? (
+                                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.4 4.8L8 14 2 9.2h7.6z" />
+                                        </svg>
+                                    )}
+                                    {loading ? 'Generating…' : suggestions.length ? 'Regenerate' : 'Generate'}
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Suggestions list */}
-                        <div className="divide-y divide-gray-100 max-h-[60vh] overflow-y-auto">
+                        {(suggestions.length > 0 || loading) && (
+                        <div className="border-t border-gray-100 divide-y divide-gray-100 max-h-[50vh] overflow-y-auto">
+                            {loading && !suggestions.length && (
+                                <div className="px-5 py-3 space-y-2">
+                                    {[0, 1, 2].map((i) => (
+                                        <div key={i} className="flex items-center gap-3 animate-pulse">
+                                            <span className="shrink-0 w-4 h-4 rounded-full bg-gray-100" />
+                                            <span className="h-2.5 rounded bg-gray-100" style={{ width: `${80 - i * 15}%` }} />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             {suggestions.map((s, i) => {
                                 const isLocked = !isPro && i > 0;
                                 return (
@@ -163,13 +270,16 @@ export default function AiButton({ attachmentId, fieldType, onSuccess, className
                                 );
                             })}
                         </div>
+                        )}
 
                         {/* Footer */}
-                        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <span className="text-xs text-gray-400">Click a suggestion to apply it</span>
+                        <div className="px-5 py-2.5 border-t border-gray-100 bg-gray-50/70 flex items-center justify-between">
+                            <span className="text-xs text-gray-400">
+                                {suggestions.length ? 'Click a suggestion to apply it' : ''}
+                            </span>
                             <button
                                 type="button"
-                                onClick={() => setSuggestions([])}
+                                onClick={closeModal}
                                 className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer font-medium"
                             >
                                 Cancel

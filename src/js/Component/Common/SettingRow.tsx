@@ -1,7 +1,8 @@
 import React from 'react';
 
 interface SettingRowProps {
-    label: string;
+    // ReactNode rather than string so labels can carry inline badges (e.g. ProLabel).
+    label: React.ReactNode;
     children: React.ReactNode;
     bordered?: boolean;
 }

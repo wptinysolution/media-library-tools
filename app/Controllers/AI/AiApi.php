@@ -89,6 +89,17 @@ class AiApi {
 	private string $image_mime = '';
 
 	/**
+	 * One-off instruction supplied with the current request, typed by the user in
+	 * the AI suggestions popup. Applies to a single generation for a single image
+	 * and is deliberately never persisted — per-image wording is usually a
+	 * throwaway nudge ("emphasise the grey fabric"), so storing it would add a
+	 * meta row per attachment, a CSV column, and uninstall cleanup for no gain.
+	 *
+	 * @var string
+	 */
+	private string $request_instruction = '';
+
+	/**
 	 * Called by the Pro plugin to supply image data for vision API calls.
 	 *
 	 * @param string $base64 Base64-encoded image data.
@@ -148,6 +159,10 @@ class AiApi {
 		if ( ! $attachment_id || ! array_key_exists( $field_type, self::PROMPTS ) ) {
 			throw new \Exception( esc_html__( 'Invalid parameters.', 'media-library-tools' ) );
 		}
+
+		// Reset per-request state: this class is a singleton, so a value left over
+		// from an earlier generation would otherwise leak into the next one.
+		$this->request_instruction = trim( sanitize_textarea_field( (string) ( $params['instruction'] ?? '' ) ) );
 
 		$settings = get_option( 'tsmlt_settings', [] );
 
@@ -235,11 +250,29 @@ class AiApi {
 			}
 		}
 
-		// User instruction is appended last so it takes precedence over the
-		// built-in wording above.
-		$custom_instruction = trim( (string) ( $settings['ai_custom_instruction'] ?? '' ) );
-		if ( '' !== $custom_instruction ) {
-			$prompt .= ' ' . $custom_instruction;
+		// User instructions, appended in order of increasing specificity so the
+		// narrowest one lands last and carries the most weight:
+		//   global  -> legacy: applies to every field, no longer has a settings
+		//              field but still honoured where one was saved previously
+		//   field   -> applies to this field on every image
+		//   request -> one-off, typed in the AI popup for this generation only
+		// Each is optional; blank layers are skipped entirely.
+		// Custom instructions are a Pro feature. Gated here rather than only in the
+		// UI so a crafted request cannot use them without a licence.
+		$instructions = [];
+		if ( tsmlt()->has_pro() ) {
+			$instructions = [
+				trim( (string) ( $settings['ai_custom_instruction'] ?? '' ) ),
+				trim( (string) ( $settings[ 'ai_instruction_' . $field_type ] ?? '' ) ),
+				// Not persisted: sanitised from the request in generate() and never stored.
+				$this->request_instruction,
+			];
+		}
+
+		foreach ( $instructions as $instruction ) {
+			if ( '' !== $instruction ) {
+				$prompt .= ' ' . $instruction;
+			}
 		}
 
 		/**

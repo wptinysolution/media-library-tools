@@ -447,6 +447,8 @@ class Ajax {
 				[
 					'attachment_id' => $attachment_id,
 					'field_type'    => $field_type,
+					// One-off instruction from the AI popup; sanitised in generate().
+					'instruction'   => $params['instruction'] ?? '',
 				]
 			);
 			wp_send_json_success( $result );

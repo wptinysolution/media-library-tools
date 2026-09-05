@@ -137,6 +137,11 @@ export interface OptionsState {
     ai_claude_model?: string;
     ai_language?: string;
     ai_custom_instruction?: string;
+    ai_instruction_title?: string;
+    ai_instruction_alt_text?: string;
+    ai_instruction_caption?: string;
+    ai_instruction_description?: string;
+    ai_instruction_filename?: string;
     [key: string]: unknown;
 }
 

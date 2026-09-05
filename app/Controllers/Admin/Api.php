@@ -138,8 +138,12 @@ class Api {
 		$tsmlt_media['ai_claude_model']  = sanitize_text_field( $parameters['ai_claude_model']  ?? '' );
 
 		// Empty ai_language means "site default" and is resolved from the locale at generation time.
-		$tsmlt_media['ai_language']           = sanitize_text_field( $parameters['ai_language'] ?? '' );
-		$tsmlt_media['ai_custom_instruction'] = sanitize_textarea_field( $parameters['ai_custom_instruction'] ?? '' );
+		$tsmlt_media['ai_language'] = sanitize_text_field( $parameters['ai_language'] ?? '' );
+
+		// Custom AI instructions (global + per-field) are Pro-only and are saved by
+		// the Pro plugin on `tsmlt/settings/before/save` below. Deliberately not
+		// written here: without a licence the disabled inputs submit empty strings,
+		// and writing those through would wipe wording saved while Pro was active.
 
 		// Free-tier compression settings. Pro-only compression keys are added by
 		// the Pro plugin on `tsmlt/settings/before/save` below.

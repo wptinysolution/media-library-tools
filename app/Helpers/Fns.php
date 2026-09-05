@@ -635,6 +635,12 @@ class Fns {
 			// is appended after the built-in prompt so it takes precedence.
 			'ai_language'            => '',
 			'ai_custom_instruction'  => '',
+			// Optional per-field instructions, appended after the global one.
+			'ai_instruction_title'       => '',
+			'ai_instruction_alt_text'    => '',
+			'ai_instruction_caption'     => '',
+			'ai_instruction_description' => '',
+			'ai_instruction_filename'    => '',
 			// Compression defaults — Pro-only keys default off so an install
 			// without a licence never has backup or auto-compression active.
 			'compression_mode'               => 'balanced',

@@ -25,11 +25,20 @@ const AI_LANGUAGES = [
     'Thai', 'Japanese', 'Korean', 'Chinese',
 ] as const;
 
+const AI_PROMPT_FIELDS = [
+    { key: 'ai_instruction_title', label: 'Title', placeholder: 'e.g. Always include the product colour.' },
+    { key: 'ai_instruction_alt_text', label: 'Alt Text', placeholder: 'e.g. Describe the setting for screen readers.' },
+    { key: 'ai_instruction_caption', label: 'Caption', placeholder: 'e.g. Keep it to one short sentence.' },
+    { key: 'ai_instruction_description', label: 'Description', placeholder: 'e.g. Mention the material and intended use.' },
+    { key: 'ai_instruction_filename', label: 'Filename', placeholder: 'e.g. Start with the product category.' },
+] as const;
+
 export default function AiSettings() {
     const { options, setOptions, setGeneralData } = useStore();
     const [showKey, setShowKey] = useState(false);
 
     const provider = options.ai_provider ?? 'gemini';
+    const isPro = !!tsmltParams.hasExtended;
 
     return (
         <div className="bg-white rounded-lg border border-gray-200">
@@ -116,16 +125,34 @@ export default function AiSettings() {
                     <p className="text-sm text-gray-500 mt-0!">Language used for AI-generated titles, alt text, captions and descriptions. &quot;Site language&quot; follows your WordPress language setting. AI-generated filenames always stay ASCII-safe (for example, ä becomes ae).</p>
                 </SettingRow>
 
-                <SettingRow label="Custom AI Instruction:" bordered>
-                    <textarea
-                        name="ai_custom_instruction"
-                        rows={3}
-                        className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="e.g. Use natural, SEO-friendly wording and avoid keyword stuffing."
-                        value={(options.ai_custom_instruction as string) || ''}
-                        onChange={(e) => setOptions({ ai_custom_instruction: e.target.value })}
-                    />
-                    <p className="text-sm text-gray-500 mt-0!">Optional. Added to every AI request after the built-in instructions, so it takes precedence over them. Leave empty to use the defaults.</p>
+                <SettingRow label={<>Custom Instructions: {!isPro && <ProLabel />}</>} bordered>
+                    <p className="text-sm text-gray-500 mt-0!">Optional. Each instruction is added to the built-in prompt when generating that field, so it takes precedence over the defaults. Leave a field empty to use the defaults.</p>
+
+                    <div className="space-y-3 w-full max-w-md">
+                        {AI_PROMPT_FIELDS.map(({ key, label, placeholder }) => (
+                            <div key={key}>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                                <textarea
+                                    name={key}
+                                    rows={2}
+                                    readOnly={!isPro}
+                                    // Click only — firing on focus would open the modal when
+                                    // tabbing past the field, interrupting keyboard users.
+                                    onClick={() => { if (!isPro) setGeneralData({ openProModal: true }); }}
+                                    className={`w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isPro ? '' : 'bg-gray-100 text-gray-400 cursor-pointer'}`}
+                                    placeholder={isPro ? placeholder : 'Custom instructions require Pro.'}
+                                    value={(options[key] as string) || ''}
+                                    onChange={(e) => {
+                                        if (!isPro) {
+                                            setGeneralData({ openProModal: true });
+                                            return;
+                                        }
+                                        setOptions({ [key]: e.target.value });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </SettingRow>
 
                 {provider === 'chatgpt' && (
