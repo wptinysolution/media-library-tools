@@ -81,7 +81,12 @@ class RenameModule {
 
 		$new_name  = sanitize_text_field( $parameters['newname'] );
 		$rename_to = $new_name;
-		$post_id   = $attachment->post_parent ?: Fns::set_thumbnail_parent_id( $attachment->ID );
+		// Ignore a stored parent that is not a real, public post — renaming by
+		// parent title would otherwise derive the filename from plumbing such
+		// as a wp_font_face descriptor.
+		$post_id   = Fns::is_valid_attachment_parent( $attachment->post_parent )
+			? $attachment->post_parent
+			: Fns::set_thumbnail_parent_id( $attachment->ID );
 
 		/**
 		 * Filter rename target filename.
@@ -121,7 +126,7 @@ class RenameModule {
 
 		$attachment = get_post( $parameters['ID'] );
 		$new_text   = '';
-		if ( $attachment && $attachment->post_parent ) {
+		if ( $attachment && Fns::is_valid_attachment_parent( $attachment->post_parent ) ) {
 			$new_text = get_the_title( $attachment->post_parent );
 		}
 

@@ -364,7 +364,11 @@ class Api {
 			$parent_title     = '';
 			$parent_permalink = '';
 			$parent_sku       = '';
-			if ( $post->post_parent ) {
+			// A stored post_parent can point at a deleted post or at WordPress
+			// plumbing (e.g. wp_font_face), so validate before exposing it as
+			// the "Attached Post" — otherwise the column shows a font descriptor.
+			$has_valid_parent = Fns::is_valid_attachment_parent( $post->post_parent );
+			if ( $has_valid_parent ) {
 				$parent_title     = get_the_title( $post->post_parent );
 				$parent_permalink = get_the_permalink( $post->post_parent );
 				$parent_sku       = get_post_meta( $post->post_parent, '_sku', true );
@@ -426,7 +430,9 @@ class Api {
 					'sku'       => Fns::prepare_text_for_json( $parent_sku ),
 				],
 				// Raw native attachment fields, exposed for CSV export/import round-tripping.
-				'post_parent'    => absint( $post->post_parent ),
+				// Reported as 0 when the stored parent is not a valid attachment parent,
+				// so CSV export never carries a stale or plumbing post ID back into import.
+				'post_parent'    => $has_valid_parent ? absint( $post->post_parent ) : 0,
 				// Not absint(): WordPress permits a negative menu_order, and the CSV
 				// importer accepts one, so exporting it unsigned would break the round-trip.
 				'menu_order'     => (int) $post->menu_order,

@@ -531,6 +531,56 @@ class Fns {
 	}
 
 	/**
+	 * Whether a post ID is usable as an attachment's "Attached Post" parent.
+	 *
+	 * A non-zero `post_parent` is not proof of a real parent: the row may have
+	 * been deleted, or it may be WordPress plumbing that merely happens to live
+	 * in the posts table. Font faces are the visible symptom — a `wp_font_face`
+	 * post is titled with its font descriptor, so an attachment pointing at one
+	 * renders as "Attached Post: work sans;italic;400;100%;U+0-10FFFF".
+	 *
+	 * Mirrors UsedWhereScanner::get_scannable_post_types(): only public post
+	 * types hold user-authored content an upload is meaningfully attached to.
+	 *
+	 * @param int $parent_id Candidate parent post ID.
+	 *
+	 * @return bool
+	 */
+	public static function is_valid_attachment_parent( $parent_id ): bool {
+		$parent_id = absint( $parent_id );
+		if ( ! $parent_id ) {
+			return false;
+		}
+
+		$parent = get_post( $parent_id );
+		if ( ! $parent ) {
+			return false;
+		}
+
+		// Trashed / auto-draft parents are not meaningful attachment targets.
+		if ( in_array( $parent->post_status, [ 'trash', 'auto-draft' ], true ) ) {
+			return false;
+		}
+
+		// An attachment is never a parent, and public types exclude the hidden
+		// FSE/plugin CPTs (wp_font_face, wp_navigation, wp_template, ...).
+		if ( 'attachment' === $parent->post_type ) {
+			return false;
+		}
+
+		$is_valid = is_post_type_viewable( $parent->post_type );
+
+		/**
+		 * Filter whether a post may act as an attachment's parent.
+		 *
+		 * @param bool     $is_valid  Whether the parent is valid.
+		 * @param int      $parent_id Parent post ID.
+		 * @param \WP_Post $parent    Parent post object.
+		 */
+		return (bool) apply_filters( 'tsmlt_is_valid_attachment_parent', $is_valid, $parent_id, $parent );
+	}
+
+	/**
 	 * @param $post_id
 	 *
 	 * @return void
