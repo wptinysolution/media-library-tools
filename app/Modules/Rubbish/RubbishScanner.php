@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\Compress\BackupManager;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -780,6 +781,10 @@ class RubbishScanner {
 			[
 				'wp-content/uploads/elementor',
 				'wp-content/uploads/rtcl',
+				// Our own compression backups: originals kept for "Restore", not
+				// attachments, so they would otherwise be flagged as rubbish and
+				// deleting them would destroy every restore point on the site.
+				'wp-content/uploads/' . BackupManager::BACKUP_DIRNAME,
 			]
 		);
 	}

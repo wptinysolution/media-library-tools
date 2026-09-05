@@ -15,6 +15,7 @@ use TinySolutions\mlt\Vendor\enshrined\svgSanitize\Sanitizer;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
+use TinySolutions\mlt\Modules\Compress\Conversion\ConversionMetadata;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -41,6 +42,9 @@ class FilterHooks {
 		add_filter( 'intermediate_image_sizes_advanced', [ __CLASS__, 'custom_image_sizes' ] );
 		// Used-Where frontend detection (lightweight tracking).
 		add_filter( 'tsmlt/settings/before/save', [ __CLASS__, 'settings_before_save_used_where' ], 10, 2 );
+		// Register our own generated files (WebP/AVIF conversions, compression
+		// backups) so the rubbish scanner doesn't report them as unlisted.
+		add_filter( 'tsmlt_registered_file_lookup', [ __CLASS__, 'register_generated_files' ], 10, 2 );
 		add_action( 'wp_footer', [ __CLASS__, 'track_frontend_image_usage' ], 99 );
 
 		// Suppress trashed attachments on frontend (protect like WordPress does
@@ -509,6 +513,61 @@ class FilterHooks {
 	public static function settings_before_save_used_where( $tsmlt_media, $parameters ) {
 		$tsmlt_media['track_frontend_usage'] = $parameters['track_frontend_usage'] ?? '';
 		return $tsmlt_media;
+	}
+
+	/**
+	 * Register plugin-generated files with the rubbish scanner.
+	 *
+	 * WebP/AVIF conversions and compression backups live inside the uploads tree
+	 * but are not attachments, so they appear in neither `_wp_attached_file` nor
+	 * `_wp_attachment_metadata` — the two sources the scanner builds its lookup
+	 * from. Without this they are reported as unlisted "rubbish" and can be
+	 * deleted, silently destroying every converted image and every restore point.
+	 *
+	 * @param array $lookup          { @type array $paths, @type array $basenames }.
+	 * @param array $post_id_to_path Map of attachment ID => relative upload path.
+	 *
+	 * @return array
+	 */
+	public static function register_generated_files( $lookup, $post_id_to_path ) {
+		if ( ! is_array( $lookup ) || ! isset( $lookup['paths'] ) ) {
+			return $lookup;
+		}
+
+		// Conversion outputs, read in one query rather than per attachment.
+		$rows = Fns::DB()->select( 'meta_value' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', ConversionMetadata::META_KEY )
+			->get();
+
+		foreach ( (array) $rows as $row ) {
+			$data = maybe_unserialize( $row['meta_value'] ?? '' );
+			if ( ! is_array( $data ) || empty( $data['formats'] ) || ! is_array( $data['formats'] ) ) {
+				continue;
+			}
+
+			foreach ( $data['formats'] as $format ) {
+				if ( ! is_array( $format ) ) {
+					continue;
+				}
+
+				// Full-size output.
+				if ( ! empty( $format['file'] ) ) {
+					$lookup['paths'][ (string) $format['file'] ] = true;
+				}
+
+				// Generated-size outputs (Pro).
+				if ( ! empty( $format['sizes'] ) && is_array( $format['sizes'] ) ) {
+					foreach ( $format['sizes'] as $size ) {
+						if ( ! empty( $size['file'] ) ) {
+							$lookup['paths'][ (string) $size['file'] ] = true;
+						}
+					}
+				}
+			}
+		}
+
+		return $lookup;
 	}
 
 	/**
