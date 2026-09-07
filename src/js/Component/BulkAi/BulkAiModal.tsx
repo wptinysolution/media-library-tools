@@ -16,6 +16,13 @@ const FIELD_OPTIONS: { key: BulkAiField; label: string }[] = [
 
 const DEFAULT_FIELDS: BulkAiField[] = ['title', 'alt_text'];
 
+/**
+ * Selection size above which the run must be confirmed. Not a cap — larger runs
+ * are allowed, but each item is a request billed by the site's own AI provider,
+ * so a big one should be deliberate rather than a mis-click.
+ */
+const CONFIRM_THRESHOLD = 50;
+
 interface BulkAiModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -44,6 +51,8 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
     // nothing is renamed until the user applies it.
     const [mode, setMode] = useState<'missing' | 'overwrite'>(isFilename ? 'overwrite' : 'missing');
     const [applying, setApplying] = useState(false);
+    // Set when a large run needs explicit confirmation before it starts.
+    const [confirming, setConfirming] = useState(false);
 
     const isRunning = progress?.status === 'running';
     const isFinished = !!progress && ['completed', 'partial', 'cancelled'].includes(progress.status);
@@ -51,11 +60,12 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
 
     // Which stage the modal is showing. Review wins once there is something to
     // review, so a cancelled run still surfaces what it managed to collect.
-    const stage: 'setup' | 'progress' | 'review' = useMemo(() => {
+    const stage: 'setup' | 'confirm' | 'progress' | 'review' = useMemo(() => {
         if (isRunning) return 'progress';
         if (isFinished && (hasResults || loadingResults)) return 'review';
+        if (confirming) return 'confirm';
         return 'setup';
-    }, [isRunning, isFinished, hasResults, loadingResults]);
+    }, [isRunning, isFinished, hasResults, loadingResults, confirming]);
 
     const toggleField = (field: BulkAiField) => {
         setFields(current =>
@@ -68,7 +78,26 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
             notifications(false, 'Select at least one field to generate.');
             return;
         }
+        if (ids.length > CONFIRM_THRESHOLD) {
+            setConfirming(true);
+            return;
+        }
         await start(ids, fields, mode);
+    };
+
+    /** Start the run the user just confirmed. */
+    const handleConfirmedStart = async () => {
+        setConfirming(false);
+        await start(ids, fields, mode);
+    };
+
+    /**
+     * Close and drop the pending confirmation, so reopening starts at the setup
+     * step rather than on a stale confirmation for a different selection.
+     */
+    const handleClose = () => {
+        setConfirming(false);
+        onClose();
     };
 
     const handleApply = async (approved: Record<number, Partial<Record<BulkAiField, string>>>) => {
@@ -123,7 +152,7 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
     return (
         <Modal
             isOpen={isOpen}
-            onClose={isRunning ? () => undefined : onClose}
+            onClose={isRunning ? () => undefined : handleClose}
             title={isFilename ? 'Suggest Filename with AI' : 'Generate with AI'}
         >
             <div className="p-5 space-y-5">
@@ -203,7 +232,7 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
                         <div className="flex items-center justify-end gap-2 pt-1">
                             <button
                                 type="button"
-                                onClick={onClose}
+                                onClick={handleClose}
                                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
                             >
                                 Cancel
@@ -215,6 +244,58 @@ export default function BulkAiModal({ isOpen, onClose, ids, variant = 'metadata'
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
                             >
                                 Generate
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {stage === 'confirm' && (
+                    <>
+                        <div className="flex items-start gap-2 px-3 py-2.5 text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md">
+                            <svg className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>
+                                This is a large run. Each item is one request billed by your own AI
+                                provider, so please confirm before starting.
+                            </span>
+                        </div>
+
+                        <dl className="text-sm text-gray-700 space-y-1.5 m-0!">
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-gray-500">Media items</dt>
+                                <dd className="font-semibold m-0!">{ids.length}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-gray-500">Fields per item</dt>
+                                <dd className="font-semibold m-0!">{fields.length}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4 pt-1.5 border-t border-gray-100">
+                                <dt className="text-gray-500">Approximate AI requests</dt>
+                                <dd className="font-semibold m-0!">up to {ids.length}</dd>
+                            </div>
+                        </dl>
+
+                        <p className="text-xs text-gray-500 m-0!">
+                            All selected fields are generated in a single request per item.
+                            {mode === 'missing' && ' Items whose fields are already filled are skipped, so the real number is usually lower.'}
+                            {' '}You can stop the run at any time, and nothing is saved until you review and apply.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => setConfirming(false)}
+                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                            >
+                                Back
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmedStart}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
+                            >
+                                Generate {ids.length} Items
                             </button>
                         </div>
                     </>
