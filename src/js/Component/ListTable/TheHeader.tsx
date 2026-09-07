@@ -4,10 +4,12 @@ import { useStore } from "@/js/Utils/store";
 import * as Types from "@/js/Utils/actionType";
 import { notifications } from "@/js/Utils/Data";
 import Modal from "@/js/Component/Common/Modal";
+import BulkAiModal from "@/js/Component/BulkAi/BulkAiModal";
 
 const bulkOptions = [
     { value: 'bulkedit', label: 'Bulk Edit' },
     { value: 'bulkEditPostTitle', label: 'Bulk Edit by Post Title' },
+    { value: 'bulk_ai_generate', label: 'Generate with AI' },
     { value: 'csv_export', label: 'Export CSV' },
     { value: 'exif_to_caption', label: 'Insert EXIF To Caption' },
     { value: 'inherit', label: 'Restore' },
@@ -26,6 +28,7 @@ function TheHeader() {
     } = useStore();
 
     const [confirmAction, setConfirmAction] = useState<'trash' | 'delete' | 'searchUses' | 'exif_to_caption' | null>(null);
+    const [bulkAiOpen, setBulkAiOpen] = useState(false);
 
     const handleSelectChange = (value: string | null, fieldName: string) => {
         setMediaData({
@@ -65,7 +68,8 @@ function TheHeader() {
     };
 
     const handleBulkSubmit = () => {
-        if (('bulkEditPostTitle' === bulkSubmitData.type || 'exif_to_caption' === bulkSubmitData.type) && !tsmltParams.hasExtended) {
+        const proOnlyActions = ['bulkEditPostTitle', 'exif_to_caption', 'bulk_ai_generate'];
+        if (proOnlyActions.includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
             setGeneralData({ openProModal: true });
             return;
         }
@@ -93,6 +97,9 @@ function TheHeader() {
             case 'bulkEditPostTitle':
                 setBulkSubmitData({ isModalOpen: true, progressBar: 0 });
                 setSaveType(null);
+                break;
+            case 'bulk_ai_generate':
+                setBulkAiOpen(true);
                 break;
             default:
                 notifications(false, 'No Actions are selected. Please select one.');
@@ -243,6 +250,12 @@ function TheHeader() {
                 )}
             </div>
         </Modal>
+
+        <BulkAiModal
+            isOpen={bulkAiOpen}
+            onClose={() => setBulkAiOpen(false)}
+            ids={bulkSubmitData.ids.map(Number)}
+        />
         </>
     );
 }

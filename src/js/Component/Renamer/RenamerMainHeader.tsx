@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { defaultBulkSubmitData } from "@/js/Utils/UtilData";
 import { useStore } from "@/js/Utils/store";
 import BulkRenameModal from "@/js/Component/Renamer/BulkRenameModal";
+import BulkAiModal from "@/js/Component/BulkAi/BulkAiModal";
 import { useSearchDebounce } from "@/js/Utils/Hooks";
 import { notifications } from "@/js/Utils/Data";
 import SearchInput from "@/js/Component/Common/SearchInput";
@@ -16,6 +17,7 @@ function RenamerMainHeader() {
     } = useStore();
 
     const [search, searchQuery, setSearch] = useSearchDebounce();
+    const [bulkAiOpen, setBulkAiOpen] = useState(false);
 
 
     const handleChangeBulkType = (value: string) => {
@@ -38,7 +40,8 @@ function RenamerMainHeader() {
     }, [search]);
 
     const handleBulkSubmit = () => {
-        if (['bulkRenameBySKU', 'bulkRenameByPostTitle', 'bulkRenameByAltText'].includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
+        const proOnlyActions = ['bulkRenameBySKU', 'bulkRenameByPostTitle', 'bulkRenameByAltText', 'bulkAiFilename'];
+        if (proOnlyActions.includes(bulkSubmitData.type) && !tsmltParams.hasExtended) {
             setGeneralData({ openProModal: true });
             return;
         }
@@ -56,6 +59,9 @@ function RenamerMainHeader() {
                 setBulkSubmitData({ isModalOpen: true, progressBar: 0 });
                 setSaveType(null);
                 break;
+            case 'bulkAiFilename':
+                setBulkAiOpen(true);
+                break;
             default:
                 notifications(false, 'No Actions are selected. Please select one.');
         }
@@ -65,6 +71,7 @@ function RenamerMainHeader() {
         { value: 'bulkRename', label: 'Bulk Rename' },
         { value: 'bulkRenameByPostTitle', label: 'Rename Based on Attached Post Title' },
         { value: 'bulkRenameByAltText', label: 'Rename Based on Alt Text' },
+        { value: 'bulkAiFilename', label: 'Suggest Filename with AI' },
     ];
     if (tsmltParams?.hasWoo) {
         options_list.push({ value: 'bulkRenameBySKU', label: 'Rename Based on Product SKU' });
@@ -137,6 +144,13 @@ function RenamerMainHeader() {
 
             </div>
             <BulkRenameModal />
+
+            <BulkAiModal
+                isOpen={bulkAiOpen}
+                onClose={() => setBulkAiOpen(false)}
+                ids={bulkSubmitData.ids.map(Number)}
+                variant="filename"
+            />
         </header>
     );
 }

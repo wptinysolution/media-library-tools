@@ -533,9 +533,14 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.4.0 (Sep 07, 2026)=
+* Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.
+* Feature: Suggest Filename with AI in the Rename table. Files are never renamed until you apply a suggestion. Pro only.
+* Improvement: Bulk generation asks the AI for all selected fields in one request, cutting API calls by up to 75%.
+
 = 2.3.1 (Sep 05, 2026)=
 * Feature: AI Content Language — generate metadata in your site language instead of English.
-* Feature: Custom AI Instruction — add your own wording to every AI request.
+* Feature: Custom Instructions — add your own wording per AI field. Pro only.
 * Fix: "Attached Post" could show internal WordPress records instead of a real post.
 
 = 2.3.0 (Sep 05, 2026)=

@@ -859,3 +859,88 @@ export const saveExif = async (prams: object = {}): Promise<Record<string, unkno
     return result.data as Record<string, unknown>;
 };
 
+
+// ---------------------------------------------------------------------------
+// Bulk AI generation (Pro)
+// ---------------------------------------------------------------------------
+
+/** Field keys the bulk AI job can generate. */
+export type BulkAiField = 'title' | 'alt_text' | 'caption' | 'description' | 'filename';
+
+/** Progress payload returned by every bulk AI job endpoint. */
+export interface BulkAiProgress {
+    job_id: string;
+    status: 'idle' | 'running' | 'completed' | 'partial' | 'cancelled' | 'failed';
+    fields: BulkAiField[];
+    mode: 'missing' | 'overwrite';
+    total: number;
+    processed: number;
+    succeeded: number;
+    skipped: number;
+    failed: number;
+    remaining: number;
+    percent: number;
+    current_id: number;
+    result_count: number;
+    recent_errors: { id: number; message: string }[];
+    last_error: string;
+    has_failed: boolean;
+    tick_scheduled: boolean;
+}
+
+/** One field's before/after pair in the review step. */
+export interface BulkAiSuggestion {
+    current: string;
+    suggested: string;
+}
+
+/** Collected suggestions keyed by attachment ID, then field. */
+export type BulkAiResults = Record<string, Partial<Record<BulkAiField, BulkAiSuggestion>>>;
+
+/** Summary returned after approved suggestions are written. */
+export interface BulkAiApplyResult {
+    applied: number;
+    renamed: number;
+    failed: number;
+    errors: { id: number; message: string }[];
+}
+
+export const bulkAiStart = async (prams: object = {}): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_start', prams);
+    return result.data as BulkAiProgress;
+};
+
+export const bulkAiProcessBatch = async (): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_process_batch');
+    return result.data as BulkAiProgress;
+};
+
+export const bulkAiGetProgress = async (): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_get_progress');
+    return result.data as BulkAiProgress;
+};
+
+export const bulkAiGetResults = async (): Promise<{ results: BulkAiResults }> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_get_results');
+    return result.data as { results: BulkAiResults };
+};
+
+export const bulkAiCancel = async (): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_cancel');
+    return result.data as BulkAiProgress;
+};
+
+export const bulkAiRetry = async (): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_retry');
+    return result.data as BulkAiProgress;
+};
+
+export const bulkAiApply = async (prams: object = {}): Promise<BulkAiApplyResult> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_apply', prams);
+    return result.data as BulkAiApplyResult;
+};
+
+export const bulkAiReset = async (): Promise<BulkAiProgress> => {
+    const result = await ajaxPost('tsmlt_bulk_ai_reset');
+    return result.data as BulkAiProgress;
+};

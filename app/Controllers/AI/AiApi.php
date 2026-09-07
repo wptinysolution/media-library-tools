@@ -142,6 +142,67 @@ class AiApi {
 	}
 
 	/**
+	 * Build the shared "Context:" prompt fragment for an attachment.
+	 *
+	 * Extracted so single-field and bulk generation describe an image to the model
+	 * identically — the context is what grounds the output in the actual site, so
+	 * the two paths must not drift apart.
+	 *
+	 * @param int    $attachment_id Attachment post ID.
+	 * @param string $file_path     Absolute path to the attached file, if known.
+	 *
+	 * @return string Leading-space prefixed context fragment.
+	 */
+	private function build_context( int $attachment_id, $file_path ): string {
+		$filename        = $file_path ? basename( $file_path ) : '';
+		$attachment_post = get_post( $attachment_id );
+
+		// Existing attachment metadata.
+		$current_title   = $attachment_post ? $attachment_post->post_title : '';
+		$current_alt     = get_post_meta( $attachment_id, '_wp_attachment_alt', true );
+		$current_caption = $attachment_post ? $attachment_post->post_excerpt : '';
+
+		// Parent post context.
+		$parent_title   = '';
+		$parent_type    = '';
+		$parent_excerpt = '';
+		if ( $attachment_post && $attachment_post->post_parent ) {
+			$parent         = get_post( $attachment_post->post_parent );
+			$parent_title   = $parent ? get_the_title( $parent ) : '';
+			$parent_type    = $parent ? $parent->post_type : '';
+			$parent_excerpt = $parent ? wp_trim_words( wp_strip_all_tags( $parent->post_content ), 30, '...' ) : '';
+		}
+
+		$context  = ' Context:';
+		$context .= ' Site: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variable inside namespaced class.
+		$site_desc = sanitize_text_field( get_bloginfo( 'description' ) );
+		if ( $site_desc ) {
+			$context .= ' Tagline: "' . $site_desc . '".';
+		}
+		if ( $filename ) {
+			$context .= ' Filename: "' . sanitize_text_field( $filename ) . '".';
+		}
+		if ( $current_title ) {
+			$context .= ' Current title: "' . sanitize_text_field( $current_title ) . '".';
+		}
+		if ( $current_alt ) {
+			$context .= ' Current alt text: "' . sanitize_text_field( $current_alt ) . '".';
+		}
+		if ( $current_caption ) {
+			$context .= ' Current caption: "' . sanitize_text_field( $current_caption ) . '".';
+		}
+		if ( $parent_title ) {
+			$context .= ' Attached to ' . sanitize_text_field( $parent_type ) . ': "' . sanitize_text_field( $parent_title ) . '".';
+		}
+		if ( $parent_excerpt ) {
+			$context .= ' Parent content summary: "' . sanitize_text_field( $parent_excerpt ) . '".';
+		}
+
+		return $context;
+	}
+
+	/**
 	 * Generate AI content for an attachment field.
 	 *
 	 * @param array $params {
@@ -176,52 +237,7 @@ class AiApi {
 		do_action( 'tsmlt_ai_prepare_image', $this, $attachment_id, $settings, $file_path );
 
 		// Always append text context to the prompt.
-		$filename        = $file_path ? basename( $file_path ) : '';
-		$attachment_post = get_post( $attachment_id );
-
-		// Existing attachment metadata.
-		$current_title   = $attachment_post ? $attachment_post->post_title : '';
-		$current_alt     = get_post_meta( $attachment_id, '_wp_attachment_alt', true );
-		$current_caption = $attachment_post ? $attachment_post->post_excerpt : '';
-
-		// Parent post context.
-		$parent_title   = '';
-		$parent_type    = '';
-		$parent_excerpt = '';
-		if ( $attachment_post && $attachment_post->post_parent ) {
-			$parent        = get_post( $attachment_post->post_parent );
-			$parent_title  = $parent ? get_the_title( $parent ) : '';
-			$parent_type   = $parent ? $parent->post_type : '';
-			$parent_excerpt = $parent ? wp_trim_words( wp_strip_all_tags( $parent->post_content ), 30, '...' ) : '';
-		}
-
-		$context  = ' Context:';
-		$context .= ' Site: "' . sanitize_text_field( get_bloginfo( 'name' ) ) . '".';
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variable inside namespaced class.
-		$site_desc = sanitize_text_field( get_bloginfo( 'description' ) );
-		if ( $site_desc ) {
-			$context .= ' Tagline: "' . $site_desc . '".';
-		}
-		if ( $filename ) {
-			$context .= ' Filename: "' . sanitize_text_field( $filename ) . '".';
-		}
-		if ( $current_title ) {
-			$context .= ' Current title: "' . sanitize_text_field( $current_title ) . '".';
-		}
-		if ( $current_alt ) {
-			$context .= ' Current alt text: "' . sanitize_text_field( $current_alt ) . '".';
-		}
-		if ( $current_caption ) {
-			$context .= ' Current caption: "' . sanitize_text_field( $current_caption ) . '".';
-		}
-		if ( $parent_title ) {
-			$context .= ' Attached to ' . sanitize_text_field( $parent_type ) . ': "' . sanitize_text_field( $parent_title ) . '".';
-		}
-		if ( $parent_excerpt ) {
-			$context .= ' Parent content summary: "' . sanitize_text_field( $parent_excerpt ) . '".';
-		}
-
-		$prompt .= $context;
+		$prompt .= $this->build_context( $attachment_id, $file_path );
 
 		// Free: 1 real suggestion (frontend pads with placeholders). Pro: user setting (5–max).
 		$max_count = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
@@ -285,6 +301,35 @@ class AiApi {
 		 */
 		$prompt = (string) apply_filters( 'tsmlt_ai_prompt', $prompt, $field_type, $attachment_id, $settings );
 
+		$text = $this->dispatch_to_provider( $provider, $prompt, $settings );
+
+		// Parse numbered suggestions.
+		$lines       = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
+		$suggestions = [];
+		foreach ( $lines as $line ) {
+			$clean = preg_replace( '/^\d+[.)]\s*/', '', $line );
+			if ( '' !== $clean ) {
+				$suggestions[] = $clean;
+			}
+		}
+		if ( empty( $suggestions ) ) {
+			$suggestions = [ $text ];
+		}
+
+		return [ 'suggestions' => $suggestions ];
+	}
+
+	/**
+	 * Send a prompt to the configured provider and return the raw text reply.
+	 *
+	 * @param string $provider Provider key (gemini, claude, chatgpt).
+	 * @param string $prompt   Complete prompt text.
+	 * @param array  $settings Plugin settings array.
+	 *
+	 * @return string Raw model output.
+	 * @throws \Exception On configuration or API errors.
+	 */
+	private function dispatch_to_provider( string $provider, string $prompt, array $settings ): string {
 		switch ( $provider ) {
 			case 'gemini':
 				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
@@ -302,35 +347,175 @@ class AiApi {
 				if ( isset( $retired_gemini_models[ $model ] ) ) {
 					$model = $retired_gemini_models[ $model ];
 				}
-				$text = $this->call_gemini( $key, $prompt, $model );
-				break;
+				return $this->call_gemini( $key, $prompt, $model );
+
 			case 'claude':
 				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
-				$text  = $this->call_claude( $key, $prompt, $model );
-				break;
+				return $this->call_claude( $key, $prompt, $model );
+
 			case 'chatgpt':
 			default:
 				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-4o-mini';
-				$text  = $this->call_openai( $key, $prompt, $model );
-				break;
+				return $this->call_openai( $key, $prompt, $model );
+		}
+	}
+
+	/**
+	 * Generate several metadata fields for one attachment in a single API call.
+	 *
+	 * Bulk runs would otherwise issue one request per field — four calls per image,
+	 * so 4,000 for a 1,000-image library. Asking for a JSON object instead cuts
+	 * that to one call per image while reusing the same context, language and
+	 * instruction layers as `generate()`.
+	 *
+	 * Returns only the fields the model actually supplied, so a partial reply
+	 * yields partial results rather than failing the whole item.
+	 *
+	 * @param int      $attachment_id Attachment post ID.
+	 * @param string[] $fields        Requested field keys (title, alt_text, caption, description, filename).
+	 *
+	 * @return array<string, string> Field key => generated value.
+	 * @throws \Exception On configuration, API, or unparseable-response errors.
+	 */
+	public function generate_bulk( int $attachment_id, array $fields ): array {
+		// Bulk generation is a Pro capability. Checked here as well as in the job
+		// that drives it, so this public method cannot spend a site's API budget
+		// without a licence however it is reached.
+		if ( ! tsmlt()->has_pro() ) {
+			throw new \Exception( esc_html__( 'Bulk AI generation requires Pro.', 'media-library-tools' ) );
 		}
 
-		// Parse numbered suggestions.
-		$lines       = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
-		$suggestions = [];
-		foreach ( $lines as $line ) {
-			$clean = preg_replace( '/^\d+[.)]\s*/', '', $line );
-			if ( '' !== $clean ) {
-				$suggestions[] = $clean;
+		$fields = array_values( array_intersect( array_keys( self::PROMPTS ), $fields ) );
+
+		if ( ! $attachment_id || empty( $fields ) ) {
+			throw new \Exception( esc_html__( 'Invalid parameters.', 'media-library-tools' ) );
+		}
+
+		// Bulk generation never carries a one-off instruction; reset so a value
+		// left by an earlier single-image call cannot leak into the job.
+		$this->request_instruction = '';
+
+		$settings  = get_option( 'tsmlt_settings', [] );
+		$provider  = $settings['ai_provider'] ?? 'gemini';
+		$file_path = get_attached_file( $attachment_id );
+
+		// Pro plugin loads the file, detects MIME, and calls set_image_data().
+		do_action( 'tsmlt_ai_prepare_image', $this, $attachment_id, $settings, $file_path );
+
+		// One instruction line per requested field, reusing the single-field
+		// wording so bulk output matches what the same field produces alone.
+		$prompt = 'Generate metadata for this image. Follow the requirement for each field:';
+		foreach ( $fields as $field ) {
+			$prompt .= "\n- \"" . $field . '": ' . self::PROMPTS[ $field ];
+		}
+
+		$prompt .= $this->build_context( $attachment_id, $file_path );
+
+		$language = self::resolve_language( $settings['ai_language'] ?? '' );
+		if ( '' !== $language ) {
+			$non_filename = array_diff( $fields, [ 'filename' ] );
+			if ( ! empty( $non_filename ) ) {
+				$prompt .= sprintf(
+					' Write the %s values in %s.',
+					implode( ', ', $non_filename ),
+					$language
+				);
+			}
+			if ( in_array( 'filename', $fields, true ) ) {
+				// Filenames stay ASCII-safe regardless of the content language.
+				$prompt .= sprintf(
+					' Base the filename on %1$s wording, but transliterate it to plain ASCII (for example, ä becomes ae, ß becomes ss). Use only lowercase a-z and hyphens.',
+					$language
+				);
 			}
 		}
-		if ( empty( $suggestions ) ) {
-			$suggestions = [ $text ];
+
+		// Custom instructions are Pro-only, matching generate(). Per-field wording
+		// is labelled so one combined prompt keeps each field's guidance distinct.
+		if ( tsmlt()->has_pro() ) {
+			$global = trim( (string) ( $settings['ai_custom_instruction'] ?? '' ) );
+			if ( '' !== $global ) {
+				$prompt .= ' ' . $global;
+			}
+			foreach ( $fields as $field ) {
+				$field_instruction = trim( (string) ( $settings[ 'ai_instruction_' . $field ] ?? '' ) );
+				if ( '' !== $field_instruction ) {
+					$prompt .= ' For "' . $field . '": ' . $field_instruction;
+				}
+			}
 		}
 
-		return [ 'suggestions' => $suggestions ];
+		// Strict output contract — the reply is machine-read, so no prose.
+		$prompt .= ' Respond with a single minified JSON object and nothing else.'
+			. ' Use exactly these keys: "' . implode( '", "', $fields ) . '".'
+			. ' Every value must be a plain string. Do not wrap the JSON in code fences.';
+
+		/**
+		 * Filter the final bulk prompt sent to the AI provider.
+		 *
+		 * @param string   $prompt        Complete prompt text.
+		 * @param string[] $fields        Requested field keys.
+		 * @param int      $attachment_id Attachment post ID.
+		 * @param array    $settings      Plugin settings array.
+		 */
+		$prompt = (string) apply_filters( 'tsmlt_ai_bulk_prompt', $prompt, $fields, $attachment_id, $settings );
+
+		$text = $this->dispatch_to_provider( $provider, $prompt, $settings );
+
+		return $this->parse_bulk_response( $text, $fields );
+	}
+
+	/**
+	 * Decode a bulk JSON reply into sanitised field values.
+	 *
+	 * Models occasionally wrap JSON in code fences or add a sentence around it,
+	 * so the outermost brace pair is extracted before decoding rather than
+	 * trusting the response to be clean.
+	 *
+	 * @param string   $text   Raw model output.
+	 * @param string[] $fields Requested field keys.
+	 *
+	 * @return array<string, string> Field key => generated value.
+	 * @throws \Exception When no usable JSON object is present.
+	 */
+	private function parse_bulk_response( string $text, array $fields ): array {
+		$json  = trim( $text );
+		$start = strpos( $json, '{' );
+		$end   = strrpos( $json, '}' );
+
+		if ( false === $start || false === $end || $end <= $start ) {
+			throw new \Exception( esc_html__( 'The AI response could not be read.', 'media-library-tools' ) );
+		}
+
+		$decoded = json_decode( substr( $json, $start, $end - $start + 1 ), true );
+
+		if ( ! is_array( $decoded ) ) {
+			throw new \Exception( esc_html__( 'The AI response could not be read.', 'media-library-tools' ) );
+		}
+
+		$results = [];
+		foreach ( $fields as $field ) {
+			if ( ! isset( $decoded[ $field ] ) || ! is_scalar( $decoded[ $field ] ) ) {
+				continue;
+			}
+
+			$value = trim( (string) $decoded[ $field ] );
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$results[ $field ] = 'description' === $field
+				? wp_kses_post( $value )
+				: sanitize_text_field( $value );
+		}
+
+		if ( empty( $results ) ) {
+			throw new \Exception( esc_html__( 'The AI response contained no usable values.', 'media-library-tools' ) );
+		}
+
+		return $results;
 	}
 
 	// -------------------------------------------------------------------------
