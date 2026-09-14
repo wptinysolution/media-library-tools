@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.3.0
+Stable tag: 2.4.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -533,7 +533,7 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
-= 2.4.0 (Sep 07, 2026)=
+= 2.4.0 (Sep 15, 2026)=
 * Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.
 * Feature: Suggest Filename with AI in the Rename table. Files are never renamed until you apply a suggestion. Pro only.
 * Improvement: Bulk generation asks the AI for all selected fields in one request, cutting API calls by up to 75%.
