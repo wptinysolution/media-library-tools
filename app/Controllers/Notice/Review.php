@@ -855,20 +855,9 @@ class Review {
 					var feedback     = $('#deactivation-feedback-' + td).val().trim();
 					var betterPlugin = $dialog.find('input[name="reason_found_a_better_plugin"]').val();
 
-					// Validate: reason required
-					if (!reasons) {
-						$('#tsmlt-reason-error-' + td).text('<?php echo esc_js( __( 'Please choose a reason before submitting.', 'media-library-tools' ) ); ?>');
-						return;
-					}
-
-					// Validate: feedback required unless temporary deactivation
-					if (reasons !== 'temporary_deactivation' && !feedback) {
-						$('#tsmlt-feedback-error-' + td).text('<?php echo esc_js( __( 'Kindly share a few details so we can address this in a future update.', 'media-library-tools' ) ); ?>');
-						return;
-					}
-
-					// Temporary deactivation — skip feedback, just deactivate
-					if (reasons === 'temporary_deactivation') {
+					// "Deactivate Anyway" must always deactivate — feedback is optional.
+					// Nothing to send (no reason/text, or just a temporary deactivation).
+					if ((!reasons && !feedback) || (reasons === 'temporary_deactivation' && !feedback)) {
 						window.location.href = deactivateHref;
 						return;
 					}
@@ -880,6 +869,7 @@ class Review {
 						url:      'https://www.wptinysolutions.com/wp-json/TinySolutions/pluginSurvey/v1/Survey/appendToSheet',
 						method:   'GET',
 						dataType: 'json',
+						timeout:  4000, // Never let a slow survey endpoint block deactivation.
 						data: {
 							website:      '<?php echo esc_url( home_url() ); ?>',
 							reasons:      reasons || '',
