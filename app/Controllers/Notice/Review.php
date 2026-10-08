@@ -746,7 +746,7 @@ class Review {
 				border-color: #008a20;
 			}
 
-			/* "Deactivate Anyway" — secondary, low-emphasis destructive */
+			/* "Skip/Submit & Deactivate" — secondary, low-emphasis destructive */
 			.ui-dialog-buttonset button:nth-child(2) {
 				background: #fff;
 				border-color: #c3c4c7;
@@ -807,15 +807,29 @@ class Review {
 						$betterInput.slideUp(150);
 					}
 					$('#tsmlt-reason-error-' + td).text('');
+					updateDeactivateLabel();
 				});
 
 				$dialog.on('input', 'textarea', function () {
 					$('#tsmlt-feedback-error-' + td).text('');
+					updateDeactivateLabel();
 				});
+
+				// Second button reads "Skip & Deactivate" until the user gives a
+				// reason or feedback, then "Submit & Deactivate" (it sends it).
+				function updateDeactivateLabel() {
+					var hasFeedback = $dialog.find('input[type="radio"]:checked').length > 0 ||
+						$.trim($('#deactivation-feedback-' + td).val()) !== '';
+					$dialog.parent().find('.ui-dialog-buttonset button:nth-child(2)').text(
+						hasFeedback
+							? <?php echo wp_json_encode( __( 'Submit & Deactivate', 'media-library-tools' ) ); ?>
+							: <?php echo wp_json_encode( __( 'Skip & Deactivate', 'media-library-tools' ) ); ?>
+					);
+				}
 
 				// Open dialog when Deactivate link is clicked.
 				// Button order: first = Keep Plugin Active (retention CTA,
-				// just closes the dialog), second = Deactivate Anyway
+				// just closes the dialog), second = Skip/Submit & Deactivate
 				// (sends feedback if provided, then follows through with
 				// the original deactivation URL).
 				$deactLink.on('click', function (e) {
@@ -847,7 +861,7 @@ class Review {
 
 					// Rename buttons (jQuery UI uses the object keys as default labels).
 					$('.ui-dialog-buttonpane button:contains("KeepActive")').text(<?php echo wp_json_encode( __( 'Keep Plugin Active', 'media-library-tools' ) ); ?>);
-					$('.ui-dialog-buttonpane button:contains("DeactivateAnyway")').text(<?php echo wp_json_encode( __( 'Deactivate Anyway', 'media-library-tools' ) ); ?>);
+					updateDeactivateLabel();
 				});
 
 				function submitFeedback($btn, deactivateHref) {
@@ -855,7 +869,7 @@ class Review {
 					var feedback     = $('#deactivation-feedback-' + td).val().trim();
 					var betterPlugin = $dialog.find('input[name="reason_found_a_better_plugin"]').val();
 
-					// "Deactivate Anyway" must always deactivate — feedback is optional.
+					// This button must always deactivate — feedback is optional.
 					// Nothing to send (no reason/text, or just a temporary deactivation).
 					if ((!reasons && !feedback) || (reasons === 'temporary_deactivation' && !feedback)) {
 						window.location.href = deactivateHref;
