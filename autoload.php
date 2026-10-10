@@ -16,6 +16,14 @@ spl_autoload_register(
 	function ( $class ) {
 		// Optimized classmap — O(1) lookup.
 		static $classmap = [
+		'TinySolutions\\mlt\\Abilities\\AbilitiesInit' => __DIR__ . '/app/Abilities/AbilitiesInit.php',
+		'TinySolutions\\mlt\\Abilities\\AbilityGuard' => __DIR__ . '/app/Abilities/AbilityGuard.php',
+		'TinySolutions\\mlt\\Abilities\\McpServerRegistration' => __DIR__ . '/app/Abilities/McpServerRegistration.php',
+		'TinySolutions\\mlt\\Abilities\\MediaPresenter' => __DIR__ . '/app/Abilities/MediaPresenter.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaDetails' => __DIR__ . '/app/Abilities/Media/GetMediaDetails.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\SearchMedia' => __DIR__ . '/app/Abilities/Media/SearchMedia.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\UpdateMediaMetadata' => __DIR__ . '/app/Abilities/Media/UpdateMediaMetadata.php',
+		'TinySolutions\\mlt\\Abs\\Ability' => __DIR__ . '/app/Abs/Ability.php',
 		'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/app/Abs/Discount.php',
 		'TinySolutions\\mlt\\Controllers\\AI\\AiApi' => __DIR__ . '/app/Controllers/AI/AiApi.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/app/Controllers/Admin/Api.php',

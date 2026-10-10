@@ -253,16 +253,21 @@ class Api {
 
 
 	/**
-	 * @param array $request_data
+	 * Build the WP_Query arguments for a media-table request.
 	 *
-	 * @return false|string
+	 * Extracted from get_media() so other callers can reuse the same filter and
+	 * ordering semantics. It only builds arguments: callers that are not the
+	 * admin media table must still constrain the parameters they pass in, since
+	 * `status` and `order` are forwarded as given.
+	 *
+	 * @param array $parameters Request parameters, as received by get_media().
+	 *
+	 * @return array
 	 */
-	public function get_media( array $request_data ) {
-
-		$parameters = $this->parse_params( $request_data );
-		$options    = get_option( 'tsmlt_settings' );
-		$limit      = absint( ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : ( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 ) );
-		$limit      = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
+	public function build_media_query_args( array $parameters ): array {
+		$options = get_option( 'tsmlt_settings' );
+		$limit   = absint( ! empty( $parameters['media_per_page'] ) ? $parameters['media_per_page'] : ( ! empty( $options['media_per_page'] ) ? $options['media_per_page'] : 20 ) );
+		$limit   = Fns::maximum_media_per_page() < $limit ? Fns::maximum_media_per_page() : $limit;
 
 		$orderby = 'menu_order';
 		$status  = 'inherit';
@@ -359,6 +364,21 @@ class Api {
 
 		// EXIF-based filters.
 		$args = ExifFilter::apply_filters( $args, $parameters );
+
+		return $args;
+	}
+
+	/**
+	 * @param array $request_data
+	 *
+	 * @return false|string
+	 */
+	public function get_media( array $request_data ) {
+
+		$parameters = $this->parse_params( $request_data );
+		$args       = $this->build_media_query_args( $parameters );
+		$limit      = $args['posts_per_page'];
+		$paged      = $args['paged'];
 
 		add_filter( 'posts_clauses', [ Fns::class, 'custom_orderby_post_excerpt_content' ], 10, 2 );
 		$_posts_query = new WP_Query( $args );

@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Abilities\AbilitiesInit;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\Admin\RegisterPostAndTax;
 use TinySolutions\mlt\Controllers\Admin\SubMenu;
@@ -109,6 +110,8 @@ if ( ! class_exists( Tsmlt::class ) ) {
 				SubMenu::instance();
 			}
 			RegisterPostAndTax::instance();
+			// Abilities API (WordPress 6.9+); skips itself on older versions.
+			AbilitiesInit::instance();
 			do_action( 'tsmlt/after_loaded' );
 		}
 

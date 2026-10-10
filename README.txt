@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -533,6 +533,12 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.5.0 (Oct XX, 2026)=
+* Feature: MCP integration — AI assistants such as Claude Code can search your media library, read media details, and update the title, alt text, caption and description. Requires WordPress 6.9+ and the official MCP Adapter plugin.
+* Feature: Dedicated MCP endpoint at /wp-json/media-library-tools/mcp that exposes only the Media Library Tools tools and is limited to administrators. Recommended over the MCP Adapter's default endpoint, which also exposes public abilities from other plugins.
+* Fix: Updated the bundled SVG sanitizer (enshrined/svg-sanitize 1.0.0) to fix three security issues in SVG uploads (CVE-2026-107379, CVE-2026-107380, CVE-2026-107381). SVG files that rely on custom DTD entities are now rejected.
+* Fix: Malformed or empty SVG uploads are now rejected instead of causing an error or saving an empty file.
+
 = 2.4.0 (Sep 15, 2026)=
 * Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.
 * Feature: Suggest Filename with AI in the Rename table. Files are never renamed until you apply a suggestion. Pro only.
