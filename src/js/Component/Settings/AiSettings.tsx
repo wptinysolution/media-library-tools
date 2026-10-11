@@ -179,31 +179,22 @@ export default function AiSettings() {
                                 value={(options.ai_chatgpt_model as string) || 'gpt-4o-mini'}
                                 onChange={(e) => setOptions({ ai_chatgpt_model: e.target.value })}
                             >
-                                <optgroup label="GPT-5">
-                                    <option value="gpt-5.1">gpt-5.1</option>
-                                    <option value="gpt-5-mini">gpt-5-mini</option>
+                                <optgroup label="GPT-6">
+                                    <option value="gpt-6-astra">gpt-6-astra</option>
+                                    <option value="gpt-6.1-sol">gpt-6.1-sol</option>
+                                    <option value="gpt-6-luna">gpt-6-luna</option>
                                 </optgroup>
-                                <optgroup label="GPT-4o">
+                                <optgroup label="GPT-5">
+                                    <option value="gpt-5.6-sol">gpt-5.6-sol</option>
+                                    <option value="gpt-5.6-terra">gpt-5.6-terra</option>
+                                    <option value="gpt-5.6-luna">gpt-5.6-luna</option>
+                                    <option value="gpt-5.5">gpt-5.5</option>
+                                </optgroup>
+                                <optgroup label="GPT-4o / GPT-4.1 (Legacy)">
                                     <option value="gpt-4o-mini">gpt-4o-mini (default)</option>
                                     <option value="gpt-4o">gpt-4o</option>
-                                    <option value="gpt-4o-mini-search-preview">gpt-4o-mini-search-preview</option>
-                                    <option value="gpt-4o-search-preview">gpt-4o-search-preview</option>
-                                </optgroup>
-                                <optgroup label="GPT-4.1">
                                     <option value="gpt-4.1">gpt-4.1</option>
                                     <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                                    <option value="gpt-4.1-nano">gpt-4.1-nano</option>
-                                </optgroup>
-                                <optgroup label="GPT-4">
-                                    <option value="gpt-4-turbo">gpt-4-turbo</option>
-                                    <option value="gpt-4">gpt-4</option>
-                                </optgroup>
-                                <optgroup label="o-series (Reasoning)">
-                                    <option value="o4-mini">o4-mini</option>
-                                    <option value="o3">o3</option>
-                                    <option value="o3-mini">o3-mini</option>
-                                    <option value="o1">o1</option>
-                                    <option value="o1-mini">o1-mini</option>
                                 </optgroup>
                             </select>
                         </SettingRow>

@@ -46,7 +46,7 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 
 = AI Content Generator =
 * Generate SEO-optimized alt text, title, caption, description, and filename for any media file
-* Supports three AI providers: **ChatGPT** (GPT-4o, GPT-5, and more), **Google Gemini** (2.0 Flash, 1.5 Pro), and **Anthropic Claude** (Haiku, Sonnet, Opus)
+* Supports three AI providers: **ChatGPT** (GPT-6, GPT-5.6, GPT-4o, and more), **Google Gemini** (2.0 Flash, 1.5 Pro), and **Anthropic Claude** (Haiku, Sonnet, Opus)
 * AI considers your site name, tagline, existing metadata, and attached post context for accurate, relevant results
 * Free plan includes 1 AI suggestion per field
 
@@ -247,7 +247,7 @@ All free features, plus:
 == AI Content Generator – Supported Models ==
 
 = ChatGPT =
-GPT-5.1, GPT-5 Mini, GPT-4o, GPT-4o Mini, GPT-4.1, and more
+GPT-6 Astra, GPT-6.1 Sol, GPT-6 Luna, GPT-5.6, GPT-5.5, GPT-4o, GPT-4o Mini, GPT-4.1, and more
 
 = Google Gemini =
 Gemini 2.0 Flash, Gemini 2.0 Flash Lite, Gemini 1.5 Pro, Gemini 1.5 Flash
@@ -443,7 +443,7 @@ Yes — this is a Pro feature. Enable **Auto Inject Alt Text** in **Settings > R
 Go to **Settings > AI Settings**, select your AI provider (ChatGPT, Google Gemini, or Anthropic Claude), enter your API key, and choose a model. Then open the **Media Table** or **Media Rename** table and click the **AI** button on any media item. The plugin sends the file metadata (and the image itself in Pro) to the AI and returns SEO-optimized suggestions for title, alt text, caption, description, and filename.
 
 = Which AI providers and models are supported? =
-The plugin supports **ChatGPT** (GPT-5, GPT-5 Mini, GPT-4o, GPT-4.1, and more), **Google Gemini** (2.0 Flash, 2.0 Flash Lite, 1.5 Pro, 1.5 Flash), and **Anthropic Claude** (Haiku, Sonnet, Opus). You can switch providers and models at any time in Settings.
+The plugin supports **ChatGPT** (GPT-6, GPT-5.6, GPT-5.5, GPT-4o, GPT-4.1, and more), **Google Gemini** (2.0 Flash, 2.0 Flash Lite, 1.5 Pro, 1.5 Flash), and **Anthropic Claude** (Haiku, Sonnet, Opus). You can switch providers and models at any time in Settings.
 
 = What is the difference between free and Pro AI generation? =
 The free version returns 1 AI suggestion per field. The **Pro version** returns up to 10 suggestions per field so you can pick the best one, and it also supports **Image Vision** — sending the actual image file to the AI provider for visual analysis, which produces significantly more accurate and descriptive alt text and captions.

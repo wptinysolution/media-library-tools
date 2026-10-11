@@ -358,6 +358,27 @@ class AiApi {
 			default:
 				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-4o-mini';
+				// Models OpenAI has shut down (or is shutting down) map to their
+				// recommended successor so saved settings keep working.
+				$retired_openai_models = [
+					'gpt-5.1'                    => 'gpt-6.1-sol',
+					'gpt-5'                      => 'gpt-5.6-sol',
+					'gpt-5-mini'                 => 'gpt-5.6-terra',
+					'gpt-5-nano'                 => 'gpt-5.6-luna',
+					'gpt-4o-search-preview'      => 'gpt-4o',
+					'gpt-4o-mini-search-preview' => 'gpt-4o-mini',
+					'gpt-4.1-nano'               => 'gpt-4.1-mini',
+					'gpt-4-turbo'                => 'gpt-4o',
+					'gpt-4'                      => 'gpt-4o',
+					'o1'                         => 'gpt-5.6-sol',
+					'o1-mini'                    => 'gpt-5.6-terra',
+					'o3'                         => 'gpt-5.6-sol',
+					'o3-mini'                    => 'gpt-5.6-terra',
+					'o4-mini'                    => 'gpt-5.6-terra',
+				];
+				if ( isset( $retired_openai_models[ $model ] ) ) {
+					$model = $retired_openai_models[ $model ];
+				}
 				return $this->call_openai( $key, $prompt, $model );
 		}
 	}
@@ -543,14 +564,16 @@ class AiApi {
 
 		$body = wp_json_encode(
 			[
-				'model'      => $model,
-				'messages'   => [
+				'model'                 => $model,
+				'messages'              => [
 					[
 						'role'    => 'user',
 						'content' => $content,
 					],
 				],
-				'max_tokens' => 200,
+				// max_tokens is rejected by GPT-5+ and o-series models;
+				// max_completion_tokens is accepted by every chat model.
+				'max_completion_tokens' => 200,
 			]
 		);
 
