@@ -25,15 +25,93 @@ const AI_LANGUAGES = [
     'Thai', 'Japanese', 'Korean', 'Chinese',
 ] as const;
 
-// Every ID verified against the Chat Completions model list at
-// https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
-const CHATGPT_DEFAULT_MODEL = 'gpt-6-luna';
-const CHATGPT_MODEL_GROUPS = [
-    { label: 'GPT-6', models: ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'] },
-    { label: 'GPT-5', models: ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5'] },
-    { label: 'GPT-4o / GPT-4.1 (Legacy)', models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1', 'gpt-4.1-mini'] },
-];
-const CHATGPT_MODEL_IDS = CHATGPT_MODEL_GROUPS.flatMap((group) => group.models);
+type ModelOption = { id: string; label?: string };
+type ModelCatalogue = {
+    defaultModel: string;
+    groups: { label: string; models: ModelOption[] }[];
+    // Saved values no longer offered, with a note on what happens to them.
+    legacy: Record<string, string>;
+};
+
+// Model IDs and defaults are kept in sync with AiApi::DEFAULT_MODELS and the
+// retirement tables in AiApi.php (checked by tests/ModelCatalogueTest.php).
+const MODEL_CATALOGUES: Record<AiKeyProvider, ModelCatalogue> = {
+    // Chat Completions model list:
+    // https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
+    chatgpt: {
+        defaultModel: 'gpt-6-luna',
+        groups: [
+            { label: 'GPT-6', models: [{ id: 'gpt-6-astra' }, { id: 'gpt-6.1-sol' }, { id: 'gpt-6-luna' }] },
+            { label: 'GPT-5', models: [{ id: 'gpt-5.6-sol' }, { id: 'gpt-5.6-terra' }, { id: 'gpt-5.6-luna' }, { id: 'gpt-5.5' }] },
+            { label: 'GPT-4o / GPT-4.1 (Legacy)', models: [{ id: 'gpt-4o-mini' }, { id: 'gpt-4o' }, { id: 'gpt-4.1' }, { id: 'gpt-4.1-mini' }] },
+        ],
+        legacy: {},
+    },
+    // https://ai.google.dev/gemini-api/docs/models and /deprecations
+    gemini: {
+        defaultModel: 'gemini-3.5-flash-lite',
+        groups: [
+            { label: 'Gemini 3', models: [{ id: 'gemini-3.5-flash-lite' }, { id: 'gemini-3.6-flash' }, { id: 'gemini-3.8-flash' }] },
+            {
+                label: 'Gemini 2.5 (only for Google accounts that used them before)',
+                models: [{ id: 'gemini-2.5-flash' }, { id: 'gemini-2.5-flash-lite' }, { id: 'gemini-2.5-pro' }],
+            },
+        ],
+        legacy: {
+            'gemini-3.5-flash': 'deprecated — now uses gemini-3.6-flash',
+            'gemini-3.7-flash': 'deprecated — now uses gemini-3.8-flash',
+        },
+    },
+    // https://platform.claude.com/docs/en/about-claude/models/overview and /model-deprecations
+    claude: {
+        defaultModel: 'claude-haiku-5-5',
+        groups: [
+            { label: 'Claude 5.5', models: [{ id: 'claude-haiku-5-5' }, { id: 'claude-sonnet-5-5' }, { id: 'claude-opus-5-5' }] },
+            {
+                label: 'Claude 4',
+                models: [{ id: 'claude-haiku-4-5-20251001', label: 'claude-haiku-4-5' }, { id: 'claude-sonnet-4-6' }, { id: 'claude-opus-4-6' }],
+            },
+        ],
+        legacy: {
+            'claude-sonnet-4-5': 'retires Nov 30, 2026 — then uses claude-sonnet-5-5',
+            'claude-sonnet-4-5-20250929': 'retires Nov 30, 2026 — then uses claude-sonnet-5-5',
+        },
+    },
+};
+
+/**
+ * Model dropdown for one provider. A saved model that is no longer offered
+ * stays selected and is labelled, so the setting is never changed silently.
+ */
+function ModelSelect({ provider }: { provider: AiKeyProvider }) {
+    const { options, setOptions } = useStore();
+    const catalogue = MODEL_CATALOGUES[provider];
+    const field = `ai_${provider}_model` as const;
+    const value = (options[field] as string) || catalogue.defaultModel;
+    const offered = catalogue.groups.flatMap((group) => group.models.map((model) => model.id));
+
+    return (
+        <select
+            name={field}
+            className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            value={value}
+            onChange={(e) => setOptions({ [field]: e.target.value })}
+        >
+            {!offered.includes(value) && (
+                <option value={value}>{value} ({catalogue.legacy[value] ?? 'no longer offered'})</option>
+            )}
+            {catalogue.groups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                    {group.models.map((model) => (
+                        <option key={model.id} value={model.id}>
+                            {(model.label ?? model.id) + (model.id === catalogue.defaultModel ? ' (default)' : '')}
+                        </option>
+                    ))}
+                </optgroup>
+            ))}
+        </select>
+    );
+}
 
 const AI_PROMPT_FIELDS = [
     { key: 'ai_instruction_title', label: 'Title', placeholder: 'e.g. Always include the product colour.' },
@@ -154,7 +232,6 @@ export default function AiSettings() {
     const { options, setOptions, setGeneralData } = useStore();
 
     const provider = options.ai_provider ?? 'gemini';
-    const chatgptModel = (options.ai_chatgpt_model as string) || CHATGPT_DEFAULT_MODEL;
     const isPro = !!tsmltParams.hasExtended;
 
     return (
@@ -278,25 +355,7 @@ export default function AiSettings() {
                             <ApiKeyField provider="chatgpt" />
                         </SettingRow>
                         <SettingRow label="ChatGPT Model:" bordered>
-                            <select
-                                name="ai_chatgpt_model"
-                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={chatgptModel}
-                                onChange={(e) => setOptions({ ai_chatgpt_model: e.target.value })}
-                            >
-                                {!CHATGPT_MODEL_IDS.includes(chatgptModel) && (
-                                    <option value={chatgptModel}>{chatgptModel} (no longer offered)</option>
-                                )}
-                                {CHATGPT_MODEL_GROUPS.map((group) => (
-                                    <optgroup key={group.label} label={group.label}>
-                                        {group.models.map((model) => (
-                                            <option key={model} value={model}>
-                                                {model === CHATGPT_DEFAULT_MODEL ? `${model} (default)` : model}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                ))}
-                            </select>
+                            <ModelSelect provider="chatgpt" />
                         </SettingRow>
                     </>
                 )}
@@ -307,17 +366,7 @@ export default function AiSettings() {
                             <ApiKeyField provider="gemini" />
                         </SettingRow>
                         <SettingRow label="Gemini Model:" bordered>
-                            <select
-                                name="ai_gemini_model"
-                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={(options.ai_gemini_model as string) || 'gemini-2.5-flash'}
-                                onChange={(e) => setOptions({ ai_gemini_model: e.target.value })}
-                            >
-                                <option value="gemini-2.5-flash">gemini-2.5-flash (default)</option>
-                                <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
-                                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-                                <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (for new Google accounts)</option>
-                            </select>
+                            <ModelSelect provider="gemini" />
                         </SettingRow>
                     </>
                 )}
@@ -328,17 +377,7 @@ export default function AiSettings() {
                             <ApiKeyField provider="claude" />
                         </SettingRow>
                         <SettingRow label="Claude Model:" bordered>
-                            <select
-                                name="ai_claude_model"
-                                className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={(options.ai_claude_model as string) || 'claude-haiku-4-5-20251001'}
-                                onChange={(e) => setOptions({ ai_claude_model: e.target.value })}
-                            >
-                                <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (default)</option>
-                                <option value="claude-sonnet-4-5">claude-sonnet-4-5 (retires Nov 30, 2026)</option>
-                                <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
-                                <option value="claude-opus-4-6">claude-opus-4-6</option>
-                            </select>
+                            <ModelSelect provider="claude" />
                         </SettingRow>
                     </>
                 )}

@@ -46,7 +46,7 @@ Most WordPress sites accumulate hundreds or thousands of media files over time �
 
 = AI Content Generator =
 * Generate SEO-optimized alt text, title, caption, description, and filename for any media file
-* Supports three AI providers: **ChatGPT** (GPT-6, GPT-5.6, GPT-4o, and more), **Google Gemini** (2.0 Flash, 1.5 Pro), and **Anthropic Claude** (Haiku, Sonnet, Opus)
+* Supports three AI providers: **ChatGPT** (GPT-6, GPT-5.6, GPT-4o, and more), **Google Gemini** (3.5 Flash-Lite, 3.6 Flash, 3.8 Flash, and 2.5), and **Anthropic Claude** (Haiku, Sonnet and Opus 5.5 and 4.x)
 * AI considers your site name, tagline, existing metadata, and attached post context for accurate, relevant results
 * Free plan includes 1 AI suggestion per field
 
@@ -250,10 +250,10 @@ All free features, plus:
 GPT-6 Astra, GPT-6.1 Sol, GPT-6 Luna, GPT-5.6, GPT-5.5, GPT-4o, GPT-4o Mini, GPT-4.1, and more
 
 = Google Gemini =
-Gemini 2.0 Flash, Gemini 2.0 Flash Lite, Gemini 1.5 Pro, Gemini 1.5 Flash
+Gemini 3.5 Flash-Lite (default), Gemini 3.6 Flash, Gemini 3.8 Flash. Gemini 2.5 Flash, 2.5 Flash-Lite and 2.5 Pro remain available for Google accounts that have used them before; Google limits them for new accounts.
 
 = Anthropic Claude =
-Claude Haiku, Claude Sonnet, Claude Opus
+Claude Haiku 5.5 (default), Claude Sonnet 5.5, Claude Opus 5.5, Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.6
 
 **What the AI generates:**
 
@@ -443,7 +443,7 @@ Yes — this is a Pro feature. Enable **Auto Inject Alt Text** in **Settings > R
 Go to **Settings > AI Settings**, select your AI provider (ChatGPT, Google Gemini, or Anthropic Claude), enter your API key, and choose a model. Then open the **Media Table** or **Media Rename** table and click the **AI** button on any media item. The plugin sends the file metadata (and the image itself in Pro) to the AI and returns SEO-optimized suggestions for title, alt text, caption, description, and filename.
 
 = Which AI providers and models are supported? =
-The plugin supports **ChatGPT** (GPT-6, GPT-5.6, GPT-5.5, GPT-4o, GPT-4.1, and more), **Google Gemini** (2.0 Flash, 2.0 Flash Lite, 1.5 Pro, 1.5 Flash), and **Anthropic Claude** (Haiku, Sonnet, Opus). You can switch providers and models at any time in Settings.
+The plugin supports **ChatGPT** (GPT-6, GPT-5.6, GPT-5.5, GPT-4o, GPT-4.1, and more), **Google Gemini** (3.5 Flash-Lite, 3.6 Flash, 3.8 Flash, and the 2.5 models for accounts that already use them), and **Anthropic Claude** (Haiku, Sonnet and Opus 5.5, plus Haiku 4.5, Sonnet 4.6 and Opus 4.6). You can switch providers and models at any time in Settings. If a model you saved is retired by its provider, the plugin switches to the provider's recommended replacement on the retirement date and the settings page shows the change.
 
 = What is the difference between free and Pro AI generation? =
 The free version returns 1 AI suggestion per field. The **Pro version** returns up to 10 suggestions per field so you can pick the best one, and it also supports **Image Vision** — sending the actual image file to the AI provider for visual analysis, which produces significantly more accurate and descriptive alt text and captions.
@@ -548,6 +548,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 * Improvement: Keys saved by earlier versions are encrypted automatically the next time someone opens the WordPress admin area; you do not need to re-enter them.
 * Improvement: If a saved key can no longer be read (for example after your security keys change or the site moves to a new host), AI generation pauses and a notice explains how to fix it. No request is sent with an unreadable key.
 * Note: Versions before 2.5.0 cannot read encrypted keys. If you downgrade, re-enter your API keys in Settings > AI Settings.
+* Improvement: New Claude models: Haiku 5.5, Sonnet 5.5 and Opus 5.5. Thinking is turned off (or kept low on Opus 5.5) so short metadata replies stay fast and inexpensive.
+* Improvement: New Gemini models: 3.5 Flash-Lite, 3.6 Flash and 3.8 Flash. Google now limits the Gemini 2.5 models to accounts that used them before.
+* Change: The default Claude model is now Claude Haiku 5.5 and the default Gemini model is now Gemini 3.5 Flash-Lite. Sites that chose a model keep it; sites that never chose one move to the new default. Both cost the same or less per token than the previous defaults.
+* Change: Claude Sonnet 4.5 retires on November 30, 2026; sites using it switch to Claude Sonnet 5.5 on that date. Saved Gemini 3.5 Flash and 3.7 Flash settings now use Gemini 3.6 Flash and 3.8 Flash, matching Google's routing.
 
 = 2.4.0 (Sep 15, 2026)=
 * Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.

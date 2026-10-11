@@ -391,9 +391,12 @@ class AiApiProviderTest extends TestCase {
 	public function claude_fallback_cases(): array {
 		return [
 			'sonnet 4.5 before retirement' => [ '2026-11-29', 'claude-sonnet-4-5', 'claude-sonnet-4-5' ],
-			'sonnet 4.5 on retirement'     => [ '2026-11-30', 'claude-sonnet-4-5', 'claude-sonnet-4-6' ],
-			'sonnet 4.5 snapshot retired'  => [ '2026-12-01', 'claude-sonnet-4-5-20250929', 'claude-sonnet-4-6' ],
-			'haiku default untouched'      => [ '2030-01-01', '', 'claude-haiku-4-5-20251001' ],
+			'sonnet 4.5 on retirement'     => [ '2026-11-30', 'claude-sonnet-4-5', 'claude-sonnet-5-5' ],
+			'sonnet 4.5 snapshot retired'  => [ '2026-12-01', 'claude-sonnet-4-5-20250929', 'claude-sonnet-5-5' ],
+			'empty setting uses default'   => [ '2030-01-01', '', 'claude-haiku-5-5' ],
+			'haiku 4.5 kept when saved'    => [ '2030-01-01', 'claude-haiku-4-5-20251001', 'claude-haiku-4-5-20251001' ],
+			'sonnet 4.6 kept when saved'   => [ '2030-01-01', 'claude-sonnet-4-6', 'claude-sonnet-4-6' ],
+			'unknown model untouched'      => [ '2030-01-01', 'claude-custom-test', 'claude-custom-test' ],
 		];
 	}
 
@@ -489,6 +492,140 @@ class AiApiProviderTest extends TestCase {
 			],
 			'malformed body' => [ 200, '<html>', 'Empty response from Gemini' ],
 			'rate limit'     => [ 429, [ 'error' => [ 'message' => 'Resource has been exhausted' ] ], 'Gemini HTTP 429: Resource has been exhausted' ],
+		];
+	}
+
+	// -------------------------------------------------------------------------
+	// Claude and Gemini per-model request settings
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Claude 5.5 models get the thinking setting each one accepts; Claude 4
+	 * models get none, as before.
+	 *
+	 * @dataProvider claude_request_cases
+	 *
+	 * @param string     $model      Saved model ID.
+	 * @param array|null $thinking   Expected thinking field.
+	 * @param array|null $output     Expected output_config field.
+	 * @param int        $max_tokens Expected max_tokens.
+	 */
+	public function test_claude_request_settings( string $model, ?array $thinking, ?array $output, int $max_tokens ): void {
+		$this->queue(
+			200,
+			[
+				'stop_reason' => 'end_turn',
+				'content'     => [
+					[
+						'type' => 'text',
+						'text' => 'ok',
+					],
+				],
+			]
+		);
+
+		$this->dispatch( 'claude', $model );
+		$body = $this->last_request()['body'];
+
+		$this->assertSame( $thinking, $body['thinking'] ?? null );
+		$this->assertSame( $output, $body['output_config'] ?? null );
+		$this->assertSame( $max_tokens, $body['max_tokens'] );
+		$this->assertArrayNotHasKey( 'extra_tokens', $body );
+		$this->assertArrayNotHasKey( 'temperature', $body );
+	}
+
+	/**
+	 * Cases for test_claude_request_settings.
+	 *
+	 * @return array
+	 */
+	public function claude_request_cases(): array {
+		return [
+			'haiku 5.5 (default)' => [ '', [ 'type' => 'disabled' ], null, 2000 ],
+			'sonnet 5.5'          => [ 'claude-sonnet-5-5', [ 'type' => 'between_tools' ], null, 2000 ],
+			'opus 5.5'            => [ 'claude-opus-5-5', null, [ 'effort' => 'low' ], 8000 ],
+			'haiku 4.5'           => [ 'claude-haiku-4-5-20251001', null, null, 2000 ],
+			'sonnet 4.6'          => [ 'claude-sonnet-4-6', null, null, 2000 ],
+			'opus 4.6'            => [ 'claude-opus-4-6', null, null, 2000 ],
+			'unknown model'       => [ 'claude-custom-test', null, null, 2000 ],
+		];
+	}
+
+	/**
+	 * After its retirement, Sonnet 4.5 is sent as Sonnet 5.5 with Sonnet 5.5's
+	 * thinking setting, so the request stays valid.
+	 */
+	public function test_retired_sonnet_uses_replacement_request_settings(): void {
+		$GLOBALS['tsmlt_test_today'] = '2026-11-30';
+		$this->queue(
+			200,
+			[
+				'stop_reason' => 'end_turn',
+				'content'     => [
+					[
+						'type' => 'text',
+						'text' => 'ok',
+					],
+				],
+			]
+		);
+
+		$this->dispatch( 'claude', 'claude-sonnet-4-5' );
+		$body = $this->last_request()['body'];
+
+		$this->assertSame( 'claude-sonnet-5-5', $body['model'] );
+		$this->assertSame( [ 'type' => 'between_tools' ], $body['thinking'] );
+	}
+
+	/**
+	 * Gemini models resolve to the right model and thinking level.
+	 *
+	 * @dataProvider gemini_model_cases
+	 *
+	 * @param string      $today    Pinned UTC date.
+	 * @param string      $saved    Saved model ID.
+	 * @param string      $expected Model ID expected in the URL.
+	 * @param string|null $thinking Expected thinkingLevel, null when omitted.
+	 */
+	public function test_gemini_model_resolution( string $today, string $saved, string $expected, ?string $thinking ): void {
+		$GLOBALS['tsmlt_test_today'] = $today;
+		$this->queue(
+			200,
+			[
+				'candidates' => [
+					[
+						'finishReason' => 'STOP',
+						'content'      => [ 'parts' => [ [ 'text' => 'ok' ] ] ],
+					],
+				],
+			]
+		);
+
+		$this->dispatch( 'gemini', $saved );
+		$request = $this->last_request();
+
+		$this->assertStringEndsWith( '/models/' . $expected . ':generateContent', $request['url'] );
+		$this->assertSame( $thinking, $request['body']['generationConfig']['thinkingConfig']['thinkingLevel'] ?? null );
+	}
+
+	/**
+	 * Cases for test_gemini_model_resolution.
+	 *
+	 * @return array
+	 */
+	public function gemini_model_cases(): array {
+		return [
+			'empty setting uses default'      => [ '2026-10-12', '', 'gemini-3.5-flash-lite', null ],
+			'3.6 flash at minimal thinking'   => [ '2026-10-12', 'gemini-3.6-flash', 'gemini-3.6-flash', 'MINIMAL' ],
+			'3.8 flash at low thinking'       => [ '2026-10-12', 'gemini-3.8-flash', 'gemini-3.8-flash', 'LOW' ],
+			'2.5 flash kept, no thinkingLevel' => [ '2026-10-12', 'gemini-2.5-flash', 'gemini-2.5-flash', null ],
+			'2.5 pro kept, no thinkingLevel'  => [ '2026-10-12', 'gemini-2.5-pro', 'gemini-2.5-pro', null ],
+			'3.5 flash before deprecation'    => [ '2026-10-07', 'gemini-3.5-flash', 'gemini-3.5-flash', null ],
+			'3.5 flash routed to 3.6'         => [ '2026-10-08', 'gemini-3.5-flash', 'gemini-3.6-flash', 'MINIMAL' ],
+			'3.7 flash routed to 3.8'         => [ '2026-10-12', 'gemini-3.7-flash', 'gemini-3.8-flash', 'LOW' ],
+			'retired 2.0 flash mapping kept'  => [ '2026-10-12', 'gemini-2.0-flash', 'gemini-2.5-flash', null ],
+			'retired 1.5 pro mapping kept'    => [ '2026-10-12', 'gemini-1.5-pro', 'gemini-2.5-pro', null ],
+			'unknown model untouched'         => [ '2026-10-12', 'gemini-custom-test', 'gemini-custom-test', null ],
 		];
 	}
 

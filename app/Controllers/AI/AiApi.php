@@ -91,18 +91,76 @@ class AiApi {
 	];
 
 	/**
+	 * Model used when a provider has no model saved. Kept in sync with the
+	 * settings UI defaults (checked by tests).
+	 *
+	 * @var array<string, string>
+	 */
+	public const DEFAULT_MODELS = [
+		'chatgpt' => 'gpt-6-luna',
+		'gemini'  => 'gemini-3.5-flash-lite',
+		'claude'  => 'claude-haiku-5-5',
+	];
+
+	/**
 	 * Claude models that are retired or scheduled to be, keyed by model ID.
 	 * Values are [ retirement date (Y-m-d), replacement ], from
 	 * https://platform.claude.com/docs/en/about-claude/model-deprecations.
-	 * Sonnet 4.5 maps to Sonnet 4.6 rather than Anthropic's suggested Sonnet
-	 * 5.5: same price, already offered here, and it does not think by default,
-	 * so the request format and max_tokens budget stay valid.
+	 * The replacement is Anthropic's recommended one; CLAUDE_REQUEST_SETTINGS
+	 * keeps its thinking off so the request and token budget stay valid.
 	 *
 	 * @var array<string, array{0: string, 1: string}>
 	 */
 	private const RETIRED_CLAUDE_MODELS = [
-		'claude-sonnet-4-5'          => [ '2026-11-30', 'claude-sonnet-4-6' ],
-		'claude-sonnet-4-5-20250929' => [ '2026-11-30', 'claude-sonnet-4-6' ],
+		'claude-sonnet-4-5'          => [ '2026-11-30', 'claude-sonnet-5-5' ],
+		'claude-sonnet-4-5-20250929' => [ '2026-11-30', 'claude-sonnet-5-5' ],
+	];
+
+	/**
+	 * Extra Messages API fields per Claude model. Claude 5.5 models think by
+	 * default and thinking tokens count against max_tokens, so thinking is
+	 * switched off with the setting each model accepts (Haiku 5.5: "disabled";
+	 * Sonnet 5.5: "between_tools", which with no tools means no thinking).
+	 * Opus 5.5 cannot turn thinking off, so it runs at low effort with extra
+	 * token headroom. Models not listed (Claude 4.x) do not think unless
+	 * asked and get no extra fields. Source:
+	 * https://platform.claude.com/docs/en/build-with-claude/thinking.
+	 *
+	 * @var array<string, array>
+	 */
+	private const CLAUDE_REQUEST_SETTINGS = [
+		'claude-haiku-5-5'  => [ 'thinking' => [ 'type' => 'disabled' ] ],
+		'claude-sonnet-5-5' => [ 'thinking' => [ 'type' => 'between_tools' ] ],
+		'claude-opus-5-5'   => [
+			'output_config' => [ 'effort' => 'low' ],
+			'extra_tokens'  => 6000,
+		],
+	];
+
+	/**
+	 * Deprecated Gemini models that Google already routes to a newer model,
+	 * as [ deprecation date (Y-m-d), replacement ]. Sending the replacement
+	 * directly avoids depending on that routing. Source:
+	 * https://ai.google.dev/gemini-api/docs/deprecations.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	private const ROUTED_GEMINI_MODELS = [
+		'gemini-3.5-flash' => [ '2026-10-08', 'gemini-3.6-flash' ],
+		'gemini-3.7-flash' => [ '2026-10-08', 'gemini-3.8-flash' ],
+	];
+
+	/**
+	 * Lowest thinking level for Gemini 3 models whose default thinks more.
+	 * Thinking tokens are billed as output. Gemini 2.5 models reject
+	 * thinkingLevel and Gemini 3.5 Flash-Lite already defaults to minimal, so
+	 * neither is listed. Source: https://ai.google.dev/gemini-api/docs/thinking.
+	 *
+	 * @var array<string, string>
+	 */
+	private const GEMINI_THINKING_LEVEL = [
+		'gemini-3.6-flash' => 'MINIMAL',
+		'gemini-3.8-flash' => 'LOW',
 	];
 
 	/**
@@ -464,7 +522,8 @@ class AiApi {
 		switch ( $provider ) {
 			case 'gemini':
 				$key   = self::provider_key( 'gemini' );
-				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.5-flash';
+				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: self::DEFAULT_MODELS['gemini'];
+				$model = self::resolve_retired_model( $model, self::ROUTED_GEMINI_MODELS );
 				// Retired Gemini models return HTTP 404 on the generateContent endpoint;
 				// transparently map saved settings to a currently supported equivalent.
 				$retired_gemini_models = [
@@ -482,14 +541,14 @@ class AiApi {
 
 			case 'claude':
 				$key   = self::provider_key( 'claude' );
-				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
+				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: self::DEFAULT_MODELS['claude'];
 				$model = self::resolve_retired_model( $model, self::RETIRED_CLAUDE_MODELS );
 				return $this->call_claude( $key, $prompt, $model );
 
 			case 'chatgpt':
 			default:
 				$key   = self::provider_key( 'chatgpt' );
-				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-6-luna';
+				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: self::DEFAULT_MODELS['chatgpt'];
 				$model = self::resolve_retired_model( $model, self::RETIRED_OPENAI_MODELS );
 				return $this->call_openai( $key, $prompt, $model );
 		}
@@ -777,15 +836,21 @@ class AiApi {
 		$parts   = (array) apply_filters( 'tsmlt_ai_gemini_image_parts', [], $this->image_base64, $this->image_mime );
 		$parts[] = [ 'text' => $prompt ];
 
-		$body = wp_json_encode(
-			[
-				'contents' => [
-					[
-						'parts' => $parts,
-					],
+		$request = [
+			'contents' => [
+				[
+					'parts' => $parts,
 				],
-			]
-		);
+			],
+		];
+
+		if ( isset( self::GEMINI_THINKING_LEVEL[ $model ] ) ) {
+			$request['generationConfig'] = [
+				'thinkingConfig' => [ 'thinkingLevel' => self::GEMINI_THINKING_LEVEL[ $model ] ],
+			];
+		}
+
+		$body = wp_json_encode( $request );
 
 		// No maxOutputTokens: Gemini then allows the model's full output limit
 		// (65,536 on current models), which also covers thinking tokens, so a
@@ -891,22 +956,29 @@ class AiApi {
 		$content   = (array) apply_filters( 'tsmlt_ai_claude_image_content', [], $this->image_base64, $this->image_mime );
 		$content[] = [ 'type' => 'text', 'text' => $prompt ];
 
-		$body = wp_json_encode(
-			[
-				'model'      => $model,
-				// A ceiling, not a charge: only generated tokens are billed. 2,000
-				// covers Pro's ten suggestions of a 2-4 sentence description, or a
-				// five-field bulk JSON object, including non-Latin scripts. The
-				// offered models do not think unless asked, so it is all answer.
-				'max_tokens' => 2000,
-				'messages'   => [
-					[
-						'role'    => 'user',
-						'content' => $content,
-					],
+		$request = [
+			'model'      => $model,
+			// A ceiling, not a charge: only generated tokens are billed. 2,000
+			// covers Pro's ten suggestions of a 2-4 sentence description, or a
+			// five-field bulk JSON object, including non-Latin scripts.
+			'max_tokens' => 2000,
+			'messages'   => [
+				[
+					'role'    => 'user',
+					'content' => $content,
 				],
-			]
-		);
+			],
+		];
+
+		$extra = self::CLAUDE_REQUEST_SETTINGS[ $model ] ?? [];
+		if ( isset( $extra['extra_tokens'] ) ) {
+			// Thinking that cannot be disabled shares max_tokens with the answer.
+			$request['max_tokens'] += (int) $extra['extra_tokens'];
+			unset( $extra['extra_tokens'] );
+		}
+		$request = array_merge( $request, $extra );
+
+		$body = wp_json_encode( $request );
 
 		$response = wp_remote_post(
 			'https://api.anthropic.com/v1/messages',
