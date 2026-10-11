@@ -357,7 +357,7 @@ class AiApi {
 			case 'chatgpt':
 			default:
 				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
-				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-4o-mini';
+				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-6-luna';
 				// Models OpenAI has shut down (or is shutting down) map to their
 				// recommended successor so saved settings keep working.
 				$retired_openai_models = [

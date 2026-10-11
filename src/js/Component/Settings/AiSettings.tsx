@@ -176,13 +176,13 @@ export default function AiSettings() {
                             <select
                                 name="ai_chatgpt_model"
                                 className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={(options.ai_chatgpt_model as string) || 'gpt-4o-mini'}
+                                value={(options.ai_chatgpt_model as string) || 'gpt-6-luna'}
                                 onChange={(e) => setOptions({ ai_chatgpt_model: e.target.value })}
                             >
                                 <optgroup label="GPT-6">
                                     <option value="gpt-6-astra">gpt-6-astra</option>
                                     <option value="gpt-6.1-sol">gpt-6.1-sol</option>
-                                    <option value="gpt-6-luna">gpt-6-luna</option>
+                                    <option value="gpt-6-luna">gpt-6-luna (default)</option>
                                 </optgroup>
                                 <optgroup label="GPT-5">
                                     <option value="gpt-5.6-sol">gpt-5.6-sol</option>
@@ -191,7 +191,7 @@ export default function AiSettings() {
                                     <option value="gpt-5.5">gpt-5.5</option>
                                 </optgroup>
                                 <optgroup label="GPT-4o / GPT-4.1 (Legacy)">
-                                    <option value="gpt-4o-mini">gpt-4o-mini (default)</option>
+                                    <option value="gpt-4o-mini">gpt-4o-mini</option>
                                     <option value="gpt-4o">gpt-4o</option>
                                     <option value="gpt-4.1">gpt-4.1</option>
                                     <option value="gpt-4.1-mini">gpt-4.1-mini</option>
