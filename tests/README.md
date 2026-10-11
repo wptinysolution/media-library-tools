@@ -3,6 +3,11 @@
 Integration tests run inside the official WordPress PHPUnit test suite
 (`wp-phpunit/wp-phpunit`), with this plugin loaded as a must-use plugin.
 
+The unit suite in `tests/Unit/` is separate: it stubs WordPress, needs no
+database, and has its own config. Run it with
+`vendor/bin/phpunit -c phpunit-unit.xml.dist`. It cannot share a process with
+the integration suite.
+
 Test dependencies are dev-only (`require-dev`). They are not scoped by
 PHP-Scoper and are not included in the release zip (`build.js` ships an explicit
 file list).

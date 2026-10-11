@@ -4,7 +4,7 @@
 WordPress plugin for media library management: rename files, bulk edit metadata, AI content generation, SVG support, rubbish file cleanup, CSV export/import, and more.
 
 - **Namespace:** `TinySolutions\mlt`
-- **Version:** 2.5.0-rc-2
+- **Version:** 2.5.0
 - **PHP:** 7.4+
 - **WP:** 6.5+ (MCP / Abilities API features: 6.9+)
 - **License:** GPLv3
@@ -120,6 +120,8 @@ All settings stored in `tsmlt_settings` WordPress option. Extended by pro via fi
 
 ## Tests
 PHPUnit integration tests run inside the WordPress test suite; setup and commands are in `tests/README.md`. Install dev dependencies with `composer install --no-scripts` so the PHP-Scoper step does not run.
+
+Unit tests for the AI providers, encrypted credentials and the model catalogue live in `tests/Unit/`. They stub WordPress and need no database: `vendor/bin/phpunit -c phpunit-unit.xml.dist`. The two suites cannot run in one process (the unit bootstrap defines WordPress function stand-ins).
 
 ## Build Commands
 ```bash
