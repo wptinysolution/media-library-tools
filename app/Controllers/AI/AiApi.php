@@ -34,6 +34,85 @@ class AiApi {
 	];
 
 	/**
+	 * OpenAI models that are shut down or scheduled to be, keyed by model ID.
+	 * Values are [ shutdown date (Y-m-d), recommended replacement ], taken from
+	 * https://developers.openai.com/api/docs/deprecations.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	private const RETIRED_OPENAI_MODELS = [
+		'gpt-4o-search-preview'      => [ '2026-07-23', 'gpt-5.6-terra' ],
+		'gpt-4o-mini-search-preview' => [ '2026-07-23', 'gpt-5.6-terra' ],
+		'gpt-3.5-turbo'              => [ '2026-10-23', 'gpt-5.6-terra' ],
+		'gpt-4'                      => [ '2026-10-23', 'gpt-5.6-sol' ],
+		'gpt-4-turbo'                => [ '2026-10-23', 'gpt-5.6-sol' ],
+		'gpt-4.1-nano'               => [ '2026-10-23', 'gpt-5.6-luna' ],
+		'o1'                         => [ '2026-10-23', 'gpt-5.6-sol' ],
+		'o1-mini'                    => [ '2025-10-27', 'gpt-5.6-terra' ],
+		'o3-mini'                    => [ '2026-10-23', 'gpt-5.6-sol' ],
+		'o4-mini'                    => [ '2026-10-23', 'gpt-5.6-terra' ],
+		'o3'                         => [ '2026-12-11', 'gpt-5.6-sol' ],
+		'gpt-5'                      => [ '2026-12-11', 'gpt-5.6-sol' ],
+		'gpt-5-mini'                 => [ '2026-12-11', 'gpt-5.6-terra' ],
+		'gpt-5-nano'                 => [ '2026-12-11', 'gpt-5.6-luna' ],
+		'gpt-5.1'                    => [ '2027-04-01', 'gpt-6-sol' ],
+	];
+
+	/**
+	 * Lowest reasoning effort each OpenAI reasoning model accepts. Metadata
+	 * generation needs no deliberation, and every token spent reasoning counts
+	 * against max_completion_tokens and is billed as output. GPT-6 Astra and
+	 * GPT-6.1 Sol reject "none". An empty value marks a reasoning model whose
+	 * accepted efforts OpenAI does not document: no effort is sent (a wrong
+	 * value fails every request), but its reasoning still gets token headroom.
+	 * Models not listed (GPT-4o, GPT-4.1, or unknown IDs) are treated as
+	 * non-reasoning, which do not accept reasoning_effort.
+	 *
+	 * @var array<string, string>
+	 */
+	private const OPENAI_REASONING_EFFORT = [
+		'gpt-6-astra'   => 'low',
+		'gpt-6.1-sol'   => 'low',
+		'gpt-6-sol'     => 'none',
+		'gpt-6-luna'    => 'none',
+		'gpt-5.6-sol'   => 'none',
+		'gpt-5.6-terra' => 'none',
+		'gpt-5.6-luna'  => 'none',
+		'gpt-5.5'       => 'none',
+		// Legacy models still served until their shutdown dates.
+		'gpt-5.1'       => 'none',
+		'gpt-5'         => 'minimal',
+		'gpt-5-mini'    => '',
+		'gpt-5-nano'    => '',
+		'o1'            => '',
+		'o3'            => '',
+		'o3-mini'       => '',
+		'o4-mini'       => '',
+	];
+
+	/**
+	 * Claude models that are retired or scheduled to be, keyed by model ID.
+	 * Values are [ retirement date (Y-m-d), replacement ], from
+	 * https://platform.claude.com/docs/en/about-claude/model-deprecations.
+	 * Sonnet 4.5 maps to Sonnet 4.6 rather than Anthropic's suggested Sonnet
+	 * 5.5: same price, already offered here, and it does not think by default,
+	 * so the request format and max_tokens budget stay valid.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	private const RETIRED_CLAUDE_MODELS = [
+		'claude-sonnet-4-5'          => [ '2026-11-30', 'claude-sonnet-4-6' ],
+		'claude-sonnet-4-5-20250929' => [ '2026-11-30', 'claude-sonnet-4-6' ],
+	];
+
+	/**
+	 * Gemini finish reasons that still yield a complete, usable reply.
+	 *
+	 * @var string[]
+	 */
+	private const GEMINI_COMPLETE_FINISH_REASONS = [ 'STOP', 'FINISH_REASON_UNSPECIFIED' ];
+
+	/**
 	 * Language names keyed by WordPress locale prefix, used to turn the site
 	 * locale into wording the model reliably understands.
 	 *
@@ -320,6 +399,29 @@ class AiApi {
 	}
 
 	/**
+	 * Swap a saved model for its replacement once the provider has retired it.
+	 *
+	 * The swap happens from the start of the retirement date in UTC, never
+	 * earlier, so a model that still works (and its pricing) is left alone.
+	 * Providers publish dates without a time of day; switching at 00:00 UTC
+	 * means a request may move a few hours early, but never fails late.
+	 *
+	 * @param string                                     $model   Saved model ID.
+	 * @param array<string, array{0: string, 1: string}> $retired Model ID => [ date, replacement ].
+	 *
+	 * @return string Model ID to send.
+	 */
+	private static function resolve_retired_model( string $model, array $retired ): string {
+		if ( ! isset( $retired[ $model ] ) ) {
+			return $model;
+		}
+
+		list( $retirement_date, $replacement ) = $retired[ $model ];
+
+		return gmdate( 'Y-m-d' ) >= $retirement_date ? $replacement : $model;
+	}
+
+	/**
 	 * Send a prompt to the configured provider and return the raw text reply.
 	 *
 	 * @param string $provider Provider key (gemini, claude, chatgpt).
@@ -352,33 +454,14 @@ class AiApi {
 			case 'claude':
 				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
+				$model = self::resolve_retired_model( $model, self::RETIRED_CLAUDE_MODELS );
 				return $this->call_claude( $key, $prompt, $model );
 
 			case 'chatgpt':
 			default:
 				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
 				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-6-luna';
-				// Models OpenAI has shut down (or is shutting down) map to their
-				// recommended successor so saved settings keep working.
-				$retired_openai_models = [
-					'gpt-5.1'                    => 'gpt-6.1-sol',
-					'gpt-5'                      => 'gpt-5.6-sol',
-					'gpt-5-mini'                 => 'gpt-5.6-terra',
-					'gpt-5-nano'                 => 'gpt-5.6-luna',
-					'gpt-4o-search-preview'      => 'gpt-4o',
-					'gpt-4o-mini-search-preview' => 'gpt-4o-mini',
-					'gpt-4.1-nano'               => 'gpt-4.1-mini',
-					'gpt-4-turbo'                => 'gpt-4o',
-					'gpt-4'                      => 'gpt-4o',
-					'o1'                         => 'gpt-5.6-sol',
-					'o1-mini'                    => 'gpt-5.6-terra',
-					'o3'                         => 'gpt-5.6-sol',
-					'o3-mini'                    => 'gpt-5.6-terra',
-					'o4-mini'                    => 'gpt-5.6-terra',
-				];
-				if ( isset( $retired_openai_models[ $model ] ) ) {
-					$model = $retired_openai_models[ $model ];
-				}
+				$model = self::resolve_retired_model( $model, self::RETIRED_OPENAI_MODELS );
 				return $this->call_openai( $key, $prompt, $model );
 		}
 	}
@@ -562,20 +645,37 @@ class AiApi {
 		$content   = (array) apply_filters( 'tsmlt_ai_openai_image_content', [], $this->image_base64, $this->image_mime );
 		$content[] = [ 'type' => 'text', 'text' => $prompt ];
 
-		$body = wp_json_encode(
-			[
-				'model'                 => $model,
-				'messages'              => [
-					[
-						'role'    => 'user',
-						'content' => $content,
-					],
+		$request = [
+			'model'                 => $model,
+			'messages'              => [
+				[
+					'role'    => 'user',
+					'content' => $content,
 				],
-				// max_tokens is rejected by GPT-5+ and o-series models;
-				// max_completion_tokens is accepted by every chat model.
-				'max_completion_tokens' => 200,
-			]
-		);
+			],
+			// max_tokens is deprecated and rejected by reasoning models;
+			// max_completion_tokens is accepted by every chat model. It is a
+			// ceiling, not a charge: only generated tokens are billed. 2,000
+			// covers Pro's ten suggestions of a 2-4 sentence description, or a
+			// five-field bulk JSON object, including non-Latin scripts.
+			'max_completion_tokens' => 2000,
+		];
+
+		// Snapshot IDs (e.g. gpt-5.5-2026-04-23) share their alias's settings.
+		$base_model = preg_replace( '/-\d{4}-\d{2}-\d{2}$/', '', $model );
+		if ( isset( self::OPENAI_REASONING_EFFORT[ $base_model ] ) ) {
+			$effort = self::OPENAI_REASONING_EFFORT[ $base_model ];
+			if ( '' !== $effort ) {
+				$request['reasoning_effort'] = $effort;
+			}
+			if ( 'none' !== $effort ) {
+				// Reasoning tokens share max_completion_tokens with the answer;
+				// leave room so reasoning cannot crowd out the visible reply.
+				$request['max_completion_tokens'] += 6000;
+			}
+		}
+
+		$body = wp_json_encode( $request );
 
 		$response = wp_remote_post(
 			'https://api.openai.com/v1/chat/completions',
@@ -601,10 +701,28 @@ class AiApi {
 			throw new \Exception( esc_html( sprintf( 'OpenAI HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) ) );
 		}
 
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		$text = trim( $data['choices'][0]['message']['content'] ?? '' );
+		$data    = json_decode( wp_remote_retrieve_body( $response ), true );
+		$choice  = $data['choices'][0] ?? [];
+		$refusal = trim( (string) ( $choice['message']['refusal'] ?? '' ) );
+		$text    = trim( (string) ( $choice['message']['content'] ?? '' ) );
+		$finish  = $choice['finish_reason'] ?? '';
 
-		if ( empty( $text ) ) {
+		if ( '' !== $refusal ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- escaped via esc_html().
+			throw new \Exception( esc_html( sprintf( 'OpenAI declined the request: %s', $refusal ) ) );
+		}
+
+		if ( 'content_filter' === $finish ) {
+			throw new \Exception( esc_html__( 'OpenAI withheld the response because of its content filter.', 'media-library-tools' ) );
+		}
+
+		// A reply cut off at the token limit is incomplete: the last suggestion
+		// or the bulk JSON would be truncated, so fail rather than save it.
+		if ( 'length' === $finish ) {
+			throw new \Exception( esc_html__( 'OpenAI stopped before finishing the response (token limit reached). Try fewer suggestions or a different model.', 'media-library-tools' ) );
+		}
+
+		if ( '' === $text ) {
 			throw new \Exception( esc_html__( 'Empty response from OpenAI.', 'media-library-tools' ) );
 		}
 
@@ -640,13 +758,21 @@ class AiApi {
 			]
 		);
 
-		$url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent?key=' . rawurlencode( $key );
+		// No maxOutputTokens: Gemini then allows the model's full output limit
+		// (65,536 on current models), which also covers thinking tokens, so a
+		// metadata reply is never cut short by a cap set here.
+		$url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent';
 
 		$response = wp_remote_post(
 			$url,
 			[
 				'timeout' => 30,
-				'headers' => [ 'Content-Type' => 'application/json' ],
+				// The key goes in a header, not the query string, so it never
+				// appears in a URL that proxies or HTTP-logging plugins record.
+				'headers' => [
+					'x-goog-api-key' => $key,
+					'Content-Type'   => 'application/json',
+				],
 				'body'    => $body,
 			]
 		);
@@ -664,13 +790,57 @@ class AiApi {
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		$text = trim( $data['candidates'][0]['content']['parts'][0]['text'] ?? '' );
 
-		if ( empty( $text ) ) {
+		// A blocked prompt returns no candidates, only promptFeedback.
+		$block_reason = (string) ( $data['promptFeedback']['blockReason'] ?? '' );
+		if ( '' !== $block_reason ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- escaped via esc_html().
+			throw new \Exception( esc_html( sprintf( 'Gemini blocked the request (%s).', $block_reason ) ) );
+		}
+
+		$candidate = $data['candidates'][0] ?? [];
+		$finish    = (string) ( $candidate['finishReason'] ?? '' );
+
+		// MAX_TOKENS means a truncated reply; SAFETY, RECITATION and the other
+		// reasons mean content was withheld. Neither may be saved as a result.
+		if ( '' !== $finish && ! in_array( $finish, self::GEMINI_COMPLETE_FINISH_REASONS, true ) ) {
+			$message = 'MAX_TOKENS' === $finish
+				? __( 'Gemini stopped before finishing the response (token limit reached). Try fewer suggestions or a different model.', 'media-library-tools' )
+				/* translators: %s: Gemini finish reason code, e.g. SAFETY. */
+				: sprintf( __( 'Gemini did not complete the response (%s).', 'media-library-tools' ), $finish );
+			throw new \Exception( esc_html( $message ) );
+		}
+
+		$text = self::join_gemini_text( (array) ( $candidate['content']['parts'] ?? [] ) );
+
+		if ( '' === $text ) {
 			throw new \Exception( esc_html__( 'Empty response from Gemini.', 'media-library-tools' ) );
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Join the answer text from a Gemini candidate's parts.
+	 *
+	 * A reply can span several text parts, and thinking models may add thought
+	 * parts (flagged `thought: true`) or signature-only parts; only answer text
+	 * is kept.
+	 *
+	 * @param array $parts Candidate content parts.
+	 *
+	 * @return string Trimmed answer text.
+	 */
+	private static function join_gemini_text( array $parts ): string {
+		$text = '';
+		foreach ( $parts as $part ) {
+			if ( ! is_array( $part ) || ! empty( $part['thought'] ) || ! isset( $part['text'] ) ) {
+				continue;
+			}
+			$text .= (string) $part['text'];
+		}
+
+		return trim( $text );
 	}
 
 	/**
@@ -695,7 +865,11 @@ class AiApi {
 		$body = wp_json_encode(
 			[
 				'model'      => $model,
-				'max_tokens' => 200,
+				// A ceiling, not a charge: only generated tokens are billed. 2,000
+				// covers Pro's ten suggestions of a 2-4 sentence description, or a
+				// five-field bulk JSON object, including non-Latin scripts. The
+				// offered models do not think unless asked, so it is all answer.
+				'max_tokens' => 2000,
 				'messages'   => [
 					[
 						'role'    => 'user',
@@ -730,10 +904,30 @@ class AiApi {
 			throw new \Exception( esc_html( sprintf( 'Claude HTTP %d: %s', $code, $err_msg ?: 'unknown error' ) ) );
 		}
 
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		$text = trim( $data['content'][0]['text'] ?? '' );
+		$data        = json_decode( wp_remote_retrieve_body( $response ), true );
+		$stop_reason = (string) ( $data['stop_reason'] ?? '' );
 
-		if ( empty( $text ) ) {
+		if ( 'refusal' === $stop_reason ) {
+			throw new \Exception( esc_html__( 'Claude declined the request.', 'media-library-tools' ) );
+		}
+
+		// A reply cut off at max_tokens is incomplete: the last suggestion or the
+		// bulk JSON would be truncated, so fail rather than save it.
+		if ( 'max_tokens' === $stop_reason ) {
+			throw new \Exception( esc_html__( 'Claude stopped before finishing the response (token limit reached). Try fewer suggestions or a different model.', 'media-library-tools' ) );
+		}
+
+		// Content is a list of typed blocks; only text blocks carry the answer,
+		// and a reply may be split across several of them.
+		$text = '';
+		foreach ( (array) ( $data['content'] ?? [] ) as $block ) {
+			if ( is_array( $block ) && 'text' === ( $block['type'] ?? '' ) ) {
+				$text .= (string) ( $block['text'] ?? '' );
+			}
+		}
+		$text = trim( $text );
+
+		if ( '' === $text ) {
 			throw new \Exception( esc_html__( 'Empty response from Claude.', 'media-library-tools' ) );
 		}
 

@@ -25,6 +25,16 @@ const AI_LANGUAGES = [
     'Thai', 'Japanese', 'Korean', 'Chinese',
 ] as const;
 
+// Every ID verified against the Chat Completions model list at
+// https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
+const CHATGPT_DEFAULT_MODEL = 'gpt-6-luna';
+const CHATGPT_MODEL_GROUPS = [
+    { label: 'GPT-6', models: ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'] },
+    { label: 'GPT-5', models: ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5'] },
+    { label: 'GPT-4o / GPT-4.1 (Legacy)', models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1', 'gpt-4.1-mini'] },
+];
+const CHATGPT_MODEL_IDS = CHATGPT_MODEL_GROUPS.flatMap((group) => group.models);
+
 const AI_PROMPT_FIELDS = [
     { key: 'ai_instruction_title', label: 'Title', placeholder: 'e.g. Always include the product colour.' },
     { key: 'ai_instruction_alt_text', label: 'Alt Text', placeholder: 'e.g. Describe the setting for screen readers.' },
@@ -38,6 +48,7 @@ export default function AiSettings() {
     const [showKey, setShowKey] = useState(false);
 
     const provider = options.ai_provider ?? 'gemini';
+    const chatgptModel = (options.ai_chatgpt_model as string) || CHATGPT_DEFAULT_MODEL;
     const isPro = !!tsmltParams.hasExtended;
 
     return (
@@ -176,26 +187,21 @@ export default function AiSettings() {
                             <select
                                 name="ai_chatgpt_model"
                                 className="w-full max-w-md px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                value={(options.ai_chatgpt_model as string) || 'gpt-6-luna'}
+                                value={chatgptModel}
                                 onChange={(e) => setOptions({ ai_chatgpt_model: e.target.value })}
                             >
-                                <optgroup label="GPT-6">
-                                    <option value="gpt-6-astra">gpt-6-astra</option>
-                                    <option value="gpt-6.1-sol">gpt-6.1-sol</option>
-                                    <option value="gpt-6-luna">gpt-6-luna (default)</option>
-                                </optgroup>
-                                <optgroup label="GPT-5">
-                                    <option value="gpt-5.6-sol">gpt-5.6-sol</option>
-                                    <option value="gpt-5.6-terra">gpt-5.6-terra</option>
-                                    <option value="gpt-5.6-luna">gpt-5.6-luna</option>
-                                    <option value="gpt-5.5">gpt-5.5</option>
-                                </optgroup>
-                                <optgroup label="GPT-4o / GPT-4.1 (Legacy)">
-                                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                                    <option value="gpt-4o">gpt-4o</option>
-                                    <option value="gpt-4.1">gpt-4.1</option>
-                                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                                </optgroup>
+                                {!CHATGPT_MODEL_IDS.includes(chatgptModel) && (
+                                    <option value={chatgptModel}>{chatgptModel} (no longer offered)</option>
+                                )}
+                                {CHATGPT_MODEL_GROUPS.map((group) => (
+                                    <optgroup key={group.label} label={group.label}>
+                                        {group.models.map((model) => (
+                                            <option key={model} value={model}>
+                                                {model === CHATGPT_DEFAULT_MODEL ? `${model} (default)` : model}
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                ))}
                             </select>
                         </SettingRow>
                     </>
@@ -228,6 +234,7 @@ export default function AiSettings() {
                                 <option value="gemini-2.5-flash">gemini-2.5-flash (default)</option>
                                 <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
                                 <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                                <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (for new Google accounts)</option>
                             </select>
                         </SettingRow>
                     </>
@@ -258,7 +265,7 @@ export default function AiSettings() {
                                 onChange={(e) => setOptions({ ai_claude_model: e.target.value })}
                             >
                                 <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (default)</option>
-                                <option value="claude-sonnet-4-5">claude-sonnet-4-5</option>
+                                <option value="claude-sonnet-4-5">claude-sonnet-4-5 (retires Nov 30, 2026)</option>
                                 <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
                                 <option value="claude-opus-4-6">claude-opus-4-6</option>
                             </select>
