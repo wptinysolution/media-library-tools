@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Unit suite: runs without WordPress, using the stubs in tests/Unit/bootstrap.php.
+	Run with: vendor/bin/phpunit -c phpunit-unit.xml.dist
+	It cannot share a process with the WordPress integration suite
+	(phpunit.xml.dist), which loads real WordPress functions.
+-->
+<phpunit bootstrap="tests/Unit/bootstrap.php" colors="true">
+	<testsuites>
+		<testsuite name="unit">
+			<directory suffix="Test.php">tests/Unit</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

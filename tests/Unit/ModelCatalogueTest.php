@@ -25,7 +25,7 @@ class ModelCatalogueTest extends TestCase {
 	 * Parse the catalogue once from the TSX source.
 	 */
 	public static function setUpBeforeClass(): void {
-		$source = (string) file_get_contents( dirname( __DIR__ ) . '/src/js/Component/Settings/AiSettings.tsx' );
+		$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/src/js/Component/Settings/AiSettings.tsx' );
 		$start  = strpos( $source, 'const MODEL_CATALOGUES' );
 		$end    = strpos( $source, "\n};", $start );
 		$block  = substr( $source, $start, $end - $start );

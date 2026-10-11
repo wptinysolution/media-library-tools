@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPUnit bootstrap: minimal WordPress stubs so the plugin's AI and credential
+ * Unit-suite PHPUnit bootstrap (phpunit-unit.xml.dist): minimal WordPress stubs so the plugin's AI and credential
  * code runs without WordPress. Provides a fake HTTP transport, an in-memory
  * options table that runs `pre_update_option_*` filters like WordPress, a
  * swappable wp_salt(), and switches to simulate failed or corrupted writes.
@@ -474,5 +474,5 @@ namespace {
 		};
 	}
 
-	require dirname( __DIR__ ) . '/autoload.php';
+	require dirname( __DIR__, 2 ) . '/autoload.php';
 }
