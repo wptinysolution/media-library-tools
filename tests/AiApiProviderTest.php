@@ -18,11 +18,7 @@ class AiApiProviderTest extends TestCase {
 	 * Reset the fake transport and pinned date before each test.
 	 */
 	protected function setUp(): void {
-		$GLOBALS['tsmlt_test_http'] = [
-			'responses' => [],
-			'requests'  => [],
-		];
-		unset( $GLOBALS['tsmlt_test_today'] );
+		tsmlt_test_reset();
 	}
 
 	// -------------------------------------------------------------------------
@@ -66,19 +62,19 @@ class AiApiProviderTest extends TestCase {
 			$method->setAccessible( true );
 		}
 
-		return $method->invoke(
-			new AiApi(),
-			$provider,
-			'prompt',
-			[
-				'ai_chatgpt_key'   => 'sk-test',
-				'ai_claude_key'    => 'sk-ant-test',
-				'ai_gemini_key'    => 'AIza-test',
-				'ai_chatgpt_model' => $model,
-				'ai_claude_model'  => $model,
-				'ai_gemini_model'  => $model,
-			]
-		);
+		// Keys sit in tsmlt_settings as plaintext, as saved by earlier versions,
+		// so these tests also cover the pre-migration (backward-compatible) path.
+		$settings = [
+			'ai_chatgpt_key'   => 'sk-test',
+			'ai_claude_key'    => 'sk-ant-test',
+			'ai_gemini_key'    => 'AIza-test',
+			'ai_chatgpt_model' => $model,
+			'ai_claude_model'  => $model,
+			'ai_gemini_model'  => $model,
+		];
+		$GLOBALS['tsmlt_test_options']['tsmlt_settings'] = $settings;
+
+		return $method->invoke( new AiApi(), $provider, 'prompt', $settings );
 	}
 
 	/**

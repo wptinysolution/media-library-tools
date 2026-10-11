@@ -451,6 +451,15 @@ The free version returns 1 AI suggestion per field. The **Pro version** returns 
 = Does AI generation send my images to a third-party server? =
 In the free version, only text metadata (filename, existing alt text, post title, site name) is sent to the AI provider. In Pro, if you enable **Image Vision**, the image is base64-encoded and included in the API request. All communication is encrypted via HTTPS. No data is stored by this plugin; it is sent directly to your chosen provider (OpenAI, Google, or Anthropic) under their respective privacy policies.
 
+= How are my AI API keys stored? =
+API keys are encrypted before they are saved, using your site's WordPress security keys from `wp-config.php` — no setup is needed. Once saved, a key is never shown again: the settings page shows a hidden placeholder (••••) and lets you replace or remove it. Keys saved by earlier versions are encrypted automatically the next time someone opens the WordPress admin area; you do not need to re-enter them.
+
+Encryption protects your keys if a copy of the database leaks. It cannot protect them if someone obtains both the database and `wp-config.php`, or can run code on your site. Use your AI provider's spending limits as a safeguard, and rotate a key with the provider if you suspect it was exposed.
+
+If your WordPress security keys change — for example a security plugin rotates them, you move to a new host with a new `wp-config.php`, or you create a staging copy — saved API keys can no longer be read. AI generation pauses (nothing is sent to the provider) and an admin notice explains how to fix it: re-enter the key, or restore the previous security keys.
+
+**Downgrading:** versions before 2.5.0 cannot read encrypted keys. If you go back to an older version, re-enter your API keys in Settings > AI Settings.
+
 = Do I need to pay for AI generation? =
 The plugin itself does not charge for AI generation. You need an API key from your chosen provider (OpenAI, Google AI Studio, or Anthropic). Each provider has their own pricing — most offer a generous free tier that covers typical media library use. You are billed directly by the provider based on usage.
 
@@ -533,6 +542,13 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 ---
 
 == Changelog ==
+= 2.5.0 (Oct XX, 2026)=
+* Security: AI API keys (OpenAI, Gemini, Claude) are now encrypted before they are saved, using your site's WordPress security keys. No setup is needed.
+* Security: Saved API keys are never sent back to the browser. The settings page shows a hidden placeholder with Replace and Remove options.
+* Improvement: Keys saved by earlier versions are encrypted automatically the next time someone opens the WordPress admin area; you do not need to re-enter them.
+* Improvement: If a saved key can no longer be read (for example after your security keys change or the site moves to a new host), AI generation pauses and a notice explains how to fix it. No request is sent with an unreadable key.
+* Note: Versions before 2.5.0 cannot read encrypted keys. If you downgrade, re-enter your API keys in Settings > AI Settings.
+
 = 2.4.0 (Sep 15, 2026)=
 * Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.
 * Feature: Suggest Filename with AI in the Rename table. Files are never renamed until you apply a suggestion. Pro only.
@@ -550,3 +566,6 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 [See changelog for all versions.](https://raw.githubusercontent.com/wptinysolution/WP-Changelog/refs/heads/main/media-library-tools.txt)
 
+== Upgrade Notice ==
+= 2.5.0 =
+AI API keys are now encrypted and migrate automatically. If you later downgrade below 2.5.0, re-enter your API keys.

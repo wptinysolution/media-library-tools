@@ -18,6 +18,8 @@ spl_autoload_register(
 		static $classmap = [
 		'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/app/Abs/Discount.php',
 		'TinySolutions\\mlt\\Controllers\\AI\\AiApi' => __DIR__ . '/app/Controllers/AI/AiApi.php',
+		'TinySolutions\\mlt\\Controllers\\AI\\CredentialHooks' => __DIR__ . '/app/Controllers/AI/CredentialHooks.php',
+		'TinySolutions\\mlt\\Controllers\\AI\\Credentials' => __DIR__ . '/app/Controllers/AI/Credentials.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/app/Controllers/Admin/Api.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => __DIR__ . '/app/Controllers/Admin/RegisterPostAndTax.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/app/Controllers/Admin/SubMenu.php',

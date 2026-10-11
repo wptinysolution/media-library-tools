@@ -103,6 +103,9 @@ export interface ExtendedState {
     isValidate: boolean;
 }
 
+export type AiKeyProvider = 'chatgpt' | 'gemini' | 'claude';
+export type AiKeyStatus = 'empty' | 'saved' | 'unreadable';
+
 export interface OptionsState {
     isLoading: boolean;
     media_table_column: string[];
@@ -129,12 +132,17 @@ export interface OptionsState {
     ai_send_image?: boolean;
     ai_suggestion_count?: number;
     ai_max_suggestion_count?: number;
+    // A new key typed in the form; the server never sends a saved key back.
     ai_chatgpt_key?: string;
+    ai_chatgpt_key_remove?: boolean;
     ai_chatgpt_model?: string;
     ai_gemini_key?: string;
+    ai_gemini_key_remove?: boolean;
     ai_gemini_model?: string;
     ai_claude_key?: string;
+    ai_claude_key_remove?: boolean;
     ai_claude_model?: string;
+    ai_key_status?: Partial<Record<AiKeyProvider, AiKeyStatus>>;
     ai_language?: string;
     ai_custom_instruction?: string;
     ai_instruction_title?: string;

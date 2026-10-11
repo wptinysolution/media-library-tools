@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useStore } from '@/js/Utils/store';
+import { useEffect, useState } from 'react';
+import { useStore, type AiKeyProvider } from '@/js/Utils/store';
 import SettingRow from '@/js/Component/Common/SettingRow';
 import ProLabel from "@/js/Component/Badges/ProLabel";
 
@@ -43,9 +43,115 @@ const AI_PROMPT_FIELDS = [
     { key: 'ai_instruction_filename', label: 'Filename', placeholder: 'e.g. Start with the product category.' },
 ] as const;
 
+// Same for every key and provider, so it reveals nothing about the saved key.
+const SAVED_KEY_PLACEHOLDER = '••••••••••••••••••••••••';
+
+const AI_KEY_PLACEHOLDERS: Record<AiKeyProvider, string> = {
+    chatgpt: 'sk-...',
+    gemini: 'AIza...',
+    claude: 'sk-ant-...',
+};
+
+/**
+ * API key field. A saved key is never sent to the browser, so the field shows
+ * only its status and offers Replace or Remove; a typed key is sent once on save.
+ */
+function ApiKeyField({ provider }: { provider: AiKeyProvider }) {
+    const { options, setOptions } = useStore();
+    const [showKey, setShowKey] = useState(false);
+    const [replacing, setReplacing] = useState(false);
+
+    const keyField = `ai_${provider}_key` as const;
+    const removeField = `ai_${provider}_key_remove` as const;
+    const status = options.ai_key_status?.[provider] ?? 'empty';
+    const typed = (options[keyField] as string) || '';
+    const removing = !!options[removeField];
+
+    // Fresh statuses arrive after every save; leave "replace" mode then.
+    useEffect(() => {
+        setReplacing(false);
+    }, [options.ai_key_status]);
+
+    if (removing) {
+        return (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="text-gray-700">This API key will be removed when you save.</span>
+                <button type="button" className="text-blue-600 hover:underline cursor-pointer" onClick={() => setOptions({ [removeField]: false })}>
+                    Undo
+                </button>
+            </div>
+        );
+    }
+
+    if ('saved' === status && !replacing && '' === typed) {
+        return (
+            <div className="w-full max-w-md space-y-2">
+                <div className="flex items-center gap-3">
+                    {/* A fixed placeholder: the saved key, and its length, never reach the browser. */}
+                    <input
+                        type="text"
+                        readOnly
+                        aria-label="Saved API key (hidden)"
+                        className="w-full px-3 py-2 text-sm tracking-widest border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-default"
+                        value={SAVED_KEY_PLACEHOLDER}
+                    />
+                    <span className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        Saved
+                    </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <button type="button" className="text-blue-600 hover:underline cursor-pointer" onClick={() => setReplacing(true)}>
+                        Replace
+                    </button>
+                    <button type="button" className="text-red-600 hover:underline cursor-pointer" onClick={() => setOptions({ [removeField]: true })}>
+                        Remove
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full max-w-md space-y-2">
+            {'unreadable' === status && (
+                <p className="m-0! text-sm text-red-700">
+                    The saved API key can&apos;t be read, usually because this site&apos;s WordPress security keys changed. Enter the key again to keep using AI features.
+                </p>
+            )}
+            <div className="relative w-full">
+                <input
+                    type={showKey ? 'text' : 'password'}
+                    name={keyField}
+                    autoComplete="off"
+                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder={AI_KEY_PLACEHOLDERS[provider]}
+                    value={typed}
+                    onChange={(e) => setOptions({ [keyField]: e.target.value })}
+                />
+                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+            </div>
+            {('saved' === status || 'unreadable' === status) && (
+                <div className="flex gap-3 text-sm">
+                    {'saved' === status && (
+                        <button type="button" className="text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplacing(false); setOptions({ [keyField]: '' }); }}>
+                            Keep saved key
+                        </button>
+                    )}
+                    {'unreadable' === status && (
+                        <button type="button" className="text-red-600 hover:underline cursor-pointer" onClick={() => setOptions({ [keyField]: '', [removeField]: true })}>
+                            Remove unreadable key
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function AiSettings() {
     const { options, setOptions, setGeneralData } = useStore();
-    const [showKey, setShowKey] = useState(false);
 
     const provider = options.ai_provider ?? 'gemini';
     const chatgptModel = (options.ai_chatgpt_model as string) || CHATGPT_DEFAULT_MODEL;
@@ -169,19 +275,7 @@ export default function AiSettings() {
                 {provider === 'chatgpt' && (
                     <>
                         <SettingRow label="ChatGPT API Key:" bordered>
-                            <div className="relative w-full max-w-md">
-                                <input
-                                    type={showKey ? 'text' : 'password'}
-                                    name="ai_chatgpt_key"
-                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="sk-..."
-                                    value={(options.ai_chatgpt_key as string) || ''}
-                                    onChange={(e) => setOptions({ ai_chatgpt_key: e.target.value })}
-                                />
-                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                                </button>
-                            </div>
+                            <ApiKeyField provider="chatgpt" />
                         </SettingRow>
                         <SettingRow label="ChatGPT Model:" bordered>
                             <select
@@ -210,19 +304,7 @@ export default function AiSettings() {
                 {provider === 'gemini' && (
                     <>
                         <SettingRow label="Gemini API Key:" bordered>
-                            <div className="relative w-full max-w-md">
-                                <input
-                                    type={showKey ? 'text' : 'password'}
-                                    name="ai_gemini_key"
-                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="AIza..."
-                                    value={(options.ai_gemini_key as string) || ''}
-                                    onChange={(e) => setOptions({ ai_gemini_key: e.target.value })}
-                                />
-                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                                </button>
-                            </div>
+                            <ApiKeyField provider="gemini" />
                         </SettingRow>
                         <SettingRow label="Gemini Model:" bordered>
                             <select
@@ -243,19 +325,7 @@ export default function AiSettings() {
                 {provider === 'claude' && (
                     <>
                         <SettingRow label="Claude API Key:" bordered>
-                            <div className="relative w-full max-w-md">
-                                <input
-                                    type={showKey ? 'text' : 'password'}
-                                    name="ai_claude_key"
-                                    className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="sk-ant-..."
-                                    value={(options.ai_claude_key as string) || ''}
-                                    onChange={(e) => setOptions({ ai_claude_key: e.target.value })}
-                                />
-                                <button type="button" onClick={() => setShowKey(v => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                                    {showKey ? <EyeOffIcon /> : <EyeIcon />}
-                                </button>
-                            </div>
+                            <ApiKeyField provider="claude" />
                         </SettingRow>
                         <SettingRow label="Claude Model:" bordered>
                             <select

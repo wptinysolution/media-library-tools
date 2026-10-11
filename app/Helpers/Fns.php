@@ -671,6 +671,10 @@ class Fns {
 
 		$options['ai_max_suggestion_count'] = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 
+		// Legacy plaintext API keys awaiting migration are never part of the
+		// general options; AiApi reads keys through Credentials only.
+		unset( $options['ai_chatgpt_key'], $options['ai_gemini_key'], $options['ai_claude_key'] );
+
 		return wp_parse_args( $options, $defaults );
 	}
 

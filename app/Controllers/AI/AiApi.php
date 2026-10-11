@@ -399,6 +399,35 @@ class AiApi {
 	}
 
 	/**
+	 * Read a provider's API key from encrypted storage.
+	 *
+	 * An unreadable saved key stops generation here: nothing is sent to the
+	 * provider, and the error says how to recover.
+	 *
+	 * @param string $provider Provider key (chatgpt, gemini, claude).
+	 *
+	 * @return string API key, or '' when none is configured.
+	 * @throws \Exception When a saved key cannot be decrypted.
+	 */
+	private static function provider_key( string $provider ): string {
+		$resolved = Credentials::resolve( $provider );
+
+		if ( '' === $resolved['key'] && Credentials::STATUS_UNREADABLE === $resolved['status'] ) {
+			throw new \Exception(
+				esc_html(
+					sprintf(
+						/* translators: %s: provider name, e.g. "Gemini". */
+						__( 'Your saved %s API key can\'t be read, usually because this site\'s WordPress security keys changed. Re-enter it in Media Library Tools → Settings → AI.', 'media-library-tools' ),
+						CredentialHooks::provider_label( $provider )
+					)
+				)
+			);
+		}
+
+		return $resolved['key'];
+	}
+
+	/**
 	 * Swap a saved model for its replacement once the provider has retired it.
 	 *
 	 * The swap happens from the start of the retirement date in UTC, never
@@ -434,7 +463,7 @@ class AiApi {
 	private function dispatch_to_provider( string $provider, string $prompt, array $settings ): string {
 		switch ( $provider ) {
 			case 'gemini':
-				$key   = sanitize_text_field( $settings['ai_gemini_key'] ?? '' );
+				$key   = self::provider_key( 'gemini' );
 				$model = sanitize_text_field( $settings['ai_gemini_model'] ?? '' ) ?: 'gemini-2.5-flash';
 				// Retired Gemini models return HTTP 404 on the generateContent endpoint;
 				// transparently map saved settings to a currently supported equivalent.
@@ -452,14 +481,14 @@ class AiApi {
 				return $this->call_gemini( $key, $prompt, $model );
 
 			case 'claude':
-				$key   = sanitize_text_field( $settings['ai_claude_key'] ?? '' );
+				$key   = self::provider_key( 'claude' );
 				$model = sanitize_text_field( $settings['ai_claude_model'] ?? '' ) ?: 'claude-haiku-4-5-20251001';
 				$model = self::resolve_retired_model( $model, self::RETIRED_CLAUDE_MODELS );
 				return $this->call_claude( $key, $prompt, $model );
 
 			case 'chatgpt':
 			default:
-				$key   = sanitize_text_field( $settings['ai_chatgpt_key'] ?? '' );
+				$key   = self::provider_key( 'chatgpt' );
 				$model = sanitize_text_field( $settings['ai_chatgpt_model'] ?? '' ) ?: 'gpt-6-luna';
 				$model = self::resolve_retired_model( $model, self::RETIRED_OPENAI_MODELS );
 				return $this->call_openai( $key, $prompt, $model );

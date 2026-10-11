@@ -6,6 +6,8 @@ namespace TinySolutions\mlt\Controllers\Admin;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
+use TinySolutions\mlt\Controllers\AI\CredentialHooks;
+use TinySolutions\mlt\Controllers\AI\Credentials;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
@@ -130,11 +132,10 @@ class Api {
 		$ai_max                          = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 		$tsmlt_media['ai_send_image']    = $ai_max > 1 && ! empty( $parameters['ai_send_image'] );
 		$tsmlt_media['ai_suggestion_count'] = min( $ai_max, max( 1, (int) ( $parameters['ai_suggestion_count'] ?? 1 ) ) );
-		$tsmlt_media['ai_chatgpt_key']   = sanitize_text_field( $parameters['ai_chatgpt_key']   ?? '' );
+		// API keys are not settings: they are saved encrypted by save_api_keys()
+		// below, after this write, and never written into tsmlt_settings here.
 		$tsmlt_media['ai_chatgpt_model'] = sanitize_text_field( $parameters['ai_chatgpt_model'] ?? '' );
-		$tsmlt_media['ai_gemini_key']    = sanitize_text_field( $parameters['ai_gemini_key']    ?? '' );
 		$tsmlt_media['ai_gemini_model']  = sanitize_text_field( $parameters['ai_gemini_model']  ?? '' );
-		$tsmlt_media['ai_claude_key']    = sanitize_text_field( $parameters['ai_claude_key']    ?? '' );
 		$tsmlt_media['ai_claude_model']  = sanitize_text_field( $parameters['ai_claude_model']  ?? '' );
 
 		// Empty ai_language means "site default" and is resolved from the locale at generation time.
@@ -157,6 +158,32 @@ class Api {
 
 		update_option( 'tsmlt_settings', $tsmlt_media );
 
+		$failed = $this->save_api_keys( $parameters );
+		if ( ! empty( $failed ) && ! Credentials::is_available() ) {
+			return [
+				'updated' => false,
+				'message' => esc_html(
+					sprintf(
+						/* translators: %s: provider names, e.g. "Gemini". */
+						__( 'Settings saved, but the %s API key was not saved: this server cannot encrypt API keys (the PHP sodium extension and WordPress\'s sodium_compat library are both unavailable). Your existing keys were not changed. Please ask your host to enable the PHP sodium extension.', 'media-library-tools' ),
+						implode( ', ', $failed )
+					)
+				),
+			];
+		}
+		if ( ! empty( $failed ) ) {
+			return [
+				'updated' => false,
+				'message' => esc_html(
+					sprintf(
+						/* translators: %s: provider names, e.g. "Gemini". */
+						__( 'Settings saved, but the %s API key could not be saved securely. Please try again.', 'media-library-tools' ),
+						implode( ', ', $failed )
+					)
+				),
+			];
+		}
+
 		return [
 			'updated' => true,
 			'message' => esc_html__( 'Settings saved.', 'media-library-tools' ),
@@ -164,10 +191,53 @@ class Api {
 	}
 
 	/**
+	 * Apply API key changes from the settings form.
+	 *
+	 * A non-empty key replaces the saved one; `ai_<provider>_key_remove`
+	 * deletes it. Anything else leaves the saved key untouched, so the form
+	 * never needs to know a saved key.
+	 *
+	 * @param array $parameters Request parameters.
+	 *
+	 * @return string[] Labels of providers whose change failed.
+	 */
+	private function save_api_keys( array $parameters ): array {
+		$failed = [];
+
+		foreach ( array_keys( Credentials::PROVIDERS ) as $provider ) {
+			$new_key = trim( sanitize_text_field( (string) ( $parameters[ 'ai_' . $provider . '_key' ] ?? '' ) ) );
+
+			if ( '' !== $new_key ) {
+				$saved = Credentials::set( $provider, $new_key );
+			} elseif ( ! empty( $parameters[ 'ai_' . $provider . '_key_remove' ] ) ) {
+				$saved = Credentials::remove( $provider );
+			} else {
+				continue;
+			}
+
+			if ( ! $saved ) {
+				$failed[] = CredentialHooks::provider_label( $provider );
+			}
+		}
+
+		return $failed;
+	}
+
+	/**
 	 * @return false|string
 	 */
 	public function get_options() {
-		return wp_json_encode( Fns::get_options() );
+		$options = Fns::get_options();
+
+		// Key fields are always empty so the form never holds a saved key, and
+		// any key typed before saving is cleared from the browser's state.
+		foreach ( array_keys( Credentials::PROVIDERS ) as $provider ) {
+			$options[ 'ai_' . $provider . '_key' ]        = '';
+			$options[ 'ai_' . $provider . '_key_remove' ] = false;
+		}
+		$options['ai_key_status'] = Credentials::statuses();
+
+		return wp_json_encode( $options );
 	}
 
 	/**

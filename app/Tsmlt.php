@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Controllers\AI\CredentialHooks;
 use TinySolutions\mlt\Controllers\Admin\Api;
 use TinySolutions\mlt\Controllers\Admin\RegisterPostAndTax;
 use TinySolutions\mlt\Controllers\Admin\SubMenu;
@@ -99,6 +100,7 @@ if ( ! class_exists( Tsmlt::class ) ) {
 			Api::instance();
 			ModuleInit::instance();
 			FilterHooks::init_hooks();
+			CredentialHooks::instance();
 			ActionHooks::instance();
 			CronJobHooks::instance();
 			if ( is_admin() ) {

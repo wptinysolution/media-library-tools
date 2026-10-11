@@ -165,6 +165,8 @@ class Installation {
 		// 4. Options — enumerated keys (safe through WP API, fires hooks, busts cache).
 		$options = [
 			'tsmlt_settings',
+			'tsmlt_ai_credentials',
+			'tsmlt_credentials_version',
 			'tsmlt_plugin_version',
 			'tsmlt_plugin_activation_time',
 			'tsmlt_cron_schedule',
