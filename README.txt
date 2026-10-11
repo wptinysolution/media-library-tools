@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -543,15 +543,19 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 = 2.5.0 (Oct XX, 2026)=
+* Feature: MCP integration — AI assistants such as Claude Code can search your media library, read media details, and update the title, alt text, caption and description. Requires WordPress 6.9+ and the official MCP Adapter plugin.
+* Feature: Dedicated MCP endpoint at /wp-json/media-library-tools/mcp that exposes only the Media Library Tools tools and is limited to administrators. Recommended over the MCP Adapter's default endpoint, which also exposes public abilities from other plugins.
 * Security: AI API keys (OpenAI, Gemini, Claude) are now encrypted before they are saved, using your site's WordPress security keys. No setup is needed.
 * Security: Saved API keys are never sent back to the browser. The settings page shows a hidden placeholder with Replace and Remove options.
+* Fix: Updated the bundled SVG sanitizer (enshrined/svg-sanitize 1.0.0) to fix three security issues in SVG uploads (CVE-2026-107379, CVE-2026-107380, CVE-2026-107381). SVG files that rely on custom DTD entities are now rejected.
+* Fix: Malformed or empty SVG uploads are now rejected instead of causing an error or saving an empty file.
 * Improvement: Keys saved by earlier versions are encrypted automatically the next time someone opens the WordPress admin area; you do not need to re-enter them.
 * Improvement: If a saved key can no longer be read (for example after your security keys change or the site moves to a new host), AI generation pauses and a notice explains how to fix it. No request is sent with an unreadable key.
-* Note: Versions before 2.5.0 cannot read encrypted keys. If you downgrade, re-enter your API keys in Settings > AI Settings.
 * Improvement: New Claude models: Haiku 5.5, Sonnet 5.5 and Opus 5.5. Thinking is turned off (or kept low on Opus 5.5) so short metadata replies stay fast and inexpensive.
 * Improvement: New Gemini models: 3.5 Flash-Lite, 3.6 Flash and 3.8 Flash. Google now limits the Gemini 2.5 models to accounts that used them before.
 * Change: The default Claude model is now Claude Haiku 5.5 and the default Gemini model is now Gemini 3.5 Flash-Lite. Sites that chose a model keep it; sites that never chose one move to the new default. Both cost the same or less per token than the previous defaults.
 * Change: Claude Sonnet 4.5 retires on November 30, 2026; sites using it switch to Claude Sonnet 5.5 on that date. Saved Gemini 3.5 Flash and 3.7 Flash settings now use Gemini 3.6 Flash and 3.8 Flash, matching Google's routing.
+* Note: Versions before 2.5.0 cannot read encrypted keys. If you downgrade, re-enter your API keys in Settings > AI Settings.
 
 = 2.4.0 (Sep 15, 2026)=
 * Feature: Bulk AI Generate — select media and generate Title, Alt Text, Caption and Description for all of them. Pro only.

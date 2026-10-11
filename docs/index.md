@@ -27,6 +27,9 @@ Media Library Tools provides powerful features to help you manage, organize, and
 - [Duplicates](#duplicates) - Detect and manage duplicate files
 - [Used Where](#used-where) - Track image usage across your site
 
+### Integrations
+- [MCP Integration](12-mcp-integration.md) - Let AI assistants search, read and update media text through a dedicated MCP endpoint
+
 ## Quick Start
 
 1. **Install the Plugin**: Upload and activate Media Library Tools from your WordPress admin

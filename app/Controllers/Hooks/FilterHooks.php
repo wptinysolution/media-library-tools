@@ -248,9 +248,15 @@ class FilterHooks {
 			$file['error'] = esc_html__( 'Unable to read the uploaded SVG file.', 'media-library-tools' );
 			return $file;
 		}
-		$clean_svg   = $sanitizer->sanitize( $svg_content );
-		// If the file is not safe, return an error.
-		if ( false === $clean_svg ) {
+		try {
+			$clean_svg = $sanitizer->sanitize( $svg_content );
+		} catch ( \Throwable $e ) {
+			// Some malformed input makes the library throw (e.g. a file that is only a
+			// processing instruction reaches DOMDocument::loadXML() as an empty string).
+			$clean_svg = false;
+		}
+		// If the file is not safe, or nothing usable is left, return an error.
+		if ( false === $clean_svg || '' === trim( (string) $clean_svg ) ) {
 			$file['error'] = esc_html__( 'This SVG file contains unsafe content and cannot be uploaded.', 'media-library-tools' );
 			return $file;
 		}
