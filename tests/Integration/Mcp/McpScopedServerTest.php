@@ -383,6 +383,103 @@ class McpScopedServerTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Pro-style arguments sent as MCP tool calls are refused, and the
+	 * attachment is left exactly as it was.
+	 *
+	 * @dataProvider data_pro_style_tool_calls
+	 *
+	 * @param string $tool      Tool name.
+	 * @param array  $arguments Valid baseline arguments; `{id}` is the fixture.
+	 * @param string $property  Unexpected property.
+	 * @param mixed  $value     Its value.
+	 */
+	public function test_pro_style_arguments_are_refused( string $tool, array $arguments, string $property, $value ) {
+		$id = self::factory()->attachment->create(
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_title'     => 'Scoped probe',
+				'post_excerpt'   => 'Scoped caption',
+				'post_name'      => 'scoped-probe',
+				'file'           => '2026/10/scoped-probe.jpg',
+			]
+		);
+		update_post_meta( $id, '_wp_attachment_image_alt', 'Scoped alt' );
+		$term_id = (int) self::factory()->term->create( [ 'taxonomy' => \TinySolutions\mlt\Helpers\Fns::CATEGORY ] );
+
+		$state = static function () use ( $id ) {
+			clean_post_cache( $id );
+			wp_cache_delete( $id, 'post_meta' );
+			$post = get_post( $id );
+			$meta = get_post_meta( $id );
+			unset( $meta['_edit_lock'], $meta['_edit_last'] );
+			ksort( $meta );
+			return [
+				'post'   => [ $post->post_title, $post->post_excerpt, $post->post_content, $post->post_name, $post->post_status, $post->post_parent ],
+				'file'   => get_attached_file( $id ),
+				'meta'   => $meta,
+				'groups' => wp_get_object_terms( $id, \TinySolutions\mlt\Helpers\Fns::CATEGORY, [ 'fields' => 'ids' ] ),
+			];
+		};
+
+		$arguments[ $property ] = $value;
+		array_walk_recursive(
+			$arguments,
+			static function ( &$item ) use ( $id, $term_id ) {
+				if ( '{id}' === $item ) {
+					$item = $id;
+				} elseif ( '{term}' === $item ) {
+					$item = $term_id;
+				}
+			}
+		);
+
+		$this->connect_as( 'administrator' );
+		$before = $state();
+
+		$data = $this->call( self::SCOPED_ROUTE, $tool, $arguments );
+
+		// Same assertion style as test_input_validation_still_applies: the
+		// adapter may answer with a JSON-RPC error or an isError result.
+		$this->assertTrue( isset( $data['error'] ) || ! empty( $data['result']['isError'] ), wp_json_encode( $data ) );
+		$this->assertStringContainsString( $property, wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
+		$this->assertSame( $before, $state() );
+	}
+
+	/**
+	 * Every tool crossed with every Pro-style property.
+	 *
+	 * @return array
+	 */
+	public function data_pro_style_tool_calls(): array {
+		$baselines  = [
+			'tsmlt-search-media'          => [ 'search' => 'Scoped probe' ],
+			'tsmlt-get-media-details'     => [ 'id' => '{id}' ],
+			'tsmlt-update-media-metadata' => [
+				'id'      => '{id}',
+				'caption' => 'Changed by a Pro-style probe',
+			],
+		];
+		$properties = [
+			'bulkEditPostTitle'         => [ 'post_title', 'alt_text', 'caption', 'post_description' ],
+			'newname'                   => 'renamed-by-probe',
+			'post_categories'           => [ '{term}' ],
+			'custom_meta:_photographer' => 'Probe photographer',
+			'exif_camera'               => 'Probe camera',
+			'exif_has_gps'              => 'yes',
+			'status'                    => 'trash',
+			'filtering'                 => true,
+		];
+
+		$cases = [];
+		foreach ( $baselines as $tool => $arguments ) {
+			foreach ( $properties as $property => $value ) {
+				$cases[ $tool . ' + ' . $property ] = [ $tool, $arguments, $property, $value ];
+			}
+		}
+		return $cases;
+	}
+
+	/**
 	 * Logged-in users without manage_options cannot open a session at all.
 	 *
 	 * @dataProvider data_roles_without_manage_options

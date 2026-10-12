@@ -687,21 +687,22 @@ class Api {
 			 */
 			case 'bulk_edit_exif':
 			case 'bulk_remove_exif':
-				// Delegate to Pro plugin if available.
-				if ( function_exists( 'tsmltpro' ) ) {
+				// Delegate only to a licensed Pro: an installed but unlicensed
+				// Pro must not receive the request.
+				if ( tsmlt()->has_pro() ) {
 					$result = apply_filters( 'tsmlt_bulk_exif_action', $result, $parameters['type'], $ids, $parameters );
 				} else {
-					$result['message'] = esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
+					$result['message'] = Fns::pro_required_message();
 				}
 				break;
 			/**
 			 * EXIF to Caption (Pro feature, delegated to Pro module)
 			 */
 			case 'exif_to_caption':
-				if ( function_exists( 'tsmltpro' ) ) {
+				if ( tsmlt()->has_pro() ) {
 					$result = apply_filters( 'tsmlt_exif_to_caption', $result, $ids );
 				} else {
-					$result['message'] = esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
+					$result['message'] = Fns::pro_required_message();
 				}
 				break;
 			default:

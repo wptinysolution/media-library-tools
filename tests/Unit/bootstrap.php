@@ -53,6 +53,7 @@ namespace {
 		$GLOBALS['tsmlt_test_writes']  = [];
 		$GLOBALS['tsmlt_test_fail_writes']    = [];
 		$GLOBALS['tsmlt_test_corrupt_writes'] = [];
+		$GLOBALS['tsmlt_test_has_pro']        = false;
 		unset( $GLOBALS['tsmlt_test_today'] );
 	}
 	tsmlt_test_reset();
@@ -457,7 +458,8 @@ namespace {
 	}
 
 	/**
-	 * Stub of the plugin's tsmlt() accessor (Free, no Pro).
+	 * Stub of the plugin's tsmlt() accessor. Free (no Pro) unless a test sets
+	 * `$GLOBALS['tsmlt_test_has_pro']`; tsmlt_test_reset() clears it.
 	 *
 	 * @return object
 	 */
@@ -469,7 +471,7 @@ namespace {
 			 * @return bool
 			 */
 			public function has_pro() {
-				return false;
+				return ! empty( $GLOBALS['tsmlt_test_has_pro'] );
 			}
 		};
 	}

@@ -52,8 +52,16 @@ class RenameModule {
 			return $this->handle_rename( $parameters );
 		}
 
-		// Handle Bulk Edit by post title.
+		// Handle Bulk Edit by post title — a Pro feature, so refuse it here,
+		// before anything is read or written, unless Pro is licensed. The UI
+		// hides the action too, but a request can be sent without the UI.
 		if ( ! empty( $parameters['bulkEditPostTitle'] ) ) {
+			if ( ! tsmlt()->has_pro() ) {
+				return [
+					'updated' => false,
+					'message' => Fns::pro_required_message(),
+				];
+			}
 			return $this->handle_bulk_edit( $parameters );
 		}
 

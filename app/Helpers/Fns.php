@@ -594,6 +594,17 @@ class Fns {
 	}
 
 	/**
+	 * Message for a Pro-only action refused because tsmlt()->has_pro() is false.
+	 *
+	 * @return string
+	 */
+	public static function pro_required_message(): string {
+		return function_exists( 'tsmltpro' )
+			? esc_html__( 'This feature requires an active Pro license.', 'media-library-tools' )
+			: esc_html__( 'This feature requires the Pro plugin.', 'media-library-tools' );
+	}
+
+	/**
 	 * Prepare a stored text value for a JSON response.
 	 *
 	 * These values are consumed by React, which escapes everything it renders,

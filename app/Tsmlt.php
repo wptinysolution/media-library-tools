@@ -118,15 +118,15 @@ if ( ! class_exists( Tsmlt::class ) ) {
 		}
 
 		/**
-		 * Checks if Pro version installed
+		 * Whether a supported, licensed Pro version is active.
+		 *
+		 * The Pro plugin's licence check is the only source of entitlement.
 		 *
 		 * @return boolean
 		 */
 		public function has_pro() {
 			if ( function_exists( 'tsmltpro' ) && version_compare( TSMLTPRO_VERSION, '1.2.3', '>=' ) ) {
-				// Decrypt the license value.
-				$is_valid = 'e655d5f802d3d9724f02f3af4e71a0dc' === ( defined( 'TINY_DEBUG_TSMLT_PRO_1_2_3' ) ? md5( TINY_DEBUG_TSMLT_PRO_1_2_3 ) : '' );
-				return tsmltpro()->user_can_use_tsmltpro() || $is_valid;
+				return (bool) tsmltpro()->user_can_use_tsmltpro();
 			}
 			return false;
 		}
