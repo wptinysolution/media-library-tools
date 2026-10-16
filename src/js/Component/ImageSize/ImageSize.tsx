@@ -11,7 +11,7 @@ function ImageSize() {
     const navigate = useNavigate();
 
     return generalData.isLoading ? <Loader /> : (
-        <div className="min-h-screen bg-gray-50 overflow-y-auto pb-32">
+        <div className="min-h-screen bg-gray-50 overflow-y-auto pb-8">
             <div className="max-w-5xl mx-auto px-6 py-8">
                 <div className="mb-8">
                     <h1 className="text-2xl font-semibold text-gray-900 m-0!">Image Size Settings</h1>

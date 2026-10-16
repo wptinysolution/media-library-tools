@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import * as Types from '@/js/Utils/actionType';
 
@@ -21,7 +21,26 @@ function SaveButton({
     const [isLoading, setIsLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
-    const baseClasses = position === 'fixed' ? 'fixed bottom-8 right-8 z-50' : '';
+    // A "fixed" button floats at the bottom centre while its place at the end
+    // of the settings is still below the screen. Once that place is on screen
+    // — or scrolled past, when the page continues with the Pro banner — it
+    // docks there, so it never covers what follows.
+    const slotRef = useRef<HTMLDivElement>(null);
+    const [isDocked, setIsDocked] = useState(false);
+
+    useEffect(() => {
+        if (position !== 'fixed' || !slotRef.current || typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+        const observer = new IntersectionObserver(([entry]) => {
+            const viewportBottom = entry.rootBounds ? entry.rootBounds.bottom : window.innerHeight;
+            setIsDocked(entry.isIntersecting || entry.boundingClientRect.top < viewportBottom);
+        });
+        observer.observe(slotRef.current);
+        return () => observer.disconnect();
+    }, [position]);
+
+    const baseClasses = position === 'fixed' && !isDocked ? 'fixed bottom-8 left-1/2 -translate-x-1/2 z-50' : '';
 
     const onClick = async () => {
         setIsLoading(true);
@@ -34,7 +53,7 @@ function SaveButton({
         }, 1000);
     };
 
-    return (
+    const button = (
         <button
             onClick={onClick}
             disabled={disabled || isLoading}
@@ -94,6 +113,17 @@ function SaveButton({
                 </>
             )}
         </button>
+    );
+
+    if (position !== 'fixed') {
+        return button;
+    }
+
+    // The slot keeps the button's height so the page does not jump as it docks.
+    return (
+        <div ref={slotRef} className="flex justify-center mt-6 min-h-[52px]">
+            {button}
+        </div>
     );
 }
 
