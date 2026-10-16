@@ -21,12 +21,38 @@ function SaveButton({
     const [isLoading, setIsLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
-    // A "fixed" button floats at the bottom centre while its place at the end
-    // of the settings is still below the screen. Once that place is on screen
-    // — or scrolled past, when the page continues with the Pro banner — it
-    // docks there, so it never covers what follows.
+    // A "fixed" button floats at the bottom centre of the settings column
+    // while its place at the end of the settings is still below the screen.
+    // Once that place is on screen — or scrolled past, when the page continues
+    // with the Pro banner — it docks there, so it never covers what follows.
     const slotRef = useRef<HTMLDivElement>(null);
     const [isDocked, setIsDocked] = useState(false);
+    // Horizontal centre of the settings column. The slot spans the column, so
+    // measuring it keeps the floating button off the WordPress menu and the
+    // plugin sidebar instead of centring it on the whole window.
+    const [centerX, setCenterX] = useState<number | null>(null);
+
+    useEffect(() => {
+        const slot = slotRef.current;
+        if (position !== 'fixed' || !slot) {
+            return;
+        }
+        const measure = () => {
+            const rect = slot.getBoundingClientRect();
+            if (rect.width > 0) {
+                setCenterX(Math.round(rect.left + rect.width / 2));
+            }
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        // Also catches the column changing width, e.g. when the WordPress menu collapses.
+        const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+        resizeObserver?.observe(slot);
+        return () => {
+            window.removeEventListener('resize', measure);
+            resizeObserver?.disconnect();
+        };
+    }, [position]);
 
     useEffect(() => {
         if (position !== 'fixed' || !slotRef.current || typeof IntersectionObserver === 'undefined') {
@@ -40,7 +66,10 @@ function SaveButton({
         return () => observer.disconnect();
     }, [position]);
 
-    const baseClasses = position === 'fixed' && !isDocked ? 'fixed bottom-8 left-1/2 -translate-x-1/2 z-50' : '';
+    const isFloating = position === 'fixed' && !isDocked;
+    // Utilities are built as !important, so `left-1/2` is only the fallback until
+    // the column has been measured; otherwise the inline `left` below is used.
+    const baseClasses = isFloating ? `fixed bottom-8 -translate-x-1/2 z-50 ${null === centerX ? 'left-1/2' : ''}` : '';
 
     const onClick = async () => {
         setIsLoading(true);
@@ -56,6 +85,7 @@ function SaveButton({
     const button = (
         <button
             onClick={onClick}
+            style={isFloating && null !== centerX ? { left: centerX } : undefined}
             disabled={disabled || isLoading}
             className={`
                 ${baseClasses}
