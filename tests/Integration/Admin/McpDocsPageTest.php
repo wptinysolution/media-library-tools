@@ -93,6 +93,25 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The "↳" marker for the plugin's sub-items is printed on every admin
+	 * screen, not only on the plugin's own pages, because the menu is.
+	 */
+	public function test_submenu_marker_style_is_printed_on_every_admin_screen() {
+		// The singleton may have been built in an earlier test, whose hooks the
+		// test suite has since restored, so run its constructor again here.
+		$constructor = new ReflectionMethod( SubMenu::class, '__construct' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$constructor->setAccessible( true );
+		}
+		$constructor->invoke( SubMenu::instance() );
+		$this->assertNotFalse( has_action( 'admin_head', [ SubMenu::instance(), 'menu_styles' ] ) );
+
+		$html = $this->capture( [ SubMenu::instance(), 'menu_styles' ] );
+
+		$this->assertStringContainsString( '#adminmenu .tsmlt-submenu span.dashicons-icons:before { content: "↳";', $html );
+	}
+
+	/**
 	 * Users who can upload files but cannot use MCP do not get the menu.
 	 */
 	public function test_menu_is_hidden_from_non_administrators() {
@@ -141,7 +160,11 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'notice-warning inline', $html );
 		$this->assertStringContainsString( 'The MCP Adapter plugin is not installed.', $html );
-		$this->assertStringContainsString( esc_url( admin_url( 'plugin-install.php?s=mcp-adapter&tab=search&type=term' ) ), $html );
+		// A one-click install through WordPress's own installer, protected by its nonce.
+		$this->assertStringContainsString( 'Install MCP Adapter', $html );
+		$this->assertStringContainsString( esc_url( McpDocsPage::instance()->get_install_url() ), $html );
+		$this->assertStringContainsString( 'update.php?action=install-plugin&amp;plugin=mcp-adapter', $html );
+		$this->assertStringContainsString( '_wpnonce=' . wp_create_nonce( 'install-plugin_mcp-adapter' ), $html );
 	}
 
 	/**

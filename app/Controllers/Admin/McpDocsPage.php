@@ -53,6 +53,13 @@ class McpDocsPage {
 	const ADAPTER_PLUGIN_FILE = 'mcp-adapter/mcp-adapter.php';
 
 	/**
+	 * The MCP Adapter plugin's slug on WordPress.org.
+	 *
+	 * @var string
+	 */
+	const ADAPTER_SLUG = 'mcp-adapter';
+
+	/**
 	 * Adapter status: loaded and running.
 	 *
 	 * @var string
@@ -364,7 +371,7 @@ class McpDocsPage {
 				</p>
 				<?php if ( current_user_can( 'install_plugins' ) ) : ?>
 					<p>
-						<a class="button button-primary" href="<?php echo esc_url( admin_url( 'plugin-install.php?s=mcp-adapter&tab=search&type=term' ) ); ?>">
+						<a class="button button-primary" href="<?php echo esc_url( $this->get_install_url() ); ?>">
 							<?php esc_html_e( 'Install MCP Adapter', 'media-library-tools' ); ?>
 						</a>
 					</p>
@@ -391,6 +398,22 @@ class McpDocsPage {
 	}
 
 	/**
+	 * One-click install of the MCP Adapter from WordPress.org.
+	 *
+	 * Uses WordPress's own plugin installer (update.php?action=install-plugin),
+	 * which checks the nonce and the install_plugins capability itself, and
+	 * offers an "Activate Plugin" button when the install finishes.
+	 *
+	 * @return string
+	 */
+	public function get_install_url(): string {
+		return wp_nonce_url(
+			self_admin_url( 'update.php?action=install-plugin&plugin=' . self::ADAPTER_SLUG ),
+			'install-plugin_' . self::ADAPTER_SLUG
+		);
+	}
+
+	/**
 	 * Page styles, scoped to the page wrapper.
 	 *
 	 * @return void
@@ -398,9 +421,6 @@ class McpDocsPage {
 	private function render_styles() {
 		?>
 		<style>
-			/* Submenu arrows, as admin-settings.css draws them on the plugin's other pages; that stylesheet is not loaded here because its CSS reset would restyle this page. */
-			ul#adminmenu span.dashicons-icons:before { content: "↳"; padding: 0 2px; font-size: 13px; }
-			.current .tsmlt-submenu { color: #1677ff !important; }
 			.tsmlt-mcp-docs { max-width: 960px; }
 			.tsmlt-mcp-docs__lead { font-size: 14px; }
 			.tsmlt-mcp-docs__notice { margin: 12px 0 20px; }

@@ -37,6 +37,26 @@ class SubMenu {
 	 */
 	private function __construct() {
 		add_action( 'admin_menu', [ $this, 'register_sub_menu' ] );
+		add_action( 'admin_head', [ $this, 'menu_styles' ] );
+	}
+
+	/**
+	 * Draw the "↳" marker on the plugin's sub-items (MCP Docs, Get license,
+	 * and Pro's items).
+	 *
+	 * The admin menu appears on every admin screen, but admin-settings.css is
+	 * only loaded on the plugin's own pages, so the rule is printed here for
+	 * all of them.
+	 *
+	 * @return void
+	 */
+	public function menu_styles() {
+		?>
+		<style id="tsmlt-admin-menu">
+			#adminmenu .tsmlt-submenu span.dashicons-icons:before { content: "↳"; padding: 0 2px; font-size: 13px; }
+			#adminmenu .current .tsmlt-submenu { color: #1677ff !important; }
+		</style>
+		<?php
 	}
 
 	/**
