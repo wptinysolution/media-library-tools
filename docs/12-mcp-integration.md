@@ -41,6 +41,16 @@ Once the MCP Adapter is active, your site has two MCP endpoints:
 | **Media Library Tools (recommended)** | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the three Media Library Tools tools above. Administrators only (`manage_options`) |
 | MCP Adapter default server | `https://your-site.com/wp-json/mcp/mcp-adapter-default-server` | Every public ability from **every** plugin on the site, including abilities that change or delete data |
 
+### Which endpoint should I use?
+
+Pick one:
+- **Only Media Library Tools:** use `media-library-tools/mcp`. It's simpler and narrower.
+- **One connection for everything** (media plus other plugins' and WordPress core abilities, such as WooCommerce): use `mcp-adapter-default-server` by itself. It already includes the Media Library Tools abilities.
+
+**Avoid configuring both:** the media tools would appear twice, and the assistant may switch between them unpredictably.
+
+The default server exposes **abilities** registered through the WordPress Abilities API, not every REST API route.
+
 ### Why the dedicated endpoint is safer
 
 The MCP Adapter's default server is a gateway: its *discover* and *execute* tools reach every ability any plugin registers as public — not only Media Library Tools. Other plugins' abilities can be write-capable: on a WooCommerce site, for example, they include abilities that create, update, or delete products and change order status. An assistant connected to the default server with an administrator password can use all of them. Any logged-in user can also list those abilities and their input schemas there, although each ability still checks its own permissions before it runs.
@@ -88,9 +98,14 @@ unset WP_APP_PW
 
 Restart Claude Code, then run `claude mcp list` — the server should show **Connected**.
 
-#### Clients that use a JSON configuration file (not yet tested)
+#### Claude Desktop and other clients with a JSON configuration file
 
-The MCP Adapter documents the `@automattic/mcp-wordpress-remote` helper for these clients. Point it at the dedicated endpoint (this route has not yet been tested against the dedicated endpoint; Claude Code above has):
+These clients connect through the `@automattic/mcp-wordpress-remote` helper, documented by the MCP Adapter. It needs **Node.js** on your computer.
+
+1. Open the client's configuration file. In Claude Desktop: **Settings → Developer → Edit Config**, which opens:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+2. Add the server. If the file already has an `mcpServers` section, add only the `media-library-tools` entry inside it:
 
 ```json
 {
@@ -108,12 +123,93 @@ The MCP Adapter documents the `@automattic/mcp-wordpress-remote` helper for thes
 }
 ```
 
+3. Put in your Application Password, save the file, then fully quit and reopen Claude Desktop.
+4. In a new chat, open the tools menu: the three Media Library Tools tools should be listed.
+
+The **Media → MCP Docs** page shows this configuration with your site URL and username already filled in.
+
 ### 4. Try it
 
 Ask your assistant something like:
 - "Find images in the media library that have no alt text."
 - "Show me the details of attachment 1234."
 - "Write alt text for attachment 1234 and save it."
+
+## Using the MCP Adapter Default Server (optional)
+
+The same three tools can also be reached through the MCP Adapter's default server:
+
+```
+https://your-site.com/wp-json/mcp/mcp-adapter-default-server
+```
+
+Prefer the dedicated endpoint — see [Two Endpoints](#two-endpoints--use-the-dedicated-one). Use the default server only if a client needs it.
+
+### How it works
+
+The default server does not list the Media Library Tools tools directly. It offers three **gateway tools**:
+
+| Gateway tool | What it does |
+|---|---|
+| `mcp-adapter-discover-abilities` | Lists the public abilities on the site, from every plugin |
+| `mcp-adapter-get-ability-info` | Shows one ability's description and input fields |
+| `mcp-adapter-execute-ability` | Runs an ability by name with the given parameters |
+
+On the default server the abilities are named with a slash — `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata` — and are run through `mcp-adapter-execute-ability`:
+
+```json
+{
+  "ability_name": "tsmlt/search-media",
+  "parameters": { "mime_type": "image", "missing_alt": true }
+}
+```
+
+The dashed tool names (`tsmlt-search-media`) only exist on the dedicated endpoint; the default server reports them as not found.
+
+### Connect
+
+Use the same Application Password as above.
+
+Claude Code:
+
+```bash
+read -rs WP_APP_PW   # paste the Application Password; nothing is shown
+claude mcp add --transport http mcp-adapter-default \
+  https://your-site.com/wp-json/mcp/mcp-adapter-default-server \
+  --header "Authorization: Basic $(printf '%s:%s' 'YOUR_USERNAME' "$WP_APP_PW" | base64 | tr -d '\n')"
+unset WP_APP_PW
+```
+
+Claude Desktop and other JSON clients — add this entry to the same configuration file:
+
+```json
+{
+  "mcpServers": {
+    "mcp-adapter-default": {
+      "command": "npx",
+      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
+      "env": {
+        "WP_API_URL": "https://your-site.com/wp-json/mcp/mcp-adapter-default-server",
+        "WP_API_USERNAME": "YOUR_USERNAME",
+        "WP_API_PASSWORD": "your application password"
+      }
+    }
+  }
+}
+```
+
+### Try it
+
+The assistant usually discovers the ability first, then runs it. You can also name it directly:
+- "Use execute-ability to run tsmlt/search-media for images with no alt text."
+- "Run tsmlt/get-media-details for attachment 1234."
+
+### Differences to keep in mind
+
+| | Dedicated endpoint | Default server |
+|---|---|---|
+| Tools the client sees | The three Media Library Tools tools | Three gateway tools that can run any public ability, from every plugin |
+| Who can connect | Administrators only | Any logged-in user can list abilities; running a Media Library Tools ability still requires an administrator |
 
 ## Access Control
 

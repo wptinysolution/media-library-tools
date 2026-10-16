@@ -293,6 +293,44 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		}
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
 
+		// Claude Desktop setup, with where its configuration file lives.
+		$this->assertStringContainsString( 'Claude Desktop', $html );
+		$this->assertStringContainsString( '~/Library/Application Support/Claude/claude_desktop_config.json', $html );
+		$this->assertStringContainsString( '%APPDATA%\\Claude\\claude_desktop_config.json', $html );
+
+		// Default server: its URL, gateway tools, slash-named abilities and its own configs.
+		$gateway = rest_url( 'mcp/mcp-adapter-default-server' );
+		$this->assertStringContainsString( 'Using the MCP Adapter default server', $html );
+		$this->assertStringContainsString( 'Which endpoint should I use?', $html );
+		$this->assertStringContainsString( 'Avoid configuring both:', $html );
+		$this->assertStringContainsString( 'mcp-adapter-execute-ability', $html );
+		$this->assertStringContainsString( 'tsmlt/search-media', $html );
+		$this->assertStringContainsString( 'claude mcp add --transport http mcp-adapter-default', $html );
+		$this->assertStringContainsString( esc_html( $gateway ), $html );
+
+		// Every JSON configuration on the page is valid JSON pointing at a real endpoint.
+		preg_match_all( '#<code>(\{.*?\})</code>#s', $html, $blocks );
+		$configs = array_values(
+			array_filter(
+				array_map(
+					static function ( $block ) {
+						return json_decode( html_entity_decode( $block, ENT_QUOTES ), true );
+					},
+					$blocks[1]
+				),
+				static function ( $decoded ) {
+					return isset( $decoded['mcpServers'] );
+				}
+			)
+		);
+		$urls = [];
+		foreach ( $configs as $config ) {
+			foreach ( $config['mcpServers'] as $server ) {
+				$urls[] = $server['env']['WP_API_URL'];
+			}
+		}
+		$this->assertSame( [ rest_url( 'media-library-tools/mcp' ), $gateway ], $urls );
+
 		// Match the notice markup, not the class name, which the page's styles also contain.
 		$ready  = class_exists( '\WP\MCP\Core\McpAdapter' );
 		$notice = $ready

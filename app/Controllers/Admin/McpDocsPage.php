@@ -215,27 +215,19 @@ class McpDocsPage {
 		$gateway  = rest_url( 'mcp/mcp-adapter-default-server' );
 		$username = wp_get_current_user()->user_login;
 
-		$claude_command = "read -rs WP_APP_PW   # paste the Application Password; nothing is shown\n"
-			. "claude mcp add --transport http media-library-tools \\\n"
-			. '  ' . $endpoint . " \\\n"
-			. '  --header "Authorization: Basic $(printf \'%s:%s\' \'' . $username . '\' "$WP_APP_PW" | base64 | tr -d \'\\n\')"' . "\n"
-			. 'unset WP_APP_PW';
-
-		$json_config = wp_json_encode(
+		$claude_command         = $this->claude_code_command( 'media-library-tools', $endpoint, $username );
+		$json_config            = $this->json_config( 'media-library-tools', $endpoint, $username );
+		$gateway_claude_command = $this->claude_code_command( 'mcp-adapter-default', $gateway, $username );
+		$gateway_json_config    = $this->json_config( 'mcp-adapter-default', $gateway, $username );
+		$gateway_example        = (string) wp_json_encode(
 			[
-				'mcpServers' => [
-					'media-library-tools' => [
-						'command' => 'npx',
-						'args'    => [ '-y', '@automattic/mcp-wordpress-remote@latest' ],
-						'env'     => [
-							'WP_API_URL'      => $endpoint,
-							'WP_API_USERNAME' => $username,
-							'WP_API_PASSWORD' => 'your application password',
-						],
-					],
+				'ability_name' => 'tsmlt/search-media',
+				'parameters'   => [
+					'mime_type'   => 'image',
+					'missing_alt' => true,
 				],
 			],
-			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
 		);
 		?>
 		<div class="wrap tsmlt-mcp-docs">
@@ -318,6 +310,23 @@ class McpDocsPage {
 					);
 					?>
 				</p>
+
+				<h3><?php esc_html_e( 'Which endpoint should I use?', 'media-library-tools' ); ?></h3>
+				<p><?php esc_html_e( 'Pick one:', 'media-library-tools' ); ?></p>
+				<ul>
+					<li>
+						<strong><?php esc_html_e( 'Only Media Library Tools:', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'use the dedicated endpoint above. It is simpler and narrower.', 'media-library-tools' ); ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'One connection for everything', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. It already includes the Media Library Tools abilities.', 'media-library-tools' ); ?>
+					</li>
+				</ul>
+				<p>
+					<strong><?php esc_html_e( 'Avoid configuring both:', 'media-library-tools' ); ?></strong>
+					<?php esc_html_e( 'the media tools would appear twice, and the assistant may switch between them unpredictably.', 'media-library-tools' ); ?>
+				</p>
 			</div>
 
 			<div class="tsmlt-mcp-docs__section">
@@ -352,9 +361,23 @@ class McpDocsPage {
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $claude_command ); ?></code></pre>
 				<p><?php esc_html_e( 'Restart Claude Code, then run "claude mcp list" — the server should show Connected.', 'media-library-tools' ); ?></p>
 
-				<h4><?php esc_html_e( 'Clients that use a JSON configuration file', 'media-library-tools' ); ?></h4>
-				<p><?php esc_html_e( 'The MCP Adapter documents the @automattic/mcp-wordpress-remote helper for these clients (not yet tested with this endpoint):', 'media-library-tools' ); ?></p>
+				<h4><?php esc_html_e( 'Claude Desktop and other clients with a JSON configuration file', 'media-library-tools' ); ?></h4>
+				<p><?php esc_html_e( 'These clients connect through the @automattic/mcp-wordpress-remote helper, documented by the MCP Adapter. It needs Node.js installed on your computer.', 'media-library-tools' ); ?></p>
+				<ol>
+					<li>
+						<?php esc_html_e( 'Open the client\'s configuration file. For Claude Desktop: Settings → Developer → Edit Config, which opens:', 'media-library-tools' ); ?>
+						<ul>
+							<li><?php esc_html_e( 'macOS:', 'media-library-tools' ); ?> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+							<li><?php esc_html_e( 'Windows:', 'media-library-tools' ); ?> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+						</ul>
+					</li>
+					<li><?php esc_html_e( 'Add this server. If the file already has an "mcpServers" section, add only the "media-library-tools" entry inside it:', 'media-library-tools' ); ?></li>
+				</ol>
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $json_config ); ?></code></pre>
+				<ol start="3">
+					<li><?php esc_html_e( 'Replace "your application password" with the Application Password from step 2, save the file, and fully quit and reopen Claude Desktop.', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'In a new chat, open the tools menu: the three Media Library Tools tools should be listed.', 'media-library-tools' ); ?></li>
+				</ol>
 
 				<h3><?php esc_html_e( '4. Try it', 'media-library-tools' ); ?></h3>
 				<ul>
@@ -362,6 +385,80 @@ class McpDocsPage {
 					<li><?php esc_html_e( '"Show me the details of attachment 1234."', 'media-library-tools' ); ?></li>
 					<li><?php esc_html_e( '"Write alt text for attachment 1234 and save it."', 'media-library-tools' ); ?></li>
 				</ul>
+			</div>
+
+			<div class="tsmlt-mcp-docs__section">
+				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
+				<p>
+					<?php esc_html_e( 'You can also reach the same three tools through the MCP Adapter\'s default server. It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+				</p>
+				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
+
+				<h3><?php esc_html_e( 'How it differs', 'media-library-tools' ); ?></h3>
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th></th>
+							<th><?php esc_html_e( 'Dedicated endpoint', 'media-library-tools' ); ?></th>
+							<th><?php esc_html_e( 'Default server', 'media-library-tools' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><?php esc_html_e( 'Tools the client sees', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'The three Media Library Tools tools', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><?php esc_html_e( 'Who can connect', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Administrators only', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Any logged-in user can list abilities; running a Media Library Tools ability still needs an administrator', 'media-library-tools' ); ?></td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3><?php esc_html_e( 'The gateway tools', 'media-library-tools' ); ?></h3>
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Tool', 'media-library-tools' ); ?></th>
+							<th><?php esc_html_e( 'What it does', 'media-library-tools' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>mcp-adapter-discover-abilities</code></td>
+							<td><?php esc_html_e( 'Lists the public abilities on the site.', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>mcp-adapter-get-ability-info</code></td>
+							<td><?php esc_html_e( 'Shows one ability\'s description and input fields.', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>mcp-adapter-execute-ability</code></td>
+							<td><?php esc_html_e( 'Runs an ability by its name with the given parameters.', 'media-library-tools' ); ?></td>
+						</tr>
+					</tbody>
+				</table>
+				<p><?php esc_html_e( 'On the default server, the Media Library Tools abilities are named with a slash:', 'media-library-tools' ); ?> <code>tsmlt/search-media</code>, <code>tsmlt/get-media-details</code>, <code>tsmlt/update-media-metadata</code>.</p>
+				<p><?php esc_html_e( 'An execute-ability call looks like this:', 'media-library-tools' ); ?></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_example ); ?></code></pre>
+
+				<h3><?php esc_html_e( 'Connect', 'media-library-tools' ); ?></h3>
+				<p><?php esc_html_e( 'Use the same Application Password as above. Claude Code:', 'media-library-tools' ); ?></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_claude_command ); ?></code></pre>
+				<p><?php esc_html_e( 'Claude Desktop and other JSON clients (add the "mcp-adapter-default" entry to the same configuration file):', 'media-library-tools' ); ?></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_json_config ); ?></code></pre>
+
+				<h3><?php esc_html_e( 'Try it', 'media-library-tools' ); ?></h3>
+				<p><?php esc_html_e( 'The assistant usually discovers the ability first, then runs it. You can also name it directly:', 'media-library-tools' ); ?></p>
+				<ul>
+					<li><?php esc_html_e( '"Use execute-ability to run tsmlt/search-media for images with no alt text."', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( '"Run tsmlt/get-media-details for attachment 1234."', 'media-library-tools' ); ?></li>
+				</ul>
+				<p class="description">
+					<?php esc_html_e( 'Use the ability name with a slash (tsmlt/search-media). The tool name with dashes (tsmlt-search-media) only exists on the dedicated endpoint, and the default server reports it as not found.', 'media-library-tools' ); ?>
+				</p>
 			</div>
 
 			<div class="tsmlt-mcp-docs__section">
@@ -432,6 +529,53 @@ class McpDocsPage {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Claude Code command that adds an MCP server, asking for the Application
+	 * Password without echoing it.
+	 *
+	 * @param string $name     Server name in the client.
+	 * @param string $url      MCP endpoint URL.
+	 * @param string $username WordPress username.
+	 *
+	 * @return string
+	 */
+	private function claude_code_command( string $name, string $url, string $username ): string {
+		return "read -rs WP_APP_PW   # paste the Application Password; nothing is shown\n"
+			. 'claude mcp add --transport http ' . $name . " \\\n"
+			. '  ' . $url . " \\\n"
+			. '  --header "Authorization: Basic $(printf \'%s:%s\' \'' . $username . '\' "$WP_APP_PW" | base64 | tr -d \'\\n\')"' . "\n"
+			. 'unset WP_APP_PW';
+	}
+
+	/**
+	 * JSON configuration for clients such as Claude Desktop, which connect
+	 * through the mcp-wordpress-remote helper from Automattic.
+	 *
+	 * @param string $name     Server name in the client.
+	 * @param string $url      MCP endpoint URL.
+	 * @param string $username WordPress username.
+	 *
+	 * @return string
+	 */
+	private function json_config( string $name, string $url, string $username ): string {
+		return (string) wp_json_encode(
+			[
+				'mcpServers' => [
+					$name => [
+						'command' => 'npx',
+						'args'    => [ '-y', '@automattic/mcp-wordpress-remote@latest' ],
+						'env'     => [
+							'WP_API_URL'      => $url,
+							'WP_API_USERNAME' => $username,
+							'WP_API_PASSWORD' => 'your application password',
+						],
+					],
+				],
+			],
+			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+		);
 	}
 
 	/**
