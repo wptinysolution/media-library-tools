@@ -71,6 +71,13 @@ class SearchMedia extends Ability {
 	];
 
 	/**
+	 * How many matching IDs are permission-checked per batch.
+	 *
+	 * @var int
+	 */
+	const READ_CHECK_CHUNK = 500;
+
+	/**
 	 * Class Constructor
 	 */
 	private function __construct() {}
@@ -203,21 +210,62 @@ class SearchMedia extends Ability {
 			return $criteria;
 		}
 
-		$query = new WP_Query( $this->build_query_args( $criteria ) );
+		// Count and page only what the user may read. read_post can be changed
+		// by any plugin through map_meta_cap, so it cannot be expressed in SQL:
+		// every match is checked with the real capability, then paged. This
+		// keeps unreadable attachments out of the totals as well as the items,
+		// and keeps every page full.
+		$readable = $this->readable_ids( $this->build_query_args( $criteria ) );
+		$total    = count( $readable );
+		$page_ids = array_slice( $readable, ( $criteria['page'] - 1 ) * $criteria['per_page'], $criteria['per_page'] );
+
 		$items = [];
-		foreach ( $query->posts as $attachment ) {
-			// Skip anything the user may not read, rather than failing the page.
-			if ( $attachment instanceof WP_Post && AbilityGuard::can_access_attachment( $attachment, 'read_post' ) ) {
+		foreach ( $page_ids as $attachment_id ) {
+			$attachment = get_post( $attachment_id );
+			if ( $attachment instanceof WP_Post ) {
 				$items[] = MediaPresenter::summary( $attachment );
 			}
 		}
 
 		return [
 			'items'       => $items,
-			'total'       => (int) $query->found_posts,
+			'total'       => $total,
 			'page'        => $criteria['page'],
-			'total_pages' => (int) $query->max_num_pages,
+			'total_pages' => (int) ceil( $total / $criteria['per_page'] ),
 		];
+	}
+
+	/**
+	 * IDs of every matching attachment the current user may read, in result
+	 * order.
+	 *
+	 * Runs the search query for IDs only, without paging, then checks
+	 * read_post in batches with the post cache primed for each batch.
+	 *
+	 * @param array $args WP_Query arguments from build_query_args().
+	 *
+	 * @return int[]
+	 */
+	private function readable_ids( array $args ): array {
+		$args['fields']                 = 'ids';
+		$args['posts_per_page']         = -1;
+		$args['no_found_rows']          = true;
+		$args['update_post_meta_cache'] = false;
+		$args['update_post_term_cache'] = false;
+		unset( $args['paged'] );
+
+		$readable = [];
+		foreach ( array_chunk( array_map( 'intval', ( new WP_Query( $args ) )->posts ), self::READ_CHECK_CHUNK ) as $chunk ) {
+			_prime_post_caches( $chunk, false, false );
+			foreach ( $chunk as $attachment_id ) {
+				$attachment = get_post( $attachment_id );
+				if ( $attachment instanceof WP_Post && AbilityGuard::can_access_attachment( $attachment, 'read_post' ) ) {
+					$readable[] = $attachment_id;
+				}
+			}
+		}
+
+		return $readable;
 	}
 
 	/**

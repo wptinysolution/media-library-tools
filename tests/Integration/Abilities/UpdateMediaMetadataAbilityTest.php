@@ -205,7 +205,9 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 
 		$schema = $ability->get_input_schema();
 		$this->assertFalse( $schema['additionalProperties'] );
-		$this->assertSame( [ 'id', 'title', 'alt_text', 'caption', 'description' ], array_keys( $schema['properties'] ) );
+		$this->assertSame( [ 'id', 'title', 'alt_text', 'caption', 'description', 'expected' ], array_keys( $schema['properties'] ) );
+		$this->assertFalse( $schema['properties']['expected']['additionalProperties'] );
+		$this->assertSame( [ 'title', 'alt_text', 'caption', 'description' ], array_keys( $schema['properties']['expected']['properties'] ) );
 	}
 
 	/**
@@ -670,7 +672,320 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 					'description' => str_repeat( 'a', 10001 ),
 				],
 			],
+			'expected not object'    => [
+				[
+					'id'       => '{id}',
+					'title'    => 'x',
+					'expected' => 'Old title',
+				],
+			],
+			'expected unknown field' => [
+				[
+					'id'       => '{id}',
+					'title'    => 'x',
+					'expected' => [ 'post_title' => 'Old title' ],
+				],
+			],
+			'expected not string'    => [
+				[
+					'id'       => '{id}',
+					'title'    => 'x',
+					'expected' => [ 'title' => 5 ],
+				],
+			],
+			'expected too long'      => [
+				[
+					'id'       => '{id}',
+					'title'    => 'x',
+					'expected' => [ 'title' => str_repeat( 'a', 65536 ) ],
+				],
+			],
 		];
+	}
+
+	// ---------------------------------------------------------------------
+	// Previous values and expected-value checks (C-5)
+	// ---------------------------------------------------------------------
+
+	/**
+	 * Each changed field reports its previous value; fields that did not
+	 * change are left out of `previous`.
+	 */
+	public function test_previous_values_are_returned_for_changed_fields() {
+		$id = $this->make_attachment();
+
+		$result = $this->run_ok(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'alt_text' => 'New alt',
+				'caption'  => 'Old caption',
+			]
+		);
+
+		$this->assertSame( [ 'title', 'alt_text' ], $result['updated_fields'] );
+		$this->assertSame( [ 'caption' ], $result['unchanged_fields'] );
+		$this->assertSame(
+			[
+				'title'    => 'Old title',
+				'alt_text' => 'Old alt',
+			],
+			$result['previous']
+		);
+	}
+
+	/**
+	 * Nothing changed, so there is no `previous` key (and never an empty one).
+	 */
+	public function test_previous_is_omitted_when_nothing_changed() {
+		$id = $this->make_attachment();
+
+		$result = $this->run_ok(
+			[
+				'id'    => $id,
+				'title' => 'Old title',
+			]
+		);
+
+		$this->assertSame( [], $result['updated_fields'] );
+		$this->assertArrayNotHasKey( 'previous', $result );
+	}
+
+	/**
+	 * Sending `previous` back as the new values restores the attachment.
+	 */
+	public function test_previous_values_undo_the_change() {
+		$id       = $this->make_attachment();
+		$original = $this->stored( $id );
+
+		$result = $this->run_ok(
+			[
+				'id'          => $id,
+				'title'       => 'Changed title',
+				'alt_text'    => '',
+				'caption'     => 'Changed caption',
+				'description' => '<p>Changed</p>',
+			]
+		);
+		$this->run_ok( array_merge( [ 'id' => $id ], $result['previous'] ) );
+
+		$this->assertSame( $original, $this->stored( $id ) );
+	}
+
+	/**
+	 * Matching expected values let the update through.
+	 */
+	public function test_matching_expected_values_allow_the_update() {
+		$id = $this->make_attachment();
+
+		$result = $this->run_ok(
+			[
+				'id'          => $id,
+				'title'       => 'New title',
+				'caption'     => 'New caption',
+				'description' => 'New description',
+				'alt_text'    => 'New alt',
+				'expected'    => [
+					'title'       => 'Old title',
+					'caption'     => 'Old caption',
+					'description' => 'Old description',
+					'alt_text'    => 'Old alt',
+				],
+			]
+		);
+
+		$this->assertSame( [ 'title', 'alt_text', 'caption', 'description' ], $result['updated_fields'] );
+		$this->assertSame( 'New title', $this->stored( $id )['title'] );
+	}
+
+	/**
+	 * Expected values may guard only some of the fields being changed.
+	 */
+	public function test_expected_may_cover_only_some_fields() {
+		$id = $this->make_attachment();
+
+		$result = $this->run_ok(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'caption'  => 'New caption',
+				'expected' => [ 'caption' => 'Old caption' ],
+			]
+		);
+
+		$this->assertSame( [ 'title', 'caption' ], $result['updated_fields'] );
+	}
+
+	/**
+	 * A stale expected value is a conflict: nothing is saved — not even the
+	 * fields whose expected value matched — and the response names the field.
+	 */
+	public function test_stale_expected_value_is_a_conflict_and_saves_nothing() {
+		$id = $this->make_attachment();
+		// Someone else changed the caption after the client read it.
+		wp_update_post(
+			[
+				'ID'           => $id,
+				'post_excerpt' => 'Newer caption',
+			]
+		);
+		$before    = $this->stored( $id );
+		$untouched = $this->untouched_state( $id );
+
+		$result = $this->run_ability(
+			[
+				'id'       => $id,
+				'title'    => 'Client title',
+				'caption'  => 'Client caption',
+				'expected' => [
+					'title'   => 'Old title',
+					'caption' => 'Old caption',
+				],
+			]
+		);
+
+		$this->assert_error( $result, UpdateMediaMetadata::ERROR_CONFLICT, 409 );
+		$this->assertSame( [ 'caption' ], $result->get_error_data()['fields'] );
+		$this->assertStringContainsString( 'caption', $result->get_error_message() );
+		$this->assertStringContainsString( 'Nothing was saved', $result->get_error_message() );
+		$this->assertSame( $before, $this->stored( $id ) );
+		$this->assertSame( $untouched, $this->untouched_state( $id ) );
+	}
+
+	/**
+	 * Every field can be guarded; a stale alt text blocks the whole request.
+	 *
+	 * @dataProvider data_single_fields
+	 *
+	 * @param string $field Field name.
+	 * @param string $value New value.
+	 */
+	public function test_each_field_can_conflict( string $field, string $value ) {
+		$id     = $this->make_attachment();
+		$before = $this->stored( $id );
+
+		$result = $this->run_ability(
+			[
+				'id'       => $id,
+				$field     => $value,
+				'expected' => [ $field => 'Not the stored value' ],
+			]
+		);
+
+		$this->assert_error( $result, UpdateMediaMetadata::ERROR_CONFLICT, 409 );
+		$this->assertSame( $before, $this->stored( $id ) );
+	}
+
+	/**
+	 * Expected values are compared in the format the read abilities return,
+	 * so a value copied from tsmlt/get-media-details matches even when it is
+	 * stored with HTML entities; the raw stored form does not.
+	 */
+	public function test_expected_value_uses_the_read_format() {
+		$id = $this->make_attachment( [ 'post_title' => 'Fish &#038; Chips' ] );
+		$this->assertSame( 'Fish &#038; Chips', get_post( $id )->post_title, 'Precondition: stored with an entity.' );
+
+		$read = wp_get_ability( 'tsmlt/get-media-details' )->execute( [ 'id' => $id ] );
+		$this->assertSame( 'Fish & Chips', $read['title'] );
+
+		$raw = $this->run_ability(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'expected' => [ 'title' => 'Fish &#038; Chips' ],
+			]
+		);
+		$this->assert_error( $raw, UpdateMediaMetadata::ERROR_CONFLICT, 409 );
+
+		$result = $this->run_ok(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'expected' => [ 'title' => $read['title'] ],
+			]
+		);
+		$this->assertSame( [ 'title' ], $result['updated_fields'] );
+		$this->assertSame( [ 'title' => 'Fish & Chips' ], $result['previous'] );
+	}
+
+	/**
+	 * Naming a field in `expected` that is not being updated is refused, and
+	 * nothing is saved.
+	 */
+	public function test_expected_for_a_field_not_being_updated_is_rejected() {
+		$id     = $this->make_attachment();
+		$before = $this->stored( $id );
+
+		$result = $this->run_ability(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'expected' => [ 'caption' => 'Old caption' ],
+			]
+		);
+
+		$this->assert_error( $result, AbilityGuard::ERROR_INVALID_INPUT, 400 );
+		$this->assertSame( $before, $this->stored( $id ) );
+	}
+
+	/**
+	 * `expected` alone, without a field to change, is refused.
+	 */
+	public function test_expected_without_fields_is_rejected() {
+		$id     = $this->make_attachment();
+		$before = $this->stored( $id );
+
+		$result = $this->run_ability(
+			[
+				'id'       => $id,
+				'expected' => [ 'title' => 'Old title' ],
+			]
+		);
+
+		$this->assert_error( $result, AbilityGuard::ERROR_INVALID_INPUT, 400 );
+		$this->assertSame( $before, $this->stored( $id ) );
+	}
+
+	/**
+	 * Backward compatibility: without `expected`, an update still overwrites
+	 * whatever is stored, exactly as before.
+	 */
+	public function test_without_expected_the_update_overwrites_as_before() {
+		$id = $this->make_attachment();
+		wp_update_post(
+			[
+				'ID'           => $id,
+				'post_excerpt' => 'Newer caption',
+			]
+		);
+
+		$result = $this->run_ok(
+			[
+				'id'      => $id,
+				'caption' => 'Client caption',
+			]
+		);
+
+		$this->assertSame( [ 'caption' ], $result['updated_fields'] );
+		$this->assertSame( [ 'caption' => 'Newer caption' ], $result['previous'] );
+		$this->assertSame( 'Client caption', $this->stored( $id )['caption'] );
+	}
+
+	/**
+	 * An empty `expected` object checks nothing and changes nothing else.
+	 */
+	public function test_empty_expected_object_is_accepted() {
+		$id = $this->make_attachment();
+
+		$result = $this->run_ok(
+			[
+				'id'       => $id,
+				'title'    => 'New title',
+				'expected' => [],
+			]
+		);
+
+		$this->assertSame( [ 'title' ], $result['updated_fields'] );
 	}
 
 	// ---------------------------------------------------------------------
@@ -823,7 +1138,8 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 		);
 		$json = wp_json_encode( $result );
 
-		$this->assertSame( [ 'id', 'updated_fields', 'unchanged_fields', 'media' ], array_keys( $result ) );
+		$this->assertSame( [ 'id', 'updated_fields', 'previous', 'unchanged_fields', 'media' ], array_keys( $result ) );
+		$this->assertSame( [ 'title' => 'Old title' ], $result['previous'] );
 		$this->assertSame( [ 'id', 'title', 'alt_text', 'caption', 'mime_type', 'url', 'date' ], array_keys( $result['media'] ) );
 		$this->assertStringNotContainsString( wp_json_encode( ABSPATH ), $json );
 		$this->assertStringNotContainsString( wp_json_encode( wp_upload_dir()['basedir'] ), $json );

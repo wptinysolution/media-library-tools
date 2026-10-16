@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\MediaPresenter;
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 use WP_Post;
@@ -40,6 +41,22 @@ class UpdateMediaMetadata extends Ability {
 	 * @var string
 	 */
 	const ERROR_UPDATE_FAILED = 'tsmlt_update_failed';
+
+	/**
+	 * Error code: a field no longer holds the value the caller expected.
+	 *
+	 * @var string
+	 */
+	const ERROR_CONFLICT = 'tsmlt_conflict';
+
+	/**
+	 * Longest accepted expected value, in characters. Larger than MAX_LENGTHS
+	 * because it is compared with what is already stored, which may be longer
+	 * than this ability would write.
+	 *
+	 * @var int
+	 */
+	const MAX_EXPECTED_LENGTH = 65535;
 
 	/**
 	 * Attachment statuses this ability writes to. Matches the read abilities.
@@ -103,7 +120,7 @@ class UpdateMediaMetadata extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Update the title, alt text, caption and/or description of one media library attachment by ID. Only the fields you supply are changed; omitted fields are left as they are, and an empty string clears a field. Does not rename or move the file. Returns which fields changed and the updated media summary.', 'media-library-tools' );
+		return __( 'Update the title, alt text, caption and/or description of one media library attachment by ID. Only the fields you supply are changed; omitted fields are left as they are, and an empty string clears a field. Does not rename or move the file. Optionally pass "expected" with the current value of fields you are changing, exactly as tsmlt/get-media-details returned it; if any of them has changed since, nothing is saved and a conflict error is returned. Returns which fields changed, their previous values, and the updated media summary.', 'media-library-tools' );
 	}
 
 	/**
@@ -142,8 +159,30 @@ class UpdateMediaMetadata extends Ability {
 					'maxLength'   => self::MAX_LENGTHS['description'],
 					'description' => 'New description. Basic HTML allowed in post content is kept; anything else is removed.',
 				],
+				'expected'    => [
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => $this->expected_properties(),
+					'description'          => 'Optional. Current value of fields being changed, exactly as tsmlt/get-media-details or tsmlt/search-media returned it. May only name fields that are also being updated. If any stored value differs, nothing is saved and a conflict error is returned.',
+				],
 			],
 		];
+	}
+
+	/**
+	 * Schema properties of the `expected` input: one string per editable field.
+	 *
+	 * @return array
+	 */
+	private function expected_properties(): array {
+		$properties = [];
+		foreach ( array_keys( self::FIELDS ) as $field ) {
+			$properties[ $field ] = [
+				'type'      => 'string',
+				'maxLength' => self::MAX_EXPECTED_LENGTH,
+			];
+		}
+		return $properties;
 	}
 
 	/**
@@ -172,6 +211,12 @@ class UpdateMediaMetadata extends Ability {
 					$field_list,
 					[ 'description' => 'Requested fields whose stored value changed.' ]
 				),
+				'previous'         => [
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => $this->expected_properties(),
+					'description'          => 'Value of each field in updated_fields before this request, in the format the read abilities return. Present only when a field changed; use it to undo the change.',
+				],
 				'unchanged_fields' => array_merge(
 					$field_list,
 					[ 'description' => 'Requested fields that already held the value after sanitization, so nothing was written.' ]
@@ -217,6 +262,12 @@ class UpdateMediaMetadata extends Ability {
 
 		$before = $this->current_values( $attachment->ID );
 
+		// Checked before anything is written, so a conflict changes nothing.
+		$conflict = $this->check_expected( $input, $values, $before );
+		if ( is_wp_error( $conflict ) ) {
+			return $conflict;
+		}
+
 		$post_update = [];
 		foreach ( $values as $field => $value ) {
 			if ( null !== self::FIELDS[ $field ] && $value !== $before[ $field ] ) {
@@ -258,12 +309,86 @@ class UpdateMediaMetadata extends Ability {
 			}
 		}
 
-		return [
-			'id'               => (int) $attachment->ID,
-			'updated_fields'   => $updated,
-			'unchanged_fields' => $unchanged,
-			'media'            => MediaPresenter::summary( get_post( $attachment->ID ) ),
+		$result = [
+			'id'             => (int) $attachment->ID,
+			'updated_fields' => $updated,
 		];
+		if ( ! empty( $updated ) ) {
+			$previous = [];
+			foreach ( $updated as $field ) {
+				$previous[ $field ] = Fns::prepare_text_for_json( $before[ $field ] );
+			}
+			$result['previous'] = $previous;
+		}
+		$result['unchanged_fields'] = $unchanged;
+		$result['media']            = MediaPresenter::summary( get_post( $attachment->ID ) );
+
+		return $result;
+	}
+
+	/**
+	 * Compare the optional `expected` values with what is stored.
+	 *
+	 * Stored values are compared in the format the read abilities return them
+	 * (MediaPresenter decodes HTML entities), so a value copied from a read
+	 * always matches. The comparison is exact: no trimming or sanitizing.
+	 *
+	 * @param array                 $input  Raw input.
+	 * @param array<string, string> $values Sanitized fields being updated.
+	 * @param array<string, string> $before Stored values.
+	 *
+	 * @return true|WP_Error
+	 */
+	private function check_expected( array $input, array $values, array $before ) {
+		if ( ! isset( $input['expected'] ) ) {
+			return true;
+		}
+		if ( ! is_array( $input['expected'] ) ) {
+			return AbilityGuard::error(
+				AbilityGuard::ERROR_INVALID_INPUT,
+				__( 'expected must be an object of field values.', 'media-library-tools' ),
+				400
+			);
+		}
+
+		$conflicts = [];
+		foreach ( $input['expected'] as $field => $expected ) {
+			if ( ! array_key_exists( $field, self::FIELDS ) || ! is_string( $expected ) ) {
+				return AbilityGuard::error(
+					AbilityGuard::ERROR_INVALID_INPUT,
+					__( 'expected may only contain title, alt_text, caption or description, as strings.', 'media-library-tools' ),
+					400
+				);
+			}
+			if ( ! array_key_exists( $field, $values ) ) {
+				return AbilityGuard::error(
+					AbilityGuard::ERROR_INVALID_INPUT,
+					/* translators: %s: field name. */
+					sprintf( __( 'expected names %s, which is not being updated. Only name fields you are changing.', 'media-library-tools' ), $field ),
+					400
+				);
+			}
+			if ( Fns::prepare_text_for_json( $before[ $field ] ) !== $expected ) {
+				$conflicts[] = $field;
+			}
+		}
+
+		if ( empty( $conflicts ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			self::ERROR_CONFLICT,
+			sprintf(
+				/* translators: %s: comma-separated field names. */
+				__( 'Nothing was saved: the stored value of %s has changed since it was read. Fetch the media again and retry.', 'media-library-tools' ),
+				implode( ', ', $conflicts )
+			),
+			[
+				'status' => 409,
+				'fields' => $conflicts,
+			]
+		);
 	}
 
 	/**

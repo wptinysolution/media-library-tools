@@ -100,6 +100,45 @@ class SearchMediaAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Run a callback while read_post is denied for some attachments, as a
+	 * plugin's map_meta_cap filter might do.
+	 *
+	 * @param int[]    $hidden   Attachment IDs to deny.
+	 * @param callable $callback Callback.
+	 *
+	 * @return mixed The callback's return value.
+	 */
+	private function with_read_denied( array $hidden, callable $callback ) {
+		$deny = static function ( $caps, $cap, $user_id, $args ) use ( $hidden ) {
+			if ( 'read_post' === $cap && isset( $args[0] ) && in_array( (int) $args[0], $hidden, true ) ) {
+				return [ 'do_not_allow' ];
+			}
+			return $caps;
+		};
+		add_filter( 'map_meta_cap', $deny, 10, 4 );
+		try {
+			return $callback();
+		} finally {
+			remove_filter( 'map_meta_cap', $deny, 10 );
+		}
+	}
+
+	/**
+	 * Create attachments in a known ID order, titled for a shared search term.
+	 *
+	 * @param int $count Number of attachments.
+	 *
+	 * @return int[] IDs in ascending order.
+	 */
+	private function make_attachments( int $count ): array {
+		$ids = [];
+		for ( $i = 1; $i <= $count; $i++ ) {
+			$ids[] = $this->make_attachment( [ 'post_title' => 'Permission probe ' . $i ] );
+		}
+		return $ids;
+	}
+
+	/**
 	 * Assert the input is rejected by schema validation.
 	 *
 	 * @param mixed $input Ability input.
@@ -473,6 +512,191 @@ class SearchMediaAbilityTest extends WP_UnitTestCase {
 		remove_filter( 'map_meta_cap', $deny, 10 );
 
 		$this->assertSame( [ $visible ], $ids );
+	}
+
+	/**
+	 * total and total_pages count only attachments the user may read, so they
+	 * reveal nothing about hidden ones.
+	 */
+	public function test_totals_exclude_unreadable_attachments() {
+		$ids    = $this->make_attachments( 5 );
+		$hidden = [ $ids[1], $ids[3] ];
+
+		$result = $this->with_read_denied(
+			$hidden,
+			function () {
+				return $this->run_ability(
+					[
+						'search'   => 'Permission probe',
+						'per_page' => 2,
+						'orderby'  => 'id',
+						'order'    => 'ASC',
+					]
+				);
+			}
+		);
+
+		$this->assertSame( 3, $result['total'] );
+		$this->assertSame( 2, $result['total_pages'] );
+		$this->assertSame( [ $ids[0], $ids[2] ], wp_list_pluck( $result['items'], 'id' ) );
+	}
+
+	/**
+	 * Pages are filled from readable attachments only: every page but the
+	 * last is full, the pages together list each readable attachment exactly
+	 * once in order, and pages past the end are empty.
+	 */
+	public function test_pages_are_full_and_consistent_with_hidden_attachments() {
+		$ids     = $this->make_attachments( 7 );
+		$hidden  = [ $ids[0], $ids[2], $ids[5] ];
+		$visible = array_values( array_diff( $ids, $hidden ) );
+
+		$pages = $this->with_read_denied(
+			$hidden,
+			function () {
+				$pages = [];
+				foreach ( [ 1, 2, 3 ] as $page ) {
+					$pages[ $page ] = $this->run_ability(
+						[
+							'search'   => 'Permission probe',
+							'per_page' => 2,
+							'page'     => $page,
+							'orderby'  => 'id',
+							'order'    => 'ASC',
+						]
+					);
+				}
+				return $pages;
+			}
+		);
+
+		$this->assertSame( [ $visible[0], $visible[1] ], wp_list_pluck( $pages[1]['items'], 'id' ) );
+		$this->assertSame( [ $visible[2], $visible[3] ], wp_list_pluck( $pages[2]['items'], 'id' ) );
+		$this->assertSame( [], $pages[3]['items'] );
+		foreach ( $pages as $number => $page ) {
+			$this->assertSame( 4, $page['total'], "Page {$number} total" );
+			$this->assertSame( 2, $page['total_pages'], "Page {$number} total_pages" );
+			$this->assertSame( $number, $page['page'] );
+			foreach ( $hidden as $id ) {
+				$this->assertNotContains( $id, wp_list_pluck( $page['items'], 'id' ) );
+			}
+		}
+	}
+
+	/**
+	 * The response with hidden attachments is identical to the response if
+	 * those attachments did not exist, so their number cannot be inferred.
+	 */
+	public function test_hidden_attachments_are_indistinguishable_from_absent_ones() {
+		$ids    = $this->make_attachments( 4 );
+		$hidden = [ $ids[1], $ids[2] ];
+		$input  = [
+			'search'   => 'Permission probe',
+			'per_page' => 1,
+			'orderby'  => 'id',
+			'order'    => 'ASC',
+		];
+
+		$with_hidden = $this->with_read_denied(
+			$hidden,
+			function () use ( $input ) {
+				return $this->run_ability( $input );
+			}
+		);
+		foreach ( $hidden as $id ) {
+			wp_delete_attachment( $id, true );
+		}
+		$without = $this->run_ability( $input );
+
+		$this->assertSame( $without, $with_hidden );
+		$this->assertSame( 2, $with_hidden['total'] );
+		$this->assertSame( 2, $with_hidden['total_pages'] );
+	}
+
+	/**
+	 * When nothing matching is readable, the totals are zero.
+	 */
+	public function test_totals_are_zero_when_nothing_is_readable() {
+		$ids = $this->make_attachments( 3 );
+
+		$result = $this->with_read_denied(
+			$ids,
+			function () {
+				return $this->run_ability( [ 'search' => 'Permission probe' ] );
+			}
+		);
+
+		$this->assertSame( [], $result['items'] );
+		$this->assertSame( 0, $result['total'] );
+		$this->assertSame( 0, $result['total_pages'] );
+		$this->assertSame( 1, $result['page'] );
+	}
+
+	/**
+	 * Filters and permissions combine: the totals count readable attachments
+	 * that also match the MIME and missing-alt filters.
+	 */
+	public function test_totals_combine_filters_and_permissions() {
+		$readable_match = $this->make_attachment( [ 'post_title' => 'Permission probe A' ] );
+		$hidden_match   = $this->make_attachment( [ 'post_title' => 'Permission probe B' ] );
+		$this->make_attachment(
+			[
+				'post_title'     => 'Permission probe C',
+				'post_mime_type' => 'application/pdf',
+			]
+		);
+		$with_alt = $this->make_attachment(
+			[
+				'post_title' => 'Permission probe D',
+				'alt'        => 'Has alt',
+			]
+		);
+		// The plugin copies the title into alt text on upload; clear it for the matches.
+		delete_post_meta( $readable_match, '_wp_attachment_image_alt' );
+		delete_post_meta( $hidden_match, '_wp_attachment_image_alt' );
+
+		$result = $this->with_read_denied(
+			[ $hidden_match ],
+			function () {
+				return $this->run_ability(
+					[
+						'search'      => 'Permission probe',
+						'mime_type'   => 'image',
+						'missing_alt' => true,
+					]
+				);
+			}
+		);
+
+		$this->assertSame( [ $readable_match ], wp_list_pluck( $result['items'], 'id' ) );
+		$this->assertSame( 1, $result['total'] );
+		$this->assertSame( 1, $result['total_pages'] );
+		$this->assertNotContains( $with_alt, wp_list_pluck( $result['items'], 'id' ) );
+	}
+
+	/**
+	 * Without any hidden attachments, totals still match WordPress's own count.
+	 */
+	public function test_totals_match_query_count_when_all_readable() {
+		$this->make_attachments( 5 );
+
+		$result = $this->run_ability(
+			[
+				'search'   => 'Permission probe',
+				'per_page' => 2,
+			]
+		);
+		$query  = new WP_Query(
+			[
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				's'              => 'Permission probe',
+				'posts_per_page' => 2,
+			]
+		);
+
+		$this->assertSame( (int) $query->found_posts, $result['total'] );
+		$this->assertSame( (int) $query->max_num_pages, $result['total_pages'] );
 	}
 
 	/**
