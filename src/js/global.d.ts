@@ -8,6 +8,8 @@ declare const tsmltParams: {
     uploadUrl: string;
     proLink: string;
     hasExtended: boolean;
+    /** MCP Docs admin page URL; empty for users who cannot open it. */
+    mcpDocsUrl?: string;
     hasWoo: boolean;
     proVersion?: boolean;
     iconUrl: string;

@@ -513,6 +513,14 @@ export default function Datatable() {
                                                         )}
                                                     </div>
 
+                                                    {/* File name (read-only; rename it from the Rename screen) */}
+                                                    {record.thefile?.mainfilename && (
+                                                        <p className="text-xs text-gray-500 mt-0! mb-1! flex items-start gap-1.5">
+                                                            <span className="text-gray-400 shrink-0">File:</span>
+                                                            <span className="break-all" title={record.thefile.mainfilename}>{record.thefile.mainfilename}</span>
+                                                        </p>
+                                                    )}
+
                                                     {/* Alt text */}
                                                     {formEdited ? (
                                                         <div className="max-w-full">

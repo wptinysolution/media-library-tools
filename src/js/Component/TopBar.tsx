@@ -44,6 +44,19 @@ function TopBar() {
 
             {/* Right: Action links */}
             <div className="flex items-center gap-0.5">
+                {tsmltParams.mcpDocsUrl && (
+                    <a
+                        href={tsmltParams.mcpDocsUrl}
+                        title="Connect AI assistants to your media library (MCP)"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 mr-1 text-[12px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white rounded-md transition-colors no-underline"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v4M15 3v4M7 7h10v4a5 5 0 01-10 0V7zM12 16v5" />
+                        </svg>
+                        MCP
+                    </a>
+                )}
+
                 <a
                     href="https://wptinysolutions.com/help/"
                     target="_blank"

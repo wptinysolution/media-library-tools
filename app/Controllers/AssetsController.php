@@ -2,6 +2,7 @@
 
 namespace TinySolutions\mlt\Controllers;
 
+use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -109,6 +110,8 @@ class AssetsController {
 					'restApiUrl'    => esc_url_raw( rest_url() ),
 					'rest_nonce'    => wp_create_nonce( 'wp_rest' ),
 					'iconUrl'       => esc_url( tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ) ),
+					// Only for users who may open the MCP Docs page; the header hides the link otherwise.
+					'mcpDocsUrl'    => current_user_can( McpDocsPage::CAPABILITY ) ? esc_url_raw( admin_url( 'upload.php?page=' . McpDocsPage::PAGE_SLUG ) ) : '',
 					Fns::NONCE_ID   => wp_create_nonce( Fns::NONCE_ID ),
 				]
 			);
