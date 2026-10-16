@@ -147,7 +147,19 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Not installed: a warning with an install link.
+	 * Extract the JSON config the button script is given.
+	 *
+	 * @param string $html Rendered status box.
+	 *
+	 * @return array
+	 */
+	private function button_config( string $html ): array {
+		$this->assertSame( 1, preg_match( '/var config = (\{.*?\});\n/', $html, $match ), 'The button script must be printed.' );
+		return json_decode( $match[1], true );
+	}
+
+	/**
+	 * Not installed: a warning with an AJAX install button.
 	 */
 	public function test_notice_when_adapter_is_missing() {
 		$this->login_as( 'administrator' );
@@ -160,15 +172,28 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'notice-warning inline', $html );
 		$this->assertStringContainsString( 'The MCP Adapter plugin is not installed.', $html );
-		// A one-click install through WordPress's own installer, protected by its nonce.
-		$this->assertStringContainsString( 'Install MCP Adapter', $html );
-		$this->assertStringContainsString( esc_url( McpDocsPage::instance()->get_install_url() ), $html );
-		$this->assertStringContainsString( 'update.php?action=install-plugin&amp;plugin=mcp-adapter', $html );
+		$this->assertStringContainsString( '>Install MCP Adapter plugin</a>', $html );
+		$this->assertStringContainsString( 'data-step="install"', $html );
+		// Without JavaScript the button is WordPress's own nonce-protected installer link.
+		$this->assertStringContainsString( 'href="' . esc_url( McpDocsPage::instance()->get_install_url() ) . '"', $html );
+		$this->assertStringContainsString( 'update.php?action=install-plugin', $html );
 		$this->assertStringContainsString( '_wpnonce=' . wp_create_nonce( 'install-plugin_mcp-adapter' ), $html );
+
+		// The script talks to core's AJAX actions with core's `updates` nonce.
+		$config = $this->button_config( $html );
+		$this->assertSame( admin_url( 'admin-ajax.php' ), $config['ajaxUrl'] );
+		$this->assertSame( wp_create_nonce( 'updates' ), $config['nonce'] );
+		$this->assertSame( 'mcp-adapter', $config['slug'] );
+		$this->assertSame( 'mcp-adapter/mcp-adapter.php', $config['plugin'] );
+		$this->assertStringContainsString( "post( 'install-plugin'", $html );
+		$this->assertStringContainsString( "post( 'activate-plugin'", $html );
+		// The button spins with core's update icon while it works.
+		$this->assertStringContainsString( "button.classList.add( 'disabled', 'updating-message' )", $html );
+		$this->assertStringContainsString( "button.classList.add( 'updated-message' )", $html );
 	}
 
 	/**
-	 * Installed but inactive: a warning with a nonce-protected activate link.
+	 * Installed but inactive: a warning with an AJAX activate button.
 	 */
 	public function test_notice_when_adapter_is_inactive() {
 		$this->login_as( 'administrator' );
@@ -180,15 +205,21 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString( 'The MCP Adapter plugin is installed but not active.', $html );
+		$this->assertStringContainsString( '>Activate MCP Adapter plugin</a>', $html );
+		$this->assertStringContainsString( 'data-step="activate"', $html );
+		$this->assertSame( wp_create_nonce( 'updates' ), $this->button_config( $html )['nonce'] );
+		// Without JavaScript the button is WordPress's own nonce-protected activate link.
+		$this->assertStringContainsString( 'href="' . esc_url( McpDocsPage::instance()->get_activate_url() ) . '"', $html );
 		$this->assertStringContainsString( 'action=activate', $html );
 		$this->assertStringContainsString( 'plugin=mcp-adapter%2Fmcp-adapter.php', $html );
 		$this->assertStringContainsString( '_wpnonce=' . wp_create_nonce( 'activate-plugin_mcp-adapter/mcp-adapter.php' ), $html );
 	}
 
 	/**
-	 * Active adapter on a supported WordPress: no message.
+	 * Active adapter on a supported WordPress: a success box, so the status
+	 * is always visible, and no button or script.
 	 */
-	public function test_no_notice_when_ready() {
+	public function test_active_status_when_ready() {
 		$this->login_as( 'administrator' );
 
 		$html = $this->capture(
@@ -197,7 +228,11 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( '', trim( $html ) );
+		$this->assertStringContainsString( 'notice-success inline', $html );
+		$this->assertStringContainsString( 'The MCP Adapter plugin is active', $html );
+		$this->assertStringNotContainsString( 'notice-warning', $html );
+		$this->assertStringNotContainsString( 'tsmlt-mcp-adapter-action', $html );
+		$this->assertStringNotContainsString( '<script', $html );
 	}
 
 	/**
@@ -214,6 +249,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'notice-error inline', $html );
 		$this->assertStringContainsString( 'WordPress 6.9', $html );
+		$this->assertStringNotContainsString( 'notice-success', $html, 'MCP cannot work, so the adapter is not reported as ready.' );
 	}
 
 	/**
@@ -237,6 +273,8 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'not installed', $html );
 		$this->assertStringContainsString( 'not active', $html );
 		$this->assertStringNotContainsString( 'button-primary', $html );
+		$this->assertStringNotContainsString( '<script', $html );
+		$this->assertStringNotContainsString( wp_create_nonce( 'updates' ), $html, 'No updates nonce for users who cannot use it.' );
 	}
 
 	/**
@@ -256,11 +294,11 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
 
 		// Match the notice markup, not the class name, which the page's styles also contain.
-		$notice = '<div class="notice notice-warning inline tsmlt-mcp-docs__notice">';
 		$ready  = class_exists( '\WP\MCP\Core\McpAdapter' );
-		$this->assertSame( ! $ready, false !== strpos( $html, $notice ), 'The message shows only when the adapter is not active.' );
-		if ( ! $ready ) {
-			$this->assertLessThan( strpos( $html, '<h2>Requirements</h2>' ), strpos( $html, $notice ), 'The message is above the documentation.' );
-		}
+		$notice = $ready
+			? '<div class="notice notice-success inline tsmlt-mcp-docs__notice">'
+			: '<div class="notice notice-warning inline tsmlt-mcp-docs__notice">';
+		$this->assertStringContainsString( $notice, $html, 'A status box is always shown.' );
+		$this->assertLessThan( strpos( $html, '<h2>Requirements</h2>' ), strpos( $html, $notice ), 'The status box is above the documentation.' );
 	}
 }

@@ -86,23 +86,119 @@ class McpDocsPage {
 	private function __construct() {}
 
 	/**
-	 * Whether the MCP Adapter is installed and active.
+	 * Whether the MCP Adapter is running, installed but inactive, or missing.
 	 *
-	 * "Active" is decided by the adapter's own class being loaded, which also
-	 * covers installs as a must-use plugin or a Composer package.
+	 * "Active" means the adapter is actually running on this site — not merely
+	 * that its class can be loaded. Another plugin can bundle the adapter
+	 * library without starting it; the endpoint only exists once something
+	 * has started it (see is_adapter_running()).
 	 *
 	 * @return string One of the ADAPTER_* constants.
 	 */
 	public function get_adapter_status(): string {
-		if ( class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+		if ( $this->is_adapter_running() ) {
 			return self::ADAPTER_ACTIVE;
 		}
 
+		return array_key_exists( self::ADAPTER_PLUGIN_FILE, $this->get_plugins() ) ? self::ADAPTER_INACTIVE : self::ADAPTER_MISSING;
+	}
+
+	/**
+	 * Whether an MCP Adapter instance has been started on this request.
+	 *
+	 * The adapter does nothing until McpAdapter::instance() is called — by the
+	 * MCP Adapter plugin, or by another plugin that bundles it and turns it
+	 * on. instance() hooks the adapter's init onto `rest_api_init` (or `init`
+	 * under WP-CLI), and init fires `mcp_adapter_init`, where this plugin's
+	 * endpoint is created. The class itself is never autoloaded here.
+	 *
+	 * @return bool
+	 */
+	public function is_adapter_running(): bool {
+		if ( did_action( 'mcp_adapter_init' ) ) {
+			return true;
+		}
+
+		$class = 'WP\MCP\Core\McpAdapter';
+		if ( ! class_exists( $class, false ) ) {
+			return false;
+		}
+
+		global $wp_filter;
+		foreach ( [ 'rest_api_init', 'init' ] as $hook ) {
+			if ( empty( $wp_filter[ $hook ] ) || ! $wp_filter[ $hook ] instanceof \WP_Hook ) {
+				continue;
+			}
+			foreach ( $wp_filter[ $hook ]->callbacks as $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$function = $callback['function'] ?? null;
+					if ( is_array( $function ) && isset( $function[0] ) && $function[0] instanceof $class ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Name of the plugin the running adapter was loaded from, when that is not
+	 * the MCP Adapter plugin itself — for example a plugin that bundles it.
+	 *
+	 * @return string Plugin name, or '' for the MCP Adapter plugin or when unknown.
+	 */
+	public function get_adapter_provider(): string {
+		$class = 'WP\MCP\Core\McpAdapter';
+		if ( ! class_exists( $class, false ) ) {
+			return '';
+		}
+
+		$file    = wp_normalize_path( (string) ( new \ReflectionClass( $class ) )->getFileName() );
+		$plugins = trailingslashit( wp_normalize_path( WP_PLUGIN_DIR ) );
+		if ( 0 !== strpos( $file, $plugins ) ) {
+			return 0 === strpos( $file, trailingslashit( wp_normalize_path( WPMU_PLUGIN_DIR ) ) ) ? __( 'a must-use plugin', 'media-library-tools' ) : '';
+		}
+
+		$folder = strtok( substr( $file, strlen( $plugins ) ), '/' );
+		if ( dirname( self::ADAPTER_PLUGIN_FILE ) === $folder ) {
+			return '';
+		}
+
+		foreach ( $this->get_plugins() as $plugin_file => $data ) {
+			if ( 0 === strpos( $plugin_file, $folder . '/' ) && ! empty( $data['Name'] ) ) {
+				return (string) $data['Name'];
+			}
+		}
+
+		return (string) $folder;
+	}
+
+	/**
+	 * Version of the running adapter, when it can be read.
+	 *
+	 * @return string
+	 */
+	private function get_adapter_version(): string {
+		if ( defined( 'WP_MCP_VERSION' ) ) {
+			return (string) WP_MCP_VERSION;
+		}
+		if ( class_exists( 'WP\MCP\Core\McpAdapter', false ) && defined( 'WP\MCP\Core\McpAdapter::VERSION' ) ) {
+			return (string) constant( 'WP\MCP\Core\McpAdapter::VERSION' );
+		}
+		return '';
+	}
+
+	/**
+	 * Installed plugins.
+	 *
+	 * @return array<string, array>
+	 */
+	private function get_plugins(): array {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
-
-		return array_key_exists( self::ADAPTER_PLUGIN_FILE, get_plugins() ) ? self::ADAPTER_INACTIVE : self::ADAPTER_MISSING;
+		return get_plugins();
 	}
 
 	/**
@@ -161,7 +257,7 @@ class McpDocsPage {
 						echo wp_kses_post(
 							sprintf(
 								/* translators: %s: link to the MCP Adapter plugin on WordPress.org. */
-								esc_html__( 'The official %s plugin, active on this site. Tested with version 0.7.0.', 'media-library-tools' ),
+								esc_html__( 'The official %s plugin, installed and active. Tested with version 0.7.0.', 'media-library-tools' ),
 								'<a href="https://wordpress.org/plugins/mcp-adapter/" target="_blank" rel="noopener noreferrer">MCP Adapter</a>'
 							)
 						);
@@ -339,11 +435,12 @@ class McpDocsPage {
 	}
 
 	/**
-	 * Message shown at the top of the page when the integration cannot run.
+	 * Status box at the top of the page.
 	 *
-	 * Nothing is shown when the MCP Adapter is active on a WordPress version
-	 * with the Abilities API. Uses the `inline` notice class so WordPress does
-	 * not move the message out of the page.
+	 * Always shown: green when the MCP Adapter is active on a WordPress
+	 * version with the Abilities API, otherwise a warning with an Install or
+	 * Activate button. Uses the `inline` notice class so WordPress does not
+	 * move the box out of the page.
 	 *
 	 * @param string $adapter_status    One of the ADAPTER_* constants.
 	 * @param bool   $abilities_support Whether WordPress provides the Abilities API.
@@ -369,13 +466,11 @@ class McpDocsPage {
 					<strong><?php esc_html_e( 'The MCP Adapter plugin is not installed.', 'media-library-tools' ); ?></strong>
 					<?php esc_html_e( 'AI assistants cannot connect until it is installed and activated.', 'media-library-tools' ); ?>
 				</p>
-				<?php if ( current_user_can( 'install_plugins' ) ) : ?>
-					<p>
-						<a class="button button-primary" href="<?php echo esc_url( $this->get_install_url() ); ?>">
-							<?php esc_html_e( 'Install MCP Adapter', 'media-library-tools' ); ?>
-						</a>
-					</p>
-				<?php endif; ?>
+				<?php
+				if ( current_user_can( 'install_plugins' ) ) {
+					$this->render_adapter_button( 'install', __( 'Install MCP Adapter plugin', 'media-library-tools' ), $this->get_install_url() );
+				}
+				?>
 			</div>
 			<?php
 		} elseif ( self::ADAPTER_INACTIVE === $adapter_status ) {
@@ -385,24 +480,152 @@ class McpDocsPage {
 					<strong><?php esc_html_e( 'The MCP Adapter plugin is installed but not active.', 'media-library-tools' ); ?></strong>
 					<?php esc_html_e( 'AI assistants cannot connect until it is activated.', 'media-library-tools' ); ?>
 				</p>
-				<?php if ( current_user_can( 'activate_plugin', self::ADAPTER_PLUGIN_FILE ) ) : ?>
-					<p>
-						<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'plugins.php?action=activate&plugin=' . rawurlencode( self::ADAPTER_PLUGIN_FILE ) ), 'activate-plugin_' . self::ADAPTER_PLUGIN_FILE ) ); ?>">
-							<?php esc_html_e( 'Activate MCP Adapter', 'media-library-tools' ); ?>
-						</a>
-					</p>
-				<?php endif; ?>
+				<?php
+				if ( current_user_can( 'activate_plugin', self::ADAPTER_PLUGIN_FILE ) ) {
+					$this->render_adapter_button( 'activate', __( 'Activate MCP Adapter plugin', 'media-library-tools' ), $this->get_activate_url() );
+				}
+				?>
+			</div>
+			<?php
+		} elseif ( self::ADAPTER_ACTIVE === $adapter_status && $abilities_support ) {
+			$version  = $this->get_adapter_version();
+			$provider = $this->get_adapter_provider();
+			if ( '' !== $provider ) {
+				/* translators: 1: plugin name, e.g. WooCommerce. */
+				$status = sprintf( __( 'The MCP Adapter is running, provided by %1$s.', 'media-library-tools' ), $provider );
+			} elseif ( '' !== $version ) {
+				/* translators: %s: MCP Adapter version, e.g. 0.7.0. */
+				$status = sprintf( __( 'The MCP Adapter plugin is active (version %s).', 'media-library-tools' ), $version );
+			} else {
+				$status = __( 'The MCP Adapter plugin is active.', 'media-library-tools' );
+			}
+			?>
+			<div class="notice notice-success inline tsmlt-mcp-docs__notice">
+				<p>
+					<strong><?php echo esc_html( $status ); ?></strong>
+					<?php esc_html_e( 'AI assistants can connect to the endpoint below.', 'media-library-tools' ); ?>
+				</p>
 			</div>
 			<?php
 		}
 	}
 
 	/**
-	 * One-click install of the MCP Adapter from WordPress.org.
+	 * Install or activate button for the MCP Adapter, done over AJAX.
 	 *
-	 * Uses WordPress's own plugin installer (update.php?action=install-plugin),
-	 * which checks the nonce and the install_plugins capability itself, and
-	 * offers an "Activate Plugin" button when the install finishes.
+	 * The script calls WordPress core's own `install-plugin` and
+	 * `activate-plugin` AJAX actions, which check the `updates` nonce and the
+	 * install_plugins / activate_plugin capabilities themselves; after an
+	 * install it activates the plugin, then reloads the page. The link's href
+	 * is the matching non-AJAX core screen, used if the script cannot run or
+	 * the request fails (for example when the server needs FTP credentials).
+	 *
+	 * @param string $step     `install` or `activate`.
+	 * @param string $label    Button label.
+	 * @param string $fallback Non-AJAX URL for the same action.
+	 *
+	 * @return void
+	 */
+	private function render_adapter_button( string $step, string $label, string $fallback ) {
+		$config = [
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'updates' ),
+			'slug'    => self::ADAPTER_SLUG,
+			'plugin'  => self::ADAPTER_PLUGIN_FILE,
+			'name'    => 'MCP Adapter',
+			'i18n'    => [
+				'installing' => __( 'Installing MCP Adapter…', 'media-library-tools' ),
+				'activating' => __( 'Activating MCP Adapter…', 'media-library-tools' ),
+				'done'       => __( 'Done. Reloading…', 'media-library-tools' ),
+				'failed'     => __( 'Something went wrong.', 'media-library-tools' ),
+				'fallback'   => __( 'Try again from the Plugins screen.', 'media-library-tools' ),
+			],
+		];
+		?>
+		<p>
+			<a class="button button-primary tsmlt-mcp-adapter-action" data-step="<?php echo esc_attr( $step ); ?>" href="<?php echo esc_url( $fallback ); ?>"><?php echo esc_html( $label ); ?></a>
+		</p>
+		<p class="tsmlt-mcp-adapter-feedback" role="status" aria-live="polite"></p>
+		<script>
+		( function () {
+			var config = <?php echo wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON in a script block, with <, >, &, quotes hex-encoded. ?>;
+			var button = document.querySelector( '.tsmlt-mcp-adapter-action' );
+			var feedback = document.querySelector( '.tsmlt-mcp-adapter-feedback' );
+			if ( ! button || ! feedback || ! window.fetch || ! window.FormData ) {
+				return;
+			}
+			var label = button.textContent;
+
+			function post( action, fields ) {
+				var body = new FormData();
+				body.append( 'action', action );
+				body.append( '_ajax_nonce', config.nonce );
+				Object.keys( fields ).forEach( function ( key ) {
+					body.append( key, fields[ key ] );
+				} );
+				return fetch( config.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+					.then( function ( response ) {
+						return response.json();
+					} )
+					.then( function ( result ) {
+						if ( ! result || ! result.success ) {
+							var message = result && result.data && result.data.errorMessage;
+							throw new Error( Array.isArray( message ) ? message.join( ' ' ) : ( message || config.i18n.failed ) );
+						}
+						return result.data;
+					} );
+			}
+
+			function activate() {
+				button.textContent = config.i18n.activating;
+				return post( 'activate-plugin', { slug: config.slug, plugin: config.plugin, name: config.name } );
+			}
+
+			button.addEventListener( 'click', function ( event ) {
+				event.preventDefault();
+				if ( 'true' === button.getAttribute( 'aria-disabled' ) ) {
+					return;
+				}
+				// Core's spinning update icon (wp-admin/css/common.css), as on the Plugins screen.
+				button.setAttribute( 'aria-disabled', 'true' );
+				button.setAttribute( 'aria-busy', 'true' );
+				button.classList.add( 'disabled', 'updating-message' );
+				feedback.textContent = '';
+
+				var run;
+				if ( 'install' === button.getAttribute( 'data-step' ) ) {
+					button.textContent = config.i18n.installing;
+					run = post( 'install-plugin', { slug: config.slug } ).then( activate );
+				} else {
+					run = activate();
+				}
+
+				run.then( function () {
+					button.classList.remove( 'updating-message' );
+					button.classList.add( 'updated-message' );
+					button.textContent = config.i18n.done;
+					window.location.reload();
+				} ).catch( function ( error ) {
+					var link = document.createElement( 'a' );
+					link.href = button.href;
+					link.textContent = config.i18n.fallback;
+					feedback.textContent = ( error && error.message ? error.message : config.i18n.failed ) + ' ';
+					feedback.appendChild( link );
+					button.textContent = label;
+					button.removeAttribute( 'aria-disabled' );
+					button.removeAttribute( 'aria-busy' );
+					button.classList.remove( 'disabled', 'updating-message' );
+				} );
+			} );
+		}() );
+		</script>
+		<?php
+	}
+
+	/**
+	 * Non-AJAX install of the MCP Adapter from WordPress.org: WordPress's own
+	 * installer screen (update.php?action=install-plugin), which checks the
+	 * nonce and install_plugins itself and can ask for FTP credentials.
 	 *
 	 * @return string
 	 */
@@ -410,6 +633,19 @@ class McpDocsPage {
 		return wp_nonce_url(
 			self_admin_url( 'update.php?action=install-plugin&plugin=' . self::ADAPTER_SLUG ),
 			'install-plugin_' . self::ADAPTER_SLUG
+		);
+	}
+
+	/**
+	 * Non-AJAX activation of the MCP Adapter: WordPress's own activate link
+	 * on the Plugins screen, protected by its nonce.
+	 *
+	 * @return string
+	 */
+	public function get_activate_url(): string {
+		return wp_nonce_url(
+			admin_url( 'plugins.php?action=activate&plugin=' . rawurlencode( self::ADAPTER_PLUGIN_FILE ) ),
+			'activate-plugin_' . self::ADAPTER_PLUGIN_FILE
 		);
 	}
 
