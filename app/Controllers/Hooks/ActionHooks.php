@@ -803,7 +803,7 @@ class ActionHooks {
 	 */
 	public function remove_all_notices() {
 		$screen = get_current_screen();
-		if ( in_array( $screen->base, [ 'media_page_media-library-tools', 'media_page_tsmlt-get-pro', 'media_page_tsmlt-pricing-pro' ], true ) ) {
+		if ( in_array( $screen->base, [ 'media_page_media-library-tools', 'media_page_tsmlt-get-pro', 'media_page_tsmlt-pricing-pro', 'media_page_tsmlt-mcp-docs' ], true ) ) {
 			remove_all_actions( 'admin_notices' );
 			remove_all_actions( 'all_admin_notices' );
 		}

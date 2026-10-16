@@ -29,6 +29,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Controllers\\AI\\CredentialHooks' => __DIR__ . '/app/Controllers/AI/CredentialHooks.php',
 		'TinySolutions\\mlt\\Controllers\\AI\\Credentials' => __DIR__ . '/app/Controllers/AI/Credentials.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\Api' => __DIR__ . '/app/Controllers/Admin/Api.php',
+		'TinySolutions\\mlt\\Controllers\\Admin\\McpDocsPage' => __DIR__ . '/app/Controllers/Admin/McpDocsPage.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\RegisterPostAndTax' => __DIR__ . '/app/Controllers/Admin/RegisterPostAndTax.php',
 		'TinySolutions\\mlt\\Controllers\\Admin\\SubMenu' => __DIR__ . '/app/Controllers/Admin/SubMenu.php',
 		'TinySolutions\\mlt\\Controllers\\AssetsController' => __DIR__ . '/app/Controllers/AssetsController.php',

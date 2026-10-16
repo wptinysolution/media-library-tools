@@ -61,6 +61,14 @@ class SubMenu {
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
+			esc_html__( 'MCP Docs', 'media-library-tools' ),
+			'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'MCP Docs', 'media-library-tools' ) . '</span>',
+			McpDocsPage::CAPABILITY,
+			McpDocsPage::PAGE_SLUG,
+			[ McpDocsPage::instance(), 'render' ]
+		);
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
 			$tab_title,
 			$title,
 			self::MENU_CAPABILITY,
