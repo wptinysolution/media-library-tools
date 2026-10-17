@@ -310,7 +310,8 @@ class ExifDataReader {
 
 		if ( $float_val > 0 ) {
 			$fraction = 1 / $float_val;
-			return '1/' . number_format( (float) $fraction, 0 );
+			// No thousands separator: "1/4000", not "1/4,000".
+			return '1/' . number_format( (float) $fraction, 0, '.', '' );
 		}
 
 		return (string) $value;
