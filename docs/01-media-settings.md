@@ -149,11 +149,14 @@ Reads EXIF data from new JPEG, TIFF and WebP uploads. Every option is **off by d
 
 The Pro plugin removes GPS data from new JPEG uploads when the `auto_remove_gps_on_upload` option is enabled, the **Process EXIF on Upload** switch is on and the Pro licence is active. There is no settings field for it yet; the free plugin never saves this option. Removal runs when WordPress adds the attachment, before it creates the scaled, rotated and resized copies, so those copies are made from the GPS-free file.
 
+HEIC uploads are different: WordPress converts them to JPEG only while generating the image sizes, after the attachment is added, and keeps the attachment's MIME type as `image/heic`. The Pro plugin then removes GPS from those JPEG files (the scaled file and the sizes). The HEIC original itself cannot be cleaned (see below).
+
 The same GPS-only removal is used by the Pro bulk and batch GPS modes (the `tsmlt_bulk_remove_exif` AJAX action with `mode: "gps"` and `tsmlt_exif_strip_batch` with `gps_only`). The admin screens do not offer a button for them yet.
 
 What GPS-only removal does:
-- **JPEG only.** Other formats are left unchanged and reported as unsupported.
-- **Every JPEG file of the attachment**: the attached file, the original WordPress keeps for scaled or rotated images, every generated size, and the pre-edit files WordPress keeps after an image is edited. Sizes saved in another format (e.g. WebP) are skipped.
+- **JPEG files only.** Whether an attachment is a JPEG is decided by its attached file, so HEIC uploads WordPress converted to JPEG are included. Other formats are left unchanged and reported as unsupported.
+- **Every JPEG file of the attachment**: the attached file, the original WordPress keeps for scaled or rotated images, every generated size, and the pre-edit files WordPress keeps after an image is edited.
+- **Files that are not JPEG are never claimed clean.** If the original or another file is a HEIC/HEIF or TIFF that still contains GPS (or cannot be read to check), the JPEG files are cleaned and the stored location is removed, but the operation reports that file as not cleaned and the attachment is not marked GPS-free. WebP and AVIF copies (made by WordPress's image editor or the plugin's converter, which keep no metadata) are skipped: PHP cannot read their EXIF.
 - **EXIF**: the GPS directory pointer is removed and the GPS directory and its values are overwritten with zero bytes.
 - **XMP**: properties named `<prefix>:GPS…` (for example `exif:GPSLatitude`) are overwritten with spaces; the XMP stays well-formed.
 - **Nothing else changes**: the image is not decoded or re-encoded. Only those bytes are overwritten, so the file size, image data, orientation, other EXIF tags (camera, date, exposure), other XMP properties, ICC profiles and IPTC data stay byte-for-byte the same.

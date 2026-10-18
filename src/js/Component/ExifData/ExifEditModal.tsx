@@ -79,6 +79,8 @@ interface ExifEditModalProps {
 
 export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved }: ExifEditModalProps) {
     const [fields, setFields] = useState<ExifFields>({ ...emptyFields });
+    // Values loaded for a single image, to tell an intentionally cleared field from one left blank.
+    const [loadedFields, setLoadedFields] = useState<ExifFields>({ ...emptyFields });
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
@@ -103,6 +105,7 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
             loadExif(attachmentIds[0]);
         } else {
             setFields({ ...emptyFields });
+            setLoadedFields({ ...emptyFields });
         }
     }, [isOpen, attachmentIds]);
 
@@ -111,7 +114,7 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         try {
             const result = await getEditableExif({ attachment_id: id });
             if (result.supported) {
-                setFields({
+                const loaded: ExifFields = {
                     make: (result.make as string) || "",
                     model: (result.model as string) || "",
                     date_time_original: (result.date_time_original as string) || "",
@@ -122,7 +125,9 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
                     gps_lng: result.gps_lng != null ? String(result.gps_lng) : "",
                     copyright: (result.copyright as string) || "",
                     artist: (result.artist as string) || "",
-                });
+                };
+                setFields(loaded);
+                setLoadedFields(loaded);
             } else {
                 setErrors([(result.message as string) || "Cannot load EXIF data."]);
             }
@@ -171,13 +176,20 @@ export default function ExifEditModal({ isOpen, onClose, attachmentIds, onSaved 
         setErrors([]);
         setIsSaving(true);
 
+        // Single edit: a field that had a value and is now empty is cleared.
+        // Bulk edit: empty fields are skipped, never cleared.
+        const clear = isSingle
+            ? (Object.keys(fields) as (keyof ExifFields)[]).filter(
+                (key) => loadedFields[key].trim() !== "" && fields[key].trim() === ""
+            )
+            : [];
         let successCount = 0;
         let failCount = 0;
 
         try {
             for (const id of attachmentIds) {
                 try {
-                    const result = await saveExif({ attachment_id: id, fields });
+                    const result = await saveExif({ attachment_id: id, fields, clear });
                     if (result.success) {
                         successCount++;
                     } else {

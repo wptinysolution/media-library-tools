@@ -47,8 +47,12 @@ class ExifStripper {
 			];
 		}
 
-		// Get MIME type.
+		// Get MIME type: the attached file's when the stored one is not JPEG
+		// (WordPress keeps `image/heic` for HEIC uploads it converts to JPEG).
 		$mime_type = get_post_mime_type( $attachment_id );
+		if ( ! in_array( $mime_type, [ 'image/jpeg', 'image/jpg' ], true ) ) {
+			$mime_type = (string) wp_get_image_mime( $file_path );
+		}
 
 		// Only JPEG supported (best compatibility with GD library).
 		if ( ! in_array( $mime_type, [ 'image/jpeg', 'image/jpg' ], true ) ) {
@@ -136,11 +140,12 @@ class ExifStripper {
 		$mime_type = get_post_mime_type( $attachment_id );
 		$file_path = get_attached_file( $attachment_id );
 
-		// Check if JPEG.
-		$is_jpeg = in_array( $mime_type, [ 'image/jpeg', 'image/jpg' ], true );
-
 		// Check if file exists.
 		$file_exists = $file_path && file_exists( $file_path );
+
+		// Check if JPEG, by the attached file when the stored type differs.
+		$is_jpeg = in_array( $mime_type, [ 'image/jpeg', 'image/jpg' ], true )
+			|| ( $file_exists && 'image/jpeg' === wp_get_image_mime( $file_path ) );
 
 		// Try to read EXIF data.
 		$has_exif = false;
