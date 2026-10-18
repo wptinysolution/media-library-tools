@@ -942,7 +942,9 @@ class ExifDataReader {
 						$im = @imagecreatefrompng( $file_path );
 						if ( $im ) {
 							$other['alpha_channel'] = imageistruecolor( $im ) ? 'Yes' : 'No';
-							imagedestroy( $im );
+							if ( PHP_VERSION_ID < 80000 ) {
+								imagedestroy( $im ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated -- Required on PHP 7.4; skipped on 8.0+ where it is a no-op.
+							}
 						}
 					}
 				}

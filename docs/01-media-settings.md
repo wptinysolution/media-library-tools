@@ -123,6 +123,53 @@ Choose how descriptions are generated.
 
 ---
 
+### 5. EXIF on Upload
+
+Reads EXIF data from new JPEG, TIFF and WebP uploads. Every option is **off by default** and needs the PHP EXIF extension. Existing images are not affected.
+
+#### Setting: Process EXIF on Upload
+
+- **Label**: "Read EXIF data from new JPEG, TIFF and WebP uploads"
+- **What it does**: Stores each upload's camera (`_tsmlt_exif_camera`) and GPS location (`_tsmlt_exif_gps_lat`, `_tsmlt_exif_gps_lng`) as attachment meta, used by the media query's camera and has-GPS filters. Turns on the options below.
+- **Changes the file**: No
+
+#### Setting: Fill Missing Details from EXIF
+
+- **Label**: "Fill empty title, alt text and caption"
+- **What it does**: Fills only empty fields: the title from the camera make and model, the alt text from the file name, and the caption from the EXIF image description. WordPress usually sets a title from the file name, and the Alt Text setting above may already set alt text, so in practice this mostly fills the caption.
+- **Changes the file**: No
+
+#### Setting: Use Date Taken
+
+- **Label**: "Set the media upload date to the date the photo was taken"
+- **What it does**: Sets the attachment's date to the EXIF date taken (`DateTimeOriginal`, else `DateTime`). The file stays in its current upload folder.
+- **Changes the file**: No
+
+#### GPS removal on upload (Pro, no setting yet)
+
+The Pro plugin removes GPS data from new JPEG uploads when the `auto_remove_gps_on_upload` option is enabled, the **Process EXIF on Upload** switch is on and the Pro licence is active. There is no settings field for it yet; the free plugin never saves this option. Removal runs when WordPress adds the attachment, before it creates the scaled, rotated and resized copies, so those copies are made from the GPS-free file.
+
+The same GPS-only removal is used by the Pro bulk and batch GPS modes (the `tsmlt_bulk_remove_exif` AJAX action with `mode: "gps"` and `tsmlt_exif_strip_batch` with `gps_only`). The admin screens do not offer a button for them yet.
+
+What GPS-only removal does:
+- **JPEG only.** Other formats are left unchanged and reported as unsupported.
+- **Every JPEG file of the attachment**: the attached file, the original WordPress keeps for scaled or rotated images, every generated size, and the pre-edit files WordPress keeps after an image is edited. Sizes saved in another format (e.g. WebP) are skipped.
+- **EXIF**: the GPS directory pointer is removed and the GPS directory and its values are overwritten with zero bytes.
+- **XMP**: properties named `<prefix>:GPS…` (for example `exif:GPSLatitude`) are overwritten with spaces; the XMP stays well-formed.
+- **Nothing else changes**: the image is not decoded or re-encoded. Only those bytes are overwritten, so the file size, image data, orientation, other EXIF tags (camera, date, exposure), other XMP properties, ICC profiles and IPTC data stay byte-for-byte the same.
+- **Verified before it counts**: each edited file is checked for GPS and unchanged image data and dimensions, written to a temporary file, checked again, then moved over the original. Only when every file of the attachment passes is the attachment marked (`_tsmlt_exif_gps_removed`) and its stored location deleted — the EXIF filter index (`_tsmlt_exif_gps_lat`/`_lng`) and the coordinates saved by the EXIF editor. If any file fails, nothing is marked and the stored location is kept; files already cleaned stay clean, and running it again retries the rest.
+
+Known limitations:
+- Location text such as IPTC city or country fields is not removed.
+- GPS data stored inside camera maker notes is not detected or removed.
+- **Extended XMP** (XMP split across several segments) containing GPS is refused: the file is left unchanged.
+- An XMP packet is refused (left unchanged) when anything that looks like a `<prefix>:GPS…` name remains after removal — including such text inside an unrelated property value — or when it is not in a form that can be edited safely.
+- Malformed or truncated JPEGs, and files that cannot be written, are refused and left unchanged.
+
+**Removing all EXIF** (the EXIF Data page's **Remove EXIF Data** button and the Pro full strip) is different: it re-saves the attached JPEG through GD at quality 90, which removes all EXIF, XMP and ICC data, including the orientation tag, and recompresses the image. It processes only the attached file; the kept original, generated sizes and pre-edit files keep their metadata.
+
+---
+
 ## Step-by-Step Usage
 
 ### Enable SVG Upload Support
@@ -173,6 +220,9 @@ Choose how descriptions are generated.
 | Descriptions | Image name | Free | Filenames work as descriptions |
 | Descriptions | Custom text | Free | Need consistent descriptions |
 | Descriptions | Post title (Pro) | Pro | Want descriptions from post context |
+| EXIF on Upload | Process EXIF on upload | Free | Record camera and location of new uploads |
+| EXIF on Upload | Fill missing details | Free | Captions from the camera's image description |
+| EXIF on Upload | Use date taken | Free | Media Library dates should match when photos were taken |
 
 ---
 

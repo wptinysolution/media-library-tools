@@ -26,7 +26,10 @@ class ExifExposureTimeFormatTest extends WP_UnitTestCase {
 	 */
 	private function format( $value ): string {
 		$method = new ReflectionMethod( ExifDataReader::class, 'format_exposure_time' );
-		$method->setAccessible( true );
+		// Needed before PHP 8.1; deprecated (a no-op) from 8.5.
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method->invoke( ExifDataReader::instance(), $value );
 	}
 

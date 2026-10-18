@@ -669,6 +669,12 @@ class Fns {
 			'conversion_generated_sizes'     => 0,
 			'conversion_auto_on_upload'      => 0,
 			'conversion_serve_modern'        => 0,
+			// EXIF processing on upload — every rule off until an administrator
+			// opts in. GPS removal is Pro-only and has no settings field.
+			'auto_process_exif'              => 0,
+			'auto_fill_metadata_from_exif'   => 0,
+			'auto_set_date_from_exif'        => 0,
+			'auto_remove_gps_on_upload'      => 0,
 
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );

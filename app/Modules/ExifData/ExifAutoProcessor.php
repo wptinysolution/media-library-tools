@@ -64,7 +64,7 @@ class ExifAutoProcessor {
 		}
 
 		// Apply auto-processing rules.
-		$this->apply_rules( $attachment_id, $exif_data, $options );
+		$this->apply_rules( $attachment_id, $file_path, $exif_data, $options );
 	}
 
 	/**
@@ -86,21 +86,26 @@ class ExifAutoProcessor {
 	/**
 	 * Apply auto-processing rules based on settings.
 	 *
-	 * @param int   $attachment_id The attachment ID.
-	 * @param array $exif_data     Raw EXIF data.
-	 * @param array $options       Plugin options.
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $file_path     Path to the uploaded file.
+	 * @param array  $exif_data     Raw EXIF data.
+	 * @param array  $options       Plugin options.
 	 *
 	 * @return void
 	 */
-	private function apply_rules( int $attachment_id, array $exif_data, array $options ): void {
-		// Always store EXIF meta for filtering/sorting.
-		ExifFilter::store_exif_meta( $attachment_id, $exif_data );
+	private function apply_rules( int $attachment_id, string $file_path, array $exif_data, array $options ): void {
+		// EXIF stored for filtering/sorting: read again after a GPS removal, so the
+		// stored location reflects the file whether or not the removal succeeded.
+		$index_data = $exif_data;
 
-		// Rule 1: Remove GPS if enabled (also clean up stored GPS meta).
-		if ( ! empty( $options['auto_remove_gps_on_upload'] ) ) {
-			$this->remove_gps_metadata( $attachment_id );
-			ExifFilter::remove_gps_meta( $attachment_id );
+		// Rule 1: Remove GPS if enabled (Pro).
+		if ( ! empty( $options['auto_remove_gps_on_upload'] ) && $this->remove_gps_metadata( $attachment_id ) ) {
+			clearstatcache( true, $file_path );
+			ExifDataReader::clear_cache();
+			$index_data = $this->read_exif( $file_path );
 		}
+
+		ExifFilter::store_exif_meta( $attachment_id, $index_data );
 
 		// Rule 2: Fill missing metadata from EXIF.
 		if ( ! empty( $options['auto_fill_metadata_from_exif'] ) ) {
@@ -125,21 +130,28 @@ class ExifAutoProcessor {
 	/**
 	 * Remove GPS metadata from attachment by requesting Pro's stripper.
 	 *
+	 * GPS removal is a Pro feature: the free plugin only fires the hook, and
+	 * only while the Pro licence is active.
+	 *
 	 * @param int $attachment_id The attachment ID.
 	 *
-	 * @return void
+	 * @return bool Whether the hook was fired.
 	 */
-	private function remove_gps_metadata( int $attachment_id ): void {
-		// Only process if Pro plugin is available.
-		if ( ! function_exists( 'tsmltpro' ) ) {
-			return;
+	private function remove_gps_metadata( int $attachment_id ): bool {
+		if ( ! tsmlt()->has_pro() ) {
+			return false;
 		}
 
 		/**
-		 * Allow Pro plugin to handle GPS removal.
-		 * Pro plugin should hook here and call ExifStripper if available.
+		 * Fires when an uploaded image should have its GPS data removed.
+		 *
+		 * The Pro plugin hooks here to do the removal.
+		 *
+		 * @param int $attachment_id The attachment ID.
 		 */
 		do_action( 'tsmlt_auto_remove_gps_on_upload', $attachment_id );
+
+		return true;
 	}
 
 	/**

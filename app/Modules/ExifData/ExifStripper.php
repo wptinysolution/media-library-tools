@@ -98,7 +98,10 @@ class ExifStripper {
 		// Save image back to file (GD functions automatically strip EXIF).
 		// Quality set to 90 to maintain visual quality while removing metadata.
 		$result = @imagejpeg( $image, $file_path, 90 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		@imagedestroy( $image ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		// GD images are objects freed automatically from PHP 8.0; the call is deprecated from 8.5.
+		if ( PHP_VERSION_ID < 80000 ) {
+			imagedestroy( $image ); // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated -- Required on PHP 7.4; skipped on 8.0+ where it is a no-op.
+		}
 
 		if ( ! $result ) {
 			// Restore backup.
