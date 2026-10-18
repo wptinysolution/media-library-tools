@@ -1064,6 +1064,14 @@ class ExifDataReader {
 		$mime     = get_post_mime_type( $attachment_id );
 		$is_jpeg  = in_array( $mime, [ 'image/jpeg', 'image/jpg' ], true );
 
+		// The stored MIME type can differ from the attached file: WordPress
+		// converts HEIC uploads to JPEG but keeps `image/heic`. Read the file's
+		// EXIF whenever the attached file itself is a JPEG.
+		if ( ! $is_jpeg ) {
+			$attached = get_attached_file( $attachment_id );
+			$is_jpeg  = $attached && file_exists( $attached ) && 'image/jpeg' === wp_get_image_mime( $attached );
+		}
+
 		// For non-JPEG images, return fields stored in post meta (if any).
 		if ( ! $is_jpeg ) {
 			$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );

@@ -511,6 +511,133 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 	}
 
 	// ---------------------------------------------------------------------
+	// Stored MIME type differs from the file (HEIC converted to JPEG)
+	// ---------------------------------------------------------------------
+
+	/**
+	 * Give an attachment the stored MIME type WordPress keeps for an HEIC
+	 * upload it converted to JPEG.
+	 *
+	 * @param int $id Attachment ID.
+	 *
+	 * @return int The same ID.
+	 */
+	private function as_heic( int $id ): int {
+		wp_update_post(
+			[
+				'ID'             => $id,
+				'post_mime_type' => 'image/heic',
+			]
+		);
+		clean_post_cache( $id );
+		$this->assertSame( 'image/heic', get_post_mime_type( $id ), 'Precondition: stored MIME type is HEIC.' );
+		return $id;
+	}
+
+	/**
+	 * Stored MIME `image/heic` with an attached JPEG: the JPEG's EXIF is read.
+	 */
+	public function test_heic_mime_with_jpeg_file_reads_file_exif() {
+		$id = $this->as_heic( $this->upload_exif_jpeg() );
+
+		$result = $this->run_ability( [ 'id' => $id ] );
+
+		$this->assert_valid_output( $result );
+		$this->assertSame(
+			[
+				'id'        => $id,
+				'supported' => true,
+				'source'    => 'file',
+				'fields'    => [
+					'make'               => 'TestCam',
+					'model'              => 'Model X1',
+					'date_time_original' => '2026:03:14 09:26:53',
+					'iso'                => 400,
+					'aperture'           => 1.8,
+					'shutter_speed'      => '1/250',
+				],
+			],
+			$result
+		);
+
+		$json = wp_json_encode( $result );
+		foreach ( [ self::SERIAL, self::COPYRIGHT, self::ARTIST, '51.5', '-0.1', 'gps', 'GPS', 'latitude', 'longitude', 'location' ] as $needle ) {
+			$this->assertStringNotContainsString( $needle, $json, $needle );
+		}
+	}
+
+	/**
+	 * Stored MIME `image/heic` with an attached JPEG: saved editor fields
+	 * still win over the file.
+	 */
+	public function test_heic_mime_with_jpeg_file_prefers_stored_fields() {
+		$id = $this->as_heic( $this->upload_exif_jpeg() );
+		update_post_meta(
+			$id,
+			'_tsmlt_exif_meta',
+			[
+				'make' => 'Edited',
+				'iso'  => 800,
+			]
+		);
+
+		$result = $this->run_ability( [ 'id' => $id ] );
+
+		$this->assert_valid_output( $result );
+		$this->assertSame( 'stored', $result['source'] );
+		$this->assertSame( 'Edited', $result['fields']['make'] );
+		$this->assertSame( 800, $result['fields']['iso'] );
+		$this->assertSame( 'Model X1', $result['fields']['model'], 'Fields not saved still come from the file.' );
+	}
+
+	/**
+	 * Stored MIME `image/heic` with a file that is not a JPEG keeps the
+	 * saved-fields behavior.
+	 */
+	public function test_heic_mime_with_non_jpeg_file_uses_stored_fields() {
+		$id = $this->as_heic( $this->upload_test_image( 'test-image.png' ) );
+
+		$this->assertSame(
+			[
+				'id'        => $id,
+				'supported' => true,
+				'source'    => 'none',
+				'fields'    => self::NO_FIELDS,
+			],
+			$this->run_ability( [ 'id' => $id ] )
+		);
+
+		update_post_meta( $id, '_tsmlt_exif_meta', self::stored_fields() );
+		$result = $this->run_ability( [ 'id' => $id ] );
+
+		$this->assertSame( 'stored', $result['source'] );
+		$this->assertSame( 'Canon', $result['fields']['make'] );
+	}
+
+	/**
+	 * Stored MIME `image/heic` with a missing file keeps the saved-fields
+	 * behavior.
+	 */
+	public function test_heic_mime_with_missing_file_uses_stored_fields() {
+		$id = self::factory()->attachment->create(
+			[
+				'post_mime_type' => 'image/heic',
+				'file'           => '2026/10/missing.heic',
+			]
+		);
+
+		$this->assertSame(
+			[
+				'id'        => $id,
+				'supported' => true,
+				'source'    => 'none',
+				'fields'    => self::NO_FIELDS,
+			],
+			$this->run_ability( [ 'id' => $id ] )
+		);
+	}
+
+	// ---------------------------------------------------------------------
 	// Privacy and side effects
 	// ---------------------------------------------------------------------
 
