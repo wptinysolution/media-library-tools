@@ -245,11 +245,13 @@ class McpScopedServerTest extends WP_UnitTestCase {
 		$names = wp_list_pluck( $tools, 'name' );
 		sort( $names );
 
-		$this->assertSame( [ 'tsmlt-get-media-details', 'tsmlt-search-media', 'tsmlt-update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt-get-exif-fields', 'tsmlt-get-media-details', 'tsmlt-search-media', 'tsmlt-update-media-metadata' ], $names );
 
 		$by_name = array_column( $tools, null, 'name' );
 		$this->assertTrue( $by_name['tsmlt-search-media']['annotations']['readOnlyHint'] );
 		$this->assertTrue( $by_name['tsmlt-get-media-details']['annotations']['readOnlyHint'] );
+		$this->assertTrue( $by_name['tsmlt-get-exif-fields']['annotations']['readOnlyHint'] );
+		$this->assertFalse( $by_name['tsmlt-get-exif-fields']['inputSchema']['additionalProperties'] );
 		$this->assertFalse( $by_name['tsmlt-update-media-metadata']['annotations']['readOnlyHint'] );
 		$this->assertTrue( $by_name['tsmlt-update-media-metadata']['annotations']['destructiveHint'] );
 		$this->assertFalse( $by_name['tsmlt-update-media-metadata']['inputSchema']['additionalProperties'] );

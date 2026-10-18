@@ -1,15 +1,16 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details, and update media text fields on your behalf. It has been tested with Claude Code and the official MCP Inspector.
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, and update media text fields on your behalf. It has been tested with Claude Code and the official MCP Inspector.
 
 ## Overview
 
 The integration lets an AI assistant:
 - Search the media library (by text, MIME type, or attachments missing alt text)
 - Read the details of one attachment
+- Read an image's camera and exposure EXIF fields (make, model, date taken, ISO, aperture, shutter speed)
 - Update an attachment's title, alt text, caption, and description
 
-None of the three tools can rename, move, upload, or delete files. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these three tools.
+None of the tools can rename, move, upload, or delete files, or change EXIF data. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -24,9 +25,10 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 |---|---|---|
 | `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page) | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
+| `tsmlt-get-exif-fields` | Returns one image's camera make and model, date taken, ISO, aperture and shutter speed — read from the JPEG file, or from values saved in the EXIF editor for any image type. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
 
-**What is never returned**: server file paths, raw attachment metadata, EXIF data (including GPS location), or custom fields.
+**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the six fields listed above.
 
 **What is never changed**: the file itself, its name or URL, the attached post, or any other attachment.
 
@@ -38,7 +40,7 @@ Once the MCP Adapter is active, your site has two MCP endpoints:
 
 | Endpoint | URL | Exposes |
 |---|---|---|
-| **Media Library Tools (recommended)** | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the three Media Library Tools tools above. Administrators only (`manage_options`) |
+| **Media Library Tools (recommended)** | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the Media Library Tools tools above. Administrators only (`manage_options`) |
 | MCP Adapter default server | `https://your-site.com/wp-json/mcp/mcp-adapter-default-server` | Every public ability from **every** plugin on the site, including abilities that change or delete data |
 
 ### Which endpoint should I use?
@@ -55,8 +57,8 @@ The default server exposes **abilities** registered through the WordPress Abilit
 
 The MCP Adapter's default server is a gateway: its *discover* and *execute* tools reach every ability any plugin registers as public — not only Media Library Tools. Other plugins' abilities can be write-capable: on a WooCommerce site, for example, they include abilities that create, update, or delete products and change order status. An assistant connected to the default server with an administrator password can use all of them. Any logged-in user can also list those abilities and their input schemas there, although each ability still checks its own permissions before it runs.
 
-The dedicated endpoint limits exposure to the three Media Library Tools abilities:
-- It lists only those three tools. Calls to any other tool — including the MCP Adapter's own discover/execute gateway tools — are refused with "Tool not found".
+The dedicated endpoint limits exposure to the Media Library Tools abilities:
+- It lists only those tools. Calls to any other tool — including the MCP Adapter's own discover/execute gateway tools — are refused with "Tool not found".
 - It requires an administrator account (`manage_options`) before a session can even start, so other roles cannot list the tools.
 - Each tool still runs every check described under [Access Control](#access-control).
 
@@ -124,7 +126,7 @@ These clients connect through the `@automattic/mcp-wordpress-remote` helper, doc
 ```
 
 3. Put in your Application Password, save the file, then fully quit and reopen Claude Desktop.
-4. In a new chat, open the tools menu: the three Media Library Tools tools should be listed.
+4. In a new chat, open the tools menu: the Media Library Tools tools should be listed.
 
 The **Media → MCP Docs** page shows this configuration with your site URL and username already filled in.
 
@@ -133,11 +135,12 @@ The **Media → MCP Docs** page shows this configuration with your site URL and 
 Ask your assistant something like:
 - "Find images in the media library that have no alt text."
 - "Show me the details of attachment 1234."
+- "Which camera and settings were used for attachment 1234?"
 - "Write alt text for attachment 1234 and save it."
 
 ## Using the MCP Adapter Default Server (optional)
 
-The same three tools can also be reached through the MCP Adapter's default server:
+The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields` is offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -208,7 +211,7 @@ The assistant usually discovers the ability first, then runs it. You can also na
 
 | | Dedicated endpoint | Default server |
 |---|---|---|
-| Tools the client sees | The three Media Library Tools tools | Three gateway tools that can run any public ability, from every plugin |
+| Tools the client sees | The Media Library Tools tools | Three gateway tools that can run any public ability, from every plugin |
 | Who can connect | Administrators only | Any logged-in user can list abilities; running a Media Library Tools ability still requires an administrator |
 
 ## Access Control
@@ -217,7 +220,7 @@ On the dedicated endpoint:
 
 | Who | Result |
 |---|---|
-| Administrators | Can use all three tools |
+| Administrators | Can use all the tools |
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
@@ -241,5 +244,5 @@ Each site in a network has its own endpoints, and access requires `manage_option
 | `404` from `/wp-json/media-library-tools/mcp` | MCP Adapter not active, or WordPress older than 6.9 | Activate the MCP Adapter on WordPress 6.9+ |
 | `401 Unauthorized` | Missing or wrong Application Password, or wrong username | Recreate the password and update the client configuration |
 | `403 Forbidden` | The account is not an administrator | Use an administrator account |
-| "Tool not found" | The tool belongs to another plugin, or is an MCP Adapter gateway tool | Expected — the dedicated endpoint only offers the three tools above |
+| "Tool not found" | The tool belongs to another plugin, or is an MCP Adapter gateway tool | Expected — the dedicated endpoint only offers the tools above |
 | Schema warnings in MCP Inspector about `get-media-details` | Some output fields can be `null`, written as a type list (valid JSON Schema 2020-12, which MCP uses by default) | Informational; no action needed |

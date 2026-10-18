@@ -223,7 +223,7 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 			)
 		);
 		sort( $names );
-		$this->assertSame( [ 'tsmlt/get-media-details', 'tsmlt/search-media', 'tsmlt/update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/search-media', 'tsmlt/update-media-metadata' ], $names );
 	}
 
 	// ---------------------------------------------------------------------

@@ -73,7 +73,7 @@ class AbilitiesProIndependenceTest extends TestCase {
 		$pro = $this->definitions();
 
 		$this->assertSame( $free, $pro );
-		$this->assertSame( [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ], $pro['names'] );
+		$this->assertSame( [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields' ], $pro['names'] );
 	}
 
 	/**

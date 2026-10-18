@@ -44,7 +44,7 @@ class McpServerExtensionTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ];
+	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields' ];
 
 	/**
 	 * Register the stand-in abilities (and the other test category).

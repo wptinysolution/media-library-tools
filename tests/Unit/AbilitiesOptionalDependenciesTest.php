@@ -101,11 +101,11 @@ class AbilitiesOptionalDependenciesTest extends TestCase {
 
 	/**
 	 * Listing ability names needs no Abilities API, so the scoped server's
-	 * tool list is always the three Free abilities.
+	 * tool list is always the Free abilities.
 	 */
 	public function test_ability_names_without_abilities_api() {
 		$this->assertSame(
-			[ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ],
+			[ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields' ],
 			AbilitiesInit::instance()->get_ability_names()
 		);
 	}

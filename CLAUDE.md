@@ -45,7 +45,7 @@ app/                           # PHP source (PSR-4: TinySolutions\mlt\)
     AbilityGuard.php           # manage_options check, attachment validation, stable WP_Error codes
     MediaPresenter.php         # Allowlisted attachment output (no paths, raw metadata, EXIF or custom meta)
     McpServerRegistration.php  # Dedicated MCP server at /wp-json/media-library-tools/mcp
-    Media/SearchMedia.php, GetMediaDetails.php, UpdateMediaMetadata.php
+    Media/SearchMedia.php, GetMediaDetails.php, UpdateMediaMetadata.php, GetExifFields.php
 src/js/                        # React frontend source
   Component/
     DataTable/                 # Main media table (list, edit, bulk actions)
@@ -97,10 +97,10 @@ ajaxPost('tsmlt_action_name', { key: value })
 ```
 
 ### MCP / Abilities API
-AI assistants reach three abilities — `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata` — through the WordPress Abilities API (core, WP 6.9+) and the official MCP Adapter plugin. Everything is skipped when either is missing.
-- **Endpoints:** `McpServerRegistration` creates a dedicated server at `/wp-json/media-library-tools/mcp` that exposes only these three tools and requires `manage_options` at the transport. The adapter's default server (`/wp-json/mcp/mcp-adapter-default-server`) also lists them, alongside every other plugin's public abilities — recommend the dedicated endpoint (see `docs/12-mcp-integration.md`).
+AI assistants reach four abilities — `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields` — through the WordPress Abilities API (core, WP 6.9+) and the official MCP Adapter plugin. Everything is skipped when either is missing.
+- **Endpoints:** `McpServerRegistration` creates a dedicated server at `/wp-json/media-library-tools/mcp` that exposes only these tools and requires `manage_options` at the transport. The adapter's default server (`/wp-json/mcp/mcp-adapter-default-server`) also lists the three MCP-public ones (`get-exif-fields` sets `meta.mcp.public` false via `Ability::is_mcp_public()`), alongside every other plugin's public abilities — recommend the dedicated endpoint (see `docs/12-mcp-integration.md`).
 - **Permissions:** every ability requires `manage_options`, plus `read_post` (and `edit_post` for updates) on the specific attachment. Inaccessible attachments are reported as not found. Permission callbacks return `bool`; core turns a `WP_Error` there into `_doing_it_wrong`.
-- **Input/output:** schemas set `additionalProperties: false`; execution code still sanitizes. Output goes only through `MediaPresenter`.
+- **Input/output:** schemas set `additionalProperties: false`; execution code still sanitizes. Output goes only through `MediaPresenter`, except `GetExifFields`, which builds its own allowlist (make, model, date taken, ISO, aperture, shutter speed — never GPS, copyright, artist or raw EXIF).
 - **Writes:** `UpdateMediaMetadata` uses `wp_update_post()` / `update_post_meta()` with `wp_slash()`. Never route ability writes through `RenameModule::update_single_media()` — it dispatches to rename or bulk-edit depending on the keys present.
 - **Adding an ability:** extend `Abs\Ability`, use `SingletonTrait`, add it to `AbilitiesInit::get_abilities()` (the dedicated server picks it up automatically), then run `php generate-autoload.php`.
 

@@ -281,6 +281,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-exif-fields</code></td>
+							<td><?php esc_html_e( 'Returns one image\'s camera make and model, date taken, ISO, aperture and shutter speed, from the JPEG file or values saved in the EXIF editor. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-update-media-metadata</code></td>
 							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
@@ -288,7 +293,7 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, EXIF data (including GPS location), or custom fields. They never rename, move, upload, or delete files.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or change EXIF data.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 
@@ -297,7 +302,7 @@ class McpDocsPage {
 				<p><?php esc_html_e( 'Connect your assistant to the dedicated Media Library Tools endpoint:', 'media-library-tools' ); ?></p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $endpoint ); ?></code></p>
 				<p>
-					<?php esc_html_e( 'It offers only the three tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'It offers only the tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
 				</p>
 				<p>
 					<?php
@@ -376,7 +381,7 @@ class McpDocsPage {
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $json_config ); ?></code></pre>
 				<ol start="3">
 					<li><?php esc_html_e( 'Replace "your application password" with the Application Password from step 2, save the file, and fully quit and reopen Claude Desktop.', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( 'In a new chat, open the tools menu: the three Media Library Tools tools should be listed.', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'In a new chat, open the tools menu: the Media Library Tools tools should be listed.', 'media-library-tools' ); ?></li>
 				</ol>
 
 				<h3><?php esc_html_e( '4. Try it', 'media-library-tools' ); ?></h3>
@@ -390,7 +395,7 @@ class McpDocsPage {
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the same three tools through the MCP Adapter\'s default server. It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'You can also reach the search, details and update tools through the MCP Adapter\'s default server (the EXIF fields tool is offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 
@@ -406,7 +411,7 @@ class McpDocsPage {
 					<tbody>
 						<tr>
 							<td><?php esc_html_e( 'Tools the client sees', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'The three Media Library Tools tools', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'The Media Library Tools tools', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -473,7 +478,7 @@ class McpDocsPage {
 					<tbody>
 						<tr>
 							<td><?php esc_html_e( 'Administrators', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'Can use all three tools.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Can use all the tools.', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><?php esc_html_e( 'Editors, authors, and other roles', 'media-library-tools' ); ?></td>
@@ -522,7 +527,7 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><?php esc_html_e( '"Tool not found"', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'Expected for any tool other than the three above — the dedicated endpoint offers only those.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Expected for any tool other than those above — the dedicated endpoint offers only those.', 'media-library-tools' ); ?></td>
 						</tr>
 					</tbody>
 				</table>

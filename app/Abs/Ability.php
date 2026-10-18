@@ -80,6 +80,17 @@ abstract class Ability {
 	abstract public function execute( $input = null );
 
 	/**
+	 * Whether the MCP Adapter's default gateway may offer this ability
+	 * (`meta.mcp.public`). The dedicated Media Library Tools server lists every
+	 * free ability regardless.
+	 *
+	 * @return bool
+	 */
+	protected function is_mcp_public(): bool {
+		return true;
+	}
+
+	/**
 	 * Permission callback.
 	 *
 	 * Every ability requires the plugin's base capability. Implementations that
@@ -122,7 +133,7 @@ abstract class Ability {
 					// Read by the MCP Adapter. `meta.mcp.public` is used rather than
 					// core's `meta.public`, which only exists from WordPress 7.1.
 					'mcp'          => [
-						'public' => true,
+						'public' => $this->is_mcp_public(),
 						'type'   => 'tool',
 					],
 				],

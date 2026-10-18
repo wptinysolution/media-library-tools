@@ -188,7 +188,7 @@ class GetMediaDetailsAbilityTest extends WP_UnitTestCase {
 			)
 		);
 		sort( $names );
-		$this->assertSame( [ 'tsmlt/get-media-details', 'tsmlt/search-media', 'tsmlt/update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/search-media', 'tsmlt/update-media-metadata' ], $names );
 
 		$hooked = 0;
 		foreach ( $GLOBALS['wp_filter']['wp_abilities_api_init']->callbacks as $callbacks ) {

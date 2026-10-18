@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Abs\Ability;
+use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
 use TinySolutions\mlt\Abilities\Media\SearchMedia;
 use TinySolutions\mlt\Abilities\Media\UpdateMediaMetadata;
@@ -117,6 +118,7 @@ class AbilitiesInit {
 			SearchMedia::instance(),
 			GetMediaDetails::instance(),
 			UpdateMediaMetadata::instance(),
+			GetExifFields::instance(),
 		];
 	}
 }

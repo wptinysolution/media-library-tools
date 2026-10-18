@@ -33,11 +33,18 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 	use DefaultGatewayClientTrait;
 
 	/**
-	 * The Free abilities, in registration order.
+	 * The MCP-public Free abilities, in registration order.
 	 *
 	 * @var string[]
 	 */
 	const FREE_ABILITIES = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ];
+
+	/**
+	 * A Free ability that is not MCP-public: offered only on the dedicated server.
+	 *
+	 * @var string
+	 */
+	const FREE_NON_PUBLIC_ABILITY = 'tsmlt/get-exif-fields';
 
 	/**
 	 * Input properties each Free ability accepts.
@@ -187,6 +194,7 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 
 		$names = array_column( $result['structuredContent']['abilities'], 'name' );
 		$this->assertNotContains( self::HIDDEN_ABILITY, $names );
+		$this->assertNotContains( self::FREE_NON_PUBLIC_ABILITY, $names );
 		foreach ( $names as $name ) {
 			$this->assertStringNotContainsString( 'tsmltpro', $name, 'No Pro ability may be listed.' );
 		}
@@ -273,6 +281,28 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 		);
 		$this->assertArrayNotHasKey( 'structuredContent', $result );
 		$this->assertStringNotContainsString( 'Not exposed via MCP.', wp_json_encode( $result ) );
+	}
+
+	/**
+	 * The non-public Free ability is registered, but ability info refuses it
+	 * and execution through the gateway is refused, without any EXIF.
+	 */
+	public function test_non_public_free_ability_is_refused() {
+		$this->assertInstanceOf( WP_Ability::class, wp_get_ability( self::FREE_NON_PUBLIC_ABILITY ), 'Precondition: registered.' );
+		$this->gw_connect_as( 'administrator' );
+
+		$info = $this->gw_call( 'mcp-adapter-get-ability-info', [ 'ability_name' => self::FREE_NON_PUBLIC_ABILITY ] );
+		$this->assertTrue( $info['isError'], wp_json_encode( $info ) );
+		$this->assertSame(
+			sprintf( 'Ability "%s" is not exposed via MCP (mcp.public!=true)', self::FREE_NON_PUBLIC_ABILITY ),
+			$info['content'][0]['text']
+		);
+		$this->assertArrayNotHasKey( 'structuredContent', $info );
+
+		$id       = $this->gw_make_attachment( 'EXIF gateway probe' );
+		$executed = $this->gw_call( 'mcp-adapter-execute-ability', self::gw_execute_args( self::FREE_NON_PUBLIC_ABILITY, [ 'id' => $id ] ) );
+		$this->assertTrue( $executed['isError'], wp_json_encode( $executed ) );
+		$this->assertStringNotContainsString( '"fields"', wp_json_encode( $executed ) );
 	}
 
 	/**
