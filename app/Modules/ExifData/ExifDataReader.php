@@ -67,6 +67,13 @@ class ExifDataReader {
 
 		$mime = get_post_mime_type( $attachment_id );
 
+		// The stored MIME type can differ from the attached file (WordPress keeps
+		// `image/heic` for HEIC uploads it converts to JPEG): when it is not
+		// supported, go by the attached file's actual type.
+		if ( ! in_array( $mime, $this->supported_mimes, true ) ) {
+			$mime = $this->attached_file_mime( $attachment_id );
+		}
+
 		// Check if MIME type is supported.
 		if ( ! in_array( $mime, $this->supported_mimes, true ) ) {
 			$result                             = [
@@ -123,6 +130,22 @@ class ExifDataReader {
 		];
 		self::$exif_cache[ $attachment_id ] = $result;
 		return $result;
+	}
+
+	/**
+	 * Actual image type of the attached file, from its content.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 *
+	 * @return string MIME type, or '' when the file is missing or not an image.
+	 */
+	private function attached_file_mime( int $attachment_id ): string {
+		$file = get_attached_file( $attachment_id );
+		if ( ! $file || ! file_exists( $file ) ) {
+			return '';
+		}
+
+		return (string) wp_get_image_mime( $file );
 	}
 
 	/**
@@ -1068,8 +1091,7 @@ class ExifDataReader {
 		// converts HEIC uploads to JPEG but keeps `image/heic`. Read the file's
 		// EXIF whenever the attached file itself is a JPEG.
 		if ( ! $is_jpeg ) {
-			$attached = get_attached_file( $attachment_id );
-			$is_jpeg  = $attached && file_exists( $attached ) && 'image/jpeg' === wp_get_image_mime( $attached );
+			$is_jpeg = 'image/jpeg' === $this->attached_file_mime( $attachment_id );
 		}
 
 		// For non-JPEG images, return fields stored in post meta (if any).
