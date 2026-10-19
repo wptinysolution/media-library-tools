@@ -32,6 +32,10 @@ class McpAdapterActivationAjaxTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		// _handleAjax() fires admin_init; keep core's update checks off the network.
+		remove_action( 'admin_init', '_maybe_update_core' );
+		remove_action( 'admin_init', '_maybe_update_plugins' );
+		remove_action( 'admin_init', '_maybe_update_themes' );
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$file = WP_PLUGIN_DIR . '/' . McpDocsPage::ADAPTER_PLUGIN_FILE;

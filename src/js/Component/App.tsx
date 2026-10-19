@@ -36,7 +36,7 @@ import ConvertPage from "@/js/Component/Compress/ConvertPage";
 import ProUpgradeBanner from "@/js/Component/ProUpgradeBanner";
 import ExifDataPage from "@/js/Component/ExifData/ExifDataPage";
 
-function ScrollToTopOnRouteChange({ targetRef }: { targetRef: React.RefObject<HTMLDivElement> }) {
+function ScrollToTopOnRouteChange({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) {
     const { pathname } = useLocation();
     useEffect(() => {
         targetRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });

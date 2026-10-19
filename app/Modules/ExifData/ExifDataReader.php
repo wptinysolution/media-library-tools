@@ -1079,6 +1079,11 @@ class ExifDataReader {
 	/**
 	 * Get editable EXIF fields for an attachment in a flat structure.
 	 *
+	 * For a JPEG (by stored MIME type or by the attached file) the values come
+	 * from the file, overlaid with the fields saved by the EXIF editor;
+	 * `writes_file` is true. Other formats report the saved fields only, with
+	 * `writes_file` false: their files are never edited.
+	 *
 	 * @param int $attachment_id The attachment ID.
 	 *
 	 * @return array Editable EXIF fields.
@@ -1098,22 +1103,8 @@ class ExifDataReader {
 		if ( ! $is_jpeg ) {
 			$meta = get_post_meta( $attachment_id, '_tsmlt_exif_meta', true );
 			$meta = is_array( $meta ) ? $meta : [];
-			return array_merge(
-				[
-					'supported'          => true,
-					'make'               => '',
-					'model'              => '',
-					'date_time_original' => '',
-					'iso'                => null,
-					'aperture'           => null,
-					'shutter_speed'      => null,
-					'gps_lat'            => null,
-					'gps_lng'            => null,
-					'copyright'          => '',
-					'artist'             => '',
-				],
-				$meta
-			);
+			$base = $this->editable_defaults();
+			return array_merge( $base, array_intersect_key( $meta, $base ), [ 'writes_file' => false ] );
 		}
 
 		$file_path = get_attached_file( $attachment_id );
@@ -1134,31 +1125,33 @@ class ExifDataReader {
 		$raw = @exif_read_data( $file_path, null, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		// Build base fields from file EXIF (may be empty if file has no EXIF sections).
-		$base = [
-			'supported'          => true,
-			'make'               => '',
-			'model'              => '',
-			'date_time_original' => '',
-			'iso'                => null,
-			'aperture'           => null,
-			'shutter_speed'      => null,
-			'gps_lat'            => null,
-			'gps_lng'            => null,
-			'copyright'          => '',
-			'artist'             => '',
-		];
+		$base = $this->editable_defaults();
 
 		if ( is_array( $raw ) && ! empty( $raw ) ) {
-			$base['make']                = $this->find_exif_field( $raw, 'Make', '' );
-			$base['model']               = $this->find_exif_field( $raw, 'Model', '' );
-			$base['date_time_original']  = $this->find_exif_field( $raw, 'DateTimeOriginal', '' ) ?: $this->find_exif_field( $raw, 'DateTime', '' );
-			$base['iso']                 = $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) );
-			$base['aperture']            = $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) );
-			$base['shutter_speed']       = $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) );
-			$base['gps_lat']             = $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' );
-			$base['gps_lng']             = $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' );
-			$base['copyright']           = $this->find_exif_field( $raw, 'Copyright', '' );
-			$base['artist']              = $this->find_exif_field( $raw, 'Artist', '' );
+			$base['make']                  = $this->find_exif_field( $raw, 'Make', '' );
+			$base['model']                 = $this->find_exif_field( $raw, 'Model', '' );
+			$base['lens_make']             = $this->exif_text( $raw, 'EXIF', 'LensMake', 0xA433 );
+			$base['lens_model']            = $this->exif_text( $raw, 'EXIF', 'LensModel', 0xA434 );
+			$base['software']              = $this->exif_text( $raw, 'IFD0', 'Software', 0x0131 );
+			$base['date_time_original']    = $this->find_exif_field( $raw, 'DateTimeOriginal', '' ) ?: $this->find_exif_field( $raw, 'DateTime', '' );
+			$base['offset_time_original']  = $this->exif_text( $raw, 'EXIF', 'OffsetTimeOriginal', 0x9011 );
+			$base['date_time_digitized']   = $this->exif_text( $raw, 'EXIF', 'DateTimeDigitized', 0x9004 );
+			$base['offset_time_digitized'] = $this->exif_text( $raw, 'EXIF', 'OffsetTimeDigitized', 0x9012 );
+			$base['iso']                   = $this->parse_iso( $this->find_exif_field( $raw, 'ISOSpeedRatings' ) );
+			$base['aperture']              = $this->parse_aperture( $this->find_exif_field( $raw, 'FNumber' ) );
+			$base['shutter_speed']         = $this->parse_shutter_speed( $this->find_exif_field( $raw, 'ExposureTime' ) );
+			$base['focal_length']          = $this->parse_positive_decimal( $raw['EXIF']['FocalLength'] ?? null );
+			$base['exposure_program']      = $this->parse_code( $raw['EXIF']['ExposureProgram'] ?? null );
+			$base['exposure_mode']         = $this->parse_code( $raw['EXIF']['ExposureMode'] ?? null );
+			$base['metering_mode']         = $this->parse_code( $raw['EXIF']['MeteringMode'] ?? null );
+			$base['white_balance']         = $this->parse_code( $raw['EXIF']['WhiteBalance'] ?? null );
+			$base['flash']                 = $this->parse_code( $raw['EXIF']['Flash'] ?? null );
+			$base['gps_lat']               = $this->parse_gps_decimal( $raw, 'GPSLatitude', 'GPSLatitudeRef', 'S' );
+			$base['gps_lng']               = $this->parse_gps_decimal( $raw, 'GPSLongitude', 'GPSLongitudeRef', 'W' );
+			$base['gps_altitude']          = $this->parse_gps_altitude( $raw );
+			$base['copyright']             = $this->find_exif_field( $raw, 'Copyright', '' );
+			$base['artist']                = $this->find_exif_field( $raw, 'Artist', '' );
+			$base['image_description']     = $this->exif_text( $raw, 'IFD0', 'ImageDescription', 0x010E );
 		}
 
 		// Overlay saved meta — user-edited values always take precedence over file-based values.
@@ -1167,7 +1160,110 @@ class ExifDataReader {
 			$base = array_merge( $base, array_intersect_key( $meta, $base ) );
 		}
 
+		$base['writes_file'] = true;
+
 		return $base;
+	}
+
+	/**
+	 * Editable fields with no value.
+	 *
+	 * @return array
+	 */
+	private function editable_defaults(): array {
+		return [
+			'supported'             => true,
+			'make'                  => '',
+			'model'                 => '',
+			'lens_make'             => '',
+			'lens_model'            => '',
+			'software'              => '',
+			'date_time_original'    => '',
+			'offset_time_original'  => '',
+			'date_time_digitized'   => '',
+			'offset_time_digitized' => '',
+			'iso'                   => null,
+			'aperture'              => null,
+			'shutter_speed'         => null,
+			'focal_length'          => null,
+			'exposure_program'      => null,
+			'exposure_mode'         => null,
+			'metering_mode'         => null,
+			'white_balance'         => null,
+			'flash'                 => null,
+			'gps_lat'               => null,
+			'gps_lng'               => null,
+			'gps_altitude'          => null,
+			'copyright'             => '',
+			'artist'                => '',
+			'image_description'     => '',
+		];
+	}
+
+	/**
+	 * A text tag of one section, also found under the name PHP gives tags it
+	 * does not know ("UndefinedTag:0xA433" for LensMake on PHP 8.5).
+	 *
+	 * @param array  $raw     Raw EXIF data.
+	 * @param string $section Section.
+	 * @param string $name    Tag name.
+	 * @param int    $id      Tag ID.
+	 *
+	 * @return string Trimmed text, or '' when absent.
+	 */
+	private function exif_text( array $raw, string $section, string $name, int $id ): string {
+		$value = $raw[ $section ][ $name ] ?? $raw[ $section ][ sprintf( 'UndefinedTag:0x%04X', $id ) ] ?? null;
+		return is_string( $value ) ? trim( $value ) : '';
+	}
+
+	/**
+	 * Parse a coded SHORT value (Flash, MeteringMode, …); 0 is a valid code.
+	 *
+	 * @param mixed $value Raw value.
+	 *
+	 * @return int|null
+	 */
+	private function parse_code( $value ): ?int {
+		if ( is_array( $value ) ) {
+			$value = reset( $value );
+		}
+		return is_int( $value ) || ( is_string( $value ) && ctype_digit( $value ) ) ? (int) $value : null;
+	}
+
+	/**
+	 * Parse a positive rational (e.g. FocalLength "42/10") to two decimals.
+	 *
+	 * @param mixed $value Raw value.
+	 *
+	 * @return float|null
+	 */
+	private function parse_positive_decimal( $value ): ?float {
+		if ( null === $value || is_array( $value ) ) {
+			return null;
+		}
+		$float = $this->rational_to_float( $value );
+		return $float > 0 ? round( $float, 2 ) : null;
+	}
+
+	/**
+	 * Parse GPS altitude in metres, negative below sea level.
+	 *
+	 * @param array $raw Raw EXIF data.
+	 *
+	 * @return float|null
+	 */
+	private function parse_gps_altitude( array $raw ): ?float {
+		$value = $raw['GPS']['GPSAltitude'] ?? null;
+		if ( null === $value || is_array( $value ) || ! preg_match( '#^\d+(/[1-9]\d*)?$#', (string) $value ) ) {
+			return null;
+		}
+		// GPSAltitudeRef is a BYTE: PHP returns it as an integer or a one-byte string.
+		$ref = $raw['GPS']['GPSAltitudeRef'] ?? 0;
+		if ( is_string( $ref ) ) {
+			$ref = ctype_digit( $ref ) ? (int) $ref : ( '' === $ref ? 0 : ord( $ref ) );
+		}
+		$altitude = round( $this->rational_to_float( $value ), 2 );
+		return 1 === (int) $ref && $altitude > 0 ? -$altitude : $altitude;
 	}
 
 	/**

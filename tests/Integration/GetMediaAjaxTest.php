@@ -46,6 +46,10 @@ class GetMediaAjaxTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		// _handleAjax() fires admin_init; keep core's update checks off the network.
+		remove_action( 'admin_init', '_maybe_update_core' );
+		remove_action( 'admin_init', '_maybe_update_plugins' );
+		remove_action( 'admin_init', '_maybe_update_themes' );
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		delete_option( 'tsmlt_settings' );
 	}
