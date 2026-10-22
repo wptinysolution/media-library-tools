@@ -12,8 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Helpers\Fns;
 use WP_Error;
 use WP_Post;
+use WP_Term;
 
 /**
  * AbilityGuard — static authorization helpers and stable error responses.
@@ -66,6 +68,13 @@ class AbilityGuard {
 	 * @var string
 	 */
 	const ERROR_ATTACHMENT_NOT_FOUND = 'tsmlt_attachment_not_found';
+
+	/**
+	 * Error code: an ID is not a media group (a tsmlt_category term).
+	 *
+	 * @var string
+	 */
+	const ERROR_GROUP_NOT_FOUND = 'tsmlt_group_not_found';
 
 	/**
 	 * Check the base capability for the current user.
@@ -161,5 +170,57 @@ class AbilityGuard {
 	 */
 	public static function error( string $code, string $message, int $status ): WP_Error {
 		return new WP_Error( $code, $message, [ 'status' => $status ] );
+	}
+
+	/**
+	 * Resolve media group IDs: every ID must be a term of the media groups
+	 * taxonomy (tsmlt_category). Terms of other taxonomies and unknown IDs
+	 * are refused, all together, so nothing is applied for a partly valid list.
+	 *
+	 * @param mixed $group_ids Raw group IDs.
+	 *
+	 * @return WP_Term[]|WP_Error Terms in the order given, duplicates removed.
+	 */
+	public static function resolve_groups( $group_ids ) {
+		if ( ! is_array( $group_ids ) ) {
+			return self::error(
+				self::ERROR_INVALID_INPUT,
+				__( 'Group IDs must be a list of positive integers.', 'media-library-tools' ),
+				400
+			);
+		}
+
+		$terms   = [];
+		$invalid = [];
+		foreach ( $group_ids as $group_id ) {
+			if ( ! is_int( $group_id ) && ! ( is_string( $group_id ) && ctype_digit( $group_id ) ) ) {
+				return self::error(
+					self::ERROR_INVALID_INPUT,
+					__( 'Group IDs must be a list of positive integers.', 'media-library-tools' ),
+					400
+				);
+			}
+			$group_id = (int) $group_id;
+			$term     = $group_id > 0 ? get_term( $group_id ) : null;
+			if ( $term instanceof WP_Term && Fns::CATEGORY === $term->taxonomy ) {
+				$terms[ $group_id ] = $term;
+			} else {
+				$invalid[] = $group_id;
+			}
+		}
+
+		if ( ! empty( $invalid ) ) {
+			return self::error(
+				self::ERROR_GROUP_NOT_FOUND,
+				sprintf(
+					/* translators: %s: comma-separated IDs. */
+					__( 'These IDs are not media groups: %s. Use tsmlt/list-media-groups to find group IDs.', 'media-library-tools' ),
+					implode( ', ', array_unique( $invalid ) )
+				),
+				400
+			);
+		}
+
+		return array_values( $terms );
 	}
 }

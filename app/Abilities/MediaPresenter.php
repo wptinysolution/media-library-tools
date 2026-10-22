@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Helpers\Fns;
 use WP_Post;
+use WP_Term;
 
 /**
  * MediaPresenter — turns attachments into the fields abilities may disclose.
@@ -282,6 +283,53 @@ class MediaPresenter {
 				'date'      => [
 					'type'        => 'string',
 					'description' => 'Upload date in ISO 8601 (UTC).',
+				],
+			],
+		];
+	}
+
+	/**
+	 * A media group (tsmlt_category term): ID, name, parent and count only.
+	 *
+	 * @param WP_Term $term Group term.
+	 *
+	 * @return array{id: int, name: string, parent: int, count: int}
+	 */
+	public static function group( WP_Term $term ): array {
+		return [
+			'id'     => (int) $term->term_id,
+			'name'   => sanitize_text_field( Fns::prepare_text_for_json( $term->name ) ),
+			'parent' => (int) $term->parent,
+			'count'  => (int) $term->count,
+		];
+	}
+
+	/**
+	 * Schema of group().
+	 *
+	 * @return array
+	 */
+	public static function group_schema(): array {
+		return [
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => [ 'id', 'name', 'parent', 'count' ],
+			'properties'           => [
+				'id'     => [
+					'type'        => 'integer',
+					'description' => 'Group ID.',
+				],
+				'name'   => [
+					'type'        => 'string',
+					'description' => 'Group name. Names are not unique: groups under different parents can share one.',
+				],
+				'parent' => [
+					'type'        => 'integer',
+					'description' => 'Parent group ID, or 0 for a top-level group.',
+				],
+				'count'  => [
+					'type'        => 'integer',
+					'description' => 'Number of media items assigned to the group, as stored by WordPress.',
 				],
 			],
 		];

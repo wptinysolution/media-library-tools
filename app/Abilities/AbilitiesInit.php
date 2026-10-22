@@ -15,7 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
+use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\SearchMedia;
+use TinySolutions\mlt\Abilities\Media\SetMediaGroups;
 use TinySolutions\mlt\Abilities\Media\UpdateMediaMetadata;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -119,6 +121,8 @@ class AbilitiesInit {
 			GetMediaDetails::instance(),
 			UpdateMediaMetadata::instance(),
 			GetExifFields::instance(),
+			ListMediaGroups::instance(),
+			SetMediaGroups::instance(),
 		];
 	}
 }

@@ -245,7 +245,7 @@ class McpScopedServerTest extends WP_UnitTestCase {
 		$names = wp_list_pluck( $tools, 'name' );
 		sort( $names );
 
-		$this->assertSame( [ 'tsmlt-get-exif-fields', 'tsmlt-get-media-details', 'tsmlt-search-media', 'tsmlt-update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt-get-exif-fields', 'tsmlt-get-media-details', 'tsmlt-list-media-groups', 'tsmlt-search-media', 'tsmlt-set-media-groups', 'tsmlt-update-media-metadata' ], $names );
 
 		$by_name = array_column( $tools, null, 'name' );
 		$this->assertTrue( $by_name['tsmlt-search-media']['annotations']['readOnlyHint'] );

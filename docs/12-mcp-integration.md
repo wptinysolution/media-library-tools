@@ -1,16 +1,18 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, and update media text fields on your behalf. It has been tested with Claude Code and the official MCP Inspector.
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. It has been tested with Claude Code and the official MCP Inspector.
 
 ## Overview
 
 The integration lets an AI assistant:
-- Search the media library (by text, MIME type, or attachments missing alt text)
+- Search the media library (by text, MIME type, Group, or attachments missing alt text)
 - Read the details of one attachment
 - Read an image's camera and exposure EXIF fields (make, model, date taken, ISO, aperture, shutter speed)
 - Update an attachment's title, alt text, caption, and description
+- List the media Groups and change which Groups an attachment belongs to
+- **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
 
-None of the tools can rename, move, upload, or delete files, or change EXIF data. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or create, rename, or delete Groups. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -23,14 +25,107 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 | Tool | What it does | Changes data |
 |---|---|---|
-| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page) | No |
+| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `group_id` limits results to one Group | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
 | `tsmlt-get-exif-fields` | Returns one image's camera make and model, date taken, ISO, aperture and shutter speed — read from the JPEG file, or from values saved in the EXIF editor for any image type. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
+| `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
+| `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
+| `tsmlt-get-exif-caption` | **Pro.** Builds a caption from one image's camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only | No |
+| `tsmlt-update-exif-fields` | **Pro.** Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin's database only. Dedicated endpoint only | Yes (EXIF data, in the JPEG file) |
 
-**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the six fields listed above.
+The two Pro tools are offered only when Media Library Tools Pro is active with a valid licence.
 
-**What is never changed**: the file itself, its name or URL, the attached post, or any other attachment.
+**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the six fields listed above, and `tsmlt-get-exif-caption` returns only the caption text.
+
+**What is never changed**: the file's name or URL, the attached post, or any other attachment. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+
+## Working with Groups
+
+Groups are the folder-like categories you manage under **Media → Groups**. An assistant works with them by ID: it finds a Group's ID by name with `tsmlt-list-media-groups`, then uses that ID with the other tools. A Group name is never accepted in place of an ID.
+
+### Find Groups — `tsmlt-list-media-groups`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `search` | string, up to 200 characters | Part of the Group name, matched case-insensitively |
+| `id` | integer | One exact Group |
+| `page` | integer, from 1 (default 1) | Page number |
+| `per_page` | integer, 1–100 (default 50) | Groups per page |
+
+All inputs are optional. When both `search` and `id` are given, a Group must match both. Results are ordered by name, then ID.
+
+Output: `groups` (each with `id`, `name`, `parent` — the parent Group's ID, or 0 for a top-level Group — and `count`, the number of media items in the Group as stored by WordPress), `total`, `page`, `total_pages`.
+
+Group names are not unique: two Groups under different parents can share a name, and both are returned. Check `parent` before choosing an ID.
+
+### Find media in a Group — `tsmlt-search-media` with `group_id`
+
+Add `group_id` (an integer) to any search. Results are limited to media assigned directly to that Group; media in its sub-Groups are not included. All other filters and paging work as before. An ID that is not a Group — unknown, or a term from another taxonomy — is refused with an error naming the ID.
+
+### Change an attachment's Groups — `tsmlt-set-media-groups`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `id` | integer, required | Attachment ID |
+| `group_ids` | list of integers, required (up to 100, no repeats) | Existing Group IDs |
+| `mode` | `add`, `remove`, or `replace`, required | How to apply them (below) |
+
+| Mode | Effect | With an empty `group_ids` |
+|---|---|---|
+| `add` | Keeps the attachment's Groups and adds these | Nothing changes |
+| `remove` | Removes only these Groups | Nothing changes |
+| `replace` | Makes these the attachment's only Groups | Removes all its Groups |
+
+Every ID must be an existing Group. If any ID is unknown or belongs to another taxonomy, the request is refused and nothing changes, not even for the valid IDs. Groups are never created.
+
+Output: `id`, `mode`, `groups_before` and `groups_after` (each Group with `id`, `name`, `parent`, `count`), and `changed`. The result is read back from the database after saving; if it does not match the request, the attachment's previous Groups are restored and an error is returned.
+
+## Pro: EXIF tools
+
+These tools need **Media Library Tools Pro** with an active licence. Without one they are not listed, and a call is refused. Both are offered only on the dedicated endpoint.
+
+### Build a caption — `tsmlt-get-exif-caption`
+
+Input: `id` (attachment ID). Output: `id`, `has_exif`, and `caption` — for example `Canon EOS R5 · f/1.8 1/250s ISO 100`, or an empty string when the image has no usable camera or exposure data. The caption is built from the image file's EXIF data or, when the file has none, from values saved in the EXIF editor. Nothing is saved; to use the caption, save it with `tsmlt-update-media-metadata`.
+
+### Set or clear EXIF fields — `tsmlt-update-exif-fields`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `id` | integer, required | Attachment ID |
+| `fields` | object | Fields to set, by name (below). Omitted fields are left as they are |
+| `clear` | list of field names | Fields to remove from the image. A field cannot be both set and cleared |
+
+| Field | EXIF tag | Value |
+|---|---|---|
+| `make`, `model`, `lens_make` | Make, Model, LensMake | Text, up to 64 characters |
+| `lens_model`, `software` | LensModel, Software | Text, up to 128 characters |
+| `artist`, `copyright` | Artist, Copyright | Text, up to 256 characters |
+| `image_description` | ImageDescription | Text, up to 2000 bytes |
+| `date_time_original`, `date_time_digitized` | DateTimeOriginal, DateTimeDigitized | `YYYY:MM:DD HH:MM:SS`, not in the future |
+| `iso` | ISOSpeedRatings | Whole number, 1–65535 |
+| `shutter_speed` | ExposureTime | Seconds: a fraction such as `1/250` (kept as written) or a number such as `0.5` or `30`; at most 86400 |
+| `aperture` | FNumber | f-number, 0.1–128, stored to one decimal |
+| `focal_length` | FocalLength | Millimetres, 0.01–10000, up to two decimals |
+| `exposure_program`, `exposure_mode`, `metering_mode`, `white_balance`, `flash` | ExposureProgram, ExposureMode, MeteringMode, WhiteBalance, Flash | A code the EXIF standard defines; the allowed codes are listed in the tool's input schema |
+
+Location (GPS position and altitude), time zone offsets, orientation, the camera maker's private data (MakerNote), serial numbers and the embedded thumbnail cannot be changed, and other field names are refused.
+
+Output: `id`, `success`, `status`, `file_updated`, `storage`, `updated` and `cleared` (field names), `message`, and on failure `error` and, for invalid input, `errors` (a message per field).
+
+- `status`: `updated`, `unchanged` (the values were already in place), `invalid_fields` (unknown or conflicting field names, or nothing to do), `validation_failed` (see `errors`), `unsupported_format` (the attachment is not an image), `file_not_found`, or `write_failed` (the file could not be edited safely and was not changed).
+- `storage`: `file` for JPEG images, whose file is edited; `database` for other image types, whose values are kept by the plugin and whose file is never changed; `none` when nothing was saved.
+- `file_updated`: whether the image file's bytes changed. It is false when only the database changed or nothing did.
+- Changing `date_time_original` also changes `date_time_digitized` when the two were equal; `updated` then lists both.
+
+Over MCP, a failure is reported as a tool error whose text starts with the status, for example `validation_failed: ISO must be a whole number between 1 and 65535.`
+
+**Limitations**:
+- Only the attached image file is edited. For large uploads that WordPress scales down, the full-size original keeps its previous EXIF data, and generated image sizes are not changed.
+- XMP metadata is not updated, so applications that prefer XMP may still show earlier values.
+- ShutterSpeedValue and ApertureValue, which some cameras store alongside the exposure time and f-number, are not recalculated.
+- Each request changes one image.
 
 ## Two Endpoints — Use the Dedicated One
 
@@ -140,7 +235,7 @@ Ask your assistant something like:
 
 ## Using the MCP Adapter Default Server (optional)
 
-The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields` is offered only on the dedicated endpoint):
+The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -224,12 +319,12 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
 
 ## Important Notes
 
 ### Review before saving
-`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. The tool is marked as destructive so clients can ask before running it — keep your client's tool-approval prompts turned on.
+`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them — keep your client's tool-approval prompts turned on.
 
 ### Revoking access
 Delete the Application Password under **Users → Profile → Application Passwords**. The assistant loses access immediately.

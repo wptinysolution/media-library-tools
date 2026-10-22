@@ -100,7 +100,7 @@ class SearchMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase, MIME type, or missing alt text (combine missing_alt with mime_type "image" to find images that need alt text). Read-only.', 'media-library-tools' );
+		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase, MIME type, missing alt text (combine missing_alt with mime_type "image" to find images that need alt text), or group_id (media assigned directly to that group; find IDs with tsmlt/list-media-groups). Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -127,6 +127,11 @@ class SearchMedia extends Ability {
 				'missing_alt' => [
 					'type'        => 'boolean',
 					'description' => 'When true, only return attachments without alt text.',
+				],
+				'group_id'    => [
+					'type'        => 'integer',
+					'minimum'     => 1,
+					'description' => 'Only return media assigned directly to this media group (not its subgroups). Must be an existing group ID; find IDs by name with tsmlt/list-media-groups.',
 				],
 				'page'        => [
 					'type'        => 'integer',
@@ -295,6 +300,15 @@ class SearchMedia extends Ability {
 			}
 		}
 
+		$group_id = 0;
+		if ( isset( $input['group_id'] ) ) {
+			$groups = AbilityGuard::resolve_groups( [ $input['group_id'] ] );
+			if ( is_wp_error( $groups ) ) {
+				return $groups;
+			}
+			$group_id = (int) $groups[0]->term_id;
+		}
+
 		$orderby = sanitize_key( (string) ( $input['orderby'] ?? 'date' ) );
 		$order   = strtoupper( sanitize_key( (string) ( $input['order'] ?? 'DESC' ) ) );
 
@@ -302,6 +316,7 @@ class SearchMedia extends Ability {
 			'search'      => $search,
 			'mime_type'   => $mime_type,
 			'missing_alt' => true === ( $input['missing_alt'] ?? false ),
+			'group_id'    => $group_id,
 			'page'        => max( 1, absint( $input['page'] ?? 1 ) ),
 			'per_page'    => min( self::MAX_PER_PAGE, max( 1, absint( $input['per_page'] ?? self::DEFAULT_PER_PAGE ) ) ),
 			'orderby'     => isset( self::ORDERBY_MAP[ $orderby ] ) ? $orderby : 'date',
@@ -347,8 +362,15 @@ class SearchMedia extends Ability {
 				'media_per_page' => $criteria['per_page'],
 				'paged'          => $criteria['page'],
 				'order'          => $criteria['order'],
+				'categories'     => $criteria['group_id'] ? [ $criteria['group_id'] ] : [],
 			]
 		);
+
+		// The media table's group filter, limited to direct assignment:
+		// hierarchical taxonomies otherwise include child groups' media.
+		if ( $criteria['group_id'] && isset( $args['tax_query'][0] ) ) {
+			$args['tax_query'][0]['include_children'] = false;
+		}
 
 		$args['post_type']   = 'attachment';
 		$args['post_status'] = 'inherit';

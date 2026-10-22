@@ -269,6 +269,37 @@ class Api {
 	}
 
 	/**
+	 * Assign media groups (tsmlt_category terms) to one attachment.
+	 *
+	 * Shared by the media table's bulk edit and the tsmlt/set-media-groups
+	 * ability. Callers validate the term IDs and the attachment first.
+	 *
+	 * - 'add'     : append to the groups the item already has.
+	 * - 'replace' : overwrite every existing group with the given ones (an
+	 *               empty list removes them all).
+	 * - 'remove'  : detach the given groups, leave the rest untouched.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param int[]  $term_ids      Group term IDs.
+	 * @param string $mode          'add', 'replace' or 'remove'.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public function assign_groups( int $attachment_id, array $term_ids, string $mode ) {
+		$term_ids = array_values( array_filter( array_map( 'absint', $term_ids ) ) );
+
+		if ( 'remove' === $mode ) {
+			$result = empty( $term_ids ) ? true : wp_remove_object_terms( $attachment_id, $term_ids, Fns::CATEGORY );
+		} else {
+			// Append unless the caller explicitly asked to replace, so "add to
+			// group" never silently strips an item's other groups.
+			$result = wp_set_object_terms( $attachment_id, $term_ids, Fns::CATEGORY, 'add' === $mode );
+		}
+
+		return is_wp_error( $result ) ? $result : true;
+	}
+
+	/**
 	 * @return false|string
 	 */
 	public function get_dates() {
@@ -672,13 +703,7 @@ class Api {
 						$group_mode = 'add';
 					}
 					foreach ( $ids as $id ) {
-						if ( 'remove' === $group_mode ) {
-							wp_remove_object_terms( $id, $categories, Fns::CATEGORY );
-						} else {
-							// Append unless the user explicitly asked to replace, so a bulk
-							// "add to group" never silently strips an item's other groups.
-							wp_set_object_terms( $id, $categories, Fns::CATEGORY, 'add' === $group_mode );
-						}
+						$this->assign_groups( (int) $id, $categories, $group_mode );
 					}
 					$updated = true;
 				}

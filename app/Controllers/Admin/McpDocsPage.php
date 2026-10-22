@@ -272,7 +272,7 @@ class McpDocsPage {
 					<tbody>
 						<tr>
 							<td><code>tsmlt-search-media</code></td>
-							<td><?php esc_html_e( 'Lists matching attachments, one page at a time (up to 50 per page). Filter by text, MIME type, or missing alt text.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists matching attachments, one page at a time (up to 50 per page). Filter by text, MIME type, Group (group_id), or missing alt text.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -290,10 +290,30 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
+						<tr>
+							<td><code>tsmlt-list-media-groups</code></td>
+							<td><?php esc_html_e( 'Lists media Groups with their ID, name, parent Group and number of media items; filter by name or ID. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-set-media-groups</code></td>
+							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-exif-caption</code></td>
+							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-update-exif-fields</code></td>
+							<td><?php esc_html_e( 'Pro. Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin\'s database only. Location, orientation and serial numbers cannot be changed. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
+						</tr>
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or change EXIF data.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or create, rename, or delete Groups. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 
@@ -395,7 +415,7 @@ class McpDocsPage {
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the search, details and update tools through the MCP Adapter\'s default server (the EXIF fields tool is offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'You can also reach the search, details and update tools through the MCP Adapter\'s default server (the EXIF, EXIF caption and Group tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 
