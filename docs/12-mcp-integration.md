@@ -5,7 +5,7 @@ Media Library Tools lets AI assistants that speak the Model Context Protocol (MC
 ## Overview
 
 The integration lets an AI assistant:
-- Search the media library (by text, MIME type, Group, or attachments missing alt text)
+- Search the media library (by text, file name, MIME type, Group, attached or unattached, or attachments missing alt text)
 - Read the details of one attachment
 - Read an image's camera and exposure EXIF fields (make, model, date taken, ISO, aperture, shutter speed)
 - Update an attachment's title, alt text, caption, and description
@@ -25,7 +25,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 | Tool | What it does | Changes data |
 |---|---|---|
-| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `group_id` limits results to one Group | No |
+| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
 | `tsmlt-get-exif-fields` | Returns one image's camera make and model, date taken, ISO, aperture and shutter speed — read from the JPEG file, or from values saved in the EXIF editor for any image type. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
@@ -39,6 +39,18 @@ The two Pro tools are offered only when Media Library Tools Pro is active with a
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the six fields listed above, and `tsmlt-get-exif-caption` returns only the caption text.
 
 **What is never changed**: the file's name or URL, the attached post, or any other attachment. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+
+## Search by file name
+
+`tsmlt-search-media` accepts `filename`: part of a file name, for example `IMG_2041` or `.png`. It matches the name of the attachment's file, ignoring case — not its title, caption or description (that is what `search` does), and not folder names: `2026` does not match files just because they are in the `2026` upload folder. For large images WordPress scaled down, the file is the `-scaled` one, whose name still contains the original name. `%` and `_` are matched as ordinary characters.
+
+`filename` must be 1–200 characters without `/`, `\`, or control characters; anything else is refused. It combines with every other filter and with paging. Results show the same fields as any search; no server file paths are returned.
+
+## Attached and unattached media
+
+`tsmlt-search-media` accepts `attached`: `true` returns only media attached to a post — WordPress's **Uploaded to** relationship, which may point to a draft, private, or trashed post — and `false` returns only unattached media. Leave it out to search both. It must be a JSON boolean (`true` or `false`); strings such as `"false"` are refused.
+
+Attached is not the same as used. An image can appear in a page's content or a page builder without being attached to that page, and an attached image may not appear anywhere. `attached` does not check where media is used.
 
 ## Working with Groups
 

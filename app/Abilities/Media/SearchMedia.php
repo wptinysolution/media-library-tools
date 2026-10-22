@@ -53,6 +53,20 @@ class SearchMedia extends Ability {
 	const MAX_SEARCH_LENGTH = 200;
 
 	/**
+	 * Longest accepted file name fragment.
+	 *
+	 * @var int
+	 */
+	const MAX_FILENAME_LENGTH = 200;
+
+	/**
+	 * Post meta key holding an attachment's file, relative to the uploads folder.
+	 *
+	 * @var string
+	 */
+	const ATTACHED_FILE_META_KEY = '_wp_attached_file';
+
+	/**
 	 * Top-level MIME types a client may filter by on their own.
 	 *
 	 * @var string[]
@@ -100,7 +114,7 @@ class SearchMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase, MIME type, missing alt text (combine missing_alt with mime_type "image" to find images that need alt text), or group_id (media assigned directly to that group; find IDs with tsmlt/list-media-groups). Read-only.', 'media-library-tools' );
+		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase (title, caption, description), filename (part of the file name, case-insensitive, without folders), MIME type, missing alt text (combine missing_alt with mime_type "image" to find images that need alt text), group_id (media assigned directly to that group; find IDs with tsmlt/list-media-groups), or attached (true: attached to a post, i.e. uploaded to or set as attached to one; false: unattached). Attached does not mean the media is used in content: a file can be used without being attached, and attached without being used. Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -118,6 +132,13 @@ class SearchMedia extends Ability {
 					'maxLength'   => self::MAX_SEARCH_LENGTH,
 					'description' => 'Phrase matched against title, caption and description.',
 				],
+				'filename'    => [
+					'type'        => 'string',
+					'minLength'   => 1,
+					'maxLength'   => self::MAX_FILENAME_LENGTH,
+					'pattern'     => '^[^/\\\\]+$',
+					'description' => 'Part of the file name, matched case-insensitively against the name of the attachment\'s file (for large images WordPress scaled down, the "-scaled" file). Folders are not matched, so "/" and "\\" are not allowed. Matched literally: % and _ are not wildcards.',
+				],
 				'mime_type'   => [
 					'type'        => 'string',
 					'maxLength'   => 100,
@@ -132,6 +153,10 @@ class SearchMedia extends Ability {
 					'type'        => 'integer',
 					'minimum'     => 1,
 					'description' => 'Only return media assigned directly to this media group (not its subgroups). Must be an existing group ID; find IDs by name with tsmlt/list-media-groups.',
+				],
+				'attached'    => [
+					'type'        => 'boolean',
+					'description' => 'true: only media attached to a post (WordPress\'s "Uploaded to" parent, which may be a draft, private or trashed post); false: only unattached media. Omit for both. This is not whether the media is used in content.',
 				],
 				'page'        => [
 					'type'        => 'integer',
@@ -220,7 +245,7 @@ class SearchMedia extends Ability {
 		// every match is checked with the real capability, then paged. This
 		// keeps unreadable attachments out of the totals as well as the items,
 		// and keeps every page full.
-		$readable = $this->readable_ids( $this->build_query_args( $criteria ) );
+		$readable = $this->readable_ids( $this->build_query_args( $criteria ), $criteria['filename'] );
 		$total    = count( $readable );
 		$page_ids = array_slice( $readable, ( $criteria['page'] - 1 ) * $criteria['per_page'], $criteria['per_page'] );
 
@@ -247,11 +272,12 @@ class SearchMedia extends Ability {
 	 * Runs the search query for IDs only, without paging, then checks
 	 * read_post in batches with the post cache primed for each batch.
 	 *
-	 * @param array $args WP_Query arguments from build_query_args().
+	 * @param array  $args     WP_Query arguments from build_query_args().
+	 * @param string $filename File name text to require (see file_name_matches()), or ''.
 	 *
 	 * @return int[]
 	 */
-	private function readable_ids( array $args ): array {
+	private function readable_ids( array $args, string $filename = '' ): array {
 		$args['fields']                 = 'ids';
 		$args['posts_per_page']         = -1;
 		$args['no_found_rows']          = true;
@@ -261,16 +287,35 @@ class SearchMedia extends Ability {
 
 		$readable = [];
 		foreach ( array_chunk( array_map( 'intval', ( new WP_Query( $args ) )->posts ), self::READ_CHECK_CHUNK ) as $chunk ) {
-			_prime_post_caches( $chunk, false, false );
+			_prime_post_caches( $chunk, false, '' !== $filename );
 			foreach ( $chunk as $attachment_id ) {
 				$attachment = get_post( $attachment_id );
-				if ( $attachment instanceof WP_Post && AbilityGuard::can_access_attachment( $attachment, 'read_post' ) ) {
+				if ( $attachment instanceof WP_Post && AbilityGuard::can_access_attachment( $attachment, 'read_post' )
+					&& ( '' === $filename || $this->file_name_matches( $attachment_id, $filename ) ) ) {
 					$readable[] = $attachment_id;
 				}
 			}
 		}
 
 		return $readable;
+	}
+
+	/**
+	 * Whether the attachment's file name (without folders) contains the text,
+	 * ignoring case.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $filename      Text to find.
+	 *
+	 * @return bool
+	 */
+	private function file_name_matches( int $attachment_id, string $filename ): bool {
+		$file = get_post_meta( $attachment_id, self::ATTACHED_FILE_META_KEY, true );
+		if ( ! is_string( $file ) || '' === $file ) {
+			return false;
+		}
+		$name = wp_basename( $file );
+		return function_exists( 'mb_stripos' ) ? false !== mb_stripos( $name, $filename ) : false !== stripos( $name, $filename );
 	}
 
 	/**
@@ -287,6 +332,18 @@ class SearchMedia extends Ability {
 	private function sanitize_input( array $input ) {
 		$search = sanitize_text_field( (string) ( $input['search'] ?? '' ) );
 		$search = mb_substr( $search, 0, self::MAX_SEARCH_LENGTH );
+
+		$filename = '';
+		if ( array_key_exists( 'filename', $input ) ) {
+			$filename = is_string( $input['filename'] ) ? trim( $input['filename'] ) : '';
+			if ( '' === $filename || mb_strlen( $filename ) > self::MAX_FILENAME_LENGTH || 0 !== preg_match( '#[/\\\\\x00-\x1F\x7F]#', $filename ) ) {
+				return AbilityGuard::error(
+					AbilityGuard::ERROR_INVALID_INPUT,
+					__( 'filename must be part of a file name: 1 to 200 characters, without folders ("/" or "\\") or control characters.', 'media-library-tools' ),
+					400
+				);
+			}
+		}
 
 		$mime_type = '';
 		if ( isset( $input['mime_type'] ) && '' !== $input['mime_type'] ) {
@@ -309,14 +366,31 @@ class SearchMedia extends Ability {
 			$group_id = (int) $groups[0]->term_id;
 		}
 
+		// Core's schema check also accepts "true", "false", "1", "0", 1 and 0
+		// for a boolean; only a real boolean is accepted, so a string "false"
+		// can never be read as true.
+		$attached = null;
+		if ( array_key_exists( 'attached', $input ) ) {
+			if ( ! is_bool( $input['attached'] ) ) {
+				return AbilityGuard::error(
+					AbilityGuard::ERROR_INVALID_INPUT,
+					__( 'attached must be true or false.', 'media-library-tools' ),
+					400
+				);
+			}
+			$attached = $input['attached'];
+		}
+
 		$orderby = sanitize_key( (string) ( $input['orderby'] ?? 'date' ) );
 		$order   = strtoupper( sanitize_key( (string) ( $input['order'] ?? 'DESC' ) ) );
 
 		return [
 			'search'      => $search,
+			'filename'    => $filename,
 			'mime_type'   => $mime_type,
 			'missing_alt' => true === ( $input['missing_alt'] ?? false ),
 			'group_id'    => $group_id,
+			'attached'    => $attached,
 			'page'        => max( 1, absint( $input['page'] ?? 1 ) ),
 			'per_page'    => min( self::MAX_PER_PAGE, max( 1, absint( $input['per_page'] ?? self::DEFAULT_PER_PAGE ) ) ),
 			'orderby'     => isset( self::ORDERBY_MAP[ $orderby ] ) ? $orderby : 'date',
@@ -381,8 +455,17 @@ class SearchMedia extends Ability {
 			$args['post_mime_type'] = $criteria['mime_type'];
 		}
 
+		// Attached means the attachment has a parent post (post_parent); it
+		// says nothing about where the media is actually used.
+		if ( true === $criteria['attached'] ) {
+			$args['post_parent__not_in'] = [ 0 ];
+		} elseif ( false === $criteria['attached'] ) {
+			$args['post_parent'] = 0;
+		}
+
+		$meta_query = [];
 		if ( $criteria['missing_alt'] ) {
-			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Alt text lives in post meta; there is no other way to filter by it.
+			$meta_query[] = [
 				'relation' => 'OR',
 				[
 					'key'     => '_wp_attachment_image_alt',
@@ -394,6 +477,19 @@ class SearchMedia extends Ability {
 					'compare' => '=',
 				],
 			];
+		}
+		if ( '' !== $criteria['filename'] ) {
+			// Narrows the query to files whose stored path contains the text
+			// (WP_Meta_Query escapes LIKE wildcards and prepares the value);
+			// file_name_matches() then drops matches found only in folder names.
+			$meta_query[] = [
+				'key'     => self::ATTACHED_FILE_META_KEY,
+				'value'   => $criteria['filename'],
+				'compare' => 'LIKE',
+			];
+		}
+		if ( ! empty( $meta_query ) ) {
+			$args['meta_query'] = array_merge( [ 'relation' => 'AND' ], $meta_query ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Alt text and the file name live in post meta; there is no other way to filter by them.
 		}
 
 		return $args;

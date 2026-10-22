@@ -396,6 +396,288 @@ class SearchMediaAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Attachments with a parent post (draft, private and trashed parents
+	 * included) and attachments without one.
+	 *
+	 * @return array<string, int>
+	 */
+	private function make_parented_attachments(): array {
+		$other = self::factory()->user->create( [ 'role' => 'editor' ] );
+		$posts = [
+			'published' => self::factory()->post->create(),
+			'draft'     => self::factory()->post->create( [ 'post_status' => 'draft' ] ),
+			'private'   => self::factory()->post->create(
+				[
+					'post_status' => 'private',
+					'post_author' => $other,
+				]
+			),
+			'trashed'   => self::factory()->post->create(),
+		];
+		$ids = [ 'unattached' => $this->make_attachment() ];
+		foreach ( $posts as $key => $post_id ) {
+			$ids[ $key ] = $this->make_attachment( [ 'post_parent' => $post_id ] );
+		}
+		wp_trash_post( $posts['trashed'] );
+		return $ids;
+	}
+
+	/**
+	 * attached true returns media with a parent post, false media without
+	 * one, and omitting it returns both, as before.
+	 */
+	public function test_attached_filter() {
+		$ids = $this->make_parented_attachments();
+		$attached = [ $ids['published'], $ids['draft'], $ids['private'], $ids['trashed'] ];
+		sort( $attached );
+
+		$with = $this->run_ids( [ 'attached' => true ] );
+		sort( $with );
+		$this->assertSame( $attached, $with );
+
+		$this->assertSame( [ $ids['unattached'] ], $this->run_ids( [ 'attached' => false ] ) );
+
+		$all = $this->run_ids();
+		sort( $all );
+		$expected = array_values( $ids );
+		sort( $expected );
+		$this->assertSame( $expected, $all, 'Without attached, nothing is filtered.' );
+	}
+
+	/**
+	 * Attached is the parent relationship only, not usage: an unattached
+	 * image used in a post's content is still unattached, and an attached
+	 * image the post never shows is still attached.
+	 */
+	public function test_attached_is_not_usage() {
+		$unattached_but_used = $this->make_attachment();
+		$post                = self::factory()->post->create(
+			[
+				'post_content' => '<img src="' . esc_url( wp_get_attachment_url( $unattached_but_used ) ) . '" class="wp-image-' . $unattached_but_used . '">',
+			]
+		);
+		$attached_not_used   = $this->make_attachment( [ 'post_parent' => $post ] );
+
+		$this->assertSame( [ $unattached_but_used ], $this->run_ids( [ 'attached' => false ] ) );
+		$this->assertSame( [ $attached_not_used ], $this->run_ids( [ 'attached' => true ] ) );
+	}
+
+	/**
+	 * attached combines with the other filters and with paging, and the
+	 * items keep the same fields (no parent post is disclosed).
+	 */
+	public function test_attached_combines_with_filters_and_paging() {
+		$parent = self::factory()->post->create();
+		$jpegs  = [];
+		for ( $i = 0; $i < 3; $i++ ) {
+			$jpegs[] = $this->make_attachment( [ 'post_parent' => $parent ] );
+		}
+		$pdf = $this->make_attachment(
+			[
+				'post_parent'    => $parent,
+				'post_mime_type' => 'application/pdf',
+				'file'           => '2026/10/doc-' . wp_generate_password( 6, false ) . '.pdf',
+			]
+		);
+		$this->make_attachment();
+
+		$page = $this->run_ability(
+			[
+				'attached'  => true,
+				'mime_type' => 'image',
+				'per_page'  => 2,
+				'page'      => 2,
+				'orderby'   => 'id',
+				'order'     => 'ASC',
+			]
+		);
+
+		$this->assertSame( 3, $page['total'] );
+		$this->assertSame( 2, $page['total_pages'] );
+		$this->assertSame( [ max( $jpegs ) ], wp_list_pluck( $page['items'], 'id' ) );
+		$this->assertSame( self::ITEM_KEYS, array_keys( $page['items'][0] ) );
+		$this->assertNotContains( $pdf, wp_list_pluck( $page['items'], 'id' ) );
+	}
+
+	/**
+	 * Core's schema check accepts "true", "false", "1", "0", 1 and 0 for a
+	 * boolean; the ability accepts only a real boolean, so a string "false"
+	 * can never select attached media.
+	 *
+	 * @dataProvider data_loose_booleans
+	 *
+	 * @param mixed $value Value.
+	 */
+	public function test_attached_requires_a_real_boolean( $value ) {
+		$this->make_attachment();
+
+		$result = $this->run_ability( [ 'attached' => $value ] );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'tsmlt_invalid_input', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+	}
+
+	/**
+	 * Values core treats as booleans that the ability refuses.
+	 *
+	 * @return array
+	 */
+	public function data_loose_booleans(): array {
+		return [
+			'string false' => [ 'false' ],
+			'string true'  => [ 'true' ],
+			'string 0'     => [ '0' ],
+			'integer 1'    => [ 1 ],
+		];
+	}
+
+	/**
+	 * An attachment stored at a given path in the uploads folder.
+	 *
+	 * @param string $file Path relative to uploads.
+	 * @param array  $args Other post arguments.
+	 *
+	 * @return int
+	 */
+	private function make_file( string $file, array $args = [] ): int {
+		return $this->make_attachment( array_merge( [ 'file' => $file ], $args ) );
+	}
+
+	/**
+	 * filename matches part of the file name, case-insensitively — not
+	 * folders, titles or other fields — and omitting it changes nothing.
+	 */
+	public function test_filename_filter() {
+		$beach    = $this->make_file( '2026/10/sunset-beach.jpg' );
+		$mountain = $this->make_file( '2026/10/Sunset-Mountain.JPG' );
+		$house    = $this->make_file( '2026/10/beach/house.jpg' );
+		$titled   = $this->make_file( '2026/10/other.jpg', [ 'post_title' => 'Sunset beach title' ] );
+
+		$sunset = $this->run_ids( [ 'filename' => 'SUNSET' ] );
+		sort( $sunset );
+		$this->assertSame( [ $beach, $mountain ], $sunset, 'Case-insensitive; the title is not a file name.' );
+		$this->assertSame( [ $beach ], $this->run_ids( [ 'filename' => 'beach' ] ), 'A folder named "beach" does not match.' );
+		$this->assertSame( [ $house ], $this->run_ids( [ 'filename' => 'house.jpg' ] ) );
+		$this->assertSame( [], $this->run_ids( [ 'filename' => 'desert' ] ) );
+		$this->assertSame( [], $this->run_ids( [ 'filename' => '2026' ] ), 'Year/month folders are not matched.' );
+
+		$all = $this->run_ids();
+		sort( $all );
+		$expected = [ $beach, $mountain, $house, $titled ];
+		sort( $expected );
+		$this->assertSame( $expected, $all, 'Without filename, nothing is filtered.' );
+		$this->assertSame( [ $titled ], $this->run_ids( [ 'search' => 'Sunset beach' ] ), 'search still ignores file names.' );
+	}
+
+	/**
+	 * % and _ are matched literally, not as SQL wildcards.
+	 */
+	public function test_filename_wildcards_are_literal() {
+		$percent    = $this->make_file( '2026/10/100%-real.jpg' );
+		$underscore = $this->make_file( '2026/10/a_b.jpg' );
+		$this->make_file( '2026/10/axb.jpg' );
+		$this->make_file( '2026/10/plain.jpg' );
+
+		$this->assertSame( [ $percent ], $this->run_ids( [ 'filename' => '%' ] ) );
+		$this->assertSame( [ $underscore ], $this->run_ids( [ 'filename' => 'a_b' ] ) );
+		$this->assertSame( [ $underscore ], $this->run_ids( [ 'filename' => '_' ] ) );
+	}
+
+	/**
+	 * filename combines with attached, mime_type, missing_alt and paging,
+	 * and items keep the same fields (no path is returned).
+	 */
+	public function test_filename_combines_with_filters_and_paging() {
+		$parent = self::factory()->post->create();
+		$match  = [];
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$match[] = $this->make_file( "2026/10/product-{$i}.jpg", [ 'post_parent' => $parent ] );
+		}
+		$unattached = $this->make_file( '2026/10/product-loose.jpg' );
+		$with_alt   = $this->make_file( '2026/10/product-alt.jpg', [ 'post_parent' => $parent, 'alt' => 'Has alt' ] );
+		$pdf        = $this->make_file(
+			'2026/10/product-sheet.pdf',
+			[
+				'post_parent'    => $parent,
+				'post_mime_type' => 'application/pdf',
+			]
+		);
+		foreach ( array_merge( $match, [ $unattached ] ) as $id ) {
+			delete_post_meta( $id, '_wp_attachment_image_alt' );
+		}
+
+		$page = $this->run_ability(
+			[
+				'filename'    => 'product',
+				'attached'    => true,
+				'mime_type'   => 'image',
+				'missing_alt' => true,
+				'per_page'    => 2,
+				'page'        => 2,
+				'orderby'     => 'id',
+				'order'       => 'ASC',
+			]
+		);
+
+		$this->assertSame( 3, $page['total'], 'Only attached JPEGs without alt text whose name contains "product".' );
+		$this->assertSame( 2, $page['total_pages'] );
+		$this->assertSame( [ max( $match ) ], wp_list_pluck( $page['items'], 'id' ) );
+		$this->assertSame( self::ITEM_KEYS, array_keys( $page['items'][0] ) );
+		foreach ( [ $unattached, $with_alt, $pdf ] as $excluded ) {
+			$this->assertNotContains( $excluded, $this->run_ids( [ 'filename' => 'product', 'attached' => true, 'mime_type' => 'image', 'missing_alt' => true ] ) );
+		}
+	}
+
+	/**
+	 * Attachments the user may not read stay out of filename results and
+	 * totals.
+	 */
+	public function test_filename_respects_read_permission() {
+		$visible = $this->make_file( '2026/10/secret-plan.jpg' );
+		$hidden  = $this->make_file( '2026/10/secret-hidden.jpg' );
+
+		$result = $this->with_read_denied(
+			[ $hidden ],
+			function () {
+				return $this->run_ability( [ 'filename' => 'secret' ] );
+			}
+		);
+
+		$this->assertSame( [ $visible ], wp_list_pluck( $result['items'], 'id' ) );
+		$this->assertSame( 1, $result['total'] );
+	}
+
+	/**
+	 * Values the ability refuses after the schema check (it trims, and
+	 * rejects control characters).
+	 *
+	 * @dataProvider data_refused_filenames
+	 *
+	 * @param string $value Value.
+	 */
+	public function test_filename_refused_by_the_ability( string $value ) {
+		$result = $this->run_ability( [ 'filename' => $value ] );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'tsmlt_invalid_input', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+	}
+
+	/**
+	 * Refused file names.
+	 *
+	 * @return array
+	 */
+	public function data_refused_filenames(): array {
+		return [
+			'spaces only'       => [ '   ' ],
+			'tab'               => [ "a\tb" ],
+			'NUL byte'          => [ "a\0b" ],
+		];
+	}
+
+	/**
 	 * Paging and the page-size cap.
 	 */
 	public function test_paging() {
@@ -756,6 +1038,15 @@ class SearchMediaAbilityTest extends WP_UnitTestCase {
 			'mime wildcard'      => [ [ 'mime_type' => 'image/*' ] ],
 			'mime path chars'    => [ [ 'mime_type' => 'image/../x' ] ],
 			'missing_alt string' => [ [ 'missing_alt' => 'maybe' ] ],
+			'attached string'    => [ [ 'attached' => 'maybe' ] ],
+			'attached array'     => [ [ 'attached' => [ true ] ] ],
+			'attached null'      => [ [ 'attached' => null ] ],
+			'filename empty'     => [ [ 'filename' => '' ] ],
+			'filename too long'  => [ [ 'filename' => str_repeat( 'a', 201 ) ] ],
+			'filename folder'    => [ [ 'filename' => '2026/10/x.jpg' ] ],
+			'filename backslash' => [ [ 'filename' => 'a\\b' ] ],
+			'filename traversal' => [ [ 'filename' => '../wp-config.php' ] ],
+			'filename not text'  => [ [ 'filename' => 5 ] ],
 		];
 	}
 

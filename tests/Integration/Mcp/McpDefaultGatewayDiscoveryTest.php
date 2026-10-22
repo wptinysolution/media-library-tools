@@ -52,7 +52,7 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 	 * @var array<string, string[]>
 	 */
 	const INPUT_PROPERTIES = [
-		'tsmlt/search-media'          => [ 'search', 'mime_type', 'missing_alt', 'group_id', 'page', 'per_page', 'orderby', 'order' ],
+		'tsmlt/search-media'          => [ 'search', 'filename', 'mime_type', 'missing_alt', 'group_id', 'attached', 'page', 'per_page', 'orderby', 'order' ],
 		'tsmlt/get-media-details'     => [ 'id' ],
 		'tsmlt/update-media-metadata' => [ 'id', 'title', 'alt_text', 'caption', 'description', 'expected' ],
 	];
@@ -248,7 +248,13 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 		// Closed input schema with only the documented properties.
 		$this->assertFalse( $info['input_schema']['additionalProperties'] );
 		$this->assertSame( self::INPUT_PROPERTIES[ $name ], array_keys( $info['input_schema']['properties'] ) );
-		foreach ( [ 'bulkEditPostTitle', 'newname', 'post_categories', 'custom_meta', 'exif_camera', 'exif_has_gps', 'status', 'filtering', 'filename' ] as $property ) {
+		$forbidden = [ 'bulkEditPostTitle', 'newname', 'post_categories', 'custom_meta', 'exif_camera', 'exif_has_gps', 'status', 'filtering', 'filename' ];
+		if ( 'tsmlt/search-media' === $name ) {
+			// There `filename` is a documented, read-only search filter, not the
+			// rename key this list guards against on the write ability.
+			$forbidden = array_diff( $forbidden, [ 'filename' ] );
+		}
+		foreach ( $forbidden as $property ) {
 			$this->assertArrayNotHasKey( $property, $info['input_schema']['properties'] );
 		}
 

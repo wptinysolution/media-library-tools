@@ -272,7 +272,7 @@ class McpDocsPage {
 					<tbody>
 						<tr>
 							<td><code>tsmlt-search-media</code></td>
-							<td><?php esc_html_e( 'Lists matching attachments, one page at a time (up to 50 per page). Filter by text, MIME type, Group (group_id), or missing alt text.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists matching attachments, one page at a time (up to 50 per page). Filter by text, part of the file name (filename), MIME type, Group (group_id), attached or unattached to a post (attached — not whether the media is used in content), or missing alt text.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
