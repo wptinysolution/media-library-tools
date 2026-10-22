@@ -120,6 +120,10 @@ class ExifStripper {
 		// Clean up backup.
 		wp_delete_file( $backup_path );
 
+		// The file no longer has any EXIF, so values saved by the EXIF editor
+		// (which readers overlay on the file's EXIF) would only be stale.
+		delete_post_meta( $attachment_id, '_tsmlt_exif_meta' );
+
 		// Clear the EXIF cache.
 		ExifDataReader::clear_cache();
 
