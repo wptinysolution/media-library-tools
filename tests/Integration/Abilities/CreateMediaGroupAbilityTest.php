@@ -171,6 +171,24 @@ class CreateMediaGroupAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A backslash in the name is kept: wp_insert_term() expects slashed
+	 * input, so an unslashed name would lose it, fail the read-back and be
+	 * deleted again.
+	 */
+	public function test_backslash_in_name_is_kept() {
+		$before = self::group_count();
+
+		$result = $this->create( [ 'name' => 'C:\\Photos\\2026' ] );
+
+		$this->assertTrue( $result['created'] );
+		$this->assertSame( 'C:\\Photos\\2026', $result['group']['name'] );
+		$term = get_term( $result['group']['id'], Fns::CATEGORY );
+		$this->assertInstanceOf( WP_Term::class, $term, 'The group was kept after verification.' );
+		$this->assertSame( 'C:\\Photos\\2026', $term->name );
+		$this->assertSame( $before + 1, self::group_count() );
+	}
+
+	/**
 	 * A name already used under the same parent is refused, ignoring case,
 	 * and the error names the existing group.
 	 */

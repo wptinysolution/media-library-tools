@@ -26,7 +26,8 @@ use WP_Term;
  * Filters: `search` (case-insensitive part of the name) and `id` (one exact
  * group). When both are given a group must match both. Results are ordered by
  * name, then ID, so groups that share a name keep a stable order across
- * pages. Groups are never created, renamed or deleted here.
+ * pages. Groups are never created, renamed or deleted here (see
+ * tsmlt/create-media-group and tsmlt/update-media-group).
  *
  * Registered with `meta.mcp.public` false: group names are site-internal, so
  * the ability is offered only on the dedicated Media Library Tools server.

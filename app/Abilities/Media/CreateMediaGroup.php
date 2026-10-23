@@ -35,7 +35,7 @@ use WP_Term;
  * (what WordPress checks before creating a term in a hierarchical taxonomy).
  * Registered with `meta.mcp.public` false, so it is offered only on the
  * dedicated Media Library Tools server. Groups are never renamed or deleted
- * here.
+ * here (tsmlt/update-media-group renames them).
  */
 class CreateMediaGroup extends Ability {
 
@@ -88,7 +88,7 @@ class CreateMediaGroup extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Create one media library group (the Groups used to organise media) and return its ID, name, parent and count. name is plain text (HTML is removed); parent is an existing group ID from tsmlt/list-media-groups, or 0 for a top-level group. A name that already exists under the same parent (ignoring case) is refused and the error names the existing group\'s ID; the same name under a different parent is allowed. Groups cannot be renamed or deleted with these tools. To put media in the new group, use tsmlt/set-media-groups.', 'media-library-tools' );
+		return __( 'Create one media library group (the Groups used to organise media) and return its ID, name, parent and count. name is plain text (HTML is removed); parent is an existing group ID from tsmlt/list-media-groups, or 0 for a top-level group. A name that already exists under the same parent (ignoring case) is refused and the error names the existing group\'s ID; the same name under a different parent is allowed. To rename a group, use tsmlt/update-media-group; groups cannot be deleted with these tools. To put media in the new group, use tsmlt/set-media-groups.', 'media-library-tools' );
 	}
 
 	/**
@@ -205,7 +205,8 @@ class CreateMediaGroup extends Ability {
 			return $this->invalid_name();
 		}
 
-		$created = wp_insert_term( $name, Fns::CATEGORY, [ 'parent' => $parent ] );
+		// wp_insert_term() expects slashed input; unslashed, backslashes are lost.
+		$created = wp_insert_term( wp_slash( $name ), Fns::CATEGORY, [ 'parent' => $parent ] );
 		if ( is_wp_error( $created ) ) {
 			return $this->map_insert_error( $created );
 		}

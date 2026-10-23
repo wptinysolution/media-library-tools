@@ -26,6 +26,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\Media\\ListMediaGroups' => __DIR__ . '/app/Abilities/Media/ListMediaGroups.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\SearchMedia' => __DIR__ . '/app/Abilities/Media/SearchMedia.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\SetMediaGroups' => __DIR__ . '/app/Abilities/Media/SetMediaGroups.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\UpdateMediaGroup' => __DIR__ . '/app/Abilities/Media/UpdateMediaGroup.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\UpdateMediaMetadata' => __DIR__ . '/app/Abilities/Media/UpdateMediaMetadata.php',
 		'TinySolutions\\mlt\\Abs\\Ability' => __DIR__ . '/app/Abs/Ability.php',
 		'TinySolutions\\mlt\\Abs\\Discount' => __DIR__ . '/app/Abs/Discount.php',

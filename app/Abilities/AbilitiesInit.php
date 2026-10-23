@@ -19,6 +19,7 @@ use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\SearchMedia;
 use TinySolutions\mlt\Abilities\Media\SetMediaGroups;
+use TinySolutions\mlt\Abilities\Media\UpdateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\UpdateMediaMetadata;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -125,6 +126,7 @@ class AbilitiesInit {
 			ListMediaGroups::instance(),
 			SetMediaGroups::instance(),
 			CreateMediaGroup::instance(),
+			UpdateMediaGroup::instance(),
 		];
 	}
 }
