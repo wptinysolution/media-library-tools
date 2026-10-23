@@ -7,12 +7,12 @@ Media Library Tools lets AI assistants that speak the Model Context Protocol (MC
 The integration lets an AI assistant:
 - Search the media library (by text, file name, MIME type, Group, attached or unattached, or attachments missing alt text)
 - Read the details of one attachment
-- Read an image's camera and exposure EXIF fields (make, model, date taken, ISO, aperture, shutter speed)
+- Read an image's camera, lens and exposure EXIF fields (make, model, lens, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure codes, flash, description)
 - Update an attachment's title, alt text, caption, and description
-- List the media Groups and change which Groups an attachment belongs to
+- List and create media Groups, and change which Groups an attachment belongs to
 - **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
 
-The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or create, rename, or delete Groups. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or rename or delete Groups; `tsmlt-create-media-group` can only add a new Group. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -27,16 +27,17 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 |---|---|---|
 | `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
-| `tsmlt-get-exif-fields` | Returns one image's camera make and model, date taken, ISO, aperture and shutter speed — read from the JPEG file, or from values saved in the EXIF editor for any image type. Dedicated endpoint only | No |
+| `tsmlt-get-exif-fields` | Returns one image's camera make and model, lens make and model, software, date taken and date digitized, ISO, aperture, shutter speed, focal length (mm), the exposure program, exposure mode, metering mode, white balance and flash codes defined by the EXIF standard, and the image description — read from the JPEG file, or from values saved in the EXIF editor for any image type. A field without a value is `null`. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
+| `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
 | `tsmlt-get-exif-caption` | **Pro.** Builds a caption from one image's camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only | No |
 | `tsmlt-update-exif-fields` | **Pro.** Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin's database only. Dedicated endpoint only | Yes (EXIF data, in the JPEG file) |
 
 The two Pro tools are offered only when Media Library Tools Pro is active with a valid licence.
 
-**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the six fields listed above, and `tsmlt-get-exif-caption` returns only the caption text.
+**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
 **What is never changed**: the file's name or URL, the attached post, or any other attachment. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
 
@@ -75,6 +76,19 @@ Group names are not unique: two Groups under different parents can share a name,
 
 Add `group_id` (an integer) to any search. Results are limited to media assigned directly to that Group; media in its sub-Groups are not included. All other filters and paging work as before. An ID that is not a Group — unknown, or a term from another taxonomy — is refused with an error naming the ID.
 
+### Create a Group — `tsmlt-create-media-group`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `name` | string, required, 1–200 characters | The Group's name. Plain text: HTML is removed |
+| `parent` | integer, 0 or more (default 0) | An existing Group's ID, or 0 for a top-level Group |
+
+WordPress creates the Group and its slug. A name that already exists under the same parent (ignoring upper and lower case) is refused, and the error names the existing Group's ID so it can be used instead; the same name under a different parent is allowed, as on the **Media → Groups** screen. A parent that is not a Group — unknown, or a term of another taxonomy — is refused, as are names that are empty or only HTML.
+
+Output: `group` (`id`, `name`, `parent`, `count`) and `created` (`true`). Use the new ID with `tsmlt-set-media-groups` to add media to it.
+
+Groups cannot be renamed or deleted through MCP; do that under **Media → Groups**.
+
 ### Change an attachment's Groups — `tsmlt-set-media-groups`
 
 | Input | Type | Meaning |
@@ -89,7 +103,7 @@ Add `group_id` (an integer) to any search. Results are limited to media assigned
 | `remove` | Removes only these Groups | Nothing changes |
 | `replace` | Makes these the attachment's only Groups | Removes all its Groups |
 
-Every ID must be an existing Group. If any ID is unknown or belongs to another taxonomy, the request is refused and nothing changes, not even for the valid IDs. Groups are never created.
+Every ID must be an existing Group. If any ID is unknown or belongs to another taxonomy, the request is refused and nothing changes, not even for the valid IDs. This tool never creates Groups; use `tsmlt-create-media-group` first.
 
 Output: `id`, `mode`, `groups_before` and `groups_after` (each Group with `id`, `name`, `parent`, `count`), and `changed`. The result is read back from the database after saving; if it does not match the request, the attachment's previous Groups are restored and an error is returned.
 
@@ -247,7 +261,7 @@ Ask your assistant something like:
 
 ## Using the MCP Adapter Default Server (optional)
 
-The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
+The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -331,12 +345,12 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, and `tsmlt-create-media-group` permission to create them (by default, administrators and editors have both; the tools still require an administrator). The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
 
 ## Important Notes
 
 ### Review before saving
-`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them — keep your client's tool-approval prompts turned on.
+`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them. `tsmlt-create-media-group` adds a Group that can only be removed under **Media → Groups** — keep your client's tool-approval prompts turned on.
 
 ### Revoking access
 Delete the Application Password under **Users → Profile → Application Passwords**. The assistant loses access immediately.

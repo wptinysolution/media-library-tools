@@ -20,6 +20,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\AbilityGuard' => __DIR__ . '/app/Abilities/AbilityGuard.php',
 		'TinySolutions\\mlt\\Abilities\\McpServerRegistration' => __DIR__ . '/app/Abilities/McpServerRegistration.php',
 		'TinySolutions\\mlt\\Abilities\\MediaPresenter' => __DIR__ . '/app/Abilities/MediaPresenter.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\CreateMediaGroup' => __DIR__ . '/app/Abilities/Media/CreateMediaGroup.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifFields' => __DIR__ . '/app/Abilities/Media/GetExifFields.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaDetails' => __DIR__ . '/app/Abilities/Media/GetMediaDetails.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ListMediaGroups' => __DIR__ . '/app/Abilities/Media/ListMediaGroups.php',

@@ -282,7 +282,7 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-exif-fields</code></td>
-							<td><?php esc_html_e( 'Returns one image\'s camera make and model, date taken, ISO, aperture and shutter speed, from the JPEG file or values saved in the EXIF editor. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Returns one image\'s camera and lens make and model, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure program and mode, metering mode, white balance, flash and description, from the JPEG file or values saved in the EXIF editor. Never location, time zone offsets, copyright or artist. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -294,6 +294,11 @@ class McpDocsPage {
 							<td><code>tsmlt-list-media-groups</code></td>
 							<td><?php esc_html_e( 'Lists media Groups with their ID, name, parent Group and number of media items; filter by name or ID. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-create-media-group</code></td>
+							<td><?php esc_html_e( 'Creates one media Group, at the top level or under an existing Group. A name already used under the same parent is refused. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-set-media-groups</code></td>
@@ -313,7 +318,7 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or create, rename, or delete Groups. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or rename or delete Groups; tsmlt-create-media-group only adds new Groups. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 

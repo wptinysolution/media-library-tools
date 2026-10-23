@@ -105,7 +105,7 @@ class AbilitiesOptionalDependenciesTest extends TestCase {
 	 */
 	public function test_ability_names_without_abilities_api() {
 		$this->assertSame(
-			[ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups' ],
+			[ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group' ],
 			AbilitiesInit::instance()->get_ability_names()
 		);
 	}
