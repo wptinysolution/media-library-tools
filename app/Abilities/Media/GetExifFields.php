@@ -26,8 +26,11 @@ use WP_Error;
  * JPEG images, plus the fields saved by the EXIF editor in `_tsmlt_exif_meta`,
  * which take precedence and are the only source for other image types.
  *
- * Only an allowlist is returned — make, model, date taken, ISO, aperture and
- * shutter speed — each re-validated. GPS position (or whether one exists),
+ * Only an allowlist is returned, each value re-validated: camera make and
+ * model, lens make and model, software, date taken and date digitized, ISO,
+ * aperture, shutter speed, focal length, the coded exposure program, exposure
+ * mode, metering mode, white balance and flash values, and the image
+ * description. GPS position (or whether one exists), time zone offsets,
  * copyright, artist, serial numbers, raw EXIF and file paths are never
  * returned. Registered with `meta.mcp.public` false, so it is offered only on
  * the dedicated Media Library Tools MCP server.
@@ -61,11 +64,37 @@ class GetExifFields extends Ability {
 	const MAX_TEXT_LENGTH = 255;
 
 	/**
+	 * Maximum length of the returned image description (the EXIF editor's
+	 * own limit).
+	 *
+	 * @var int
+	 */
+	const MAX_DESCRIPTION_LENGTH = 2000;
+
+	/**
 	 * Returned field names, in output order.
 	 *
 	 * @var string[]
 	 */
-	const FIELDS = [ 'make', 'model', 'date_time_original', 'iso', 'aperture', 'shutter_speed' ];
+	const FIELDS = [
+		'make',
+		'model',
+		'date_time_original',
+		'iso',
+		'aperture',
+		'shutter_speed',
+		'lens_make',
+		'lens_model',
+		'software',
+		'focal_length',
+		'date_time_digitized',
+		'exposure_program',
+		'exposure_mode',
+		'metering_mode',
+		'white_balance',
+		'flash',
+		'image_description',
+	];
 
 	/**
 	 * Class Constructor
@@ -90,7 +119,7 @@ class GetExifFields extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Return the camera and exposure EXIF fields of one image attachment by ID: camera make and model, date taken, ISO, aperture (f-number) and shutter speed (seconds, e.g. "1/250"). Reads the image file for JPEG, and the values saved in the plugin\'s EXIF editor for any image type. Location, copyright and artist are never returned. Read-only.', 'media-library-tools' );
+		return __( 'Return the camera, lens and exposure EXIF fields of one image attachment by ID: camera make and model, lens make and model, software, date taken and date digitized, ISO, aperture (f-number), shutter speed (seconds, e.g. "1/250"), focal length (mm), the exposure program, exposure mode, metering mode, white balance and flash codes defined by the EXIF standard, and the image description. A field without a value is null. Reads the image file for JPEG, and the values saved in the plugin\'s EXIF editor for any image type. Location, time zone offsets, copyright and artist are never returned. Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -147,29 +176,73 @@ class GetExifFields extends Ability {
 					'additionalProperties' => false,
 					'required'             => self::FIELDS,
 					'properties'           => [
-						'make'               => [
+						'make'                => [
 							'type'        => [ 'string', 'null' ],
 							'description' => 'Camera make.',
 						],
-						'model'              => [
+						'model'               => [
 							'type'        => [ 'string', 'null' ],
 							'description' => 'Camera model.',
 						],
-						'date_time_original' => [
+						'date_time_original'  => [
 							'type'        => [ 'string', 'null' ],
 							'description' => 'Date taken, in EXIF format "YYYY:MM:DD HH:MM:SS".',
 						],
-						'iso'                => [
+						'iso'                 => [
 							'type'        => [ 'integer', 'null' ],
 							'description' => 'ISO speed.',
 						],
-						'aperture'           => [
+						'aperture'            => [
 							'type'        => [ 'number', 'null' ],
 							'description' => 'Aperture as an f-number, e.g. 1.8 for f/1.8.',
 						],
-						'shutter_speed'      => [
+						'shutter_speed'       => [
 							'type'        => [ 'string', 'null' ],
 							'description' => 'Shutter speed in seconds, e.g. "1/250" or "2".',
+						],
+						'lens_make'           => [
+							'type'        => [ 'string', 'null' ],
+							'description' => 'Lens make.',
+						],
+						'lens_model'          => [
+							'type'        => [ 'string', 'null' ],
+							'description' => 'Lens model.',
+						],
+						'software'            => [
+							'type'        => [ 'string', 'null' ],
+							'description' => 'Software (camera firmware or editing application).',
+						],
+						'focal_length'        => [
+							'type'        => [ 'number', 'null' ],
+							'description' => 'Focal length in millimetres, e.g. 4.25.',
+						],
+						'date_time_digitized' => [
+							'type'        => [ 'string', 'null' ],
+							'description' => 'Date digitized, in EXIF format "YYYY:MM:DD HH:MM:SS".',
+						],
+						'exposure_program'    => [
+							'type'        => [ 'integer', 'null' ],
+							'description' => 'Exposure program code (EXIF ExposureProgram), e.g. 1 manual, 2 normal program, 3 aperture priority, 4 shutter priority.',
+						],
+						'exposure_mode'       => [
+							'type'        => [ 'integer', 'null' ],
+							'description' => 'Exposure mode code (EXIF ExposureMode): 0 auto, 1 manual, 2 auto bracket.',
+						],
+						'metering_mode'       => [
+							'type'        => [ 'integer', 'null' ],
+							'description' => 'Metering mode code (EXIF MeteringMode), e.g. 2 center-weighted average, 3 spot, 5 multi-segment.',
+						],
+						'white_balance'       => [
+							'type'        => [ 'integer', 'null' ],
+							'description' => 'White balance code (EXIF WhiteBalance): 0 auto, 1 manual.',
+						],
+						'flash'               => [
+							'type'        => [ 'integer', 'null' ],
+							'description' => 'Flash code (EXIF Flash bit field), e.g. 0 no flash, 1 fired, 16 off (did not fire), 25 auto (fired).',
+						],
+						'image_description'   => [
+							'type'        => [ 'string', 'null' ],
+							'description' => 'Image description (EXIF ImageDescription).',
 						],
 					],
 				],
@@ -254,23 +327,35 @@ class GetExifFields extends Ability {
 		$values = is_array( $values ) ? $values : [];
 
 		return [
-			'make'               => $this->text( $values['make'] ?? null ),
-			'model'              => $this->text( $values['model'] ?? null ),
-			'date_time_original' => $this->date_taken( $values['date_time_original'] ?? null ),
-			'iso'                => $this->iso( $values['iso'] ?? null ),
-			'aperture'           => $this->aperture( $values['aperture'] ?? null ),
-			'shutter_speed'      => $this->shutter_speed( $values['shutter_speed'] ?? null ),
+			'make'                => $this->text( $values['make'] ?? null ),
+			'model'               => $this->text( $values['model'] ?? null ),
+			'date_time_original'  => $this->date_taken( $values['date_time_original'] ?? null ),
+			'iso'                 => $this->iso( $values['iso'] ?? null ),
+			'aperture'            => $this->aperture( $values['aperture'] ?? null ),
+			'shutter_speed'       => $this->shutter_speed( $values['shutter_speed'] ?? null ),
+			'lens_make'           => $this->text( $values['lens_make'] ?? null ),
+			'lens_model'          => $this->text( $values['lens_model'] ?? null ),
+			'software'            => $this->text( $values['software'] ?? null ),
+			'focal_length'        => $this->focal_length( $values['focal_length'] ?? null ),
+			'date_time_digitized' => $this->date_taken( $values['date_time_digitized'] ?? null ),
+			'exposure_program'    => $this->code( $values['exposure_program'] ?? null ),
+			'exposure_mode'       => $this->code( $values['exposure_mode'] ?? null ),
+			'metering_mode'       => $this->code( $values['metering_mode'] ?? null ),
+			'white_balance'       => $this->code( $values['white_balance'] ?? null ),
+			'flash'               => $this->code( $values['flash'] ?? null ),
+			'image_description'   => $this->text( $values['image_description'] ?? null, self::MAX_DESCRIPTION_LENGTH ),
 		];
 	}
 
 	/**
 	 * Plain single-line text, or null when empty.
 	 *
-	 * @param mixed $value Value.
+	 * @param mixed $value      Value.
+	 * @param int   $max_length Most characters returned.
 	 *
 	 * @return string|null
 	 */
-	private function text( $value ): ?string {
+	private function text( $value, int $max_length = self::MAX_TEXT_LENGTH ): ?string {
 		if ( ! is_string( $value ) && ! is_int( $value ) && ! is_float( $value ) ) {
 			return null;
 		}
@@ -280,7 +365,7 @@ class GetExifFields extends Ability {
 			return null;
 		}
 
-		return function_exists( 'mb_substr' ) ? mb_substr( $text, 0, self::MAX_TEXT_LENGTH ) : substr( $text, 0, self::MAX_TEXT_LENGTH );
+		return function_exists( 'mb_substr' ) ? mb_substr( $text, 0, $max_length ) : substr( $text, 0, $max_length );
 	}
 
 	/**
@@ -348,6 +433,42 @@ class GetExifFields extends Ability {
 		$text = trim( (string) preg_replace( '#\s*(?:s|secs?|seconds?)\.?$#i', '', $text ) );
 
 		return preg_match( '#^\d+(?:\.\d+)?(?:/\d+(?:\.\d+)?)?$#', $text ) ? $text : null;
+	}
+
+	/**
+	 * A positive focal length in millimetres rounded to two decimals, or
+	 * null. Accepts "50mm".
+	 *
+	 * @param mixed $value Value.
+	 *
+	 * @return float|null
+	 */
+	private function focal_length( $value ): ?float {
+		if ( is_string( $value ) ) {
+			$value = preg_replace( '#\s*mm$#i', '', trim( $value ) );
+		}
+		if ( ! is_int( $value ) && ! is_float( $value ) && ! ( is_string( $value ) && is_numeric( $value ) ) ) {
+			return null;
+		}
+
+		$focal = round( (float) $value, 2 );
+		return $focal > 0 && is_finite( $focal ) ? $focal : null;
+	}
+
+	/**
+	 * A coded EXIF value (0–65535), or null. 0 is a valid code.
+	 *
+	 * @param mixed $value Value.
+	 *
+	 * @return int|null
+	 */
+	private function code( $value ): ?int {
+		if ( ! is_int( $value ) && ! ( is_string( $value ) && ctype_digit( trim( $value ) ) ) ) {
+			return null;
+		}
+
+		$code = (int) $value;
+		return $code >= 0 && $code <= 65535 ? $code : null;
 	}
 
 	/**

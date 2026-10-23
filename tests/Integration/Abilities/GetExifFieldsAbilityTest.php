@@ -44,12 +44,23 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 	 * @var array
 	 */
 	const NO_FIELDS = [
-		'make'               => null,
-		'model'              => null,
-		'date_time_original' => null,
-		'iso'                => null,
-		'aperture'           => null,
-		'shutter_speed'      => null,
+		'make'                => null,
+		'model'               => null,
+		'date_time_original'  => null,
+		'iso'                 => null,
+		'aperture'            => null,
+		'shutter_speed'       => null,
+		'lens_make'           => null,
+		'lens_model'          => null,
+		'software'            => null,
+		'focal_length'        => null,
+		'date_time_digitized' => null,
+		'exposure_program'    => null,
+		'exposure_mode'       => null,
+		'metering_mode'       => null,
+		'white_balance'       => null,
+		'flash'               => null,
+		'image_description'   => null,
 	];
 
 	/**
@@ -278,14 +289,17 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 				'id'        => $id,
 				'supported' => true,
 				'source'    => 'file',
-				'fields'    => [
-					'make'               => 'TestCam',
-					'model'              => 'Model X1',
-					'date_time_original' => '2026:03:14 09:26:53',
-					'iso'                => 400,
-					'aperture'           => 1.8,
-					'shutter_speed'      => '1/250',
-				],
+				'fields'    => array_merge(
+					self::NO_FIELDS,
+					[
+						'make'               => 'TestCam',
+						'model'              => 'Model X1',
+						'date_time_original' => '2026:03:14 09:26:53',
+						'iso'                => 400,
+						'aperture'           => 1.8,
+						'shutter_speed'      => '1/250',
+					]
+				),
 			],
 			$result
 		);
@@ -332,14 +346,17 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 				'id'        => $id,
 				'supported' => true,
 				'source'    => 'stored',
-				'fields'    => [
-					'make'               => 'Canon',
-					'model'              => 'EOD R5',
-					'date_time_original' => '2026:09:01 18:30:00',
-					'iso'                => 100,
-					'aperture'           => 1.8,
-					'shutter_speed'      => '1/250',
-				],
+				'fields'    => array_merge(
+					self::NO_FIELDS,
+					[
+						'make'               => 'Canon',
+						'model'              => 'EOD R5',
+						'date_time_original' => '2026:09:01 18:30:00',
+						'iso'                => 100,
+						'aperture'           => 1.8,
+						'shutter_speed'      => '1/250',
+					]
+				),
 			],
 			$result
 		);
@@ -548,14 +565,17 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 				'id'        => $id,
 				'supported' => true,
 				'source'    => 'file',
-				'fields'    => [
-					'make'               => 'TestCam',
-					'model'              => 'Model X1',
-					'date_time_original' => '2026:03:14 09:26:53',
-					'iso'                => 400,
-					'aperture'           => 1.8,
-					'shutter_speed'      => '1/250',
-				],
+				'fields'    => array_merge(
+					self::NO_FIELDS,
+					[
+						'make'               => 'TestCam',
+						'model'              => 'Model X1',
+						'date_time_original' => '2026:03:14 09:26:53',
+						'iso'                => 400,
+						'aperture'           => 1.8,
+						'shutter_speed'      => '1/250',
+					]
+				),
 			],
 			$result
 		);
@@ -640,6 +660,155 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 	// ---------------------------------------------------------------------
 	// Privacy and side effects
 	// ---------------------------------------------------------------------
+
+	/**
+	 * The lens, software, focal length, date digitized, coded exposure
+	 * fields and description are read from a JPEG file; code 0 is a value.
+	 */
+	public function test_jpeg_file_extended_fields() {
+		$id = $this->upload_bytes(
+			TsmltExifJpegFixture::build(
+				DIR_TESTDATA . '/images/test-square-150.jpg',
+				[
+					[ 0x010E, TsmltExifJpegFixture::ASCII, 'Harbour at dawn' ],
+					[ 0x010F, TsmltExifJpegFixture::ASCII, 'TestCam' ],
+					[ 0x0131, TsmltExifJpegFixture::ASCII, 'Firmware 2.1' ],
+				],
+				[
+					[ 0x8822, TsmltExifJpegFixture::SHORT, 2 ],
+					[ 0x9004, TsmltExifJpegFixture::ASCII, '2026:03:14 09:30:00' ],
+					[ 0x9207, TsmltExifJpegFixture::SHORT, 5 ],
+					[ 0x9209, TsmltExifJpegFixture::SHORT, 0 ],
+					[ 0x920A, TsmltExifJpegFixture::RATIONAL, [ [ 425, 100 ] ] ],
+					[ 0xA402, TsmltExifJpegFixture::SHORT, 0 ],
+					[ 0xA403, TsmltExifJpegFixture::SHORT, 1 ],
+					[ 0xA433, TsmltExifJpegFixture::ASCII, 'LensCo' ],
+					[ 0xA434, TsmltExifJpegFixture::ASCII, 'Prime 50' ],
+				],
+				[]
+			),
+			'extended.jpg'
+		);
+
+		$result = $this->run_ability( [ 'id' => $id ] );
+
+		$this->assert_valid_output( $result );
+		$this->assertSame( 'file', $result['source'] );
+		$this->assertSame(
+			array_merge(
+				self::NO_FIELDS,
+				[
+					'make'                => 'TestCam',
+					'lens_make'           => 'LensCo',
+					'lens_model'          => 'Prime 50',
+					'software'            => 'Firmware 2.1',
+					'focal_length'        => 4.25,
+					'date_time_digitized' => '2026:03:14 09:30:00',
+					'exposure_program'    => 2,
+					'exposure_mode'       => 0,
+					'metering_mode'       => 5,
+					'white_balance'       => 1,
+					'flash'               => 0,
+					'image_description'   => 'Harbour at dawn',
+				]
+			),
+			$result['fields']
+		);
+	}
+
+	/**
+	 * Stored values of the extended fields are returned for any image type,
+	 * normalized; the description keeps up to 2000 characters.
+	 */
+	public function test_stored_extended_fields() {
+		$png = $this->upload_test_image( 'test-image.png' );
+		update_post_meta(
+			$png,
+			'_tsmlt_exif_meta',
+			[
+				'lens_model'          => 'Prime 50',
+				'software'            => 'Editor 1.0',
+				'focal_length'        => '50mm',
+				'date_time_digitized' => '2026:09:01 18:31:00',
+				'flash'               => '16',
+				'white_balance'       => 0,
+				'image_description'   => str_repeat( 'd', 2001 ),
+			]
+		);
+
+		$result = $this->run_ability( [ 'id' => $png ] );
+
+		$this->assert_valid_output( $result );
+		$this->assertSame( 'stored', $result['source'] );
+		$this->assertSame( 'Prime 50', $result['fields']['lens_model'] );
+		$this->assertSame( 'Editor 1.0', $result['fields']['software'] );
+		$this->assertSame( 50.0, $result['fields']['focal_length'] );
+		$this->assertSame( '2026:09:01 18:31:00', $result['fields']['date_time_digitized'] );
+		$this->assertSame( 16, $result['fields']['flash'] );
+		$this->assertSame( 0, $result['fields']['white_balance'] );
+		$this->assertSame( 2000, mb_strlen( $result['fields']['image_description'] ) );
+		$this->assertNull( $result['fields']['lens_make'] );
+		$this->assertNull( $result['fields']['exposure_program'] );
+	}
+
+	/**
+	 * Unusable stored values of the extended fields are returned as null.
+	 */
+	public function test_unusable_stored_extended_fields() {
+		$png = $this->upload_test_image( 'test-image.png' );
+		update_post_meta(
+			$png,
+			'_tsmlt_exif_meta',
+			[
+				'lens_model'          => [ 'not', 'text' ],
+				'focal_length'        => 'wide',
+				'date_time_digitized' => '2026-09-01 18:31',
+				'exposure_program'    => -1,
+				'metering_mode'       => 70000,
+				'flash'               => 'on',
+				'image_description'   => '   ',
+			]
+		);
+
+		$result = $this->run_ability( [ 'id' => $png ] );
+
+		$this->assert_valid_output( $result );
+		$this->assertSame( self::NO_FIELDS, $result['fields'] );
+		$this->assertSame( 'none', $result['source'] );
+	}
+
+	/**
+	 * Time zone offsets, GPS altitude, location, copyright and artist are
+	 * not fields of this ability, whatever is stored.
+	 */
+	public function test_excluded_editor_fields_are_never_returned() {
+		$png = $this->upload_test_image( 'test-image.png' );
+		update_post_meta(
+			$png,
+			'_tsmlt_exif_meta',
+			array_merge(
+				self::stored_fields(),
+				[
+					'offset_time_original'  => '+05:45',
+					'offset_time_digitized' => '-09:30',
+					'gps_altitude'          => 4321.5,
+					'lens_model'            => 'Prime 50',
+				]
+			)
+		);
+
+		$result = $this->run_ability( [ 'id' => $png ] );
+		$json   = wp_json_encode( $result );
+
+		$this->assert_valid_output( $result );
+		foreach ( [ 'offset_time_original', 'offset_time_digitized', 'gps_altitude', 'gps_lat', 'gps_lng', 'copyright', 'artist' ] as $key ) {
+			$this->assertArrayNotHasKey( $key, $result['fields'], $key );
+		}
+		foreach ( [ '+05:45', '-09:30', '4321.5', self::COPYRIGHT, self::ARTIST, '23.81', '90.41' ] as $needle ) {
+			$this->assertStringNotContainsString( $needle, $json, $needle );
+		}
+		$this->assertSame( 'Prime 50', $result['fields']['lens_model'], 'Allowed fields still returned.' );
+	}
 
 	/**
 	 * GPS (and whether there is any), copyright, artist, serial number, raw
