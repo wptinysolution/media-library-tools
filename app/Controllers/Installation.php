@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
 /**
  * Installation class.
@@ -47,6 +48,7 @@ class Installation {
 			// so they are no longer offered for deletion. Rows only — the files on
 			// disk are untouched.
 			RubbishScanner::purge_generated_file_rows();
+			UsedWhereScanner::delete_legacy_debug_log();
 			update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 		}
 	}
@@ -66,6 +68,8 @@ class Installation {
 		// runs for most sites, since a plugin update bumps the version without
 		// firing the activation hook.
 		RubbishScanner::purge_generated_file_rows();
+		// Earlier releases left a predictable, possibly public debug log.
+		UsedWhereScanner::delete_legacy_debug_log();
 		update_option( 'tsmlt_plugin_version', TSMLT_VERSION );
 	}
 

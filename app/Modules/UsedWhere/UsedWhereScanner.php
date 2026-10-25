@@ -52,9 +52,15 @@ class UsedWhereScanner {
 	 * for a support session without touching server config.
 	 *
 	 * Default: `false`. Flip to `true` only for diagnosis; leave off in
-	 * shipped releases.
+	 * shipped releases. Releases up to 2.5.0 shipped with it on and wrote a
+	 * fixed-name `used-where.log` (see delete_legacy_debug_log()).
 	 */
-	const DEBUG_LOG = true;
+	const DEBUG_LOG = false;
+
+	/**
+	 * File name the debug log used before it got an unguessable name.
+	 */
+	const LEGACY_DEBUG_LOG_FILE = 'used-where.log';
 
 	/**
 	 * Subdirectory inside the uploads dir where the debug log lives.
@@ -2152,6 +2158,8 @@ class UsedWhereScanner {
 		// Cancel any in-flight scan so we don't race the old tick chain.
 		$this->cancel_scheduled_scan();
 
+		self::delete_legacy_debug_log();
+
 		// Wipe old usage data once, here. The tick handler must NOT clear.
 		$this->clear_all_usage_meta();
 		Fns::DB()->delete( 'postmeta' )
@@ -3714,7 +3722,9 @@ class UsedWhereScanner {
 			}
 		}
 
-		$log_file = $log_dir . '/used-where.log';
+		// The uploads directory is web-served and .htaccess is ignored by
+		// nginx and others, so the file name must not be guessable.
+		$log_file = $log_dir . '/' . self::debug_log_file_name();
 
 		// Soft size cap: truncate at 2 MB so a forgotten DEBUG_LOG=true
 		// can't fill the disk. Cheap stat() check, only triggers
@@ -3723,7 +3733,47 @@ class UsedWhereScanner {
 			@file_put_contents( $log_file, '', LOCK_EX );
 		}
 
-		$line = '[' . current_time( 'mysql' ) . '] ' . $message . PHP_EOL;
-		@file_put_contents( $log_file, $line, FILE_APPEND | LOCK_EX );
+		@file_put_contents( $log_file, self::debug_log_line( $message ), FILE_APPEND | LOCK_EX );
+	}
+
+	/**
+	 * Debug log file name: derived from the site's secret keys, so it cannot
+	 * be guessed from outside, and stable across requests.
+	 *
+	 * @return string
+	 */
+	private static function debug_log_file_name(): string {
+		return 'used-where-' . wp_hash( 'tsmlt_used_where_debug_log' ) . '.log';
+	}
+
+	/**
+	 * One log line: timestamp plus the message on a single line (line
+	 * breaks and control characters removed), at most 2000 characters.
+	 *
+	 * @param string $message Message.
+	 *
+	 * @return string
+	 */
+	private static function debug_log_line( string $message ): string {
+		$message = (string) preg_replace( '/[\x00-\x1F\x7F]+/', ' ', $message );
+		return '[' . current_time( 'mysql' ) . '] ' . mb_substr( $message, 0, 2000 ) . PHP_EOL;
+	}
+
+	/**
+	 * Delete the fixed-name debug log written by releases that shipped with
+	 * DEBUG_LOG on. Its name is predictable, and on servers that ignore
+	 * .htaccess it can be downloaded. Only that one file is removed.
+	 *
+	 * @return void
+	 */
+	public static function delete_legacy_debug_log(): void {
+		$upload_dir = wp_upload_dir( null, false );
+		if ( ! empty( $upload_dir['error'] ) || empty( $upload_dir['basedir'] ) ) {
+			return;
+		}
+		$file = trailingslashit( $upload_dir['basedir'] ) . self::DEBUG_LOG_SUBDIR . '/' . self::LEGACY_DEBUG_LOG_FILE;
+		if ( is_file( $file ) ) {
+			wp_delete_file( $file );
+		}
 	}
 }
