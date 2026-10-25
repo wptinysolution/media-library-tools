@@ -123,6 +123,19 @@ class ExifFilter {
 	}
 
 	/**
+	 * Remove all stored EXIF index meta (camera and GPS) for an attachment,
+	 * for when its file no longer has any EXIF.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return void
+	 */
+	public static function remove_exif_meta( int $attachment_id ): void {
+		delete_post_meta( $attachment_id, '_tsmlt_exif_camera' );
+		self::remove_gps_meta( $attachment_id );
+	}
+
+	/**
 	 * Convert GPS DMS array from EXIF to decimal degrees.
 	 *
 	 * @param array  $exif_data Raw EXIF data.

@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -121,11 +122,21 @@ class ExifStripper {
 		wp_delete_file( $backup_path );
 
 		// The file no longer has any EXIF, so values saved by the EXIF editor
-		// (which readers overlay on the file's EXIF) would only be stale.
+		// (which readers overlay on the file's EXIF) and the camera and GPS
+		// index kept for the media filters would only be stale.
 		delete_post_meta( $attachment_id, '_tsmlt_exif_meta' );
+		ExifFilter::remove_exif_meta( $attachment_id );
 
 		// Clear the EXIF cache.
 		ExifDataReader::clear_cache();
+
+		/**
+		 * Fires after all EXIF was removed from an attachment's file.
+		 *
+		 * @param int    $attachment_id Attachment ID.
+		 * @param string $mode          What was removed: "all".
+		 */
+		do_action( 'tsmlt_exif_stripped', $attachment_id, 'all' );
 
 		return [
 			'success' => true,

@@ -10,6 +10,7 @@
 
 require_once dirname( __DIR__, 2 ) . '/Support/ExifJpegFixture.php';
 
+use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifStripper;
 
@@ -28,6 +29,15 @@ class ExifStripperStoredFieldsTest extends WP_UnitTestCase {
 		'gps_lat'   => 12.5,
 		'gps_lng'   => 45.25,
 		'copyright' => 'Stored Copyright',
+	];
+
+	/**
+	 * Camera and GPS index meta written on upload for the media filters.
+	 */
+	const INDEX = [
+		'_tsmlt_exif_camera'  => 'Stored Make Stored Model',
+		'_tsmlt_exif_gps_lat' => '12.5',
+		'_tsmlt_exif_gps_lng' => '45.25',
 	];
 
 	/**
@@ -100,9 +110,73 @@ class ExifStripperStoredFieldsTest extends WP_UnitTestCase {
 			'stored.jpg'
 		);
 		update_post_meta( $id, '_tsmlt_exif_meta', self::STORED );
+		$this->seed_index( $id );
 		update_post_meta( $id, '_wp_attachment_image_alt', 'Alt stays' );
+		update_post_meta( $id, '_tsmlt_unrelated', 'Kept' );
 		ExifDataReader::clear_cache();
 		return $id;
+	}
+
+	/**
+	 * Seed the camera and GPS index meta.
+	 *
+	 * @param int $id Attachment ID.
+	 */
+	private function seed_index( int $id ) {
+		foreach ( self::INDEX as $key => $value ) {
+			update_post_meta( $id, $key, $value );
+		}
+	}
+
+	/**
+	 * IDs the media table's EXIF filters return.
+	 *
+	 * @param array $params Filter parameters.
+	 *
+	 * @return int[]
+	 */
+	private static function filtered_ids( array $params ): array {
+		$args = ExifFilter::apply_filters(
+			[
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			],
+			$params
+		);
+		return array_map( 'intval', ( new WP_Query( $args ) )->posts );
+	}
+
+	/**
+	 * A full strip clears the stored editor fields and the camera and GPS
+	 * index, so the media filters no longer list the image; other meta and
+	 * the result shape are unchanged.
+	 */
+	public function test_full_strip_removes_index_meta() {
+		$id = $this->jpeg_with_stored_fields();
+		$this->assertContains( $id, self::filtered_ids( [ 'exif_has_gps' => 'yes' ] ), 'Precondition: listed as having GPS.' );
+		$this->assertContains( $id, self::filtered_ids( [ 'exif_camera' => 'Stored Make' ] ), 'Precondition: listed by camera.' );
+
+		$stripped = [];
+		$listener = static function ( $attachment_id, $mode ) use ( &$stripped ) {
+			$stripped[] = [ $attachment_id, $mode ];
+		};
+		add_action( 'tsmlt_exif_stripped', $listener, 10, 2 );
+		$result = ExifStripper::instance()->strip_exif_from_attachment( $id );
+		remove_action( 'tsmlt_exif_stripped', $listener, 10 );
+
+		$this->assertSame( [ 'success', 'message' ], array_keys( $result ) );
+		$this->assertTrue( $result['success'], $result['message'] );
+		$this->assertSame( [ [ $id, 'all' ] ], $stripped, 'tsmlt_exif_stripped fires once after the strip.' );
+		foreach ( array_merge( [ '_tsmlt_exif_meta' ], array_keys( self::INDEX ) ) as $key ) {
+			$this->assertFalse( metadata_exists( 'post', $id, $key ), "$key removed" );
+		}
+		$this->assertNotContains( $id, self::filtered_ids( [ 'exif_has_gps' => 'yes' ] ) );
+		$this->assertContains( $id, self::filtered_ids( [ 'exif_has_gps' => 'no' ] ) );
+		$this->assertNotContains( $id, self::filtered_ids( [ 'exif_camera' => 'Stored Make' ] ) );
+		$this->assertSame( 'Alt stays', get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+		$this->assertSame( 'Kept', get_post_meta( $id, '_tsmlt_unrelated', true ) );
 	}
 
 	/**
@@ -157,8 +231,14 @@ class ExifStripperStoredFieldsTest extends WP_UnitTestCase {
 		$png = (string) file_get_contents( DIR_TESTDATA . '/images/test-image.png' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Test fixture.
 		$id  = $this->upload( $png, 'image.png' );
 		update_post_meta( $id, '_tsmlt_exif_meta', self::STORED );
+		$this->seed_index( $id );
 
+		$fired = did_action( 'tsmlt_exif_stripped' );
 		$this->assertFalse( ExifStripper::instance()->strip_exif_from_attachment( $id )['success'] );
+		$this->assertSame( $fired, did_action( 'tsmlt_exif_stripped' ), 'No strip action for a refused strip.' );
 		$this->assertSame( self::STORED, get_post_meta( $id, '_tsmlt_exif_meta', true ) );
+		foreach ( self::INDEX as $key => $value ) {
+			$this->assertSame( $value, get_post_meta( $id, $key, true ), "$key kept" );
+		}
 	}
 }
