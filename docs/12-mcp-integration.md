@@ -7,13 +7,14 @@ Media Library Tools lets AI assistants that speak the Model Context Protocol (MC
 The integration lets an AI assistant:
 - Search the media library (by text, file name, MIME type, Group, attached or unattached, or attachments missing alt text)
 - Read the details of one attachment
-- Find where media is used on the site (featured images, content, page builders, custom fields, logo, menus, widgets), from the Used Where scan
+- Find where media is used on the site (featured images, content, page builders, custom fields, logo, menus, widgets), from the Used Where scan — and start that scan and follow its progress, for a complete used/unused audit
+- Move media that a completed scan found unused to the trash, after a preview, by exact ID
 - Read an image's camera, lens and exposure EXIF fields (make, model, lens, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure codes, flash, description)
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
 - **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
 
-The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or permanently delete files, or delete or move Groups. `tsmlt-trash-unused-media` can move media that a completed usage scan found unused to the trash (it can be restored);  `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -30,6 +31,10 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
 | `tsmlt-get-exif-fields` | Returns one image's camera make and model, lens make and model, software, date taken and date digitized, ISO, aperture, shutter speed, focal length (mm), the exposure program, exposure mode, metering mode, white balance and flash codes defined by the EXIF standard, and the image description — read from the JPEG file, or from values saved in the EXIF editor for any image type. A field without a value is `null`. Dedicated endpoint only | No |
 | `tsmlt-get-media-usage` | Reports where up to 50 attachments are used — featured images, content and excerpts, page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options) — from the records of the Used Where scan. Says whether each one is used, not used, or unknown. Dedicated endpoint only | No |
+| `tsmlt-start-usage-scan` | Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Dedicated endpoint only | Yes (usage scan results only) |
+| `tsmlt-get-usage-scan-status` | Returns the Used Where scan state, progress, and whether it is stalled or failed. Never starts or resumes a scan. Dedicated endpoint only | No |
+| `tsmlt-preview-trash-unused-media` | Dry run: for up to 50 exact attachment IDs, reports which the latest completed usage scan found unused and would be moved to the trash now, and why the others would not. Dedicated endpoint only | No |
+| `tsmlt-trash-unused-media` | Moves up to 50 exact attachment IDs to the trash — only those the latest completed usage scan found unused; checks everything again itself and skips the rest with a reason. Files are kept and can be restored. Dedicated endpoint only | Yes (moves media to the trash) |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
@@ -58,7 +63,7 @@ Attached is not the same as used. An image can appear in a page's content or a p
 
 ## Where media is used — `tsmlt-get-media-usage`
 
-Reads the records of the plugin's **Used Where** scan (**Media Library Tools → Used Where**). It does not scan and changes nothing; run or finish a scan there for complete results. A post saved after a scan is re-checked shortly afterwards, by a WP-Cron event.
+Reads the records of the plugin's **Used Where** scan (**Media Library Tools → Used Where**). It does not scan and changes nothing; start a scan there or with `tsmlt-start-usage-scan` for complete results. A post saved after a scan is re-checked shortly afterwards, by a WP-Cron event.
 
 | Input | Type | Meaning |
 |---|---|---|
@@ -68,13 +73,114 @@ Reads the records of the plugin's **Used Where** scan (**Media Library Tools →
 If any ID is not an attachment you can read (missing, trashed, or private to you), the whole request is refused with an error naming that ID.
 
 Output:
-- `scan`: `state` of the last scan (`idle`, `queued`, `running`, `complete`, `cancelled` or `error`), `complete`, `processed`, `total`, and `last_update` (site time).
+- `scan`: `state` of the last scan (`idle`, `queued`, `running`, `complete`, `cancelled` or `error`), `complete`, `processed`, `total`, and `last_update` (site time). `complete` is `true` only when the results in this response come from one completed scan — the status is read before and after the records, and a scan that started or finished in between makes it `false` (call again).
 - `items`, in the order requested, each with:
-  - `id`, and `used`: `true` when a usage is recorded; `false` only when none is recorded **and** the last scan completed; `null` when that is unknown. Do not treat `null` as unused.
+  - `id`, and `used`: `true` when a usage is recorded; `false` only when none is recorded **and** `scan.complete` is `true`; `null` when that is unknown. Do not treat `null` as unused.
   - `total_usage` (listed plus hidden), `hidden` (usages in posts you cannot read, or of a post type that is no longer registered, and WooCommerce orders kept in WooCommerce's own order tables — counted, never listed), and `truncated` (more usages than `max_usages`).
   - `usages`: `post_id`, `post_type`, `post_status` and the post's current `title`; `usage_type` (for example `featured`, `content`, `excerpt`, `elementor`, `meta`, `woo_gallery`, `site_logo`, `widget`, `nav_menu`, `option_settings`, or `other`); and `sitewide`. Site-wide usages have `post_id` 0, `post_type` `site_settings`, and no status or title.
 
 Usages in posts that have since been deleted are left out. No permalinks, file paths or excerpts are returned.
+
+## Usage scan — `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status`
+
+Neither tool takes input (send `{}` or nothing); any argument is refused.
+
+`tsmlt-start-usage-scan` queues the same scan as the **Start scan** button under **Used Where**. The scan runs in the background through WP-Cron in small batches, never inside the request. It returns `result` and `scan` (the status below):
+
+| `result` | Meaning |
+|---|---|
+| `started` | No scan was in progress; a new one is queued. It replaces the previous usage results as it runs |
+| `already_running` | A scan is already queued or running (or another request is starting one); nothing changed |
+| `resumed` | A scan was stalled — no batch for over 3 minutes, usually because WP-Cron is not running — and is set to continue where it stopped |
+
+Unlike the admin button, it never restarts a scan in progress. It never changes media files, attachments or settings; the scan itself records usage and sets each image's attached post, as it does from the admin page.
+
+`tsmlt-get-usage-scan-status` only reads. Output: `scan_id` (changes whenever a new scan starts — from these tools or the admin page; empty before the first scan), `state` (`idle` — never started or cleared; `queued`; `running`; `complete`; `cancelled`; `error`), `complete`, `processed` and `total` (posts), `percent` (0–100: `processed / total`, at most 99 until complete, 0 while the total is unknown), `started_at`, `last_tick_at` and `last_update` (site time, `Y-m-d H:i:s`, or empty), `ever_started` (false when no scan has run since the results were cleared), `stalled`, and `has_error`. The error message itself is shown only under **Used Where**. A stalled scan stays stalled until `tsmlt-start-usage-scan` resumes it (the **Used Where** page also resumes a scan whose batches stopped, while it is open).
+
+WP-Cron must be able to run: on sites with `DISABLE_WP_CRON`, a system cron job has to call `wp-cron.php`, or the scan stays queued (reported as `stalled`).
+
+### Audit every image as used, unused or unknown
+
+1. Call `tsmlt-start-usage-scan`.
+2. Call `tsmlt-get-usage-scan-status` every 10–30 seconds until `state` is `complete`, `cancelled` or `error`. If `stalled` is true, call `tsmlt-start-usage-scan` once to resume, then keep polling.
+3. Page through `tsmlt-search-media` with `mime_type` `image`, `orderby` `id`, `order` `ASC` and `per_page` 50, from page 1 to `total_pages`. Ordering by ID keeps pages stable when media is uploaded meanwhile (deleting media during the audit can still shift later pages). Skip IDs already seen. The file name is the last part of each result's `url`.
+4. Send the IDs to `tsmlt-get-media-usage` in batches of at most 50, until every ID is checked.
+5. Classify each image:
+   - **Used** — `used` is `true`.
+   - **Unused** — `used` is `false` (this happens only when that response's `scan.complete` is `true`).
+   - **Unknown** — `used` is `null`: the scan is not complete, failed, or was cancelled.
+6. Check `tsmlt-get-usage-scan-status` once more at the end. If a new scan started during the audit (state no longer `complete`), treat the results as unknown and repeat.
+
+Never treat **Unknown** as unused. An image is reported unused only from a completed scan.
+
+### Live progress and incremental results
+
+A client can show progress and results while the scan runs. MCP does not draw progress bars; the client polls and renders. What the results mean while a scan runs:
+
+- When a scan starts, the previous results are cleared, so every image starts as unknown.
+- A recorded usage (`used: true`) appears once the scan reaches a post that uses the image. It is not removed again while the scan runs (the clean-up at the end only drops duplicate page-view records from images that keep another usage), so it can be shown as **Used (provisional)**.
+- An image without a recorded usage is **Unknown** until the scan completes: the scan may not have reached the post that uses it yet.
+- **Unused** exists only after the scan completed (`scan.complete` true in that `tsmlt-get-media-usage` response).
+
+Client state to keep between polls: the `scan_id` the results belong to, and per image its ID, file name, class (`used`, `unused`, `unknown`), usage count (`total_usage`, when known) and whether it is provisional.
+
+Each poll (every 10–30 seconds):
+
+1. Call `tsmlt-get-usage-scan-status`. Show `state`, `processed / total` and `percent`.
+2. If `scan_id` differs from the stored one, a new scan started (from MCP or the admin page): mark every image unknown, store the new `scan_id`, and carry on.
+3. List images with `tsmlt-search-media` (`mime_type` `image`, `orderby` `id`, `order` `ASC`, `per_page` 50, all pages); add new IDs as unknown. Doing this every poll is optional; do it at least at the start and before the final check.
+4. While `state` is `queued` or `running` (and not `stalled`): send only the **unknown** images to `tsmlt-get-media-usage`, at most 50 per call. Mark `used: true` as used (provisional, with `total_usage`); keep the rest unknown. Images already used are not sent again until the final check.
+5. When `state` is `complete`: send **every** image once more (50 per call). Then call `tsmlt-get-usage-scan-status` again. The summary is **final** only if every response had `scan.complete` true and the status still shows `complete` with the same `scan_id`; otherwise mark every image unknown and keep polling.
+6. When `state` is `error` or `cancelled`, or `stalled` is true: show that state, keep the results provisional, report no image as unused, and stop (or call `tsmlt-start-usage-scan` to start again or resume, and keep polling).
+
+Example summary for display:
+
+```
+Usage scan: running — 120 / 300 posts (40%) — provisional
+Used (provisional): 85   Unused: —   Unknown: 215
+  #412  hero.jpg      used (3)
+  #977  banner.png    unknown
+```
+
+After the final check:
+
+```
+Usage scan: complete — 300 / 300 posts (100%) — final
+Used: 190   Unused: 110   Unknown: 0
+```
+
+Every call is bounded (at most 50 IDs, 50 search results); there is no single call that audits the whole library.
+
+## Move unused media to the trash — `tsmlt-preview-trash-unused-media` and `tsmlt-trash-unused-media`
+
+Both take exactly one input, `ids`: 1–50 attachment IDs, each once. Nothing else is accepted — there is no "all unused media" option; the caller must name every ID.
+
+`tsmlt-trash-unused-media` moves an attachment to the WordPress trash only when **all** of these hold at the moment it runs (the server checks them itself; what a client or a preview said is not trusted):
+
+- The usage scan is **complete**, not stalled, and has a `scan_id` (a scan finished by an older plugin version must be run again). Otherwise the whole request is refused (`tsmlt_scan_not_complete` with the state, or `tsmlt_scan_outdated`) and nothing changes.
+- No per-post usage re-check is waiting — saving a post schedules one through WP-Cron; until it runs the records may be out of date (`tsmlt_usage_update_pending`; try again shortly).
+- The site's trash is on. With `EMPTY_TRASH_DAYS` set to 0 WordPress deletes instead of trashing, so the request is refused (`tsmlt_trash_disabled`).
+- For the attachment: it exists and you can read it, it is not in the trash already, it has the normal status, you may delete it, it was uploaded **before** the scan started (newer uploads were not covered), and **no usage is recorded** for it — any recorded usage counts, also in posts you cannot read.
+
+The scan status is read again after the IDs are checked (if a new scan started, nothing is moved: `tsmlt_scan_changed`) and before each attachment is moved; each attachment is also checked again just before it is moved. If the scan changes part way, the remaining IDs are reported as `failed` with `scan_changed`.
+
+Output: `scan` (`scan_id`, `state`, `complete`, `last_update`), `trashed` (IDs moved by this call), and `results` — one per requested ID, in order, with `result` (`trashed`, `skipped` — not eligible, unchanged; or `failed` — eligible but not moved), `reason` (`not_found`, `already_trashed`, `not_eligible`, `not_allowed`, `not_covered`, `used`, `scan_changed`, `trash_failed`, or `null` when trashed) and a `message`. An attachment counts as trashed only when it is read back with the trash status.
+
+It uses WordPress's `wp_trash_post()`: the file, its image sizes and the attachment record stay, and the attachment can be restored under **Media Library Tools → Used Where** (trashed media). It never deletes permanently and never starts a scan or schedules anything. It is marked destructive, so MCP clients ask before running it.
+
+`tsmlt-preview-trash-unused-media` runs the same checks without changing anything and returns `scan`, `eligible` (the IDs that would be moved now) and `results` (`id`, `eligible`, `reason`, `message`). It is a snapshot: the trash tool checks everything again, so an ID eligible in the preview can still be skipped later.
+
+**Confirmation is the client's job.** The server cannot verify that a person approved a call: the MCP Adapter (0.7.0) supports asking the user for input (elicitation) only for its own direct tools, not for Abilities API tools like these. What the server does enforce is the exact-ID list, the limit of 50, the checks above, and the destructive marking that makes clients prompt. Keep your client's tool-approval prompts on, and show the preview to the user before trashing.
+
+### Example: find and trash unused images
+
+1. `tsmlt-start-usage-scan` → `result: "started"`.
+2. Poll `tsmlt-get-usage-scan-status` until `state` is `complete` (see [Live progress](#live-progress-and-incremental-results)).
+3. Audit: page through `tsmlt-search-media` (`mime_type` `image`, `orderby` `id`, `order` `ASC`) and check the IDs with `tsmlt-get-media-usage`; keep the IDs with `used: false`.
+4. `tsmlt-preview-trash-unused-media` with those IDs (50 per call) → show `eligible` and the reasons for the rest to the user.
+5. After the user agrees, `tsmlt-trash-unused-media` with the agreed IDs → check `results`; anything `skipped` or `failed` was not moved.
+
+To undo, restore the media from the trash under **Used Where**.
 
 ## Working with Groups
 
@@ -295,7 +401,7 @@ Ask your assistant something like:
 
 ## Using the MCP Adapter Default Server (optional)
 
-The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
+The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-start-usage-scan`, `tsmlt-get-usage-scan-status`, `tsmlt-preview-trash-unused-media`, `tsmlt-trash-unused-media`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -379,12 +485,12 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. `tsmlt-trash-unused-media` also needs permission to delete each attachment. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
 
 ## Important Notes
 
 ### Review before saving
-`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them. `tsmlt-update-media-group` returns `previous_name` so a rename can be reversed. `tsmlt-create-media-group` adds a Group that can only be removed under **Media → Groups** — keep your client's tool-approval prompts turned on.
+`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them. `tsmlt-update-media-group` returns `previous_name` so a rename can be reversed. `tsmlt-create-media-group` adds a Group that can only be removed under **Media → Groups**. `tsmlt-start-usage-scan` replaces the previous usage results, and `tsmlt-trash-unused-media` moves media to the trash, so both are marked destructive — keep your client's tool-approval prompts turned on.
 
 ### Revoking access
 Delete the Application Password under **Users → Profile → Application Passwords**. The assistant loses access immediately.

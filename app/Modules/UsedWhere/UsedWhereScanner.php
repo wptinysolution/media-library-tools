@@ -2165,6 +2165,30 @@ class UsedWhereScanner {
 
 		self::delete_legacy_debug_log();
 
+		// Mark the new scan as queued before any usage data is wiped, so a
+		// reader never sees the previous scan's "complete" next to records
+		// this scan is clearing. `scan_id` tells scan runs apart (two can
+		// start within the same second).
+		$now_mysql = current_time( 'mysql' );
+		$scan_id   = wp_generate_uuid4();
+		update_option(
+			'tsmlt_used_where_scan_status',
+			[
+				'state'        => 'queued',
+				'processed'    => 0,
+				'total'        => 0,
+				'complete'     => false,
+				'next_offset'  => 0,
+				'started_at'   => $now_mysql,
+				'last_tick_at' => '',
+				'last_error'   => '',
+				'notified'     => false,
+				'timestamp'    => $now_mysql,
+				'scan_id'      => $scan_id,
+			],
+			false
+		);
+
 		// Wipe old usage data once, here. The tick handler must NOT clear.
 		$this->clear_all_usage_meta();
 		Fns::DB()->delete( 'postmeta' )
@@ -2197,7 +2221,6 @@ class UsedWhereScanner {
 		}
 		$total += $this->get_hpos_order_total();
 
-		$now_mysql = current_time( 'mysql' );
 		update_option( 'tsmlt_used_where_scan_status', [
 			'state'        => 'queued',
 			'processed'    => 0,
@@ -2209,6 +2232,7 @@ class UsedWhereScanner {
 			'last_error'   => '',
 			'notified'     => false, // arm a "scan finished" toast for whenever this run terminates.
 			'timestamp'    => $now_mysql,
+			'scan_id'      => $scan_id,
 		], false );
 
 		// Schedule the first tick. Args are passed by reference to identify
@@ -2775,6 +2799,13 @@ class UsedWhereScanner {
 		Fns::DB()->update( 'posts', [ 'post_parent' => 0 ] )
 			->whereIn( 'ID', ...$affected_ids )
 			->execute();
+
+		// The rows were changed with direct queries: drop the cached copies,
+		// or a persistent object cache keeps serving the old records.
+		foreach ( $affected_ids as $affected_id ) {
+			wp_cache_delete( $affected_id, 'post_meta' );
+			clean_post_cache( $affected_id );
+		}
 
 		// Also reset the URL lookup map to avoid stale data.
 		$this->url_lookup_map = null;

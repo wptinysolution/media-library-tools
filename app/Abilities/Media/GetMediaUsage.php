@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
+use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
@@ -23,12 +24,14 @@ use WP_Post;
 /**
  * Where up to 50 attachments are used, from the records the "Used Where"
  * scanner keeps (UsedWhereScanner::get_usage_stats()). Nothing is scanned
- * here and nothing is written: the scan status is read from its option
- * directly, because UsedWhereScanner::get_scan_status() can re-schedule a
- * stalled scan.
+ * here and nothing is written: the scan status comes from UsageScanStatus,
+ * because UsedWhereScanner::get_scan_status() can re-schedule a stalled
+ * scan. Scans are started with tsmlt/start-usage-scan.
  *
  * `used` is true when a usage is recorded, false only when no usage is
- * recorded and the last scan completed, and null otherwise (unknown).
+ * recorded and the same scan was complete before and after the records
+ * were read, and null otherwise (unknown). `scan.complete` is true only in
+ * that verified case, so a client can tell final from provisional results.
  *
  * Each usage gives the referring post's ID, type, current status and title.
  * A post the user cannot read, or whose type is no longer registered, is
@@ -83,14 +86,14 @@ class GetMediaUsage extends Ability {
 	 *
 	 * @var string
 	 */
-	const SCAN_STATUS_OPTION = 'tsmlt_used_where_scan_status';
+	const SCAN_STATUS_OPTION = UsageScanStatus::OPTION;
 
 	/**
 	 * Scan states the scanner records.
 	 *
 	 * @var string[]
 	 */
-	const SCAN_STATES = [ 'idle', 'queued', 'running', 'complete', 'cancelled', 'error' ];
+	const SCAN_STATES = UsageScanStatus::STATES;
 
 	/**
 	 * Usage type reported for a type the scanner does not define.
@@ -129,7 +132,7 @@ class GetMediaUsage extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Report where up to 50 attachments (by ID) are used on the site: as featured images, in post content or excerpts, in page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options). Reads the records of the plugin\'s Used Where scan; it does not scan. used is true when a usage is recorded, false only when none is recorded and the last scan completed, and null when that is unknown (check scan.state; run a scan in Media Library Tools > Used Where for complete data). Each usage gives the post ID (0 for site-wide), post type, status, current title and usage type; posts you cannot read are only counted in hidden. Read-only.', 'media-library-tools' );
+		return __( 'Report where up to 50 attachments (by ID) are used on the site: as featured images, in post content or excerpts, in page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options). Reads the records of the plugin\'s Used Where scan; it does not scan. used is true when a usage is recorded, false only when none is recorded and the last scan completed, and null when that is unknown. scan.complete is true only when these results come from one completed scan; otherwise treat them as provisional (start a scan with tsmlt/start-usage-scan for complete data). Each usage gives the post ID (0 for site-wide), post type, status, current title and usage type; posts you cannot read are only counted in hidden. Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -345,54 +348,57 @@ class GetMediaUsage extends Ability {
 			$attachments[] = $attachment;
 		}
 
-		$scan  = $this->scan_status();
-		$items = [];
+		$before = UsageScanStatus::read();
+		$items  = [];
 		foreach ( $attachments as $attachment ) {
-			$items[] = $this->item( $attachment, $max_usages, $scan['complete'] );
+			$items[] = $this->item( $attachment, $max_usages );
+		}
+		// Read again: a scan that started (or finished) while the records
+		// were read makes "no usage" unreliable. Not used is reported only
+		// when the same scan was complete before and after.
+		$after    = UsageScanStatus::read();
+		$verified = $before['complete'] && $after['complete'] && $before['scan_id'] === $after['scan_id'] && $before['started_at'] === $after['started_at'];
+		foreach ( $items as $index => $item ) {
+			if ( 0 === $item['total_usage'] ) {
+				$items[ $index ]['used'] = $verified ? false : null;
+			}
 		}
 
 		return [
-			'scan'  => $scan,
+			'scan'  => $this->scan_block( $verified ? $after : array_merge( $after, [ 'complete' => false ] ) ),
 			'items' => $items,
 		];
 	}
 
 	/**
-	 * The last scan's status, read from its option without side effects.
-	 * Mirrors UsedWhereScanner::get_scan_status() (including rows written
-	 * before `state` existed), minus its stalled-scan recovery.
+	 * A status from UsageScanStatus::read() in this ability's output shape.
+	 *
+	 * @param array $status Status.
 	 *
 	 * @return array
 	 */
-	private function scan_status(): array {
-		$status = get_option( self::SCAN_STATUS_OPTION, [] );
-		$status = is_array( $status ) ? $status : [];
-
-		$state = isset( $status['state'] ) ? (string) $status['state'] : ( empty( $status['complete'] ) ? 'idle' : 'complete' );
-		if ( ! in_array( $state, self::SCAN_STATES, true ) ) {
-			$state = 'idle';
-		}
-		$last_update = isset( $status['timestamp'] ) && is_scalar( $status['timestamp'] ) ? (string) $status['timestamp'] : '';
-
+	private function scan_block( array $status ): array {
 		return [
-			'state'       => $state,
-			'complete'    => 'complete' === $state,
-			'processed'   => max( 0, (int) ( $status['processed'] ?? 0 ) ),
-			'total'       => max( 0, (int) ( $status['total'] ?? 0 ) ),
-			'last_update' => sanitize_text_field( $last_update ),
+			'state'       => $status['state'],
+			'complete'    => $status['complete'],
+			'processed'   => $status['processed'],
+			'total'       => $status['total'],
+			'last_update' => $status['last_update'],
 		];
 	}
 
 	/**
 	 * Usage of one attachment.
 	 *
-	 * @param WP_Post $attachment    Attachment.
-	 * @param int     $max_usages    Most usages listed.
-	 * @param bool    $scan_complete Whether the last scan finished.
+	 * `used` is true when a usage is recorded and null otherwise; execute()
+	 * turns null into false when the scan is verified complete.
+	 *
+	 * @param WP_Post $attachment Attachment.
+	 * @param int     $max_usages Most usages listed.
 	 *
 	 * @return array
 	 */
-	private function item( WP_Post $attachment, int $max_usages, bool $scan_complete ): array {
+	private function item( WP_Post $attachment, int $max_usages ): array {
 		$stats  = UsedWhereScanner::instance()->get_usage_stats( (int) $attachment->ID );
 		$usages = [];
 		$hidden = 0;
@@ -413,15 +419,10 @@ class GetMediaUsage extends Ability {
 		}
 
 		$total = count( $usages ) + $hidden;
-		if ( $total > 0 ) {
-			$used = true;
-		} else {
-			$used = $scan_complete ? false : null;
-		}
 
 		return [
 			'id'          => (int) $attachment->ID,
-			'used'        => $used,
+			'used'        => $total > 0 ? true : null,
 			'total_usage' => $total,
 			'hidden'      => $hidden,
 			'truncated'   => count( $usages ) > $max_usages,

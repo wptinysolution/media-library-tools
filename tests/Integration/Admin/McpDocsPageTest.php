@@ -288,7 +288,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<h1>MCP Docs</h1>', $html );
 		$this->assertStringContainsString( esc_html( rest_url( 'media-library-tools/mcp' ) ), $html );
-		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields' ] as $tool ) {
+		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-preview-trash-unused-media', 'tsmlt-trash-unused-media', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields' ] as $tool ) {
 			$this->assertStringContainsString( $tool, $html );
 		}
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
