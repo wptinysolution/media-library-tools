@@ -1,6 +1,6 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. It has been tested with Claude Code and the official MCP Inspector.
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
 
 ## Overview
 
@@ -24,6 +24,8 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 ## Available Tools
 
+### Free (11)
+
 | Tool | What it does | Changes data |
 |---|---|---|
 | `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post | No |
@@ -37,6 +39,11 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
 | `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
 | `tsmlt-update-media-group` | Renames one Group; its ID, slug, parent and media stay the same. Dedicated endpoint only | Yes (Group name) |
+
+### Pro (2)
+
+| Tool | What it does | Changes data |
+|---|---|---|
 | `tsmlt-get-exif-caption` | **Pro.** Builds a caption from one image's camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only | No |
 | `tsmlt-update-exif-fields` | **Pro.** Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin's database only. Dedicated endpoint only | Yes (EXIF data, in the JPEG file) |
 
@@ -475,3 +482,54 @@ Each site in a network has its own endpoints, and access requires `manage_option
 | `403 Forbidden` | The account is not an administrator | Use an administrator account |
 | "Tool not found" | The tool belongs to another plugin, or is an MCP Adapter gateway tool | Expected — the dedicated endpoint only offers the tools above |
 | Schema warnings in MCP Inspector about `get-media-details` | Some output fields can be `null`, written as a type list (valid JSON Schema 2020-12, which MCP uses by default) | Informational; no action needed |
+
+## Project status, decisions and roadmap
+
+This section is the maintained record of what the MCP integration does, the decisions behind it, and what is planned. Update it when a feature is implemented and verified; a planned item stays planned until code and tests show otherwise. Before starting a roadmap item, agree its scope, dependencies, security and acceptance criteria here.
+
+### Implemented abilities
+
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status` (11). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields` (2). Descriptions: [Available Tools](#available-tools).
+
+Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky). They must not be reintroduced; no MCP tool trashes or deletes media.
+
+### Architecture decisions
+
+- MCP is the channel between an AI client and WordPress; it does not supply an AI model. Clients such as Claude Desktop or Claude Code use their own model to reason and call the tools.
+- MCP tools do not depend on the plugin's AI provider settings or on OpenAI, Claude or Gemini API keys (no ability uses them today). A future feature may use server-side AI only with a stated reason.
+- Prefer client-side AI workflows on top of secure, deterministic WordPress operations (for example, the client writes alt text and saves it with `tsmlt-update-media-metadata`).
+- Free and Pro stay separate: Pro-only code lives in the Pro plugin, which adds its tools through the `tsmlt_mcp_server_abilities` filter.
+- Every tool requires `manage_options` (checked again inside each call), plus the per-attachment or per-Group capability it needs; input schemas are closed; output is allowlisted. Tools never return secrets, absolute server paths or raw internal metadata.
+- New tools are offered on the dedicated endpoint only unless there is a reason to list them on the default gateway.
+- CSV import/export is not an MCP feature (CSV export exists in the Free admin, CSV import in the Pro admin); it stays planned below.
+
+### Usage classification (shared rules)
+
+The Used Where page (Used / Unused / Unknown tabs) and `tsmlt-get-media-usage` use the same rules (`Modules\UsedWhere\UsageClassifier` with `UsageScanStatus`):
+
+- **Used** — at least one usage is recorded, whatever the scan state. Recorded usages stay listed even when the scan's coverage is incomplete.
+- **Unused** — no usage is recorded, the last scan completed with verified coverage, and the attachment was uploaded before that scan started.
+- **Unknown** — anything else without a recorded usage: no scan, a scan that is running, stalled, cancelled, failed or unfinished, a scan without a coverage record, a coverage gap (`woocommerce_inactive`, `woocommerce_types_not_scanned`), or an upload after the scan started. An empty usage record alone is never proof of non-use.
+
+The Unknown tab explains each image with these reasons, the evidence found in the database (for example, attached to a product or set as a product category image), the scan details, what information is missing, and a next step; reasons are described in [Used Where](09-used-where.md#unknown-tab). Unknown images have no bulk Trash or Delete action. Through MCP the same images have `used: null`.
+
+### Verification evidence
+
+- **Automated tests** (WordPress test suite with the MCP Adapter): Free integration and unit suites and the Pro suite cover every tool, the classification rules, scan lifecycle, coverage gaps and the Unknown diagnostics.
+- **Disposable local site** (2026-10-28, WordPress 7.1.3, WooCommerce 11.2.1, MCP Adapter 0.7.0, on 127.0.0.1): a fresh scan started through `tsmlt-start-usage-scan` completed with verified coverage; the admin endpoint and `tsmlt-get-media-usage` agreed for every attachment after the scan, for an upload after it, for stored legacy / running / stalled / cancelled / failed states, with WooCommerce inactive (product images stayed Used; the product category image became Unknown with its term as evidence) and with products filtered out. The page rendered the counts, the Unknown tab and its details. This run found one diagnostics defect (post types left out by a filter were not listed as not scanned), fixed in `UsageClassifier`.
+- **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
+
+### Roadmap
+
+| # | Task | Status | Scope and completion criteria |
+|---|---|---|---|
+| 1 | Fresh scan and end-to-end verification | In Progress | Verified on a disposable local site (see above). Remaining: commit the diagnostics fix; optionally repeat a fresh scan on a development site, with permission. |
+| 2 | Security and permission audit | Next | Review authorization, attachment and term capabilities, data exposure in outputs and errors, and the Free/Pro boundary for all 13 tools; record findings and fixes. |
+| 3 | Bulk media rename | Planned | Safe file renaming with validation, a preview of old and new names, conflict handling and reference updates. Depends on usage data to show what a rename affects. |
+| 4 | AI-assisted metadata generation | Planned | The client's own AI writes titles, alt text, captions and descriptions, saved through existing tools; no WordPress AI provider setup required. Decide what, if anything, needs a new tool. |
+| 5 | Duplicate media management | Planned | Read-only detection and review first (from the duplicate scanner, without its stale-row cleanup on read); any merge or removal needs its own safety design. |
+| 6 | Media library audit | Planned | Diagnostics such as missing alt text, missing files or metadata, and other library checks, read-only. |
+| 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
+| 8 | CSV import/export | Planned | Field mapping, validation, permissions and safe bulk processing; reuse the existing admin features where possible. |
+| 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
+
