@@ -803,10 +803,10 @@ class UsageScanAbilitiesTest extends WP_UnitTestCase {
 	 */
 	public function test_media_usage_scan_finishing_mid_request_is_not_verified() {
 		$image = $this->attachment( 'race/finish.jpg' );
-		self::set_status( [ 'state' => 'running', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1 ] );
+		self::set_status( [ 'state' => 'running', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1, 'started_at' => '2099-01-01 00:00:00' ] );
 		$finish = static function ( $value, $object_id, $meta_key ) use ( $image ) {
 			if ( UsedWhereScanner::META_KEY === $meta_key && $image === (int) $object_id ) {
-				update_option( UsageScanStatus::OPTION, [ 'state' => 'complete', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1 ], false );
+				update_option( UsageScanStatus::OPTION, [ 'state' => 'complete', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1, 'started_at' => '2099-01-01 00:00:00' ], false );
 			}
 			return $value;
 		};

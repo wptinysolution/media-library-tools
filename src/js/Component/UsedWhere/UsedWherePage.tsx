@@ -8,11 +8,12 @@ import SearchInput from "@/js/Component/Common/SearchInput";
 import Modal from "@/js/Component/Common/Modal";
 import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
 
-type FilterTab = 'used' | 'unused' | 'trash';
+type FilterTab = 'used' | 'unused' | 'unknown' | 'trash';
 
 const tabs: { key: FilterTab; label: string }[] = [
     { key: 'used', label: 'Used' },
     { key: 'unused', label: 'Unused' },
+    { key: 'unknown', label: 'Unknown' },
     { key: 'trash', label: 'Trash' },
 ];
 
@@ -20,12 +21,16 @@ export default function UsedWherePage() {
     const { filter: filterParam, page: pageParam } = useParams<{ filter?: string; page?: string }>();
     const navigate = useNavigate();
 
-    const activeFilter: FilterTab = filterParam === 'used' ? 'used' : filterParam === 'trash' ? 'trash' : 'unused';
+    const activeFilter: FilterTab = filterParam === 'used' ? 'used' : filterParam === 'trash' ? 'trash' : filterParam === 'unknown' ? 'unknown' : 'unused';
     const currentPageFromUrl = parseInt(pageParam || '1', 10);
 
     const [scanProgress, setScanProgress] = useState({ processed: 0, total: 0 });
     const [usages, setUsages] = useState<any[]>([]);
     const [totalUsages, setTotalUsages] = useState(0);
+    // Counts of the Used / Unused / Unknown tabs and the scan context the
+    // server classified them with (same rules as the MCP usage tools).
+    const [tabCounts, setTabCounts] = useState<Record<string, number> | null>(null);
+    const [scanSummary, setScanSummary] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(currentPageFromUrl);
     const [isLoading, setIsLoading] = useState(false);
     const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -86,6 +91,8 @@ export default function UsedWherePage() {
                 }) as any;
                 setUsages(result.usages || []);
                 setTotalUsages(result.total || 0);
+                setTabCounts(result.counts || null);
+                setScanSummary(result.scan || null);
             }
             setCurrentPage(page);
         } catch (error) {
@@ -427,7 +434,7 @@ export default function UsedWherePage() {
         ? Math.round((scanProgress.processed / scanProgress.total) * 100)
         : 0;
 
-    const isPreScan = scanProgress.processed === 0 && !isScanning && activeFilter !== 'used';
+    const isPreScan = scanProgress.processed === 0 && !isScanning && activeFilter === 'unused';
 
     const totalPages = Math.ceil(totalUsages / perPage);
     const allSelected = usages.length > 0 && selectedIds.size === usages.length;
@@ -651,9 +658,9 @@ export default function UsedWherePage() {
                         onClick={() => handleTabChange(tab.key)}
                     >
                         {tab.label}
-                        {!isLoading && activeFilter === tab.key && (
+                        {!isLoading && !isScanning && (activeFilter === tab.key || (tab.key !== 'trash' && tabCounts && tabCounts[tab.key] !== undefined)) && (
                             <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded-full">
-                                {totalUsages}
+                                {activeFilter === tab.key ? totalUsages : tabCounts?.[tab.key]}
                             </span>
                         )}
                     </button>
@@ -760,13 +767,13 @@ export default function UsedWherePage() {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
                                 <p className="text-gray-700 text-sm font-medium mb-1">
-                                    Scan in progress — {activeFilter === 'unused' ? 'Unused' : 'Used'} list will appear when it finishes.
+                                    Scan in progress — {activeFilter === 'unused' ? 'Unused' : activeFilter === 'unknown' ? 'Unknown' : 'Used'} list will appear when it finishes.
                                 </p>
                                 <p className="text-xs text-gray-500 mb-0!">
                                     Mid-scan results can be misleading — an image may appear on several posts during scanning, then get reclassified as a site-wide setting once the scan completes. The progress bar above tracks how far we've gotten.
                                 </p>
                             </>
-                        ) : isPreScan && activeFilter !== 'trash' ? (
+                        ) : isPreScan ? (
                             <>
                                 <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -791,10 +798,14 @@ export default function UsedWherePage() {
                                         ? 'No images in Trash. Move unused images here first.'
                                         : searchQuery
                                             ? `No images found matching "${searchQuery}".`
+                                            : activeFilter === 'unknown'
+                                                ? 'No unknown images: every image is either used or confirmed unused by the last scan.'
                                             : activeFilter === 'unused'
-                                                ? (scanProgress.processed > 0
-                                                    ? 'All images are attached to posts. No unused images found!'
-                                                    : 'Click "Scan Media Usage " first to detect image usage.')
+                                                ? (scanSummary && !scanSummary.unused_verified && (tabCounts?.unknown ?? 0) > 0
+                                                    ? `No image can be confirmed unused yet: the last scan's results are not verified. ${tabCounts?.unknown} image${tabCounts?.unknown === 1 ? ' is' : 's are'} listed under Unknown with the reason.`
+                                                    : scanProgress.processed > 0
+                                                        ? 'All images are attached to posts. No unused images found!'
+                                                        : 'Click "Scan Media Usage " first to detect image usage.')
                                                 : (scanProgress.processed > 0
                                                     ? 'No images found in use. Your media library may contain orphaned files!'
                                                     : 'Click "Scan Media Usage " to detect where images are used on your site.')}
@@ -804,10 +815,22 @@ export default function UsedWherePage() {
                     </div>
                 ) : (
                     <div className="space-y-3">
+                        {activeFilter === 'used' && scanSummary && !scanSummary.coverage_verified && (
+                            <p className="m-0! px-3 py-2 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded">
+                                The last scan's coverage is not verified, so these images may have more usages than are listed. Images without any recorded usage are under Unknown.
+                            </p>
+                        )}
+                        {activeFilter === 'unknown' && (
+                            <p className="m-0! px-3 py-2 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded">
+                                These images have no recorded usage, but the scan results cannot confirm that they are unused. Click an image to see why and what to do. Do not delete or trash them until their usage is verified.
+                            </p>
+                        )}
                         {usages.map((usage) => {
                             const isExpanded = expandedId === usage.attachment_id;
                             const posts: any[] = usage.posts || [];
                             const isSelected = selectedIds.has(usage.attachment_id);
+                            const unknownInfo = activeFilter === 'unknown' ? usage.unknown : null;
+                            const canExpand = posts.length > 0 || !!unknownInfo;
 
                             return (
                                 <div
@@ -818,8 +841,8 @@ export default function UsedWherePage() {
                                 >
                                     {/* Main row */}
                                     <div
-                                        className={`flex items-center gap-4 p-4 ${posts.length > 0 ? 'cursor-pointer' : ''}`}
-                                        onClick={() => posts.length > 0 && setExpandedId(isExpanded ? null : usage.attachment_id)}
+                                        className={`flex items-center gap-4 p-4 ${canExpand ? 'cursor-pointer' : ''}`}
+                                        onClick={() => canExpand && setExpandedId(isExpanded ? null : usage.attachment_id)}
                                     >
                                         {/* Checkbox for unused and trash tabs */}
                                         {(activeFilter === 'unused' || activeFilter === 'trash') && (
@@ -837,8 +860,8 @@ export default function UsedWherePage() {
                                             </div>
                                         )}
 
-                                        {activeFilter === 'used' && (
-                                            posts.length > 0 ? (
+                                        {(activeFilter === 'used' || activeFilter === 'unknown') && (
+                                            canExpand ? (
                                                 <svg
                                                     className={`w-4 h-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -880,6 +903,22 @@ export default function UsedWherePage() {
                                                         // shown next to it (one badge = one way), so the headline
                                                         // never confuses the user about what the number means.
                                                         const waysFound = Object.keys(usage.usage_by_type || {}).length;
+                                                        if (unknownInfo) {
+                                                            const first = unknownInfo.reasons?.[0];
+                                                            const more = (unknownInfo.reasons?.length ?? 0) - 1;
+                                                            return (
+                                                                <div className="flex flex-col items-start gap-1">
+                                                                    <span className="inline-flex items-center px-2 py-1 font-medium text-amber-800 bg-amber-50 rounded">
+                                                                        Unknown
+                                                                    </span>
+                                                                    {first && (
+                                                                        <span className="text-[11px] text-amber-800 max-w-[220px] truncate" title={first.title}>
+                                                                            {first.title}{more > 0 ? ` (+${more} more)` : ''}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
                                                         if (waysFound === 0) {
                                                             return (
                                                                 <span className="inline-flex items-center px-2 py-1 font-medium text-red-700 bg-red-50 rounded">
@@ -908,7 +947,11 @@ export default function UsedWherePage() {
                                         </div>
                                     </div>
 
-                                    {isExpanded && posts.length > 0 && (() => {
+                                    {isExpanded && unknownInfo && (
+                                        <UnknownDetails info={unknownInfo} scan={scanSummary} />
+                                    )}
+
+                                    {isExpanded && !unknownInfo && posts.length > 0 && (() => {
                                         // Group by post_id to avoid duplicate rows.
                                         const grouped = posts.reduce((acc: Record<number, any>, post: any) => {
                                             const id = post.post_id;
@@ -1152,6 +1195,84 @@ export default function UsedWherePage() {
                     </div>
                 </div>
             </Modal>
+        </div>
+    );
+}
+
+// Why an image is in the Unknown tab: the reasons the server derived from
+// the stored scan status, its coverage record and the image itself, the
+// recommended next step for each, and the scan details behind them. Values
+// the server could not establish are shown as "Not recorded", never guessed.
+function UnknownDetails({ info, scan }: { info: any; scan: any }) {
+    const reasons: any[] = info?.reasons || [];
+    const list = (items: string[] | null | undefined, empty: string) =>
+        items === null || items === undefined ? <em className="text-gray-500">Not recorded</em>
+            : items.length === 0 ? <span className="text-gray-500">{empty}</span>
+                : items.join(', ');
+    const yesNo = (value: boolean | null | undefined) => (value === null || value === undefined ? 'Not known' : value ? 'Yes' : 'No');
+
+    return (
+        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-3 text-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="space-y-2">
+                <p className="m-0! text-xs font-semibold uppercase tracking-wide text-gray-500">Why the usage is unknown</p>
+                {reasons.map((reason: any) => (
+                    <div key={reason.code} className="bg-white rounded border border-amber-200 px-3 py-2">
+                        <p className="m-0! font-semibold text-gray-900">{reason.title}</p>
+                        <p className="m-0! mt-1 text-gray-700">{reason.message}</p>
+                        {Array.isArray(reason.evidence) && reason.evidence.length > 0 && (
+                            <ul className="m-0! mt-1 pl-5 list-disc text-gray-700">
+                                {reason.evidence.map((line: string, i: number) => <li key={i} className="m-0!">{line}</li>)}
+                            </ul>
+                        )}
+                        {reason.action && (
+                            <p className="m-0! mt-1 text-blue-800"><span className="font-medium">What to do:</span> {reason.action}</p>
+                        )}
+                    </div>
+                ))}
+            </div>
+            {scan && (
+                <div>
+                    <p className="m-0! mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Scan details</p>
+                    <dl className="m-0! grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs text-gray-800">
+                        <dt className="text-gray-500">Scan state</dt>
+                        <dd className="m-0!">{scan.stalled ? 'stalled' : scan.state} ({scan.processed} / {scan.total} posts)</dd>
+                        <dt className="text-gray-500">Scan completed</dt>
+                        <dd className="m-0!">{yesNo(scan.complete)}</dd>
+                        <dt className="text-gray-500">Started</dt>
+                        <dd className="m-0!">{scan.started_at || <em className="text-gray-500">Not recorded</em>}</dd>
+                        <dt className="text-gray-500">Last update</dt>
+                        <dd className="m-0!">{scan.last_update || <em className="text-gray-500">Not recorded</em>}</dd>
+                        <dt className="text-gray-500">Coverage recorded</dt>
+                        <dd className="m-0!">{yesNo(scan.coverage_recorded)}</dd>
+                        <dt className="text-gray-500">Coverage verified</dt>
+                        <dd className="m-0!">{yesNo(scan.coverage_verified)}</dd>
+                        <dt className="text-gray-500">Coverage gaps</dt>
+                        <dd className="m-0!">{list(scan.coverage_recorded ? (scan.coverage_gaps || []) : null, 'None')}</dd>
+                        <dt className="text-gray-500">Post types scanned</dt>
+                        <dd className="m-0!">{list(scan.scanned_post_types, 'None')}</dd>
+                        <dt className="text-gray-500">Post types not scanned</dt>
+                        <dd className="m-0!">{list(scan.not_scanned_post_types, 'None')}</dd>
+                        {scan.scan_error && (
+                            <>
+                                <dt className="text-gray-500">Scan error</dt>
+                                <dd className="m-0!">{scan.scan_error}</dd>
+                            </>
+                        )}
+                        <dt className="text-gray-500">Uploaded</dt>
+                        <dd className="m-0!">{info.uploaded_at}{info.uploaded_after_scan_start ? ' (after the scan started)' : ''}</dd>
+                        <dt className="text-gray-500">Confirmed usages</dt>
+                        <dd className="m-0!">0</dd>
+                    </dl>
+                    {Array.isArray(scan.missing) && scan.missing.length > 0 && (
+                        <div className="mt-2">
+                            <p className="m-0! text-xs font-semibold text-gray-600">Missing information</p>
+                            <ul className="m-0! mt-1 pl-5 list-disc text-xs text-gray-700">
+                                {scan.missing.map((line: string, i: number) => <li key={i} className="m-0!">{line}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

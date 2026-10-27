@@ -320,6 +320,15 @@ class UsedWhereScanner {
 	 *
 	 * @return string[] Post type slugs.
 	 */
+	public function scannable_post_types(): array {
+		return $this->get_scannable_post_types();
+	}
+
+	/**
+	 * Post types the scan covers (see scannable_post_types()).
+	 *
+	 * @return string[]
+	 */
 	private function get_scannable_post_types(): array {
 		// Only public post types hold user-authored, front-end-visible content
 		// that legitimately references uploads. Querying `public => true`

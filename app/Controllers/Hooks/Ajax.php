@@ -18,6 +18,7 @@ use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
+use TinySolutions\mlt\Modules\UsedWhere\UsageClassifier;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
@@ -584,59 +585,29 @@ class Ajax {
 		$paged  = absint( $params['offset'] ?? 0 );
 		$page   = $paged > 0 ? ( $paged / $limit ) + 1 : 1;
 		$filter = sanitize_text_field( $params['filter'] ?? 'used' );
+		$filter = in_array( $filter, UsageClassifier::TABS, true ) ? $filter : 'used';
 		$search = sanitize_text_field( $params['search'] ?? '' );
 
-		$scan_status = get_option( 'tsmlt_used_where_scan_status', [] );
-
-		$args = [
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'posts_per_page' => $limit,
-			'paged'          => $page,
+		// Used: any recorded usage. Unused: no usage recorded and a verified,
+		// complete scan that covered the attachment. Unknown: the rest.
+		$context = UsageClassifier::context();
+		$extra   = [
+			'counts' => UsageClassifier::counts( $search, $context ),
+			'scan'   => UsageClassifier::scan_summary( $context ),
 		];
 
-		if ( $search ) {
-			$args['s'] = $search;
-		}
-
-		if ( 'unused' === $filter ) {
-			// Unused tab requires a full scan to know which attachments have no usages.
-			if ( empty( $scan_status['processed'] ) ) {
-				$this->send( [
+		$args = UsageClassifier::query_args( $filter, $search, $context );
+		if ( null === $args ) {
+			$this->send(
+				[
 					'usages' => [],
 					'total'  => 0,
-				] );
-				return;
-			}
-
-			// Attachments uploaded before the scan that have no recorded usages.
-			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-				[
-					'key'     => UsedWhereScanner::META_KEY,
-					'compare' => 'NOT EXISTS',
-				],
-			];
-
-			// Only include attachments that existed when the scan was run.
-			if ( ! empty( $scan_status['timestamp'] ) ) {
-				$args['date_query'] = [
-					[
-						'before'    => $scan_status['timestamp'],
-						'inclusive' => true,
-						'column'    => 'post_date',
-					],
-				];
-			}
-		} else {
-			// Used tab: show any attachment with usage meta — works even without full scan
-			// (e.g. usage detected on post save or frontend visit).
-			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-				[
-					'key'     => UsedWhereScanner::META_KEY,
-					'compare' => 'EXISTS',
-				],
-			];
+				] + $extra
+			);
+			return;
 		}
+		$args['posts_per_page'] = $limit;
+		$args['paged']          = $page;
 
 		$query = new \WP_Query( $args );
 
@@ -654,8 +625,8 @@ class Ajax {
 				$skipped++;
 				continue;
 			}
-			// Unused tab: skip if attachment actually has recorded usages.
-			if ( 'unused' === $filter && $stats['total_usage'] > 0 ) {
+			// Unused / Unknown tabs: skip if attachment actually has recorded usages.
+			if ( 'used' !== $filter && $stats['total_usage'] > 0 ) {
 				$skipped++;
 				continue;
 			}
@@ -703,22 +674,29 @@ class Ajax {
 				}
 			}
 
-			$usages[] = [
-				'attachment_id' => $post->ID,
-				'title'         => $post->post_title,
-				'url'           => wp_get_attachment_url( $post->ID ),
-				'mime_type'     => $post->post_mime_type,
-				'usage_count'   => count( $count_keys ),
-				'usage_by_type' => $stats['by_type'],
-				'used_in_posts' => count( $distinct_post_ids ),
-				'posts'         => $stats['by_post'],
+			$item = [
+				'attachment_id'  => $post->ID,
+				'title'          => $post->post_title,
+				'url'            => wp_get_attachment_url( $post->ID ),
+				'mime_type'      => $post->post_mime_type,
+				'usage_count'    => count( $count_keys ),
+				'usage_by_type'  => $stats['by_type'],
+				'used_in_posts'  => count( $distinct_post_ids ),
+				'posts'          => $stats['by_post'],
+				'classification' => $filter,
 			];
+			if ( 'unknown' === $filter ) {
+				$item['unknown'] = UsageClassifier::diagnose( $post, $context );
+			}
+			$usages[] = $item;
 		}
 
-		$this->send( [
-			'usages' => $usages,
-			'total'  => $query->found_posts - $skipped,
-		] );
+		$this->send(
+			[
+				'usages' => $usages,
+				'total'  => $query->found_posts - $skipped,
+			] + $extra
+		);
 	}
 
 	/** @return void */

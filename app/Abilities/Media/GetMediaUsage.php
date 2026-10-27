@@ -16,6 +16,7 @@ use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\UsedWhere\UsageClassifier;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
@@ -31,7 +32,9 @@ use WP_Post;
  * `used` is true when a usage is recorded, false only when no usage is
  * recorded and the same scan was complete before and after the records
  * were read and its coverage is verified (it could check every usage
- * source), and null otherwise (unknown). `scan.complete` is true only in
+ * source) and the attachment was uploaded before that scan started, and
+ * null otherwise (unknown). Same rules as the Used Where page
+ * (UsageClassifier). `scan.complete` is true only in
  * that verified case, so a client can tell final from provisional results.
  *
  * Each usage gives the referring post's ID, type, current status and title.
@@ -364,7 +367,8 @@ class GetMediaUsage extends Ability {
 			&& $before['coverage']['verified'] && $after['coverage']['verified'];
 		foreach ( $items as $index => $item ) {
 			if ( 0 === $item['total_usage'] ) {
-				$items[ $index ]['used'] = $verified ? false : null;
+				// An attachment uploaded after the scan started was not covered by it.
+				$items[ $index ]['used'] = $verified && UsageClassifier::covered( $attachments[ $index ], $after ) ? false : null;
 			}
 		}
 

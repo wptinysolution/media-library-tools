@@ -52,7 +52,7 @@ The scanner:
 - **Full Scan**: Backend detection of all references
 - **Frontend Tracking**: Passive tracking when users visit pages (Pro)
 
-### 2. Three Tabs: Used, Unused, Trash
+### 2. Four Tabs: Used, Unused, Unknown, Trash
 
 #### Used Tab
 Shows images actively used on the site:
@@ -63,15 +63,29 @@ Shows images actively used on the site:
 - Meta field images
 
 #### Unused Tab
-Images in media library but not used:
+Images the last scan confirmed as not used:
 - Not featured image for any post
 - Not in any post content
 - Not in settings
 - Orphaned attachments
 
+An image is listed here only when no usage is recorded **and** the last scan finished with verified coverage (it could check every usage source) **and** the image was uploaded before that scan started. Otherwise it is listed under Unknown.
+
+#### Unknown Tab
+Images with no recorded usage that the scan results cannot confirm as unused. Click an image to see why, with the evidence and what to do:
+- **No usage scan has run** — run a scan.
+- **The scan is still running / stopped making progress / was cancelled / failed / did not finish** — not every post was checked; let a scan finish (for a stalled scan, make sure WP-Cron runs). A failed scan's error is shown without server paths.
+- **Scan coverage was not recorded** — the scan was made by an earlier plugin version; run a new scan.
+- **WooCommerce was inactive during the scan** — product category images and rendered product pages could not be checked; the details show any link found in the database (attached to a product or variation, or set as a term image). Activate WooCommerce and run a new scan.
+- **WooCommerce products were not scanned** — a filter left them out; the details name the post types.
+- **Uploaded after the scan started** — the scan did not check it; run a new scan.
+- **The exact reason is not known** — the stored data does not say; run a new scan.
+
+The details also show the scan state and progress, whether coverage was recorded and verified, its gaps, which post types were and were not scanned (or "Not recorded" for older scans), and what information is missing. Unknown images have no bulk Trash or Delete action: do not remove them until their usage is verified. When coverage is not verified, the Used tab notes that images may have more usages than are listed.
+
 #### Trash Tab
 Images moved to trash awaiting deletion:
-- Can restore to Unused/Used tabs
+- Can restore to Unused/Used/Unknown tabs
 - Can permanently delete
 - Shows deletion countdown (if applicable)
 
@@ -128,12 +142,12 @@ For each image, see:
 
 1. Go to **Used Where**
 2. Click the **"Unused"** tab
-3. Table shows images not used anywhere:
+3. Table shows images the last scan confirmed as not used anywhere:
    - Media library attachments
    - Not featured images
    - Not in content
    - Not in settings
-   - Safe to delete
+   - If the scan's results cannot be verified, this tab stays empty and the images are listed under **Unknown** with the reason
 4. Select images to bulk delete or trash
 5. Free up storage space
 
@@ -180,7 +194,7 @@ To find specific images:
    - Image filename
    - Alt text
    - Post name
-2. Search filters all three tabs
+2. Search filters the Used, Unused and Unknown tabs (and their counts) and the Trash tab
 3. Results update in real-time
 4. Clear search to see all again
 
@@ -209,7 +223,7 @@ Adjust items shown per page:
 
 1. Go to **"Unused"** tab (after scan)
 2. Review all unused images
-3. Spot-check a few to confirm they're truly unused
+3. Spot-check a few to confirm they're truly unused (images under **Unknown** are not confirmed; check their reason first)
 4. Select all or batch (using Per page filter)
 5. Move to Trash for deletion
 6. Free up storage
