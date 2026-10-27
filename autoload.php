@@ -23,6 +23,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\Media\\CreateMediaGroup' => __DIR__ . '/app/Abilities/Media/CreateMediaGroup.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifFields' => __DIR__ . '/app/Abilities/Media/GetExifFields.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaDetails' => __DIR__ . '/app/Abilities/Media/GetMediaDetails.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaUsage' => __DIR__ . '/app/Abilities/Media/GetMediaUsage.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ListMediaGroups' => __DIR__ . '/app/Abilities/Media/ListMediaGroups.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\SearchMedia' => __DIR__ . '/app/Abilities/Media/SearchMedia.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\SetMediaGroups' => __DIR__ . '/app/Abilities/Media/SetMediaGroups.php',

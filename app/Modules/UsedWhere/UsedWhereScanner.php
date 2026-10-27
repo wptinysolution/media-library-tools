@@ -1887,7 +1887,12 @@ class UsedWhereScanner {
 		$by_post = [];
 
 		foreach ( $usages as $usage ) {
-			$type    = $usage['usage_type'] ?? 'unknown';
+			// Skip malformed rows rather than fail on them.
+			if ( ! is_array( $usage ) ) {
+				--$result['total_usage'];
+				continue;
+			}
+			$type    = isset( $usage['usage_type'] ) && is_scalar( $usage['usage_type'] ) ? (string) $usage['usage_type'] : 'unknown';
 			$post_id = $usage['post_id'] ?? 0;
 			$by_type[ $type ] = ( $by_type[ $type ] ?? 0 ) + 1;
 

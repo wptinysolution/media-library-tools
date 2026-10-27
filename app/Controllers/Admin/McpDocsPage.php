@@ -306,6 +306,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-media-usage</code></td>
+							<td><?php esc_html_e( 'Reports where up to 50 attachments are used: as featured images, in content, page builders and custom fields, and site-wide (logo, site icon, menus, widgets, site options), from the records of the Used Where scan. Says whether each item is used, not used, or unknown when no scan has completed. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-set-media-groups</code></td>
 							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>

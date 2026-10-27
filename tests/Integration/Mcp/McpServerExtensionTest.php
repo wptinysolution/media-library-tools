@@ -44,7 +44,7 @@ class McpServerExtensionTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group' ];
+	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group', 'tsmlt/get-media-usage' ];
 
 	/**
 	 * Register the stand-in abilities (and the other test category).

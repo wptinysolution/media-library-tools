@@ -16,6 +16,7 @@ use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\Media\CreateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
+use TinySolutions\mlt\Abilities\Media\GetMediaUsage;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\SearchMedia;
 use TinySolutions\mlt\Abilities\Media\SetMediaGroups;
@@ -127,6 +128,7 @@ class AbilitiesInit {
 			SetMediaGroups::instance(),
 			CreateMediaGroup::instance(),
 			UpdateMediaGroup::instance(),
+			GetMediaUsage::instance(),
 		];
 	}
 }

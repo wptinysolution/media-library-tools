@@ -1,12 +1,13 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. It has been tested with Claude Code and the official MCP Inspector.
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. It has been tested with Claude Code and the official MCP Inspector.
 
 ## Overview
 
 The integration lets an AI assistant:
 - Search the media library (by text, file name, MIME type, Group, attached or unattached, or attachments missing alt text)
 - Read the details of one attachment
+- Find where media is used on the site (featured images, content, page builders, custom fields, logo, menus, widgets), from the Used Where scan
 - Read an image's camera, lens and exposure EXIF fields (make, model, lens, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure codes, flash, description)
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
@@ -28,6 +29,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
 | `tsmlt-get-exif-fields` | Returns one image's camera make and model, lens make and model, software, date taken and date digitized, ISO, aperture, shutter speed, focal length (mm), the exposure program, exposure mode, metering mode, white balance and flash codes defined by the EXIF standard, and the image description — read from the JPEG file, or from values saved in the EXIF editor for any image type. A field without a value is `null`. Dedicated endpoint only | No |
+| `tsmlt-get-media-usage` | Reports where up to 50 attachments are used — featured images, content and excerpts, page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options) — from the records of the Used Where scan. Says whether each one is used, not used, or unknown. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
@@ -53,6 +55,26 @@ The two Pro tools are offered only when Media Library Tools Pro is active with a
 `tsmlt-search-media` accepts `attached`: `true` returns only media attached to a post — WordPress's **Uploaded to** relationship, which may point to a draft, private, or trashed post — and `false` returns only unattached media. Leave it out to search both. It must be a JSON boolean (`true` or `false`); strings such as `"false"` are refused.
 
 Attached is not the same as used. An image can appear in a page's content or a page builder without being attached to that page, and an attached image may not appear anywhere. `attached` does not check where media is used.
+
+## Where media is used — `tsmlt-get-media-usage`
+
+Reads the records of the plugin's **Used Where** scan (**Media Library Tools → Used Where**). It does not scan and changes nothing; run or finish a scan there for complete results. A post saved after a scan is re-checked shortly afterwards, by a WP-Cron event.
+
+| Input | Type | Meaning |
+|---|---|---|
+| `ids` | list of integers, required (1–50, no repeats) | Attachment IDs |
+| `max_usages` | integer, 1–100 (default 50) | Most usages listed per attachment; the counts are always complete |
+
+If any ID is not an attachment you can read (missing, trashed, or private to you), the whole request is refused with an error naming that ID.
+
+Output:
+- `scan`: `state` of the last scan (`idle`, `queued`, `running`, `complete`, `cancelled` or `error`), `complete`, `processed`, `total`, and `last_update` (site time).
+- `items`, in the order requested, each with:
+  - `id`, and `used`: `true` when a usage is recorded; `false` only when none is recorded **and** the last scan completed; `null` when that is unknown. Do not treat `null` as unused.
+  - `total_usage` (listed plus hidden), `hidden` (usages in posts you cannot read, or of a post type that is no longer registered, and WooCommerce orders kept in WooCommerce's own order tables — counted, never listed), and `truncated` (more usages than `max_usages`).
+  - `usages`: `post_id`, `post_type`, `post_status` and the post's current `title`; `usage_type` (for example `featured`, `content`, `excerpt`, `elementor`, `meta`, `woo_gallery`, `site_logo`, `widget`, `nav_menu`, `option_settings`, or `other`); and `sitewide`. Site-wide usages have `post_id` 0, `post_type` `site_settings`, and no status or title.
+
+Usages in posts that have since been deleted are left out. No permalinks, file paths or excerpts are returned.
 
 ## Working with Groups
 
@@ -273,7 +295,7 @@ Ask your assistant something like:
 
 ## Using the MCP Adapter Default Server (optional)
 
-The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
+The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -357,7 +379,7 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
 
 ## Important Notes
 
