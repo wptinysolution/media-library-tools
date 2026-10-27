@@ -132,6 +132,10 @@ export default function UsedWherePage() {
 
     const isScanning = scanState === 'queued' || scanState === 'running';
 
+    // Server-provided warning when usage cannot be fully verified (for
+    // example WooCommerce is inactive). Empty when there is nothing to say.
+    const [coverageNotice, setCoverageNotice] = useState<string>('');
+
     // Show the "scan finished" toast + inline card if the server says we
     // haven't been notified about this terminal state yet, then immediately
     // acknowledge so it doesn't fire again. Idempotent.
@@ -187,6 +191,7 @@ export default function UsedWherePage() {
             const status = await getUsedWhereStatus() as any;
             const state = String(status?.state ?? 'idle');
             setScanState(state);
+            setCoverageNotice(String(status?.coverage_notice ?? ''));
             setScanProgress({
                 processed: Number(status?.scanned ?? 0),
                 total: Number(status?.total ?? 0),
@@ -372,6 +377,7 @@ export default function UsedWherePage() {
                 const status = await getUsedWhereStatus() as any;
                 const state = String(status?.state ?? 'idle');
                 setScanState(state);
+                setCoverageNotice(String(status?.coverage_notice ?? ''));
                 setScanProgress({
                     processed: Number(status?.scanned ?? 0),
                     total: Number(status?.total ?? 0),
@@ -506,6 +512,24 @@ export default function UsedWherePage() {
                     />
                 </div>
             </div>
+
+            {/* Coverage warning — only when the server reports that usage
+                cannot be fully verified (e.g. WooCommerce is inactive). Media
+                without a recorded usage is then unknown, not unused. */}
+            {coverageNotice && (
+                <div role="alert" className="flex items-start gap-3 px-4 py-3 border-b bg-amber-50 border-amber-200">
+                    <div className="shrink-0 mt-0.5 text-amber-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                    </div>
+                    <div className="text-sm text-amber-900">
+                        <p className="m-0! font-semibold">Usage could not be fully verified</p>
+                        <p className="m-0! mt-1">{coverageNotice}</p>
+                        <p className="m-0! mt-1">Images listed as unused here may still be in use: treat their status as unknown, not unused.</p>
+                    </div>
+                </div>
+            )}
 
             {/* Scan-completed notice — surfaced on first visit after a scan
                 terminates while the user was away. Inline card complements

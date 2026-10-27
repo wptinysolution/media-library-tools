@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
+
 /**
  * The Used Where scan status, read from its option with no side effects.
  *
@@ -53,6 +55,14 @@ class UsageScanStatus {
 	const STALL_SECONDS = 180;
 
 	/**
+	 * Coverage gap reported for a scan status without a coverage record
+	 * (no scan yet, or one made by an earlier plugin version).
+	 *
+	 * @var string
+	 */
+	const GAP_NOT_RECORDED = 'not_recorded';
+
+	/**
 	 * The status.
 	 *
 	 * @return array{scan_id: string, state: string, complete: bool, processed: int, total: int, percent: int, last_update: string, started_at: string, last_tick_at: string, ever_started: bool, stalled: bool, has_error: bool}
@@ -85,6 +95,29 @@ class UsageScanStatus {
 			'ever_started' => ! empty( $status ),
 			'stalled'      => in_array( $state, self::ACTIVE_STATES, true ) && self::is_stale( '' !== $last_tick_at ? $last_tick_at : $started_at ),
 			'has_error'    => 'error' === $state,
+			'coverage'     => self::coverage( $status ),
+		];
+	}
+
+	/**
+	 * Coverage of the scan run: verified only when the run recorded its
+	 * coverage and found no gap.
+	 *
+	 * @param array $status Stored status.
+	 *
+	 * @return array{verified: bool, gaps: string[]}
+	 */
+	private static function coverage( array $status ): array {
+		if ( (int) ( $status['coverage_version'] ?? 0 ) < UsedWhereScanner::COVERAGE_VERSION ) {
+			return [
+				'verified' => false,
+				'gaps'     => [ self::GAP_NOT_RECORDED ],
+			];
+		}
+		$gaps = is_array( $status['coverage_gaps'] ?? null ) ? array_values( array_intersect( UsedWhereScanner::COVERAGE_GAPS, $status['coverage_gaps'] ) ) : [];
+		return [
+			'verified' => ! $gaps,
+			'gaps'     => $gaps,
 		];
 	}
 
@@ -123,7 +156,7 @@ class UsageScanStatus {
 		return [
 			'type'                 => 'object',
 			'additionalProperties' => false,
-			'required'             => [ 'scan_id', 'state', 'complete', 'processed', 'total', 'percent', 'last_update', 'started_at', 'last_tick_at', 'ever_started', 'stalled', 'has_error' ],
+			'required'             => [ 'scan_id', 'state', 'complete', 'processed', 'total', 'percent', 'last_update', 'started_at', 'last_tick_at', 'ever_started', 'stalled', 'has_error', 'coverage' ],
 			'properties'           => [
 				'scan_id'      => [
 					'type'        => 'string',
@@ -166,6 +199,26 @@ class UsageScanStatus {
 				'has_error'    => [
 					'type'        => 'boolean',
 					'description' => 'The last scan stopped with an error. Details are shown under Media Library Tools > Used Where.',
+				],
+				'coverage'     => [
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => [ 'verified', 'gaps' ],
+					'description'          => 'Whether the scan run could check every usage source. Without verified coverage, media without a recorded usage is unknown, never unused.',
+					'properties'           => [
+						'verified' => [
+							'type'        => 'boolean',
+							'description' => 'true when the run recorded its coverage and found no gap.',
+						],
+						'gaps'     => [
+							'type'        => 'array',
+							'items'       => [
+								'type' => 'string',
+								'enum' => array_merge( UsedWhereScanner::COVERAGE_GAPS, [ self::GAP_NOT_RECORDED ] ),
+							],
+							'description' => 'woocommerce_inactive: WooCommerce was inactive, so product category images and rendered product pages could not be checked. woocommerce_types_not_scanned: products or variations were left out by a filter. not_recorded: no scan yet, or one made by an earlier plugin version; start a new scan.',
+						],
+					],
 				],
 			],
 		];

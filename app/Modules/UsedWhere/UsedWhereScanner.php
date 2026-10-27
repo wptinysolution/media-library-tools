@@ -101,6 +101,36 @@ class UsedWhereScanner {
 	];
 
 	/**
+	 * WooCommerce post types scanned from their rows whether or not
+	 * WooCommerce is active (and so whether or not the types are registered
+	 * or, for variations, public).
+	 */
+	const WOOCOMMERCE_POST_TYPES = [ 'product', 'product_variation' ];
+
+	/**
+	 * Post statuses the scan covers.
+	 */
+	const SCAN_POST_STATUSES = [ 'publish', 'draft', 'pending', 'private', 'future' ];
+
+	/**
+	 * Version of the coverage record kept with each scan status. A scan status
+	 * without it was made before coverage was recorded and cannot be verified.
+	 */
+	const COVERAGE_VERSION = 1;
+
+	/**
+	 * Coverage gaps a scan can have.
+	 *
+	 * - woocommerce_inactive: product or variation rows exist but WooCommerce
+	 *   is not active (the `product` type is not registered). Their rows are
+	 *   still scanned, but product category images (term meta of an
+	 *   unregistered taxonomy) and rendered product pages cannot be checked.
+	 * - woocommerce_types_not_scanned: product or variation rows exist but the
+	 *   `tsmlt_used_where_scannable_post_types` filter removed the type.
+	 */
+	const COVERAGE_GAPS = [ 'woocommerce_inactive', 'woocommerce_types_not_scanned' ];
+
+	/**
 	 * Site-wide usage types — image is owned by the site itself, not by a
 	 * specific post. When ANY of these are recorded for an attachment, every
 	 * `permalink` / `rendered` hit on that attachment is by definition
@@ -317,6 +347,15 @@ class UsedWhereScanner {
 			);
 		}
 
+		// WooCommerce products and variations hold featured and gallery
+		// images. Scan their rows even when WooCommerce is inactive (the types
+		// are then unregistered) and for variations, which are never public.
+		foreach ( self::WOOCOMMERCE_POST_TYPES as $woo_type ) {
+			if ( ! isset( $types[ $woo_type ] ) && self::count_posts_in_table( $woo_type ) > 0 ) {
+				$types[ $woo_type ] = $woo_type;
+			}
+		}
+
 		$types = array_values( $types );
 
 		/**
@@ -330,6 +369,89 @@ class UsedWhereScanner {
 		 */
 		$types = apply_filters( 'tsmlt_used_where_scannable_post_types', $types );
 		return array_values( array_unique( array_filter( (array) $types, 'is_string' ) ) );
+	}
+
+	/**
+	 * Rows of a post type in the posts table with a status the scan covers,
+	 * counted directly (wp_count_posts() returns nothing for an unregistered
+	 * type).
+	 *
+	 * @param string $post_type Post type.
+	 *
+	 * @return int
+	 */
+	private static function count_posts_in_table( string $post_type ): int {
+		$rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', $post_type )
+			->andIn( 'post_status', ...self::SCAN_POST_STATUSES )
+			->get();
+		return (int) ( $rows[0]['total'] ?? 0 );
+	}
+
+	/**
+	 * Posts of a type the scan covers (registered types via wp_count_posts(),
+	 * as before; unregistered ones counted in the table).
+	 *
+	 * @param string $post_type Post type.
+	 *
+	 * @return int
+	 */
+	private function count_scannable_posts( string $post_type ): int {
+		if ( ! post_type_exists( $post_type ) ) {
+			return self::count_posts_in_table( $post_type );
+		}
+		$counts = wp_count_posts( $post_type );
+		$total  = 0;
+		foreach ( self::SCAN_POST_STATUSES as $status ) {
+			$total += (int) ( $counts->$status ?? 0 );
+		}
+		return $total;
+	}
+
+	/**
+	 * What a scan run now cannot verify (codes from COVERAGE_GAPS).
+	 *
+	 * @return string[]
+	 */
+	public function coverage_gaps(): array {
+		$with_rows = [];
+		foreach ( self::WOOCOMMERCE_POST_TYPES as $woo_type ) {
+			if ( self::count_posts_in_table( $woo_type ) > 0 ) {
+				$with_rows[] = $woo_type;
+			}
+		}
+		if ( ! $with_rows ) {
+			return [];
+		}
+
+		$gaps = [];
+		if ( ! post_type_exists( 'product' ) ) {
+			$gaps[] = 'woocommerce_inactive';
+		}
+		if ( array_diff( $with_rows, $this->get_scannable_post_types() ) ) {
+			$gaps[] = 'woocommerce_types_not_scanned';
+		}
+		return $gaps;
+	}
+
+	/**
+	 * Notice for coverage gaps, or '' when there are none.
+	 *
+	 * @param string[] $gaps Gap codes.
+	 *
+	 * @return string
+	 */
+	public static function coverage_message( array $gaps ): string {
+		$messages = [];
+		if ( in_array( 'woocommerce_inactive', $gaps, true ) ) {
+			$messages[] = __( 'Usage verification may be incomplete. WooCommerce is inactive, so some product and variation images may not be detected as used. These images must not be treated as unused or moved to Trash until their usage can be verified.', 'media-library-tools' );
+		}
+		if ( in_array( 'woocommerce_types_not_scanned', $gaps, true ) ) {
+			$messages[] = __( 'Usage verification may be incomplete. WooCommerce products or variations were left out of the scan (by the tsmlt_used_where_scannable_post_types filter), so their images may not be detected as used. Do not treat these images as unused or move them to Trash.', 'media-library-tools' );
+		}
+		return implode( ' ', $messages );
 	}
 
 	/**
@@ -497,12 +619,7 @@ class UsedWhereScanner {
 		// scanned sequentially: posts first, then HPOS orders once posts run out.
 		$post_total = 0;
 		foreach ( $post_types as $pt ) {
-			$counts = wp_count_posts( $pt );
-			$post_total += (int) ( $counts->publish ?? 0 );
-			$post_total += (int) ( $counts->draft ?? 0 );
-			$post_total += (int) ( $counts->pending ?? 0 );
-			$post_total += (int) ( $counts->private ?? 0 );
-			$post_total += (int) ( $counts->future ?? 0 );
+			$post_total += $this->count_scannable_posts( $pt );
 		}
 		$hpos_total  = $this->get_hpos_order_total();
 		$total_count = $post_total + $hpos_total;
@@ -536,7 +653,7 @@ class UsedWhereScanner {
 				'post_type'      => $post_types,
 				'posts_per_page' => $batch_size,
 				'offset'         => $offset,
-				'post_status'    => [ 'publish', 'draft', 'pending', 'private', 'future' ],
+				'post_status'    => self::SCAN_POST_STATUSES,
 				'orderby'        => 'ID',
 				'order'          => 'ASC',
 			] );
@@ -2100,18 +2217,25 @@ class UsedWhereScanner {
 			? (bool) $status['notified']
 			: true;
 
+		$stored_gaps   = is_array( $status['coverage_gaps'] ?? null ) ? $status['coverage_gaps'] : [];
+		$coverage_gaps = array_values( array_intersect( self::COVERAGE_GAPS, array_merge( $stored_gaps, $this->coverage_gaps() ) ) );
+
 		return [
-			'state'        => $state,
-			'scanned'      => $processed,
-			'total'        => $total,
-			'complete'     => 'complete' === $state,
-			'resumable'    => in_array( $state, [ 'queued', 'running' ], true ) && $processed > 0,
-			'notified'     => $notified,
-			'last_update'  => (string) ( $status['timestamp'] ?? '' ),
-			'last_tick_at' => (string) ( $status['last_tick_at'] ?? '' ),
-			'started_at'   => (string) ( $status['started_at'] ?? '' ),
-			'last_error'   => (string) ( $status['last_error'] ?? '' ),
-			'next_offset'  => (int) ( $status['next_offset'] ?? 0 ),
+			'state'           => $state,
+			'scanned'         => $processed,
+			'total'           => $total,
+			'complete'        => 'complete' === $state,
+			'resumable'       => in_array( $state, [ 'queued', 'running' ], true ) && $processed > 0,
+			'notified'        => $notified,
+			'last_update'     => (string) ( $status['timestamp'] ?? '' ),
+			'last_tick_at'    => (string) ( $status['last_tick_at'] ?? '' ),
+			'started_at'      => (string) ( $status['started_at'] ?? '' ),
+			'last_error'      => (string) ( $status['last_error'] ?? '' ),
+			'next_offset'     => (int) ( $status['next_offset'] ?? 0 ),
+			// Gaps of the last scan plus those a scan would have now, for the
+			// Used Where page's warning (empty when there is nothing to say).
+			'coverage_gaps'   => $coverage_gaps,
+			'coverage_notice' => self::coverage_message( $coverage_gaps ),
 		];
 	}
 
@@ -2171,20 +2295,27 @@ class UsedWhereScanner {
 		// start within the same second).
 		$now_mysql = current_time( 'mysql' );
 		$scan_id   = wp_generate_uuid4();
+		// What this run covers, recorded with its status (and reset on every
+		// start): readers must not treat "no usage" as unused when it has gaps.
+		$post_types    = $this->get_scannable_post_types();
+		$coverage_gaps = $this->coverage_gaps();
 		update_option(
 			'tsmlt_used_where_scan_status',
 			[
-				'state'        => 'queued',
-				'processed'    => 0,
-				'total'        => 0,
-				'complete'     => false,
-				'next_offset'  => 0,
-				'started_at'   => $now_mysql,
-				'last_tick_at' => '',
-				'last_error'   => '',
-				'notified'     => false,
-				'timestamp'    => $now_mysql,
-				'scan_id'      => $scan_id,
+				'state'              => 'queued',
+				'processed'          => 0,
+				'total'              => 0,
+				'complete'           => false,
+				'next_offset'        => 0,
+				'started_at'         => $now_mysql,
+				'last_tick_at'       => '',
+				'last_error'         => '',
+				'notified'           => false,
+				'timestamp'          => $now_mysql,
+				'scan_id'            => $scan_id,
+				'coverage_version'   => self::COVERAGE_VERSION,
+				'coverage_gaps'      => $coverage_gaps,
+				'scanned_post_types' => $post_types,
 			],
 			false
 		);
@@ -2209,30 +2340,27 @@ class UsedWhereScanner {
 		// from the very first poll, before any tick has run. Mirrors the
 		// total computed inside process_batch() — posts first, then HPOS
 		// orders when WooCommerce HPOS is active.
-		$post_types = $this->get_scannable_post_types();
 		$total = 0;
 		foreach ( $post_types as $pt ) {
-			$counts = wp_count_posts( $pt );
-			$total += (int) ( $counts->publish ?? 0 );
-			$total += (int) ( $counts->draft ?? 0 );
-			$total += (int) ( $counts->pending ?? 0 );
-			$total += (int) ( $counts->private ?? 0 );
-			$total += (int) ( $counts->future ?? 0 );
+			$total += $this->count_scannable_posts( $pt );
 		}
 		$total += $this->get_hpos_order_total();
 
 		update_option( 'tsmlt_used_where_scan_status', [
-			'state'        => 'queued',
-			'processed'    => 0,
-			'total'        => $total,
-			'complete'     => false,
-			'next_offset'  => 0,
-			'started_at'   => $now_mysql,
-			'last_tick_at' => '',
-			'last_error'   => '',
-			'notified'     => false, // arm a "scan finished" toast for whenever this run terminates.
-			'timestamp'    => $now_mysql,
-			'scan_id'      => $scan_id,
+			'state'              => 'queued',
+			'processed'          => 0,
+			'total'              => $total,
+			'complete'           => false,
+			'next_offset'        => 0,
+			'started_at'         => $now_mysql,
+			'last_tick_at'       => '',
+			'last_error'         => '',
+			'notified'           => false, // arm a "scan finished" toast for whenever this run terminates.
+			'timestamp'          => $now_mysql,
+			'scan_id'            => $scan_id,
+			'coverage_version'   => self::COVERAGE_VERSION,
+			'coverage_gaps'      => $coverage_gaps,
+			'scanned_post_types' => $post_types,
 		], false );
 
 		// Schedule the first tick. Args are passed by reference to identify
@@ -2307,7 +2435,15 @@ class UsedWhereScanner {
 				$this->reconcile_incidental_usages();
 			}
 
-			$this->update_scan_status( [
+			// A batch that runs where the start did not (WooCommerce turned off
+			// meanwhile) adds its gaps to this run's coverage record.
+			$coverage = [];
+			if ( isset( $status['coverage_version'] ) ) {
+				$stored                    = is_array( $status['coverage_gaps'] ?? null ) ? $status['coverage_gaps'] : [];
+				$coverage['coverage_gaps'] = array_values( array_unique( array_merge( $stored, $this->coverage_gaps() ) ) );
+			}
+
+			$this->update_scan_status( $coverage + [
 				'processed'   => $next_offset,
 				'total'       => $total,
 				'next_offset' => $next_offset,

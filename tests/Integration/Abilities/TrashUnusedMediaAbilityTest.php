@@ -216,6 +216,8 @@ class TrashUnusedMediaAbilityTest extends WP_UnitTestCase {
 					'processed'    => 10,
 					'total'        => 10,
 					'scan_id'      => self::SCAN_ID,
+					'coverage_version' => UsedWhereScanner::COVERAGE_VERSION,
+					'coverage_gaps'    => [],
 					'started_at'   => current_time( 'mysql' ),
 					'last_tick_at' => current_time( 'mysql' ),
 					'timestamp'    => current_time( 'mysql' ),

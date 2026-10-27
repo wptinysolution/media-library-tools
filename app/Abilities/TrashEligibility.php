@@ -22,7 +22,9 @@ use WP_Post;
  *
  * Request-level gates (check_request()): the site's trash is enabled
  * (with EMPTY_TRASH_DAYS at 0, wp_trash_post() deletes permanently); the
- * Used Where scan is complete, identified by a `scan_id`, and not stalled;
+ * Used Where scan is complete, identified by a `scan_id`, not stalled, and
+ * its coverage is verified (for example, not made while WooCommerce was
+ * inactive, when product category images could not be checked);
  * and no per-post usage re-check (scheduled when a post is saved) is still
  * waiting, since until it runs the records may be out of date.
  *
@@ -64,6 +66,7 @@ class TrashEligibility {
 	const ERROR_SCAN_OUTDATED   = 'tsmlt_scan_outdated';
 	const ERROR_UPDATES_PENDING = 'tsmlt_usage_update_pending';
 	const ERROR_SCAN_CHANGED    = 'tsmlt_scan_changed';
+	const ERROR_COVERAGE        = 'tsmlt_scan_coverage_incomplete';
 
 	/**
 	 * Validate the input: exactly `ids`, 1 to 50 unique positive integers.
@@ -132,6 +135,20 @@ class TrashEligibility {
 				409
 			);
 		}
+		if ( ! $status['coverage']['verified'] ) {
+			$gaps    = $status['coverage']['gaps'];
+			$message = in_array( UsageScanStatus::GAP_NOT_RECORDED, $gaps, true )
+				? __( 'The completed usage scan did not record what it covered (it was made by an earlier plugin version). Run tsmlt/start-usage-scan again.', 'media-library-tools' )
+				: UsedWhereScanner::coverage_message( $gaps );
+			$error   = AbilityGuard::error( self::ERROR_COVERAGE, $message . ' ' . __( 'Nothing was changed.', 'media-library-tools' ), 409 );
+			$error->add_data(
+				[
+					'status' => 409,
+					'gaps'   => $gaps,
+				]
+			);
+			return $error;
+		}
 		if ( self::rescans_pending() ) {
 			return AbilityGuard::error(
 				self::ERROR_UPDATES_PENDING,
@@ -152,7 +169,8 @@ class TrashEligibility {
 	 */
 	public static function same_scan( array $a, array $b ): bool {
 		return $a['complete'] && $b['complete'] && ! $b['stalled'] && '' !== $a['scan_id']
-			&& $a['scan_id'] === $b['scan_id'] && $a['started_at'] === $b['started_at'];
+			&& $a['scan_id'] === $b['scan_id'] && $a['started_at'] === $b['started_at']
+			&& $a['coverage']['verified'] && $b['coverage']['verified'];
 	}
 
 	/**

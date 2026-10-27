@@ -30,7 +30,8 @@ use WP_Post;
  *
  * `used` is true when a usage is recorded, false only when no usage is
  * recorded and the same scan was complete before and after the records
- * were read, and null otherwise (unknown). `scan.complete` is true only in
+ * were read and its coverage is verified (it could check every usage
+ * source), and null otherwise (unknown). `scan.complete` is true only in
  * that verified case, so a client can tell final from provisional results.
  *
  * Each usage gives the referring post's ID, type, current status and title.
@@ -132,7 +133,7 @@ class GetMediaUsage extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Report where up to 50 attachments (by ID) are used on the site: as featured images, in post content or excerpts, in page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options). Reads the records of the plugin\'s Used Where scan; it does not scan. used is true when a usage is recorded, false only when none is recorded and the last scan completed, and null when that is unknown. scan.complete is true only when these results come from one completed scan; otherwise treat them as provisional (start a scan with tsmlt/start-usage-scan for complete data). Each usage gives the post ID (0 for site-wide), post type, status, current title and usage type; posts you cannot read are only counted in hidden. Read-only.', 'media-library-tools' );
+		return __( 'Report where up to 50 attachments (by ID) are used on the site: as featured images, in post content or excerpts, in page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options). Reads the records of the plugin\'s Used Where scan; it does not scan. used is true when a usage is recorded, false only when none is recorded and the last scan completed, and null when that is unknown. scan.complete is true only when these results come from one completed scan whose coverage is verified (see tsmlt/get-usage-scan-status coverage; for example, a scan made while WooCommerce was inactive is not); otherwise treat them as provisional (start a scan with tsmlt/start-usage-scan for complete data). Each usage gives the post ID (0 for site-wide), post type, status, current title and usage type; posts you cannot read are only counted in hidden. Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -356,8 +357,11 @@ class GetMediaUsage extends Ability {
 		// Read again: a scan that started (or finished) while the records
 		// were read makes "no usage" unreliable. Not used is reported only
 		// when the same scan was complete before and after.
-		$after    = UsageScanStatus::read();
-		$verified = $before['complete'] && $after['complete'] && $before['scan_id'] === $after['scan_id'] && $before['started_at'] === $after['started_at'];
+		$after = UsageScanStatus::read();
+		// Also unknown when the scan could not check every usage source (for
+		// example WooCommerce was inactive): see UsageScanStatus coverage.
+		$verified = $before['complete'] && $after['complete'] && $before['scan_id'] === $after['scan_id'] && $before['started_at'] === $after['started_at']
+			&& $before['coverage']['verified'] && $after['coverage']['verified'];
 		foreach ( $items as $index => $item ) {
 			if ( 0 === $item['total_usage'] ) {
 				$items[ $index ]['used'] = $verified ? false : null;

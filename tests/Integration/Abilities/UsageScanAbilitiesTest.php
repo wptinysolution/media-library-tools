@@ -39,7 +39,7 @@ class UsageScanAbilitiesTest extends WP_UnitTestCase {
 	/**
 	 * Keys of the status.
 	 */
-	const STATUS_KEYS = [ 'scan_id', 'state', 'complete', 'processed', 'total', 'percent', 'last_update', 'started_at', 'last_tick_at', 'ever_started', 'stalled', 'has_error' ];
+	const STATUS_KEYS = [ 'scan_id', 'state', 'complete', 'processed', 'total', 'percent', 'last_update', 'started_at', 'last_tick_at', 'ever_started', 'stalled', 'has_error', 'coverage' ];
 
 	/**
 	 * MCP sessions per route.
@@ -551,6 +551,10 @@ class UsageScanAbilitiesTest extends WP_UnitTestCase {
 				'ever_started' => true,
 				'stalled'      => false,
 				'has_error'    => true,
+				'coverage'     => [
+					'verified' => false,
+					'gaps'     => [ 'not_recorded' ],
+				],
 			],
 			$status
 		);
@@ -799,10 +803,10 @@ class UsageScanAbilitiesTest extends WP_UnitTestCase {
 	 */
 	public function test_media_usage_scan_finishing_mid_request_is_not_verified() {
 		$image = $this->attachment( 'race/finish.jpg' );
-		self::set_status( [ 'state' => 'running', 'scan_id' => '33333333-3333-4333-8333-333333333333' ] );
+		self::set_status( [ 'state' => 'running', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1 ] );
 		$finish = static function ( $value, $object_id, $meta_key ) use ( $image ) {
 			if ( UsedWhereScanner::META_KEY === $meta_key && $image === (int) $object_id ) {
-				update_option( UsageScanStatus::OPTION, [ 'state' => 'complete', 'scan_id' => '33333333-3333-4333-8333-333333333333' ], false );
+				update_option( UsageScanStatus::OPTION, [ 'state' => 'complete', 'scan_id' => '33333333-3333-4333-8333-333333333333', 'coverage_version' => 1 ], false );
 			}
 			return $value;
 		};

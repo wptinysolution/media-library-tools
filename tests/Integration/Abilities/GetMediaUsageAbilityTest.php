@@ -211,6 +211,11 @@ class GetMediaUsageAbilityTest extends WP_UnitTestCase {
 	 * @param array $status Status row.
 	 */
 	private static function scan( array $status ) {
+		// As a scan by this version records it: coverage verified.
+		$status += [
+			'coverage_version' => UsedWhereScanner::COVERAGE_VERSION,
+			'coverage_gaps'    => [],
+		];
 		update_option( GetMediaUsage::SCAN_STATUS_OPTION, $status, false );
 	}
 
@@ -501,8 +506,9 @@ class GetMediaUsageAbilityTest extends WP_UnitTestCase {
 			'running'                   => [ [ 'state' => 'running' ], 'running', false, null ],
 			'cancelled'                 => [ [ 'state' => 'cancelled' ], 'cancelled', false, null ],
 			'error'                     => [ [ 'state' => 'error' ], 'error', false, null ],
-			'complete'                  => [ [ 'state' => 'complete' ], 'complete', true, false ],
-			'row from before state'     => [ [ 'complete' => true ], 'complete', true, false ],
+			'complete'                  => [ [ 'state' => 'complete', 'coverage_version' => 1 ], 'complete', true, false ],
+			'complete, no coverage'     => [ [ 'state' => 'complete' ], 'complete', false, null ],
+			'row from before state'     => [ [ 'complete' => true ], 'complete', false, null ],
 			'old incomplete row'        => [ [ 'complete' => false ], 'idle', false, null ],
 			'unknown state'             => [ [ 'state' => 'exploded' ], 'idle', false, null ],
 			'not an array'              => [ 'garbage', 'idle', false, null ],
@@ -586,6 +592,7 @@ class GetMediaUsageAbilityTest extends WP_UnitTestCase {
 			'last_tick_at' => '2000-01-01 00:00:00',
 		];
 		self::scan( $stalled );
+		$stalled      = get_option( GetMediaUsage::SCAN_STATUS_OPTION );
 		$usage_before = get_post_meta( $id, UsedWhereScanner::META_KEY, true );
 		$cron_before  = _get_cron_array();
 
