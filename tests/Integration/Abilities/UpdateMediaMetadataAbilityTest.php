@@ -223,7 +223,7 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 			)
 		);
 		sort( $names );
-		$this->assertSame( [ 'tsmlt/create-media-group', 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/get-media-usage', 'tsmlt/get-usage-scan-status', 'tsmlt/list-media-groups', 'tsmlt/preview-trash-unused-media', 'tsmlt/search-media', 'tsmlt/set-media-groups', 'tsmlt/start-usage-scan', 'tsmlt/trash-unused-media', 'tsmlt/update-media-group', 'tsmlt/update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt/create-media-group', 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/get-media-usage', 'tsmlt/get-usage-scan-status', 'tsmlt/list-media-groups', 'tsmlt/search-media', 'tsmlt/set-media-groups', 'tsmlt/start-usage-scan', 'tsmlt/update-media-group', 'tsmlt/update-media-metadata' ], $names );
 	}
 
 	// ---------------------------------------------------------------------

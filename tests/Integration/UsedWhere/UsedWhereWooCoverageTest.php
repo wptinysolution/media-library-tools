@@ -5,8 +5,7 @@
  * post types are registered, and although variations are never public), and
  * a scan that could not check every source (WooCommerce inactive, or the
  * types filtered out) is recorded as such: media without a recorded usage is
- * then unknown, never unused, the trash tools refuse, and the Used Where
- * page shows a warning.
+ * then unknown, never unused, and the Used Where page shows a warning.
  *
  * WooCommerce is not installed in the test environment: "active" registers
  * its post types and product category taxonomy the way WooCommerce does;
@@ -17,7 +16,6 @@
  * @package TinySolutions\mlt
  */
 
-use TinySolutions\mlt\Abilities\TrashEligibility;
 use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
@@ -48,7 +46,7 @@ class UsedWhereWooCoverageTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		delete_option( UsageScanStatus::OPTION );
 		wp_unschedule_hook( UsedWhereScanner::SCAN_TICK_HOOK );
-		wp_unschedule_hook( TrashEligibility::POST_RESCAN_HOOK );
+		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
 		$this->denied = [];
 		add_filter( 'map_meta_cap', [ $this, 'deny_read' ], 10, 4 );
 		add_filter( 'pre_http_request', [ $this, 'block_http' ] );
@@ -64,7 +62,7 @@ class UsedWhereWooCoverageTest extends WP_UnitTestCase {
 		remove_filter( 'tsmlt_scan_permalink_enabled_default', '__return_false' );
 		remove_all_filters( 'tsmlt_used_where_scannable_post_types' );
 		wp_unschedule_hook( UsedWhereScanner::SCAN_TICK_HOOK );
-		wp_unschedule_hook( TrashEligibility::POST_RESCAN_HOOK );
+		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
 		self::deactivate_woocommerce();
 		parent::tear_down();
 	}
@@ -226,7 +224,7 @@ class UsedWhereWooCoverageTest extends WP_UnitTestCase {
 			wp_unschedule_event( $tick[0], UsedWhereScanner::SCAN_TICK_HOOK, [ $tick[1] ] );
 			UsedWhereScanner::instance()->run_tick_batch( $tick[1] );
 		}
-		wp_unschedule_hook( TrashEligibility::POST_RESCAN_HOOK );
+		wp_unschedule_hook( 'tsmlt_scan_post_usage' );
 		return get_option( UsageScanStatus::OPTION );
 	}
 
@@ -411,50 +409,6 @@ class UsedWhereWooCoverageTest extends WP_UnitTestCase {
 
 		$this->assertSame( [ 'verified' => false, 'gaps' => [ 'not_recorded' ] ], UsageScanStatus::read()['coverage'] );
 		$this->assertNull( self::usage( [ $unused ] )[1][ $unused ]['used'] );
-		$result = wp_get_ability( 'tsmlt/trash-unused-media' )->execute( [ 'ids' => [ $unused ] ] );
-		$this->assertWPError( $result );
-		$this->assertSame( TrashEligibility::ERROR_COVERAGE, $result->get_error_code() );
-		$this->assertStringContainsString( 'earlier plugin version', $result->get_error_message() );
-	}
-
-	// ---------------------------------------------------------------------
-	// Trash tools
-	// ---------------------------------------------------------------------
-
-	/**
-	 * After a scan made while WooCommerce was inactive, preview and trash
-	 * refuse with a machine-readable reason and the explanation; nothing is
-	 * moved.
-	 */
-	public function test_trash_tools_refuse_after_unverified_scan() {
-		$ids = $this->store();
-		self::scan();
-
-		foreach ( [ 'tsmlt/preview-trash-unused-media', 'tsmlt/trash-unused-media' ] as $name ) {
-			$result = wp_get_ability( $name )->execute( [ 'ids' => [ $ids['unused'], $ids['featured'] ] ] );
-			$this->assertWPError( $result, $name );
-			$this->assertSame( TrashEligibility::ERROR_COVERAGE, $result->get_error_code() );
-			$this->assertSame( [ 'woocommerce_inactive' ], $result->get_error_data()['gaps'] );
-			$this->assertSame( 409, $result->get_error_data()['status'] );
-			$this->assertStringContainsString( 'WooCommerce is inactive', $result->get_error_message() );
-		}
-		$this->assertSame( 'inherit', get_post( $ids['unused'] )->post_status, 'Not moved.' );
-		$this->assertSame( 'inherit', get_post( $ids['featured'] )->post_status, 'Not moved.' );
-	}
-
-	/**
-	 * With WooCommerce active and a verified scan, only the unused image is
-	 * eligible: product, gallery and variation images are skipped as used.
-	 */
-	public function test_trash_after_verified_scan_keeps_product_images() {
-		self::activate_woocommerce();
-		$ids = $this->store();
-		self::scan();
-
-		$result = wp_get_ability( 'tsmlt/trash-unused-media' )->execute( [ 'ids' => [ $ids['featured'], $ids['gallery1'], $ids['variation'], $ids['unused'] ] ] );
-
-		$this->assertSame( [ $ids['unused'] ], $result['trashed'] );
-		$this->assertSame( [ 'used', 'used', 'used', null ], wp_list_pluck( $result['results'], 'reason' ) );
 	}
 
 	// ---------------------------------------------------------------------

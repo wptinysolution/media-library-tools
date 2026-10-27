@@ -321,16 +321,6 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
-							<td><code>tsmlt-preview-trash-unused-media</code></td>
-							<td><?php esc_html_e( 'Dry run: for up to 50 exact attachment IDs, reports which the latest completed usage scan found unused and would be moved to the trash, and why the others would not. Changes nothing. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
-						</tr>
-						<tr>
-							<td><code>tsmlt-trash-unused-media</code></td>
-							<td><?php esc_html_e( 'Moves up to 50 exact attachment IDs to the trash, only those the latest completed usage scan found unused; checks everything again itself and skips the rest with a reason. Files are kept and can be restored from the trash; nothing is deleted permanently. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'Yes (moves media to the trash)', 'media-library-tools' ); ?></td>
-						</tr>
-						<tr>
 							<td><code>tsmlt-set-media-groups</code></td>
 							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
@@ -348,7 +338,7 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or permanently delete files, or delete or move Groups; tsmlt-trash-unused-media only moves unused media to the trash, where it can be restored; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 

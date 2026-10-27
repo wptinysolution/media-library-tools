@@ -55,7 +55,7 @@ class ProEntitlementIndependenceTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const FREE_ABILITIES = [ 'tsmlt/create-media-group', 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/get-media-usage', 'tsmlt/get-usage-scan-status', 'tsmlt/list-media-groups', 'tsmlt/preview-trash-unused-media', 'tsmlt/search-media', 'tsmlt/set-media-groups', 'tsmlt/start-usage-scan', 'tsmlt/trash-unused-media', 'tsmlt/update-media-group', 'tsmlt/update-media-metadata' ];
+	const FREE_ABILITIES = [ 'tsmlt/create-media-group', 'tsmlt/get-exif-fields', 'tsmlt/get-media-details', 'tsmlt/get-media-usage', 'tsmlt/get-usage-scan-status', 'tsmlt/list-media-groups', 'tsmlt/search-media', 'tsmlt/set-media-groups', 'tsmlt/start-usage-scan', 'tsmlt/update-media-group', 'tsmlt/update-media-metadata' ];
 
 	/**
 	 * Marker written as leftover Pro data; must never appear in any output.
@@ -215,7 +215,7 @@ class ProEntitlementIndependenceTest extends WP_UnitTestCase {
 		$absent = $this->observe();
 
 		$this->assertSame( self::FREE_ABILITIES, $absent['names'] );
-		$this->assertSame( [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group', 'tsmlt/get-media-usage', 'tsmlt/start-usage-scan', 'tsmlt/get-usage-scan-status', 'tsmlt/preview-trash-unused-media', 'tsmlt/trash-unused-media' ], $absent['scoped_names'] );
+		$this->assertSame( [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group', 'tsmlt/get-media-usage', 'tsmlt/start-usage-scan', 'tsmlt/get-usage-scan-status' ], $absent['scoped_names'] );
 		$this->assertSame( [ 'caption' ], $absent['outputs']['update']['updated_fields'] );
 		$this->assertSame( [ 'error' => 'ability_invalid_input' ], $absent['outputs']['pro_style_arg'] );
 		$this->assertSame( 'Updated caption', $absent['final_caption'] );
