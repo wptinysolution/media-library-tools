@@ -392,6 +392,32 @@ class UsedWhereClassificationAjaxTest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * With the excluding filter still active, the scan details still list the
+	 * WooCommerce types that were not scanned (they agree with the reason).
+	 */
+	public function test_not_scanned_types_listed_while_filter_active() {
+		self::factory()->post->create( [ 'post_type' => 'product' ] );
+		self::factory()->post->create( [ 'post_type' => 'product_variation' ] );
+		$plain  = $this->image( 'Plain while filtered' );
+		$filter = static function ( $types ) {
+			return array_values( array_diff( $types, [ 'product', 'product_variation' ] ) );
+		};
+		add_filter( 'tsmlt_used_where_scannable_post_types', $filter );
+		self::verified_scan(
+			[
+				'coverage_gaps'      => [ 'woocommerce_types_not_scanned' ],
+				'scanned_post_types' => [ 'post', 'page' ],
+			]
+		);
+
+		$data = $this->results( 'unknown' );
+
+		remove_filter( 'tsmlt_used_where_scannable_post_types', $filter );
+		$this->assertSame( [ 'product', 'product_variation' ], $data['scan']['not_scanned_post_types'] );
+		$this->assertSame( [ 'Not scanned: product, product_variation' ], $this->unknown_item( $data, $plain )['unknown']['reasons'][0]['evidence'] );
+	}
+
+	/**
 	 * Several reasons are all listed (old scan, and uploaded after it began).
 	 */
 	public function test_multiple_reasons() {

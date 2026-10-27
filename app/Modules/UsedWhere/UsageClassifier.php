@@ -56,7 +56,10 @@ class UsageClassifier {
 		}
 		$not_scanned = null;
 		if ( null !== $scanned ) {
-			$not_scanned = array_values( array_diff( UsedWhereScanner::instance()->scannable_post_types(), $scanned ) );
+			// Types the scanner covers now, plus WooCommerce types with rows (a
+			// filter can remove them from both lists).
+			$relevant    = array_unique( array_merge( UsedWhereScanner::instance()->scannable_post_types(), self::woocommerce_types_with_rows() ) );
+			$not_scanned = array_values( array_diff( $relevant, $scanned ) );
 		}
 
 		$context = [
