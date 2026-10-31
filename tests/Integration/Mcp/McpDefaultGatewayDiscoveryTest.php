@@ -37,7 +37,7 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const FREE_ABILITIES = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ];
+	const FREE_ABILITIES = [ 'tsmlt/search-media', 'tsmlt/get-media-details' ];
 
 	/**
 	 * A Free ability that is not MCP-public: offered only on the dedicated server.
@@ -54,7 +54,6 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 	const INPUT_PROPERTIES = [
 		'tsmlt/search-media'          => [ 'search', 'filename', 'mime_type', 'missing_alt', 'group_id', 'attached', 'page', 'per_page', 'orderby', 'order' ],
 		'tsmlt/get-media-details'     => [ 'id' ],
-		'tsmlt/update-media-metadata' => [ 'id', 'title', 'alt_text', 'caption', 'description', 'expected' ],
 	];
 
 	/**

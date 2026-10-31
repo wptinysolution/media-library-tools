@@ -767,7 +767,7 @@ class UsageScanAbilitiesTest extends WP_UnitTestCase {
 		UsedWhereScanner::instance()->start_scheduled_scan();
 
 		$this->assertSame( '', get_post_meta( $image, UsedWhereScanner::META_KEY, true ) );
-		$this->assertSame( 0, (int) get_post( $image )->post_parent );
+		$this->assertSame( $post, (int) get_post( $image )->post_parent, 'The existing parent is kept.' );
 	}
 
 	/**

@@ -50,6 +50,14 @@ class UpdateMediaMetadata extends Ability {
 	const ERROR_CONFLICT = 'tsmlt_conflict';
 
 	/**
+	 * Error code: some fields were saved and could not be restored after a
+	 * later write failed.
+	 *
+	 * @var string
+	 */
+	const ERROR_PARTIAL_UPDATE = 'tsmlt_partial_update';
+
+	/**
 	 * Longest accepted expected value, in characters. Larger than MAX_LENGTHS
 	 * because it is compared with what is already stored, which may be longer
 	 * than this ability would write.
@@ -248,6 +256,12 @@ class UpdateMediaMetadata extends Ability {
 	 * @return array|WP_Error
 	 */
 	public function execute( $input = null ) {
+		// The callback can be reached without the permission callback.
+		$base = AbilityGuard::check_base_capability();
+		if ( is_wp_error( $base ) ) {
+			return $base;
+		}
+
 		$input = is_array( $input ) ? $input : [];
 
 		$attachment = $this->resolve_editable_attachment( $input['id'] ?? null );
@@ -269,9 +283,11 @@ class UpdateMediaMetadata extends Ability {
 		}
 
 		$post_update = [];
+		$post_fields = [];
 		foreach ( $values as $field => $value ) {
 			if ( null !== self::FIELDS[ $field ] && $value !== $before[ $field ] ) {
 				$post_update[ self::FIELDS[ $field ] ] = $value;
+				$post_fields[]                         = $field;
 			}
 		}
 
@@ -283,11 +299,14 @@ class UpdateMediaMetadata extends Ability {
 				return $this->update_failed();
 			}
 		}
+		// What this request stored (WordPress may have filtered the input).
+		clean_post_cache( $attachment->ID );
+		$stored = $this->current_values( $attachment->ID );
 
 		if ( array_key_exists( 'alt_text', $values ) && $values['alt_text'] !== $before['alt_text'] ) {
 			// update_post_meta() unslashes its input too.
 			if ( ! update_post_meta( $attachment->ID, self::ALT_META_KEY, wp_slash( $values['alt_text'] ) ) ) {
-				return $this->update_failed();
+				return $this->undo_post_fields( (int) $attachment->ID, $post_fields, $before, $stored );
 			}
 		}
 
@@ -502,6 +521,82 @@ class UpdateMediaMetadata extends Ability {
 	 * @return WP_Error
 	 */
 	private function update_failed(): WP_Error {
+		return $this->failed_error();
+	}
+
+	/**
+	 * After the alt text could not be saved: put back the post fields this
+	 * request saved, except any that changed since (another edit), and report
+	 * truthfully what remains changed.
+	 *
+	 * @param int      $attachment_id Attachment ID.
+	 * @param string[] $fields        Post fields this request saved.
+	 * @param array    $before        Values before this request.
+	 * @param array    $written       Values stored by this request's post write.
+	 *
+	 * @return WP_Error
+	 */
+	private function undo_post_fields( int $attachment_id, array $fields, array $before, array $written ): WP_Error {
+		clean_post_cache( $attachment_id );
+		$current = $this->current_values( $attachment_id );
+		$restore = [];
+		foreach ( $fields as $field ) {
+			// Only what still holds this request's value; a field changed since
+			// belongs to another edit and is left alone.
+			if ( $current[ $field ] === $written[ $field ] ) {
+				$restore[ self::FIELDS[ $field ] ] = $before[ $field ];
+			}
+		}
+		if ( $restore ) {
+			$restore['ID'] = $attachment_id;
+			wp_update_post( wp_slash( $restore ), true );
+			clean_post_cache( $attachment_id );
+		}
+
+		// Fields where this request's value is still stored.
+		$after   = $this->current_values( $attachment_id );
+		$changed = [];
+		foreach ( $fields as $field ) {
+			if ( $after[ $field ] === $written[ $field ] && $written[ $field ] !== $before[ $field ] ) {
+				$changed[] = $field;
+			}
+		}
+
+		if ( ! $changed ) {
+			return AbilityGuard::error(
+				self::ERROR_UPDATE_FAILED,
+				$fields
+					? __( 'The alt text could not be saved. The other fields saved by this request were restored, so nothing was changed.', 'media-library-tools' )
+					: __( 'The alt text could not be saved. Nothing was changed.', 'media-library-tools' ),
+				500
+			);
+		}
+
+		$error = AbilityGuard::error(
+			self::ERROR_PARTIAL_UPDATE,
+			sprintf(
+				/* translators: %s: field names. */
+				__( 'The alt text could not be saved, and these fields could not be restored, so they remain changed: %s. Fetch the media to check.', 'media-library-tools' ),
+				implode( ', ', $changed )
+			),
+			500
+		);
+		$error->add_data(
+			[
+				'status'         => 500,
+				'applied_fields' => $changed,
+				'failed_fields'  => [ 'alt_text' ],
+			]
+		);
+		return $error;
+	}
+
+	/**
+	 * Generic failure.
+	 *
+	 * @return WP_Error
+	 */
+	private function failed_error(): WP_Error {
 		return AbilityGuard::error(
 			self::ERROR_UPDATE_FAILED,
 			__( 'The media could not be updated. Fields processed before the failure may already have been saved; fetch the media to check.', 'media-library-tools' ),

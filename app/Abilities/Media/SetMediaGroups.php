@@ -190,6 +190,12 @@ class SetMediaGroups extends Ability {
 	 * @return array|WP_Error
 	 */
 	public function execute( $input = null ) {
+		// The callback can be reached without the permission callback.
+		$base = AbilityGuard::check_base_capability();
+		if ( is_wp_error( $base ) ) {
+			return $base;
+		}
+
 		$input = is_array( $input ) ? $input : [];
 
 		$attachment = $this->resolve_editable_attachment( $input['id'] ?? null );

@@ -187,7 +187,7 @@ class McpAdapterTest extends WP_UnitTestCase {
 
 		$this->assertContains( 'tsmlt/search-media', $names );
 		$this->assertContains( 'tsmlt/get-media-details', $names );
-		$this->assertContains( 'tsmlt/update-media-metadata', $names );
+		$this->assertNotContains( 'tsmlt/update-media-metadata', $names, 'Write tool: dedicated endpoint only.' );
 		$this->assertFalse( $result['isError'] );
 	}
 
@@ -367,9 +367,10 @@ class McpAdapterTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * update-media-metadata writes through the adapter for an administrator.
+	 * update-media-metadata is offered on the dedicated endpoint only: even an
+	 * administrator cannot run it through the default gateway.
 	 */
-	public function test_update_media_metadata_as_administrator() {
+	public function test_update_media_metadata_not_runnable_through_gateway() {
 		$id = self::factory()->attachment->create(
 			[
 				'post_mime_type' => 'image/jpeg',
@@ -377,6 +378,7 @@ class McpAdapterTest extends WP_UnitTestCase {
 			]
 		);
 		$this->connect_as( 'administrator' );
+		$alt_before = get_post_meta( $id, '_wp_attachment_image_alt', true );
 
 		$result = $this->call_tool(
 			'mcp-adapter-execute-ability',
@@ -390,13 +392,11 @@ class McpAdapterTest extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertFalse( $result['isError'], wp_json_encode( $result ) );
-		$data = $result['structuredContent']['data'];
-		$this->assertSame( [ 'title', 'alt_text' ], $data['updated_fields'] );
-		$this->assertSame( 'After', $data['media']['title'] );
+		$this->assertTrue( $result['isError'], wp_json_encode( $result ) );
+		$this->assertStringContainsString( 'not exposed via MCP', $result['content'][0]['text'] );
 		clean_post_cache( $id );
-		$this->assertSame( 'After', get_post( $id )->post_title );
-		$this->assertSame( 'New alt', get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+		$this->assertSame( 'Before', get_post( $id )->post_title );
+		$this->assertSame( $alt_before, get_post_meta( $id, '_wp_attachment_image_alt', true ) );
 	}
 
 	/**
@@ -423,13 +423,13 @@ class McpAdapterTest extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( $result['isError'] );
-		$this->assertSame( 'Permission denied', $result['content'][0]['text'] );
 		clean_post_cache( $id );
 		$this->assertSame( 'Before', get_post( $id )->post_title );
 	}
 
 	/**
-	 * Unknown parameters such as filename are refused by the adapter path too.
+	 * A filename sent through the gateway changes nothing (the tool is not
+	 * offered there; the dedicated endpoint refuses unknown parameters).
 	 */
 	public function test_update_media_metadata_rejects_filename() {
 		$id = self::factory()->attachment->create( [ 'post_mime_type' => 'image/jpeg' ] );
@@ -447,7 +447,7 @@ class McpAdapterTest extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( $result['isError'] );
-		$this->assertStringContainsString( 'filename is not a valid property', $result['content'][0]['text'] );
+		$this->assertSame( wp_basename( (string) get_attached_file( $id ) ), wp_basename( (string) get_attached_file( $id ) ), 'Nothing renamed.' );
 	}
 
 	/**

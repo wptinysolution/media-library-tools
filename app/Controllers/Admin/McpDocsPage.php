@@ -287,7 +287,7 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-update-media-metadata</code></td>
-							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -312,7 +312,7 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-start-usage-scan</code></td>
-							<td><?php esc_html_e( 'Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Never changes media files or attachment data. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Never changes media files; keeps each image\'s existing attached post and sets one only for an image that has none, from a post that uses it. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (usage scan results)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -440,7 +440,7 @@ class McpDocsPage {
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the search, details and update tools through the MCP Adapter\'s default server (the EXIF, EXIF caption and Group tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group and usage tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 
@@ -490,7 +490,7 @@ class McpDocsPage {
 						</tr>
 					</tbody>
 				</table>
-				<p><?php esc_html_e( 'On the default server, the Media Library Tools abilities are named with a slash:', 'media-library-tools' ); ?> <code>tsmlt/search-media</code>, <code>tsmlt/get-media-details</code>, <code>tsmlt/update-media-metadata</code>.</p>
+				<p><?php esc_html_e( 'On the default server, the Media Library Tools abilities are named with a slash:', 'media-library-tools' ); ?> <code>tsmlt/search-media</code>, <code>tsmlt/get-media-details</code>.</p>
 				<p><?php esc_html_e( 'An execute-ability call looks like this:', 'media-library-tools' ); ?></p>
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_example ); ?></code></pre>
 

@@ -81,7 +81,6 @@ class McpDefaultGatewayAuthorizationTest extends WP_UnitTestCase {
 		return [
 			'tsmlt/search-media'          => [ 'tsmlt/search-media' ],
 			'tsmlt/get-media-details'     => [ 'tsmlt/get-media-details' ],
-			'tsmlt/update-media-metadata' => [ 'tsmlt/update-media-metadata' ],
 		];
 	}
 
@@ -235,9 +234,31 @@ class McpDefaultGatewayAuthorizationTest extends WP_UnitTestCase {
 	public function data_object_denials(): array {
 		return [
 			'details without read_post' => [ 'tsmlt/get-media-details', 'read_post', 'No attachment exists with that ID.' ],
-			'update without read_post'  => [ 'tsmlt/update-media-metadata', 'read_post', 'No attachment exists with that ID.' ],
-			'update without edit_post'  => [ 'tsmlt/update-media-metadata', 'edit_post', 'You are not allowed to edit this attachment.' ],
 		];
+	}
+
+	/**
+	 * update-media-metadata is offered on the dedicated endpoint only: the
+	 * gateway refuses it even for an administrator and nothing changes.
+	 */
+	public function test_update_tool_not_exposed_on_gateway() {
+		$this->gw_connect_as( 'administrator' );
+		$before = $this->gw_snapshot( $this->id );
+
+		$result = $this->gw_call(
+			'mcp-adapter-execute-ability',
+			self::gw_execute_args(
+				'tsmlt/update-media-metadata',
+				[
+					'id'      => $this->id,
+					'caption' => 'Changed through the gateway',
+				]
+			)
+		);
+
+		$this->assertTrue( $result['isError'], wp_json_encode( $result ) );
+		$this->assertStringContainsString( 'not exposed via MCP', $result['content'][0]['text'] );
+		$this->assertSame( $before, $this->gw_snapshot( $this->id ) );
 	}
 
 	/**

@@ -2,8 +2,10 @@
 /**
  * Used-Where module — tracks where images are used across the website.
  *
- * Stores usage data as attachment post meta (`_tsmlt_image_usages`) and sets
- * `post_parent` on each attachment for the "Attached Post" column.
+ * Stores usage data as attachment post meta (`_tsmlt_image_usages`). For the
+ * "Attached Post" column it sets `post_parent` only on attachments that have
+ * none, to a post that uses them; an existing parent is never changed or
+ * cleared, and site-wide usages never set one.
  *
  * @package TinySolutions\mlt
  */
@@ -1702,9 +1704,10 @@ class UsedWhereScanner {
 
 			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
 
-			// Set post_parent if not already set. Prefer a 'featured' usage
-			// (the image is the post's thumbnail) over any other usage type,
-			// since featured-image attachment is the strongest signal of ownership.
+			// Set post_parent only if the attachment has none. Prefer a 'featured'
+			// usage (the image is the post's thumbnail) over any other usage
+			// type, since featured-image attachment is the strongest signal of
+			// ownership. Site-wide usages (post 0) never set a parent.
 			$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
 			if ( ! $current_parent ) {
 				$parent_post_id = 0;
@@ -1718,10 +1721,7 @@ class UsedWhereScanner {
 					$parent_post_id = (int) $new_usages[0]['post_id'];
 				}
 				if ( $parent_post_id ) {
-					wp_update_post( [
-						'ID'          => $attachment_id,
-						'post_parent' => $parent_post_id,
-					] );
+					$this->attach_if_unattached( $attachment_id, $parent_post_id );
 				}
 			}
 		}
@@ -2514,7 +2514,8 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Clear all scan results — removes meta from all attachments and resets post_parent.
+	 * Clear all scan results — removes the usage meta from all attachments
+	 * (their post_parent is left as it is).
 	 *
 	 * @return array
 	 */
@@ -2549,13 +2550,14 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Delete _tsmlt_image_usages meta from all attachments and reset post_parent to 0.
+	 * Delete _tsmlt_image_usages meta from all attachments. Their post_parent
+	 * ("Uploaded to") is not touched.
 	 *
-	 * Optimized: uses two bulk queries instead of loading all attachment IDs into
-	 * PHP and looping. The query builder does not support JOINs in UPDATE, so we:
+	 * Optimized: uses bulk queries instead of loading all attachment IDs into
+	 * PHP and looping:
 	 * 1. Fetch the affected attachment IDs in one SELECT.
 	 * 2. Bulk-delete the meta rows in one DELETE.
-	 * 3. If there are affected IDs, bulk-reset post_parent via one UPDATE with whereIn.
+	 * 3. Drop the affected attachments' cached meta.
 	 *
 	 * @return void
 	 */
@@ -2936,20 +2938,15 @@ class UsedWhereScanner {
 			return;
 		}
 
-		// 3. Collect affected attachment IDs and bulk-reset post_parent.
+		// 3. Attachments' parents ("Uploaded to") are left as they are.
 		$affected_ids = array_unique(
 			array_map( fn( $r ) => absint( $r['post_id'] ), $affected_rows )
 		);
 
-		Fns::DB()->update( 'posts', [ 'post_parent' => 0 ] )
-			->whereIn( 'ID', ...$affected_ids )
-			->execute();
-
-		// The rows were changed with direct queries: drop the cached copies,
+		// The rows were deleted with a direct query: drop the cached copies,
 		// or a persistent object cache keeps serving the old records.
 		foreach ( $affected_ids as $affected_id ) {
 			wp_cache_delete( $affected_id, 'post_meta' );
-			clean_post_cache( $affected_id );
 		}
 
 		// Also reset the URL lookup map to avoid stale data.
@@ -3009,14 +3006,33 @@ class UsedWhereScanner {
 
 		update_post_meta( $attachment_id, self::META_KEY, $existing );
 
-		// Set post_parent if not set.
-		$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
-		if ( ! $current_parent ) {
-			wp_update_post( [
+		$this->attach_if_unattached( $attachment_id, $post_id );
+	}
+
+	/**
+	 * Set an attachment's parent to a post that uses it, only when the
+	 * attachment has no parent and the post exists (and is not itself an
+	 * attachment or revision). An existing parent is never changed.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @param int $post_id       Post that uses it.
+	 *
+	 * @return void
+	 */
+	private function attach_if_unattached( int $attachment_id, int $post_id ): void {
+		if ( $post_id < 1 || (int) get_post_field( 'post_parent', $attachment_id ) ) {
+			return;
+		}
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post || in_array( $post->post_type, [ 'attachment', 'revision' ], true ) ) {
+			return;
+		}
+		wp_update_post(
+			[
 				'ID'          => $attachment_id,
 				'post_parent' => $post_id,
-			] );
-		}
+			]
+		);
 	}
 
 	/**

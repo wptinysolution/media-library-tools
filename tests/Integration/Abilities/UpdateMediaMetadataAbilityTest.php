@@ -192,9 +192,10 @@ class UpdateMediaMetadataAbilityTest extends WP_UnitTestCase {
 
 		$meta = $ability->get_meta();
 		$this->assertFalse( $meta['show_in_rest'] );
+		// A write tool: dedicated endpoint only, not the shared default gateway.
 		$this->assertSame(
 			[
-				'public' => true,
+				'public' => false,
 				'type'   => 'tool',
 			],
 			$meta['mcp']

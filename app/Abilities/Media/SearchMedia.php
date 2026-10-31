@@ -118,6 +118,15 @@ class SearchMedia extends Ability {
 	}
 
 	/**
+	 * Offered on the MCP Adapter's default gateway too (read-only).
+	 *
+	 * @return bool
+	 */
+	protected function is_mcp_public(): bool {
+		return true;
+	}
+
+	/**
 	 * @return array
 	 */
 	protected function get_input_schema(): array {
@@ -235,6 +244,12 @@ class SearchMedia extends Ability {
 	 * @return array|WP_Error
 	 */
 	public function execute( $input = null ) {
+		// The callback can be reached without the permission callback.
+		$base = AbilityGuard::check_base_capability();
+		if ( is_wp_error( $base ) ) {
+			return $base;
+		}
+
 		$criteria = $this->sanitize_input( is_array( $input ) ? $input : [] );
 		if ( is_wp_error( $criteria ) ) {
 			return $criteria;

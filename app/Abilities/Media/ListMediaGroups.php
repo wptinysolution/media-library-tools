@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Abs\Ability;
+use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\MediaPresenter;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
@@ -180,6 +181,12 @@ class ListMediaGroups extends Ability {
 	 * @return array|WP_Error
 	 */
 	public function execute( $input = null ) {
+		// The callback can be reached without the permission callback.
+		$base = AbilityGuard::check_base_capability();
+		if ( is_wp_error( $base ) ) {
+			return $base;
+		}
+
 		$input    = is_array( $input ) ? $input : [];
 		$search   = mb_substr( sanitize_text_field( (string) ( $input['search'] ?? '' ) ), 0, self::MAX_SEARCH_LENGTH );
 		$id       = absint( $input['id'] ?? 0 );

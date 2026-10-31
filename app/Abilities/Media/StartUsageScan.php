@@ -30,7 +30,9 @@ use WP_Error;
  *   resumed from where it stopped with the scanner's own recovery, then
  *   reported as "resumed"; the next batch is scheduled only if none is.
  * - Otherwise (never run, complete, cancelled, error) a new scan starts:
- *   the scanner replaces the previous usage records as it goes.
+ *   the scanner replaces the previous usage records as it goes. It keeps
+ *   every attachment's existing parent and sets one only where there is
+ *   none (UsedWhereScanner).
  *
  * Two requests at once cannot both start a scan: a short lock taken with
  * add_option() (an atomic insert) lets one through; the other reports
@@ -98,7 +100,7 @@ class StartUsageScan extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Start the Used Where scan, which records where each media item is used (featured images, content, page builders, custom fields, logo, menus, widgets, options). It runs in the background in small batches; this call only queues it. If a scan is already queued or running, nothing new starts and result is already_running; a stalled scan is resumed (result resumed). A new scan replaces the previous results as it runs, so until it completes tsmlt/get-media-usage reports items without a recorded usage as unknown. Poll tsmlt/get-usage-scan-status until the state is complete, cancelled or error. Media files and attachment data are never changed.', 'media-library-tools' );
+		return __( 'Start the Used Where scan, which records where each media item is used (featured images, content, page builders, custom fields, logo, menus, widgets, options). It runs in the background in small batches; this call only queues it. If a scan is already queued or running, nothing new starts and result is already_running; a stalled scan is resumed (result resumed). A new scan replaces the previous results as it runs, so until it completes tsmlt/get-media-usage reports items without a recorded usage as unknown. Poll tsmlt/get-usage-scan-status until the state is complete, cancelled or error. Media files are never changed and an image\'s existing attached post (Uploaded to) is kept; the scan only sets the attached post of an image that has none, to a post that uses it.', 'media-library-tools' );
 	}
 
 	/**

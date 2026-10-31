@@ -266,9 +266,11 @@ class GetExifFieldsAbilityTest extends WP_UnitTestCase {
 	 * The other free abilities stay public on the default gateway.
 	 */
 	public function test_other_free_abilities_stay_public() {
-		foreach ( [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata' ] as $name ) {
+		foreach ( [ 'tsmlt/search-media', 'tsmlt/get-media-details' ] as $name ) {
 			$this->assertTrue( wp_get_ability( $name )->get_meta()['mcp']['public'], $name );
 		}
+		// The write tool is offered on the dedicated endpoint only.
+		$this->assertFalse( wp_get_ability( 'tsmlt/update-media-metadata' )->get_meta()['mcp']['public'] );
 	}
 
 	// ---------------------------------------------------------------------

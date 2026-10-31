@@ -353,10 +353,6 @@ class McpDefaultGatewayBoundaryTest extends WP_UnitTestCase {
 				'per_page' => 5,
 			],
 			'tsmlt/get-media-details'     => [ 'id' => '{id}' ],
-			'tsmlt/update-media-metadata' => [
-				'id'      => '{id}',
-				'caption' => 'Changed by a Pro-style probe',
-			],
 		];
 	}
 
@@ -405,11 +401,6 @@ class McpDefaultGatewayBoundaryTest extends WP_UnitTestCase {
 		$this->assertIsArray( $result['structuredContent']['data'] );
 		$this->assertSame( [ self::GATEWAY_ABILITY, $name ], $this->spied_names( 'invoked' ) );
 		$this->assertSame( [ self::GATEWAY_ABILITY, $name ], $this->spied_names( 'executed' ) );
-
-		if ( 'tsmlt/update-media-metadata' === $name ) {
-			$this->assertSame( [ 'caption' ], $result['structuredContent']['data']['updated_fields'] );
-			$this->assertSame( 'Changed by a Pro-style probe', $this->snapshot()['post_excerpt'] );
-		}
 	}
 
 	/**
@@ -500,7 +491,6 @@ class McpDefaultGatewayBoundaryTest extends WP_UnitTestCase {
 		return [
 			'tsmlt-search-media'          => [ 'tsmlt-search-media', 'tsmlt/search-media' ],
 			'tsmlt-get-media-details'     => [ 'tsmlt-get-media-details', 'tsmlt/get-media-details' ],
-			'tsmlt-update-media-metadata' => [ 'tsmlt-update-media-metadata', 'tsmlt/update-media-metadata' ],
 		];
 	}
 }

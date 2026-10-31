@@ -81,13 +81,14 @@ abstract class Ability {
 
 	/**
 	 * Whether the MCP Adapter's default gateway may offer this ability
-	 * (`meta.mcp.public`). The dedicated Media Library Tools server lists every
-	 * free ability regardless.
+	 * (`meta.mcp.public`). Off unless an ability opts in: the gateway is
+	 * shared with every other plugin's public abilities. The dedicated Media
+	 * Library Tools server lists every free ability regardless.
 	 *
 	 * @return bool
 	 */
 	protected function is_mcp_public(): bool {
-		return true;
+		return false;
 	}
 
 	/**

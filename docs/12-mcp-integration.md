@@ -34,7 +34,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-get-media-usage` | Reports where up to 50 attachments are used — featured images, content and excerpts, page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options) — from the records of the Used Where scan. Says whether each one is used, not used, or unknown. Dedicated endpoint only | No |
 | `tsmlt-start-usage-scan` | Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Dedicated endpoint only | Yes (usage scan results only) |
 | `tsmlt-get-usage-scan-status` | Returns the Used Where scan state, progress, and whether it is stalled or failed. Never starts or resumes a scan. Dedicated endpoint only | No |
-| `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field | Yes |
+| `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field. Dedicated endpoint only | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
 | `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
@@ -51,7 +51,7 @@ The two Pro tools are offered only when Media Library Tools Pro is active with a
 
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
-**What is never changed**: the file's name or URL, the attached post, or any other attachment. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+**What is never changed**: the file's name or URL, an attachment's existing attached post ("Uploaded to"), or any other attachment. Only a usage scan (`tsmlt-start-usage-scan`) sets the attached post, and only for an image that has none. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
 
 ## Search by file name
 
@@ -97,7 +97,7 @@ Neither tool takes input (send `{}` or nothing); any argument is refused.
 | `already_running` | A scan is already queued or running (or another request is starting one); nothing changed |
 | `resumed` | A scan was stalled — no batch for over 3 minutes, usually because WP-Cron is not running — and is set to continue where it stopped |
 
-Unlike the admin button, it never restarts a scan in progress. It never changes media files, attachments or settings; the scan itself records usage and sets each image's attached post, as it does from the admin page.
+Unlike the admin button, it never restarts a scan in progress. It never changes media files or settings. The scan replaces the usage records and keeps every image's existing attached post ("Uploaded to"); for an image that has none, it sets one to a post that uses it (preferring a post where it is the featured image). Site-wide usages (logo, menus, widgets, options) never set an attached post. The admin page's **Re-scan** and **Clear Results** behave the same way. Known issue: the smaller rescan of a single post that runs after the post is saved can still give an unattached image an attached post when the image only appears in that post's rendered page (for example the site logo in the header); a full scan corrects the usage records but keeps that attached post (Roadmap item 2).
 
 `tsmlt-get-usage-scan-status` only reads. Output: `scan_id` (changes whenever a new scan starts — from these tools or the admin page; empty before the first scan), `state` (`idle` — never started or cleared; `queued`; `running`; `complete`; `cancelled`; `error`), `complete`, `processed` and `total` (posts), `percent` (0–100: `processed / total`, at most 99 until complete, 0 while the total is unknown), `started_at`, `last_tick_at` and `last_update` (site time, `Y-m-d H:i:s`, or empty), `ever_started` (false when no scan has run since the results were cleared), `stalled`, `has_error`, and `coverage` — `verified` (true when the scan could check every usage source) and `gaps`: `woocommerce_inactive` (WooCommerce was inactive during the scan, so product category images and rendered product pages could not be checked), `woocommerce_types_not_scanned` (products or variations were left out by the `tsmlt_used_where_scannable_post_types` filter), or `not_recorded` (no scan yet, or one made by an earlier plugin version — start a new scan). Without verified coverage, media without a recorded usage is unknown, never unused. The error message itself is shown only under **Used Where**.
 
@@ -298,7 +298,7 @@ The dedicated endpoint limits exposure to the Media Library Tools abilities:
 - It requires an administrator account (`manage_options`) before a session can even start, so other roles cannot list the tools.
 - Each tool still runs every check described under [Access Control](#access-control).
 
-**Important**: The dedicated endpoint does not change or disable the default server. Media Library Tools' own tools also remain available there, alongside other plugins' abilities. If nothing on your site needs the default server, a developer can disable it with the MCP Adapter's `mcp_adapter_create_default_server` filter — check with any other integration you use first.
+**Important**: The dedicated endpoint does not change or disable the default server. Media Library Tools' read-only search and details tools also remain available there, alongside other plugins' abilities. If nothing on your site needs the default server, a developer can disable it with the MCP Adapter's `mcp_adapter_create_default_server` filter — check with any other integration you use first.
 
 ## Step-by-Step Setup
 
@@ -376,7 +376,7 @@ Ask your assistant something like:
 
 ## Using the MCP Adapter Default Server (optional)
 
-The search, details and update tools can also be reached through the MCP Adapter's default server (`tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-start-usage-scan`, `tsmlt-get-usage-scan-status`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
+The read-only search and details tools can also be reached through the MCP Adapter's default server (`tsmlt-update-media-metadata`, `tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-start-usage-scan`, `tsmlt-get-usage-scan-status`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
 
 ```
 https://your-site.com/wp-json/mcp/mcp-adapter-default-server
@@ -394,7 +394,7 @@ The default server does not list the Media Library Tools tools directly. It offe
 | `mcp-adapter-get-ability-info` | Shows one ability's description and input fields |
 | `mcp-adapter-execute-ability` | Runs an ability by name with the given parameters |
 
-On the default server the abilities are named with a slash — `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata` — and are run through `mcp-adapter-execute-ability`:
+On the default server the abilities are named with a slash — `tsmlt/search-media`, `tsmlt/get-media-details` — and are run through `mcp-adapter-execute-ability`:
 
 ```json
 {
@@ -460,7 +460,7 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` and the permission to read (or, for updates, edit) the specific attachment — on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` — inside the tool itself, so code that calls a tool's callback directly is refused too — and the permission to read (or, for updates, edit) the specific attachment, on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
 
 ## Important Notes
 
@@ -499,8 +499,10 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
 - MCP tools do not depend on the plugin's AI provider settings or on OpenAI, Claude or Gemini API keys (no ability uses them today). A future feature may use server-side AI only with a stated reason.
 - Prefer client-side AI workflows on top of secure, deterministic WordPress operations (for example, the client writes alt text and saves it with `tsmlt-update-media-metadata`).
 - Free and Pro stay separate: Pro-only code lives in the Pro plugin, which adds its tools through the `tsmlt_mcp_server_abilities` filter.
-- Every tool requires `manage_options` (checked again inside each call), plus the per-attachment or per-Group capability it needs; input schemas are closed; output is allowlisted. Tools never return secrets, absolute server paths or raw internal metadata.
-- New tools are offered on the dedicated endpoint only unless there is a reason to list them on the default gateway.
+- Every tool requires `manage_options`, checked by the permission callback and again at the start of the tool's own `execute()` (direct calls are refused too), plus the per-attachment or per-Group capability it needs; input schemas are closed; output is allowlisted. Tools never return secrets, absolute server paths or raw internal metadata.
+- The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
+- A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
+- Usage scans never clear or replace an attachment's existing parent ("Uploaded to").
 - CSV import/export is not an MCP feature (CSV export exists in the Free admin, CSV import in the Pro admin); it stays planned below.
 
 ### Usage classification (shared rules)
@@ -517,14 +519,22 @@ The Unknown tab explains each image with these reasons, the evidence found in th
 
 - **Automated tests** (WordPress test suite with the MCP Adapter): Free integration and unit suites and the Pro suite cover every tool, the classification rules, scan lifecycle, coverage gaps and the Unknown diagnostics.
 - **Disposable local site** (2026-10-28, WordPress 7.1.3, WooCommerce 11.2.1, MCP Adapter 0.7.0, on 127.0.0.1): a fresh scan started through `tsmlt-start-usage-scan` completed with verified coverage; the admin endpoint and `tsmlt-get-media-usage` agreed for every attachment after the scan, for an upload after it, for stored legacy / running / stalled / cancelled / failed states, with WooCommerce inactive (product images stayed Used; the product category image became Unknown with its term as evidence) and with products filtered out. The page rendered the counts, the Unknown tab and its details. This run found one diagnostics defect (post types left out by a filter were not listed as not scanned), fixed in `UsageClassifier`.
+- **Security tests** (2026-10-28): direct `execute()` calls by users without `manage_options` are refused for every Free tool, partial-update rollback and reporting, default gateway opt-in, and attachment parents kept through admin and MCP scans.
+- **Disposable local site, security remediation** (2026-10-28, a new site and database; WordPress 7.1.3, WooCommerce 11.2.1, MCP Adapter 0.7.0, PHP 8.3, on 127.0.0.1; deleted afterwards), through the real MCP transport and admin-ajax with cookie login and nonce:
+  - Exposure: the dedicated endpoint lists all 11 tools; the default gateway discovers and describes only `tsmlt/search-media` and `tsmlt/get-media-details`; running `tsmlt/update-media-metadata` or `tsmlt/start-usage-scan` there is refused as not exposed and changes nothing.
+  - Denial: the dedicated endpoint answers 401 to anonymous requests and 403 to an editor and a subscriber; on the gateway, editors and subscribers get "Permission denied" for search and details; direct `execute()` calls of the six tools are refused for anonymous, subscriber and editor users.
+  - Scans: start, a repeated start (`already_running`, same `scan_id`), progress to complete with verified coverage, admin Re-scan, Clear Results, the legacy batch scan and a second MCP scan all kept existing attached posts (an image uploaded to post A and used on post B stayed on A); unattached images used by a post or product got that post; the logo stayed unattached. The admin Used / Unused / Unknown tabs and `tsmlt-get-media-usage` agreed for all 9 attachments after every scan (5 used, 4 unused, 0 unknown).
+  - Found: the single-post rescan after a save set the logo's attached post to a post whose rendered page shows the logo (see the known issue above). Not fixed yet.
+  - Metadata: success; the alt text failing after other fields saved (fields restored); the restore failing (`tsmlt_partial_update`, message names the fields left changed); a concurrent title edit kept; alt-only failure. MCP clients receive these as a tool error with the message text (HTTP 200); `applied_fields` / `failed_fields` are available only to code that calls the ability directly.
+  - Without the MCP Adapter: the abilities still register, the MCP route is absent, and the admin pages and AJAX work.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
 ### Roadmap
 
 | # | Task | Status | Scope and completion criteria |
 |---|---|---|---|
-| 1 | Fresh scan and end-to-end verification | In Progress | Verified on a disposable local site (see above). Remaining: commit the diagnostics fix; optionally repeat a fresh scan on a development site, with permission. |
-| 2 | Security and permission audit | Next | Review authorization, attachment and term capabilities, data exposure in outputs and errors, and the Free/Pro boundary for all 13 tools; record findings and fixes. |
+| 1 | Fresh scan and end-to-end verification | In Progress | Verified on a disposable local site (see above); the diagnostics fix found there is committed. Remaining: a fresh scan on a development site, with permission. |
+| 2 | Security and permission audit | In Progress | Audit (2026-10-28) found no critical or high issues. Fixed, covered by tests and verified on a disposable local site: scans no longer clear or replace attachments' parents (M1); `manage_options` re-checked inside every Free tool's `execute()` (L1); partial metadata updates restored or reported (L2); default gateway exposure is opt-in and `update-media-metadata` moved to the dedicated endpoint only (L3). Remaining: the single-post rescan after a save must not set an attached post from a rendered-page (`permalink`) match only. Not tested on an existing site. |
 | 3 | Bulk media rename | Planned | Safe file renaming with validation, a preview of old and new names, conflict handling and reference updates. Depends on usage data to show what a rename affects. |
 | 4 | AI-assisted metadata generation | Planned | The client's own AI writes titles, alt text, captions and descriptions, saved through existing tools; no WordPress AI provider setup required. Decide what, if anything, needs a new tool. |
 | 5 | Duplicate media management | Planned | Read-only detection and review first (from the duplicate scanner, without its stale-row cleanup on read); any merge or removal needs its own safety design. |

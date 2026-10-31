@@ -269,6 +269,12 @@ class GetExifFields extends Ability {
 	 * @return array|WP_Error
 	 */
 	public function execute( $input = null ) {
+		// The callback can be reached without the permission callback.
+		$base = AbilityGuard::check_base_capability();
+		if ( is_wp_error( $base ) ) {
+			return $base;
+		}
+
 		$id = is_array( $input ) && array_key_exists( 'id', $input ) ? $input['id'] : null;
 
 		// Re-validates the ID and checks existence, type and read_post access.
