@@ -1704,22 +1704,11 @@ class UsedWhereScanner {
 
 			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
 
-			// Set post_parent only if the attachment has none. Prefer a 'featured'
-			// usage (the image is the post's thumbnail) over any other usage
-			// type, since featured-image attachment is the strongest signal of
-			// ownership. Site-wide usages (post 0) never set a parent.
-			$current_parent = (int) get_post_field( 'post_parent', $attachment_id );
-			if ( ! $current_parent ) {
-				$parent_post_id = 0;
-				foreach ( $new_usages as $usage ) {
-					if ( ( $usage['usage_type'] ?? '' ) === 'featured' && ! empty( $usage['post_id'] ) ) {
-						$parent_post_id = (int) $usage['post_id'];
-						break;
-					}
-				}
-				if ( ! $parent_post_id && ! empty( $new_usages[0]['post_id'] ) ) {
-					$parent_post_id = (int) $new_usages[0]['post_id'];
-				}
+			// Set post_parent only if the attachment has none, and only from a
+			// usage that owns it (never a rendered-page match or a site-wide
+			// usage).
+			if ( ! (int) get_post_field( 'post_parent', $attachment_id ) ) {
+				$parent_post_id = self::owning_parent_post_id( $new_usages );
 				if ( $parent_post_id ) {
 					$this->attach_if_unattached( $attachment_id, $parent_post_id );
 				}
@@ -1727,6 +1716,34 @@ class UsedWhereScanner {
 		}
 
 		$this->usages_buffer = [];
+	}
+
+	/**
+	 * The post an attachment's usages say owns it, for its parent: the first
+	 * post where it is the featured image, otherwise the first post with
+	 * another owning usage (OWNING_USAGE_TYPES). Rendered-page matches
+	 * (`permalink`, `rendered`) and site-wide usages (post 0) never count.
+	 *
+	 * @param array $usages Usage records.
+	 *
+	 * @return int Post ID, or 0 when no usage owns the attachment.
+	 */
+	private static function owning_parent_post_id( array $usages ): int {
+		$owner = 0;
+		foreach ( $usages as $usage ) {
+			$post_id = is_array( $usage ) ? absint( $usage['post_id'] ?? 0 ) : 0;
+			$type    = is_array( $usage ) ? (string) ( $usage['usage_type'] ?? '' ) : '';
+			if ( ! $post_id || ! in_array( $type, self::OWNING_USAGE_TYPES, true ) ) {
+				continue;
+			}
+			if ( 'featured' === $type ) {
+				return $post_id;
+			}
+			if ( ! $owner ) {
+				$owner = $post_id;
+			}
+		}
+		return $owner;
 	}
 
 	/**
@@ -3006,7 +3023,10 @@ class UsedWhereScanner {
 
 		update_post_meta( $attachment_id, self::META_KEY, $existing );
 
-		$this->attach_if_unattached( $attachment_id, $post_id );
+		// Only an owning usage (featured, content, ...) may set a parent.
+		if ( in_array( $usage_type, self::OWNING_USAGE_TYPES, true ) ) {
+			$this->attach_if_unattached( $attachment_id, $post_id );
+		}
 	}
 
 	/**
