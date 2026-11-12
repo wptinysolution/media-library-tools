@@ -1,6 +1,6 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data and edit EXIF fields. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data, edit EXIF fields, and export and import media text fields as CSV. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
 
 ## Overview
 
@@ -12,6 +12,7 @@ The integration lets an AI assistant:
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
 - **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
+- **Pro:** export media as CSV, and check and then apply a CSV that updates existing media (see [Pro: CSV export and import](#pro-csv-export-and-import))
 
 The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or move them to the trash, or delete or move Groups;  `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
@@ -40,18 +41,21 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
 | `tsmlt-update-media-group` | Renames one Group; its ID, slug, parent and media stay the same. Dedicated endpoint only | Yes (Group name) |
 
-### Pro (2)
+### Pro (5)
 
 | Tool | What it does | Changes data |
 |---|---|---|
 | `tsmlt-get-exif-caption` | **Pro.** Builds a caption from one image's camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only | No |
 | `tsmlt-update-exif-fields` | **Pro.** Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin's database only. Dedicated endpoint only | Yes (EXIF data, in the JPEG file) |
+| `tsmlt-export-media-csv-bulk` | **Pro.** Returns one page of media (up to 100 rows) as CSV text, in attachment ID order, with the `tsmlt-search-media` filters and a cursor for the next page. Dedicated endpoint only | No |
+| `tsmlt-preview-media-csv-import` | **Pro.** Checks CSV text (up to 256 KB and 50 rows) and shows, row by row, what it would change on existing media; returns a plan to apply. Dedicated endpoint only | No (stores a short-lived plan) |
+| `tsmlt-apply-media-csv-import` | **Pro.** Applies a previewed plan once, with `confirm: true`; rows changed since the preview are skipped. Dedicated endpoint only | Yes (title, alt text, caption, description, attached post, menu order, Groups) |
 
-The two Pro tools are offered only when Media Library Tools Pro is active with a valid licence.
+The five Pro tools are offered only when Media Library Tools Pro is active with a valid licence.
 
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
-**What is never changed**: the file's name or URL, an attachment's existing attached post ("Uploaded to"), or any other attachment. Only a usage scan (`tsmlt-start-usage-scan`) sets the attached post, and only for an image that has none. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+**What is never changed**: the file's name or URL, or any attachment other than the one a tool is given. A usage scan (`tsmlt-start-usage-scan`) never changes an existing attached post ("Uploaded to") and sets one only for an image that has none; the only tool that changes an attached post on request is the Pro CSV import, through its `post_parent` column, after a preview and an explicit confirmation. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
 
 ## Search by file name
 
@@ -267,6 +271,40 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 - XMP metadata is not updated, so applications that prefer XMP may still show earlier values.
 - ShutterSpeedValue and ApertureValue, which some cameras store alongside the exposure time and f-number, are not recalculated.
 - Each request changes one image.
+
+## Pro: CSV export and import
+
+These tools need **Media Library Tools Pro** with an active licence and are offered only on the dedicated endpoint. CSV travels as text inside the tool call and its result: no file is uploaded, downloaded or written.
+
+### Export — `tsmlt-export-media-csv-bulk`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `limit` | integer 1–100, default 50 | Rows per page |
+| `cursor` | string | `next_cursor` from the previous page; it only works with the same filters |
+| `filters` | object | `search`, `filename`, `mime_type`, `missing_alt`, `group_id`, `attached` — the same as `tsmlt-search-media` |
+| `columns` | list | Any of `ID`, `slug`, `url`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`, in the order wanted. Default: all |
+
+Output: `csv` (a header row, then one row per attachment, UTF-8), `columns`, `rows`, `skipped` (matches you may not read; they are left out), `total` (all matches, or `null` with a `filename` filter) and `next_cursor` (`null` on the last page). Rows follow attachment IDs, so pages neither repeat nor skip rows. `post_parent` is 0 when the attached post is not a valid, readable post; `groups` lists Group names, comma-separated.
+
+Text cells that begin with `=`, `+`, `-`, `@`, a tab or a carriage return get a leading apostrophe so a spreadsheet does not run them as formulas. Number columns are not changed. Custom fields, file paths and the attachment metadata are never exported.
+
+### Check an import — `tsmlt-preview-media-csv-import`
+
+Input: `csv` (text: a header row and at most 50 data rows, at most 256 KB) and optional `options`: `match` (`id`, the default, or `id_or_slug`) and `create_groups` (default false). Changes nothing.
+
+- **Columns**: `ID`, `slug`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`. Any other column refuses the whole CSV with a message naming it: `url` (export only), `rename_to` (renaming files is not supported here), `custom_meta:*` (custom fields are not supported), `post_parents_id` (use `post_parent`), and unknown names. To re-import an export, leave out the `url` column.
+- **Matching**: by `ID`, or with `id_or_slug` by `ID` and then `slug`. The slug only identifies a row; it is never changed. A second row for the same attachment is refused.
+- **Values**: empty cells leave a field as it is; a cell with only spaces clears a text field. `post_parent` must be a post an attachment can belong to, or 0 to detach; `menu_order` a whole number. `groups` adds Groups by name (existing Groups are kept); Groups that do not exist are an error unless `create_groups` is true.
+- **Result**: per row `row`, `attachment_id`, `status` (`valid`, `unchanged`, `invalid`, `not_found`, `unauthorized`), `fields`, `changes` (each field's `before` and `after`) and `errors`; plus `summary`. When at least one row is `valid`, `plan_id` and `expires_at` describe a plan that can be applied by you, once, for about 15 minutes.
+
+### Apply an import — `tsmlt-apply-media-csv-import`
+
+Input: `plan_id` and `confirm: true` — nothing else; the changes come from the stored plan. Review the preview with the user before applying.
+
+Each row is checked again just before it is written: the attachment must still exist and be editable, and every field the row changes must still hold the value the preview showed. A row changed by someone else since the preview is skipped as `conflict`, never overwritten. Output: per row `row`, `attachment_id`, `status` (`updated`, `unchanged`, `conflict`, `failed`), `applied_fields` and `errors`, plus `summary`. Rows are applied one by one: a failed row does not stop the others, and fields already saved for a failed row are named. A plan cannot be applied a second time, also when some rows failed; preview again instead.
+
+**Round trips**: an exported CSV is not always re-imported unchanged. A cell the export prefixed with an apostrophe keeps the apostrophe, and line breaks in a caption are turned into spaces (as in the admin importer). The preview shows these changes before anything is applied.
 
 ## Two Endpoints — Use the Dedicated One
 
@@ -489,7 +527,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status` (11). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields` (2). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status` (11). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (5). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky). They must not be reintroduced; no MCP tool trashes or deletes media.
 
@@ -503,7 +541,7 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
 - The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
 - A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
 - Usage scans never clear or replace an attachment's existing parent ("Uploaded to").
-- CSV import/export is not an MCP feature yet. Its design was approved on 2026-11-12: three Pro-only tools on the dedicated endpoint and no Free CSV tool. See [Planned: CSV import and export through MCP (Pro)](#planned-csv-import-and-export-through-mcp-pro); nothing in it is implemented.
+- CSV import/export through MCP is Pro-only: three tools on the dedicated endpoint, and no Free CSV tool. Import updates existing media only, through a preview and a single-use, user-bound plan applied with explicit confirmation. See [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro).
 
 ### Usage classification (shared rules)
 
@@ -528,77 +566,76 @@ The Unknown tab explains each image with these reasons, the evidence found in th
   - Found: the single-post rescan after a save set the logo's attached post to a post whose rendered page shows the logo. Fixed on 2026-10-31 (attached posts now come only from owning usages) and covered by the attached-post tests above; not re-run on a disposable site.
   - Metadata: success; the alt text failing after other fields saved (fields restored); the restore failing (`tsmlt_partial_update`, message names the fields left changed); a concurrent title edit kept; alt-only failure. MCP clients receive these as a tool error with the message text (HTTP 200); `applied_fields` / `failed_fields` are available only to code that calls the ability directly.
   - Without the MCP Adapter: the abilities still register, the MCP route is absent, and the admin pages and AJAX work.
+- **CSV tests** (Pro, 2026-11-12 to 2026-11-13): characterization tests for the admin importer and its AJAX endpoint; regression tests for its hardening; the export, preview and apply tools (limits, cursors, filters, columns, encoding, formula neutralising, unreadable media, headers, matching, duplicates, per-row authorization, parents, Groups, before/after values, no writes in the preview, plan expiry and user binding, confirmation, single use including a request racing an already-claimed plan, conflicts, Group creation and failures, per-row failures); dedicated listing and gateway refusal through the MCP transport. Full Pro suite: 468 tests, 6390 assertions, no skips, on PHP 8.3, 8.4 and 8.5.
+- **Disposable local site, CSV tools** (2026-11-13; a new site and database; WordPress 7.1.3, MCP Adapter 0.7.0, Free 2.5.0, Pro 1.6.2, PHP 8.3, on 127.0.0.1; the Pro licence provided by the test suite's licence stand-in; deleted afterwards), through the real MCP transport: export pagination (3 + 3 + 1 rows, no duplicates, last cursor null), header, filters (MIME type, file name, Group, attached), formula neutralising with numbers kept, special characters, no paths, metadata or custom fields, a tampered cursor and `limit` 101 refused; preview of an export with `url` refused naming the column; preview of an edited CSV (valid, missing Group with and without `create_groups`, missing ID, invalid parent) with exact before/after and no changes made; apply (3 rows updated, checked in the database, untouched fields kept), second apply and `confirm: false` refused; a title edited between preview and apply skipped as conflict while another row was applied; no CSV tool discoverable or runnable on the default gateway; an editor refused at the dedicated endpoint; existing tools (search, details, metadata update, Groups, Pro EXIF caption, gateway search) still working. 33 of 33 checks passed. Found: the round-trip differences described under [Pro: CSV export and import](#pro-csv-export-and-import) (apostrophe kept, caption line breaks) — reported, not changed.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
-### Planned: CSV import and export through MCP (Pro)
+### CSV import and export through MCP (Pro)
 
-**Status: planned, not implemented.** None of the abilities below is registered. The design was approved on 2026-11-12; implementation follows the sequence at the end of this section (Roadmap item 8).
+**Status: implemented** (2026-11-13) in the Pro plugin and verified on a disposable site (see Verification evidence). How to use the tools: [Pro: CSV export and import](#pro-csv-export-and-import).
 
 #### Free/Pro boundary
 
-- **Free** adds no CSV tool. Single items are already covered by `tsmlt-get-media-details`, `tsmlt-update-media-metadata` and `tsmlt-set-media-groups`. The Free media table's **Export CSV** bulk action (selected rows of the current page, built in the browser) stays as it is, including its current availability and Pro gating of the dedicated Export and Import pages.
-- **Pro** owns bulk CSV export and CSV import through MCP. The abilities are registered by the Pro plugin (`ProAbilitiesInit`), the same way as the EXIF tools.
+- **Free** has no CSV tool. Single items are covered by `tsmlt-get-media-details`, `tsmlt-update-media-metadata` and `tsmlt-set-media-groups`. The Free media table's **Export CSV** bulk action (selected rows of the current page, built in the browser) is unchanged, as is the Pro gating of the dedicated Export and Import pages.
+- **Pro** owns bulk CSV export and CSV import through MCP: `ExportMediaCsvBulk`, `PreviewMediaCsvImport` and `ApplyMediaCsvImport`, registered by `ProAbilitiesInit` like the EXIF tools.
 
-#### Planned abilities
+#### Abilities
 
-All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-library-tools/mcp`) and never on the MCP Adapter's default gateway (`meta.mcp.public` false).
+All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-library-tools/mcp`) and never on the MCP Adapter's default gateway (`meta.mcp.public` false, `show_in_rest` false).
 
 | Ability | Purpose | Input | Output |
 |---|---|---|---|
-| `tsmlt/export-media-csv-bulk` | Read-only. Export a page of media as CSV text. | `limit` (1–100, default 50), `cursor` (from the previous call), optional filters (the same as `tsmlt/search-media`), optional `columns` (from the allowlist) | `csv` (header and rows), `rows`, `total`, `next_cursor` (null on the last page) |
-| `tsmlt/preview-media-csv-import` | Read-only dry run. Validate a CSV, resolve each target attachment, check permissions, and show what would change. | `csv` (text, at most 256 KB and 50 data rows), `options`: `match` (`id`, or `id_or_slug`), `create_groups` (default false) | `plan_id`, `expires_at`, per-row results (matched attachment, before/after differences, errors), `summary` |
-| `tsmlt/apply-media-csv-import` | Write. Apply a previewed plan. | `plan_id`, `confirm: true` | Per-row outcome (`updated`, `unchanged`, `conflict`, `failed`, with the fields applied), `summary` |
+| `tsmlt/export-media-csv-bulk` | Read-only. One page of media as CSV text. | `limit` (1–100, default 50), `cursor`, `filters` (the `tsmlt/search-media` filters), `columns` (from the allowlist) | `csv`, `columns`, `rows`, `skipped`, `total` (null with a `filename` filter), `next_cursor` |
+| `tsmlt/preview-media-csv-import` | Changes no media. Validates a CSV and shows per-row changes; stores a plan when some row is valid. | `csv` (at most 256 KB and 50 data rows), `options`: `match` (`id` or `id_or_slug`), `create_groups` (default false) | `plan_id`, `expires_at`, per-row `row`, `attachment_id`, `status`, `fields`, `changes`, `errors`; `summary` |
+| `tsmlt/apply-media-csv-import` | Write. Applies a previewed plan once. | `plan_id`, `confirm: true` | Per-row `row`, `attachment_id`, `status` (`updated`, `unchanged`, `conflict`, `failed`), `applied_fields`, `errors`; `summary` |
 
 #### CSV columns and data exposure
 
-- A fixed allowlist of columns, defined in code:
+- Fixed column allowlists in code:
   - Export: `ID`, `slug`, `url`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups` (comma-separated Group names).
-  - Import: `ID` and `slug` identify the attachment; `title`, `alt_text`, `caption`, `description`, `post_parent` (an existing valid post, or 0 to detach), `menu_order` and `groups` can be written. `url` is not accepted for import.
-- No `custom_meta:*` column is exported or imported through MCP. Unknown columns are reported in the preview, not silently ignored.
-- Output never contains absolute server paths, raw attachment metadata or custom fields. Export rows are built from the same allowlisted data as `tsmlt-get-media-details` (`MediaPresenter`), not from the admin table's rows.
-- CSV is passed as text inside the MCP request and response. No ability accepts a file path or a URL, and none writes a temporary file.
-- Formula injection: exported cells that begin with `=`, `+`, `-` or `@` are neutralised so a spreadsheet does not run them as formulas. The existing admin CSV export does not do this today; changing it is a separate follow-up and is not part of this work.
+  - Import: `ID` and `slug` identify the attachment (the slug is never written); `title`, `alt_text`, `caption`, `description`, `post_parent` (a valid post, or 0 to detach), `menu_order` and `groups` can be written. `url`, `rename_to`, `custom_meta:*`, `post_parents_id` and unknown columns refuse the CSV with a message naming them.
+- No custom fields are exported or imported through MCP. Output never contains absolute server paths, raw attachment metadata or custom fields: export values come from `MediaPresenter` plus the slug, menu order and Group names.
+- CSV is passed as text in the request and response; no ability accepts a file path or a URL, and none writes a temporary file.
+- Formula injection: exported text cells beginning with `=`, `+`, `-`, `@`, a tab or a carriage return get a leading apostrophe; number columns are left as they are. The admin CSV export does not do this; changing it is a separate follow-up.
+- Export pages follow attachment IDs. The cursor holds the last ID, signed (HMAC with the site's salt) and bound to the filters; a page examines at most 1000 matches. Attachments the user may not read are left out and counted in `skipped`.
 
 #### Import: preview, then apply
 
-- Update only: rows update existing attachments. No create-from-URL and no `rename_to` in this version; renaming files stays a separate Pro feature.
-- Groups that do not exist are created only when the preview was made with `create_groups: true`; otherwise the row reports them as an error.
-- `preview-media-csv-import` changes nothing. It validates the CSV, resolves each row's attachment, checks `edit_post` on it, and returns per-row before/after differences and errors. It stores a short-lived plan (about 15 minutes) bound to the current user, holding a fingerprint of the CSV and of each target's values at preview time.
-- `apply-media-csv-import` requires `confirm: true` and a valid, unexpired plan of the same user. It checks the licence, `manage_options` and each attachment's `edit_post` again, and skips any row whose target changed since the preview as a `conflict` instead of overwriting it.
-- The plan is consumed atomically, so a repeated or concurrent apply changes nothing and reports that the plan was already used.
-- Results are reported per row with a summary; partial failures are reported, not hidden. Each row is applied on its own: there is no transaction across rows, so earlier rows stay applied when a later row fails.
+- Update only: no create-from-URL and no `rename_to`; renaming files stays a separate Pro feature. Groups that do not exist are created only when the preview was made with `create_groups: true`.
+- The preview (`ImportPreviewService`) only reads. It parses RFC 4180 CSV (BOM and CRLF accepted, UTF-8 required), checks the header, matches rows (a second row for the same attachment is refused), checks `edit_post` (`unauthorized` otherwise), validates values by the admin importer's rules (`ImportRowService`), and reports per-row before/after values and errors.
+- When at least one row is valid, the operations are stored as a plan (`ImportPlanStore`): a transient named by a random 128-bit ID, for about 15 minutes, bound to the user, holding the validated operations, each target's values at preview time and a hash of the CSV — never the CSV or file paths. A missing, malformed, expired, used or other user's plan is answered the same way.
+- Apply requires `confirm: true`, checks the licence and `manage_options` before touching the plan (a refused request does not use it up), then claims the plan with `add_option()`, an atomic insert, so a repeated or concurrent request cannot apply it again. Each row is then checked again (`ImportApplyService`): the attachment exists and is editable, Group permissions (`assign_terms`, and `edit_terms` plus the plan's `create_groups` for new Groups), and every changed field still holds its preview value — otherwise the row is a `conflict` and is not written. A Group created meanwhile is reused rather than created twice.
+- Results are per row with a summary. Rows are applied one by one, without a transaction across rows; a failed row reports the fields it already saved, and the plan stays used.
 
 #### Limits
 
-- Bulk export: at most 100 rows per call.
-- Import preview: at most 50 data rows and 256 KB of CSV text per call.
-- Limits are enforced by the input schemas and again in code; oversized input is refused before anything is processed.
+- Export: at most 100 rows per call (schema and code).
+- Preview: at most 256 KB of CSV and 50 data rows. The schema limits the characters; the code limits the bytes and the rows.
 
 #### Security and permissions
 
-- Reuse Free's `AbilityGuard` and the established Pro ability pattern (`GetExifCaption`, `UpdateExifFields`).
-- Every ability checks `tsmlt()->has_pro()` and `manage_options` in its permission callback and again in `execute()`.
-- Import checks `edit_post` on each attachment; export includes only attachments the user can read and reports others only as a count.
-- Input schemas are closed (`additionalProperties: false`) and every payload is bounded.
-- No CSV ability is added to the shared default gateway.
+- Free's `AbilityGuard` and the Pro ability pattern; `tsmlt()->has_pro()` and `manage_options` in the permission callback and again in `execute()`, which also validates its input again.
+- Preview and apply check `edit_post` on each attachment; export checks `read_post` on each row.
+- Closed input schemas at every level; bounded payloads; no paths, URLs or uploads accepted.
 
-#### Shared import service and admin importer hardening (Pro)
+#### Admin importer hardening (Pro)
 
-- The row validation and application rules in Pro's `ImportApi::import_attachment_one_by_one()` are extracted into a shared service used by both the existing admin (AJAX) importer and the MCP abilities, so the rules are not duplicated.
-- The extraction keeps the admin importer's behaviour, protected by characterization tests written first.
-- The admin importer is hardened in the same work, each change with its own regression tests:
-  - an `edit_post` check for each attachment, in addition to the current `upload_files` check (defense in depth; today the nonce reaches only administrators);
-  - no writes to protected attachment metadata (such as `_wp_attached_file` or `_wp_attachment_metadata`) through `custom_meta:` columns.
+- The admin importer (`ImportApi::import_attachment_one_by_one()`) now runs on the shared `ImportRowService`, protected by characterization tests, with two hardening changes: an `edit_post` check per row in addition to `upload_files` (a refused row is answered like a missing one), and no writes to WordPress-managed (`_wp_*`) or internal (`_edit_lock`, `_edit_last`, `_thumbnail_id`, `_original_file_url`, `_tsmlt_image_usages`) meta keys through `custom_meta:` columns.
+
+#### Known limitations
+
+- Export and import do not round-trip every value: a cell the export prefixed with an apostrophe keeps it on import, and caption line breaks become spaces (the admin importer's rule). The preview shows these changes. Whether to strip the export's apostrophe on import is an open decision.
+- For a row that adds Groups, Group membership is compared as a whole: any Group added to or removed from that attachment after the preview makes the row a conflict, even when the Groups the row adds are unaffected.
 
 #### Implementation sequence
 
-1. Document and approve the architecture — done (this section).
-2. Add characterization tests for the existing Pro `ImportApi` behaviour.
-3. Extract the shared row validation and application logic, and harden the existing AJAX importer, keeping its behaviour.
-4. Implement and test Pro bulk CSV export (`tsmlt/export-media-csv-bulk`).
-5. Implement and test Pro CSV import preview (`tsmlt/preview-media-csv-import`).
-6. Implement and test Pro CSV import apply (`tsmlt/apply-media-csv-import`).
-7. Verify end to end through MCP on a disposable site, then mark the abilities implemented in this document.
+1. Architecture documented and approved — 2026-11-12.
+2. Characterization tests for the Pro `ImportApi` — done.
+3. Shared row service extracted and the admin importer hardened — done.
+4. `tsmlt/export-media-csv-bulk` — done.
+5. `tsmlt/preview-media-csv-import` — done.
+6. `tsmlt/apply-media-csv-import` — done.
+7. End-to-end verification on a disposable site and this document updated — 2026-11-13.
 
 ### Roadmap
 
@@ -611,6 +648,6 @@ All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-
 | 5 | Duplicate media management | Planned | Read-only detection and review first (from the duplicate scanner, without its stale-row cleanup on read); any merge or removal needs its own safety design. |
 | 6 | Media library audit | Planned | Diagnostics such as missing alt text, missing files or metadata, and other library checks, read-only. |
 | 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
-| 8 | CSV import/export | Planned | Pro-only abilities `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import` on the dedicated endpoint; no Free CSV tool. Design approved 2026-11-12 (step 1 of 7); see [Planned: CSV import and export through MCP (Pro)](#planned-csv-import-and-export-through-mcp-pro). Next: characterization tests for Pro `ImportApi`. Complete when steps 2–7 are done and verified. |
+| 8 | CSV import/export | Implemented | Pro-only `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import` on the dedicated endpoint; no Free CSV tool. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Open: the round-trip decision under Known limitations, and neutralising formulas in the admin CSV export. Not tested on an existing site. |
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
 
