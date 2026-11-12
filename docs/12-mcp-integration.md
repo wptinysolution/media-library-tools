@@ -503,7 +503,7 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
 - The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
 - A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
 - Usage scans never clear or replace an attachment's existing parent ("Uploaded to").
-- CSV import/export is not an MCP feature (CSV export exists in the Free admin, CSV import in the Pro admin); it stays planned below.
+- CSV import/export is not an MCP feature yet. Its design was approved on 2026-11-12: three Pro-only tools on the dedicated endpoint and no Free CSV tool. See [Planned: CSV import and export through MCP (Pro)](#planned-csv-import-and-export-through-mcp-pro); nothing in it is implemented.
 
 ### Usage classification (shared rules)
 
@@ -530,6 +530,76 @@ The Unknown tab explains each image with these reasons, the evidence found in th
   - Without the MCP Adapter: the abilities still register, the MCP route is absent, and the admin pages and AJAX work.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
+### Planned: CSV import and export through MCP (Pro)
+
+**Status: planned, not implemented.** None of the abilities below is registered. The design was approved on 2026-11-12; implementation follows the sequence at the end of this section (Roadmap item 8).
+
+#### Free/Pro boundary
+
+- **Free** adds no CSV tool. Single items are already covered by `tsmlt-get-media-details`, `tsmlt-update-media-metadata` and `tsmlt-set-media-groups`. The Free media table's **Export CSV** bulk action (selected rows of the current page, built in the browser) stays as it is, including its current availability and Pro gating of the dedicated Export and Import pages.
+- **Pro** owns bulk CSV export and CSV import through MCP. The abilities are registered by the Pro plugin (`ProAbilitiesInit`), the same way as the EXIF tools.
+
+#### Planned abilities
+
+All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-library-tools/mcp`) and never on the MCP Adapter's default gateway (`meta.mcp.public` false).
+
+| Ability | Purpose | Input | Output |
+|---|---|---|---|
+| `tsmlt/export-media-csv-bulk` | Read-only. Export a page of media as CSV text. | `limit` (1–100, default 50), `cursor` (from the previous call), optional filters (the same as `tsmlt/search-media`), optional `columns` (from the allowlist) | `csv` (header and rows), `rows`, `total`, `next_cursor` (null on the last page) |
+| `tsmlt/preview-media-csv-import` | Read-only dry run. Validate a CSV, resolve each target attachment, check permissions, and show what would change. | `csv` (text, at most 256 KB and 50 data rows), `options`: `match` (`id`, or `id_or_slug`), `create_groups` (default false) | `plan_id`, `expires_at`, per-row results (matched attachment, before/after differences, errors), `summary` |
+| `tsmlt/apply-media-csv-import` | Write. Apply a previewed plan. | `plan_id`, `confirm: true` | Per-row outcome (`updated`, `unchanged`, `conflict`, `failed`, with the fields applied), `summary` |
+
+#### CSV columns and data exposure
+
+- A fixed allowlist of columns, defined in code:
+  - Export: `ID`, `slug`, `url`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups` (comma-separated Group names).
+  - Import: `ID` and `slug` identify the attachment; `title`, `alt_text`, `caption`, `description`, `post_parent` (an existing valid post, or 0 to detach), `menu_order` and `groups` can be written. `url` is not accepted for import.
+- No `custom_meta:*` column is exported or imported through MCP. Unknown columns are reported in the preview, not silently ignored.
+- Output never contains absolute server paths, raw attachment metadata or custom fields. Export rows are built from the same allowlisted data as `tsmlt-get-media-details` (`MediaPresenter`), not from the admin table's rows.
+- CSV is passed as text inside the MCP request and response. No ability accepts a file path or a URL, and none writes a temporary file.
+- Formula injection: exported cells that begin with `=`, `+`, `-` or `@` are neutralised so a spreadsheet does not run them as formulas. The existing admin CSV export does not do this today; changing it is a separate follow-up and is not part of this work.
+
+#### Import: preview, then apply
+
+- Update only: rows update existing attachments. No create-from-URL and no `rename_to` in this version; renaming files stays a separate Pro feature.
+- Groups that do not exist are created only when the preview was made with `create_groups: true`; otherwise the row reports them as an error.
+- `preview-media-csv-import` changes nothing. It validates the CSV, resolves each row's attachment, checks `edit_post` on it, and returns per-row before/after differences and errors. It stores a short-lived plan (about 15 minutes) bound to the current user, holding a fingerprint of the CSV and of each target's values at preview time.
+- `apply-media-csv-import` requires `confirm: true` and a valid, unexpired plan of the same user. It checks the licence, `manage_options` and each attachment's `edit_post` again, and skips any row whose target changed since the preview as a `conflict` instead of overwriting it.
+- The plan is consumed atomically, so a repeated or concurrent apply changes nothing and reports that the plan was already used.
+- Results are reported per row with a summary; partial failures are reported, not hidden. Each row is applied on its own: there is no transaction across rows, so earlier rows stay applied when a later row fails.
+
+#### Limits
+
+- Bulk export: at most 100 rows per call.
+- Import preview: at most 50 data rows and 256 KB of CSV text per call.
+- Limits are enforced by the input schemas and again in code; oversized input is refused before anything is processed.
+
+#### Security and permissions
+
+- Reuse Free's `AbilityGuard` and the established Pro ability pattern (`GetExifCaption`, `UpdateExifFields`).
+- Every ability checks `tsmlt()->has_pro()` and `manage_options` in its permission callback and again in `execute()`.
+- Import checks `edit_post` on each attachment; export includes only attachments the user can read and reports others only as a count.
+- Input schemas are closed (`additionalProperties: false`) and every payload is bounded.
+- No CSV ability is added to the shared default gateway.
+
+#### Shared import service and admin importer hardening (Pro)
+
+- The row validation and application rules in Pro's `ImportApi::import_attachment_one_by_one()` are extracted into a shared service used by both the existing admin (AJAX) importer and the MCP abilities, so the rules are not duplicated.
+- The extraction keeps the admin importer's behaviour, protected by characterization tests written first.
+- The admin importer is hardened in the same work, each change with its own regression tests:
+  - an `edit_post` check for each attachment, in addition to the current `upload_files` check (defense in depth; today the nonce reaches only administrators);
+  - no writes to protected attachment metadata (such as `_wp_attached_file` or `_wp_attachment_metadata`) through `custom_meta:` columns.
+
+#### Implementation sequence
+
+1. Document and approve the architecture — done (this section).
+2. Add characterization tests for the existing Pro `ImportApi` behaviour.
+3. Extract the shared row validation and application logic, and harden the existing AJAX importer, keeping its behaviour.
+4. Implement and test Pro bulk CSV export (`tsmlt/export-media-csv-bulk`).
+5. Implement and test Pro CSV import preview (`tsmlt/preview-media-csv-import`).
+6. Implement and test Pro CSV import apply (`tsmlt/apply-media-csv-import`).
+7. Verify end to end through MCP on a disposable site, then mark the abilities implemented in this document.
+
 ### Roadmap
 
 | # | Task | Status | Scope and completion criteria |
@@ -541,6 +611,6 @@ The Unknown tab explains each image with these reasons, the evidence found in th
 | 5 | Duplicate media management | Planned | Read-only detection and review first (from the duplicate scanner, without its stale-row cleanup on read); any merge or removal needs its own safety design. |
 | 6 | Media library audit | Planned | Diagnostics such as missing alt text, missing files or metadata, and other library checks, read-only. |
 | 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
-| 8 | CSV import/export | Planned | Field mapping, validation, permissions and safe bulk processing; reuse the existing admin features where possible. |
+| 8 | CSV import/export | Planned | Pro-only abilities `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import` on the dedicated endpoint; no Free CSV tool. Design approved 2026-11-12 (step 1 of 7); see [Planned: CSV import and export through MCP (Pro)](#planned-csv-import-and-export-through-mcp-pro). Next: characterization tests for Pro `ImportApi`. Complete when steps 2–7 are done and verified. |
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
 
