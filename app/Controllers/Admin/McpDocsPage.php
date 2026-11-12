@@ -335,10 +335,25 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Pro. Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin\'s database only. Location, orientation and serial numbers cannot be changed. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
+						<tr>
+							<td><code>tsmlt-export-media-csv-bulk</code></td>
+							<td><?php esc_html_e( 'Pro. Returns one page of media (up to 100 rows) as CSV text: ID, slug, URL, title, alt text, caption, description, attached post, menu order and Groups. Uses the same filters as tsmlt-search-media and returns a cursor for the next page. Text a spreadsheet could run as a formula is protected; custom fields, file paths and attachment metadata are never exported. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-preview-media-csv-import</code></td>
+							<td><?php esc_html_e( 'Pro. Checks CSV text (up to 256 KB and 50 rows) that updates existing media, and shows row by row what would change: title, alt text, caption, description, attached post, menu order and Groups. Changes nothing; when some rows would change, returns a plan you can apply within about 15 minutes. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-apply-media-csv-import</code></td>
+							<td><?php esc_html_e( 'Pro. Applies a plan from tsmlt-preview-media-csv-import once, after you confirm it. Rows changed by someone else since the preview are skipped, never overwritten. Never creates, renames or downloads files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
+						</tr>
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. CSV export and import through MCP are Pro features, not part of the free plugin, and the three CSV tools are offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 
@@ -440,7 +455,7 @@ class McpDocsPage {
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group and usage tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group, usage and Pro CSV tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 

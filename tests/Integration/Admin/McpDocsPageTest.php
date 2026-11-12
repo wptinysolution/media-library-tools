@@ -288,7 +288,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<h1>MCP Docs</h1>', $html );
 		$this->assertStringContainsString( esc_html( rest_url( 'media-library-tools/mcp' ) ), $html );
-		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields' ] as $tool ) {
+		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
 			$this->assertStringContainsString( $tool, $html );
 		}
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
@@ -338,5 +338,37 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			: '<div class="notice notice-warning inline tsmlt-mcp-docs__notice">';
 		$this->assertStringContainsString( $notice, $html, 'A status box is always shown.' );
 		$this->assertLessThan( strpos( $html, '<h2>Requirements</h2>' ), strpos( $html, $notice ), 'The status box is above the documentation.' );
+	}
+
+	/**
+	 * The tools table lists every tool once, in order; only the five Pro
+	 * tools say "Pro.", and the three CSV tools are marked dedicated-endpoint
+	 * only. The page says CSV is Pro-only and not on the default server.
+	 */
+	public function test_tools_table_lists_pro_csv_tools() {
+		$this->login_as( 'administrator' );
+
+		$html = $this->capture( [ McpDocsPage::instance(), 'render' ] );
+		preg_match_all( '#<tr>\s*<td><code>(tsmlt-[a-z-]+)</code></td>\s*<td>(.*?)</td>#s', $html, $rows );
+		$tools = array_combine( $rows[1], $rows[2] );
+
+		$this->assertSame(
+			[ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-get-exif-fields', 'tsmlt-update-media-metadata', 'tsmlt-list-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-set-media-groups', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ],
+			$rows[1],
+			'Every tool once, in order.'
+		);
+
+		$pro = [ 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ];
+		foreach ( $tools as $tool => $description ) {
+			$this->assertSame( in_array( $tool, $pro, true ), 0 === strpos( $description, 'Pro.' ), $tool . ' is marked Pro exactly when it is a Pro tool.' );
+		}
+		foreach ( [ 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
+			$this->assertStringContainsString( 'Dedicated endpoint only.', $tools[ $tool ], $tool );
+		}
+		$this->assertStringContainsString( 'Edits JPEG files', $tools['tsmlt-update-exif-fields'], 'EXIF description kept.' );
+
+		$this->assertStringContainsString( 'CSV export and import through MCP are Pro features, not part of the free plugin', $html );
+		$this->assertStringContainsString( 'the three CSV tools are offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter&#039;s default server.', $html );
+		$this->assertStringContainsString( 'the update, EXIF, EXIF caption, Group, usage and Pro CSV tools are offered only on the dedicated endpoint', $html );
 	}
 }
