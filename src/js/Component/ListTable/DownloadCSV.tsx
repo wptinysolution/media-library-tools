@@ -1,20 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@/js/Utils/store';
 import { parseGroupNames } from '@/js/Component/ExportImport/ExportCSV';
-import Papa from 'papaparse';
-
-const escapeValues = (obj: Record<string, unknown>): Record<string, unknown> => {
-    const escaped: Record<string, unknown> = {};
-    for (const key in obj) {
-        const value = obj[key];
-        if (typeof value === 'object' && value !== null) {
-            escaped[key] = JSON.stringify(value);
-        } else {
-            escaped[key] = value;
-        }
-    }
-    return escaped;
-};
+import { toSafeCsv } from '@/js/Utils/csvSafety';
 
 function DownloadCSV() {
     const { bulkExport, mediaData, bulkSubmitData } = useStore();
@@ -53,10 +40,11 @@ function DownloadCSV() {
                 }
             });
 
-            return escapeValues(filteredRow);
+            return filteredRow;
         });
 
-        const csv = Papa.unparse(updatedData, { quotes: true });
+        // Text a spreadsheet could run as a formula is protected; numbers are kept.
+        const csv = toSafeCsv(updatedData);
         setCsvData(csv);
     };
 
