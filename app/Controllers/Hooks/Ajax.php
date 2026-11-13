@@ -17,6 +17,7 @@ use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
+use TinySolutions\mlt\Modules\UsedWhere\ScanStartLock;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Modules\UsedWhere\UsageClassifier;
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
@@ -541,12 +542,26 @@ class Ajax {
 	public function used_where_scan_start(): void {
 		$this->verify_and_get_params();
 
-		$status = UsedWhereScanner::instance()->start_scheduled_scan();
+		// The start lock shared with the tsmlt/start-usage-scan ability: no
+		// records are wiped while another request is starting a scan.
+		$lock = ScanStartLock::instance()->acquire();
+		if ( false === $lock ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'The scan could not be started. Please try again.', 'media-library-tools' ) ], 500 );
+		}
+		if ( null === $lock ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Another scan is being started right now. Please wait a moment and try again.', 'media-library-tools' ) ], 409 );
+		}
 
-		// Spawn WP-Cron immediately so the first tick fires now instead of
-		// waiting for the next incoming request. Non-blocking — we don't
-		// care about the response, only that wp-cron.php is poked.
-		spawn_cron();
+		try {
+			$status = UsedWhereScanner::instance()->start_scheduled_scan();
+
+			// Spawn WP-Cron immediately so the first tick fires now instead of
+			// waiting for the next incoming request. Non-blocking — we don't
+			// care about the response, only that wp-cron.php is poked.
+			spawn_cron();
+		} finally {
+			ScanStartLock::instance()->release( $lock );
+		}
 
 		$this->send( $status );
 	}
