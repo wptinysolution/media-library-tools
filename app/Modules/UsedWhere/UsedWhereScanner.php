@@ -619,6 +619,12 @@ class UsedWhereScanner {
 	 * Processes in batches to avoid timeouts. Stores results as post meta
 	 * on each attachment and sets post_parent.
 	 *
+	 * Not used by the plugin any more: it runs outside the cron scan's
+	 * lifecycle (no start lock, batch lock, transaction, ownership check or
+	 * completion cleanup). Start scans with start_scheduled_scan().
+	 *
+	 * @deprecated Kept for code that still calls it directly.
+	 *
 	 * @param int $offset Batch offset.
 	 * @param int $batch_size Number of posts per batch.
 	 *

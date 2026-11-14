@@ -513,21 +513,29 @@ class Ajax {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Legacy AJAX-driven batch handler.
+	 * Legacy AJAX-driven batch handler, kept for backwards compatibility.
 	 *
-	 * Kept for backwards compatibility while the cron-driven flow is the
-	 * primary path. New callers should use used_where_scan_start instead.
+	 * It no longer scans posts itself (that bypassed the scan lifecycle:
+	 * records wiped and written without the scan's locks or transactions,
+	 * and the status overwritten). Offset 0 starts a cron-driven scan the
+	 * way the Used Where page's Re-scan does (used_where_scan_start); any
+	 * other offset reports the scan's progress. The response keeps the
+	 * legacy shape. New callers should use used_where_scan_start and
+	 * used_where_get_status.
 	 *
 	 * @return void
 	 */
 	public function used_where_scan_batch(): void {
 		$params = $this->verify_and_get_params();
 		$offset = absint( $params['offset'] ?? 0 );
-		$batch  = absint( $params['batch_size'] ?? 20 );
-		$result = UsedWhereScanner::instance()->scan_batch( $offset, $batch );
-		// Update scan status in options.
-		update_option( 'tsmlt_used_where_scan_status', array_merge( $result, [ 'timestamp' => current_time( 'mysql' ) ] ) );
-		$this->send( $result );
+		$status = 0 === $offset ? $this->start_used_where_scan() : UsedWhereScanner::instance()->get_scan_status();
+		$this->send(
+			[
+				'processed' => (int) ( $status['scanned'] ?? 0 ),
+				'total'     => (int) ( $status['total'] ?? 0 ),
+				'complete'  => ! empty( $status['complete'] ),
+			]
+		);
 	}
 
 	/**
@@ -541,7 +549,16 @@ class Ajax {
 	 */
 	public function used_where_scan_start(): void {
 		$this->verify_and_get_params();
+		$this->send( $this->start_used_where_scan() );
+	}
 
+	/**
+	 * Start a cron-driven full scan under the shared start lock, or end the
+	 * request with an error when it cannot start.
+	 *
+	 * @return array Status snapshot (UsedWhereScanner::get_scan_status()).
+	 */
+	private function start_used_where_scan(): array {
 		// The start lock shared with the tsmlt/start-usage-scan ability: no
 		// records are wiped while another request is starting a scan.
 		$lock = ScanStartLock::instance()->acquire();
@@ -570,7 +587,7 @@ class Ajax {
 			wp_send_json_error( [ 'message' => esc_html( $status->get_error_message() ) ], 500 );
 		}
 
-		$this->send( $status );
+		return $status;
 	}
 
 	/**
