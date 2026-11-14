@@ -21,6 +21,7 @@
  * @package TinySolutions\mlt
  */
 
+use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Modules\UsedWhere\BatchTransaction;
 use TinySolutions\mlt\Modules\UsedWhere\ScanBatchLock;
 use TinySolutions\mlt\Modules\UsedWhere\UsageClassifier;
@@ -137,6 +138,17 @@ class UsedWhereCleanupTest extends WP_UnitTestCase {
 	 * @var int
 	 */
 	private $view_before_write = 0;
+
+	/**
+	 * Usage record changed on the second connection just before every
+	 * conditional write to it (0: none), and how many writes were tried.
+	 *
+	 * @var array
+	 */
+	private $hot = [
+		'meta_id' => 0,
+		'writes'  => 0,
+	];
 
 	/**
 	 * $wpdb->reconnect_retries before the test.
@@ -284,11 +296,26 @@ class UsedWhereCleanupTest extends WP_UnitTestCase {
 			return $query;
 		}
 		$query = $this->act_at( 'claimed', $query );
+		if ( $this->hot['meta_id'] && preg_match( '/^\s*UPDATE\b.*\bWHERE meta_id = ' . $this->hot['meta_id'] . '\b/s', $query ) ) {
+			$this->touch_hot_row();
+		}
 		if ( preg_match( '/^\s*(UPDATE|DELETE)\b/i', $query ) && preg_match( '/\bmeta_id`?\s*=/', $query ) ) {
 			$this->row_writes[ $this->txn ] = ( $this->row_writes[ $this->txn ] ?? 0 ) + 1;
 			return $this->act_at( 'row', $query );
 		}
 		return $query;
+	}
+
+	/**
+	 * Change the hot record on the second connection (another request's
+	 * write landing just before this one).
+	 */
+	private function touch_hot_row() {
+		global $wpdb;
+		++$this->hot['writes'];
+		$value = [ self::usage( $this->posts[0], 'content' ), self::usage( $this->posts[1], 'permalink' ), self::usage( $this->posts[7], 'content' ) ];
+		$value[2]['post_title'] = 'View ' . $this->hot['writes'];
+		$this->link()->query( $wpdb->remove_placeholder_escape( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d", serialize( $value ), $this->hot['meta_id'] ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- The other request's write.
 	}
 
 	/**
@@ -474,6 +501,18 @@ class UsedWhereCleanupTest extends WP_UnitTestCase {
 		global $wpdb;
 		$value = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $image, UsedWhereScanner::META_KEY ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test inspection.
 		return null === $value ? null : maybe_unserialize( $value );
+	}
+
+	/**
+	 * Sorted like kinds().
+	 *
+	 * @param string[] $kinds Kinds.
+	 *
+	 * @return string[]
+	 */
+	private static function sorted( array $kinds ): array {
+		sort( $kinds );
+		return $kinds;
 	}
 
 	/**
@@ -870,8 +909,139 @@ class UsedWhereCleanupTest extends WP_UnitTestCase {
 		self::tick();
 
 		$this->assertTrue( $this->acted['ran'] );
-		$this->assertContains( $this->posts[7] . ':content', self::kinds( $this->images['mixed'] ), 'The page view is kept.' );
+		$this->assertSame( self::sorted( [ $this->posts[0] . ':content', $this->posts[7] . ':content' ] ), self::kinds( $this->images['mixed'] ), 'The page view is kept, and the record reconciled on retry.' );
 		$this->assertSame( 'complete', self::stored_status()['state'] );
+		$states = array_column( $this->writes, 'state' );
+		$this->assertSame( 'complete', end( $states ), wp_json_encode( $this->writes ) );
+		$this->assertSame( [ 'complete' ], array_values( array_unique( array_slice( $states, -1 ) ) ) );
+		$this->assertNotContains( 'complete', array_slice( $states, 0, -1 ), 'Completion only once, at the end.' );
+		$this->assertGreaterThanOrEqual( 5, count( $states ), 'Running mark, reclassify, chunk (completion deferred), retry, completion: ' . wp_json_encode( $this->writes ) );
+	}
+
+	/**
+	 * A page view recorded before the reconcile step reads the record: it
+	 * is reconciled from the new value, page view included.
+	 */
+	public function test_page_view_before_reconcile_is_reconciled() {
+		$this->scan_ready_for_cleanup();
+		$this->plan(
+			1,
+			'begin',
+			'page_view',
+			[
+				'image' => $this->images['mixed'],
+				'post'  => $this->posts[7],
+			]
+		);
+
+		self::tick();
+
+		$this->assertTrue( $this->acted['ran'] );
+		$this->assertSame( self::sorted( [ $this->posts[0] . ':content', $this->posts[7] . ':content' ] ), self::kinds( $this->images['mixed'] ) );
+		$this->assertSame( 'complete', self::stored_status()['state'] );
+	}
+
+	/**
+	 * A page view recorded after the scan completed is kept as recorded.
+	 */
+	public function test_page_view_after_cleanup_is_kept() {
+		$this->scan_ready_for_cleanup();
+		self::tick();
+
+		UsedWhereScanner::instance()->record_frontend_usage( $this->images['owned'], $this->posts[7], 'content' );
+
+		$this->assertSame( self::sorted( [ $this->posts[2] . ':featured', $this->posts[7] . ':content' ] ), self::kinds( $this->images['owned'] ) );
+		$this->assertSame( 'complete', self::stored_status()['state'] );
+	}
+
+	/**
+	 * A record that changes before every write to it: the cleanup tries it
+	 * three times (the step and two retries), never overwrites it, leaves
+	 * it unreconciled but used, and still completes.
+	 */
+	public function test_record_changing_on_every_attempt_does_not_block_completion() {
+		global $wpdb;
+		$this->scan_ready_for_cleanup();
+		$this->hot['meta_id'] = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_id FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s", $this->images['mixed'], UsedWhereScanner::META_KEY ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test inspection.
+
+		self::tick();
+
+		$this->assertSame( 3, $this->hot['writes'], 'One write and two retries.' );
+		$this->assertSame( 'complete', self::stored_status()['state'] );
+		$usages = self::usages( $this->images['mixed'] );
+		$this->assertSame( 'View 3', $usages[2]['post_title'], 'The other request\'s last write is kept.' );
+		$this->assertContains( $this->posts[1] . ':permalink', self::kinds( $this->images['mixed'] ), 'Left unreconciled.' );
+		$after = UsageClassifier::counts( '', UsageClassifier::context() );
+		$this->assertSame( 3, $after['used'] );
+	}
+
+	/**
+	 * A change of letter case only (same length) during a chunk: the
+	 * byte-exact conditional write does not overwrite it (the column's
+	 * collation would treat both as equal); the retry keeps the new case.
+	 */
+	public function test_case_only_change_during_reconcile_is_kept() {
+		global $wpdb;
+		$this->scan_ready_for_cleanup();
+		$upper                  = [ self::usage( $this->posts[0], 'content' ), self::usage( $this->posts[1], 'permalink' ) ];
+		$upper[0]['post_title'] = strtoupper( $upper[0]['post_title'] );
+		$this->plan( 2, 'claimed', 'sql', [ 'sql' => $wpdb->remove_placeholder_escape( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE post_id = %d AND meta_key = %s", serialize( $upper ), $this->images['mixed'], UsedWhereScanner::META_KEY ) ) ] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- The other request's write.
+
+		self::tick();
+
+		$this->assertTrue( $this->acted['ran'] );
+		$usages = self::usages( $this->images['mixed'] );
+		$this->assertCount( 1, $usages, 'Reconciled on retry.' );
+		$this->assertSame( $upper[0]['post_title'], $usages[0]['post_title'], 'The case change is kept.' );
+	}
+
+	/**
+	 * Stall recovery during the cleanup re-arms the scan at its offset and
+	 * leaves the stage and cursor as they are; the next tick resumes there.
+	 */
+	public function test_stall_recovery_resumes_the_cleanup() {
+		global $wpdb;
+		$status                   = $this->scan_ready_for_cleanup( true );
+		$cursor                   = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY meta_id LIMIT 499, 1", UsedWhereScanner::META_KEY ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test inspection.
+		$status['cleanup_stage']  = 'reconcile';
+		$status['cleanup_cursor'] = $cursor;
+		$status['last_tick_at']   = '2000-01-01 00:00:00';
+		update_option( self::STATUS, $status, false );
+		wp_cache_flush();
+
+		UsedWhereScanner::instance()->get_scan_status();
+
+		$this->assertNotFalse( wp_next_scheduled( UsedWhereScanner::SCAN_TICK_HOOK, [ 10 ] ) );
+		$this->assertSame( $status, self::stored_status(), 'Stage and cursor unchanged.' );
+
+		wp_unschedule_hook( UsedWhereScanner::SCAN_TICK_HOOK );
+		self::tick();
+
+		$this->assertSame( 'complete', self::stored_status()['state'] );
+		$this->assertSame( 497, self::extra_unreconciled(), 'Resumed after the cursor (the records before it were not this test\'s to clean).' );
+	}
+
+	/**
+	 * The MCP status during the cleanup: running, not complete, at most 99%;
+	 * complete and 100% only after it.
+	 */
+	public function test_mcp_status_during_and_after_cleanup() {
+		$this->scan_ready_for_cleanup( true );
+		$this->plan( 3, 'begin', 'break' );
+		self::tick();
+		wp_cache_flush();
+		$during = UsageScanStatus::read();
+
+		self::tick();
+		wp_cache_flush();
+		$after = UsageScanStatus::read();
+
+		$this->assertSame( 'running', $during['state'] );
+		$this->assertFalse( $during['complete'] );
+		$this->assertSame( 99, $during['percent'] );
+		$this->assertSame( 'complete', $after['state'] );
+		$this->assertTrue( $after['complete'] );
+		$this->assertSame( 100, $after['percent'] );
 	}
 
 	/**

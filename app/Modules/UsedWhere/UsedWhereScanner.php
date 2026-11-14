@@ -3313,7 +3313,67 @@ class UsedWhereScanner {
 			return 'stopped';
 		}
 
-		return $this->commit_cleanup( (string) $stored, $current, $plan['status'], $plan['rows'] );
+		$conflicts = [];
+		$step      = $this->commit_cleanup( (string) $stored, $current, $plan['status'], $plan['rows'], $conflicts );
+		if ( $conflicts ) {
+			// Records written by another request while this step ran: read and
+			// clean them again. The scan completes at the next step either way.
+			$this->retry_cleanup_rows( $scan_id, $offset, $stage, (int) ( $current['total'] ?? 0 ), $conflicts );
+			return 'more';
+		}
+		return 'busy' === $step ? 'more' : $step;
+	}
+
+	/**
+	 * Clean again the usage records a cleanup step could not write because
+	 * another request changed them meanwhile: each is read again and, when
+	 * it still needs it, written in a claimed transaction like the step's.
+	 * At most two attempts; a record still changing is left as it is (it
+	 * keeps usages, so it stays used: never wrongly unused).
+	 *
+	 * @param string  $scan_id       Scan ID read when the tick started.
+	 * @param int     $offset        This tick's offset.
+	 * @param string  $stage         Stage of the step ('reclassify' or 'reconcile').
+	 * @param int     $total_scanned Posts processed in this scan.
+	 * @param array[] $conflicts     Records not written (cleanup_row()).
+	 *
+	 * @return void
+	 *
+	 * @throws \Throwable An error other than a database error (rolled back).
+	 */
+	private function retry_cleanup_rows( string $scan_id, int $offset, string $stage, int $total_scanned, array $conflicts ): void {
+		$threshold = 'reclassify' === $stage ? self::pervasive_threshold( $total_scanned ) : 0;
+		for ( $attempt = 0; $attempt < 2 && ! empty( $conflicts ); $attempt++ ) {
+			$rows = [];
+			foreach ( $conflicts as $conflict ) {
+				$row = self::usage_row( $conflict['post_id'] );
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+				$new = 'reclassify' === $stage ? self::reclassified_usages( $row['usages'], $threshold ) : self::reconciled_usages( $row['usages'] );
+				if ( null !== $new ) {
+					$rows[] = self::cleanup_row(
+						[
+							'meta_id'    => $row['meta_id'],
+							'post_id'    => $conflict['post_id'],
+							'meta_value' => $row['raw'], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- A row read, not a query.
+						],
+						$new
+					);
+				}
+			}
+
+			$stored  = $this->read_scan_status_row();
+			$current = self::active_scan_status( $stored, $scan_id );
+			if ( empty( $rows ) || null === $current || (int) ( $current['next_offset'] ?? 0 ) !== $offset ) {
+				return;
+			}
+			$conflicts = [];
+			$step      = $this->commit_cleanup( (string) $stored, $current, [], $rows, $conflicts );
+			if ( 'more' !== $step ) {
+				return;
+			}
+		}
 	}
 
 	/**
@@ -3403,21 +3463,26 @@ class UsedWhereScanner {
 	 * and cursor are unchanged; it stays locked until COMMIT, so Cancel,
 	 * Clear Results and Re-scan wait for this step only), then each usage
 	 * record, written only over the value read. A record another request
-	 * changed since the read is left as it is (it keeps its incidental
-	 * usages: never wrongly unused). The stage or cursor moves on only with
-	 * this commit.
+	 * changed since the read is not overwritten: it is reported back, to be
+	 * read and cleaned again (retry_cleanup_rows()). The stage or cursor
+	 * moves on only with this commit.
 	 *
-	 * @param string $stored  Status value read.
-	 * @param array  $current Status read.
-	 * @param array  $changes Status fields to write.
-	 * @param array  $rows    Usage records to write (cleanup_row()).
+	 * @param string $stored    Status value read.
+	 * @param array  $current   Status read.
+	 * @param array  $changes   Status fields to write.
+	 * @param array  $rows      Usage records to write (cleanup_row()).
+	 * @param array  $conflicts Set to the records not written because they
+	 *                          changed since the read. When the step would
+	 *                          complete the scan, it does not: completion is
+	 *                          left to the next step, after a retry.
 	 *
-	 * @return string 'done' (scan complete), 'more' (committed, or the status
-	 *                changed since the read: read it again) or 'stopped'.
+	 * @return string 'done' (committed, scan complete), 'more' (committed),
+	 *                'busy' (the status changed since the read: read it
+	 *                again) or 'stopped'.
 	 *
 	 * @throws \Throwable An error other than a database error (rolled back).
 	 */
-	private function commit_cleanup( string $stored, array $current, array $changes, array $rows ): string {
+	private function commit_cleanup( string $stored, array $current, array $changes, array $rows, array &$conflicts ): string {
 		$transaction       = BatchTransaction::instance();
 		$next              = array_merge( $current, $changes );
 		$next['timestamp'] = current_time( 'mysql' );
@@ -3429,14 +3494,31 @@ class UsedWhereScanner {
 		try {
 			if ( ! $this->claim_status_row( $stored, $value ) ) {
 				$transaction->rollback();
-				return 'more';
+				return 'busy';
 			}
 			foreach ( $rows as $row ) {
-				if ( null === $row['usages'] ) {
-					$transaction->delete_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'] );
-				} else {
-					$transaction->replace_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'], $row['usages'] );
+				$written = null === $row['usages']
+					? $transaction->delete_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'] )
+					: $transaction->replace_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'], $row['usages'] );
+				if ( ! $written ) {
+					$conflicts[] = $row;
 				}
+			}
+			if ( $conflicts && ! empty( $next['complete'] ) ) {
+				// Not complete yet: the records that changed are retried first.
+				// This transaction holds the status row, so the write is ours.
+				$deferred = array_merge(
+					$next,
+					[
+						'state'         => 'running',
+						'complete'      => false,
+						'cleanup_stage' => 'reconcile',
+					]
+				);
+				if ( ! $this->claim_status_row( $value, maybe_serialize( $deferred ) ) ) {
+					BatchTransaction::conflict();
+				}
+				$next = $deferred;
 			}
 			if ( ! $transaction->commit() ) {
 				self::forget_cached_scan_status();
@@ -3445,6 +3527,10 @@ class UsedWhereScanner {
 		} catch ( \Throwable $e ) {
 			$transaction->rollback();
 			self::forget_cached_scan_status();
+			$conflicts = [];
+			if ( BatchTransaction::is_conflict( $e ) ) {
+				return 'busy';
+			}
 			if ( BatchTransaction::is_database_error( $e ) ) {
 				return 'stopped';
 			}

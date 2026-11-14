@@ -40,10 +40,17 @@ use TinySolutions\mlt\Traits\SingletonTrait;
  * the connection that started the transaction; on any other, nothing more
  * is sent and the batch fails.
  *
- * Narrow raw-SQL exceptions, both because the query builder cannot express
- * them: START TRANSACTION, COMMIT and ROLLBACK are sent with $wpdb->query(),
- * and the storage-engine check reads information_schema (the query builder
- * prefixes every table name). Every data read and write uses Fns::DB().
+ * Narrow raw-SQL exceptions, all because the query builder cannot express
+ * them: START TRANSACTION, COMMIT and ROLLBACK are sent with $wpdb->query();
+ * the storage-engine check reads information_schema (the query builder
+ * prefixes every table name); and the conditional meta writes compare the
+ * stored value byte for byte (CAST AS BINARY: the column's collation ignores
+ * case and accents), in prepared statements that find the row by its
+ * primary key. Every other data read and write uses Fns::DB().
+ *
+ * Meta writes keep core's metadata hooks: the short-circuit filters
+ * (`add_`/`update_`/`delete_post_metadata`, whose answer is then final),
+ * the actions before the write, and the actions after it (after COMMIT).
  */
 class BatchTransaction {
 
@@ -312,14 +319,23 @@ class BatchTransaction {
 		if ( $stored === $raw ) {
 			return true;
 		}
+		if ( null !== self::short_circuit( 'update', $post_id, $key, $value ) ) {
+			// A filter stores this meta its own way, as with update_post_meta().
+			return true;
+		}
+		self::before_write( 'update', [ $meta_id ], $post_id, $key, $value, $stored );
 
-		Fns::DB()->update( 'postmeta', [ 'meta_value' => $stored ] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Update data, not a query.
-			->where( 'meta_id', '=', $meta_id )
-			->andWhere( 'meta_key', '=', $key )
-			->andWhere( 'meta_value', '=', $raw )
-			->execute();
+		$updated = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Byte-exact conditional write; the query builder compares by collation.
+			$wpdb->prepare(
+				"UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = CAST(%s AS BINARY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
+				$stored,
+				$meta_id,
+				$key,
+				$raw
+			)
+		);
 		self::check();
-		if ( 1 !== (int) $wpdb->rows_affected ) {
+		if ( 1 !== (int) $updated ) {
 			return false;
 		}
 
@@ -331,6 +347,7 @@ class BatchTransaction {
 				'key'     => $key,
 				'ids'     => [ $meta_id ],
 				'value'   => $value,
+				'stored'  => $stored,
 			]
 		);
 		return true;
@@ -350,13 +367,22 @@ class BatchTransaction {
 	 */
 	public function delete_meta_if( int $meta_id, int $post_id, string $key, string $raw ): bool {
 		global $wpdb;
-		Fns::DB()->delete( 'postmeta' )
-			->where( 'meta_id', '=', $meta_id )
-			->andWhere( 'meta_key', '=', $key )
-			->andWhere( 'meta_value', '=', $raw )
-			->execute();
+		if ( null !== self::short_circuit( 'delete', $post_id, $key, '' ) ) {
+			// A filter stores this meta its own way, as with delete_post_meta().
+			return true;
+		}
+		self::before_write( 'delete', [ $meta_id ], $post_id, $key, '', '' );
+
+		$deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Byte-exact conditional write; the query builder compares by collation.
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->postmeta} WHERE meta_id = %d AND meta_key = %s AND CAST(meta_value AS BINARY) = CAST(%s AS BINARY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
+				$meta_id,
+				$key,
+				$raw
+			)
+		);
 		self::check();
-		if ( 1 !== (int) $wpdb->rows_affected ) {
+		if ( 1 !== (int) $deleted ) {
 			return false;
 		}
 
@@ -396,8 +422,15 @@ class BatchTransaction {
 			->andWhere( 'meta_key', '=', $key )
 			->get();
 		self::check();
+		$ids    = array_map( 'intval', array_column( (array) $rows, 'meta_id' ) );
+		$action = empty( $ids ) ? 'add' : 'update';
+		if ( null !== self::short_circuit( $action, $post_id, $key, $value ) ) {
+			// A filter stores this meta its own way, as with update_post_meta().
+			return;
+		}
+		self::before_write( $action, $ids, $post_id, $key, $value, $stored );
 
-		if ( empty( $rows ) ) {
+		if ( empty( $ids ) ) {
 			Fns::DB()->insert(
 				'postmeta',
 				[
@@ -417,7 +450,6 @@ class BatchTransaction {
 				->andWhere( 'meta_key', '=', $key )
 				->execute();
 			self::check();
-			$ids    = array_map( 'intval', array_column( $rows, 'meta_id' ) );
 			$action = 'updated';
 		}
 
@@ -429,45 +461,7 @@ class BatchTransaction {
 				'key'     => $key,
 				'ids'     => $ids,
 				'value'   => $value,
-			]
-		);
-	}
-
-	/**
-	 * Delete every row of a post meta key, like delete_post_meta().
-	 *
-	 * @param int    $post_id Post ID.
-	 * @param string $key     Meta key.
-	 *
-	 * @return void
-	 *
-	 * @throws \RuntimeException On a database error.
-	 */
-	public function delete_meta( int $post_id, string $key ): void {
-		$rows = Fns::DB()->select( 'meta_id' )
-			->from( 'postmeta' )
-			->where( 'post_id', '=', $post_id )
-			->andWhere( 'meta_key', '=', $key )
-			->get();
-		self::check();
-		if ( empty( $rows ) ) {
-			return;
-		}
-
-		Fns::DB()->delete( 'postmeta' )
-			->where( 'post_id', '=', $post_id )
-			->andWhere( 'meta_key', '=', $key )
-			->execute();
-		self::check();
-
-		$this->record_change(
-			[
-				'type'    => 'meta',
-				'action'  => 'deleted',
-				'post_id' => $post_id,
-				'key'     => $key,
-				'ids'     => array_map( 'intval', array_column( $rows, 'meta_id' ) ),
-				'value'   => '',
+				'stored'  => $stored,
 			]
 		);
 	}
@@ -695,6 +689,52 @@ class BatchTransaction {
 	}
 
 	/**
+	 * Core's short-circuit filter for a post meta write, as add_metadata(),
+	 * update_metadata() and delete_metadata() apply it.
+	 *
+	 * @param string $action 'add', 'update' or 'delete'.
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Value.
+	 *
+	 * @return bool|null Null to write; otherwise the filter's answer (the
+	 *                   filter handled the write).
+	 */
+	private static function short_circuit( string $action, int $post_id, string $key, $value ): ?bool {
+		$check = apply_filters( "{$action}_post_metadata", null, $post_id, $key, $value, 'update' === $action ? '' : false ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta filter.
+		return null === $check ? null : (bool) $check;
+	}
+
+	/**
+	 * The actions core fires just before a post meta write, with core's
+	 * arguments.
+	 *
+	 * @param string $action  'add', 'update' or 'delete'.
+	 * @param int[]  $ids     Meta IDs written (none for 'add').
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Value.
+	 * @param string $stored  Value as stored (serialized).
+	 *
+	 * @return void
+	 */
+	private static function before_write( string $action, array $ids, int $post_id, string $key, $value, string $stored ): void {
+		if ( 'add' === $action ) {
+			do_action( 'add_post_meta', $post_id, $key, $value ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+			return;
+		}
+		if ( 'delete' === $action ) {
+			do_action( 'delete_post_meta', $ids, $post_id, $key, $value ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+			do_action( 'delete_postmeta', $ids ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+			return;
+		}
+		foreach ( $ids as $meta_id ) {
+			do_action( 'update_post_meta', $meta_id, $post_id, $key, $value ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+			do_action( 'update_postmeta', $meta_id, $post_id, $key, $stored ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+		}
+	}
+
+	/**
 	 * Fire the hooks WordPress fires after a committed change.
 	 *
 	 * @param array $change Change.
@@ -703,12 +743,17 @@ class BatchTransaction {
 	 */
 	private static function fire_hooks( array $change ): void {
 		if ( 'meta' === $change['type'] ) {
+			// The actions core fires after the write, with core's arguments.
 			if ( 'deleted' === $change['action'] ) {
 				do_action( 'deleted_post_meta', $change['ids'], $change['post_id'], $change['key'], $change['value'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+				do_action( 'deleted_postmeta', $change['ids'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
 				return;
 			}
 			foreach ( $change['ids'] as $meta_id ) {
 				do_action( "{$change['action']}_post_meta", $meta_id, $change['post_id'], $change['key'], $change['value'] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+				if ( 'updated' === $change['action'] ) {
+					do_action( 'updated_postmeta', $meta_id, $change['post_id'], $change['key'], $change['stored'] ?? '' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's meta hook.
+				}
 			}
 			return;
 		}
