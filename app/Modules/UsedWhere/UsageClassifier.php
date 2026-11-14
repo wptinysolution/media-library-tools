@@ -101,6 +101,95 @@ class UsageClassifier {
 	}
 
 	/**
+	 * Whether two reads of the scan status, taken before and after usage
+	 * records were read, show one and the same completed scan with verified
+	 * coverage; only then can "no usage recorded" mean unused (the rule of
+	 * tsmlt/get-media-usage).
+	 *
+	 * @param array $before From UsageScanStatus::read(), before the records.
+	 * @param array $after  From UsageScanStatus::read(), after them.
+	 *
+	 * @return bool
+	 */
+	public static function verified_between( array $before, array $after ): bool {
+		return $before['complete'] && $after['complete'] && $before['scan_id'] === $after['scan_id'] && $before['started_at'] === $after['started_at']
+			&& $before['coverage']['verified'] && $after['coverage']['verified'];
+	}
+
+	/**
+	 * An attachment's usage, the way tsmlt/get-media-usage reports it: true
+	 * when a usage is recorded, false when none is and the verified scan
+	 * covered the attachment, otherwise null (unknown).
+	 *
+	 * @param WP_Post $attachment Attachment.
+	 * @param bool    $recorded   Whether a usage is recorded (has_recorded_usage()).
+	 * @param bool    $verified   verified_between() for the reads around the records.
+	 * @param array   $status     The status read after the records.
+	 *
+	 * @return bool|null
+	 */
+	public static function usage_state( WP_Post $attachment, bool $recorded, bool $verified, array $status ): ?bool {
+		if ( $recorded ) {
+			return true;
+		}
+		return $verified && self::covered( $attachment, $status ) ? false : null;
+	}
+
+	/**
+	 * Whether a usage record entry counts as a usage: a site-wide one (post
+	 * 0), or one whose post (or WooCommerce order) still exists, readable or
+	 * not. Entries for posts that no longer exist do not count.
+	 *
+	 * @param array      $record   Entry as UsedWhereScanner::get_usage_stats()
+	 *                             lists it (`post_id`, `post_type`).
+	 * @param array|null $existing Post IDs known to exist (keys), to avoid a
+	 *                             query per entry; null to look each one up.
+	 *
+	 * @return bool
+	 */
+	public static function counts_usage( array $record, ?array $existing = null ): bool {
+		$post_id = isset( $record['post_id'] ) && is_numeric( $record['post_id'] ) ? (int) $record['post_id'] : -1;
+		if ( 0 === $post_id ) {
+			return true;
+		}
+		if ( $post_id < 0 ) {
+			return false;
+		}
+		if ( null === $existing ? get_post( $post_id ) instanceof WP_Post : isset( $existing[ $post_id ] ) ) {
+			return true;
+		}
+		// An order kept in WooCommerce's own tables has no post.
+		$type = (string) ( $record['post_type'] ?? '' );
+		return 0 === strpos( $type, 'shop_order' ) && function_exists( 'wc_get_order' ) && (bool) wc_get_order( $post_id );
+	}
+
+	/**
+	 * Whether an attachment's stored usage entries record at least one usage
+	 * (counts_usage()). Entries are read as get_usage_stats() reads them: a
+	 * malformed entry is skipped, a missing post ID means site-wide.
+	 *
+	 * @param mixed      $usages   Stored usage entries.
+	 * @param array|null $existing Post IDs known to exist (keys), or null.
+	 *
+	 * @return bool
+	 */
+	public static function has_recorded_usage( $usages, ?array $existing = null ): bool {
+		foreach ( is_array( $usages ) ? $usages : [] as $usage ) {
+			if ( ! is_array( $usage ) ) {
+				continue;
+			}
+			$record = [
+				'post_id'   => $usage['post_id'] ?? 0,
+				'post_type' => $usage['post_type'] ?? '',
+			];
+			if ( self::counts_usage( $record, $existing ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * WP_Query arguments for a tab, or null when the tab is empty by
 	 * definition (no verified scan, so nothing can be unused).
 	 *

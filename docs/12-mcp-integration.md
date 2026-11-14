@@ -1,6 +1,6 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data, edit EXIF fields, and export and import media text fields as CSV. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, find duplicate files, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data, edit EXIF fields, and export and import media text fields as CSV. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
 
 ## Overview
 
@@ -25,7 +25,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 ## Available Tools
 
-### Free (11)
+### Free (12)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -40,6 +40,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
 | `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
 | `tsmlt-update-media-group` | Renames one Group; its ID, slug, parent and media stay the same. Dedicated endpoint only | Yes (Group name) |
+| `tsmlt-find-duplicate-media` | Lists groups of identical media files, largest first, from the last duplicate scan (Duplicates page), with each file's size and, per attachment, its details, parent post and usage from the Used Where scan. Never starts a scan, merges or deletes. Dedicated endpoint only | No |
 
 ### Pro (5)
 
@@ -160,6 +161,32 @@ Used: 190   Unused: 110   Unknown: 0
 ```
 
 Every call is bounded (at most 50 IDs, 50 search results); there is no single call that audits the whole library.
+
+## Duplicate media — `tsmlt-find-duplicate-media`
+
+Lists groups of identical files found by the duplicate scan under **Media Library Tools > Duplicates**, one page at a time. It reads that scan's results and never starts, cancels or repeats it; start the scan on the Duplicates page.
+
+Input (both optional; anything else is refused):
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `page` | integer 1–10000 | 1 | Page of groups |
+| `per_page` | integer 1–20 | 10 | Groups per page |
+
+Output:
+
+- `scan` — the duplicate scan: `state` (`idle`, `running`, `done`, `cancelled`), `processed` and `total` attachments, `started_at` and `updated_at` (ISO 8601, UTC, or empty), and `complete` (true only when `done`).
+- `page`, `per_page`, `has_more` (whether there is a next page).
+- `groups`, largest first (then in a fixed order, so pages are stable while the duplicate scan data does not change): `file_size` (bytes, as scanned), `item_count` (attachments in the group: the ones you can read plus `hidden`), `hidden` (attachments you cannot read, never listed), `truncated` (true when you can read more than 20), and `items` — at most 20 per group, oldest first, each with the same fields as `tsmlt-search-media` (ID, title, alt text, caption, MIME type, URL, upload date), plus `parent_id` (the parent post, or `null` when there is none or you cannot read it) and `usage`: `used`, `unused` or `unknown`, by the same rules as `tsmlt-get-media-usage` (`unused` only after a complete, verified Used Where scan that covered the file).
+
+What to keep in mind:
+
+- Results reflect the last duplicate scan. While it runs, or after it was cancelled, they are provisional (`scan.complete` is false); files added or changed since it ran are not covered.
+- Pages are numbered, not linked: if the scan data changes between two page requests (a scan running, attachments deleted or trashed), groups can move between pages, so one may be missed or listed twice. Read all pages while the scan is complete and the library is quiet for a consistent list.
+- Two files are duplicates when their bytes are identical: for a large image, the scaled file WordPress keeps. Re-encoded, resized or converted copies are not detected.
+- Usage comes from the Used Where scan, not from the duplicate scan.
+- Attachments deleted or moved to the trash since the scan are left out, and so are repeated rows of one attachment; the tool does not clean up those stale rows (the Duplicates page does when it loads its results).
+- The tool is read-only: no file paths, file hashes or raw metadata are returned, and nothing is merged, deleted or changed (merging duplicates is a Pro feature of the Duplicates page, not an MCP tool).
 
 ## Working with Groups
 
@@ -527,7 +554,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status` (11). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (5). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/find-duplicate-media` (12). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (5). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky). They must not be reintroduced; no MCP tool trashes or deletes media.
 
@@ -649,7 +676,7 @@ All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-
 | 2 | Security and permission audit | Implemented | Audit (2026-10-28) found no critical or high issues. Fixed, covered by tests and verified on a disposable local site: scans no longer clear or replace attachments' parents (M1); `manage_options` re-checked inside every Free tool's `execute()` (L1); partial metadata updates restored or reported (L2); default gateway exposure is opt-in and `update-media-metadata` moved to the dedicated endpoint only (L3). The M1 follow-up found on the disposable site (an attached post set from a rendered-page match during the rescan after a save) is fixed and covered by automated tests (2026-10-31), not re-run on a site. Not tested on an existing site. |
 | 3 | Bulk media rename | Planned | Safe file renaming with validation, a preview of old and new names, conflict handling and reference updates. Depends on usage data to show what a rename affects. |
 | 4 | AI-assisted metadata generation | Planned | The client's own AI writes titles, alt text, captions and descriptions, saved through existing tools; no WordPress AI provider setup required. Decide what, if anything, needs a new tool. |
-| 5 | Duplicate media management | Planned | Read-only detection and review first (from the duplicate scanner, without its stale-row cleanup on read); any merge or removal needs its own safety design. |
+| 5 | Duplicate media management | Implemented (read-only detection) | `tsmlt/find-duplicate-media` (Free, dedicated endpoint only) lists duplicate groups from the duplicate scan's results without its stale-row cleanup on read: groups count distinct attachments still in the library, pages are ordered deterministically, and usage follows `tsmlt/get-media-usage`; see [Duplicate media](#duplicate-media--tsmlt-find-duplicate-media). Covered by integration tests. Any merge or removal through MCP needs its own safety design and is not planned. Not tested on an existing site. |
 | 6 | Media library audit | Planned | Diagnostics such as missing alt text, missing files or metadata, and other library checks, read-only. |
 | 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
 | 8 | CSV import/export | Implemented | Pro-only `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import` on the dedicated endpoint; no Free CSV tool. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Round trips fixed in Pro (2026-11-13; remaining exceptions under Known limitations). Open: neutralising formulas in the admin CSV export. Not tested on an existing site. |

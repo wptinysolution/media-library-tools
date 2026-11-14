@@ -362,14 +362,11 @@ class GetMediaUsage extends Ability {
 		// when the same scan was complete before and after.
 		$after = UsageScanStatus::read();
 		// Also unknown when the scan could not check every usage source (for
-		// example WooCommerce was inactive): see UsageScanStatus coverage.
-		$verified = $before['complete'] && $after['complete'] && $before['scan_id'] === $after['scan_id'] && $before['started_at'] === $after['started_at']
-			&& $before['coverage']['verified'] && $after['coverage']['verified'];
+		// example WooCommerce was inactive): see UsageScanStatus coverage. An
+		// attachment uploaded after the scan started was not covered by it.
+		$verified = UsageClassifier::verified_between( $before, $after );
 		foreach ( $items as $index => $item ) {
-			if ( 0 === $item['total_usage'] ) {
-				// An attachment uploaded after the scan started was not covered by it.
-				$items[ $index ]['used'] = $verified && UsageClassifier::covered( $attachments[ $index ], $after ) ? false : null;
-			}
+			$items[ $index ]['used'] = UsageClassifier::usage_state( $attachments[ $index ], $item['total_usage'] > 0, $verified, $after );
 		}
 
 		return [
@@ -447,7 +444,12 @@ class GetMediaUsage extends Ability {
 	 * @return array|false|null
 	 */
 	private function usage( array $record ) {
-		$post_id    = isset( $record['post_id'] ) && is_numeric( $record['post_id'] ) ? (int) $record['post_id'] : -1;
+		// Whether it counts at all is UsageClassifier's rule, shared with
+		// tsmlt/find-duplicate-media.
+		if ( ! UsageClassifier::counts_usage( $record ) ) {
+			return null;
+		}
+		$post_id    = (int) $record['post_id'];
 		$usage_type = $this->usage_type( $record['usage_type'] ?? '' );
 
 		if ( 0 === $post_id ) {
@@ -460,19 +462,12 @@ class GetMediaUsage extends Ability {
 				'sitewide'    => true,
 			];
 		}
-		if ( $post_id < 0 ) {
-			return null;
-		}
 
 		$post = get_post( $post_id );
 		if ( ! $post instanceof WP_Post ) {
 			// An order kept in WooCommerce's own tables has no post to check
 			// read access against: count it, never list it.
-			$type = (string) ( $record['post_type'] ?? '' );
-			if ( 0 === strpos( $type, 'shop_order' ) && function_exists( 'wc_get_order' ) && wc_get_order( $post_id ) ) {
-				return false;
-			}
-			return null;
+			return false;
 		}
 
 		// read_post needs a registered post type; anything else stays hidden.

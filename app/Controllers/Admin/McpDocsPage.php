@@ -326,6 +326,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-find-duplicate-media</code></td>
+							<td><?php esc_html_e( 'Lists groups of identical media files, largest first, from the last duplicate scan (Duplicates page), with each file\'s size and, per attachment, its details, parent post and usage from the Used Where scan. Never starts a scan, merges or deletes. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

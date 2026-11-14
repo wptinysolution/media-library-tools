@@ -427,6 +427,83 @@ class DuplicateScanner {
 	}
 
 	/**
+	 * One page of duplicate groups, read-only (nothing is purged or written):
+	 * files with the same hash shared by at least two distinct attachments
+	 * that are still in the media library (`inherit` attachments; rows of
+	 * deleted or trashed ones, and repeated rows of one attachment, are left
+	 * out). Largest groups first, then by hash, so pages are stable.
+	 *
+	 * @param int $page     Page, from 1.
+	 * @param int $per_page Groups per page.
+	 *
+	 * @return array[]|null Up to $per_page + 1 groups (`file_hash`,
+	 *                      `file_size`), the extra one telling there is a
+	 *                      next page; null on a database error.
+	 */
+	public function find_duplicate_groups( int $page, int $per_page ): ?array {
+		global $wpdb;
+		try {
+			$rows = Fns::DB()->select( 'd.file_hash' )
+				->max( 'd.file_size', 'file_size' )
+				->from( 'tsmlt_duplicate_file d' )
+				->innerJoin( 'posts p', 'p.ID', 'd.attachment_id' )
+				->where( 'p.post_type', '=', 'attachment' )
+				->andWhere( 'p.post_status', '=', 'inherit' )
+				->groupBy( 'd.file_hash' )
+				// Constant SQL: the query builder has no HAVING or aggregate ORDER BY.
+				->raw( 'HAVING COUNT(DISTINCT d.attachment_id) > 1 ORDER BY COUNT(DISTINCT d.attachment_id) DESC, d.file_hash ASC' )
+				->limit( $per_page + 1 )
+				->offset( ( max( 1, $page ) - 1 ) * $per_page )
+				->get();
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+		return '' === (string) $wpdb->last_error && is_array( $rows ) ? $rows : null;
+	}
+
+	/**
+	 * The attachments of duplicate groups, read-only: distinct attachment IDs
+	 * per hash, in ID order, for attachments still in the media library.
+	 *
+	 * @param string[] $hashes Group hashes (find_duplicate_groups()).
+	 *
+	 * @return array<string, int[]>|null IDs by hash; null on a database error.
+	 */
+	public function find_duplicate_members( array $hashes ): ?array {
+		global $wpdb;
+		if ( empty( $hashes ) ) {
+			return [];
+		}
+		try {
+			$rows = Fns::DB()->select( 'd.file_hash', 'd.attachment_id' )
+				->distinct()
+				->from( 'tsmlt_duplicate_file d' )
+				->innerJoin( 'posts p', 'p.ID', 'd.attachment_id' )
+				->where( 'p.post_type', '=', 'attachment' )
+				->andWhere( 'p.post_status', '=', 'inherit' )
+				->andIn( 'd.file_hash', ...array_values( $hashes ) )
+				->orderBy(
+					[
+						'd.file_hash'     => 'ASC',
+						'd.attachment_id' => 'ASC',
+					]
+				)
+				->get();
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+		if ( '' !== (string) $wpdb->last_error || ! is_array( $rows ) ) {
+			return null;
+		}
+
+		$members = [];
+		foreach ( $rows as $row ) {
+			$members[ (string) $row['file_hash'] ][] = (int) $row['attachment_id'];
+		}
+		return $members;
+	}
+
+	/**
 	 * Start a fresh background scan. Snapshots the current total, marks the
 	 * run as running, and schedules the first tick.
 	 *
