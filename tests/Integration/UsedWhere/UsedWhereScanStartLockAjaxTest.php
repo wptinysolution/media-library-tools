@@ -74,6 +74,7 @@ class UsedWhereScanStartLockAjaxTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function tear_down() {
 		remove_filter( 'query', [ $this, 'interfere' ] );
+		remove_filter( 'query', [ $this, 'report_myisam_postmeta' ] );
 		remove_filter( 'pre_http_request', [ $this, 'block_http' ] );
 		remove_filter( 'tsmlt_scan_permalink_enabled_default', '__return_false' );
 		remove_action( 'add_option_' . UsageScanStatus::OPTION, [ $this, 'call_mcp_during_start' ] );
@@ -279,6 +280,57 @@ class UsedWhereScanStartLockAjaxTest extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( get_option( UsageScanStatus::OPTION ), 'No scan started.' );
 		$this->assertSame( 0, self::ticks() );
 		$this->assertSame( $held, self::stored_lock() );
+	}
+
+	/**
+	 * Answer the storage-engine lookup with a MyISAM postmeta table.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string
+	 */
+	public function report_myisam_postmeta( $query ) {
+		global $wpdb;
+		if ( false === strpos( $query, 'information_schema.TABLES' ) ) {
+			return $query;
+		}
+		return $wpdb->prepare(
+			'SELECT %s AS table_name, %s AS engine UNION ALL SELECT %s, %s UNION ALL SELECT %s, %s',
+			$wpdb->options,
+			'InnoDB',
+			$wpdb->postmeta,
+			'MyISAM',
+			$wpdb->posts,
+			'InnoDB'
+		);
+	}
+
+	/**
+	 * On a database that cannot run scans safely, the nonce and capability
+	 * checks still come first (refused requests learn nothing about the
+	 * database); an administrator is told why the scan did not start, and
+	 * nothing is started, wiped or left locked.
+	 */
+	public function test_unsupported_database_is_reported_only_after_the_checks() {
+		add_filter( 'query', [ $this, 'report_myisam_postmeta' ] );
+
+		$bad_nonce = $this->rescan( false );
+		$this->assertSame( '-1', $bad_nonce['raw'] );
+
+		$admin = get_current_user_id();
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$editor = $this->rescan()['response'];
+		$this->assertFalse( $editor['success'] );
+		$this->assertSame( 'Unauthorized.', $editor['data']['message'] );
+
+		wp_set_current_user( $admin );
+		$refused = $this->rescan()['response'];
+		$this->assertFalse( $refused['success'] );
+		$this->assertStringContainsString( 'InnoDB', $refused['data']['message'] );
+
+		$this->assertNull( self::stored_lock() );
+		$this->assertFalse( get_option( UsageScanStatus::OPTION ) );
+		$this->assertSame( 0, self::ticks() );
 	}
 
 	/**

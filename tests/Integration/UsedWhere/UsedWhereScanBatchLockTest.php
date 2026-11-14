@@ -228,10 +228,15 @@ class UsedWhereScanBatchLockTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A batch that ran normally releases its lock.
+	 * A batch and a cleanup tick that ran normally release their lock.
 	 */
 	public function test_batch_releases_its_lock() {
 		self::active_scan( 0 );
+
+		UsedWhereScanner::instance()->run_tick_batch( 0 );
+
+		$this->assertNull( self::stored_lock() );
+		$this->assertSame( 'running', get_option( self::STATUS )['state'], 'No post: the cleanup is next.' );
 
 		UsedWhereScanner::instance()->run_tick_batch( 0 );
 

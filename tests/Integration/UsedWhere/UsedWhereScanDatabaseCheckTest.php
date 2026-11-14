@@ -10,6 +10,7 @@
  * @package TinySolutions\mlt
  */
 
+use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\Media\StartUsageScan;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
@@ -231,6 +232,33 @@ class UsedWhereScanDatabaseCheckTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( StartUsageScan::ERROR_START_FAILED, $result->get_error_code() );
 		$this->assertStringContainsString( 'InnoDB', $result->get_error_message() );
+		$this->assert_nothing_changed();
+	}
+
+	/**
+	 * A user without manage_options is refused before the database is
+	 * checked, through the ability and by a direct call to its execute
+	 * callback; neither error reveals anything about the database.
+	 */
+	public function test_unauthorized_callers_learn_nothing() {
+		global $wpdb;
+		if ( ! function_exists( 'wp_get_ability' ) || ! wp_get_ability( 'tsmlt/start-usage-scan' ) ) {
+			$this->markTestSkipped( 'The Abilities API is not available.' );
+		}
+		$this->engines = self::engines_with( $wpdb->postmeta, 'MyISAM' );
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+
+		$via_ability = wp_get_ability( 'tsmlt/start-usage-scan' )->execute();
+		$direct      = StartUsageScan::instance()->execute();
+
+		$this->assertWPError( $via_ability );
+		$this->assertSame( 'ability_invalid_permissions', $via_ability->get_error_code() );
+		$this->assertWPError( $direct );
+		$this->assertSame( AbilityGuard::ERROR_FORBIDDEN, $direct->get_error_code() );
+		foreach ( [ $via_ability, $direct ] as $error ) {
+			$this->assertStringNotContainsString( 'InnoDB', $error->get_error_message() );
+			$this->assertStringNotContainsString( $wpdb->postmeta, $error->get_error_message() );
+		}
 		$this->assert_nothing_changed();
 	}
 

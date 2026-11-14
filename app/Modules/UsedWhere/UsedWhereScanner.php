@@ -1715,14 +1715,29 @@ class UsedWhereScanner {
 		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
 			$new_usages = array_values( $entries );
 
-			// Merge with any existing meta from previous batches. Skipped on
-			// the first batch because clear_all_usage_meta() just wiped the
-			// keyspace — the read would always come back empty.
-			if ( ! $is_first_batch ) {
-				$new_usages = self::merge_usages( get_post_meta( $attachment_id, self::META_KEY, true ), $new_usages );
+			// Merge with any existing meta from previous batches, written
+			// only over the value merged with (read again on a conflict).
+			// Skipped on the first batch because clear_all_usage_meta() just
+			// wiped the keyspace — the read would always come back empty.
+			if ( $is_first_batch ) {
+				update_post_meta( $attachment_id, self::META_KEY, $new_usages );
+			} else {
+				$merged = null;
+				for ( $attempt = 0; $attempt < 3 && null === $merged; $attempt++ ) {
+					$row = self::usage_row( $attachment_id );
+					if ( false === $row ) {
+						break;
+					}
+					$candidate = self::merge_usages( $row ? $row['usages'] : '', $new_usages );
+					if ( self::write_usage_row( $attachment_id, $row, $candidate ) ) {
+						$merged = $candidate;
+					}
+				}
+				if ( null === $merged ) {
+					continue;
+				}
+				$new_usages = $merged;
 			}
-
-			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
 
 			// Set post_parent only if the attachment has none, and only from a
 			// usage that owns it (never a rendered-page match or a site-wide
@@ -1739,25 +1754,85 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * An attachment's usage record as stored, read from the database (not the
+	 * cache), for a write made only over it (write_usage_row()).
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return array|null|false `meta_id`, `raw` (stored value) and `usages`;
+	 *                          null when there is none; false on a database
+	 *                          error.
+	 */
+	private static function usage_row( int $attachment_id ) {
+		try {
+			$row = BatchTransaction::instance()->get_meta_row( $attachment_id, self::META_KEY );
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+		if ( null === $row ) {
+			return null;
+		}
+		$usages        = maybe_unserialize( $row['raw'] );
+		$row['usages'] = is_array( $usages ) ? $usages : [];
+		return $row;
+	}
+
+	/**
+	 * Write an attachment's usage record only over the record read
+	 * (usage_row()), so a write made by another request since — a scan
+	 * batch, its cleanup, a post save, a page view — is never overwritten.
+	 * An empty list deletes the record. Caches and meta hooks are handled at
+	 * once.
+	 *
+	 * @param int        $attachment_id Attachment ID.
+	 * @param array|null $row           Record read, or null when there was none.
+	 * @param array      $usages        New usages.
+	 *
+	 * @return bool Whether the record now holds them (false: it changed since
+	 *              the read, or the database failed; read it again).
+	 */
+	private static function write_usage_row( int $attachment_id, ?array $row, array $usages ): bool {
+		$transaction = BatchTransaction::instance();
+		try {
+			if ( null === $row ) {
+				return empty( $usages ) || false !== add_post_meta( $attachment_id, self::META_KEY, $usages, true );
+			}
+			if ( empty( $usages ) ) {
+				return $transaction->delete_meta_if( $row['meta_id'], $attachment_id, self::META_KEY, $row['raw'] );
+			}
+			return $transaction->replace_meta_if( $row['meta_id'], $attachment_id, self::META_KEY, $row['raw'], $usages );
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+	}
+
+	/**
 	 * Save the usages buffer in the open batch transaction: usage records,
 	 * then the parent of each unattached attachment (the same rules as
-	 * flush_usages_buffer()).
+	 * flush_usages_buffer()). A merged record is written only over the value
+	 * it was merged with; a record another request changed meanwhile fails
+	 * the transaction as a conflict, to be read again.
 	 *
 	 * @param bool $is_first_batch Whether this is the first batch (no merge:
 	 *                             the start cleared all usage records).
 	 *
 	 * @return void
 	 *
-	 * @throws \RuntimeException On a database error.
+	 * @throws \RuntimeException On a database error or a conflict.
 	 */
 	private function persist_usages_buffer( bool $is_first_batch ): void {
 		$transaction = BatchTransaction::instance();
 		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
 			$new_usages = array_values( $entries );
-			if ( ! $is_first_batch ) {
-				$new_usages = self::merge_usages( $transaction->get_meta( $attachment_id, self::META_KEY ), $new_usages );
+			$row        = $is_first_batch ? null : $transaction->get_meta_row( $attachment_id, self::META_KEY );
+			if ( null === $row ) {
+				$transaction->put_meta( $attachment_id, self::META_KEY, $new_usages );
+			} else {
+				$new_usages = self::merge_usages( maybe_unserialize( $row['raw'] ), $new_usages );
+				if ( ! $transaction->replace_meta_if( $row['meta_id'], $attachment_id, self::META_KEY, $row['raw'], $new_usages ) ) {
+					BatchTransaction::conflict();
+				}
 			}
-			$transaction->put_meta( $attachment_id, self::META_KEY, $new_usages );
 
 			if ( ! (int) get_post_field( 'post_parent', $attachment_id ) ) {
 				$parent_post_id = self::owning_parent_post_id( $new_usages );
@@ -2173,6 +2248,10 @@ class UsedWhereScanner {
 	 * WordPress stores arrays via `update_post_meta()` as PHP serialized strings.
 	 * The post_id inside looks like: `s:7:"post_id";i:123;`
 	 *
+	 * Each record is written only over the value read, so a scan batch, its
+	 * cleanup or a page view writing it meanwhile is not overwritten (read
+	 * again, three attempts).
+	 *
 	 * @param int $post_id Post ID to remove.
 	 *
 	 * @return void
@@ -2184,31 +2263,37 @@ class UsedWhereScanner {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$affected_rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
+				"SELECT meta_id, post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
 				self::META_KEY,
 				'%' . $wpdb->esc_like( '"post_id";i:' . $post_id . ';' ) . '%'
 			),
 			ARRAY_A
 		);
 
-		foreach ( ( $affected_rows ?: [] ) as $row ) {
-			$att_id   = absint( $row['post_id'] );
-			$existing = maybe_unserialize( $row['meta_value'] );
-			if ( ! is_array( $existing ) ) {
-				continue;
-			}
+		foreach ( ( $affected_rows ?: [] ) as $found ) {
+			$att_id = absint( $found['post_id'] );
+			$usages = maybe_unserialize( $found['meta_value'] );
+			$row    = [
+				'meta_id' => (int) $found['meta_id'],
+				'raw'     => (string) $found['meta_value'],
+				'usages'  => is_array( $usages ) ? $usages : [],
+			];
 
-			$filtered = array_filter(
-				$existing,
-				fn( $item ) => (int) ( $item['post_id'] ?? 0 ) !== $post_id
-			);
-
-			if ( count( $filtered ) !== count( $existing ) ) {
-				if ( empty( $filtered ) ) {
-					delete_post_meta( $att_id, self::META_KEY );
-				} else {
-					update_post_meta( $att_id, self::META_KEY, array_values( $filtered ) );
+			for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+				if ( ! is_array( $row ) ) {
+					break;
 				}
+				$filtered = array_filter(
+					$row['usages'],
+					fn( $item ) => (int) ( $item['post_id'] ?? 0 ) !== $post_id
+				);
+				if ( count( $filtered ) === count( $row['usages'] ) ) {
+					break;
+				}
+				if ( self::write_usage_row( $att_id, $row, array_values( $filtered ) ) ) {
+					break;
+				}
+				$row = self::usage_row( $att_id );
 			}
 		}
 	}
@@ -2245,6 +2330,30 @@ class UsedWhereScanner {
 	 * scan window.
 	 */
 	const SCAN_TICK_DELAY = 20;
+
+	/**
+	 * Completion cleanup stages, run in this order after the last posts are
+	 * processed while the scan stays running (status field `cleanup_stage`).
+	 *
+	 * @var string[]
+	 */
+	const CLEANUP_STAGES = [ 'reclassify', 'reconcile' ];
+
+	/**
+	 * Usage records read, and reconciled in one transaction, per cleanup
+	 * chunk. It bounds how long a chunk holds row locks.
+	 *
+	 * @var int
+	 */
+	const CLEANUP_CHUNK = 500;
+
+	/**
+	 * Seconds a tick spends on cleanup chunks before leaving the rest to the
+	 * next tick.
+	 *
+	 * @var int
+	 */
+	const CLEANUP_TICK_SECONDS = 10;
 
 	/**
 	 * Whether deep permalink-fetch scanning is enabled.
@@ -2572,6 +2681,19 @@ class UsedWhereScanner {
 				return;
 			}
 
+			// Every post processed: run the completion cleanup, in claimed
+			// steps, then schedule the rest if time ran out.
+			$current = self::active_scan_status( $this->read_scan_status_row(), $scan_id );
+			if ( null === $current ) {
+				return;
+			}
+			if ( in_array( (string) ( $current['cleanup_stage'] ?? '' ), self::CLEANUP_STAGES, true ) ) {
+				if ( 'more' === $this->run_cleanup( $scan_id, $offset ) ) {
+					$this->schedule_tick( $offset );
+				}
+				return;
+			}
+
 			$this->defer_writes = true;
 			$result             = $this->process_batch( $offset, $this->tick_batch_size(), 0 === $offset, $scan_id );
 
@@ -2593,36 +2715,29 @@ class UsedWhereScanner {
 				$coverage['coverage_gaps'] = array_values( array_unique( array_merge( $stored, $this->coverage_gaps() ) ) );
 			}
 
-			$saved = $this->persist_batch(
+			// After the last posts the scan stays running: the completion
+			// cleanup (run_cleanup()) starts at the next tick, at this offset.
+			$cleanup = $complete ? [
+				'cleanup_stage'  => 'reclassify',
+				'cleanup_cursor' => 0,
+			] : [];
+			$saved   = $this->persist_batch(
 				$scan_id,
 				$offset,
-				$coverage + [
+				$coverage + $cleanup + [
 					'processed'   => $next_offset,
 					'total'       => $total,
 					'next_offset' => $next_offset,
-					'state'       => $complete ? 'complete' : 'running',
-					'complete'    => $complete,
+					'state'       => 'running',
+					'complete'    => false,
 				]
 			);
 
-			// The next batch is scheduled only by the batch whose results were
+			// The next tick is scheduled only by the batch whose results were
 			// committed: not after a Cancel, Clear Results or Re-scan, not by
 			// a duplicate batch, nor when saving failed.
-			if ( $saved && ! $complete ) {
-				// Schedule the next tick. Small delay lets WP-Cron interleave
-				// other work and prevents tight-loop pile-ups on busy sites.
-				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $next_offset ] );
-
-				// Self-perpetuate: trigger WP-Cron immediately instead of
-				// waiting for the next incoming visitor. Without this, scans
-				// stall on quiet sites between ticks. spawn_cron() does a
-				// non-blocking loopback POST to wp-cron.php with a 0.01s
-				// timeout — cheap, and silent on hosts that block loopback
-				// (we'd just fall back to visitor-triggered cron, no worse
-				// than before).
-				if ( function_exists( 'spawn_cron' ) ) {
-					spawn_cron();
-				}
+			if ( $saved ) {
+				$this->schedule_tick( $next_offset );
 			}
 		} catch ( \Throwable $e ) {
 			$this->claim_scan_status(
@@ -2646,6 +2761,29 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * Schedule the scan's next tick and poke WP-Cron.
+	 *
+	 * @param int $offset Offset of the next tick.
+	 *
+	 * @return void
+	 */
+	private function schedule_tick( int $offset ): void {
+		// Small delay lets WP-Cron interleave other work and prevents
+		// tight-loop pile-ups on busy sites.
+		wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $offset ] );
+
+		// Self-perpetuate: trigger WP-Cron immediately instead of waiting for
+		// the next incoming visitor. Without this, scans stall on quiet sites
+		// between ticks. spawn_cron() does a non-blocking loopback POST to
+		// wp-cron.php with a 0.01s timeout — cheap, and silent on hosts that
+		// block loopback (we'd just fall back to visitor-triggered cron, no
+		// worse than before).
+		if ( function_exists( 'spawn_cron' ) ) {
+			spawn_cron();
+		}
+	}
+
+	/**
 	 * Save a batch in one transaction, only while it owns the scan.
 	 *
 	 * The transaction's first statement is the status write: an UPDATE that
@@ -2654,10 +2792,11 @@ class UsedWhereScanner {
 	 * so a Cancel, Clear Results or Re-scan, which all write that row, waits
 	 * for the batch to save everything or nothing, and of two batches for
 	 * the same offset only one can save. The usage records, attachment
-	 * parents, permalink fingerprints, option-scan cache and, on the last
-	 * batch, the completion cleanup follow. Any database error rolls it all
-	 * back. When another field of the same scan was written meanwhile, the
-	 * claim is tried again (three attempts).
+	 * parents, permalink fingerprints and option-scan cache follow (the
+	 * completion cleanup runs afterwards, in chunks: run_cleanup()). Any
+	 * database error rolls it all back. When another field of the same scan,
+	 * or a usage record being merged, was written meanwhile, it is all read
+	 * and tried again (three attempts).
 	 *
 	 * @param string $scan_id Scan ID read when the batch started.
 	 * @param int    $offset  This batch's offset.
@@ -2668,7 +2807,6 @@ class UsedWhereScanner {
 	 * @throws \Throwable An error other than a database error (rolled back).
 	 */
 	private function persist_batch( string $scan_id, int $offset, array $changes ): bool {
-		$option      = 'tsmlt_used_where_scan_status';
 		$transaction = BatchTransaction::instance();
 
 		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
@@ -2699,26 +2837,6 @@ class UsedWhereScanner {
 					$transaction->set_transient( self::OPTION_SCAN_CACHE_KEY, $this->pending_option_cache, DAY_IN_SECONDS );
 				}
 
-				// Final-batch reconciliation pass. Removes incidental
-				// `permalink` / `rendered` usages on posts that don't actually
-				// own the image — these come from related-products widgets,
-				// schema markup, lazy-load placeholders, sidebar widgets, etc.
-				// Runs once when the last batch finishes; cheap because it
-				// touches only attachments that have an owning + incidental mix.
-				if ( ! empty( $changes['complete'] ) ) {
-					// Threshold heuristic FIRST: any image that appears via
-					// permalink / rendered on a large share of scanned posts —
-					// and has no owning or already-known sitewide signal — is
-					// almost certainly chrome stored in a custom plugin/theme
-					// option (header logo, footer banner, theme builder
-					// template image, ACF options field, etc.). Tag it as
-					// site-wide (`option_settings`) so reconcile_incidental_usages()
-					// below drops every per-post permalink/rendered entry via its
-					// existing `$has_sitewide` branch.
-					$this->reclassify_pervasive_as_sitewide( (int) $changes['total'] );
-					$this->reconcile_incidental_usages();
-				}
-
 				if ( ! $transaction->commit() ) {
 					self::forget_cached_scan_status();
 					return false;
@@ -2726,19 +2844,37 @@ class UsedWhereScanner {
 			} catch ( \Throwable $e ) {
 				$transaction->rollback();
 				self::forget_cached_scan_status();
+				if ( BatchTransaction::is_conflict( $e ) ) {
+					// A usage record changed since it was read: read again.
+					continue;
+				}
 				if ( BatchTransaction::is_database_error( $e ) ) {
 					return false;
 				}
 				throw $e;
 			}
 
-			self::forget_cached_scan_status();
-			do_action( "update_option_{$option}", $current, $next, $option ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Core's option hook.
-			do_action( 'updated_option', $option, $current, $next ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's option hook.
+			self::status_written( $current, $next );
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * After a committed status write: drop the cached status and fire the
+	 * option's update actions, as update_option() does.
+	 *
+	 * @param array $before Previous status.
+	 * @param array $after  New status.
+	 *
+	 * @return void
+	 */
+	private static function status_written( array $before, array $after ): void {
+		$option = 'tsmlt_used_where_scan_status';
+		self::forget_cached_scan_status();
+		do_action( "update_option_{$option}", $before, $after, $option ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Core's option hook.
+		do_action( 'updated_option', $option, $before, $after ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's option hook.
 	}
 
 	/**
@@ -3004,7 +3140,7 @@ class UsedWhereScanner {
 	/**
 	 * Early per-batch reclassification — drop chrome image hits BEFORE flush.
 	 *
-	 * Companion to `reclassify_pervasive_as_sitewide()` which runs once at
+	 * Companion to `reclassified_usages()` (the cleanup's `reclassify` step), which runs once at
 	 * the very end of the scan against persisted DB rows. This version
 	 * runs after EVERY first batch against the in-memory `usages_buffer`
 	 * so chrome images that the option scanner missed are caught
@@ -3120,43 +3256,263 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * Threshold heuristic — reclassify images that render on a large share
-	 * of the site as site-wide.
+	 * Run completion cleanup steps until the cleanup is done, stops, or this
+	 * tick's time (CLEANUP_TICK_SECONDS) is up.
 	 *
-	 * Catches the common false-positive pattern where a single image lives
-	 * in a custom plugin/theme option (header logo, footer banner, theme
-	 * builder template image, ACF options field, mega-menu icon, etc.) and
-	 * therefore appears in the rendered HTML of every page — but is NOT
-	 * registered with any of the well-known WordPress site-wide locations
-	 * (`site_logo`, `custom_logo`, `header_image`, customizer background,
-	 * widgets, nav menus, term meta). Without this pass, every post that
-	 * was scanned would falsely list itself as a "user" of the image.
+	 * The cleanup runs after the last posts were processed, while the scan
+	 * stays running: first `reclassify` (one step), then `reconcile` (one
+	 * step per CLEANUP_CHUNK usage records, after the `cleanup_cursor`
+	 * meta_id). Each step reads what it changes outside any transaction, then
+	 * commits it in one short transaction (commit_cleanup()) that also moves
+	 * the stage or cursor on; the last step marks the scan complete. A step
+	 * interrupted anywhere leaves the stage and cursor where the last commit
+	 * put them, so the next tick repeats only that step.
 	 *
-	 * Algorithm — for each attachment:
-	 *   1. Skip if it already has any owning usage (featured / content /
-	 *      gallery / builder / meta) — the structural signal is trusted and
-	 *      the existing reconcile pass handles the cleanup.
-	 *   2. Skip if it already has any site-wide usage (post_id=0) — handled
-	 *      by the existing reconcile pass.
-	 *   3. Count distinct `post_id`s that appear in `permalink` / `rendered`
-	 *      entries.
-	 *   4. If that count is ≥ N% of total scanned posts AND ≥ a small
-	 *      absolute floor (avoids triggering on tiny sites where one shared
-	 *      image looks pervasive), record a synthetic site-wide entry with
-	 *      `usage_type = option_settings`. The subsequent
-	 *      `reconcile_incidental_usages()` call strips every per-post
-	 *      permalink/rendered entry via its existing `$has_sitewide` branch.
+	 * @param string $scan_id Scan ID read when the tick started.
+	 * @param int    $offset  This tick's offset (the scan's total).
+	 *
+	 * @return string 'more' (time ran out), 'done' or 'stopped'.
+	 *
+	 * @throws \Throwable An error other than a database error (rolled back).
+	 */
+	private function run_cleanup( string $scan_id, int $offset ): string {
+		$deadline = microtime( true ) + self::CLEANUP_TICK_SECONDS;
+		do {
+			$step = $this->cleanup_step( $scan_id, $offset );
+		} while ( 'more' === $step && microtime( true ) < $deadline );
+		return $step;
+	}
+
+	/**
+	 * Run the cleanup's next step, while the scan is still this tick's.
+	 *
+	 * @param string $scan_id Scan ID read when the tick started.
+	 * @param int    $offset  This tick's offset.
+	 *
+	 * @return string 'more', 'done' or 'stopped' (not this scan's any more,
+	 *                or the database failed).
+	 *
+	 * @throws \Throwable An error other than a database error (rolled back).
+	 */
+	private function cleanup_step( string $scan_id, int $offset ): string {
+		$stored  = $this->read_scan_status_row();
+		$current = self::active_scan_status( $stored, $scan_id );
+		if ( null === $current || (int) ( $current['next_offset'] ?? 0 ) !== $offset ) {
+			return 'stopped';
+		}
+
+		$stage = (string) ( $current['cleanup_stage'] ?? '' );
+		if ( 'reclassify' === $stage ) {
+			$plan = $this->plan_reclassify( (int) ( $current['total'] ?? 0 ) );
+		} elseif ( 'reconcile' === $stage ) {
+			$plan = $this->plan_reconcile( (int) ( $current['cleanup_cursor'] ?? 0 ) );
+		} else {
+			return 'stopped';
+		}
+		if ( null === $plan ) {
+			return 'stopped';
+		}
+
+		return $this->commit_cleanup( (string) $stored, $current, $plan['status'], $plan['rows'] );
+	}
+
+	/**
+	 * Plan the `reclassify` step: every usage record of an image pervasive
+	 * enough to be site-wide (reclassified_usages()), read in pages. Only
+	 * those records are kept and written.
+	 *
+	 * @param int $total_scanned Posts processed in this scan.
+	 *
+	 * @return array|null `rows` to write and `status` fields (on to
+	 *                    `reconcile`); null on a database error.
+	 */
+	private function plan_reclassify( int $total_scanned ): ?array {
+		$threshold = self::pervasive_threshold( $total_scanned );
+		$rows      = [];
+		$after     = 0;
+		while ( $threshold > 0 ) {
+			$page = self::usage_rows_after( $after, self::CLEANUP_CHUNK );
+			if ( null === $page ) {
+				return null;
+			}
+			foreach ( $page as $row ) {
+				$after  = (int) $row['meta_id'];
+				$usages = maybe_unserialize( $row['meta_value'] );
+				$new    = is_array( $usages ) ? self::reclassified_usages( $usages, $threshold ) : null;
+				if ( null !== $new ) {
+					$rows[] = self::cleanup_row( $row, $new );
+				}
+			}
+			if ( count( $page ) < self::CLEANUP_CHUNK ) {
+				break;
+			}
+		}
+
+		return [
+			'rows'   => $rows,
+			'status' => [
+				'cleanup_stage'  => 'reconcile',
+				'cleanup_cursor' => 0,
+			],
+		];
+	}
+
+	/**
+	 * Plan one `reconcile` chunk: the next CLEANUP_CHUNK usage records after
+	 * the cursor, with those reconciled_usages() changes. A chunk shorter
+	 * than CLEANUP_CHUNK is the last: it completes the scan.
+	 *
+	 * @param int $cursor meta_id of the last record reconciled.
+	 *
+	 * @return array|null `rows` to write and `status` fields (the new cursor,
+	 *                    or complete); null on a database error.
+	 */
+	private function plan_reconcile( int $cursor ): ?array {
+		$chunk = self::usage_rows_after( $cursor, self::CLEANUP_CHUNK );
+		if ( null === $chunk ) {
+			return null;
+		}
+
+		$rows = [];
+		foreach ( $chunk as $row ) {
+			$cursor = (int) $row['meta_id'];
+			$usages = maybe_unserialize( $row['meta_value'] );
+			$new    = is_array( $usages ) ? self::reconciled_usages( $usages ) : null;
+			if ( null !== $new ) {
+				$rows[] = self::cleanup_row( $row, $new );
+			}
+		}
+
+		$status = [ 'cleanup_cursor' => $cursor ];
+		if ( count( $chunk ) < self::CLEANUP_CHUNK ) {
+			$status += [
+				'cleanup_stage' => 'done',
+				'state'         => 'complete',
+				'complete'      => true,
+			];
+		}
+		return [
+			'rows'   => $rows,
+			'status' => $status,
+		];
+	}
+
+	/**
+	 * Commit a cleanup step in one transaction: first the status claim (the
+	 * status row must still hold the exact value read, so the scan, stage
+	 * and cursor are unchanged; it stays locked until COMMIT, so Cancel,
+	 * Clear Results and Re-scan wait for this step only), then each usage
+	 * record, written only over the value read. A record another request
+	 * changed since the read is left as it is (it keeps its incidental
+	 * usages: never wrongly unused). The stage or cursor moves on only with
+	 * this commit.
+	 *
+	 * @param string $stored  Status value read.
+	 * @param array  $current Status read.
+	 * @param array  $changes Status fields to write.
+	 * @param array  $rows    Usage records to write (cleanup_row()).
+	 *
+	 * @return string 'done' (scan complete), 'more' (committed, or the status
+	 *                changed since the read: read it again) or 'stopped'.
+	 *
+	 * @throws \Throwable An error other than a database error (rolled back).
+	 */
+	private function commit_cleanup( string $stored, array $current, array $changes, array $rows ): string {
+		$transaction       = BatchTransaction::instance();
+		$next              = array_merge( $current, $changes );
+		$next['timestamp'] = current_time( 'mysql' );
+		$value             = maybe_serialize( $next );
+
+		if ( ! $transaction->begin() ) {
+			return 'stopped';
+		}
+		try {
+			if ( ! $this->claim_status_row( $stored, $value ) ) {
+				$transaction->rollback();
+				return 'more';
+			}
+			foreach ( $rows as $row ) {
+				if ( null === $row['usages'] ) {
+					$transaction->delete_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'] );
+				} else {
+					$transaction->replace_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'], $row['usages'] );
+				}
+			}
+			if ( ! $transaction->commit() ) {
+				self::forget_cached_scan_status();
+				return 'stopped';
+			}
+		} catch ( \Throwable $e ) {
+			$transaction->rollback();
+			self::forget_cached_scan_status();
+			if ( BatchTransaction::is_database_error( $e ) ) {
+				return 'stopped';
+			}
+			throw $e;
+		}
+
+		self::status_written( $current, $next );
+		return empty( $next['complete'] ) ? 'more' : 'done';
+	}
+
+	/**
+	 * A usage record to write in a cleanup step.
+	 *
+	 * @param array $row    Row read (meta_id, post_id, meta_value).
+	 * @param array $usages New usages; an empty array deletes the record.
+	 *
+	 * @return array
+	 */
+	private static function cleanup_row( array $row, array $usages ): array {
+		return [
+			'meta_id' => (int) $row['meta_id'],
+			'post_id' => (int) $row['post_id'],
+			'raw'     => (string) $row['meta_value'],
+			'usages'  => empty( $usages ) ? null : array_values( $usages ),
+		];
+	}
+
+	/**
+	 * Usage records after a meta_id, in meta_id order, read from the database.
+	 *
+	 * @param int $after meta_id to start after.
+	 * @param int $limit Records to read.
+	 *
+	 * @return array[]|null Rows (meta_id, post_id, meta_value); null on a
+	 *                      database error.
+	 */
+	private static function usage_rows_after( int $after, int $limit ): ?array {
+		global $wpdb;
+		try {
+			$rows = Fns::DB()->select( 'meta_id', 'post_id', 'meta_value' )
+				->from( 'postmeta' )
+				->where( 'meta_key', '=', self::META_KEY )
+				->andWhere( 'meta_id', '>', $after )
+				->orderBy( 'meta_id', 'ASC' )
+				->limit( $limit )
+				->get();
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+		if ( '' !== (string) $wpdb->last_error || ! is_array( $rows ) ) {
+			return null;
+		}
+		return $rows;
+	}
+
+	/**
+	 * Minimum number of posts an image must appear on, through `permalink`
+	 * or `rendered` usages only, to be reclassified as site-wide; 0 when the
+	 * scan covered too few posts for the heuristic.
 	 *
 	 * The threshold and floor are filterable so site owners can tune
 	 * sensitivity on edge cases.
 	 *
-	 * @param int $total_scanned Total posts processed in this scan.
+	 * @param int $total_scanned Posts processed in this scan.
 	 *
-	 * @return void
-	 *
-	 * @throws \RuntimeException On a database error (it runs in the batch transaction).
+	 * @return int
 	 */
-	private function reclassify_pervasive_as_sitewide( int $total_scanned ): void {
+	private static function pervasive_threshold( int $total_scanned ): int {
 		/**
 		 * Filter the minimum share of scanned posts an image must appear on
 		 * (via permalink/rendered only) before it is reclassified as
@@ -3178,84 +3534,92 @@ class UsedWhereScanner {
 		$floor = max( 2, $floor );
 
 		if ( $total_scanned < $floor ) {
-			return;
+			return 0;
 		}
-
-		$threshold = max( $floor, (int) ceil( $total_scanned * $ratio ) );
-
-		$rows = Fns::DB()->select( 'post_id', 'meta_value' )
-			->from( 'postmeta' )
-			->where( 'meta_key', '=', self::META_KEY )
-			->get();
-		BatchTransaction::check();
-
-		if ( empty( $rows ) ) {
-			return;
-		}
-
-		$owning_types   = array_flip( self::OWNING_USAGE_TYPES );
-		$sitewide_types = array_flip( self::SITEWIDE_USAGE_TYPES );
-
-		foreach ( $rows as $row ) {
-			$attachment_id = absint( $row['post_id'] ?? 0 );
-			$usages        = maybe_unserialize( $row['meta_value'] ?? '' );
-
-			if ( ! $attachment_id || ! is_array( $usages ) || empty( $usages ) ) {
-				continue;
-			}
-
-			$has_owning       = false;
-			$has_sitewide     = false;
-			$incidental_posts = [];
-
-			foreach ( $usages as $usage ) {
-				$type = (string) ( $usage['usage_type'] ?? '' );
-				$pid  = (int) ( $usage['post_id'] ?? 0 );
-
-				if ( 0 === $pid || isset( $sitewide_types[ $type ] ) ) {
-					$has_sitewide = true;
-					continue;
-				}
-				if ( isset( $owning_types[ $type ] ) ) {
-					$has_owning = true;
-					continue;
-				}
-				if ( 'permalink' === $type || 'rendered' === $type ) {
-					$incidental_posts[ $pid ] = true;
-				}
-			}
-
-			if ( $has_owning || $has_sitewide ) {
-				continue; // existing reconcile pass handles these
-			}
-
-			if ( count( $incidental_posts ) < $threshold ) {
-				continue;
-			}
-
-			// Append the synthetic site-wide marker; reconcile_incidental_usages()
-			// will then strip the per-post permalink/rendered records.
-			$usages[] = [
-				'post_id'    => 0,
-				'post_title' => esc_html__( 'Site Settings', 'media-library-tools' ),
-				'post_type'  => 'site_settings',
-				'usage_type' => 'option_settings',
-			];
-
-			BatchTransaction::instance()->put_meta( $attachment_id, self::META_KEY, $usages );
-		}
+		return max( $floor, (int) ceil( $total_scanned * $ratio ) );
 	}
 
 	/**
-	 * Drop incidental `permalink` / `rendered` usages when the image is
-	 * already owned by stronger signals on a different set of posts.
+	 * Threshold heuristic — an image's usages with a site-wide marker added
+	 * when it renders on a large share of the site.
 	 *
-	 * Final-batch reconciliation pass. For each attachment that has BOTH:
+	 * Catches the common false-positive pattern where a single image lives
+	 * in a custom plugin/theme option (header logo, footer banner, theme
+	 * builder template image, ACF options field, mega-menu icon, etc.) and
+	 * therefore appears in the rendered HTML of every page — but is NOT
+	 * registered with any of the well-known WordPress site-wide locations
+	 * (`site_logo`, `custom_logo`, `header_image`, customizer background,
+	 * widgets, nav menus, term meta). Without this pass, every post that
+	 * was scanned would falsely list itself as a "user" of the image.
+	 *
+	 * Rule:
+	 *   1. Skip if it already has any owning usage (featured / content /
+	 *      gallery / builder / meta) — the structural signal is trusted and
+	 *      reconcile handles the cleanup.
+	 *   2. Skip if it already has any site-wide usage (post_id=0) — handled
+	 *      by reconcile.
+	 *   3. Count distinct `post_id`s that appear in `permalink` / `rendered`
+	 *      entries.
+	 *   4. If that count reaches the threshold (pervasive_threshold()), add a
+	 *      synthetic site-wide entry with `usage_type = option_settings`. The
+	 *      `reconcile` step then strips every per-post permalink/rendered
+	 *      entry via its `$has_sitewide` branch.
+	 *
+	 * Running it again on its result changes nothing (the marker makes the
+	 * image site-wide), so a repeated step is harmless.
+	 *
+	 * @param array $usages    Usage records of one image.
+	 * @param int   $threshold Distinct posts required.
+	 *
+	 * @return array|null The usages with the marker, or null for no change.
+	 */
+	private static function reclassified_usages( array $usages, int $threshold ): ?array {
+		if ( empty( $usages ) ) {
+			return null;
+		}
+
+		$owning_types     = array_flip( self::OWNING_USAGE_TYPES );
+		$sitewide_types   = array_flip( self::SITEWIDE_USAGE_TYPES );
+		$incidental_posts = [];
+
+		foreach ( $usages as $usage ) {
+			$type = (string) ( $usage['usage_type'] ?? '' );
+			$pid  = (int) ( $usage['post_id'] ?? 0 );
+
+			if ( 0 === $pid || isset( $sitewide_types[ $type ] ) || isset( $owning_types[ $type ] ) ) {
+				return null; // reconcile handles these
+			}
+			if ( 'permalink' === $type || 'rendered' === $type ) {
+				$incidental_posts[ $pid ] = true;
+			}
+		}
+
+		if ( count( $incidental_posts ) < $threshold ) {
+			return null;
+		}
+
+		// Append the synthetic site-wide marker; reconcile then strips the
+		// per-post permalink/rendered records.
+		$usages[] = [
+			'post_id'    => 0,
+			'post_title' => esc_html__( 'Site Settings', 'media-library-tools' ),
+			'post_type'  => 'site_settings',
+			'usage_type' => 'option_settings',
+		];
+		return $usages;
+	}
+
+	/**
+	 * An image's usages without incidental `permalink` / `rendered` usages
+	 * when it is already owned by stronger signals on a different set of
+	 * posts.
+	 *
+	 * For an image that has BOTH:
 	 *   - at least one "owning" usage (featured / content / gallery / meta /
-	 *     builder), AND
+	 *     builder), or a site-wide usage, AND
 	 *   - one or more `permalink` / `rendered` usages on posts NOT in the
 	 *     owning set,
-	 * we strip the latter. Those records are almost always artifacts of:
+	 * the latter are dropped. Those records are almost always artifacts of:
 	 *   - related-products widgets ("you may also like…") rendering an image
 	 *     belonging to another product on this product's permalink,
 	 *   - JSON-LD product schema / OpenGraph meta tags repeating an image URL
@@ -3265,107 +3629,77 @@ class UsedWhereScanner {
 	 *
 	 * The owning signals are unambiguous: the post's own structured fields
 	 * actually reference the image. So when those exist, an HTML hit on a
-	 * different post is incidental, not real usage.
+	 * different post is incidental, not real usage. Running it again on its
+	 * result changes nothing.
 	 *
-	 * Cheap to run because it touches only attachments that have any meta
-	 * row at all, and most attachments either have no usages or have only
-	 * owning usages (nothing to drop).
+	 * @param array $usages Usage records of one image.
 	 *
-	 * @return void
-	 *
-	 * @throws \RuntimeException On a database error (it runs in the batch transaction).
+	 * @return array|null The kept usages (empty: delete the record), or null
+	 *                    for no change.
 	 */
-	private function reconcile_incidental_usages(): void {
-		$attached_rows = Fns::DB()->select( 'post_id', 'meta_value' )
-			->from( 'postmeta' )
-			->where( 'meta_key', '=', self::META_KEY )
-			->get();
-		BatchTransaction::check();
-
-		if ( empty( $attached_rows ) ) {
-			return;
+	private static function reconciled_usages( array $usages ): ?array {
+		if ( empty( $usages ) ) {
+			return null;
 		}
 
 		$incidental_types = [ 'permalink', 'rendered' ];
 		$owning_types     = array_flip( self::OWNING_USAGE_TYPES );
 		$sitewide_types   = array_flip( self::SITEWIDE_USAGE_TYPES );
 
-		foreach ( $attached_rows as $row ) {
-			$attachment_id = absint( $row['post_id'] ?? 0 );
-			$usages        = maybe_unserialize( $row['meta_value'] ?? '' );
+		// First pass: collect post_ids that have an owning usage on this
+		// attachment, and detect any sitewide ownership (logo/widget/etc.).
+		$owning_post_ids = [];
+		$has_incidental  = false;
+		$has_sitewide    = false;
 
-			if ( ! $attachment_id || ! is_array( $usages ) || empty( $usages ) ) {
+		foreach ( $usages as $usage ) {
+			$type = (string) ( $usage['usage_type'] ?? '' );
+			$pid  = (int) ( $usage['post_id'] ?? 0 );
+			if ( isset( $sitewide_types[ $type ] ) ) {
+				$has_sitewide = true;
 				continue;
 			}
-
-			// First pass: collect post_ids that have an owning usage on this
-			// attachment, and detect any sitewide ownership (logo/widget/etc.).
-			$owning_post_ids = [];
-			$has_incidental  = false;
-			$has_sitewide    = false;
-
-			foreach ( $usages as $usage ) {
-				$type = (string) ( $usage['usage_type'] ?? '' );
-				$pid  = (int) ( $usage['post_id'] ?? 0 );
-				if ( isset( $sitewide_types[ $type ] ) ) {
-					$has_sitewide = true;
-					continue;
-				}
-				if ( ! $pid ) {
-					continue;
-				}
-				if ( isset( $owning_types[ $type ] ) ) {
-					$owning_post_ids[ $pid ] = true;
-				} elseif ( in_array( $type, $incidental_types, true ) ) {
-					$has_incidental = true;
-				}
-			}
-
-			// Nothing to do if there are no incidental records to drop.
-			if ( ! $has_incidental ) {
+			if ( ! $pid ) {
 				continue;
 			}
-
-			// Nothing to do if there's no owning signal at all (no structural
-			// per-post owner AND no sitewide owner) — we trust the permalink
-			// hits as the only evidence we have.
-			if ( empty( $owning_post_ids ) && ! $has_sitewide ) {
-				continue;
-			}
-
-			// Second pass: keep every owning / sitewide usage; for incidental
-			// usages, the rule is:
-			//   - if the image is owned sitewide (logo / widget / etc.), drop
-			//     every permalink / rendered record — they're chrome
-			//     repeating on every page, not real per-post usage.
-			//   - otherwise keep an incidental record only when it's on a post
-			//     that already owns the image (then it's confirmation).
-			$cleaned = [];
-			foreach ( $usages as $usage ) {
-				$type = (string) ( $usage['usage_type'] ?? '' );
-				$pid  = (int) ( $usage['post_id'] ?? 0 );
-
-				if ( in_array( $type, $incidental_types, true ) ) {
-					if ( $has_sitewide ) {
-						continue; // drop all incidental — image is chrome
-					}
-					if ( ! isset( $owning_post_ids[ $pid ] ) ) {
-						continue; // drop incidental on non-owning post
-					}
-				}
-				$cleaned[] = $usage;
-			}
-
-			if ( count( $cleaned ) === count( $usages ) ) {
-				continue; // nothing changed
-			}
-
-			if ( empty( $cleaned ) ) {
-				BatchTransaction::instance()->delete_meta( $attachment_id, self::META_KEY );
-			} else {
-				BatchTransaction::instance()->put_meta( $attachment_id, self::META_KEY, array_values( $cleaned ) );
+			if ( isset( $owning_types[ $type ] ) ) {
+				$owning_post_ids[ $pid ] = true;
+			} elseif ( in_array( $type, $incidental_types, true ) ) {
+				$has_incidental = true;
 			}
 		}
+
+		// Nothing to do if there are no incidental records to drop, or no
+		// owning signal at all (no structural per-post owner AND no sitewide
+		// owner) — we trust the permalink hits as the only evidence we have.
+		if ( ! $has_incidental || ( empty( $owning_post_ids ) && ! $has_sitewide ) ) {
+			return null;
+		}
+
+		// Second pass: keep every owning / sitewide usage; for incidental
+		// usages, the rule is:
+		//   - if the image is owned sitewide (logo / widget / etc.), drop
+		//     every permalink / rendered record — they're chrome
+		//     repeating on every page, not real per-post usage.
+		//   - otherwise keep an incidental record only when it's on a post
+		//     that already owns the image (then it's confirmation).
+		$cleaned = [];
+		foreach ( $usages as $usage ) {
+			$type = (string) ( $usage['usage_type'] ?? '' );
+			$pid  = (int) ( $usage['post_id'] ?? 0 );
+
+			if ( in_array( $type, $incidental_types, true ) ) {
+				if ( $has_sitewide ) {
+					continue; // drop all incidental — image is chrome
+				}
+				if ( ! isset( $owning_post_ids[ $pid ] ) ) {
+					continue; // drop incidental on non-owning post
+				}
+			}
+			$cleaned[] = $usage;
+		}
+
+		return count( $cleaned ) === count( $usages ) ? null : array_values( $cleaned );
 	}
 
 	private function clear_all_usage_meta(): void {
@@ -3407,6 +3741,10 @@ class UsedWhereScanner {
 	/**
 	 * Record frontend image usage (passive tracking).
 	 *
+	 * The record is read from the database and written only over the value
+	 * read, so a scan batch, its cleanup or a post save writing the same
+	 * record meanwhile is not overwritten (read again, three attempts).
+	 *
 	 * @param int    $attachment_id Attachment ID.
 	 * @param int    $post_id Post ID.
 	 * @param string $usage_type Usage type.
@@ -3419,11 +3757,38 @@ class UsedWhereScanner {
 			return;
 		}
 
-		$existing = get_post_meta( $attachment_id, self::META_KEY, true );
-		if ( ! is_array( $existing ) ) {
-			$existing = [];
+		$written = false;
+		for ( $attempt = 0; $attempt < 3 && ! $written; $attempt++ ) {
+			$row = self::usage_row( $attachment_id );
+			if ( false === $row ) {
+				return;
+			}
+			$usages = self::with_frontend_usage( $row ? $row['usages'] : [], $post, $usage_type );
+			if ( null === $usages ) {
+				return;
+			}
+			$written = self::write_usage_row( $attachment_id, $row, $usages );
+		}
+		if ( ! $written ) {
+			return;
 		}
 
+		// Only an owning usage (featured, content, ...) may set a parent.
+		if ( in_array( $usage_type, self::OWNING_USAGE_TYPES, true ) ) {
+			$this->attach_if_unattached( $attachment_id, $post_id );
+		}
+	}
+
+	/**
+	 * An attachment's usages with a usage seen on a page view added.
+	 *
+	 * @param array    $existing   Saved usages.
+	 * @param \WP_Post $post       Post viewed.
+	 * @param string   $usage_type Usage type.
+	 *
+	 * @return array|null The usages, or null when nothing is to be added.
+	 */
+	private static function with_frontend_usage( array $existing, \WP_Post $post, string $usage_type ): ?array {
 		// If the image is already attributed as site-wide (site_settings, term_meta,
 		// widget, logo, favicon, header, background, option, etc. — all stored with
 		// post_id=0), it renders on many pages by design. Do not record a per-post
@@ -3431,31 +3796,25 @@ class UsedWhereScanner {
 		// a user of the image.
 		foreach ( $existing as $item ) {
 			if ( 0 === (int) ( $item['post_id'] ?? 0 ) ) {
-				return;
+				return null;
 			}
 		}
 
 		// Check for duplicate.
-		$key = $post_id . ':' . $usage_type;
+		$key = $post->ID . ':' . $usage_type;
 		foreach ( $existing as $item ) {
 			if ( ( $item['post_id'] . ':' . $item['usage_type'] ) === $key ) {
-				return;
+				return null;
 			}
 		}
 
 		$existing[] = [
-			'post_id'    => $post_id,
+			'post_id'    => $post->ID,
 			'post_title' => $post->post_title,
 			'post_type'  => $post->post_type,
 			'usage_type' => $usage_type,
 		];
-
-		update_post_meta( $attachment_id, self::META_KEY, $existing );
-
-		// Only an owning usage (featured, content, ...) may set a parent.
-		if ( in_array( $usage_type, self::OWNING_USAGE_TYPES, true ) ) {
-			$this->attach_if_unattached( $attachment_id, $post_id );
-		}
+		return $existing;
 	}
 
 	/**

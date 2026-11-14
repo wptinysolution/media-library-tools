@@ -13,6 +13,12 @@
  * for the batch's COMMIT. It is not parallel PHP: the competing request's
  * other work runs afterwards in this process.
  *
+ * Connection loss is tested two ways: simulated, by closing $wpdb's
+ * connection and opening a new one in the middle of the save (what a
+ * reconnect does; the closed connection's transaction is really discarded
+ * by the server), and genuine, by killing the batch's connection from the
+ * second connection (KILL CONNECTION).
+ *
  * WP_UnitTestCase wraps every test in a transaction, which a real
  * transaction would commit; this class turns that off (autocommit on, the
  * bootstrap's savepoint filter removed), so fixtures are committed and
@@ -116,6 +122,36 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 	private $break = '';
 
 	/**
+	 * How to drop the batch's connection when it first writes a permalink
+	 * fingerprint: 'reconnect', 'kill' or ''.
+	 *
+	 * @var string
+	 */
+	private $drop = '';
+
+	/**
+	 * Thread ID of the connection that was dropped, or 0.
+	 *
+	 * @var int
+	 */
+	private $dropped = 0;
+
+	/**
+	 * After the connection was dropped: the connection each statement was
+	 * sent from, while the batch's transaction was still open.
+	 *
+	 * @var int[]
+	 */
+	private $after_drop = [];
+
+	/**
+	 * $wpdb->reconnect_retries before the test.
+	 *
+	 * @var int
+	 */
+	private $retries = 5;
+
+	/**
 	 * Hooks fired, by name.
 	 *
 	 * @var array<string, int>
@@ -132,6 +168,12 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 		remove_filter( 'query', 'tsmlt_tests_batch_transaction_as_savepoint' );
 		$wpdb->query( 'COMMIT' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- End the test-case transaction.
 		$wpdb->query( 'SET autocommit = 1' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Real transactions in this class.
+
+		$this->retries           = (int) $wpdb->reconnect_retries;
+		$wpdb->reconnect_retries = 7;
+		$this->drop              = '';
+		$this->dropped           = 0;
+		$this->after_drop        = [];
 
 		self::clean_scan_state();
 		add_filter( 'pre_http_request', [ $this, 'serve_page' ], 10, 3 );
@@ -163,7 +205,12 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 	 * filter.
 	 */
 	public function tear_down() {
+		global $wpdb;
 		remove_filter( 'query', [ $this, 'interfere' ] );
+		remove_filter( 'query', [ $this, 'break_begin' ] );
+		// Reconnect if a test killed or replaced the connection.
+		$wpdb->reconnect_retries = $this->retries;
+		$wpdb->check_connection( false );
 		if ( $this->link ) {
 			$this->link->close();
 			$this->link = null;
@@ -247,6 +294,10 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 	 * @return string
 	 */
 	public function interfere( $query ) {
+		global $wpdb;
+		if ( 0 !== $this->dropped && BatchTransaction::instance()->is_active() ) {
+			$this->after_drop[] = $wpdb->dbh instanceof mysqli ? (int) mysqli_thread_id( $wpdb->dbh ) : 0;
+		}
 		// Without a batch transaction (the implementation before it, for
 		// comparison), the same point is when the batch is about to write its
 		// first usage record.
@@ -289,11 +340,51 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 			$this->link()->query( $this->competing_sql(), MYSQLI_ASYNC );
 			$this->waited = ! self::finished( $this->link, 1.0 );
 		}
+		if ( '' !== $this->drop && false !== strpos( $query, self::FINGERPRINT ) ) {
+			$this->drop_connection();
+			return $query;
+		}
 		if ( '' !== $this->break && false !== strpos( $query, $this->break ) ) {
 			$this->break = '';
 			return 'INSERT INTO tsmlt_no_such_table VALUES (1)';
 		}
 		return $query;
+	}
+
+	/**
+	 * Drop $wpdb's connection, by $this->drop: close it and open a new one
+	 * (as a reconnect does), or kill it from the second connection.
+	 */
+	private function drop_connection() {
+		global $wpdb;
+		$this->dropped = (int) mysqli_thread_id( $wpdb->dbh );
+		$mode          = $this->drop;
+		$this->drop    = '';
+		if ( 'reconnect' === $mode ) {
+			$wpdb->close();
+			$wpdb->db_connect();
+			return;
+		}
+		$this->link()->query( 'KILL CONNECTION ' . $this->dropped );
+		// Wait until the server has really ended it.
+		for ( $i = 0; $i < 50; $i++ ) {
+			$left = $this->link()->query( 'SELECT COUNT(*) FROM information_schema.PROCESSLIST WHERE ID = ' . $this->dropped )->fetch_row();
+			if ( '0' === (string) $left[0] ) {
+				break;
+			}
+			usleep( 100000 );
+		}
+	}
+
+	/**
+	 * Make the transaction's START fail.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string
+	 */
+	public function break_begin( $query ) {
+		return BatchTransaction::BEGIN === $query ? 'START TRANSACTION tsmlt_invalid' : $query;
 	}
 
 	/**
@@ -793,27 +884,231 @@ class UsedWhereBatchTransactionTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An exception in the completion cleanup rolls the last batch back and
-	 * marks the scan as failed, not complete.
+	 * An exception in the completion cleanup (which runs after the last batch
+	 * committed) rolls the cleanup step back and marks the scan as failed,
+	 * not complete; the batches' records stay as they were saved.
 	 */
 	public function test_failure_in_the_cleanup_rolls_back_and_reports_an_error() {
 		self::start();
 		UsedWhereScanner::instance()->run_tick_batch( 0 );
+		UsedWhereScanner::instance()->run_tick_batch( 5 );
 		wp_unschedule_hook( UsedWhereScanner::SCAN_TICK_HOOK );
+		$this->assertSame( 'reclassify', self::stored_status()['cleanup_stage'], 'Precondition: every post processed, cleanup pending.' );
 		$records = self::meta_rows( UsedWhereScanner::META_KEY );
 		add_filter( 'tsmlt_used_where_sitewide_pervasive_ratio', [ $this, 'fail_batch' ] );
 
-		UsedWhereScanner::instance()->run_tick_batch( 5 );
+		UsedWhereScanner::instance()->run_tick_batch( 8 );
 
 		remove_filter( 'tsmlt_used_where_sitewide_pervasive_ratio', [ $this, 'fail_batch' ] );
 		$status = self::stored_status();
 		$this->assertSame( 'error', $status['state'] );
 		$this->assertSame( 'Batch failed.', $status['last_error'] );
 		$this->assertFalse( $status['complete'] );
-		$this->assertSame( 5, (int) $status['next_offset'] );
-		$this->assertSame( $records, self::meta_rows( UsedWhereScanner::META_KEY ), 'The last batch\'s records were rolled back.' );
-		$this->assertSame( 5, count( self::meta_rows( self::FINGERPRINT ) ) );
-		$this->assertSame( 5, $this->attached() );
+		$this->assertSame( 'reclassify', $status['cleanup_stage'] );
+		$this->assertSame( $records, self::meta_rows( UsedWhereScanner::META_KEY ), 'The cleanup changed no record.' );
+		$this->assertSame( 8, count( self::meta_rows( self::FINGERPRINT ) ) );
+		$this->assertSame( 8, $this->attached() );
 		$this->assertSame( [], self::ticks() );
+	}
+
+	/**
+	 * The reconnect setting is 0 while the transaction is open and restored
+	 * after COMMIT; the statement guard is removed.
+	 */
+	public function test_reconnect_setting_restored_after_commit() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+
+		$this->assertTrue( $transaction->begin() );
+		$this->assertSame( 0, (int) $wpdb->reconnect_retries, 'No reconnect while the transaction is open.' );
+		$this->assertTrue( $transaction->commit() );
+
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( has_filter( 'query', [ $transaction, 'guard_query' ] ) );
+		$this->assertFalse( $transaction->is_active() );
+	}
+
+	/**
+	 * The reconnect setting is restored after ROLLBACK, which reports that it
+	 * ran.
+	 */
+	public function test_reconnect_setting_restored_after_rollback() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+
+		$this->assertTrue( $transaction->begin() );
+		$this->assertTrue( $transaction->rollback() );
+
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( has_filter( 'query', [ $transaction, 'guard_query' ] ) );
+	}
+
+	/**
+	 * A START that fails leaves no transaction, and the reconnect setting
+	 * and statement guard as they were.
+	 */
+	public function test_reconnect_setting_restored_when_begin_fails() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+		add_filter( 'query', [ $this, 'break_begin' ] );
+
+		$suppressed = $wpdb->suppress_errors( true );
+		$started    = $transaction->begin();
+		$wpdb->suppress_errors( $suppressed );
+
+		$this->assertFalse( $started );
+		$this->assertFalse( $transaction->is_active() );
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( has_filter( 'query', [ $transaction, 'guard_query' ] ) );
+	}
+
+	/**
+	 * A second begin() while a transaction is open is refused (it would
+	 * commit the open one) and keeps the saved reconnect setting.
+	 */
+	public function test_second_begin_is_refused() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+
+		$this->assertTrue( $transaction->begin() );
+		$this->assertFalse( $transaction->begin() );
+		$this->assertTrue( $transaction->is_active() );
+		$transaction->rollback();
+
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+	}
+
+	/**
+	 * A batch that fails with an exception (rolled back, scan marked failed)
+	 * restores the reconnect setting.
+	 */
+	public function test_reconnect_setting_restored_after_a_failed_batch() {
+		global $wpdb;
+		self::start();
+		add_filter( 'tsmlt_used_where_scannable_post_types', [ $this, 'fail_batch' ] );
+
+		UsedWhereScanner::instance()->run_tick_batch( 0 );
+
+		$this->assertSame( 'error', self::stored_status()['state'] );
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( BatchTransaction::instance()->is_active() );
+	}
+
+	/**
+	 * A different connection before COMMIT (simulated reconnect): COMMIT
+	 * and ROLLBACK are not sent on it, nothing is saved (the server
+	 * discarded the closed connection's transaction), no hook fires, and the
+	 * reconnect setting is restored.
+	 */
+	public function test_changed_connection_before_commit_fails() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+		$this->assertTrue( $transaction->begin() );
+		$transaction->put_meta( $this->attachments[0], self::FINGERPRINT, 'written-before-the-reconnect' );
+
+		$wpdb->close();
+		$wpdb->db_connect();
+		$committed = $transaction->commit();
+
+		$this->assertFalse( $committed );
+		$this->assertFalse( $transaction->is_active() );
+		$this->assertSame( [], self::meta_rows( self::FINGERPRINT ) );
+		$this->assertArrayNotHasKey( 'added_post_meta', $this->fired );
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( has_filter( 'query', [ $transaction, 'guard_query' ] ) );
+	}
+
+	/**
+	 * ROLLBACK on a different connection is not sent and is not reported as
+	 * done.
+	 */
+	public function test_rollback_after_a_changed_connection_is_not_reported_as_done() {
+		global $wpdb;
+		$transaction = BatchTransaction::instance();
+		$this->assertTrue( $transaction->begin() );
+
+		$wpdb->close();
+		$wpdb->db_connect();
+
+		$this->assertFalse( $transaction->rollback() );
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+	}
+
+	/**
+	 * A reconnect in the middle of the save (simulated: the connection is
+	 * closed and a new one opened, after usage records and parents were
+	 * written): no later statement runs on the new connection, nothing is
+	 * saved, no hook fires, nothing is scheduled, and the scan is left as
+	 * the batch's start left it, for stall recovery.
+	 */
+	public function test_reconnect_during_the_save_fails_closed() {
+		global $wpdb;
+		$start      = self::start();
+		$this->drop = 'reconnect';
+
+		UsedWhereScanner::instance()->run_tick_batch( 0 );
+
+		$this->assertNotSame( 0, $this->dropped, 'Precondition: the connection was replaced during the save.' );
+		$this->assertNotSame( $this->dropped, (int) mysqli_thread_id( $wpdb->dbh ) );
+		$this->assertSame( [], array_diff( $this->after_drop, [ $this->dropped ] ), 'No statement of the open transaction ran on the new connection.' );
+		$this->assert_nothing_saved( $start );
+		$this->assertNull( ScanBatchLock::instance()->read_lock(), 'The lock is released.' );
+	}
+
+	/**
+	 * The batch's connection killed in the middle of the save (genuine
+	 * connection loss): $wpdb does not reconnect, nothing is saved, no hook
+	 * fires, nothing is scheduled, and the scan is left as the batch's start
+	 * left it, for stall recovery.
+	 */
+	public function test_killed_connection_during_the_save_fails_closed() {
+		global $wpdb;
+		$start      = self::start();
+		$this->drop = 'kill';
+
+		$suppressed = $wpdb->suppress_errors( true );
+		try {
+			UsedWhereScanner::instance()->run_tick_batch( 0 );
+		} catch ( WPDieException $e ) {
+			// WordPress ends the request on a lost connection it may not
+			// reconnect; in tests wp_die() throws instead.
+			unset( $e );
+		}
+		$wpdb->suppress_errors( $suppressed );
+
+		$this->assertNotSame( 0, $this->dropped, 'Precondition: the connection was killed during the save.' );
+		$this->assertSame( [], array_diff( $this->after_drop, [ $this->dropped ] ), 'No statement of the open transaction ran on another connection.' );
+		$this->assert_nothing_saved( $start, false );
+	}
+
+	/**
+	 * Nothing of the batch saved: no records, fingerprints, parents, hooks
+	 * or scheduled batch; the status as the batch's start left it; the
+	 * reconnect setting restored.
+	 *
+	 * @param array $start   Status after the scan's start.
+	 * @param bool  $running Whether the scan must still be running (false:
+	 *                       it may also have been marked as failed).
+	 */
+	private function assert_nothing_saved( array $start, bool $running = true ) {
+		global $wpdb;
+		wp_cache_flush();
+		$status = self::stored_status();
+		if ( $running ) {
+			$this->assertSame( 'running', $status['state'] );
+		} else {
+			$this->assertContains( $status['state'], [ 'running', 'error' ] );
+		}
+		$this->assertSame( 0, (int) $status['next_offset'] );
+		$this->assertSame( $start['scan_id'], $status['scan_id'] );
+		$this->assertNotSame( '', $status['last_tick_at'], 'Stall recovery can re-arm it.' );
+		$this->assertSame( [], self::meta_rows( UsedWhereScanner::META_KEY ) );
+		$this->assertSame( [], self::meta_rows( self::FINGERPRINT ) );
+		$this->assertSame( 0, $this->attached() );
+		$this->assertArrayNotHasKey( 'added_post_meta', $this->fired );
+		$this->assertArrayNotHasKey( 'attachment_updated', $this->fired );
+		$this->assertSame( [], self::ticks() );
+		$this->assertSame( 7, (int) $wpdb->reconnect_retries );
+		$this->assertFalse( BatchTransaction::instance()->is_active() );
 	}
 }

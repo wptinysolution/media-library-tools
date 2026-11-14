@@ -25,9 +25,20 @@ use TinySolutions\mlt\Traits\SingletonTrait;
  * the option-scan cache are then written through this class, every write
  * checked; a database error rolls everything back.
  *
- * WordPress caches are only cleared while the transaction is open (never
- * filled with data that may be rolled back), and the meta and attachment
- * hooks fire after COMMIT, so nothing reports a change that was not saved.
+ * No WordPress cache is touched while the transaction is open (so no cache
+ * holds data that may be rolled back, and no cache round trip happens while
+ * rows are locked): the caches of what changed are cleared after COMMIT or
+ * ROLLBACK, and the meta and attachment hooks fire after COMMIT, so nothing
+ * reports a change that was not saved. The conditional meta writes can also
+ * be used outside a transaction, where they take effect at once.
+ *
+ * The transaction belongs to one database connection. While it is open,
+ * $wpdb may not reconnect (it would silently run the rest of the batch on a
+ * new connection, outside the transaction): a lost connection then ends the
+ * request the way WordPress handles any lost connection, and the server
+ * discards the open transaction. Every statement is also checked to run on
+ * the connection that started the transaction; on any other, nothing more
+ * is sent and the batch fails.
  *
  * Narrow raw-SQL exceptions, both because the query builder cannot express
  * them: START TRANSACTION, COMMIT and ROLLBACK are sent with $wpdb->query(),
@@ -70,6 +81,14 @@ class BatchTransaction {
 	const DATABASE_ERROR = 1001;
 
 	/**
+	 * Exception code of a row that another request changed since it was
+	 * read in the transaction (roll back and read it again).
+	 *
+	 * @var int
+	 */
+	const CONFLICT = 1002;
+
+	/**
 	 * Whether a transaction is open.
 	 *
 	 * @var bool
@@ -85,6 +104,20 @@ class BatchTransaction {
 	private $changes = [];
 
 	/**
+	 * Thread ID of the connection the open transaction runs on, or 0.
+	 *
+	 * @var int
+	 */
+	private $connection = 0;
+
+	/**
+	 * $wpdb->reconnect_retries before the transaction disabled it, or null.
+	 *
+	 * @var int|null
+	 */
+	private $reconnect_retries = null;
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
@@ -96,10 +129,35 @@ class BatchTransaction {
 	 */
 	public function begin(): bool {
 		global $wpdb;
-		$this->changes = [];
-		$started       = $wpdb->query( self::BEGIN ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
-		$this->active  = false !== $started && '' === (string) $wpdb->last_error;
-		return $this->active;
+		if ( $this->active ) {
+			// A second START TRANSACTION would commit the open one.
+			return false;
+		}
+
+		$this->changes           = [];
+		$this->reconnect_retries = (int) $wpdb->reconnect_retries;
+		$wpdb->reconnect_retries = 0;
+		$this->connection        = self::connection_id();
+		if ( 0 === $this->connection ) {
+			// The connection cannot be identified: no transaction.
+			$this->end();
+			return false;
+		}
+		add_filter( 'query', [ $this, 'guard_query' ], PHP_INT_MAX );
+
+		try {
+			$started = $wpdb->query( self::BEGIN ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
+			$started = false !== $started && '' === (string) $wpdb->last_error && $this->same_connection();
+		} catch ( \Throwable $e ) {
+			$started = false;
+		}
+		if ( ! $started ) {
+			$this->end();
+			return false;
+		}
+
+		$this->active = true;
+		return true;
 	}
 
 	/**
@@ -119,13 +177,26 @@ class BatchTransaction {
 	 */
 	public function commit(): bool {
 		global $wpdb;
-		$committed = $wpdb->query( self::COMMIT ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
-		if ( false === $committed || '' !== (string) $wpdb->last_error ) {
+		if ( ! $this->active ) {
+			return false;
+		}
+
+		// COMMIT is sent only on the connection that started the transaction.
+		$committed = false;
+		if ( $this->same_connection() ) {
+			try {
+				$committed = $wpdb->query( self::COMMIT ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
+				$committed = false !== $committed && '' === (string) $wpdb->last_error;
+			} catch ( \Throwable $e ) {
+				$committed = false;
+			}
+		}
+		if ( ! $committed ) {
 			$this->rollback();
 			return false;
 		}
 
-		$this->active  = false;
+		$this->end();
 		$changes       = $this->changes;
 		$this->changes = [];
 		$this->forget_cached( $changes );
@@ -138,12 +209,26 @@ class BatchTransaction {
 	/**
 	 * Roll the transaction back and clear the caches of what it changed.
 	 *
-	 * @return void
+	 * ROLLBACK is sent only on the connection that started the transaction.
+	 * When that connection was lost, nothing is sent (a replacement
+	 * connection has no transaction to roll back): the server discards the
+	 * lost connection's transaction, which this request cannot confirm.
+	 *
+	 * @return bool Whether ROLLBACK ran on the transaction's connection.
 	 */
-	public function rollback(): void {
+	public function rollback(): bool {
 		global $wpdb;
-		$wpdb->query( self::ROLLBACK ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
-		$this->active  = false;
+		$rolled_back = false;
+		if ( $this->active && $this->same_connection() ) {
+			try {
+				$rolled_back = $wpdb->query( self::ROLLBACK ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Transaction control (a constant); the query builder has none.
+				$rolled_back = false !== $rolled_back && '' === (string) $wpdb->last_error;
+			} catch ( \Throwable $e ) {
+				$rolled_back = false;
+			}
+		}
+
+		$this->end();
 		$changes       = $this->changes;
 		$this->changes = [];
 		$this->forget_cached( $changes );
@@ -154,21 +239,39 @@ class BatchTransaction {
 				delete_transient( $change['name'] );
 			}
 		}
+		return $rolled_back;
 	}
 
 	/**
-	 * A post meta value, read from the database (first row, like
-	 * get_post_meta() with $single).
+	 * Block a statement that would run on another connection than the open
+	 * transaction's (after a reconnect): it is not sent, and check() then
+	 * fails the batch.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string The statement, or '' to send nothing.
+	 */
+	public function guard_query( $query ) {
+		if ( 0 !== $this->connection && ! $this->same_connection() ) {
+			return '';
+		}
+		return $query;
+	}
+
+	/**
+	 * A post meta row as stored, read from the database, not the cache (the
+	 * first row of the key, like get_post_meta() with $single).
 	 *
 	 * @param int    $post_id Post ID.
 	 * @param string $key     Meta key.
 	 *
-	 * @return mixed The value, or '' when there is none.
+	 * @return array|null `meta_id` and the stored (serialized) `raw` value;
+	 *                    null when there is no row.
 	 *
 	 * @throws \RuntimeException On a database error.
 	 */
-	public function get_meta( int $post_id, string $key ) {
-		$rows = Fns::DB()->select( 'meta_value' )
+	public function get_meta_row( int $post_id, string $key ): ?array {
+		$rows = Fns::DB()->select( 'meta_id', 'meta_value' )
 			->from( 'postmeta' )
 			->where( 'post_id', '=', $post_id )
 			->andWhere( 'meta_key', '=', $key )
@@ -176,7 +279,98 @@ class BatchTransaction {
 			->limit( 1 )
 			->get();
 		self::check();
-		return isset( $rows[0]['meta_value'] ) ? maybe_unserialize( $rows[0]['meta_value'] ) : '';
+		if ( ! isset( $rows[0]['meta_id'] ) ) {
+			return null;
+		}
+		return [
+			'meta_id' => (int) $rows[0]['meta_id'],
+			'raw'     => (string) $rows[0]['meta_value'],
+		];
+	}
+
+	/**
+	 * Replace one post meta row's value, only if it still holds the value
+	 * read: a write made by another request since the read is never
+	 * overwritten. The row is addressed by its meta_id (primary key), so
+	 * only that row is locked.
+	 *
+	 * @param int    $meta_id Meta ID.
+	 * @param int    $post_id Post ID (for hooks and caches).
+	 * @param string $key     Meta key.
+	 * @param string $raw     Stored value read.
+	 * @param mixed  $value   New value (unslashed, as update_post_meta() takes it).
+	 *
+	 * @return bool Whether the row now holds the new value (false: it changed
+	 *              since the read, or is gone).
+	 *
+	 * @throws \RuntimeException On a database error.
+	 */
+	public function replace_meta_if( int $meta_id, int $post_id, string $key, string $raw, $value ): bool {
+		global $wpdb;
+		$value  = sanitize_meta( $key, wp_unslash( $value ), 'post' );
+		$stored = maybe_serialize( $value );
+		if ( $stored === $raw ) {
+			return true;
+		}
+
+		Fns::DB()->update( 'postmeta', [ 'meta_value' => $stored ] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Update data, not a query.
+			->where( 'meta_id', '=', $meta_id )
+			->andWhere( 'meta_key', '=', $key )
+			->andWhere( 'meta_value', '=', $raw )
+			->execute();
+		self::check();
+		if ( 1 !== (int) $wpdb->rows_affected ) {
+			return false;
+		}
+
+		$this->record_change(
+			[
+				'type'    => 'meta',
+				'action'  => 'updated',
+				'post_id' => $post_id,
+				'key'     => $key,
+				'ids'     => [ $meta_id ],
+				'value'   => $value,
+			]
+		);
+		return true;
+	}
+
+	/**
+	 * Delete one post meta row, only if it still holds the value read.
+	 *
+	 * @param int    $meta_id Meta ID.
+	 * @param int    $post_id Post ID (for hooks and caches).
+	 * @param string $key     Meta key.
+	 * @param string $raw     Stored value read.
+	 *
+	 * @return bool Whether the row was deleted.
+	 *
+	 * @throws \RuntimeException On a database error.
+	 */
+	public function delete_meta_if( int $meta_id, int $post_id, string $key, string $raw ): bool {
+		global $wpdb;
+		Fns::DB()->delete( 'postmeta' )
+			->where( 'meta_id', '=', $meta_id )
+			->andWhere( 'meta_key', '=', $key )
+			->andWhere( 'meta_value', '=', $raw )
+			->execute();
+		self::check();
+		if ( 1 !== (int) $wpdb->rows_affected ) {
+			return false;
+		}
+
+		$this->record_change(
+			[
+				'type'    => 'meta',
+				'action'  => 'deleted',
+				'post_id' => $post_id,
+				'key'     => $key,
+				'ids'     => [ $meta_id ],
+				'value'   => '',
+			]
+		);
+		return true;
 	}
 
 	/**
@@ -227,15 +421,16 @@ class BatchTransaction {
 			$action = 'updated';
 		}
 
-		wp_cache_delete( $post_id, 'post_meta' );
-		$this->changes[] = [
-			'type'    => 'meta',
-			'action'  => $action,
-			'post_id' => $post_id,
-			'key'     => $key,
-			'ids'     => $ids,
-			'value'   => $value,
-		];
+		$this->record_change(
+			[
+				'type'    => 'meta',
+				'action'  => $action,
+				'post_id' => $post_id,
+				'key'     => $key,
+				'ids'     => $ids,
+				'value'   => $value,
+			]
+		);
 	}
 
 	/**
@@ -265,15 +460,16 @@ class BatchTransaction {
 			->execute();
 		self::check();
 
-		wp_cache_delete( $post_id, 'post_meta' );
-		$this->changes[] = [
-			'type'    => 'meta',
-			'action'  => 'deleted',
-			'post_id' => $post_id,
-			'key'     => $key,
-			'ids'     => array_map( 'intval', array_column( $rows, 'meta_id' ) ),
-			'value'   => '',
-		];
+		$this->record_change(
+			[
+				'type'    => 'meta',
+				'action'  => 'deleted',
+				'post_id' => $post_id,
+				'key'     => $key,
+				'ids'     => array_map( 'intval', array_column( $rows, 'meta_id' ) ),
+				'value'   => '',
+			]
+		);
 	}
 
 	/**
@@ -308,12 +504,13 @@ class BatchTransaction {
 			return;
 		}
 
-		wp_cache_delete( $attachment_id, 'posts' );
-		$this->changes[] = [
-			'type'          => 'parent',
-			'attachment_id' => $attachment_id,
-			'before'        => $before,
-		];
+		$this->record_change(
+			[
+				'type'          => 'parent',
+				'attachment_id' => $attachment_id,
+				'before'        => $before,
+			]
+		);
 	}
 
 	/**
@@ -380,6 +577,29 @@ class BatchTransaction {
 	}
 
 	/**
+	 * Whether an exception reports a row changed by another request since it
+	 * was read in the transaction.
+	 *
+	 * @param \Throwable $e Exception.
+	 *
+	 * @return bool
+	 */
+	public static function is_conflict( \Throwable $e ): bool {
+		return $e instanceof \RuntimeException && self::CONFLICT === $e->getCode();
+	}
+
+	/**
+	 * Fail the transaction because a row changed since it was read in it.
+	 *
+	 * @return void
+	 *
+	 * @throws \RuntimeException Always.
+	 */
+	public static function conflict(): void {
+		throw new \RuntimeException( esc_html__( 'A usage record changed while the scan was saving it.', 'media-library-tools' ), (int) self::CONFLICT );
+	}
+
+	/**
 	 * Fail on a database error from the last query (for reads made in the
 	 * transaction outside this class).
 	 *
@@ -389,9 +609,71 @@ class BatchTransaction {
 	 */
 	public static function check(): void {
 		global $wpdb;
-		if ( '' !== (string) $wpdb->last_error ) {
+		$transaction = self::instance();
+		if ( '' !== (string) $wpdb->last_error || ( $transaction->active && ! $transaction->same_connection() ) ) {
 			// The message is shown to users: no SQL details.
 			throw new \RuntimeException( esc_html__( 'Database error while saving a usage scan batch.', 'media-library-tools' ), (int) self::DATABASE_ERROR );
+		}
+	}
+
+	/**
+	 * Note a saved change. In the open transaction it waits for COMMIT (its
+	 * caches are cleared and its hooks fire then, or its caches are cleared
+	 * on rollback); outside a transaction it is final, so both happen now.
+	 * No cache is touched while the transaction holds row locks.
+	 *
+	 * @param array $change Change.
+	 *
+	 * @return void
+	 */
+	private function record_change( array $change ): void {
+		if ( $this->active ) {
+			$this->changes[] = $change;
+			return;
+		}
+		$this->forget_cached( [ $change ] );
+		self::fire_hooks( $change );
+	}
+
+	/**
+	 * End the transaction state: restore $wpdb's reconnect setting and stop
+	 * guarding statements.
+	 *
+	 * @return void
+	 */
+	private function end(): void {
+		global $wpdb;
+		remove_filter( 'query', [ $this, 'guard_query' ], PHP_INT_MAX );
+		if ( null !== $this->reconnect_retries ) {
+			$wpdb->reconnect_retries = $this->reconnect_retries;
+		}
+		$this->reconnect_retries = null;
+		$this->connection        = 0;
+		$this->active            = false;
+	}
+
+	/**
+	 * Whether $wpdb still uses the connection the transaction started on.
+	 *
+	 * @return bool
+	 */
+	private function same_connection(): bool {
+		return 0 !== $this->connection && self::connection_id() === $this->connection;
+	}
+
+	/**
+	 * Thread ID of $wpdb's current MySQL connection (no query is sent), or 0
+	 * when there is no usable mysqli connection.
+	 *
+	 * @return int
+	 */
+	private static function connection_id(): int {
+		global $wpdb;
+		try {
+			$dbh = $wpdb->dbh;
+			return $dbh instanceof \mysqli ? (int) mysqli_thread_id( $dbh ) : 0; // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_thread_id -- Reads the connection's ID without a query; $wpdb has no API for it.
+		} catch ( \Throwable $e ) {
+			return 0;
 		}
 	}
 
