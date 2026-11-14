@@ -22,6 +22,28 @@ if ( ! $tsmlt_tests_dir || ! file_exists( $tsmlt_tests_dir . '/includes/function
 
 require_once $tsmlt_tests_dir . '/includes/functions.php';
 
+/**
+ * Run a usage scan batch's transaction as a savepoint inside the test's own
+ * transaction. WP_UnitTestCase wraps every test in a transaction that its
+ * tear-down rolls back; a real START TRANSACTION would commit it, leaving
+ * the test's fixtures behind. Rollback inside the batch still works.
+ * UsedWhereBatchTransactionTest removes this filter to use real
+ * transactions and a second database connection.
+ *
+ * @param string $query SQL.
+ *
+ * @return string
+ */
+function tsmlt_tests_batch_transaction_as_savepoint( $query ) {
+	$savepoints = [
+		TinySolutions\mlt\Modules\UsedWhere\BatchTransaction::BEGIN    => 'SAVEPOINT tsmlt_used_where_batch',
+		TinySolutions\mlt\Modules\UsedWhere\BatchTransaction::COMMIT   => 'RELEASE SAVEPOINT tsmlt_used_where_batch',
+		TinySolutions\mlt\Modules\UsedWhere\BatchTransaction::ROLLBACK => 'ROLLBACK TO SAVEPOINT tsmlt_used_where_batch',
+	];
+	return $savepoints[ $query ] ?? $query;
+}
+tests_add_filter( 'query', 'tsmlt_tests_batch_transaction_as_savepoint' );
+
 tests_add_filter(
 	'muplugins_loaded',
 	static function () use ( $tsmlt_plugin_dir ) {

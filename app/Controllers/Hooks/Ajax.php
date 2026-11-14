@@ -558,9 +558,16 @@ class Ajax {
 			// Spawn WP-Cron immediately so the first tick fires now instead of
 			// waiting for the next incoming request. Non-blocking — we don't
 			// care about the response, only that wp-cron.php is poked.
-			spawn_cron();
+			if ( ! is_wp_error( $status ) ) {
+				spawn_cron();
+			}
 		} finally {
 			ScanStartLock::instance()->release( $lock );
+		}
+
+		// Not started (the database cannot run scans safely): say why.
+		if ( is_wp_error( $status ) ) {
+			wp_send_json_error( [ 'message' => esc_html( $status->get_error_message() ) ], 500 );
 		}
 
 		$this->send( $status );

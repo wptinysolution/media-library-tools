@@ -85,6 +85,8 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => __DIR__ . '/app/Modules/Regenerate/RegenerateThumbnails.php',
 		'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => __DIR__ . '/app/Modules/Rename/RenameModule.php',
 		'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/app/Modules/Rubbish/RubbishScanner.php',
+		'TinySolutions\\mlt\\Modules\\UsedWhere\\BatchTransaction' => __DIR__ . '/app/Modules/UsedWhere/BatchTransaction.php',
+		'TinySolutions\\mlt\\Modules\\UsedWhere\\ScanBatchLock' => __DIR__ . '/app/Modules/UsedWhere/ScanBatchLock.php',
 		'TinySolutions\\mlt\\Modules\\UsedWhere\\ScanStartLock' => __DIR__ . '/app/Modules/UsedWhere/ScanStartLock.php',
 		'TinySolutions\\mlt\\Modules\\UsedWhere\\UsageClassifier' => __DIR__ . '/app/Modules/UsedWhere/UsageClassifier.php',
 		'TinySolutions\\mlt\\Modules\\UsedWhere\\UsedWhereScanner' => __DIR__ . '/app/Modules/UsedWhere/UsedWhereScanner.php',

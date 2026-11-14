@@ -158,6 +158,30 @@ class UsedWhereScanner {
 	private $usages_buffer = [];
 
 	/**
+	 * Whether a cron batch is processing: permalink fingerprints and the
+	 * option-scan cache are then kept here and saved with the batch's usage
+	 * records in its transaction (persist_batch()), not written while the
+	 * batch processes.
+	 *
+	 * @var bool
+	 */
+	private $defer_writes = false;
+
+	/**
+	 * Permalink fingerprints to save with the batch, by post ID.
+	 *
+	 * @var array<int, string>
+	 */
+	private $pending_fingerprints = [];
+
+	/**
+	 * Option-scan cache to save with the batch, or null.
+	 *
+	 * @var array|null
+	 */
+	private $pending_option_cache = null;
+
+	/**
 	 * Site-wide URL→attachment_id lookup map, built once per batch.
 	 * Keys are relative paths (after /uploads/), values are attachment IDs.
 	 *
@@ -616,13 +640,15 @@ class UsedWhereScanner {
 	 * tick handler. Does not touch the scan status option; the caller writes
 	 * status so the polling UI sees consistent state.
 	 *
-	 * @param int  $offset           Offset into the post list.
-	 * @param int  $batch_size       Max posts to process this tick.
-	 * @param bool $detect_sitewide  Whether to run sitewide detection (favicon, logo) — only the first batch.
+	 * @param int         $offset          Offset into the post list.
+	 * @param int         $batch_size      Max posts to process this tick.
+	 * @param bool        $detect_sitewide Whether to run sitewide detection (favicon, logo) — only the first batch.
+	 * @param string|null $scan_id         Scan this cron batch belongs to; when given, nothing is saved
+	 *                                     here (the caller saves the batch in its transaction).
 	 *
 	 * @return array{processed: int, total: int, complete: bool}
 	 */
-	public function process_batch( int $offset, int $batch_size, bool $detect_sitewide ): array {
+	public function process_batch( int $offset, int $batch_size, bool $detect_sitewide, ?string $scan_id = null ): array {
 		$post_types = $this->get_scannable_post_types();
 
 		// Compute totals up front so the progress denominator includes both
@@ -718,8 +744,12 @@ class UsedWhereScanner {
 
 		// Flush buffer: save usages to post meta and set post_parent.
 		// On the first batch the start handler already wiped existing usage
-		// meta, so skip the per-attachment read-merge step entirely.
-		$this->flush_usages_buffer( 0 === $offset );
+		// meta, so skip the per-attachment read-merge step entirely. A cron
+		// batch (with a scan ID) saves nothing here: run_tick_batch() saves
+		// the buffer in the batch's transaction, only while it owns the scan.
+		if ( null === $scan_id ) {
+			$this->flush_usages_buffer( 0 === $offset );
+		}
 
 		// Free batch-scoped caches; they'll be rebuilt on the next batch.
 		$this->url_lookup_map = null;
@@ -897,7 +927,11 @@ class UsedWhereScanner {
 		// Stamp the fingerprint only after a successful extraction so a
 		// transient HTTP failure doesn't poison future scans.
 		if ( $fingerprint ) {
-			update_post_meta( $post->ID, '_tsmlt_permalink_fp', $fingerprint );
+			if ( $this->defer_writes ) {
+				$this->pending_fingerprints[ $post->ID ] = $fingerprint;
+			} else {
+				update_post_meta( $post->ID, '_tsmlt_permalink_fp', $fingerprint );
+			}
 		}
 	}
 
@@ -1685,21 +1719,7 @@ class UsedWhereScanner {
 			// the first batch because clear_all_usage_meta() just wiped the
 			// keyspace — the read would always come back empty.
 			if ( ! $is_first_batch ) {
-				$existing = get_post_meta( $attachment_id, self::META_KEY, true );
-				if ( ! empty( $existing ) && is_array( $existing ) ) {
-					// Deduplicate by key.
-					$existing_keys = [];
-					foreach ( $existing as $item ) {
-						$existing_keys[ $item['post_id'] . ':' . $item['usage_type'] ] = true;
-					}
-					foreach ( $new_usages as $item ) {
-						$k = $item['post_id'] . ':' . $item['usage_type'];
-						if ( ! isset( $existing_keys[ $k ] ) ) {
-							$existing[] = $item;
-						}
-					}
-					$new_usages = $existing;
-				}
+				$new_usages = self::merge_usages( get_post_meta( $attachment_id, self::META_KEY, true ), $new_usages );
 			}
 
 			update_post_meta( $attachment_id, self::META_KEY, $new_usages );
@@ -1716,6 +1736,65 @@ class UsedWhereScanner {
 		}
 
 		$this->usages_buffer = [];
+	}
+
+	/**
+	 * Save the usages buffer in the open batch transaction: usage records,
+	 * then the parent of each unattached attachment (the same rules as
+	 * flush_usages_buffer()).
+	 *
+	 * @param bool $is_first_batch Whether this is the first batch (no merge:
+	 *                             the start cleared all usage records).
+	 *
+	 * @return void
+	 *
+	 * @throws \RuntimeException On a database error.
+	 */
+	private function persist_usages_buffer( bool $is_first_batch ): void {
+		$transaction = BatchTransaction::instance();
+		foreach ( $this->usages_buffer as $attachment_id => $entries ) {
+			$new_usages = array_values( $entries );
+			if ( ! $is_first_batch ) {
+				$new_usages = self::merge_usages( $transaction->get_meta( $attachment_id, self::META_KEY ), $new_usages );
+			}
+			$transaction->put_meta( $attachment_id, self::META_KEY, $new_usages );
+
+			if ( ! (int) get_post_field( 'post_parent', $attachment_id ) ) {
+				$parent_post_id = self::owning_parent_post_id( $new_usages );
+				if ( $parent_post_id && self::can_be_parent( $parent_post_id ) ) {
+					$transaction->set_parent( $attachment_id, $parent_post_id );
+				}
+			}
+		}
+
+		$this->usages_buffer = [];
+	}
+
+	/**
+	 * Add new usages to an attachment's saved ones, skipping any already
+	 * saved (same post and usage type).
+	 *
+	 * @param mixed $existing   Saved usages.
+	 * @param array $new_usages New usages.
+	 *
+	 * @return array
+	 */
+	private static function merge_usages( $existing, array $new_usages ): array {
+		if ( empty( $existing ) || ! is_array( $existing ) ) {
+			return $new_usages;
+		}
+		// Deduplicate by key.
+		$existing_keys = [];
+		foreach ( $existing as $item ) {
+			$existing_keys[ $item['post_id'] . ':' . $item['usage_type'] ] = true;
+		}
+		foreach ( $new_usages as $item ) {
+			$k = $item['post_id'] . ':' . $item['usage_type'];
+			if ( ! isset( $existing_keys[ $k ] ) ) {
+				$existing[] = $item;
+			}
+		}
+		return $existing;
 	}
 
 	/**
@@ -2140,9 +2219,8 @@ class UsedWhereScanner {
 	const SCAN_TICK_HOOK = 'tsmlt_used_where_scan_tick';
 
 	/**
-	 * Transient key used to serialise concurrent tick handlers. WP-Cron can fire
-	 * the same scheduled event twice on simultaneous incoming requests; the
-	 * lock makes the second one bail.
+	 * Transient key of the batch lock used before ScanBatchLock (owner-only,
+	 * stored in its own options row) replaced it. No longer read or written.
 	 */
 	const SCAN_LOCK_KEY = 'tsmlt_used_where_scan_lock';
 
@@ -2215,16 +2293,17 @@ class UsedWhereScanner {
 
 		// Stall recovery. If the scan is meant to be active but no tick has
 		// run for a while (server restart, worker crash, cron not firing,
-		// loopback blocked), heal it: drop any stale lock and re-arm the
-		// chain with a fresh single event. Cheap because get_scan_status is
+		// loopback blocked), heal it: re-arm the chain with a fresh single
+		// event. Cheap because get_scan_status is
 		// called by the polling UI every few seconds — recovery happens
 		// automatically the next time the admin has the page open.
 		if ( in_array( $state, [ 'queued', 'running' ], true ) && ! empty( $status['last_tick_at'] ) ) {
 			$last_tick_ts = (int) strtotime( get_gmt_from_date( (string) $status['last_tick_at'] ) );
 			$stalled_secs = $last_tick_ts > 0 ? ( time() - $last_tick_ts ) : 0;
-			// 3 minutes without progress is well past any healthy tick.
+			// 3 minutes without progress is well past any healthy tick. The
+			// batch lock is left to its owner; a lock left by a dead worker is
+			// taken over by the next batch (ScanBatchLock::SECONDS).
 			if ( $stalled_secs > 180 ) {
-				delete_transient( self::SCAN_LOCK_KEY );
 				$next_offset = (int) ( $status['next_offset'] ?? 0 );
 				wp_schedule_single_event( time() + 1, self::SCAN_TICK_HOOK, [ $next_offset ] );
 				if ( function_exists( 'spawn_cron' ) ) {
@@ -2307,9 +2386,19 @@ class UsedWhereScanner {
 	 * scan completes or is cancelled. Safe to call when a scan is already
 	 * running — it will hard-restart from offset 0.
 	 *
-	 * @return array Status snapshot for the response.
+	 * Refuses to start (changing nothing) unless the options, postmeta and
+	 * posts tables are InnoDB: batches save in transactions that rely on
+	 * InnoDB's transactions and row locks.
+	 *
+	 * @return array|\WP_Error Status snapshot for the response, or the reason
+	 *                         the scan cannot start.
 	 */
-	public function start_scheduled_scan(): array {
+	public function start_scheduled_scan() {
+		$unsupported = $this->unsupported_database_error();
+		if ( $unsupported ) {
+			return $unsupported;
+		}
+
 		// Cancel any in-flight scan so we don't race the old tick chain.
 		$this->cancel_scheduled_scan();
 
@@ -2397,11 +2486,43 @@ class UsedWhereScanner {
 	}
 
 	/**
+	 * The error to report when scan batches cannot be saved safely here: a
+	 * table they write to is not InnoDB, or the storage engines cannot be
+	 * read.
+	 *
+	 * @return \WP_Error|null
+	 */
+	private function unsupported_database_error(): ?\WP_Error {
+		$tables = BatchTransaction::unsupported_tables();
+		if ( null === $tables ) {
+			return new \WP_Error(
+				'tsmlt_usage_scan_database_unchecked',
+				__( 'The usage scan could not check the database tables it needs. Try again; if this keeps happening, ask your host to check the database.', 'media-library-tools' )
+			);
+		}
+		if ( $tables ) {
+			return new \WP_Error(
+				'tsmlt_usage_scan_database_unsupported',
+				sprintf(
+					/* translators: %s: database table names. */
+					__( 'The usage scan needs these database tables to use the InnoDB storage engine: %s. Ask your host to convert them to InnoDB, then start the scan again.', 'media-library-tools' ),
+					implode( ', ', $tables )
+				)
+			);
+		}
+		return null;
+	}
+
+	/**
 	 * Run one batch tick and reschedule the next.
 	 *
-	 * Invoked by WP-Cron for the SCAN_TICK_HOOK action. Uses a transient lock
-	 * to prevent two simultaneous workers from racing on the same offset, and
-	 * bails cleanly if the user has cancelled the scan.
+	 * Invoked by WP-Cron for the SCAN_TICK_HOOK action. The batch lock
+	 * (ScanBatchLock) keeps two workers from doing the same work; the batch
+	 * only proceeds while its scan is active and still expects this offset.
+	 * Posts are fetched and parsed with nothing written; the results are then
+	 * saved in one transaction that first claims the scan's status
+	 * (persist_batch()), and the next batch is scheduled only after it
+	 * commits.
 	 *
 	 * @param int $offset Offset to process this tick.
 	 *
@@ -2416,50 +2537,53 @@ class UsedWhereScanner {
 		if ( ! in_array( $state, [ 'queued', 'running' ], true ) ) {
 			return;
 		}
+		// The scan this batch belongs to; checked again before anything is
+		// written, so a batch never changes a scan cancelled, cleared or
+		// restarted while it ran.
+		$scan_id = (string) ( $status['scan_id'] ?? '' );
 
-		// Concurrency guard. The lock value is the unix timestamp it was set
-		// at, so we can age-check it: if the lock is older than 90s it almost
-		// certainly belongs to a worker that died (server restart, OOM,
-		// timeout) — proceed and overwrite. Catches the case where a normal
-		// transient TTL expiration would still leave us blocked for up to
-		// 120s after a real worker died.
-		$lock = get_transient( self::SCAN_LOCK_KEY );
-		if ( $lock && ( time() - (int) $lock ) < 90 ) {
-			return; // another worker is genuinely running
+		// Concurrency guard, released only by its owner. A lock left by a
+		// worker that died (server restart, OOM, timeout) is taken over after
+		// ScanBatchLock::SECONDS.
+		$lock = ScanBatchLock::instance()->acquire();
+		if ( ! is_string( $lock ) ) {
+			// Another worker holds it (or it could not be read): try this
+			// batch again later, so a scan started while an old batch is
+			// finishing does not wait for stall recovery. A duplicate of a
+			// batch that runs meanwhile finds its offset taken and stops.
+			if ( (int) ( $status['next_offset'] ?? 0 ) === $offset ) {
+				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $offset ] );
+			}
+			return;
 		}
-		set_transient( self::SCAN_LOCK_KEY, time(), 120 );
 
 		try {
-			$this->update_scan_status( [
-				'state'        => 'running',
-				'last_tick_at' => current_time( 'mysql' ),
-			] );
+			// Cancelled, cleared, restarted or this offset already done since
+			// the read above: stop.
+			$marked = $this->claim_scan_status(
+				$scan_id,
+				[
+					'state'        => 'running',
+					'last_tick_at' => current_time( 'mysql' ),
+				],
+				$offset
+			);
+			if ( ! $marked ) {
+				return;
+			}
 
-			$result = $this->process_batch( $offset, $this->tick_batch_size(), 0 === $offset );
+			$this->defer_writes = true;
+			$result             = $this->process_batch( $offset, $this->tick_batch_size(), 0 === $offset, $scan_id );
+
+			// Cancelled, cleared or restarted meanwhile: save nothing, write
+			// no status and schedule no next batch.
+			if ( ! $this->is_current_scan( $scan_id ) ) {
+				return;
+			}
 
 			$next_offset = (int) $result['processed'];
 			$total       = (int) $result['total'];
 			$complete    = (bool) $result['complete'];
-
-			// Final-batch reconciliation pass. Removes incidental
-			// `permalink` / `rendered` usages on posts that don't actually
-			// own the image — these come from related-products widgets,
-			// schema markup, lazy-load placeholders, sidebar widgets, etc.
-			// Runs once when the last batch finishes; cheap because it
-			// touches only attachments that have an owning + incidental mix.
-			if ( $complete ) {
-				// Threshold heuristic FIRST: any image that appears via
-				// permalink / rendered on a large share of scanned posts —
-				// and has no owning or already-known sitewide signal — is
-				// almost certainly chrome stored in a custom plugin/theme
-				// option (header logo, footer banner, theme builder
-				// template image, ACF options field, etc.). Tag it as
-				// site-wide (`option_settings`) so reconcile_incidental_usages()
-				// below drops every per-post permalink/rendered entry via its
-				// existing `$has_sitewide` branch.
-				$this->reclassify_pervasive_as_sitewide( $total );
-				$this->reconcile_incidental_usages();
-			}
 
 			// A batch that runs where the start did not (WooCommerce turned off
 			// meanwhile) adds its gaps to this run's coverage record.
@@ -2469,15 +2593,22 @@ class UsedWhereScanner {
 				$coverage['coverage_gaps'] = array_values( array_unique( array_merge( $stored, $this->coverage_gaps() ) ) );
 			}
 
-			$this->update_scan_status( $coverage + [
-				'processed'   => $next_offset,
-				'total'       => $total,
-				'next_offset' => $next_offset,
-				'state'       => $complete ? 'complete' : 'running',
-				'complete'    => $complete,
-			] );
+			$saved = $this->persist_batch(
+				$scan_id,
+				$offset,
+				$coverage + [
+					'processed'   => $next_offset,
+					'total'       => $total,
+					'next_offset' => $next_offset,
+					'state'       => $complete ? 'complete' : 'running',
+					'complete'    => $complete,
+				]
+			);
 
-			if ( ! $complete ) {
+			// The next batch is scheduled only by the batch whose results were
+			// committed: not after a Cancel, Clear Results or Re-scan, not by
+			// a duplicate batch, nor when saving failed.
+			if ( $saved && ! $complete ) {
 				// Schedule the next tick. Small delay lets WP-Cron interleave
 				// other work and prevents tight-loop pile-ups on busy sites.
 				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $next_offset ] );
@@ -2494,12 +2625,300 @@ class UsedWhereScanner {
 				}
 			}
 		} catch ( \Throwable $e ) {
-			$this->update_scan_status( [
-				'state'      => 'error',
-				'last_error' => $e->getMessage(),
-			] );
+			$this->claim_scan_status(
+				$scan_id,
+				[
+					'state'      => 'error',
+					'last_error' => $e->getMessage(),
+				],
+				$offset
+			);
 		} finally {
-			delete_transient( self::SCAN_LOCK_KEY );
+			if ( BatchTransaction::instance()->is_active() ) {
+				BatchTransaction::instance()->rollback();
+			}
+			$this->defer_writes         = false;
+			$this->pending_fingerprints = [];
+			$this->pending_option_cache = null;
+			$this->usages_buffer        = [];
+			ScanBatchLock::instance()->release( $lock );
+		}
+	}
+
+	/**
+	 * Save a batch in one transaction, only while it owns the scan.
+	 *
+	 * The transaction's first statement is the status write: an UPDATE that
+	 * must still find the exact status read (the batch's scan, active, and
+	 * expecting this batch's offset). It locks the status row until COMMIT,
+	 * so a Cancel, Clear Results or Re-scan, which all write that row, waits
+	 * for the batch to save everything or nothing, and of two batches for
+	 * the same offset only one can save. The usage records, attachment
+	 * parents, permalink fingerprints, option-scan cache and, on the last
+	 * batch, the completion cleanup follow. Any database error rolls it all
+	 * back. When another field of the same scan was written meanwhile, the
+	 * claim is tried again (three attempts).
+	 *
+	 * @param string $scan_id Scan ID read when the batch started.
+	 * @param int    $offset  This batch's offset.
+	 * @param array  $changes Status fields to write.
+	 *
+	 * @return bool Whether the batch was saved and committed.
+	 *
+	 * @throws \Throwable An error other than a database error (rolled back).
+	 */
+	private function persist_batch( string $scan_id, int $offset, array $changes ): bool {
+		$option      = 'tsmlt_used_where_scan_status';
+		$transaction = BatchTransaction::instance();
+
+		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+			$stored  = $this->read_scan_status_row();
+			$current = self::active_scan_status( $stored, $scan_id );
+			if ( null === $current || (int) ( $current['next_offset'] ?? 0 ) !== $offset ) {
+				return false;
+			}
+			$next              = array_merge( $current, $changes );
+			$next['timestamp'] = current_time( 'mysql' );
+			$value             = maybe_serialize( $next );
+
+			if ( ! $transaction->begin() ) {
+				return false;
+			}
+			try {
+				if ( ! $this->claim_status_row( $stored, $value ) ) {
+					// Changed since the read: roll back and read it again.
+					$transaction->rollback();
+					continue;
+				}
+
+				$this->persist_usages_buffer( 0 === $offset );
+				foreach ( $this->pending_fingerprints as $post_id => $fingerprint ) {
+					$transaction->put_meta( (int) $post_id, '_tsmlt_permalink_fp', $fingerprint );
+				}
+				if ( null !== $this->pending_option_cache ) {
+					$transaction->set_transient( self::OPTION_SCAN_CACHE_KEY, $this->pending_option_cache, DAY_IN_SECONDS );
+				}
+
+				// Final-batch reconciliation pass. Removes incidental
+				// `permalink` / `rendered` usages on posts that don't actually
+				// own the image — these come from related-products widgets,
+				// schema markup, lazy-load placeholders, sidebar widgets, etc.
+				// Runs once when the last batch finishes; cheap because it
+				// touches only attachments that have an owning + incidental mix.
+				if ( ! empty( $changes['complete'] ) ) {
+					// Threshold heuristic FIRST: any image that appears via
+					// permalink / rendered on a large share of scanned posts —
+					// and has no owning or already-known sitewide signal — is
+					// almost certainly chrome stored in a custom plugin/theme
+					// option (header logo, footer banner, theme builder
+					// template image, ACF options field, etc.). Tag it as
+					// site-wide (`option_settings`) so reconcile_incidental_usages()
+					// below drops every per-post permalink/rendered entry via its
+					// existing `$has_sitewide` branch.
+					$this->reclassify_pervasive_as_sitewide( (int) $changes['total'] );
+					$this->reconcile_incidental_usages();
+				}
+
+				if ( ! $transaction->commit() ) {
+					self::forget_cached_scan_status();
+					return false;
+				}
+			} catch ( \Throwable $e ) {
+				$transaction->rollback();
+				self::forget_cached_scan_status();
+				if ( BatchTransaction::is_database_error( $e ) ) {
+					return false;
+				}
+				throw $e;
+			}
+
+			self::forget_cached_scan_status();
+			do_action( "update_option_{$option}", $current, $next, $option ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Core's option hook.
+			do_action( 'updated_option', $option, $current, $next ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's option hook.
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Write the scan status in the open transaction, only if the row still
+	 * holds the value read, which locks the row until the transaction ends.
+	 *
+	 * @param string $stored Value read.
+	 * @param string $value  New value.
+	 *
+	 * @return bool Whether the row now holds the new value under this
+	 *              transaction's lock.
+	 *
+	 * @throws \RuntimeException On a database error.
+	 */
+	private function claim_status_row( string $stored, string $value ): bool {
+		global $wpdb;
+		Fns::DB()->update( 'options', [ 'option_value' => $value ] )
+			->where( 'option_name', '=', 'tsmlt_used_where_scan_status' )
+			->andWhere( 'option_value', '=', $stored )
+			->execute();
+		BatchTransaction::check();
+		if ( 1 === (int) $wpdb->rows_affected ) {
+			return true;
+		}
+
+		// No row changed: either the value already was the new one (the row
+		// matched, and is locked), or the row changed since the read.
+		if ( $stored !== $value ) {
+			return false;
+		}
+		$rows = Fns::DB()->select( 'option_value' )
+			->from( 'options' )
+			->where( 'option_name', '=', 'tsmlt_used_where_scan_status' )
+			->get();
+		BatchTransaction::check();
+		return isset( $rows[0]['option_value'] ) && $value === (string) $rows[0]['option_value'];
+	}
+
+	/**
+	 * Whether a scan is still the current, active one: the status stored in
+	 * the database (not a copy cached earlier in this request) is queued or
+	 * running and has the same scan ID. A status that cannot be read counts
+	 * as not current.
+	 *
+	 * @param string $scan_id Scan ID read when the batch started ('' for a
+	 *                        status written before scan IDs existed).
+	 *
+	 * @return bool
+	 */
+	private function is_current_scan( string $scan_id ): bool {
+		return null !== self::active_scan_status( $this->read_scan_status_row(), $scan_id );
+	}
+
+	/**
+	 * Merge changes into the scan status, only while the scan is still the
+	 * current, active one.
+	 *
+	 * The write is an UPDATE that must still find the exact value just read
+	 * from the database, so a Cancel, Clear Results or Re-scan stored between
+	 * the read and the write makes it change nothing, and of two batches only
+	 * one can write over the same value. When the value changed but the scan
+	 * is still current (another field was written), the read and the write
+	 * are tried again. A database error counts as not written. Like
+	 * update_option(), a write fires the option's update actions.
+	 *
+	 * @param string   $scan_id Scan ID read when the batch started.
+	 * @param array    $changes Fields to merge in.
+	 * @param int|null $offset  When given, the status must also still
+	 *                          expect this batch offset (`next_offset`).
+	 *
+	 * @return bool Whether the status now holds the changes.
+	 */
+	private function claim_scan_status( string $scan_id, array $changes, ?int $offset = null ): bool {
+		global $wpdb;
+		$option = 'tsmlt_used_where_scan_status';
+
+		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+			$stored  = $this->read_scan_status_row();
+			$current = self::active_scan_status( $stored, $scan_id );
+			if ( null === $current || ( null !== $offset && (int) ( $current['next_offset'] ?? 0 ) !== $offset ) ) {
+				return false;
+			}
+			$next              = array_merge( $current, $changes );
+			$next['timestamp'] = current_time( 'mysql' );
+			$value             = maybe_serialize( $next );
+
+			try {
+				// The query builder's update does not return the row count.
+				Fns::DB()->update( 'options', [ 'option_value' => $value ] )
+					->where( 'option_name', '=', $option )
+					->andWhere( 'option_value', '=', $stored )
+					->execute();
+				$updated = '' === (string) $wpdb->last_error ? (int) $wpdb->rows_affected : false;
+			} catch ( \Throwable $e ) {
+				$updated = false;
+			}
+			self::forget_cached_scan_status();
+
+			if ( false === $updated ) {
+				return false;
+			}
+			if ( 1 === $updated ) {
+				do_action( "update_option_{$option}", $current, $next, $option ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Core's option hook.
+				do_action( 'updated_option', $option, $current, $next ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's option hook.
+				return true;
+			}
+			// No row changed: the stored value already is the new one (same
+			// fields within the same second), or another request changed it.
+			if ( $this->read_scan_status_row() === $value ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The scan status stored in the database, not a copy cached earlier in
+	 * this request.
+	 *
+	 * @return string|null|false The stored value; null when there is no
+	 *                           status; false on a database error.
+	 */
+	private function read_scan_status_row() {
+		global $wpdb;
+		self::forget_cached_scan_status();
+
+		try {
+			$rows = Fns::DB()->select( 'option_value' )
+				->from( 'options' )
+				->where( 'option_name', '=', 'tsmlt_used_where_scan_status' )
+				->get();
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+		if ( '' !== (string) $wpdb->last_error || ! is_array( $rows ) ) {
+			return false;
+		}
+
+		return isset( $rows[0]['option_value'] ) ? (string) $rows[0]['option_value'] : null;
+	}
+
+	/**
+	 * A stored scan status, when it is queued or running with the given scan
+	 * ID.
+	 *
+	 * @param string|null|false $stored  Stored value (see read_scan_status_row()).
+	 * @param string            $scan_id Scan ID.
+	 *
+	 * @return array|null The status, or null when it is not that active scan.
+	 */
+	private static function active_scan_status( $stored, string $scan_id ): ?array {
+		if ( ! is_string( $stored ) ) {
+			return null;
+		}
+		$status = maybe_unserialize( $stored );
+		if ( ! is_array( $status )
+			|| ! in_array( (string) ( $status['state'] ?? '' ), [ 'queued', 'running' ], true )
+			|| (string) ( $status['scan_id'] ?? '' ) !== $scan_id ) {
+			return null;
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Drop cached copies of the scan status, so the next read and
+	 * get_option() see what is in the database.
+	 *
+	 * @return void
+	 */
+	private static function forget_cached_scan_status(): void {
+		$option = 'tsmlt_used_where_scan_status';
+		wp_cache_delete( $option, 'options' );
+		foreach ( [ 'alloptions', 'notoptions' ] as $key ) {
+			$cached = wp_cache_get( $key, 'options' );
+			if ( is_array( $cached ) && isset( $cached[ $option ] ) ) {
+				unset( $cached[ $option ] );
+				wp_cache_set( $key, $cached, 'options' );
+			}
 		}
 	}
 
@@ -2516,9 +2935,9 @@ class UsedWhereScanner {
 		// Remove every queued tick for this hook, regardless of args.
 		wp_unschedule_hook( self::SCAN_TICK_HOOK );
 
-		// Drop the lock so a stuck worker can't keep the scan "running".
-		delete_transient( self::SCAN_LOCK_KEY );
-
+		// The batch lock is left to its owner: a batch still running finds
+		// the scan cancelled and saves nothing. The status write below waits
+		// while a batch is saving (its transaction locks the status row).
 		$status = get_option( 'tsmlt_used_where_scan_status', [] );
 		$state  = (string) ( $status['state'] ?? 'idle' );
 		if ( in_array( $state, [ 'queued', 'running' ], true ) ) {
@@ -2537,16 +2956,20 @@ class UsedWhereScanner {
 	 * @return array
 	 */
 	public function clear_scan(): array {
+		// Delete the status first. A batch saving right now holds the status
+		// row's lock, so this waits until it has committed (its records are
+		// then wiped below); a batch that saves later no longer owns a scan
+		// and saves nothing. The batch lock is left to its owner.
+		delete_option( 'tsmlt_used_where_scan_status' );
+
 		// Stop any cron-driven scan in flight before wiping data.
 		wp_unschedule_hook( self::SCAN_TICK_HOOK );
-		delete_transient( self::SCAN_LOCK_KEY );
 
 		// Drop the cached option-scan result so the next run does a full
 		// `wp_options` sweep — the user explicitly asked for fresh data.
 		delete_transient( self::OPTION_SCAN_CACHE_KEY );
 
 		$this->clear_all_usage_meta();
-		delete_option( 'tsmlt_used_where_scan_status' );
 
 		// Clear frontend visit tracking flags so posts get re-scanned on next visit.
 		Fns::DB()->delete( 'postmeta' )
@@ -2730,6 +3153,8 @@ class UsedWhereScanner {
 	 * @param int $total_scanned Total posts processed in this scan.
 	 *
 	 * @return void
+	 *
+	 * @throws \RuntimeException On a database error (it runs in the batch transaction).
 	 */
 	private function reclassify_pervasive_as_sitewide( int $total_scanned ): void {
 		/**
@@ -2762,6 +3187,7 @@ class UsedWhereScanner {
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', self::META_KEY )
 			->get();
+		BatchTransaction::check();
 
 		if ( empty( $rows ) ) {
 			return;
@@ -2816,7 +3242,7 @@ class UsedWhereScanner {
 				'usage_type' => 'option_settings',
 			];
 
-			update_post_meta( $attachment_id, self::META_KEY, $usages );
+			BatchTransaction::instance()->put_meta( $attachment_id, self::META_KEY, $usages );
 		}
 	}
 
@@ -2846,12 +3272,15 @@ class UsedWhereScanner {
 	 * owning usages (nothing to drop).
 	 *
 	 * @return void
+	 *
+	 * @throws \RuntimeException On a database error (it runs in the batch transaction).
 	 */
 	private function reconcile_incidental_usages(): void {
 		$attached_rows = Fns::DB()->select( 'post_id', 'meta_value' )
 			->from( 'postmeta' )
 			->where( 'meta_key', '=', self::META_KEY )
 			->get();
+		BatchTransaction::check();
 
 		if ( empty( $attached_rows ) ) {
 			return;
@@ -2932,9 +3361,9 @@ class UsedWhereScanner {
 			}
 
 			if ( empty( $cleaned ) ) {
-				delete_post_meta( $attachment_id, self::META_KEY );
+				BatchTransaction::instance()->delete_meta( $attachment_id, self::META_KEY );
 			} else {
-				update_post_meta( $attachment_id, self::META_KEY, array_values( $cleaned ) );
+				BatchTransaction::instance()->put_meta( $attachment_id, self::META_KEY, array_values( $cleaned ) );
 			}
 		}
 	}
@@ -3040,11 +3469,7 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	private function attach_if_unattached( int $attachment_id, int $post_id ): void {
-		if ( $post_id < 1 || (int) get_post_field( 'post_parent', $attachment_id ) ) {
-			return;
-		}
-		$post = get_post( $post_id );
-		if ( ! $post instanceof \WP_Post || in_array( $post->post_type, [ 'attachment', 'revision' ], true ) ) {
+		if ( (int) get_post_field( 'post_parent', $attachment_id ) || ! self::can_be_parent( $post_id ) ) {
 			return;
 		}
 		wp_update_post(
@@ -3053,6 +3478,22 @@ class UsedWhereScanner {
 				'post_parent' => $post_id,
 			]
 		);
+	}
+
+	/**
+	 * Whether a post can be an attachment's parent: it exists and is not an
+	 * attachment or revision.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return bool
+	 */
+	private static function can_be_parent( int $post_id ): bool {
+		if ( $post_id < 1 ) {
+			return false;
+		}
+		$post = get_post( $post_id );
+		return $post instanceof \WP_Post && ! in_array( $post->post_type, [ 'attachment', 'revision' ], true );
 	}
 
 	/**
@@ -3238,7 +3679,7 @@ class UsedWhereScanner {
 
 		if ( empty( $rows ) ) {
 			$this->log_debug( 'option-scan NO ROWS — caching empty set' );
-			set_transient( self::OPTION_SCAN_CACHE_KEY, [ 'sig' => $cache_signature, 'ids' => [] ], DAY_IN_SECONDS );
+			$this->save_option_scan_cache( [ 'sig' => $cache_signature, 'ids' => [] ] );
 			return;
 		}
 
@@ -3367,11 +3808,23 @@ class UsedWhereScanner {
 			implode( '; ', $debug_seen )
 		) );
 
-		set_transient(
-			self::OPTION_SCAN_CACHE_KEY,
-			[ 'sig' => $cache_signature, 'ids' => array_keys( $recorded_ids ) ],
-			DAY_IN_SECONDS
-		);
+		$this->save_option_scan_cache( [ 'sig' => $cache_signature, 'ids' => array_keys( $recorded_ids ) ] );
+	}
+
+	/**
+	 * Save the option-scan cache now, or with the batch while a cron batch
+	 * is processing.
+	 *
+	 * @param array $cache Signature and attachment IDs.
+	 *
+	 * @return void
+	 */
+	private function save_option_scan_cache( array $cache ): void {
+		if ( $this->defer_writes ) {
+			$this->pending_option_cache = $cache;
+			return;
+		}
+		set_transient( self::OPTION_SCAN_CACHE_KEY, $cache, DAY_IN_SECONDS );
 	}
 
 	/**

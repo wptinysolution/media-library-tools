@@ -200,7 +200,11 @@ class StartUsageScan extends Ability {
 				return $this->result( 'resumed' );
 			}
 
-			UsedWhereScanner::instance()->start_scheduled_scan();
+			$started = UsedWhereScanner::instance()->start_scheduled_scan();
+			if ( is_wp_error( $started ) ) {
+				// Not started (the database cannot run scans safely): say why.
+				return AbilityGuard::error( self::ERROR_START_FAILED, $started->get_error_message(), 500 );
+			}
 			$this->spawn_cron();
 			return $this->result( 'started' );
 		} catch ( \Throwable $e ) {
