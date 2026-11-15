@@ -11,6 +11,7 @@ use TinySolutions\mlt\Controllers\AI\Credentials;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Helpers\ExifFilter;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
+use TinySolutions\mlt\Modules\Trash\AdminTrash;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\Compress\CompressionSettings;
 use TinySolutions\mlt\Modules\Compress\Conversion\ConversionSettings;
@@ -622,19 +623,53 @@ class Api {
 				$result['message'] = esc_html__( 'Updated. Be happy.', 'media-library-tools' );
 				break;
 			/**
-			 * Trash or Inherit
+			 * Move to Trash, through WordPress's own trash (refused while trash
+			 * is off, as WordPress would delete instead).
 			 */
 			case 'trash':
-			case 'inherit':
-				$status = sanitize_key( $parameters['type'] );
-				foreach ( $ids as $id ) {
-					Fns::DB()->update( 'posts', [ 'post_status' => $status ] )
-						->where( 'ID', '=', $id )
-						->andWhere( 'post_type', '=', 'attachment' )
-						->execute();
+				if ( ! AdminTrash::enabled() ) {
+					$result['message'] = esc_html( AdminTrash::disabled_message() );
+					break;
 				}
-				$result['updated'] = true;
-				$result['message'] = esc_html__( 'Done. Be happy.', 'media-library-tools' );
+				$done = 0;
+				foreach ( $ids as $id ) {
+					if ( AdminTrash::trash( $id ) ) {
+						++$done;
+					}
+				}
+				$result['updated'] = count( $ids ) === $done;
+				$result['message'] = $result['updated']
+					? esc_html__( 'Done. Be happy.', 'media-library-tools' )
+					: esc_html(
+						sprintf(
+							/* translators: 1: items moved, 2: items requested. */
+							__( 'Moved %1$d of %2$d items to the trash. The others were skipped: not media, already in the trash, or you may not delete them.', 'media-library-tools' ),
+							$done,
+							count( $ids )
+						)
+					);
+				break;
+			/**
+			 * Restore, through WordPress's own wp_untrash_post().
+			 */
+			case 'inherit':
+				$done = 0;
+				foreach ( $ids as $id ) {
+					if ( AdminTrash::restore( $id ) ) {
+						++$done;
+					}
+				}
+				$result['updated'] = count( $ids ) === $done;
+				$result['message'] = $result['updated']
+					? esc_html__( 'Done. Be happy.', 'media-library-tools' )
+					: esc_html(
+						sprintf(
+							/* translators: 1: items restored, 2: items requested. */
+							__( 'Restored %1$d of %2$d items. The others were skipped: not media, not in the trash, or you may not restore them.', 'media-library-tools' ),
+							$done,
+							count( $ids )
+						)
+					);
 				break;
 			/**
 			 * Delete attachments

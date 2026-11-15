@@ -16,6 +16,7 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
+use TinySolutions\mlt\Modules\Trash\AdminTrash;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
 use TinySolutions\mlt\Modules\UsedWhere\ScanStartLock;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
@@ -769,7 +770,14 @@ class Ajax {
 		$this->send( [ 'deleted' => $deleted ] );
 	}
 
-	/** @return void */
+	/**
+	 * Move attachments to the WordPress trash (Used Where page). Refused,
+	 * with nothing changed, while trash is off (WordPress would delete
+	 * instead); otherwise each ID goes through AdminTrash, which skips
+	 * anything that is not an attachment the user may delete.
+	 *
+	 * @return void
+	 */
 	public function used_where_trash(): void {
 		$params = $this->verify_and_get_params();
 		$ids    = isset( $params['ids'] ) && is_array( $params['ids'] ) ? array_map( 'absint', $params['ids'] ) : [];
@@ -777,10 +785,13 @@ class Ajax {
 		if ( empty( $ids ) ) {
 			wp_send_json_error( [ 'message' => esc_html__( 'No IDs provided.', 'media-library-tools' ) ], 400 );
 		}
+		if ( ! AdminTrash::enabled() ) {
+			wp_send_json_error( [ 'message' => esc_html( AdminTrash::disabled_message() ) ], 409 );
+		}
 
 		$trashed = [];
 		foreach ( $ids as $attachment_id ) {
-			if ( $attachment_id > 0 && wp_trash_post( $attachment_id ) ) {
+			if ( $attachment_id > 0 && AdminTrash::trash( $attachment_id ) ) {
 				$trashed[] = $attachment_id;
 			}
 		}

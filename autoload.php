@@ -90,6 +90,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => __DIR__ . '/app/Modules/Regenerate/RegenerateThumbnails.php',
 		'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => __DIR__ . '/app/Modules/Rename/RenameModule.php',
 		'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/app/Modules/Rubbish/RubbishScanner.php',
+		'TinySolutions\\mlt\\Modules\\Trash\\AdminTrash' => __DIR__ . '/app/Modules/Trash/AdminTrash.php',
 		'TinySolutions\\mlt\\Modules\\Trash\\MediaTrash' => __DIR__ . '/app/Modules/Trash/MediaTrash.php',
 		'TinySolutions\\mlt\\Modules\\Trash\\TrashClaim' => __DIR__ . '/app/Modules/Trash/TrashClaim.php',
 		'TinySolutions\\mlt\\Modules\\UsedWhere\\BatchTransaction' => __DIR__ . '/app/Modules/UsedWhere/BatchTransaction.php',

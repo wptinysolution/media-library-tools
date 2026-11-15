@@ -328,12 +328,19 @@ export default function UsedWherePage() {
         setIsDeleting(true);
         try {
             const ids = Array.from(selectedIds);
-            await usedWhereTrash(ids);
-            setUsages(prev => prev.filter(u => !selectedIds.has(u.attachment_id)));
-            setTotalUsages(prev => prev - selectedIds.size);
-            setSelectedIds(new Set());
+            const result = await usedWhereTrash(ids);
+            // Only the IDs the server moved to the trash leave the list.
+            const trashed = new Set((Array.isArray(result?.trashed) ? result.trashed : []).map(Number));
+            setUsages(prev => prev.filter(u => !trashed.has(Number(u.attachment_id))));
+            setTotalUsages(prev => prev - trashed.size);
+            setSelectedIds(new Set(ids.filter(id => !trashed.has(Number(id)))));
+            if (trashed.size < ids.length) {
+                toast.error(`Moved ${trashed.size} of ${ids.length} images to the trash. The others were skipped: not media, already in the trash, or you may not delete them.`);
+            }
         } catch (error) {
             console.error('Error moving to trash:', error);
+            const message = (error as { response?: { data?: { data?: { message?: unknown } } } })?.response?.data?.data?.message;
+            toast.error(typeof message === 'string' && message ? message : 'The images could not be moved to the trash. Please try again.');
         } finally {
             setIsDeleting(false);
         }
