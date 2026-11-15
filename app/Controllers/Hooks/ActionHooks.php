@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\ExifData\ExifDataReader;
 use TinySolutions\mlt\Modules\ExifData\ExifAutoProcessor;
+use TinySolutions\mlt\Modules\UsedWhere\PostRescanMarker;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -79,6 +80,9 @@ class ActionHooks {
 	 *
 	 * Does NOT run the scan synchronously — zero delay for the editor.
 	 * WordPress cron picks it up on the next page load (typically within seconds).
+	 * A rescan already scheduled for the post is kept rather than cleared and
+	 * scheduled again, so there is never a moment with no rescan pending (it
+	 * reads the post when it runs, so it covers this save too).
 	 *
 	 * @param int      $post_id Post ID.
 	 * @param \WP_Post $post    Post object.
@@ -100,8 +104,10 @@ class ActionHooks {
 		// Reset the frontend visit flag so the next visit re-scans rendered HTML.
 		delete_post_meta( $post_id, '_tsmlt_usage_tracked' );
 
-		// Clear any previously scheduled scan for this post (avoid duplicates).
-		wp_clear_scheduled_hook( 'tsmlt_scan_post_usage', [ $post_id ] );
+		// A rescan already pending for this post covers this save too.
+		if ( false !== wp_next_scheduled( 'tsmlt_scan_post_usage', [ $post_id ] ) ) {
+			return;
+		}
 
 		// Schedule scan to run in background after a short delay.
 		// +10 seconds avoids firing during the immediate post-save redirect.
@@ -110,6 +116,12 @@ class ActionHooks {
 
 	/**
 	 * Background cron handler: scan a single post for image usage.
+	 *
+	 * The rescan removes the post's usage records before rebuilding them, so
+	 * it runs only while marked as running (PostRescanMarker), and the marker
+	 * is removed however it ends. When the marker cannot be stored, the
+	 * rescan is not run unmarked: it is scheduled again for a minute later
+	 * and the post's records stay as they are.
 	 *
 	 * @param int $post_id Post ID.
 	 *
@@ -121,7 +133,16 @@ class ActionHooks {
 			return;
 		}
 
-		UsedWhereScanner::instance()->scan_single_post( $post_id );
+		$marker = PostRescanMarker::start();
+		if ( null === $marker ) {
+			wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'tsmlt_scan_post_usage', [ $post_id ] );
+			return;
+		}
+		try {
+			UsedWhereScanner::instance()->scan_single_post( $post_id );
+		} finally {
+			PostRescanMarker::finish( $marker );
+		}
 	}
 
 	/**

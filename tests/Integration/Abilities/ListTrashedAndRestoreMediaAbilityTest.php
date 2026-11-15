@@ -16,6 +16,7 @@ use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\Media\ListTrashedMedia;
 use TinySolutions\mlt\Abilities\Media\RestoreMedia;
 use TinySolutions\mlt\Modules\Trash\MediaTrash;
+use TinySolutions\mlt\Modules\Trash\TrashClaim;
 
 /**
  * ListTrashedAndRestoreMediaAbilityTest
@@ -58,6 +59,21 @@ class ListTrashedAndRestoreMediaAbilityTest extends WP_UnitTestCase {
 	private $blocked = [];
 
 	/**
+	 * Post ID whose UPDATE of wp_posts fails (0 for none).
+	 *
+	 * @var int
+	 */
+	private $fail_update = 0;
+
+	/**
+	 * What a simulated admin does during a restore: 'restore_first' or
+	 * 'trash_after' ('' for nothing).
+	 *
+	 * @var string
+	 */
+	private $interfere = '';
+
+	/**
 	 * Statements other than reads sent while observing.
 	 *
 	 * @var string[]
@@ -90,6 +106,9 @@ class ListTrashedAndRestoreMediaAbilityTest extends WP_UnitTestCase {
 		remove_filter( 'map_meta_cap', [ $this, 'deny_caps' ], 10 );
 		remove_filter( 'pre_untrash_post', [ $this, 'block_restore' ], 10 );
 		remove_filter( 'query', [ $this, 'record_query' ] );
+		remove_filter( 'query', [ $this, 'break_post_update' ] );
+		remove_filter( 'pre_untrash_post', [ $this, 'admin_restores_first' ], 5 );
+		remove_action( 'untrashed_post', [ $this, 'admin_trashes_after' ], 5 );
 		parent::tear_down();
 	}
 
@@ -144,6 +163,51 @@ class ListTrashedAndRestoreMediaAbilityTest extends WP_UnitTestCase {
 			$this->writes[] = $query;
 		}
 		return $query;
+	}
+
+	/**
+	 * Make WordPress's UPDATE of $this->fail_update in wp_posts fail.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string
+	 */
+	public function break_post_update( $query ) {
+		global $wpdb;
+		if ( $this->fail_update > 0 && 0 === strpos( $query, "UPDATE `{$wpdb->posts}` SET" ) && false !== strpos( $query, "WHERE `ID` = {$this->fail_update}" ) ) {
+			return 'SELECT * FROM tsmlt_no_such_table';
+		}
+		return $query;
+	}
+
+	/**
+	 * An admin who restores the attachment just before this call does.
+	 *
+	 * @param mixed   $check Decision so far.
+	 * @param WP_Post $post  Post.
+	 *
+	 * @return mixed
+	 */
+	public function admin_restores_first( $check, $post ) {
+		global $wpdb;
+		if ( 'restore_first' === $this->interfere ) {
+			$wpdb->update( $wpdb->posts, [ 'post_status' => 'inherit' ], [ 'ID' => $post->ID ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated admin.
+			return false;
+		}
+		return $check;
+	}
+
+	/**
+	 * An admin who trashes the attachment again right after this call
+	 * restored it.
+	 *
+	 * @param int $post_id Post ID.
+	 */
+	public function admin_trashes_after( $post_id ) {
+		global $wpdb;
+		if ( 'trash_after' === $this->interfere ) {
+			$wpdb->update( $wpdb->posts, [ 'post_status' => 'trash' ], [ 'ID' => $post_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated admin.
+		}
 	}
 
 	/**
@@ -428,6 +492,68 @@ class ListTrashedAndRestoreMediaAbilityTest extends WP_UnitTestCase {
 		$this->assertSame( 'trash', self::status( $post ) );
 		$this->assertSame( 'trash', self::status( $denied ) );
 		$this->assertSame( 'trash', self::status( $stopped ) );
+	}
+
+	/**
+	 * When WordPress cannot update the attachment (no filter stopped it),
+	 * the restore is failed with update_failed, not blocked; it stays in the
+	 * trash, and the trash records wp_untrash_post() removed before its
+	 * update failed are put back, so it keeps its trash time and purge date.
+	 */
+	public function test_failed_update_is_not_reported_as_blocked() {
+		global $wpdb;
+		$id = $this->attachment( true );
+		update_post_meta( $id, '_wp_trash_meta_time', 1700000000 );
+		$this->fail_update = $id;
+		add_filter( 'query', [ $this, 'break_post_update' ] );
+		$suppressed = $wpdb->suppress_errors( true );
+
+		$result = self::call( self::RESTORE, [ 'ids' => [ $id ] ] );
+
+		$wpdb->suppress_errors( $suppressed );
+		$this->assertSame( [ 'failed', MediaTrash::REASON_UPDATE_FAILED ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'trash', self::status( $id ) );
+		$this->assertSame( '1700000000', get_post_meta( $id, '_wp_trash_meta_time', true ) );
+		$this->assertSame( 'inherit', get_post_meta( $id, '_wp_trash_meta_status', true ) );
+		$listed = array_column( self::call( self::LIST )['items'], null, 'id' );
+		$this->assertSame( gmdate( DATE_ATOM, 1700000000 ), $listed[ $id ]['trashed_at'] );
+		$this->assertCount( 1, get_post_meta( $id, '_wp_trash_meta_time' ), 'Not duplicated.' );
+	}
+
+	/**
+	 * Something else changing the attachment during a restore is never
+	 * reported as this call's success: restored by an admin first is
+	 * not_trashed; trashed again right after this call restored it is
+	 * failed, changed_during_call.
+	 */
+	public function test_concurrent_admin_changes_are_reported_accurately() {
+		$first = $this->attachment( true );
+		$after = $this->attachment( true );
+		add_filter( 'pre_untrash_post', [ $this, 'admin_restores_first' ], 5, 2 );
+		add_action( 'untrashed_post', [ $this, 'admin_trashes_after' ], 5 );
+
+		$this->interfere = 'restore_first';
+		$one             = self::call( self::RESTORE, [ 'ids' => [ $first ] ] );
+		$this->interfere = 'trash_after';
+		$two             = self::call( self::RESTORE, [ 'ids' => [ $after ] ] );
+
+		$this->assertSame( [ 'not_trashed', MediaTrash::REASON_NOT_TRASHED ], [ $one['items'][0]['result'], $one['items'][0]['reason'] ] );
+		$this->assertSame( [ 'failed', MediaTrash::REASON_CHANGED_DURING_CALL ], [ $two['items'][0]['result'], $two['items'][0]['reason'] ] );
+		$this->assertSame( 'trash', self::status( $after ) );
+	}
+
+	/**
+	 * Restore takes the same claim as trash: while another request holds it,
+	 * the item is refused as in_progress and stays in the trash.
+	 */
+	public function test_restore_respects_the_claim() {
+		$id = $this->attachment( true );
+		add_option( TrashClaim::option( $id ), ( time() + 600 ) . ':other-request', '', false );
+
+		$result = self::call( self::RESTORE, [ 'ids' => [ $id ] ] );
+
+		$this->assertSame( [ 'refused', MediaTrash::REASON_IN_PROGRESS ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'trash', self::status( $id ) );
 	}
 
 	/**

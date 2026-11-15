@@ -338,8 +338,8 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-trash-media</code></td>
-							<td><?php esc_html_e( 'Checks whether up to 20 attachments can be moved to the trash and returns a one-time confirmation token. Only media a complete, verified Used Where scan found unused qualifies; used or unknown media, the site icon and the site logo are refused. Changes no media. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Checks whether up to 20 attachments can be moved to the trash and returns a one-time confirmation token. Only media a complete, verified Used Where scan found unused qualifies, and not while a saved post\'s usage rescan is pending or running; used or unknown media, the site icon and the site logo are refused. Changes no media. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No media (stores a short-lived confirmation token)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-trash-media</code></td>
@@ -348,7 +348,7 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-restore-media</code></td>
-							<td><?php esc_html_e( 'Restores up to 20 attachments from the WordPress trash and reports each item. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Restores up to 20 attachments from the WordPress trash and reports each item. A restore that fails leaves the item in the trash with its trash date. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
@@ -384,7 +384,7 @@ class McpDocsPage {
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>
 					<?php echo esc_html( MediaTrash::permanent_delete_guidance() ); ?>
-					<?php esc_html_e( 'WordPress\'s scheduled trash cleanup permanently deletes trashed media EMPTY_TRASH_DAYS days (30 by default) after it was trashed, and if EMPTY_TRASH_DAYS is later set to 0, its next cleanup can permanently delete everything already in the trash. Restore anything you want to keep first.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'WordPress\'s scheduled trash cleanup permanently deletes trashed media EMPTY_TRASH_DAYS days (30 by default) after it was trashed, and if EMPTY_TRASH_DAYS is later set to 0 or a negative number, its next cleanup can permanently delete everything already in the trash. Restore anything you want to keep first.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 

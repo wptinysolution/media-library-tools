@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\UsedWhere\PostRescanMarker;
 use TinySolutions\mlt\Modules\UsedWhere\UsageClassifier;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 use WP_Post;
@@ -65,6 +66,30 @@ class MediaTrash {
 	 * @var int
 	 */
 	const TOKEN_PRUNE_LIMIT = 100;
+
+	/**
+	 * Most token batches examined by one prune.
+	 *
+	 * @var int
+	 */
+	const TOKEN_PRUNE_BATCHES = 10;
+
+	/**
+	 * Cron hook of the deferred usage rescan of one saved post
+	 * (ActionHooks::schedule_usage_scan_on_save()).
+	 *
+	 * @var string
+	 */
+	const POST_RESCAN_HOOK = 'tsmlt_scan_post_usage';
+
+	/**
+	 * Filters through which another plugin can take over WordPress's event
+	 * storage; when any is in use, the `cron` option is not the whole
+	 * schedule.
+	 *
+	 * @var string[]
+	 */
+	const CRON_BACKEND_FILTERS = [ 'pre_schedule_event', 'pre_reschedule_event', 'pre_unschedule_event', 'pre_clear_scheduled_hook', 'pre_unschedule_hook', 'pre_get_scheduled_event', 'pre_get_ready_cron_jobs' ];
 
 	/**
 	 * Filter that can lower (never raise) the trash days the MCP abilities
@@ -147,6 +172,36 @@ class MediaTrash {
 	const REASON_BLOCKED = 'blocked_by_filter';
 
 	/**
+	 * Outcome reason: WordPress could not update the attachment (no filter
+	 * stopped it).
+	 *
+	 * @var string
+	 */
+	const REASON_UPDATE_FAILED = 'update_failed';
+
+	/**
+	 * Outcome reason: this call changed the attachment, but something else
+	 * changed it back before it was read back.
+	 *
+	 * @var string
+	 */
+	const REASON_CHANGED_DURING_CALL = 'changed_during_call';
+
+	/**
+	 * Refusal: another request is trashing the same attachment.
+	 *
+	 * @var string
+	 */
+	const REASON_IN_PROGRESS = 'in_progress';
+
+	/**
+	 * Outcome reason: the attachment could not be claimed (database error).
+	 *
+	 * @var string
+	 */
+	const REASON_CLAIM_FAILED = 'claim_failed';
+
+	/**
 	 * Outcome reason: the attachment ended in an unexpected state.
 	 *
 	 * @var string
@@ -196,6 +251,22 @@ class MediaTrash {
 	 * @var int
 	 */
 	private static $guarded = 0;
+
+	/**
+	 * Whether a pre_trash_post / pre_untrash_post filter stopped the call
+	 * on the guarded attachment.
+	 *
+	 * @var bool
+	 */
+	private static $short_circuited = false;
+
+	/**
+	 * Whether WordPress reported the guarded attachment trashed or restored
+	 * (trashed_post / untrashed_post) during this call.
+	 *
+	 * @var bool
+	 */
+	private static $changed_by_call = false;
 
 	/**
 	 * What MCP clients are told about permanent deletion, which no MCP
@@ -306,7 +377,7 @@ class MediaTrash {
 				],
 				'media_trash'      => [
 					'type'        => 'boolean',
-					'description' => 'The MEDIA_TRASH setting, for information: it controls the Trash link on WordPress\'s own media screens only.',
+					'description' => 'The MEDIA_TRASH setting, for information: on WordPress\'s own media screens it decides whether media gets a Trash link and whether Delete moves media to the trash or deletes it permanently. The MCP tools always use the trash and never delete, whatever its value.',
 				],
 			],
 		];
@@ -453,7 +524,9 @@ class MediaTrash {
 	/**
 	 * Usage of attachments, by the rules of tsmlt/get-media-usage. The scan
 	 * status is read (fresh) before and after the usage records (fresh); a
-	 * scan that changed meanwhile is not verified.
+	 * scan that changed meanwhile is not verified, and neither is one while
+	 * a saved post's usage rescan is still pending (its new usages are not
+	 * recorded yet), so media without a recorded usage is then unknown.
 	 *
 	 * @param WP_Post[] $attachments Attachments.
 	 *
@@ -498,7 +571,7 @@ class MediaTrash {
 			return null;
 		}
 		$after    = self::scan_status();
-		$verified = UsageClassifier::verified_between( $before, $after ) && UsageClassifier::verified( $after ) && '' !== $after['scan_id'];
+		$verified = UsageClassifier::verified_between( $before, $after ) && UsageClassifier::verified( $after ) && '' !== $after['scan_id'] && ! self::post_rescan_pending();
 
 		$out = [
 			'states'  => [],
@@ -641,25 +714,24 @@ class MediaTrash {
 		if ( ! self::trash_enabled() ) {
 			return self::outcome( 'refused', self::REASON_TRASH_DISABLED );
 		}
-		self::$guarded = $attachment_id;
+		self::$guarded         = $attachment_id;
+		self::$short_circuited = false;
+		self::$changed_by_call = false;
 		add_filter( 'pre_delete_attachment', [ __CLASS__, 'refuse_permanent_delete' ], PHP_INT_MAX, 2 );
 		add_filter( 'pre_delete_post', [ __CLASS__, 'refuse_permanent_delete' ], PHP_INT_MAX, 2 );
+		add_filter( 'pre_trash_post', [ __CLASS__, 'note_short_circuit' ], PHP_INT_MAX, 2 );
+		add_action( 'trashed_post', [ __CLASS__, 'note_changed' ], PHP_INT_MAX );
 		try {
 			wp_trash_post( $attachment_id );
 		} finally {
 			remove_filter( 'pre_delete_attachment', [ __CLASS__, 'refuse_permanent_delete' ], PHP_INT_MAX );
 			remove_filter( 'pre_delete_post', [ __CLASS__, 'refuse_permanent_delete' ], PHP_INT_MAX );
+			remove_filter( 'pre_trash_post', [ __CLASS__, 'note_short_circuit' ], PHP_INT_MAX );
+			remove_action( 'trashed_post', [ __CLASS__, 'note_changed' ], PHP_INT_MAX );
 			self::$guarded = 0;
 		}
 
-		$status = self::status_now( $attachment_id );
-		if ( null === $status ) {
-			return self::outcome( 'failed', self::REASON_DELETED );
-		}
-		if ( 'trash' === $status ) {
-			return self::outcome( 'trashed', '' );
-		}
-		return 'inherit' === $status ? self::outcome( 'blocked', self::REASON_BLOCKED ) : self::outcome( 'failed', self::REASON_UNEXPECTED_STATUS );
+		return self::read_back( $attachment_id, 'trash', 'inherit', 'trashed', 'already_trashed', self::REASON_ALREADY_TRASHED );
 	}
 
 	/**
@@ -671,16 +743,185 @@ class MediaTrash {
 	 * @return array{result: string, reason: string}
 	 */
 	public static function restore( int $attachment_id ): array {
-		wp_untrash_post( $attachment_id );
+		$trash_meta            = [
+			'_wp_trash_meta_status' => get_post_meta( $attachment_id, '_wp_trash_meta_status', true ),
+			'_wp_trash_meta_time'   => get_post_meta( $attachment_id, '_wp_trash_meta_time', true ),
+		];
+		self::$guarded         = $attachment_id;
+		self::$short_circuited = false;
+		self::$changed_by_call = false;
+		add_filter( 'pre_untrash_post', [ __CLASS__, 'note_short_circuit' ], PHP_INT_MAX, 2 );
+		add_action( 'untrashed_post', [ __CLASS__, 'note_changed' ], PHP_INT_MAX );
+		try {
+			wp_untrash_post( $attachment_id );
+		} finally {
+			remove_filter( 'pre_untrash_post', [ __CLASS__, 'note_short_circuit' ], PHP_INT_MAX );
+			remove_action( 'untrashed_post', [ __CLASS__, 'note_changed' ], PHP_INT_MAX );
+			self::$guarded = 0;
+		}
 
+		$outcome = self::read_back( $attachment_id, 'inherit', 'trash', 'restored', 'not_trashed', self::REASON_NOT_TRASHED );
+		if ( self::REASON_UPDATE_FAILED === $outcome['reason'] ) {
+			self::keep_trash_meta( $attachment_id, $trash_meta );
+		}
+		return $outcome;
+	}
+
+	/**
+	 * After a failed restore, put back WordPress's trash records that
+	 * wp_untrash_post() removed before its update failed, so the attachment
+	 * still in the trash keeps its trash time (and purge date). Only records
+	 * that are missing now are added back.
+	 *
+	 * @param int   $attachment_id Attachment ID.
+	 * @param array $trash_meta    Records read before the call, by key.
+	 *
+	 * @return void
+	 */
+	private static function keep_trash_meta( int $attachment_id, array $trash_meta ): void {
+		foreach ( $trash_meta as $key => $value ) {
+			if ( '' !== (string) $value && '' === (string) get_post_meta( $attachment_id, $key, true ) ) {
+				add_post_meta( $attachment_id, $key, $value, true );
+			}
+		}
+	}
+
+	/**
+	 * Outcome of a trash or restore call, from the attachment's status read
+	 * back and whether WordPress reported this call's change
+	 * (trashed_post / untrashed_post):
+	 *
+	 * - in the target status and changed by this call: done;
+	 * - in the target status, not changed by this call (someone else did
+	 *   it meanwhile): the "already" result, never success;
+	 * - back in its first status although this call changed it (someone
+	 *   changed it back): failed, changed_during_call;
+	 * - in its first status otherwise: blocked when a pre_trash_post /
+	 *   pre_untrash_post filter stopped the call, else failed,
+	 *   update_failed (WordPress could not update it);
+	 * - another status: failed, unexpected_status; gone: failed, deleted.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $target        Status the call should reach.
+	 * @param string $start         Status it had before the call.
+	 * @param string $done          Result name on success.
+	 * @param string $already       Result name when it got there otherwise.
+	 * @param string $already_why   Reason code for $already.
+	 *
+	 * @return array{result: string, reason: string}
+	 */
+	private static function read_back( int $attachment_id, string $target, string $start, string $done, string $already, string $already_why ): array {
 		$status = self::status_now( $attachment_id );
 		if ( null === $status ) {
 			return self::outcome( 'failed', self::REASON_DELETED );
 		}
-		if ( 'inherit' === $status ) {
-			return self::outcome( 'restored', '' );
+		if ( $target === $status ) {
+			return self::$changed_by_call ? self::outcome( $done, '' ) : self::outcome( $already, $already_why );
 		}
-		return 'trash' === $status ? self::outcome( 'blocked', self::REASON_BLOCKED ) : self::outcome( 'failed', self::REASON_UNEXPECTED_STATUS );
+		if ( $start !== $status ) {
+			return self::outcome( 'failed', self::REASON_UNEXPECTED_STATUS );
+		}
+		if ( self::$changed_by_call ) {
+			return self::outcome( 'failed', self::REASON_CHANGED_DURING_CALL );
+		}
+		return self::$short_circuited ? self::outcome( 'blocked', self::REASON_BLOCKED ) : self::outcome( 'failed', self::REASON_UPDATE_FAILED );
+	}
+
+	/**
+	 * Note that WordPress trashed or restored the guarded attachment during
+	 * this call. Hooked on trashed_post / untrashed_post only while trash()
+	 * or restore() runs.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return void
+	 */
+	public static function note_changed( $post_id ): void {
+		if ( self::$guarded > 0 && (int) $post_id === self::$guarded ) {
+			self::$changed_by_call = true;
+		}
+	}
+
+	/**
+	 * Note whether a pre_trash_post / pre_untrash_post filter stopped the
+	 * call on the guarded attachment. Hooked last, only while trash() or
+	 * restore() runs; never changes the decision.
+	 *
+	 * @param mixed $check Earlier filters' decision (null to go ahead).
+	 * @param mixed $post  Post.
+	 *
+	 * @return mixed $check, unchanged.
+	 */
+	public static function note_short_circuit( $check, $post ) {
+		if ( null !== $check && self::$guarded > 0 && $post instanceof WP_Post && (int) $post->ID === self::$guarded ) {
+			self::$short_circuited = true;
+		}
+		return $check;
+	}
+
+	/**
+	 * Whether a saved post's deferred usage rescan (POST_RESCAN_HOOK) may
+	 * be pending or running, so usages may be missing from the records:
+	 * scheduled in the `cron` option, running (PostRescanMarker), or not
+	 * known for sure (the option or the markers cannot be read, or another
+	 * plugin handles WordPress's event storage). Fails closed: anything
+	 * that cannot be verified counts as pending.
+	 *
+	 * @return bool
+	 */
+	public static function post_rescan_pending(): bool {
+		if ( self::cron_backend_replaced() || false !== self::post_rescan_scheduled() ) {
+			return true;
+		}
+		return false !== PostRescanMarker::running();
+	}
+
+	/**
+	 * Whether a POST_RESCAN_HOOK event is in the `cron` option, read
+	 * straight from the database (WordPress's option caches are neither read
+	 * nor changed).
+	 *
+	 * @return bool|null Null when the option cannot be read or is not a
+	 *                   schedule.
+	 */
+	private static function post_rescan_scheduled(): ?bool {
+		global $wpdb;
+		$suppressed = $wpdb->suppress_errors( true );
+		try {
+			$rows = Fns::DB()->select( 'option_value' )->from( 'options' )->where( 'option_name', '=', 'cron' )->limit( 1 )->get();
+		} catch ( \Throwable $e ) {
+			$rows = null;
+		}
+		$wpdb->suppress_errors( $suppressed );
+		if ( '' !== (string) $wpdb->last_error || ! is_array( $rows ) || ! isset( $rows[0]['option_value'] ) ) {
+			return null;
+		}
+		$cron = maybe_unserialize( $rows[0]['option_value'] );
+		if ( ! is_array( $cron ) ) {
+			return null;
+		}
+		foreach ( $cron as $hooks ) {
+			if ( is_array( $hooks ) && ! empty( $hooks[ self::POST_RESCAN_HOOK ] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Whether another plugin takes over WordPress's event storage (any
+	 * CRON_BACKEND_FILTERS callback), so the `cron` option may not hold the
+	 * whole schedule.
+	 *
+	 * @return bool
+	 */
+	private static function cron_backend_replaced(): bool {
+		foreach ( self::CRON_BACKEND_FILTERS as $filter ) {
+			if ( has_filter( $filter ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -799,25 +1040,51 @@ class MediaTrash {
 	}
 
 	/**
-	 * Remove expired token options (up to TOKEN_PRUNE_LIMIT per call).
+	 * Remove expired token options, oldest first. Every token lives
+	 * TOKEN_TTL seconds, so the oldest rows expire first: batches of
+	 * TOKEN_PRUNE_LIMIT are read in insertion order until a live token is
+	 * met, at most TOKEN_PRUNE_BATCHES per call. Each preview adds one
+	 * token and can remove up to TOKEN_PRUNE_LIMIT x TOKEN_PRUNE_BATCHES
+	 * expired ones, so they cannot build up.
 	 *
 	 * @return void
 	 */
 	private static function prune_tokens(): void {
+		for ( $batch = 0; $batch < self::TOKEN_PRUNE_BATCHES; $batch++ ) {
+			$rows = self::token_rows();
+			if ( ! $rows ) {
+				return;
+			}
+			foreach ( $rows as $row ) {
+				$payload = maybe_unserialize( $row['option_value'] ?? '' );
+				if ( is_array( $payload ) && (int) ( $payload['expires'] ?? 0 ) >= time() ) {
+					return;
+				}
+				delete_option( (string) $row['option_name'] );
+			}
+			if ( count( $rows ) < self::TOKEN_PRUNE_LIMIT ) {
+				return;
+			}
+		}
+	}
+
+	/**
+	 * The oldest TOKEN_PRUNE_LIMIT token options, in insertion order.
+	 *
+	 * @return array[] Rows (`option_name`, `option_value`); empty on a
+	 *                 database error.
+	 */
+	private static function token_rows(): array {
 		global $wpdb;
 		try {
 			$rows = Fns::DB()->select( 'option_name', 'option_value' )->from( 'options' )
 				->where( 'option_name', 'LIKE', $wpdb->esc_like( self::TOKEN_OPTION_PREFIX ) . '%' )
+				->orderBy( 'option_id', 'ASC' )
 				->limit( self::TOKEN_PRUNE_LIMIT )->get();
 		} catch ( \Throwable $e ) {
-			return;
+			return [];
 		}
-		foreach ( is_array( $rows ) ? $rows : [] as $row ) {
-			$payload = maybe_unserialize( $row['option_value'] ?? '' );
-			if ( ! is_array( $payload ) || (int) ( $payload['expires'] ?? 0 ) < time() ) {
-				delete_option( (string) $row['option_name'] );
-			}
-		}
+		return is_array( $rows ) ? $rows : [];
 	}
 
 	/**

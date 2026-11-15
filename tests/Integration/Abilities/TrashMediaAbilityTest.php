@@ -22,6 +22,8 @@ use TinySolutions\mlt\Abilities\Media\PreviewTrashMedia;
 use TinySolutions\mlt\Abilities\Media\TrashMedia;
 use TinySolutions\mlt\Abilities\UsageScanStatus;
 use TinySolutions\mlt\Modules\Trash\MediaTrash;
+use TinySolutions\mlt\Modules\Trash\TrashClaim;
+use TinySolutions\mlt\Modules\UsedWhere\PostRescanMarker;
 use TinySolutions\mlt\Modules\UsedWhere\UsedWhereScanner;
 
 /**
@@ -94,6 +96,44 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 	private $delete_during_trash = 0;
 
 	/**
+	 * Post ID whose UPDATE of wp_posts fails (0 for none).
+	 *
+	 * @var int
+	 */
+	private $fail_update = 0;
+
+	/**
+	 * Post saved (so its usage rescan is scheduled) once an attachment is
+	 * trashed (0 for none).
+	 *
+	 * @var int
+	 */
+	private $save_on_trash = 0;
+
+	/**
+	 * Which read to make fail: 'cron' or 'markers' ('' for none).
+	 *
+	 * @var string
+	 */
+	private $fail_read = '';
+
+	/**
+	 * Attachment whose claim a simulated request takes over while this one
+	 * holds it (0 for none).
+	 *
+	 * @var int
+	 */
+	private $steal_claim = 0;
+
+	/**
+	 * What a simulated admin does to the attachment during the call:
+	 * 'trash_first' or 'restore_after' ('' for nothing).
+	 *
+	 * @var string
+	 */
+	private $interfere = '';
+
+	/**
 	 * Value the days filter returns in days_value().
 	 *
 	 * @var mixed
@@ -110,6 +150,7 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 		}
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		self::verified_scan();
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
 		delete_option( 'site_icon' );
 		delete_option( 'site_logo' );
 		remove_theme_mod( 'custom_logo' );
@@ -143,6 +184,15 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 		remove_filter( MediaTrash::DAYS_FILTER, [ $this, 'negative_days' ] );
 		remove_filter( MediaTrash::DAYS_FILTER, [ $this, 'more_days' ] );
 		remove_filter( MediaTrash::DAYS_FILTER, [ $this, 'days_value' ] );
+		remove_filter( 'query', [ $this, 'break_post_update' ] );
+		remove_action( 'trashed_post', [ $this, 'save_a_post' ] );
+		remove_filter( 'query', [ $this, 'break_rescan_state_read' ] );
+		remove_filter( 'pre_get_scheduled_event', [ $this, 'other_cron_backend' ] );
+		remove_filter( 'map_meta_cap', [ $this, 'take_over_claim' ], 20 );
+		remove_filter( 'pre_trash_post', [ $this, 'admin_trashes_first' ], 5 );
+		remove_action( 'trashed_post', [ $this, 'admin_restores_after' ], 5 );
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
+		self::clear_markers();
 		foreach ( self::observed_hooks() as $hook ) {
 			remove_filter( $hook, [ $this, 'count_call' ] );
 		}
@@ -270,6 +320,117 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Make WordPress's UPDATE of $this->fail_update in wp_posts fail.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string
+	 */
+	public function break_post_update( $query ) {
+		global $wpdb;
+		if ( $this->fail_update > 0 && 0 === strpos( $query, "UPDATE `{$wpdb->posts}` SET" ) && false !== strpos( $query, "WHERE `ID` = {$this->fail_update}" ) ) {
+			return 'SELECT * FROM tsmlt_no_such_table';
+		}
+		return $query;
+	}
+
+	/**
+	 * Save $this->save_on_trash once a post is trashed, which schedules that
+	 * post's usage rescan.
+	 */
+	public function save_a_post() {
+		remove_action( 'trashed_post', [ $this, 'save_a_post' ] );
+		wp_update_post(
+			[
+				'ID'           => $this->save_on_trash,
+				'post_content' => 'Edited during the batch.',
+			]
+		);
+	}
+
+	/**
+	 * Make the read of the `cron` option or of the rescan markers fail.
+	 *
+	 * @param string $query SQL.
+	 *
+	 * @return string
+	 */
+	public function break_rescan_state_read( $query ) {
+		$cron    = 'cron' === $this->fail_read && 0 === strpos( $query, 'SELECT' ) && false !== strpos( $query, "= 'cron'" );
+		$markers = 'markers' === $this->fail_read && 0 === strpos( $query, 'SELECT' ) && false !== strpos( $query, ' LIKE ' ) && false !== strpos( $query, 'rescan' );
+		return $cron || $markers ? 'SELECT * FROM tsmlt_no_such_table' : $query;
+	}
+
+	/**
+	 * A plugin that keeps WordPress's events elsewhere.
+	 *
+	 * @param mixed $pre Pre-filtered value.
+	 *
+	 * @return mixed
+	 */
+	public function other_cron_backend( $pre ) {
+		return $pre;
+	}
+
+	/**
+	 * A request that takes over $this->steal_claim's claim while this one
+	 * holds it (on the delete_post check made under the claim).
+	 *
+	 * @param string[] $caps Capabilities.
+	 * @param string   $cap  Capability checked.
+	 *
+	 * @return string[]
+	 */
+	public function take_over_claim( $caps, $cap ) {
+		global $wpdb;
+		$option = TrashClaim::option( $this->steal_claim );
+		if ( 'delete_post' === $cap && $this->steal_claim > 0 && null !== $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated request.
+			$this->steal_claim = 0;
+			$wpdb->update( $wpdb->options, [ 'option_value' => ( time() + 60 ) . ':other-request' ], [ 'option_name' => $option ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated request.
+		}
+		return $caps;
+	}
+
+	/**
+	 * An admin who trashes the attachment just before this call does (the
+	 * call then finds nothing to do).
+	 *
+	 * @param mixed   $check Decision so far.
+	 * @param WP_Post $post  Post.
+	 *
+	 * @return mixed
+	 */
+	public function admin_trashes_first( $check, $post ) {
+		global $wpdb;
+		if ( 'trash_first' === $this->interfere ) {
+			$wpdb->update( $wpdb->posts, [ 'post_status' => 'trash' ], [ 'ID' => $post->ID ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated admin.
+			return false;
+		}
+		return $check;
+	}
+
+	/**
+	 * An admin who restores the attachment right after this call trashed
+	 * it.
+	 *
+	 * @param int $post_id Post ID.
+	 */
+	public function admin_restores_after( $post_id ) {
+		global $wpdb;
+		if ( 'restore_after' === $this->interfere ) {
+			$wpdb->update( $wpdb->posts, [ 'post_status' => 'inherit' ], [ 'ID' => $post_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Simulated admin.
+		}
+	}
+
+	/**
+	 * Remove every rescan marker.
+	 */
+	private static function clear_markers() {
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( PostRescanMarker::PREFIX ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test cleanup.
+	}
+
+	/**
 	 * Days filter: $this->days_value.
 	 *
 	 * @return mixed
@@ -356,17 +517,20 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Record a usage of an attachment in a new post.
+	 * Record a usage of an attachment in a new post, as a completed rescan
+	 * of that post would (nothing left pending).
 	 *
 	 * @param int $id Attachment ID.
 	 */
 	private function use_it( int $id ) {
+		$post = self::factory()->post->create();
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
 		update_post_meta(
 			$id,
 			UsedWhereScanner::META_KEY,
 			[
 				[
-					'post_id'    => self::factory()->post->create(),
+					'post_id'    => $post,
 					'post_title' => 'Uses it',
 					'post_type'  => 'post',
 					'usage_type' => 'content',
@@ -494,11 +658,30 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 			$this->assertSame( 'ability_invalid_input', self::call( self::TRASH, $input )->get_error_code(), wp_json_encode( $input ) );
 			$this->assertSame( AbilityGuard::ERROR_INVALID_INPUT, TrashMedia::instance()->execute( $input )->get_error_code(), wp_json_encode( $input ) );
 		}
-		foreach ( [ [ 'ids' => [ (string) $id ] ], [ 'ids' => [ $id ] , 'x' => 1 ], null ] as $input ) {
+		$malformed = [
+			[ 'ids' => [ (string) $id ] ],
+			[
+				'ids' => [ $id ],
+				'x'   => 1,
+			],
+			null,
+		];
+		foreach ( $malformed as $input ) {
 			$this->assertInstanceOf( WP_Error::class, self::call( self::PREVIEW, $input ), wp_json_encode( $input ) );
 			$this->assertSame( AbilityGuard::ERROR_INVALID_INPUT, PreviewTrashMedia::instance()->execute( $input )->get_error_code(), wp_json_encode( $input ) );
 		}
-		foreach ( [ [ 'ids' => [ $id ] ], [ 'ids' => [ $id ], 'confirmation_token' => 'abc' ], [ 'ids' => [ $id ], 'confirmation_token' => strtoupper( $token ) ] ] as $input ) {
+		$bad_tokens = [
+			[ 'ids' => [ $id ] ],
+			[
+				'ids'                => [ $id ],
+				'confirmation_token' => 'abc',
+			],
+			[
+				'ids'                => [ $id ],
+				'confirmation_token' => strtoupper( $token ),
+			],
+		];
+		foreach ( $bad_tokens as $input ) {
 			$this->assertSame( 'ability_invalid_input', self::call( self::TRASH, $input )->get_error_code(), wp_json_encode( $input ) );
 		}
 		$this->assertSame(
@@ -581,15 +764,15 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 		$this->assertNull( $preview['expires_at'] );
 
 		$scans = [
-			'no scan'  => null,
-			'running'  => [
+			'no scan' => null,
+			'running' => [
 				'state'    => 'running',
 				'complete' => false,
 			],
-			'gaps'     => [ 'coverage_gaps' => [ 'woocommerce_inactive' ] ],
-			'legacy'   => [ 'coverage_version' => 0 ],
-			'no id'    => [ 'scan_id' => '' ],
-			'stalled'  => [
+			'gaps'    => [ 'coverage_gaps' => [ 'woocommerce_inactive' ] ],
+			'legacy'  => [ 'coverage_version' => 0 ],
+			'no id'   => [ 'scan_id' => '' ],
+			'stalled' => [
 				'state'        => 'running',
 				'complete'     => false,
 				'last_tick_at' => '2000-01-01 00:00:00',
@@ -635,6 +818,7 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 		$trashed         = $this->attachment();
 		$private         = $this->attachment( [ 'post_status' => 'private' ] );
 		$this->no_delete = [ $denied ];
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
 		wp_trash_post( $trashed );
 
 		$items = self::call( self::PREVIEW, [ 'ids' => [ 999999, $post, $denied, $trashed, $private ] ] )['items'];
@@ -786,6 +970,307 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 		}
 		$this->days_value = '5';
 		$this->assertSame( 5, MediaTrash::trash_days(), 'A whole number given as text still lowers the days.' );
+	}
+
+	/**
+	 * Whether a post usage rescan is scheduled.
+	 *
+	 * @return bool
+	 */
+	private static function rescan_scheduled(): bool {
+		foreach ( (array) _get_cron_array() as $hooks ) {
+			if ( ! empty( $hooks[ MediaTrash::POST_RESCAN_HOOK ] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A post is edited to show an unused image and its usage rescan has not
+	 * run yet: the image is unknown, not unused, so the preview issues no
+	 * token and a token issued before the edit cannot trash it. Once the
+	 * rescan has run the image is used.
+	 */
+	public function test_pending_post_rescan_blocks_trash() {
+		$image = $this->attachment();
+		$post  = self::factory()->post->create( [ 'post_content' => 'Nothing yet.' ] );
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
+		$token = $this->token( [ $image ] );
+
+		wp_update_post(
+			[
+				'ID'           => $post,
+				'post_content' => '<!-- wp:image {"id":' . $image . '} --><figure class="wp-block-image"><img src="' . wp_get_attachment_url( $image ) . '" class="wp-image-' . $image . '"/></figure><!-- /wp:image -->',
+			]
+		);
+		$this->assertTrue( self::rescan_scheduled(), 'Saving the post scheduled its rescan.' );
+		$this->assertSame( '', get_post_meta( $image, UsedWhereScanner::META_KEY, true ), 'The new usage is not recorded yet.' );
+
+		$preview = self::call( self::PREVIEW, [ 'ids' => [ $image ] ] );
+		$this->assertSame( [ false, MediaTrash::REASON_USAGE_UNKNOWN, 'unknown', false ], [ $preview['items'][0]['eligible'], $preview['items'][0]['reason'], $preview['items'][0]['usage'], $preview['items'][0]['scan_verified'] ] );
+		$this->assertNull( $preview['confirmation_token'] );
+
+		$result = self::trash( [ $image ], $token );
+		$this->assertSame( [ 'refused', MediaTrash::REASON_USAGE_UNKNOWN ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $image ) );
+
+		do_action( MediaTrash::POST_RESCAN_HOOK, $post );
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
+		$after = self::call( self::PREVIEW, [ 'ids' => [ $image ] ] );
+		$this->assertSame( [ MediaTrash::REASON_USED, 'used' ], [ $after['items'][0]['reason'], $after['items'][0]['usage'] ] );
+	}
+
+	/**
+	 * A post saved during the batch schedules its rescan: the items not yet
+	 * trashed are unknown and refused.
+	 */
+	public function test_post_rescan_scheduled_during_the_batch() {
+		$a                   = $this->attachment();
+		$b                   = $this->attachment();
+		$this->save_on_trash = self::factory()->post->create();
+		wp_unschedule_hook( MediaTrash::POST_RESCAN_HOOK );
+		$token = $this->token( [ $a, $b ] );
+		add_action( 'trashed_post', [ $this, 'save_a_post' ] );
+
+		$result = self::trash( [ $a, $b ], $token );
+
+		$this->assertSame(
+			[
+				[ $a, 'trashed', '' ],
+				[ $b, 'refused', MediaTrash::REASON_USAGE_UNKNOWN ],
+			],
+			array_map( 'array_values', $result['items'] )
+		);
+		$this->assertSame( 'inherit', self::status( $b ) );
+	}
+
+	/**
+	 * When WordPress cannot update the attachment (no filter stopped it),
+	 * the item is failed with update_failed, not blocked.
+	 */
+	public function test_failed_update_is_not_reported_as_blocked() {
+		global $wpdb;
+		$id                = $this->attachment();
+		$token             = $this->token( [ $id ] );
+		$this->fail_update = $id;
+		add_filter( 'query', [ $this, 'break_post_update' ] );
+		$suppressed = $wpdb->suppress_errors( true );
+
+		$result = self::trash( [ $id ], $token );
+
+		$wpdb->suppress_errors( $suppressed );
+		$this->assertSame( [ 'failed', MediaTrash::REASON_UPDATE_FAILED ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $id ) );
+	}
+
+	/**
+	 * A claim is held for its whole lease, not 60 seconds: one taken minutes
+	 * ago whose lease is still running is refused as in_progress and kept;
+	 * one whose lease ran out (a request that died) is taken over; this
+	 * request's claim is released after the call.
+	 */
+	public function test_claim_lease_and_stale_takeover() {
+		$held   = $this->attachment();
+		$stale  = $this->attachment();
+		$token  = $this->token( [ $held, $stale ] );
+		$values = [
+			$held  => ( time() + TrashClaim::LEASE - 600 ) . ':long-running-request',
+			$stale => ( time() - 1 ) . ':died',
+		];
+		foreach ( $values as $id => $value ) {
+			add_option( TrashClaim::option( $id ), $value, '', false );
+		}
+
+		$result = self::trash( [ $held, $stale ], $token );
+
+		$this->assertSame(
+			[
+				[ $held, 'refused', MediaTrash::REASON_IN_PROGRESS ],
+				[ $stale, 'trashed', '' ],
+			],
+			array_map( 'array_values', $result['items'] )
+		);
+		$this->assertSame( 'inherit', self::status( $held ) );
+		$this->assertSame( $values[ $held ], get_option( TrashClaim::option( $held ) ), 'The long-running request keeps its claim.' );
+		$this->assertFalse( get_option( TrashClaim::option( $stale ) ), 'This request\'s claim was released.' );
+	}
+
+	/**
+	 * A new claim's lease is LEASE (an hour), far beyond 60 seconds; the
+	 * owner renews it, and the old value is then no longer the owner's.
+	 */
+	public function test_claim_renewal() {
+		$id    = $this->attachment();
+		$claim = TrashClaim::acquire( $id );
+
+		$this->assertGreaterThanOrEqual( time() + TrashClaim::LEASE - 1, TrashClaim::held_until( $claim ) );
+		$this->assertNull( TrashClaim::acquire( $id ) );
+		$renewed = TrashClaim::renew( $id, $claim );
+		$this->assertIsString( $renewed );
+		$this->assertNull( TrashClaim::renew( $id, $claim ), 'The replaced value cannot renew.' );
+		$this->assertSame( 0, TrashClaim::held_until( 'garbage' ) );
+		TrashClaim::release( $id, $renewed );
+		$this->assertFalse( get_option( TrashClaim::option( $id ) ) );
+	}
+
+	/**
+	 * A claim taken over while this request held it is not trashed through:
+	 * renewal fails, the item is refused as in_progress and the other
+	 * request's claim is kept.
+	 */
+	public function test_lost_claim_is_not_trashed() {
+		$id                = $this->attachment();
+		$token             = $this->token( [ $id ] );
+		$this->steal_claim = $id;
+		add_filter( 'map_meta_cap', [ $this, 'take_over_claim' ], 20, 2 );
+
+		$result = self::trash( [ $id ], $token );
+
+		$this->assertSame( [ 'refused', MediaTrash::REASON_IN_PROGRESS ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $id ) );
+		$this->assertStringEndsWith( ':other-request', (string) get_option( TrashClaim::option( $id ) ) );
+	}
+
+	/**
+	 * Something else changing the attachment during the call is never
+	 * reported as this call's success: trashed by an admin first is
+	 * already_trashed; restored by an admin right after this call trashed
+	 * it is failed, changed_during_call.
+	 */
+	public function test_concurrent_admin_changes_are_reported_accurately() {
+		$first = $this->attachment();
+		$after = $this->attachment();
+		$token = $this->token( [ $first ] );
+		add_filter( 'pre_trash_post', [ $this, 'admin_trashes_first' ], 5, 2 );
+		add_action( 'trashed_post', [ $this, 'admin_restores_after' ], 5 );
+
+		$this->interfere = 'trash_first';
+		$one             = self::trash( [ $first ], $token );
+
+		$this->assertSame( [ 'already_trashed', MediaTrash::REASON_ALREADY_TRASHED ], [ $one['items'][0]['result'], $one['items'][0]['reason'] ] );
+		$this->assertSame( 'trash', self::status( $first ) );
+
+		$token           = $this->token( [ $after ] );
+		$this->interfere = 'restore_after';
+		$two             = self::trash( [ $after ], $token );
+
+		$this->assertSame( [ 'failed', MediaTrash::REASON_CHANGED_DURING_CALL ], [ $two['items'][0]['result'], $two['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $after ) );
+	}
+
+	/**
+	 * A running usage rescan (its marker present) makes media without a
+	 * recorded usage unknown: no token, and a token issued before is
+	 * refused per item. Once the rescan finished, it is eligible again; an
+	 * expired marker (a rescan that died) is ignored.
+	 */
+	public function test_running_rescan_blocks_preview_and_trash() {
+		global $wpdb;
+		$id     = $this->attachment();
+		$token  = $this->token( [ $id ] );
+		$marker = PostRescanMarker::start();
+
+		$preview = self::call( self::PREVIEW, [ 'ids' => [ $id ] ] );
+		$result  = self::trash( [ $id ], $token );
+
+		$this->assertSame( MediaTrash::REASON_USAGE_UNKNOWN, $preview['items'][0]['reason'] );
+		$this->assertNull( $preview['confirmation_token'] );
+		$this->assertSame( [ 'refused', MediaTrash::REASON_USAGE_UNKNOWN ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $id ) );
+
+		PostRescanMarker::finish( $marker );
+		$this->assertTrue( self::call( self::PREVIEW, [ 'ids' => [ $id ] ] )['items'][0]['eligible'] );
+
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test fixture.
+			$wpdb->options,
+			[
+				'option_name'  => PostRescanMarker::PREFIX . 'died',
+				'option_value' => (string) ( time() - PostRescanMarker::TTL - 5 ),
+				'autoload'     => 'off',
+			]
+		);
+		$this->assertTrue( self::call( self::PREVIEW, [ 'ids' => [ $id ] ] )['items'][0]['eligible'], 'An expired marker is ignored.' );
+	}
+
+	/**
+	 * When the schedule or the rescan markers cannot be read, or another
+	 * plugin handles WordPress's event storage, the rescan state cannot be
+	 * verified: unrecorded media is unknown and nothing is trashed.
+	 */
+	public function test_unverifiable_rescan_state_fails_closed() {
+		global $wpdb;
+		$id    = $this->attachment();
+		$token = $this->token( [ $id ] );
+		add_filter( 'query', [ $this, 'break_rescan_state_read' ] );
+
+		foreach ( [ 'cron', 'markers', 'backend' ] as $case ) {
+			$this->fail_read = 'backend' === $case ? '' : $case;
+			if ( 'backend' === $case ) {
+				add_filter( 'pre_get_scheduled_event', [ $this, 'other_cron_backend' ] );
+			}
+			$suppressed = $wpdb->suppress_errors( true );
+
+			$this->assertTrue( MediaTrash::post_rescan_pending(), $case );
+			$preview = self::call( self::PREVIEW, [ 'ids' => [ $id ] ] );
+
+			$wpdb->suppress_errors( $suppressed );
+			$this->assertSame( MediaTrash::REASON_USAGE_UNKNOWN, $preview['items'][0]['reason'], $case );
+			$this->assertNull( $preview['confirmation_token'], $case );
+		}
+		$suppressed = $wpdb->suppress_errors( true );
+		$result     = self::trash( [ $id ], $token );
+		$wpdb->suppress_errors( $suppressed );
+		$this->assertSame( [ 'refused', MediaTrash::REASON_USAGE_UNKNOWN ], [ $result['items'][0]['result'], $result['items'][0]['reason'] ] );
+		$this->assertSame( 'inherit', self::status( $id ) );
+
+		$this->fail_read = '';
+		remove_filter( 'pre_get_scheduled_event', [ $this, 'other_cron_backend' ] );
+		$this->assertFalse( MediaTrash::post_rescan_pending(), 'Verifiable again.' );
+	}
+
+	/**
+	 * Two consumers of one claim: only the first gets it, until it is
+	 * released (sequential, in one process).
+	 */
+	public function test_claim_is_exclusive() {
+		$id    = $this->attachment();
+		$first = TrashClaim::acquire( $id );
+
+		$this->assertIsString( $first );
+		$this->assertNull( TrashClaim::acquire( $id ) );
+		TrashClaim::release( $id, 'not-the-owner' );
+		$this->assertNull( TrashClaim::acquire( $id ), 'Only the owner can release it.' );
+		TrashClaim::release( $id, $first );
+		$second = TrashClaim::acquire( $id );
+		$this->assertIsString( $second );
+		TrashClaim::release( $id, $second );
+	}
+
+	/**
+	 * One issued token removes every expired token, oldest first, even
+	 * when there are more than one batch of them, and stops at the first
+	 * live one, which is kept (tokens expire in the order they are stored).
+	 */
+	public function test_many_expired_tokens_are_pruned() {
+		global $wpdb;
+		$payload = [
+			'user_id' => 1,
+			'ids'     => [ 1 ],
+			'scan_id' => 'x',
+			'expires' => time() - 1,
+		];
+		for ( $i = 0; $i < 150; $i++ ) {
+			add_option( MediaTrash::TOKEN_OPTION_PREFIX . 'expired' . $i, $payload, '', false );
+		}
+		$live = MediaTrash::TOKEN_OPTION_PREFIX . 'live';
+		add_option( $live, array_merge( $payload, [ 'expires' => time() + 600 ] ), '', false );
+
+		$this->token( [ $this->attachment() ] );
+
+		$left = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( MediaTrash::TOKEN_OPTION_PREFIX . 'expired' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test read.
+		$this->assertSame( 0, $left );
+		$this->assertIsArray( get_option( $live ) );
 	}
 
 	/**
@@ -991,7 +1476,7 @@ class TrashMediaAbilityTest extends WP_UnitTestCase {
 
 		$this->assertSame(
 			[
-				'readonly'    => true,
+				'readonly'    => false,
 				'destructive' => false,
 				'idempotent'  => false,
 			],

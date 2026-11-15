@@ -218,7 +218,7 @@ class McpTrashToolsExposureTest extends WP_UnitTestCase {
 
 		$expected = [
 			'tsmlt-list-trashed-media'  => [ true, false ],
-			'tsmlt-preview-trash-media' => [ true, false ],
+			'tsmlt-preview-trash-media' => [ false, false ],
 			'tsmlt-trash-media'         => [ false, true ],
 			'tsmlt-restore-media'       => [ false, false ],
 		];
@@ -307,7 +307,7 @@ class McpTrashToolsExposureTest extends WP_UnitTestCase {
 			$this->assertNotContains( $name, $listed, $name );
 			$this->assertTrue( $this->gw_call( 'mcp-adapter-get-ability-info', [ 'ability_name' => $name ] )['isError'], $name );
 		}
-		$run = $this->gw_call(
+		$run     = $this->gw_call(
 			'mcp-adapter-execute-ability',
 			self::gw_execute_args(
 				'tsmlt/trash-media',

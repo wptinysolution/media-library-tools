@@ -23,7 +23,7 @@ use WP_Error;
  * Check whether attachments can be moved to the trash and, when every one
  * can, issue the confirmation token tsmlt/trash-media needs. Changes no
  * attachment: the only write is the token itself (and pruning expired
- * ones).
+ * ones), so it is not annotated read-only.
  */
 class PreviewTrashMedia extends Ability {
 
@@ -68,7 +68,7 @@ class PreviewTrashMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Check whether media can be moved to the WordPress trash, and get the confirmation_token tsmlt/trash-media requires. Up to 20 IDs. An item is eligible only when: trash is enabled (EMPTY_TRASH_DAYS above 0), you may delete it, it is in the media library (not already trashed), it is not the site icon or logo, and the latest Used Where scan is complete, verified and found it unused (usage "unused"; used or unknown media is refused: run tsmlt/start-usage-scan and wait for it to finish if usage is unknown). A token is issued only when every ID is eligible; preview again with only the eligible IDs otherwise. The token works once, for the same user and exactly the same IDs, within 10 minutes, and only while the same usage scan is current. Show the user the items and ask them to confirm before trashing. Trashed media stops showing on the site and WordPress deletes it permanently after EMPTY_TRASH_DAYS days unless restored (tsmlt/restore-media). Changes no media.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
+		return __( 'Check whether media can be moved to the WordPress trash, and get the confirmation_token tsmlt/trash-media requires. Up to 20 IDs. An item is eligible only when: trash is enabled (EMPTY_TRASH_DAYS above 0), you may delete it, it is in the media library (not already trashed), it is not the site icon or logo, and the latest Used Where scan is complete, verified and found it unused (usage "unused"; used or unknown media is refused: run tsmlt/start-usage-scan and wait for it to finish if usage is unknown; usage is also unknown while a saved post\'s usage rescan is pending or running, so try again once WP-Cron has run it). A token is issued only when every ID is eligible; preview again with only the eligible IDs otherwise. The token works once, for the same user and exactly the same IDs, within 10 minutes, and only while the same usage scan is current. Show the user the items and ask them to confirm before trashing. Trashed media stops showing on the site and WordPress deletes it permanently after EMPTY_TRASH_DAYS days unless restored (tsmlt/restore-media). Changes no media; it only stores the short-lived token.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
 	}
 
 	/**
@@ -119,7 +119,7 @@ class PreviewTrashMedia extends Ability {
 							'usage'           => [
 								'type'        => 'string',
 								'enum'        => [ 'used', 'unused', 'unknown' ],
-								'description' => 'From the Used Where scan, as tsmlt/get-media-usage reports it.',
+								'description' => 'From the Used Where scan, by the rules of tsmlt/get-media-usage, except that media without a recorded usage is unknown (not unused) here while a saved post\'s usage rescan is pending or running, or that cannot be verified.',
 							],
 							'usage_count'     => [
 								'type'        => 'integer',
@@ -160,7 +160,9 @@ class PreviewTrashMedia extends Ability {
 	 */
 	protected function get_annotations(): array {
 		return [
-			'readonly'    => true,
+			// Not read-only: it stores the short-lived confirmation token (and
+			// removes expired ones). It changes no media.
+			'readonly'    => false,
 			'destructive' => false,
 			'idempotent'  => false,
 		];

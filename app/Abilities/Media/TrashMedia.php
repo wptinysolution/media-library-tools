@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Modules\Trash\MediaTrash;
+use TinySolutions\mlt\Modules\Trash\TrashClaim;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -48,7 +49,7 @@ class TrashMedia extends Ability {
 	 *
 	 * @var string[]
 	 */
-	const REASONS = [ '', MediaTrash::REASON_TRASH_DISABLED, MediaTrash::REASON_NOT_AVAILABLE, MediaTrash::REASON_ALREADY_TRASHED, MediaTrash::REASON_INVALID_STATUS, MediaTrash::REASON_PROTECTED, MediaTrash::REASON_USED, MediaTrash::REASON_USAGE_UNKNOWN, MediaTrash::REASON_SCAN_CHANGED, MediaTrash::REASON_BLOCKED, MediaTrash::REASON_UNEXPECTED_STATUS, MediaTrash::REASON_DELETED ];
+	const REASONS = [ '', MediaTrash::REASON_TRASH_DISABLED, MediaTrash::REASON_NOT_AVAILABLE, MediaTrash::REASON_ALREADY_TRASHED, MediaTrash::REASON_INVALID_STATUS, MediaTrash::REASON_PROTECTED, MediaTrash::REASON_USED, MediaTrash::REASON_USAGE_UNKNOWN, MediaTrash::REASON_SCAN_CHANGED, MediaTrash::REASON_IN_PROGRESS, MediaTrash::REASON_CLAIM_FAILED, MediaTrash::REASON_BLOCKED, MediaTrash::REASON_UPDATE_FAILED, MediaTrash::REASON_CHANGED_DURING_CALL, MediaTrash::REASON_UNEXPECTED_STATUS, MediaTrash::REASON_DELETED ];
 
 	/**
 	 * Construct
@@ -79,7 +80,7 @@ class TrashMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Move media to the WordPress trash. Requires the confirmation_token from tsmlt/preview-trash-media for exactly the same IDs (any order), by the same user, within 10 minutes; the token works once. Only ask for this after the user confirmed the preview. Every rule of the preview is checked again; any item that no longer qualifies is refused, and if the Used Where scan changed since the preview nothing is trashed. Each item is reported: trashed, already_trashed, refused (with a reason), blocked (another plugin stopped it) or failed; nothing is rolled back if some fail. Trashed media stops showing on the site at once, can be restored with tsmlt/restore-media, and is deleted permanently by WordPress after EMPTY_TRASH_DAYS days. This tool never deletes media permanently.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
+		return __( 'Move media to the WordPress trash. Requires the confirmation_token from tsmlt/preview-trash-media for exactly the same IDs (any order), by the same user, within 10 minutes; the token works once. Only ask for this after the user confirmed the preview. Every rule of the preview is checked again, item by item right before it is trashed; an item that no longer qualifies is refused (usage_unknown while a saved post\'s usage rescan is pending or running). If the Used Where scan changed since the preview, nothing is trashed; if it changes during the call, the items not yet trashed are refused (scan_changed). Each item is reported: trashed, already_trashed (also when something else trashed it during the call), refused (with a reason; in_progress while another request is trashing or restoring it), blocked (another plugin stopped it) or failed (update_failed when WordPress could not update it; changed_during_call when something changed it back); nothing is rolled back if some fail. Trashed media stops showing on the site at once, can be restored with tsmlt/restore-media, and is deleted permanently by WordPress after EMPTY_TRASH_DAYS days. This tool never deletes media permanently.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
 	}
 
 	/**
@@ -197,7 +198,12 @@ class TrashMedia extends Ability {
 	}
 
 	/**
-	 * Check one attachment again, right before its trash call, and trash it.
+	 * Check one attachment, then claim it, check it again and trash it, and
+	 * release the claim. The final checks and the trash call run under the
+	 * claim, so two
+	 * requests cannot both pass them and both report it trashed; the claim
+	 * is renewed right before the trash call, and an item whose claim was
+	 * lost meanwhile is refused.
 	 *
 	 * @param int                   $id      Attachment ID.
 	 * @param array<int, bool|null> $states  Usage states read under the scan.
@@ -206,6 +212,52 @@ class TrashMedia extends Ability {
 	 * @return array{result: string, reason: string}
 	 */
 	private function trash_one( int $id, array $states, string $scan_id ): array {
+		// Items that are refused anyway write nothing, not even a claim.
+		$refusal = $this->check_again( $id, $states, $scan_id );
+		if ( null !== $refusal ) {
+			return $refusal;
+		}
+		$claim = TrashClaim::acquire( $id );
+		if ( ! is_string( $claim ) ) {
+			return [
+				'result' => null === $claim ? 'refused' : 'failed',
+				'reason' => null === $claim ? MediaTrash::REASON_IN_PROGRESS : MediaTrash::REASON_CLAIM_FAILED,
+			];
+		}
+		try {
+			$refusal = $this->check_again( $id, $states, $scan_id );
+			if ( null !== $refusal ) {
+				return $refusal;
+			}
+			$renewed = TrashClaim::renew( $id, $claim );
+			if ( null === $renewed ) {
+				return [
+					'result' => 'refused',
+					'reason' => MediaTrash::REASON_IN_PROGRESS,
+				];
+			}
+			$claim = $renewed;
+			return MediaTrash::trash( $id );
+		} finally {
+			TrashClaim::release( $id, $claim );
+		}
+	}
+
+	/**
+	 * Check one claimed attachment again, right before its trash call: the
+	 * scan unchanged and verified, no saved post's usage rescan pending or
+	 * running, then every rule of the preview on a fresh read.
+	 *
+	 * @param int                   $id      Attachment ID.
+	 * @param array<int, bool|null> $states  Usage states read under the scan.
+	 * @param string                $scan_id Scan the preview used.
+	 *
+	 * @return array{result: string, reason: string}|null The outcome when it
+	 *                                                    must not be
+	 *                                                    trashed; null when
+	 *                                                    it can be.
+	 */
+	private function check_again( int $id, array $states, string $scan_id ): ?array {
 		$status = MediaTrash::scan_status();
 		if ( $status['scan_id'] !== $scan_id || ! $status['complete'] || ! $status['coverage']['verified'] ) {
 			return [
@@ -213,8 +265,13 @@ class TrashMedia extends Ability {
 				'reason' => MediaTrash::REASON_SCAN_CHANGED,
 			];
 		}
-		$post   = MediaTrash::deletable( [ $id ] )[ $id ] ?? null;
-		$reason = MediaTrash::trash_refusal( $post, null === $post ? null : ( $states[ $id ] ?? null ), MediaTrash::protected_ids() );
+		$post  = MediaTrash::deletable( [ $id ] )[ $id ] ?? null;
+		$state = null === $post ? null : ( $states[ $id ] ?? null );
+		if ( false === $state && MediaTrash::post_rescan_pending() ) {
+			// A post saved since the usage records were read may use it now.
+			$state = null;
+		}
+		$reason = MediaTrash::trash_refusal( $post, $state, MediaTrash::protected_ids() );
 		if ( MediaTrash::REASON_ALREADY_TRASHED === $reason ) {
 			return [
 				'result' => 'already_trashed',
@@ -227,7 +284,7 @@ class TrashMedia extends Ability {
 				'reason' => $reason,
 			];
 		}
-		return MediaTrash::trash( $id );
+		return null;
 	}
 
 	/**

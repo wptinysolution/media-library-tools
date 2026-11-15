@@ -23,6 +23,7 @@ class McpTrashNoPermanentDeleteTest extends TestCase {
 	 */
 	const FILES = [
 		'app/Modules/Trash/MediaTrash.php',
+		'app/Modules/Trash/TrashClaim.php',
 		'app/Abilities/Media/ListTrashedMedia.php',
 		'app/Abilities/Media/PreviewTrashMedia.php',
 		'app/Abilities/Media/TrashMedia.php',
@@ -38,7 +39,8 @@ class McpTrashNoPermanentDeleteTest extends TestCase {
 
 	/**
 	 * Methods that run raw deletes or raw SQL ($wpdb->delete(), ->query(),
-	 * the query builder's delete()).
+	 * the query builder's delete()). A delete() whose first argument is the
+	 * literal 'options' (token and claim rows) is allowed.
 	 *
 	 * @var string[]
 	 */
@@ -68,6 +70,7 @@ class McpTrashNoPermanentDeleteTest extends TestCase {
 				}
 			)
 		);
+
 		$names = [ T_STRING ];
 		foreach ( [ 'T_NAME_FULLY_QUALIFIED', 'T_NAME_QUALIFIED' ] as $constant ) {
 			if ( defined( $constant ) ) {
@@ -91,6 +94,10 @@ class McpTrashNoPermanentDeleteTest extends TestCase {
 			$previous = $tokens[ $index - 1 ] ?? null;
 			$member   = is_array( $previous ) && in_array( $previous[0], [ T_OBJECT_OPERATOR, T_DOUBLE_COLON, defined( 'T_NULLSAFE_OBJECT_OPERATOR' ) ? T_NULLSAFE_OBJECT_OPERATOR : T_OBJECT_OPERATOR ], true );
 			if ( is_array( $previous ) && T_FUNCTION === $previous[0] ) {
+				continue;
+			}
+			$argument = $tokens[ $index + 2 ] ?? null;
+			if ( $member && 'delete' === $name && is_array( $argument ) && T_CONSTANT_ENCAPSED_STRING === $argument[0] && 'options' === trim( $argument[1], '\'"' ) && ',' !== ( $tokens[ $index + 3 ] ?? null ) ) {
 				continue;
 			}
 			if ( $member ? in_array( $name, self::METHODS, true ) : in_array( $name, self::FUNCTIONS, true ) ) {
@@ -140,6 +147,7 @@ add_filter( 'pre_delete_attachment', [ __CLASS__, 'refuse_permanent_delete' ], 1
 current_user_can( 'delete_post', $id );
 delete_option( $name );
 wp_trash_post( $id );
+Fns::DB()->delete( 'options' )->where( 'option_name', '=', $name )->execute();
 $query = new WP_Query( [] );
 function delete() {}
 PHP;
@@ -154,6 +162,9 @@ PHP;
 			'$wpdb->delete( $wpdb->posts, [ "ID" => 1 ] );',
 			'$wpdb->query( "DELETE FROM x" );',
 			'Fns::DB()->delete();',
+			'Fns::DB()->delete( \'posts\' );',
+			'Fns::DB()->delete( $table );',
+			'$wpdb->delete( \'options\', [ "option_name" => "x" ] );',
 			'call_user_func( "wp_delete_post", $id );',
 			'do_action( \'wp_scheduled_delete\' );',
 			'wp_scheduled_delete();',

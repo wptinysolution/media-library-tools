@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Modules\Trash\MediaTrash;
+use TinySolutions\mlt\Modules\Trash\TrashClaim;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -42,7 +43,7 @@ class RestoreMedia extends Ability {
 	 *
 	 * @var string[]
 	 */
-	const REASONS = [ '', MediaTrash::REASON_NOT_TRASHED, MediaTrash::REASON_NOT_AVAILABLE, MediaTrash::REASON_BLOCKED, MediaTrash::REASON_UNEXPECTED_STATUS, MediaTrash::REASON_DELETED ];
+	const REASONS = [ '', MediaTrash::REASON_NOT_TRASHED, MediaTrash::REASON_NOT_AVAILABLE, MediaTrash::REASON_IN_PROGRESS, MediaTrash::REASON_CLAIM_FAILED, MediaTrash::REASON_BLOCKED, MediaTrash::REASON_UPDATE_FAILED, MediaTrash::REASON_CHANGED_DURING_CALL, MediaTrash::REASON_UNEXPECTED_STATUS, MediaTrash::REASON_DELETED ];
 
 	/**
 	 * Construct
@@ -73,7 +74,7 @@ class RestoreMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Restore media from the WordPress trash (find IDs with tsmlt/list-trashed-media). Up to 20 IDs; each is handled on its own and reported: restored, not_trashed (it was not in the trash; nothing changed), refused (not_available: missing, not media, or you may not restore it), blocked (another plugin stopped it) or failed. Restored media is back in the library and shown on the site again. Nothing is rolled back if some fail.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
+		return __( 'Restore media from the WordPress trash (find IDs with tsmlt/list-trashed-media). Up to 20 IDs; each is handled on its own and reported: restored, not_trashed (it was not in the trash; nothing changed), refused (not_available: missing, not media, or you may not restore it; in_progress while another request is trashing or restoring it), blocked (another plugin stopped it) or failed (update_failed when WordPress could not update it, and it stays in the trash with its trash date; changed_during_call when something changed it back). Restored media is back in the library and shown on the site again. Nothing is rolled back if some fail.', 'media-library-tools' ) . ' ' . MediaTrash::permanent_delete_guidance();
 	}
 
 	/**
@@ -150,27 +151,83 @@ class RestoreMedia extends Ability {
 
 		$items = [];
 		foreach ( $ids as $id ) {
-			$post = MediaTrash::deletable( [ $id ] )[ $id ] ?? null;
-			if ( null === $post ) {
-				$outcome = [
-					'result' => 'refused',
-					'reason' => MediaTrash::REASON_NOT_AVAILABLE,
-				];
-			} elseif ( 'trash' !== $post->post_status ) {
-				$outcome = [
-					'result' => 'not_trashed',
-					'reason' => MediaTrash::REASON_NOT_TRASHED,
-				];
-			} else {
-				$outcome = MediaTrash::restore( $id );
-			}
-			$items[] = [ 'id' => $id ] + $outcome;
+			$items[] = [ 'id' => $id ] + $this->restore_one( $id );
 		}
 
 		return [
 			'items'   => $items,
 			'summary' => MediaTrash::summary( $items, self::RESULTS ),
 		];
+	}
+
+	/**
+	 * Check one attachment, then claim it, check it again and restore it,
+	 * and release the claim (the same claim tsmlt/trash-media takes, so the
+	 * two cannot work on one attachment at once).
+	 *
+	 * @param int $id Attachment ID.
+	 *
+	 * @return array{result: string, reason: string}
+	 */
+	private function restore_one( int $id ): array {
+		// Items that are refused or not in the trash write nothing, not even
+		// a claim.
+		$refusal = $this->check_again( $id );
+		if ( null !== $refusal ) {
+			return $refusal;
+		}
+		$claim = TrashClaim::acquire( $id );
+		if ( ! is_string( $claim ) ) {
+			return [
+				'result' => null === $claim ? 'refused' : 'failed',
+				'reason' => null === $claim ? MediaTrash::REASON_IN_PROGRESS : MediaTrash::REASON_CLAIM_FAILED,
+			];
+		}
+		try {
+			$refusal = $this->check_again( $id );
+			if ( null !== $refusal ) {
+				return $refusal;
+			}
+			$renewed = TrashClaim::renew( $id, $claim );
+			if ( null === $renewed ) {
+				return [
+					'result' => 'refused',
+					'reason' => MediaTrash::REASON_IN_PROGRESS,
+				];
+			}
+			$claim = $renewed;
+			return MediaTrash::restore( $id );
+		} finally {
+			TrashClaim::release( $id, $claim );
+		}
+	}
+
+	/**
+	 * Check an attachment on a fresh read: deletable by the user and in the
+	 * trash.
+	 *
+	 * @param int $id Attachment ID.
+	 *
+	 * @return array{result: string, reason: string}|null The outcome when it
+	 *                                                    must not be
+	 *                                                    restored; null when
+	 *                                                    it can be.
+	 */
+	private function check_again( int $id ): ?array {
+		$post = MediaTrash::deletable( [ $id ] )[ $id ] ?? null;
+		if ( null === $post ) {
+			return [
+				'result' => 'refused',
+				'reason' => MediaTrash::REASON_NOT_AVAILABLE,
+			];
+		}
+		if ( 'trash' !== $post->post_status ) {
+			return [
+				'result' => 'not_trashed',
+				'reason' => MediaTrash::REASON_NOT_TRASHED,
+			];
+		}
+		return null;
 	}
 
 	/**
