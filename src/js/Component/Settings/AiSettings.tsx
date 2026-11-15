@@ -113,6 +113,91 @@ function ModelSelect({ provider }: { provider: AiKeyProvider }) {
     );
 }
 
+const AI_PROVIDERS: { id: AiKeyProvider; name: string; vendor: string; initials: string }[] = [
+    { id: 'chatgpt', name: 'ChatGPT', vendor: 'OpenAI', initials: 'GP' },
+    { id: 'gemini', name: 'Gemini', vendor: 'Google', initials: 'GE' },
+    { id: 'claude', name: 'Claude', vendor: 'Anthropic', initials: 'CL' },
+];
+
+const KEY_STATUS_BADGES: Record<string, { label: string; className: string }> = {
+    saved: { label: 'API key saved', className: 'bg-green-50 text-green-700 ring-green-600/20' },
+    unreadable: { label: 'Key unreadable', className: 'bg-red-50 text-red-700 ring-red-600/20' },
+    empty: { label: 'No API key', className: 'bg-gray-50 text-gray-600 ring-gray-500/20' },
+};
+
+const CheckIcon = () => (
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+    </svg>
+);
+
+/**
+ * Provider picker: one selectable card per provider, each a real radio
+ * input (keyboard and screen-reader friendly) showing who makes it and
+ * whether its API key is saved.
+ */
+function ProviderPicker() {
+    const { options, setOptions } = useStore();
+    const provider = options.ai_provider ?? 'gemini';
+
+    return (
+        <div role="radiogroup" aria-label="AI provider" className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+            {AI_PROVIDERS.map(({ id, name, vendor, initials }) => {
+                const selected = provider === id;
+                const badge = KEY_STATUS_BADGES[options.ai_key_status?.[id] ?? 'empty'] ?? KEY_STATUS_BADGES.empty;
+                return (
+                    <label key={id} className="relative block cursor-pointer">
+                        <input
+                            type="radio"
+                            name="ai_provider"
+                            value={id}
+                            className="peer sr-only"
+                            checked={selected}
+                            onChange={() => setOptions({ ai_provider: id })}
+                        />
+                        <div
+                            className={`h-full rounded-lg border bg-white p-4 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 ${
+                                selected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-50/40' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <span
+                                        aria-hidden="true"
+                                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${
+                                            selected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                                        }`}
+                                    >
+                                        {initials}
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="block text-sm font-semibold text-gray-900">{name}</span>
+                                        <span className="block text-xs text-gray-500">by {vendor}</span>
+                                    </span>
+                                </div>
+                                <span
+                                    aria-hidden="true"
+                                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                                        selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 bg-white text-transparent'
+                                    }`}
+                                >
+                                    <CheckIcon />
+                                </span>
+                            </div>
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${badge.className}`}>
+                                    {badge.label}
+                                </span>
+                                {selected && <span className="text-xs font-medium text-blue-700">Active</span>}
+                            </div>
+                        </div>
+                    </label>
+                );
+            })}
+        </div>
+    );
+}
+
 const AI_PROMPT_FIELDS = [
     { key: 'ai_instruction_title', label: 'Title', placeholder: 'e.g. Always include the product colour.' },
     { key: 'ai_instruction_alt_text', label: 'Alt Text', placeholder: 'e.g. Describe the setting for screen readers.' },
@@ -241,25 +326,44 @@ export default function AiSettings() {
             </div>
             <div className="p-6 space-y-6">
                 <SettingRow label="AI Provider:">
-                    <div className="flex flex-wrap gap-6">
-                        {(['chatgpt', 'gemini', 'claude'] as const).map((p) => (
-                            <label key={p} className="inline-flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="ai_provider"
-                                    value={p}
-                                    className="w-4 h-4 m-0! border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                    checked={provider === p}
-                                    onChange={() => setOptions({ ai_provider: p })}
-                                />
-                                <span className="text-base text-gray-900">
-                                    {p === 'chatgpt' ? 'ChatGPT' : p === 'gemini' ? 'Gemini' : 'Claude'}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-0!">Select which AI provider to use. All API keys you enter are saved; only the active provider&apos;s key is used.</p>
+                    <ProviderPicker />
+                    <p className="text-sm text-gray-500 mt-3! mb-0!">
+                        Choose the provider used for AI suggestions. Keys for every provider stay saved; only the active provider&apos;s key is used.
+                    </p>
                 </SettingRow>
+
+                {provider === 'chatgpt' && (
+                    <>
+                        <SettingRow label="ChatGPT API Key:" bordered>
+                            <ApiKeyField provider="chatgpt" />
+                        </SettingRow>
+                        <SettingRow label="ChatGPT Model:" bordered>
+                            <ModelSelect provider="chatgpt" />
+                        </SettingRow>
+                    </>
+                )}
+
+                {provider === 'gemini' && (
+                    <>
+                        <SettingRow label="Gemini API Key:" bordered>
+                            <ApiKeyField provider="gemini" />
+                        </SettingRow>
+                        <SettingRow label="Gemini Model:" bordered>
+                            <ModelSelect provider="gemini" />
+                        </SettingRow>
+                    </>
+                )}
+
+                {provider === 'claude' && (
+                    <>
+                        <SettingRow label="Claude API Key:" bordered>
+                            <ApiKeyField provider="claude" />
+                        </SettingRow>
+                        <SettingRow label="Claude Model:" bordered>
+                            <ModelSelect provider="claude" />
+                        </SettingRow>
+                    </>
+                )}
 
                 <SettingRow label="Send Image to AI:" bordered>
                     <label className="inline-flex items-center gap-2 cursor-pointer">
@@ -348,39 +452,6 @@ export default function AiSettings() {
                         ))}
                     </div>
                 </SettingRow>
-
-                {provider === 'chatgpt' && (
-                    <>
-                        <SettingRow label="ChatGPT API Key:" bordered>
-                            <ApiKeyField provider="chatgpt" />
-                        </SettingRow>
-                        <SettingRow label="ChatGPT Model:" bordered>
-                            <ModelSelect provider="chatgpt" />
-                        </SettingRow>
-                    </>
-                )}
-
-                {provider === 'gemini' && (
-                    <>
-                        <SettingRow label="Gemini API Key:" bordered>
-                            <ApiKeyField provider="gemini" />
-                        </SettingRow>
-                        <SettingRow label="Gemini Model:" bordered>
-                            <ModelSelect provider="gemini" />
-                        </SettingRow>
-                    </>
-                )}
-
-                {provider === 'claude' && (
-                    <>
-                        <SettingRow label="Claude API Key:" bordered>
-                            <ApiKeyField provider="claude" />
-                        </SettingRow>
-                        <SettingRow label="Claude Model:" bordered>
-                            <ModelSelect provider="claude" />
-                        </SettingRow>
-                    </>
-                )}
             </div>
         </div>
     );
