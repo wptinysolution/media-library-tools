@@ -1,6 +1,6 @@
 # MCP Integration (AI Assistants)
 
-Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, find duplicate files, update media text fields, and organise media into Groups on your behalf. With Media Library Tools Pro it can also build captions from EXIF data, edit EXIF fields, and export and import media text fields as CSV. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
+Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) search your media library, read media details and camera EXIF fields, find where media is used, find duplicate files, update media text fields, organise media into Groups, and move media that a verified usage scan found unused to the WordPress trash (and restore it) on your behalf. With Media Library Tools Pro it can also build captions from EXIF data, edit EXIF fields, and export and import media text fields as CSV. During development it has been used from Claude Code, and every tool is covered by integration tests that call it through the MCP Adapter. Project status, decisions and the roadmap are at the end of this page ([Project status, decisions and roadmap](#project-status-decisions-and-roadmap)).
 
 ## Overview
 
@@ -11,10 +11,11 @@ The integration lets an AI assistant:
 - Read an image's camera, lens and exposure EXIF fields (make, model, lens, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure codes, flash, description)
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
+- List the media in the WordPress trash, move media a verified Used Where scan found unused to the trash after a preview and confirmation, and restore trashed media (see [Media trash](#media-trash--list-preview-trash-restore))
 - **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
 - **Pro:** export media as CSV, and check and then apply a CSV that updates existing media (see [Pro: CSV export and import](#pro-csv-export-and-import))
 
-The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, or move them to the trash, or delete or move Groups;  `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -25,7 +26,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 ## Available Tools
 
-### Free (12)
+### Free (16)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -41,6 +42,10 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-create-media-group` | Creates one Group, at the top level or under an existing Group. Dedicated endpoint only | Yes (adds a Group) |
 | `tsmlt-update-media-group` | Renames one Group; its ID, slug, parent and media stay the same. Dedicated endpoint only | Yes (Group name) |
 | `tsmlt-find-duplicate-media` | Lists groups of identical media files, largest first, from the last duplicate scan (Duplicates page), with each file's size and, per attachment, its details, parent post and usage from the Used Where scan. Never starts a scan, merges or deletes. Dedicated endpoint only | No |
+| `tsmlt-list-trashed-media` | Lists media in the WordPress trash, one page at a time, with when each item was trashed and the earliest date WordPress may delete it permanently. Dedicated endpoint only | No |
+| `tsmlt-preview-trash-media` | Checks whether up to 20 attachments can be moved to the trash (only media a complete, verified Used Where scan found unused; never the site icon or logo) and, when all can, returns a one-time confirmation token. Dedicated endpoint only | No (stores a short-lived token) |
+| `tsmlt-trash-media` | Moves the previewed attachments to the WordPress trash with the token, re-checking every rule, and reports each item. Never deletes permanently; refused when the site's trash is off. Dedicated endpoint only | Yes (moves media to the trash) |
+| `tsmlt-restore-media` | Restores up to 20 attachments from the WordPress trash and reports each item. Dedicated endpoint only | Yes (restores media) |
 
 ### Pro (5)
 
@@ -56,7 +61,7 @@ The five Pro tools are offered only when Media Library Tools Pro is active with 
 
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
-**What is never changed**: the file's name or URL, or any attachment other than the one a tool is given. A usage scan (`tsmlt-start-usage-scan`) never changes an existing attached post ("Uploaded to") and sets one only for an image that has none; the only tool that changes an attached post on request is the Pro CSV import, through its `post_parent` column, after a preview and an explicit confirmation. `tsmlt-set-media-groups` changes only the attachment's Group assignments. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+**What is never changed**: the file's name or URL, or any attachment other than the one a tool is given. A usage scan (`tsmlt-start-usage-scan`) never changes an existing attached post ("Uploaded to") and sets one only for an image that has none; the only tool that changes an attached post on request is the Pro CSV import, through its `post_parent` column, after a preview and an explicit confirmation. `tsmlt-set-media-groups` changes only the attachment's Group assignments. `tsmlt-trash-media` and `tsmlt-restore-media` change only an attachment's status (to and from the trash) through WordPress's own functions; files stay on disk. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
 
 ## Search by file name
 
@@ -187,6 +192,81 @@ What to keep in mind:
 - Usage comes from the Used Where scan, not from the duplicate scan.
 - Attachments deleted or moved to the trash since the scan are left out, and so are repeated rows of one attachment; the tool does not clean up those stale rows (the Duplicates page does when it loads its results).
 - The tool is read-only: no file paths, file hashes or raw metadata are returned, and nothing is merged, deleted or changed (merging duplicates is a Pro feature of the Duplicates page, not an MCP tool).
+
+## Media trash — list, preview, trash, restore
+
+Four tools manage the WordPress trash for media, on the dedicated endpoint only. They use WordPress's own `wp_trash_post()` and `wp_untrash_post()`: there is no separate trash, table or deletion of the plugin's own, and the files stay on disk while media is in the trash.
+
+**MCP supports Trash and Restore only.** No MCP tool deletes media permanently, empties the trash, or takes a delete-related input. Every trash tool's description and the dedicated server's instructions tell the client, word for word:
+
+> Permanent deletion is not available through MCP. Before permanently deleting media, inspect the entire website for dependencies, create and verify a backup, then log in to WordPress Admin and carefully perform the deletion manually.
+
+Trashing is deliberately strict. Read this before you use it:
+
+- **Only unused media.** An attachment can be trashed only when the latest Used Where scan is complete, its coverage is verified, it covered the attachment (uploaded before the scan started), and it recorded no usage — `unused` in `tsmlt-get-media-usage`. Used, unknown, unscanned and unverifiable media is refused. If usage is unknown, run `tsmlt-start-usage-scan` and wait for it to complete.
+- **Never the site icon or logo** (`site_icon`, the theme's `custom_logo`, `site_logo`).
+- **Preview, confirm, then trash.** `tsmlt-trash-media` needs a confirmation token from `tsmlt-preview-trash-media`. Show the preview to the user and trash only after they confirm.
+- **Trash must be on.** When `EMPTY_TRASH_DAYS` is 0 or less, WordPress deletes instead of trashing, so every trash request is refused before anything changes. A value that is undefined or not a whole number counts as off too. Nothing through MCP ever deletes media permanently.
+- **It shows on the site at once.** The plugin hides trashed media on the front end (empty URL and image), so anything still using a trashed file stops showing it. A verified scan recorded no usage, but content added since the scan is not known.
+- **WordPress deletes it later.** WordPress's scheduled daily trash cleanup (`wp_scheduled_delete`) permanently deletes trashed media `EMPTY_TRASH_DAYS` days (30 by default) after it was trashed — WordPress does this, not an MCP tool. `purge_at` is the earliest time that can happen; restore before then to keep it.
+- **Changing `EMPTY_TRASH_DAYS` later affects what is already in the trash.** If it is later set to 0, WordPress's next cleanup can permanently delete everything already in the trash, including media trashed through MCP; a smaller number brings purge dates forward (`purge_at` is always calculated from the current setting). Restore anything you want to keep before changing it.
+
+### List the trash — `tsmlt-list-trashed-media`
+
+Input (both optional): `page` (1–10000, default 1) and `per_page` (1–20, default 10).
+
+Output: `items` — most recently changed first, each with the same fields as `tsmlt-search-media` (the URL is empty while the plugin hides trashed media) plus `trashed_at` and `purge_at` (ISO 8601, UTC, or empty when WordPress did not record the trash time); `total` (trashed media in all), `total_pages`, `hidden` (trashed media on this page you cannot read, never listed), `page`, `per_page`; and `trash`: `enabled`, `empty_trash_days`, `media_trash` (for information only — it controls the Trash link on WordPress's own media screens).
+
+### Check before trashing — `tsmlt-preview-trash-media`
+
+Input: `ids`, 1 to 20 attachment IDs, each once.
+
+For each ID: `eligible`, `reason` (empty when eligible), `usage` (`used`, `unused`, `unknown`), `usage_count`, `scan_verified` (a complete, verified scan covered it), `frontend_impact` (`none_recorded`, `breaks_recorded_usage`, `unknown`) and `media` (summary fields, or `null` when not available). Reasons:
+
+| Reason | Meaning |
+|---|---|
+| `trash_disabled` | `EMPTY_TRASH_DAYS` is 0 or less (or a site filter turned MCP trash off) |
+| `not_available` | Missing, not media, or you may not delete it — the three are reported alike |
+| `already_trashed` | Already in the trash |
+| `invalid_status` | Not in the media library's normal `inherit` status (for example private) |
+| `protected_site_media` | The site icon or logo |
+| `used` | The scan recorded a usage |
+| `usage_unknown` | No complete, verified scan covered it |
+
+When every ID is eligible, the result has a `confirmation_token` and `expires_at`; otherwise both are `null` — preview again with only the eligible IDs. Changes no media; the only write is the token.
+
+The token is 64 random hexadecimal characters, issued for the user who previewed, exactly that set of IDs (in any order), and the Used Where scan of the preview; it expires after 10 minutes and works once. Only its SHA-256 hash is stored, in a non-autoloaded option; expired ones are removed when a new token is issued.
+
+### Trash — `tsmlt-trash-media`
+
+Input: `ids` and `confirmation_token`, both required.
+
+In order, before any attachment changes:
+
+1. Trash must be on; otherwise the call fails with `tsmlt_trash_disabled` and the token is not used.
+2. The token must exist, be unexpired and match the user and IDs; otherwise `tsmlt_trash_token_invalid`. A token for other IDs or another user is not used up; an expired one is removed. A matching token is used up now, even if a later step refuses the call.
+3. The Used Where scan must be the one the preview used; otherwise `tsmlt_trash_scan_changed` (preview again).
+4. Usage is read again; a failed read fails closed with `tsmlt_trash_read_failed`.
+
+Then each ID, in order, is checked again — the scan unchanged, permission to delete, status, site icon or logo, usage — right before its own `wp_trash_post()` call, and read back afterwards. While it is being trashed, any permanent deletion of that attachment is refused, as a second safeguard.
+
+`items` gives each ID's `result` and `reason`; `summary` counts them (`total`, `trashed`, `already_trashed`, `refused`, `blocked`, `failed`):
+
+| Result | Meaning |
+|---|---|
+| `trashed` | In the trash now |
+| `already_trashed` | It was already in the trash; nothing changed |
+| `refused` | A check failed (`reason` as in the preview, or `scan_changed` when a new scan started during the call); nothing changed |
+| `blocked` | Another plugin stopped it (`pre_trash_post`); still in the library |
+| `failed` | It ended up neither trashed nor unchanged (`unexpected_status`), or no longer exists (`deleted`) |
+
+Items are trashed one by one; nothing is rolled back if a later item is refused or fails. Read `items` to see exactly what changed.
+
+### Restore — `tsmlt-restore-media`
+
+Input: `ids`, 1 to 20 attachment IDs. No token: a restore only brings media back. Each ID is restored with `wp_untrash_post()` and read back; results are `restored`, `not_trashed` (it was not in the trash; nothing changed, so repeating a restore is harmless), `refused` (`not_available`), `blocked` (`pre_untrash_post`) or `failed`, with the same `summary` counts. Restored media is back in the library (`inherit`) and shows on the site again.
+
+Permissions: listing needs `read_post` for each trashed attachment; preview, trash and restore need `delete_post` for each attachment, as WordPress's own trash and restore links do.
 
 ## Working with Groups
 
@@ -525,12 +605,12 @@ On the dedicated endpoint:
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
 
-Every tool call also re-checks `manage_options` — inside the tool itself, so code that calls a tool's callback directly is refused too — and the permission to read (or, for updates, edit) the specific attachment, on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found.
+Every tool call also re-checks `manage_options` — inside the tool itself, so code that calls a tool's callback directly is refused too — and the permission to read (or, for updates, edit; for trash and restore, delete) the specific attachment, on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found — except the trash tools, which work with trashed attachments as described in [Media trash](#media-trash--list-preview-trash-restore).
 
 ## Important Notes
 
 ### Review before saving
-`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them. `tsmlt-update-media-group` returns `previous_name` so a rename can be reversed. `tsmlt-create-media-group` adds a Group that can only be removed under **Media → Groups**. `tsmlt-start-usage-scan` replaces the previous usage results, so it is also marked destructive — keep your client's tool-approval prompts turned on.
+`tsmlt-update-media-metadata` overwrites the current value and cannot be undone. `tsmlt-set-media-groups` can remove Groups from an attachment; its `groups_before` output lists what was there, so the change can be reversed with `replace`. The Pro tool `tsmlt-update-exif-fields` rewrites EXIF data in the image file, and the previous values are not returned. These tools are marked as destructive so clients can ask before running them. `tsmlt-update-media-group` returns `previous_name` so a rename can be reversed. `tsmlt-create-media-group` adds a Group that can only be removed under **Media → Groups**. `tsmlt-start-usage-scan` replaces the previous usage results, so it is also marked destructive — keep your client's tool-approval prompts turned on. `tsmlt-trash-media` is marked destructive too: trashed media stops showing on the site at once and WordPress deletes it permanently after `EMPTY_TRASH_DAYS` days unless it is restored with `tsmlt-restore-media`.
 
 ### Revoking access
 Delete the Application Password under **Users → Profile → Application Passwords**. The assistant loses access immediately.
@@ -554,9 +634,9 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/find-duplicate-media` (12). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (5). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/find-duplicate-media`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media` (16). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (5). Descriptions: [Available Tools](#available-tools).
 
-Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky). They must not be reintroduced; no MCP tool trashes or deletes media.
+Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 
 ### Architecture decisions
 
@@ -568,6 +648,7 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
 - The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
 - A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
 - Usage scans never clear or replace an attachment's existing parent ("Uploaded to").
+- Media trash through MCP (`Modules\Trash\MediaTrash`) follows the conditions under [Implemented abilities](#implemented-abilities). Tokens are options named by the token's hash and never rewritten; the request whose `delete_option()` removed the row (core reports success only when its `DELETE` affected it) is the one that used the token, and the payload is read from the database, not a cache. The site filter `tsmlt_mcp_trash_days` can lower the trash days the tools see (0 or less, or a value that is not a whole number, turns MCP trash off) but never raise them. While `wp_trash_post()` runs, `pre_delete_attachment` and `pre_delete_post` refuse to delete that attachment. A source-level test (`tests/Unit/McpTrashNoPermanentDeleteTest.php`) fails if the trash service or any trash ability calls `wp_delete_post()`, `wp_delete_attachment()`, other file or post deletion, raw deletes or SQL, or the trash cleanup. Nothing is transactional across attachments: each is trashed or restored on its own and reported as it ends up.
 - CSV import/export through MCP is Pro-only: three tools on the dedicated endpoint, and no Free CSV tool. Import updates existing media only, through a preview and a single-use, user-bound plan applied with explicit confirmation. See [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro).
 
 ### Usage classification (shared rules)
@@ -578,7 +659,7 @@ The Used Where page (Used / Unused / Unknown tabs) and `tsmlt-get-media-usage` u
 - **Unused** — no usage is recorded, the last scan completed with verified coverage, and the attachment was uploaded before that scan started.
 - **Unknown** — anything else without a recorded usage: no scan, a scan that is running, stalled, cancelled, failed or unfinished, a scan without a coverage record, a coverage gap (`woocommerce_inactive`, `woocommerce_types_not_scanned`), or an upload after the scan started. An empty usage record alone is never proof of non-use.
 
-The Unknown tab explains each image with these reasons, the evidence found in the database (for example, attached to a product or set as a product category image), the scan details, what information is missing, and a next step; reasons are described in [Used Where](09-used-where.md#unknown-tab). Unknown images have no bulk Trash or Delete action. Through MCP the same images have `used: null`.
+The Unknown tab explains each image with these reasons, the evidence found in the database (for example, attached to a product or set as a product category image), the scan details, what information is missing, and a next step; reasons are described in [Used Where](09-used-where.md#unknown-tab). Unknown images have no bulk Trash or Delete action. Through MCP the same images have `used: null`, and `tsmlt-preview-trash-media` / `tsmlt-trash-media` refuse them (`usage_unknown`).
 
 ### Verification evidence
 
@@ -597,6 +678,7 @@ The Unknown tab explains each image with these reasons, the evidence found in th
 - **Disposable local site, CSV tools** (2026-11-13; a new site and database; WordPress 7.1.3, MCP Adapter 0.7.0, Free 2.5.0, Pro 1.6.2, PHP 8.3, on 127.0.0.1; the Pro licence provided by the test suite's licence stand-in; deleted afterwards), through the real MCP transport: export pagination (3 + 3 + 1 rows, no duplicates, last cursor null), header, filters (MIME type, file name, Group, attached), formula neutralising with numbers kept, special characters, no paths, metadata or custom fields, a tampered cursor and `limit` 101 refused; preview of an export with `url` refused naming the column; preview of an edited CSV (valid, missing Group with and without `create_groups`, missing ID, invalid parent) with exact before/after and no changes made; apply (3 rows updated, checked in the database, untouched fields kept), second apply and `confirm: false` refused; a title edited between preview and apply skipped as conflict while another row was applied; no CSV tool discoverable or runnable on the default gateway; an editor refused at the dedicated endpoint; existing tools (search, details, metadata update, Groups, Pro EXIF caption, gateway search) still working. 33 of 33 checks passed. Found: two round-trip differences (the export's apostrophe kept on import, caption line breaks turned into spaces) — fixed afterwards in Pro, see the next entry; the fix was not re-run on a site.
 - **CSV round-trip fix** (Pro implementation and tests, 2026-11-13): `CsvRoundTripTest`, 7 tests, 64 assertions (codec reversibility and spreadsheet safety, cells from other sources, export → remove `url` → preview with every row unchanged, multi-line captions previewed and applied exactly, formula values restored on apply, other fields' sanitizing, admin importer unchanged); 4 of them fail against the previous export and preview code. Full Pro suite: 475 tests, 6,454 assertions, no skips or failures, on PHP 8.3, 8.4 and 8.5. PHPCS: no findings in the changed PHP files. PHP syntax checks passed on PHP 8.3, 8.4 and 8.5.
 - **Plan claim fix** (Pro implementation and tests, 2026-11-13): `ImportPlanStoreTest`, 12 tests, 49 assertions — first claim succeeds and a second fails; a competing claim written just before this request's `INSERT` wins and this request is refused; `add_option()` shown reporting success in that same window; a leftover claim blocks replay; database errors fail closed; expired-claim cleanup; other users' and unknown plans refused alike. Two of them fail against the previous `add_option()` code. PHPUnit runs one request at a time, so the race is reproduced at its critical point rather than with truly parallel requests. Full Pro suite: 482 tests, 6,479 assertions, no skips or failures, on PHP 8.3, 8.4 and 8.5.
+- **Media trash tests** (Free, 2026-11-15; WordPress test suite with the MCP Adapter 0.7.0, PHP 8.3): `ListTrashedAndRestoreMediaAbilityTest` (12 tests, 93 assertions), `TrashMediaAbilityTest` (18 tests, 236 assertions), `McpTrashToolsExposureTest` (4 tests, 71 assertions) and the source-level `McpTrashNoPermanentDeleteTest` (unit, 3 tests, 26 assertions). They cover permissions at both levels; per-item `read_post` / `delete_post`; closed input; the strict usage rule (used, unused, unknown, no, running, stalled, gapped, legacy and ID-less scans); site icon and logo; trash days of 0, −1 and unusable values (no trash or delete hook runs, the token is kept); the permanent-deletion guard; token checks including a second consumer interleaved at the critical point (simulated in one process, not parallel); scan changes after the preview and during a batch; a mixed batch with all five outcomes; native trash records, restore and the cache flush; purge dates; the guidance text in every tool description and the server instructions; no delete-related tool or input; dedicated listing, an end-to-end MCP run and default-gateway refusal. Removing the deletion guard, ignoring the token's `delete_option()` result, bypassing the trash-days gate, treating an unusable filter value as usable, or adding a `wp_delete_attachment()` call each makes a test fail. Full Free integration suite: 967 tests, 6,325 assertions, 5 skipped (adapter-detection tests that need a stand-in for the real MCP Adapter); unit suite: 135 tests, 399 assertions. Not run on a disposable or existing site.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
 ### CSV import and export through MCP (Pro)
@@ -681,4 +763,5 @@ All three are Pro-only, offered only on the dedicated endpoint (`/wp-json/media-
 | 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
 | 8 | CSV import/export | Implemented | Pro-only `tsmlt/export-media-csv-bulk`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import` on the dedicated endpoint; no Free CSV tool. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Round trips fixed in Pro (2026-11-13; remaining exceptions under Known limitations). Open: neutralising formulas in the admin CSV export. Not tested on an existing site. |
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
+| 10 | Media trash management | Implemented | `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media` and `tsmlt/restore-media` (Free, dedicated endpoint only), under the conditions recorded in [Implemented abilities](#implemented-abilities); see [Media trash](#media-trash--list-preview-trash-restore). Covered by integration tests (see Verification evidence). Permanent deletion, Empty Trash, Trash All and bulk rename are out of scope. Not tested on a disposable or existing site. |
 

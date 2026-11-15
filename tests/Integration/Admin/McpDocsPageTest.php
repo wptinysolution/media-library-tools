@@ -288,10 +288,15 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<h1>MCP Docs</h1>', $html );
 		$this->assertStringContainsString( esc_html( rest_url( 'media-library-tools/mcp' ) ), $html );
-		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-find-duplicate-media', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
+		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-find-duplicate-media', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
 			$this->assertStringContainsString( $tool, $html );
 		}
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
+
+		// Trash and Restore only, with the permanent-deletion guidance word for word.
+		$this->assertStringContainsString( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', $html );
+		$this->assertStringContainsString( 'Permanent deletion is not available through MCP. Before permanently deleting media, inspect the entire website for dependencies, create and verify a backup, then log in to WordPress Admin and carefully perform the deletion manually.', $html );
+		$this->assertStringContainsString( 'if EMPTY_TRASH_DAYS is later set to 0', $html );
 
 		// Claude Desktop setup, with where its configuration file lives.
 		$this->assertStringContainsString( 'Claude Desktop', $html );
@@ -353,7 +358,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$tools = array_combine( $rows[1], $rows[2] );
 
 		$this->assertSame(
-			[ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-get-exif-fields', 'tsmlt-update-media-metadata', 'tsmlt-list-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-set-media-groups', 'tsmlt-find-duplicate-media', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ],
+			[ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-get-exif-fields', 'tsmlt-update-media-metadata', 'tsmlt-list-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-set-media-groups', 'tsmlt-find-duplicate-media', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ],
 			$rows[1],
 			'Every tool once, in order.'
 		);

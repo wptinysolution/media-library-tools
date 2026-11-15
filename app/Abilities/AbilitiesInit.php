@@ -20,9 +20,13 @@ use TinySolutions\mlt\Abilities\Media\GetMediaUsage;
 use TinySolutions\mlt\Abilities\Media\FindDuplicateMedia;
 use TinySolutions\mlt\Abilities\Media\GetUsageScanStatus;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
+use TinySolutions\mlt\Abilities\Media\ListTrashedMedia;
+use TinySolutions\mlt\Abilities\Media\PreviewTrashMedia;
+use TinySolutions\mlt\Abilities\Media\RestoreMedia;
 use TinySolutions\mlt\Abilities\Media\SearchMedia;
 use TinySolutions\mlt\Abilities\Media\SetMediaGroups;
 use TinySolutions\mlt\Abilities\Media\StartUsageScan;
+use TinySolutions\mlt\Abilities\Media\TrashMedia;
 use TinySolutions\mlt\Abilities\Media\UpdateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\UpdateMediaMetadata;
 use TinySolutions\mlt\Traits\SingletonTrait;
@@ -135,6 +139,10 @@ class AbilitiesInit {
 			StartUsageScan::instance(),
 			GetUsageScanStatus::instance(),
 			FindDuplicateMedia::instance(),
+			ListTrashedMedia::instance(),
+			PreviewTrashMedia::instance(),
+			TrashMedia::instance(),
+			RestoreMedia::instance(),
 		];
 	}
 }

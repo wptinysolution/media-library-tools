@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Abilities\AbilitiesInit;
 use TinySolutions\mlt\Abilities\McpServerRegistration;
+use TinySolutions\mlt\Modules\Trash\MediaTrash;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -331,6 +332,26 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-list-trashed-media</code></td>
+							<td><?php esc_html_e( 'Lists media in the WordPress trash, one page at a time, with when each item was trashed and the earliest date WordPress may delete it permanently. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-preview-trash-media</code></td>
+							<td><?php esc_html_e( 'Checks whether up to 20 attachments can be moved to the trash and returns a one-time confirmation token. Only media a complete, verified Used Where scan found unused qualifies; used or unknown media, the site icon and the site logo are refused. Changes no media. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-trash-media</code></td>
+							<td><?php esc_html_e( 'Moves the previewed attachments to the WordPress trash, after you confirm, using the token from tsmlt-preview-trash-media. Checks every rule again and reports each item. Refuses everything when the site\'s trash is turned off (EMPTY_TRASH_DAYS is 0), and never deletes media permanently. Trashed media stops showing on the site. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (moves media to the trash)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-restore-media</code></td>
+							<td><?php esc_html_e( 'Restores up to 20 attachments from the WordPress trash and reports each item. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
@@ -358,7 +379,12 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, or delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. CSV export and import through MCP are Pro features, not part of the free plugin, and the three CSV tools are offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. CSV export and import through MCP are Pro features, not part of the free plugin, and the three CSV tools are offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
+				</p>
+				<p>
+					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>
+					<?php echo esc_html( MediaTrash::permanent_delete_guidance() ); ?>
+					<?php esc_html_e( 'WordPress\'s scheduled trash cleanup permanently deletes trashed media EMPTY_TRASH_DAYS days (30 by default) after it was trashed, and if EMPTY_TRASH_DAYS is later set to 0, its next cleanup can permanently delete everything already in the trash. Restore anything you want to keep first.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 
@@ -556,7 +582,7 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'Every tool call also re-checks the administrator capability and the permission to read (or, for updates, edit) the specific attachment. Trashed and private attachments are reported as not found.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'Every tool call also re-checks the administrator capability and the permission to read (or, for updates, edit; for trash and restore, delete) the specific attachment. Except for the trash tools, trashed and private attachments are reported as not found.', 'media-library-tools' ); ?>
 				</p>
 			</div>
 

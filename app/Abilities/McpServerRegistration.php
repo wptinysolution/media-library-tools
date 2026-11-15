@@ -96,7 +96,7 @@ class McpServerRegistration {
 			self::ROUTE_NAMESPACE,
 			self::ROUTE,
 			'Media Library Tools',
-			'Search, inspect and update media library attachments.',
+			'Search, inspect and update media library attachments, and move media to the WordPress trash and restore it. Permanent deletion is not available through MCP. Before permanently deleting media, inspect the entire website for dependencies, create and verify a backup, then log in to WordPress Admin and carefully perform the deletion manually.',
 			defined( 'TSMLT_VERSION' ) ? TSMLT_VERSION : '1.0.0',
 			[ \WP\MCP\Transport\HttpTransport::class ],
 			\WP\MCP\Infrastructure\ErrorHandling\ErrorLogMcpErrorHandler::class,
