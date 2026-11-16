@@ -163,6 +163,8 @@ To safely delete images:
 6. Images moved to Trash tab
 7. **Decision period**: Images stay in trash for period (Pro feature)
 
+Images go to the native WordPress trash (the same trash as **Media → Library**), and WordPress deletes them permanently after `EMPTY_TRASH_DAYS` days (30 by default) unless they are restored. When the trash is turned off (`EMPTY_TRASH_DAYS` is 0 or not a whole number of days), moving to trash is refused with an error and nothing changes, because WordPress would delete the images instead. Only media you are allowed to delete is moved; if some selected images are skipped, a notice says how many were moved, and the skipped ones stay in the list. The media table's bulk **Move to Trash** and **Restore** work the same way. **Delete Permanently** is unchanged.
+
 ### Restore from Trash
 
 If you moved an image to trash by mistake:
