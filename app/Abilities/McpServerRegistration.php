@@ -65,6 +65,29 @@ class McpServerRegistration {
 	const TOOLS_FILTER = 'tsmlt_mcp_server_abilities';
 
 	/**
+	 * Filter that adds MCP App view resources to this server. See
+	 * get_resource_names().
+	 *
+	 * @var string
+	 */
+	const RESOURCES_FILTER = 'tsmlt_mcp_server_resources';
+
+	/**
+	 * URI scheme every resource added through RESOURCES_FILTER must use.
+	 *
+	 * @var string
+	 */
+	const APP_URI_SCHEME = 'ui://';
+
+	/**
+	 * MIME type every resource added through RESOURCES_FILTER must declare
+	 * (an MCP Apps view).
+	 *
+	 * @var string
+	 */
+	const APP_MIME_TYPE = 'text/html;profile=mcp-app';
+
+	/**
 	 * Ability name format, as WP_Abilities_Registry validates it.
 	 *
 	 * @var string
@@ -102,7 +125,7 @@ class McpServerRegistration {
 			\WP\MCP\Infrastructure\ErrorHandling\ErrorLogMcpErrorHandler::class,
 			null,
 			$this->get_tool_names(),
-			[],
+			$this->get_resource_names(),
 			[],
 			[ $this, 'check_transport_permission' ]
 		);
@@ -176,6 +199,101 @@ class McpServerRegistration {
 		}
 
 		return $names;
+	}
+
+	/**
+	 * Resources offered on this server: none of its own, plus the MCP App
+	 * views added through the `tsmlt_mcp_server_resources` filter — the
+	 * extension point for the Pro plugin's views.
+	 *
+	 * Filter contract:
+	 *
+	 *     add_filter( 'tsmlt_mcp_server_resources', function ( array $names ) {
+	 *         $names[] = 'tsmlt/my-pro-view';
+	 *         return $names;
+	 *     } );
+	 *
+	 * - Receives an empty array; returns ability names.
+	 * - Each name must be a registered ability in the `media-library-tools`
+	 *   category (as for the tools filter) that declares an MCP Apps view:
+	 *   `meta.mcp.uri` starting with `ui://` and `meta.mcp.mimeType`
+	 *   `text/html;profile=mcp-app`. Free abilities, which are tools, are
+	 *   refused. Anything else is skipped with a _doing_it_wrong() notice;
+	 *   duplicates are listed once.
+	 * - Listing a resource here checks no licence or capability. Connecting
+	 *   still requires manage_options; each resource ability must enforce its
+	 *   own requirements in its permission and execute callbacks.
+	 *
+	 * @return string[]
+	 */
+	public function get_resource_names(): array {
+		/**
+		 * Filter the MCP App view resources offered on the Media Library Tools MCP server.
+		 *
+		 * @param string[] $names Ability names of MCP App views. Empty by default.
+		 */
+		$extra = apply_filters( self::RESOURCES_FILTER, [] );
+
+		if ( ! is_array( $extra ) ) {
+			_doing_it_wrong(
+				esc_html( self::RESOURCES_FILTER ),
+				esc_html__( 'The filter must return an array of ability names; the resources were ignored.', 'media-library-tools' ),
+				esc_html( defined( 'TSMLT_VERSION' ) ? TSMLT_VERSION : '' )
+			);
+			return [];
+		}
+
+		$names = [];
+		foreach ( $extra as $name ) {
+			$reason = $this->get_rejection_reason( $name );
+			if ( '' === $reason ) {
+				$reason = $this->get_resource_rejection_reason( $name );
+			}
+			if ( '' !== $reason ) {
+				_doing_it_wrong(
+					esc_html( self::RESOURCES_FILTER ),
+					esc_html( $reason ),
+					esc_html( defined( 'TSMLT_VERSION' ) ? TSMLT_VERSION : '' )
+				);
+				continue;
+			}
+			if ( ! in_array( $name, $names, true ) ) {
+				$names[] = $name;
+			}
+		}
+
+		return $names;
+	}
+
+	/**
+	 * Why a valid, registered ability of this plugin's category cannot be
+	 * added as a resource, or '' when it can: it must be an MCP Apps view and
+	 * not one of the Free abilities.
+	 *
+	 * @param string $name Ability name.
+	 *
+	 * @return string
+	 */
+	private function get_resource_rejection_reason( string $name ): string {
+		if ( in_array( $name, AbilitiesInit::instance()->get_ability_names(), true ) ) {
+			/* translators: %s: ability name. */
+			return sprintf( __( 'Skipped "%s": Free abilities are tools, not resources.', 'media-library-tools' ), $name );
+		}
+
+		$meta = wp_get_ability( $name )->get_meta();
+		$mcp  = isset( $meta['mcp'] ) && is_array( $meta['mcp'] ) ? $meta['mcp'] : [];
+		$uri  = $mcp['uri'] ?? null;
+		if ( ! is_string( $uri ) || 0 !== strpos( $uri, self::APP_URI_SCHEME ) || self::APP_MIME_TYPE !== ( $mcp['mimeType'] ?? null ) ) {
+			return sprintf(
+				/* translators: 1: ability name, 2: URI scheme, 3: MIME type. */
+				__( 'Skipped "%1$s": only MCP App views can be added (meta.mcp.uri starting with "%2$s" and meta.mcp.mimeType "%3$s").', 'media-library-tools' ),
+				$name,
+				self::APP_URI_SCHEME,
+				self::APP_MIME_TYPE
+			);
+		}
+
+		return '';
 	}
 
 	/**

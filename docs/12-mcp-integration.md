@@ -711,7 +711,13 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
 - MCP is the channel between an AI client and WordPress; it does not supply an AI model. Clients such as Claude Desktop or Claude Code use their own model to reason and call the tools.
 - MCP tools do not depend on the plugin's AI provider settings or on OpenAI, Claude or Gemini API keys (no ability uses them today). A future feature may use server-side AI only with a stated reason.
 - Prefer client-side AI workflows on top of secure, deterministic WordPress operations (for example, the client writes alt text and saves it with `tsmlt-update-media-metadata`).
-- Free and Pro stay separate: Pro-only code lives in the Pro plugin, which adds its tools through the `tsmlt_mcp_server_abilities` filter.
+- Free and Pro stay separate: Pro-only code lives in the Pro plugin, which adds its tools through the `tsmlt_mcp_server_abilities` filter and its MCP App views through the `tsmlt_mcp_server_resources` filter (2026-11-16).
+- `tsmlt_mcp_server_resources` (`McpServerRegistration::RESOURCES_FILTER`) is narrow on purpose:
+  - It receives an empty array and returns ability names. Free registers no resource of its own.
+  - Each name must be a registered ability in the `media-library-tools` category that declares an MCP Apps view: `meta.mcp.uri` starting with `ui://` and `meta.mcp.mimeType` `text/html;profile=mcp-app`.
+  - Free abilities (tools), unregistered names, other categories, other URI schemes (`https://`, `file://`) and other MIME types are skipped with a `_doing_it_wrong()` notice. A non-array return adds nothing, and duplicates are listed once.
+  - Resources change neither the tool list nor the transport permission (`manage_options`). Listing a resource checks no licence: each resource ability must enforce its own permissions, as Pro's do (`manage_options` and an active licence).
+  - The validated names are passed to the MCP Adapter's `create_server()` as the server's resources. Tests: `tests/Integration/Mcp/McpServerResourcesTest.php`.
 - Every tool requires `manage_options`, checked by the permission callback and again at the start of the tool's own `execute()` (direct calls are refused too), plus the per-attachment or per-Group capability it needs; input schemas are closed; output is allowlisted. Tools never return secrets, absolute server paths or raw internal metadata.
 - The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
 - A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
