@@ -97,6 +97,15 @@ function ExportButton() {
                         <p className="text-sm text-gray-500 mt-1">Export your media library data to a CSV file.</p>
                     </div>
 
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 text-sm text-amber-800">
+                        <p className="m-0!">
+                            Exported files use the same column names and formatting as the CSV import (ID, slug, url, title, alt_text,
+                            caption, description, post_parent, menu_order, groups), so you can edit and import them again — choose{' '}
+                            <strong>Update existing media</strong> when importing them. Import-only columns such as{' '}
+                            <strong>rename_to</strong> are not included in exports.
+                        </p>
+                    </div>
+
                     <div className="bg-white rounded-lg border border-gray-200 p-10 text-center">
                         {/* Icon */}
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${showComplete ? 'bg-green-100' : 'bg-blue-100'}`}>

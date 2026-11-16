@@ -399,9 +399,9 @@ class McpSecurityRemediationTest extends WP_UnitTestCase {
 		sort( $opted_in );
 		$this->assertSame( [ 'tsmlt/get-media-details', 'tsmlt/search-media' ], $opted_in );
 		$this->assertFalse( $public['tsmlt/update-media-metadata'] );
-		foreach ( [ 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media' ] as $name ) {
+		foreach ( [ 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media', 'tsmlt/export-media-csv' ] as $name ) {
 			$this->assertFalse( $public[ $name ], $name );
 		}
-		$this->assertCount( 16, $public );
+		$this->assertCount( 17, $public );
 	}
 }

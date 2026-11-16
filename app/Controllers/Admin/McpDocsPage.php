@@ -352,6 +352,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-export-media-csv</code></td>
+							<td><?php esc_html_e( 'Exports up to 100 attachments, chosen by ID, as one CSV text in the order given: ID, slug, URL, title, alt text, caption, description, attached post, menu order and Groups — the columns the CSV import reads. IDs that are missing or not readable are listed as skipped. Never exports custom fields, file paths or metadata. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
@@ -363,8 +368,18 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-export-media-csv-bulk</code></td>
-							<td><?php esc_html_e( 'Pro. Returns one page of media (up to 100 rows) as CSV text: ID, slug, URL, title, alt text, caption, description, attached post, menu order and Groups. Uses the same filters as tsmlt-search-media and returns a cursor for the next page. Text a spreadsheet could run as a formula is protected; custom fields, file paths and attachment metadata are never exported. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Exports the whole media library, or everything matching the tsmlt-search-media filters, as CSV files in the background: one file, or split evenly into up to 20 files with the same header and columns as tsmlt-export-media-csv. Returns an export job to follow with tsmlt-get-media-csv-export. Runs through WP-Cron (a system cron is recommended); without it, tsmlt-continue-media-csv-export moves it on. Custom fields, file paths and attachment metadata are never exported. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No media (writes export files kept for 24 hours)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-media-csv-export</code></td>
+							<td><?php esc_html_e( 'Pro. Shows an export job\'s progress and, for each finished file, a download link valid for 15 minutes (only for the user who started the export; ask again for a new link). Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-continue-media-csv-export</code></td>
+							<td><?php esc_html_e( 'Pro. Advances an export by one batch, for sites where WP-Cron does not run it in the background. Safe to repeat; only the user who started the export can continue it. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No media (writes export files)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-media-csv-import</code></td>
@@ -379,7 +394,7 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. CSV export and import through MCP are Pro features, not part of the free plugin, and the three CSV tools are offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features. Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
 				</p>
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>
@@ -486,7 +501,7 @@ class McpDocsPage {
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group, usage and Pro CSV tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 

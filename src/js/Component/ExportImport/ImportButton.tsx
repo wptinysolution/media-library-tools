@@ -97,7 +97,12 @@ function ImportButton() {
                     <p className="mt-1 m-0!">
                         <strong>groups</strong> takes comma-separated group names (e.g. <em>Folder 1, Folder 2</em>) and creates any that
                         do not exist yet. <strong>post_parent</strong> is the attached post ID (use <em>0</em> to detach) and{' '}
-                        <strong>menu_order</strong> is the sort order. Empty cells leave the existing value unchanged.
+                        <strong>menu_order</strong> is the sort order. <strong>custom_meta:_key</strong> imports a custom field value
+                        under that meta key (Pro feature). Empty cells leave the existing value unchanged.
+                    </p>
+                    <p className="mt-1 m-0!">
+                        Exported CSV files use the same column names and formatting, so they can be imported again. Import-only
+                        columns such as <strong>rename_to</strong> are not included in exports.
                     </p>
                 </div>
 
