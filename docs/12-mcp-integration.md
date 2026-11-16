@@ -386,6 +386,31 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 
 These tools need **Media Library Tools Pro** with an active licence and are offered only on the dedicated endpoint. CSV travels as text inside the tool call and its result: no file is uploaded, downloaded or written.
 
+### CSV import and export guidelines
+
+If an import fails, try importing smaller batches. Processing performance depends on your server's available resources.
+
+**Accepted column headers** (the admin CSV importer):
+
+`ID, slug, url, rename_to, title, caption, description, alt_text, post_parent, menu_order, groups, custom_meta:_key`
+
+- **groups:** Use comma-separated group names (e.g. `Folder 1, Folder 2`). Groups that do not exist will be created automatically.
+- **post_parent:** The ID of the post to which the media is attached. Use `0` to detach it.
+- **menu_order:** Sets the media item's sort order.
+- **custom_meta:_key:** Imports a custom metadata value using the specified meta key (Pro feature).
+- **Empty cells:** Leave existing values unchanged.
+
+**Export compatibility:** CSV exports use the same supported column names and formatting wherever applicable, so exported files can be reused for importing. Import-only columns such as `rename_to` are not included in exports.
+
+**Through MCP**, the same column names and formatting apply, with these differences (details below):
+
+- **Smaller batches are required:** `tsmlt-preview-media-csv-import` takes at most 50 data rows and 256 KB per call; split larger files and preview each part.
+- **Accepted columns** are `ID`, `slug`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order` and `groups`. A CSV with `url`, `rename_to` or `custom_meta:*` columns is refused as a whole, naming the column: MCP never creates media, renames files or writes custom fields. To re-import an export, remove the `url` column.
+- **groups:** Groups are added to the attachment's current ones. Groups that do not exist are an error unless the preview is run with `create_groups: true`; only then are they created, when the plan is applied.
+- **Empty cells** leave existing values unchanged; a cell containing only spaces clears a text field.
+- **Nothing changes until applied:** the preview only reports changes; `tsmlt-apply-media-csv-import` applies them, once, after confirmation.
+- **Export** (`tsmlt-export-media-csv-bulk`) writes the same column names (never `rename_to` or custom fields) and protects formula-like text with a leading apostrophe, which the MCP import removes again.
+
 ### Export — `tsmlt-export-media-csv-bulk`
 
 | Input | Type | Meaning |
