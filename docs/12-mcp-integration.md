@@ -403,11 +403,17 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
   - The user chooses specific images or all of them. If nothing matches, the client says so and offers another search.
   - The client exports exactly the chosen IDs at once. It never exports images the user didn't choose and never guesses IDs.
   - More than 100 chosen images: the client asks the user to narrow the choice and doesn't split the export.
-  - **Content search** (`ContentMedia`, shared with the Pro page and post export) covers media found through what is saved with the content. Every source below is read for every page, post or product, so the user never names the editor. An image found several ways is listed once with every way. Nothing is rendered, no shortcode runs, nothing is fetched, and no usage scan or parent change is involved. Each result's `associations` says how it relates to the content (`attached`, `featured`, `gallery`, `content`, `elementor`).
+  - **Content search** (`ContentMedia`, shared with the Pro page and post export) covers media found through what is saved with the content. Every source below is read for every page, post or product, so the user never names the editor. An image found several ways is listed once with every way. Nothing is rendered, no shortcode runs, nothing is fetched, and no usage scan or parent change is involved. Each result's `associations` says how it relates to the content (`attached`, `featured`, `gallery`, `content`, `elementor`, `wpbakery`).
     - **Attached:** media attached to the post, page or product ("Uploaded to").
     - **Featured image** and the **WooCommerce product gallery**.
     - **Gutenberg:** image, gallery (including the image blocks inside it), cover and media-and-text blocks, at any nesting depth (groups, columns and so on), by their attachment ID. Cover, image and media-and-text blocks saved with only an image URL are resolved by that URL. Blocks are parsed in any post content, whatever editor saved it.
     - **Classic editor:** `wp-image-N` classes, `<img>` tags whose `src` is a file of this site's uploads (a sized copy such as `-300x200` counts as its original; the original or a size of a large image WordPress scaled down on upload counts as its `-scaled` file), and `[gallery ids]` and `[gallery include]` shortcodes.
+    - **WPBakery:** every element's opening shortcode tag in the stored content, nested ones included, is read with `shortcode_parse_atts()`; shortcodes are never run.
+      - `vc_single_image`: `image`, or `custom_src` when its `source` is `external_link`.
+      - `vc_gallery` and `vc_images_carousel`: `images`, or the `custom_srcs` URLs (WPBakery's `#E-8_` encoding decoded) when `source` is `external_link`.
+      - `vc_row`, `vc_row_inner`, `vc_section`, `vc_column` and `vc_column_inner`: the `parallax_image` ID (rows and sections) and background `url(…)` in the design `css`, whose `?id=N` is used only when that attachment is the file of the URL.
+      - URLs are resolved as local uploads only. IDs saved with an external-link source are ignored, as WPBakery ignores them.
+      - Not read: other elements (for example media grids, hover boxes, third-party add-ons), images in raw HTML attributes, and Frontend Editor templates.
     - **Elementor:** read from the page's saved `_elementor_data` whenever it has some, whatever `_elementor_edit_mode` says (a page switched back from Elementor still has its old data, so its images are listed too). Elementor needn't be active, nothing is rendered, and no widget code runs.
       - Every media field (`{id, url}`) and list of media fields in any element's settings is used. That covers the Image widget, the Image Gallery and Basic Gallery widgets, section and container backgrounds, and theme or add-on widgets that store images the same way, in nested sections, columns and containers.
       - A saved ID is used only when the attachment is the file of the URL saved with it. That way IDs kept from another site (for example a demo import) are never taken for unrelated local images.
@@ -415,7 +421,7 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
       - Data over 5 MB or nested too deeply is skipped.
     - **Limits on URL resolution:** URLs are resolved only on this site's uploads host, port and path, with at most 200 distinct URLs per content.
   - **Not found:**
-    - images output by the theme, widgets, shortcodes other than `[gallery]`, or page builders other than Elementor (for example WPBakery or Divi shortcodes);
+    - images output by the theme, widgets, shortcodes other than `[gallery]` and the WPBakery elements above, or page builders other than Elementor and WPBakery (for example Divi shortcodes);
     - CSS backgrounds set outside Elementor's media fields;
     - Elementor widgets that store images only as text or HTML, dynamic tags, global widgets and templates (only the page's own data is read);
     - images hosted on other sites, or not in this Media Library.

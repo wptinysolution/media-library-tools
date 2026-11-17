@@ -613,7 +613,7 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 			. '<!-- wp:image {"id":' . $main . '} --><figure class="wp-block-image"><img src="m.jpg" class="wp-image-' . $main . '"/></figure><!-- /wp:image --></div><!-- /wp:group -->'
 			. '<p><img class="alignleft wp-image-' . $classic . '" src="c.jpg"> <img src="' . self::upload_url( 'auto/sized-300x200.jpg' ) . '"></p>'
 			. '[gallery ids="' . $sc_ids . '"] [gallery include="' . $sc_inc . '" columns="2"]'
-			. '[vc_single_image image="' . $builder . '"]<img src="https://cdn.example.net/auto/main.jpg">';
+			. '[et_pb_image src="' . self::upload_url( 'auto/other-builder.jpg' ) . '" _builder_version="4.0"][/et_pb_image]<img src="https://cdn.example.net/auto/main.jpg">';
 		$product  = (int) self::factory()->post->create(
 			[
 				'post_type'    => 'product',
@@ -657,7 +657,7 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
 		$how = wp_list_pluck( $result['items'], 'associations', 'id' );
 		$this->assertEqualsCanonicalizing( [ $main, $gallery, $block, $classic, $sized, $sc_ids, $sc_inc, $el_image, $el_gal, $el_bg ], array_keys( $how ) );
-		$this->assertSame( ContentMedia::ASSOCIATIONS, $how[ $main ], 'Found five ways, listed once with all of them.' );
+		$this->assertSame( [ 'attached', 'featured', 'gallery', 'content', 'elementor' ], $how[ $main ], 'Found five ways, listed once with all of them.' );
 		$this->assertSame( [ 'gallery' ], $how[ $gallery ] );
 		foreach ( [ $block, $classic, $sized, $sc_ids, $sc_inc ] as $id ) {
 			$this->assertSame( [ 'content' ], $how[ $id ] );
@@ -665,13 +665,135 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 		foreach ( [ $el_image, $el_gal, $el_bg ] as $id ) {
 			$this->assertSame( [ 'elementor' ], $how[ $id ] );
 		}
-		$this->assertArrayNotHasKey( $builder, $how, 'Other builders are not read; no error.' );
+		$this->assertArrayNotHasKey( $builder, $how, 'Other builders (here a Divi image) are not read; no error.' );
 		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
 		$this->assertSame( 0, $this->requests );
 
 		if ( $registered ) {
 			unregister_post_type( 'product' );
 		}
+	}
+
+	/**
+	 * A page built with WPBakery, as it is stored: a row with a background
+	 * in its design CSS (url with ?id=), columns with an inner row, single
+	 * image, gallery (an ID repeated) and image carousel elements, a single
+	 * image from an external link given by a local sized URL (and one by an
+	 * external URL with a stale ID), a scaled image by URL, a section with a
+	 * parallax image holding a gallery of encoded external-link URLs.
+	 * Invalid, non-media, trashed and unreadable IDs are left out, and a PDF
+	 * by mime_type "image"; external URLs give nothing and are not fetched.
+	 */
+	public function test_wpbakery_page() {
+		$u       = wp_get_upload_dir()['baseurl'] . '/';
+		$row_bg  = $this->image( 'wpb/row-bg.jpg' );
+		$col_bg  = $this->image( 'wpb/col-bg.jpg' );
+		$single  = $this->image( 'wpb/single.jpg' );
+		$g1      = $this->image( 'wpb/g1.jpg' );
+		$g2      = $this->image( 'wpb/g2.jpg' );
+		$c1      = $this->image( 'wpb/c1.jpg' );
+		$c2      = $this->image( 'wpb/c2.jpg' );
+		$by_url  = $this->image( 'wpb/by-url.jpg' );
+		$big     = $this->image( 'wpb/big-scaled.jpg' );
+		$stale   = $this->image( 'wpb/stale.jpg' );
+		$foreign = $this->image( 'wpb/unrelated-local.jpg' );
+		$par     = $this->image( 'wpb/parallax.jpg' );
+		$encoded = $this->image( 'wpb/encoded.jpg' );
+		$trashed = $this->image( 'wpb/trashed.jpg' );
+		$hidden  = $this->image( 'wpb/hidden.jpg' );
+		$pdf     = (int) self::factory()->attachment->create(
+			[
+				'file'           => 'wpb/sheet.pdf',
+				'post_mime_type' => 'application/pdf',
+			]
+		);
+		$a_post  = (int) self::factory()->post->create();
+		$srcs    = '#E-8_' . base64_encode( rawurlencode( $u . 'wpb/encoded-300x300.jpg,https://cdn.example.net/y.jpg' ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- WPBakery's attribute encoding.
+		$content = '[vc_row css=".vc_custom_1600000000001{background-image: url(' . $u . 'wpb/row-bg.jpg?id=' . $row_bg . ') !important;}"]'
+			. '[vc_column width="1/2"][vc_single_image image="' . $single . '" img_size="large" alignment="center"]'
+			. '[vc_gallery type="image_grid" images="' . $g1 . ',' . $g2 . ',' . $g1 . ',999999,' . $a_post . ',' . $trashed . ',' . $hidden . ',' . $pdf . '" img_size="thumbnail"][/vc_column]'
+			. '[vc_column width="1/2" css=".vc_custom_1600000000002{background-image: url(' . $u . 'wpb/col-bg-1024x683.jpg) !important;}"]'
+			. '[vc_row_inner][vc_column_inner css=".vc_custom_1600000000003{background-image: url(https://demo.example.com/wp-content/uploads/2023/11/demo-bg.jpg?id=' . $foreign . ') !important;}"][vc_images_carousel images="' . $c1 . ',' . $c2 . '" img_size="medium"]'
+			. '[vc_single_image source="external_link" custom_src="' . $u . 'wpb/by-url-300x200.jpg"]'
+			. '[vc_single_image source="external_link" custom_src="https://cdn.example.net/x.jpg" image="' . $stale . '"]'
+			. '[vc_single_image source="external_link" custom_src="' . $u . 'wpb/big-1024x683.jpg"]'
+			. '[/vc_column_inner][/vc_row_inner][/vc_column][/vc_row]'
+			. '[vc_section parallax="content-moving" parallax_image="' . $par . '"][vc_row][vc_column]'
+			. '[vc_gallery source="external_link" custom_srcs="' . $srcs . '"][vc_column_text]<p>Text</p>[/vc_column_text]'
+			. '[/vc_column][/vc_row][/vc_section]';
+		$page    = (int) self::factory()->post->create(
+			[
+				'post_type'    => 'page',
+				'post_content' => $content,
+			]
+		);
+		update_post_meta( $page, '_wpb_vc_js_status', 'true' );
+		wp_trash_post( $trashed );
+		$this->denied = [ $hidden ];
+
+		$ability = wp_get_ability( 'tsmlt/search-media' );
+		$result  = $ability->execute(
+			[
+				'content_url' => get_permalink( $page ),
+				'per_page'    => 50,
+			]
+		);
+		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
+		$how = wp_list_pluck( $result['items'], 'associations', 'id' );
+		$this->assertEqualsCanonicalizing( [ $row_bg, $col_bg, $single, $g1, $g2, $c1, $c2, $by_url, $big, $par, $encoded, $pdf ], array_keys( $how ) );
+		foreach ( $how as $associations ) {
+			$this->assertSame( [ 'wpbakery' ], $associations );
+		}
+		$this->assertArrayNotHasKey( $stale, $how, 'An external link ignores the stale image ID.' );
+		$this->assertArrayNotHasKey( $foreign, $how, 'A background ?id= from another site is not taken for an unrelated local image.' );
+		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
+
+		$images = $ability->execute(
+			[
+				'content_url' => get_permalink( $page ),
+				'mime_type'   => 'image',
+				'per_page'    => 50,
+			]
+		);
+		$this->assertNotContains( $pdf, wp_list_pluck( $images['items'], 'id' ) );
+		$this->assertCount( 11, $images['items'] );
+		$this->assertSame( 0, $this->requests );
+	}
+
+	/**
+	 * WPBakery, Gutenberg and Elementor references in one page: an image
+	 * used by all three is listed once with all three associations; each
+	 * source's own images are found too.
+	 */
+	public function test_mixed_wpbakery_gutenberg_elementor() {
+		$shared   = $this->image( 'mixed/shared.jpg' );
+		$wpb_only = $this->image( 'mixed/wpb.jpg' );
+		$gb_only  = $this->image( 'mixed/gb.jpg' );
+		$el_only  = $this->image( 'mixed/el.jpg' );
+		$content  = '<!-- wp:image {"id":' . $shared . '} --><figure class="wp-block-image"><img src="s.jpg" class="wp-image-' . $shared . '"/></figure><!-- /wp:image -->'
+			. '<!-- wp:image {"id":' . $gb_only . '} --><figure class="wp-block-image"><img src="g.jpg" class="wp-image-' . $gb_only . '"/></figure><!-- /wp:image -->'
+			. '[vc_row][vc_column][vc_single_image image="' . $shared . '"][vc_single_image image="' . $wpb_only . '"][/vc_column][/vc_row]';
+		$page     = $this->elementor_page(
+			[
+				self::holder(
+					[
+						self::widget( 'image', [ 'image' => self::media( $shared, self::upload_url( 'mixed/shared.jpg' ) ) ] ),
+						self::widget( 'image', [ 'image' => self::media( $el_only, self::upload_url( 'mixed/el.jpg' ) ) ] ),
+					]
+				),
+			],
+			$content
+		);
+
+		$ability = wp_get_ability( 'tsmlt/search-media' );
+		$result  = $ability->execute( [ 'content_id' => $page ] );
+		$how     = wp_list_pluck( $result['items'], 'associations', 'id' );
+		$this->assertSame( [ 'content', 'wpbakery', 'elementor' ], $how[ $shared ] );
+		$this->assertSame( [ 'wpbakery' ], $how[ $wpb_only ] );
+		$this->assertSame( [ 'content' ], $how[ $gb_only ] );
+		$this->assertSame( [ 'elementor' ], $how[ $el_only ] );
+		$this->assertCount( 4, $how );
+		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
 	}
 
 	/**
@@ -750,7 +872,7 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
 		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
 		$how = wp_list_pluck( $result['items'], 'associations', 'id' );
-		$this->assertSame( ContentMedia::ASSOCIATIONS, $how[ $all ], 'All five, in order.' );
+		$this->assertSame( [ 'attached', 'featured', 'gallery', 'content', 'elementor' ], $how[ $all ], 'All five, in order.' );
 		$this->assertSame( [ 'gallery' ], $how[ $gallery ] );
 		$this->assertSame( [ 'content' ], $how[ $content ] );
 		$this->assertSame( [ 'elementor' ], $how[ $builder ] );

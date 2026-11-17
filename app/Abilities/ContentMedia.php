@@ -27,7 +27,10 @@ use WP_Query;
  * product gallery; in the post content, core image, gallery, cover and
  * media-and-text blocks (nested ones too), wp-image-N classes, [gallery ids]
  * and [gallery include] shortcodes and images whose src is a file in this
- * site's uploads; and the media fields of saved Elementor data
+ * site's uploads; WPBakery single image, gallery and image carousel
+ * elements and row, section and column backgrounds (attribute IDs, local
+ * URLs, encoded URL lists and design CSS, shortcodes never run); and the
+ * media fields of saved Elementor data
  * (`_elementor_data`, read as data whenever the content has it, whatever
  * its edit mode: Elementor need not be active and nothing is rendered).
  * Every source is read for every content, so no editor needs to be named;
@@ -73,11 +76,45 @@ class ContentMedia {
 	/**
 	 * Every way media can be associated with content, as associated()
 	 * reports it: attached ("Uploaded to"), featured image, product gallery,
-	 * the post content, the Elementor design. Tool output schemas list these.
+	 * the post content, the Elementor design, WPBakery elements. Tool output
+	 * schemas list these.
 	 *
 	 * @var string[]
 	 */
-	const ASSOCIATIONS = [ 'attached', 'featured', 'gallery', 'content', 'elementor' ];
+	const ASSOCIATIONS = [ 'attached', 'featured', 'gallery', 'content', 'elementor', 'wpbakery' ];
+
+	/**
+	 * WPBakery elements read for media: element => attributes holding one
+	 * attachment ID, a list of IDs, one URL, a list of encoded URLs, or CSS
+	 * with background URLs.
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	const WPBAKERY_ELEMENTS = [
+		'vc_single_image'    => [
+			'image'      => 'id',
+			'custom_src' => 'url',
+		],
+		'vc_gallery'         => [
+			'images'      => 'ids',
+			'custom_srcs' => 'urls',
+		],
+		'vc_images_carousel' => [
+			'images'      => 'ids',
+			'custom_srcs' => 'urls',
+		],
+		'vc_row'             => [
+			'parallax_image' => 'id',
+			'css'            => 'css',
+		],
+		'vc_row_inner'       => [ 'css' => 'css' ],
+		'vc_section'         => [
+			'parallax_image' => 'id',
+			'css'            => 'css',
+		],
+		'vc_column'          => [ 'css' => 'css' ],
+		'vc_column_inner'    => [ 'css' => 'css' ],
+	];
 
 	/**
 	 * Elementor's saved document data (JSON).
@@ -265,11 +302,105 @@ class ContentMedia {
 			}
 		}
 
+		self::add_found( $found, self::wpbakery_media_ids( $content, $lookups ), 'wpbakery' );
+
 		// Saved Elementor data is read whatever the edit mode says.
 		self::add_found( $found, self::elementor_media_ids( $post->ID, $lookups ), 'elementor' );
 
 		ksort( $found );
 		return $found;
+	}
+
+	/**
+	 * Media IDs in the WPBakery elements of stored content (WPBAKERY_ELEMENTS),
+	 * nested ones included: every opening tag is read where it stands, its
+	 * attributes parsed with shortcode_parse_atts(). IDs are read when the
+	 * element's source is the Media Library (the default), URLs when it is
+	 * an external link. Shortcodes are not run.
+	 *
+	 * @param string $content Post content.
+	 * @param array  $lookups URL lookups so far (see local_attachment_id()).
+	 *
+	 * @return int[]
+	 */
+	private static function wpbakery_media_ids( string $content, array &$lookups ): array {
+		if ( false === strpos( $content, '[vc_' ) || ! preg_match_all( '/\[(' . implode( '|', array_keys( self::WPBAKERY_ELEMENTS ) ) . ')\b([^\]]*)\]/', $content, $tags, PREG_SET_ORDER ) ) {
+			return [];
+		}
+		$ids = [];
+		foreach ( $tags as $tag ) {
+			$attributes = shortcode_parse_atts( $tag[2] );
+			if ( ! is_array( $attributes ) ) {
+				continue;
+			}
+			// Images come from the Media Library (IDs) unless the element's
+			// source is an external link (URLs), as WPBakery shows them.
+			$source = isset( $attributes['source'] ) && is_string( $attributes['source'] ) ? $attributes['source'] : 'media_library';
+			foreach ( self::WPBAKERY_ELEMENTS[ $tag[1] ] as $name => $kind ) {
+				$value = isset( $attributes[ $name ] ) && is_string( $attributes[ $name ] ) ? trim( $attributes[ $name ] ) : '';
+				if ( '' === $value
+					|| ( in_array( $kind, [ 'id', 'ids' ], true ) && 'parallax_image' !== $name && 'media_library' !== $source )
+					|| ( in_array( $kind, [ 'url', 'urls' ], true ) && 'external_link' !== $source ) ) {
+					continue;
+				}
+				switch ( $kind ) {
+					case 'id':
+					case 'ids':
+						$ids = array_merge( $ids, array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
+						break;
+					case 'url':
+						$ids[] = self::local_attachment_id( $value, $lookups );
+						break;
+					case 'urls':
+						foreach ( preg_split( '/[\s,]+/', self::wpbakery_decode( $value ), -1, PREG_SPLIT_NO_EMPTY ) as $url ) {
+							$ids[] = self::local_attachment_id( $url, $lookups );
+						}
+						break;
+					case 'css':
+						$ids = array_merge( $ids, self::css_media_ids( $value, $lookups ) );
+						break;
+				}
+			}
+		}
+		return array_values( array_filter( $ids ) );
+	}
+
+	/**
+	 * A WPBakery attribute value saved in its "#E-8_" encoding (base64 of
+	 * the raw URL-encoded text), decoded; other values as they are.
+	 *
+	 * @param string $value Attribute value.
+	 *
+	 * @return string
+	 */
+	private static function wpbakery_decode( string $value ): string {
+		if ( 0 !== strpos( $value, '#E-8_' ) ) {
+			return $value;
+		}
+		$decoded = base64_decode( substr( $value, 5 ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- WPBakery's own encoding of saved attribute values.
+		return false === $decoded ? '' : rawurldecode( $decoded );
+	}
+
+	/**
+	 * Media IDs of background URLs in WPBakery design CSS, such as
+	 * "background-image: url(.../photo.jpg?id=123)": the ID when it is that
+	 * file, else the URL when it is a file of this site's uploads.
+	 *
+	 * @param string $css     CSS.
+	 * @param array  $lookups URL lookups so far.
+	 *
+	 * @return int[]
+	 */
+	private static function css_media_ids( string $css, array &$lookups ): array {
+		$ids = [];
+		if ( preg_match_all( '/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i', $css, $urls ) ) {
+			foreach ( $urls[2] as $url ) {
+				$query = (string) wp_parse_url( $url, PHP_URL_QUERY );
+				parse_str( $query, $args );
+				$ids[] = self::media_field_id( $args['id'] ?? 0, $url, $lookups );
+			}
+		}
+		return $ids;
 	}
 
 	/**
