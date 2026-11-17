@@ -165,23 +165,61 @@ class ExportMediaCsvAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The description says IDs are required (1 to 100), sends whole-library
-	 * requests to the Pro tool or explains it is Pro, and forbids imitating a
-	 * whole-library export with this tool.
+	 * Without Pro, the description has the client ask which images to
+	 * export (IDs or names), export given IDs at once, ask for the IDs when
+	 * only names are given, never look IDs up or guess them, never ask about
+	 * columns, and never imitate a whole-library export; with Pro, it sends
+	 * every library export to the Pro tool.
 	 */
-	/**
-	 * Only users with manage_options: refused through the permission
-	 * callback and by a direct call, logged out or not.
-	 */
-	public function test_description_guides_free_and_pro_use() {
-		$description = wp_get_ability( 'tsmlt/export-media-csv' )->get_description();
-		foreach ( [ 'WordPress attachment (media) IDs', '1 to 100 distinct IDs per export', 'when the user gives them, export them', 'use tsmlt/export-media-csv-bulk if it is available (Pro)', 'is a Pro feature', 'ask for the media IDs', 'Never imitate a whole-library export', 'never say the free version can export the whole library' ] as $phrase ) {
+	public function test_description_guides_the_selection() {
+		$description = wp_get_ability( self::NAME )->get_description();
+		foreach (
+			[
+				'1 to 100 distinct IDs per export',
+				'If tsmlt/export-media-csv-bulk (Pro) is available, use it for any CSV export of the Media Library, at once and without asking for IDs',
+				'use this tool there only for specific IDs the user gave',
+				'ask which images to include, saying they can give their media IDs or their image names or file names',
+				'When the user gives IDs, export them at once, without asking for confirmation',
+				'When the user gives only names, say briefly that this export needs the WordPress media (attachment) IDs and ask for the IDs of those images',
+				'Never look up IDs yourself (no tsmlt/search-media or other tools to find them) and never guess them',
+				'always all of them unless the user names specific columns: leave columns out, and never ask which columns to include',
+				'exporting the whole library is a Pro feature',
+				'Never imitate a whole-library export with this tool',
+				'never say the free version can export the whole library',
+			] as $phrase
+		) {
 			$this->assertStringContainsString( $phrase, $description );
+		}
+		foreach ( [ 'ID, slug, url, title, alt_text, caption, description, post_parent', 'menu_order and groups' ] as $fields ) {
+			$this->assertStringContainsString( $fields, $description, 'Every standard field is named.' );
 		}
 	}
 
 	/**
-	 * Only administrators may export.
+	 * The input schema tells the client to leave columns out (all standard
+	 * columns) and that IDs come from the user.
+	 */
+	public function test_schema_defaults_to_every_column() {
+		$schema = wp_get_ability( self::NAME )->get_input_schema();
+		$this->assertStringContainsString( 'Leave out to export all standard columns (the default; do not ask the user)', $schema['properties']['columns']['description'] );
+		$this->assertStringContainsString( 'given by the user', $schema['properties']['ids']['description'] );
+		$this->assertArrayNotHasKey( 'columns', array_flip( $schema['required'] ?? [] ) );
+	}
+
+	/**
+	 * Given only IDs, an export has every standard column, in the order Pro
+	 * uses (MediaCsv::COLUMNS).
+	 */
+	public function test_ids_alone_export_every_standard_column() {
+		$id     = $this->attachment();
+		$result = self::call( [ 'ids' => [ $id ] ] );
+		$this->assertSame( MediaCsv::COLUMNS, $result['columns'] );
+		$this->assertSame( [ 'ID', 'slug', 'url', 'title', 'alt_text', 'caption', 'description', 'post_parent', 'menu_order', 'groups' ], self::parse( $result['csv'] )[0] );
+	}
+
+	/**
+	 * Only users with manage_options: refused through the permission
+	 * callback and by a direct call, logged out or not.
 	 */
 	public function test_requires_manage_options() {
 		$id = $this->attachment();

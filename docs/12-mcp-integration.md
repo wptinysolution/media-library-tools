@@ -390,12 +390,20 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 
 `tsmlt-export-media-csv` is free. The library export, its status tool and the two import tools need **Media Library Tools Pro** with an active licence. All are offered only on the dedicated endpoint. The selected-media export and the import tools pass CSV as text inside the tool call and its result; the library export writes files and returns download links.
 
-**Free and Pro exports.**
-- **Free** (`tsmlt-export-media-csv`): needs the media (attachment) IDs, 1–100 distinct IDs per export, given by the user.
-- **Pro** (`tsmlt-export-media-csv-bulk`): exports the entire Media Library, or everything matching the filters, without any IDs. The user chooses 1–20 files; rows are balanced between them (sizes differ by at most one row) and every matching media item is exported exactly once.
-- **Whole-library request without IDs:** the client uses the Pro tool when it is available. Otherwise it says briefly that this is a Pro feature and asks for the media IDs to export with the Free tool.
-- The client never imitates a whole-library export by collecting IDs itself (for example with `tsmlt-search-media`) and calling the Free tool batch after batch, and never says the Free version can export the whole library. IDs the user gave are split into several exports only when the user asks.
-- The tool descriptions carry this guidance.
+**Free and Pro exports.** The tool descriptions carry this guidance, so a user can simply ask to "export my media library to CSV".
+- **Columns:** both exports always include every standard field (`ID`, `slug`, `url`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`), in the same order. The client never asks which columns to include, and narrows them only when the user names specific columns.
+- **With Pro** (`tsmlt-export-media-csv-bulk`):
+  - The client starts a whole-library export at once, without asking for IDs, names, columns, a file count or confirmation. It passes filters only when the user asks for a subset.
+  - It follows the export with the status tool (and the continue tool when stalled) without asking the user.
+  - The finished files appear in the export view where the client can show it, and as links.
+  - The Free tool is used only for specific IDs the user gave.
+- **Free only** (`tsmlt-export-media-csv`, 1–100 distinct IDs per export):
+  - The client asks which images to include; the user can give media IDs, image names or file names.
+  - Given IDs, it exports them at once.
+  - Given only names, it says briefly that the export needs the WordPress media (attachment) IDs and asks for them.
+  - It never looks IDs up (for example with `tsmlt-search-media`) and never guesses them.
+  - A whole-library request gets a short note that this is a Pro feature, and the client asks which images to include instead.
+- **Never:** the client never imitates a whole-library export with repeated Free exports and never says the Free version can export the whole library. IDs the user gave are split into several exports only when the user asks.
 
 ### CSV import and export guidelines
 
