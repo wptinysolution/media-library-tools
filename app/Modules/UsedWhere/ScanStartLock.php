@@ -17,7 +17,9 @@ use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
  * Start lock shared by every way of starting a usage scan: the
- * tsmlt/start-usage-scan ability and the Used Where page's Re-scan.
+ * tsmlt/start-usage-scan ability and the Used Where page's Re-scan. Other
+ * scans pass their own lock option (the duplicate scan uses
+ * DuplicateScanner::START_LOCK_OPTION); OPTION is the default.
  *
  * The lock is an options row holding the time and a random token. It is
  * taken with a plain INSERT (the table's unique option_name key accepts only
@@ -70,31 +72,33 @@ class ScanStartLock {
 	 * INSERT ... ON DUPLICATE KEY UPDATE, so two requests could both get the
 	 * lock. Lock rows are read from the database, not the option cache.
 	 *
+	 * @param string $option Lock option; the usage scan's by default.
+	 *
 	 * @return string|null|false This request's lock value; null when another
 	 *                           request holds the lock; false on a database
 	 *                           error.
 	 */
-	public function acquire() {
+	public function acquire( string $option = self::OPTION ) {
 		$value = time() . ':' . bin2hex( random_bytes( 16 ) );
-		if ( $this->insert_lock( $value ) ) {
+		if ( $this->insert_lock( $value, $option ) ) {
 			return $value;
 		}
 
-		$current = $this->read_lock();
+		$current = $this->read_lock( $option );
 		if ( false === $current ) {
 			return false;
 		}
 		if ( null === $current ) {
 			// Released after the INSERT failed, or the INSERT failed for
 			// another reason: try once more.
-			return $this->insert_lock( $value ) ? $value : false;
+			return $this->insert_lock( $value, $option ) ? $value : false;
 		}
 
 		$taken = (int) strtok( $current, ':' );
 		if ( $taken > 0 && ( time() - $taken ) <= self::SECONDS ) {
 			return null;
 		}
-		return $this->replace_lock( $current, $value ) ? $value : null;
+		return $this->replace_lock( $current, $value, $option ) ? $value : null;
 	}
 
 	/**
@@ -102,37 +106,39 @@ class ScanStartLock {
 	 * taken over by another request after it expired is left alone; a lock
 	 * that cannot be deleted expires after START_LOCK_SECONDS.
 	 *
-	 * @param string $value This request's lock value.
+	 * @param string $value  This request's lock value.
+	 * @param string $option Lock option; the usage scan's by default.
 	 *
 	 * @return void
 	 */
-	public function release( string $value ): void {
+	public function release( string $value, string $option = self::OPTION ): void {
 		self::lock_query(
-			static function () use ( $value ) {
+			static function () use ( $value, $option ) {
 				return Fns::DB()->delete( 'options' )
-					->where( 'option_name', '=', self::OPTION )
+					->where( 'option_name', '=', $option )
 					->andWhere( 'option_value', '=', $value )
 					->execute();
 			}
 		);
-		self::forget_cached_lock();
+		self::forget_cached_lock( $option );
 	}
 
 	/**
 	 * Insert the lock row.
 	 *
-	 * @param string $value Lock value.
+	 * @param string $value  Lock value.
+	 * @param string $option Lock option.
 	 *
 	 * @return bool Whether exactly one row was inserted.
 	 */
-	private function insert_lock( string $value ): bool {
+	private function insert_lock( string $value, string $option ): bool {
 		$inserted = self::lock_query(
-			static function () use ( $value ) {
+			static function () use ( $value, $option ) {
 				return Fns::DB()->insert(
 					'options',
 					[
 						[
-							'option_name'  => self::OPTION,
+							'option_name'  => $option,
 							'option_value' => $value,
 							'autoload'     => self::AUTOLOAD,
 						],
@@ -140,47 +146,50 @@ class ScanStartLock {
 				)->execute();
 			}
 		);
-		self::forget_cached_lock();
+		self::forget_cached_lock( $option );
 		return 1 === $inserted;
 	}
 
 	/**
 	 * Replace an abandoned lock, only if it still holds the value read.
 	 *
-	 * @param string $old   Value read.
-	 * @param string $value New value.
+	 * @param string $old    Value read.
+	 * @param string $value  New value.
+	 * @param string $option Lock option.
 	 *
 	 * @return bool Whether this request replaced it.
 	 */
-	private function replace_lock( string $old, string $value ): bool {
+	private function replace_lock( string $old, string $value, string $option ): bool {
 		$updated = self::lock_query(
-			static function () use ( $old, $value ) {
+			static function () use ( $old, $value, $option ) {
 				global $wpdb;
 				// The query builder's update does not return the row count.
 				Fns::DB()->update( 'options', [ 'option_value' => $value ] )
-					->where( 'option_name', '=', self::OPTION )
+					->where( 'option_name', '=', $option )
 					->andWhere( 'option_value', '=', $old )
 					->execute();
 				return '' === (string) $wpdb->last_error ? (int) $wpdb->rows_affected : false;
 			}
 		);
-		self::forget_cached_lock();
+		self::forget_cached_lock( $option );
 		return 1 === $updated;
 	}
 
 	/**
 	 * The lock value stored in the database.
 	 *
+	 * @param string $option Lock option.
+	 *
 	 * @return string|null|false The value; null when there is no lock; false
 	 *                           on a database error.
 	 */
-	private function read_lock() {
+	private function read_lock( string $option ) {
 		global $wpdb;
 		$rows = self::lock_query(
-			static function () {
+			static function () use ( $option ) {
 				return Fns::DB()->select( 'option_value' )
 					->from( 'options' )
-					->where( 'option_name', '=', self::OPTION )
+					->where( 'option_name', '=', $option )
 					->get();
 			}
 		);
@@ -215,13 +224,15 @@ class ScanStartLock {
 	 * Drop the cached copy of the lock option, so get_option() matches the
 	 * database after the direct queries above.
 	 *
+	 * @param string $option Lock option.
+	 *
 	 * @return void
 	 */
-	private static function forget_cached_lock(): void {
-		wp_cache_delete( self::OPTION, 'options' );
+	private static function forget_cached_lock( string $option ): void {
+		wp_cache_delete( $option, 'options' );
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
-		if ( is_array( $notoptions ) && isset( $notoptions[ self::OPTION ] ) ) {
-			unset( $notoptions[ self::OPTION ] );
+		if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+			unset( $notoptions[ $option ] );
 			wp_cache_set( 'notoptions', $notoptions, 'options' );
 		}
 	}

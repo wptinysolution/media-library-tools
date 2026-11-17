@@ -332,6 +332,16 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-start-duplicate-scan</code></td>
+							<td><?php esc_html_e( 'Starts the duplicate scan in the background, or reports the scan already running (a stalled one is resumed). Shares its start lock with the Duplicates page. Never changes or deletes media files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (duplicate scan results)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-duplicate-scan-status</code></td>
+							<td><?php esc_html_e( 'Returns the duplicate scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-list-trashed-media</code></td>
 							<td><?php esc_html_e( 'Lists media in the WordPress trash, one page at a time, with when each item was trashed and the earliest date WordPress may delete it permanently. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

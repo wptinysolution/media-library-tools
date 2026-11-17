@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Modules\UsedWhere\ScanStartLock;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -43,6 +44,22 @@ class DuplicateScanner {
 	 * fits under a 30s tick budget on typical SSDs.
 	 */
 	const TICK_BATCH_SIZE = 100;
+
+	/**
+	 * Start lock option (ScanStartLock) shared by every way of starting a
+	 * duplicate scan: the admin page's Start and tsmlt/start-duplicate-scan.
+	 *
+	 * @var string
+	 */
+	const START_LOCK_OPTION = 'tsmlt_duplicate_scan_start_lock';
+
+	/**
+	 * Seconds without progress after which a running scan counts as stalled
+	 * (WP-Cron not running its next batch).
+	 *
+	 * @var int
+	 */
+	const STALL_SECONDS = 180;
 
 	/**
 	 * Singleton
@@ -511,9 +528,98 @@ class DuplicateScanner {
 	 * skipped by `scan_batch()`, so a re-start gracefully resumes any work
 	 * that survived a prior cancellation.
 	 *
+	 * Starts are taken one at a time (START_LOCK_OPTION): while another
+	 * request is starting a scan, the current progress is returned and
+	 * nothing is changed.
+	 *
 	 * @return array Progress after start.
 	 */
 	public function start(): array {
+		$lock = ScanStartLock::instance()->acquire( self::START_LOCK_OPTION );
+		if ( ! is_string( $lock ) ) {
+			return $this->get_progress();
+		}
+		try {
+			return $this->begin();
+		} finally {
+			ScanStartLock::instance()->release( $lock, self::START_LOCK_OPTION );
+		}
+	}
+
+	/**
+	 * Start a scan unless one is running: a running scan is left alone
+	 * (already_running), a stalled one is resumed from where it stopped
+	 * (resumed), otherwise a new scan starts (started). Under the same start
+	 * lock as start(), so it cannot interleave with the admin page's Start.
+	 *
+	 * @return array{result: string, progress: array}|null The result and the
+	 *         progress, or null when the lock could not be read or written.
+	 */
+	public function start_or_resume(): ?array {
+		$lock = ScanStartLock::instance()->acquire( self::START_LOCK_OPTION );
+		if ( false === $lock ) {
+			return null;
+		}
+		if ( null === $lock ) {
+			// Another request is starting a scan right now.
+			return [
+				'result'   => 'already_running',
+				'progress' => $this->get_progress(),
+			];
+		}
+		try {
+			$state = $this->get_progress();
+			if ( 'running' === $state['status'] ) {
+				if ( ! self::is_stalled( $state ) ) {
+					$result = 'already_running';
+				} else {
+					$this->resume();
+					$result = 'resumed';
+				}
+			} else {
+				$this->begin();
+				$result = 'started';
+			}
+			return [
+				'result'   => $result,
+				'progress' => $this->get_progress(),
+			];
+		} finally {
+			ScanStartLock::instance()->release( $lock, self::START_LOCK_OPTION );
+		}
+	}
+
+	/**
+	 * Whether a scan state is running with no progress for STALL_SECONDS.
+	 *
+	 * @param array $state A get_progress() state.
+	 *
+	 * @return bool
+	 */
+	public static function is_stalled( array $state ): bool {
+		return 'running' === ( $state['status'] ?? '' ) && time() - (int) ( $state['updated_at'] ?? 0 ) > self::STALL_SECONDS;
+	}
+
+	/**
+	 * Resume a stalled scan from its stored offset: the next batch is
+	 * scheduled now (replacing an overdue one) and WP-Cron is asked to run.
+	 *
+	 * @return void
+	 */
+	private function resume(): void {
+		wp_clear_scheduled_hook( self::TICK_HOOK );
+		wp_schedule_single_event( time(), self::TICK_HOOK );
+		if ( function_exists( 'spawn_cron' ) ) {
+			spawn_cron();
+		}
+	}
+
+	/**
+	 * Start a fresh background scan (see start()), without the start lock.
+	 *
+	 * @return array Progress after start.
+	 */
+	private function begin(): array {
 		wp_clear_scheduled_hook( self::TICK_HOOK );
 
 		$total_result = Fns::DB()->select()

@@ -19,6 +19,8 @@ use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
 use TinySolutions\mlt\Abilities\Media\GetMediaUsage;
 use TinySolutions\mlt\Abilities\Media\FindDuplicateMedia;
+use TinySolutions\mlt\Abilities\Media\GetDuplicateScanStatus;
+use TinySolutions\mlt\Abilities\Media\StartDuplicateScan;
 use TinySolutions\mlt\Abilities\Media\GetUsageScanStatus;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\ListTrashedMedia;
@@ -140,6 +142,8 @@ class AbilitiesInit {
 			StartUsageScan::instance(),
 			GetUsageScanStatus::instance(),
 			FindDuplicateMedia::instance(),
+			StartDuplicateScan::instance(),
+			GetDuplicateScanStatus::instance(),
 			ListTrashedMedia::instance(),
 			PreviewTrashMedia::instance(),
 			TrashMedia::instance(),
