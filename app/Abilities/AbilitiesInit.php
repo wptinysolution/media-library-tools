@@ -22,6 +22,7 @@ use TinySolutions\mlt\Abilities\Media\FindDuplicateMedia;
 use TinySolutions\mlt\Abilities\Media\GetDuplicateScanStatus;
 use TinySolutions\mlt\Abilities\Media\StartDuplicateScan;
 use TinySolutions\mlt\Abilities\Media\GetUsageScanStatus;
+use TinySolutions\mlt\Abilities\Media\ListMediaUsage;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\ListTrashedMedia;
 use TinySolutions\mlt\Abilities\Media\PreviewTrashMedia;
@@ -141,6 +142,7 @@ class AbilitiesInit {
 			GetMediaUsage::instance(),
 			StartUsageScan::instance(),
 			GetUsageScanStatus::instance(),
+			ListMediaUsage::instance(),
 			FindDuplicateMedia::instance(),
 			StartDuplicateScan::instance(),
 			GetDuplicateScanStatus::instance(),

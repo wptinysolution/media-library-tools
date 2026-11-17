@@ -44,7 +44,7 @@ class McpServerExtensionTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group', 'tsmlt/get-media-usage', 'tsmlt/start-usage-scan', 'tsmlt/get-usage-scan-status', 'tsmlt/find-duplicate-media', 'tsmlt/start-duplicate-scan', 'tsmlt/get-duplicate-scan-status', 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media', 'tsmlt/export-media-csv' ];
+	const FREE = [ 'tsmlt/search-media', 'tsmlt/get-media-details', 'tsmlt/update-media-metadata', 'tsmlt/get-exif-fields', 'tsmlt/list-media-groups', 'tsmlt/set-media-groups', 'tsmlt/create-media-group', 'tsmlt/update-media-group', 'tsmlt/get-media-usage', 'tsmlt/start-usage-scan', 'tsmlt/get-usage-scan-status', 'tsmlt/list-media-usage', 'tsmlt/find-duplicate-media', 'tsmlt/start-duplicate-scan', 'tsmlt/get-duplicate-scan-status', 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media', 'tsmlt/export-media-csv' ];
 
 	/**
 	 * Register the stand-in abilities (and the other test category).

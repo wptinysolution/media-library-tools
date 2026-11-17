@@ -37,6 +37,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-get-media-usage` | Reports where up to 50 attachments are used — featured images, content and excerpts, page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options) — from the records of the Used Where scan. Says whether each one is used, not used, or unknown. Dedicated endpoint only | No |
 | `tsmlt-start-usage-scan` | Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Dedicated endpoint only | Yes (usage scan results only) |
 | `tsmlt-get-usage-scan-status` | Returns the Used Where scan state, progress, and whether it is stalled or failed. Never starts or resumes a scan. Dedicated endpoint only | No |
+| `tsmlt-list-media-usage` | Lists media by usage (`used`, `unused` or `unknown`), one page at a time (up to 100), after a completed Used Where scan: ID, title, file name, MIME type, usage status, usage types for used media, reason codes for unknown media. Never lists unknown media as unused. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field. Dedicated endpoint only | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
@@ -134,6 +135,41 @@ WP-Cron must be able to run: on sites with `DISABLE_WP_CRON`, a system cron job 
 6. Check `tsmlt-get-usage-scan-status` once more at the end. If a new scan started during the audit (state no longer `complete`), treat the results as unknown and repeat.
 
 Never treat **Unknown** as unused. An image is reported unused only from a completed scan.
+
+### List media by usage — `tsmlt-list-media-usage`
+
+Workflow:
+1. Start the scan with `tsmlt-start-usage-scan`.
+2. Poll `tsmlt-get-usage-scan-status` until `state` is `complete`.
+3. List one class of media at a time with `tsmlt-list-media-usage`.
+
+| Input | Type | Default | Meaning |
+|---|---|---|---|
+| `status` | `used`, `unused` or `unknown` | (required) | Which list |
+| `page` | integer 1–10000 | 1 | Page, in attachment ID order |
+| `per_page` | integer 1–100 | 20 | Items per page |
+
+**Output:**
+- `items`, each with `id`, `title`, `filename` (no folders), `mime_type` and `usage_status`.
+  - Used items add `usage_types` (recorded usages by type, with counts) and `used_in_posts` (distinct posts). Details per item come from `tsmlt-get-media-usage`.
+  - Unknown items add `unknown_reasons`: the Used Where page's reason codes, such as `not_covered`, `coverage_not_recorded` or `woocommerce_inactive`.
+- `page`, `per_page`, `total` (the list's size, as the Used Where page counts it), `total_pages`.
+- `hidden`: media on the page you can't read; left out.
+- `excluded`: media on the page whose stored record doesn't match the list, for example a record left only for posts that no longer exist.
+- `scan`: `scan_id`, `complete`, `verified`, `started_at`, `gaps`.
+
+**Rules:**
+- The lists are the Used Where page's (`UsageClassifier::query_args()`), checked per item with the rule `tsmlt-get-media-usage` uses:
+  - **used:** a usage that still counts is recorded;
+  - **unused:** none is recorded, and a complete, verified scan covered the item;
+  - **unknown:** everything else.
+- With a complete scan whose coverage isn't verified, the unused list is empty and such media is listed as unknown.
+- Without a completed scan (none, running, cancelled or failed), the tool refuses with `tsmlt_usage_scan_required` and says how to run one.
+- If the scan changes while a page is being read, it refuses with `tsmlt_usage_scan_changed`; list again.
+- **Read-only:** it never starts a scan, changes records, or cleans up stale records, which the Used Where page removes as it lists them.
+- **Paging:** pages come from SQL, so only one page of IDs is loaded.
+- **Output contents:** no file paths, cached post titles or scan error texts are returned.
+
 
 ### Live progress and incremental results
 
@@ -778,7 +814,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv` (17). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (7). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv` (17). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (7). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 
@@ -919,4 +955,5 @@ The Pro tools below and the Free `tsmlt/export-media-csv` are offered only on th
 | 8 | CSV import/export | Implemented | Free `tsmlt/export-media-csv` (selected IDs); Pro `tsmlt/export-media-csv-bulk` (library export to files, 2026-11-16; production hardening the same day: random storage names, watchdog and retries, `tsmlt/continue-media-csv-export` for sites without WP-Cron, 15-minute links, admin-request cleanup, Free 2.5.0 required), `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import`; all on the dedicated endpoint. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Round trips fixed in Pro (2026-11-13; remaining exceptions under Known limitations). Open: neutralising formulas in the admin CSV export. Not tested on an existing site. Page and post exports (2026-11-17): Free `tsmlt/search-media` `content_url` (a URL of this site, resolved locally, never fetched) for the search-and-select export; Pro `tsmlt/export-media-csv-bulk` `contents` with `organize` (separate files per page or post, or one combined file without duplicate rows). Image discovery covers attached, featured, product gallery and core block, `wp-image` and `[gallery]` references only. |
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
 | 10 | Media trash management | Implemented | `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media` and `tsmlt/restore-media` (Free, dedicated endpoint only), under the conditions recorded in [Implemented abilities](#implemented-abilities); see [Media trash](#media-trash--list-preview-trash-restore). Covered by integration tests (see Verification evidence). Permanent deletion, Empty Trash, Trash All and bulk rename are out of scope. Not tested on a disposable or existing site. |
+| 11 | Media usage results listing | Implemented | `tsmlt/list-media-usage` (Free, 2026-11-18, dedicated endpoint only): pages of used, unused or unknown media after a completed Used Where scan, with the Used Where page's lists and `tsmlt/get-media-usage`'s per-item rule; read-only; see [List media by usage](#list-media-by-usage--tsmlt-list-media-usage). |
 

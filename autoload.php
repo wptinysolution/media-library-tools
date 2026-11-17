@@ -30,6 +30,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaUsage' => __DIR__ . '/app/Abilities/Media/GetMediaUsage.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetUsageScanStatus' => __DIR__ . '/app/Abilities/Media/GetUsageScanStatus.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ListMediaGroups' => __DIR__ . '/app/Abilities/Media/ListMediaGroups.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\ListMediaUsage' => __DIR__ . '/app/Abilities/Media/ListMediaUsage.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ListTrashedMedia' => __DIR__ . '/app/Abilities/Media/ListTrashedMedia.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\PreviewTrashMedia' => __DIR__ . '/app/Abilities/Media/PreviewTrashMedia.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\RestoreMedia' => __DIR__ . '/app/Abilities/Media/RestoreMedia.php',
