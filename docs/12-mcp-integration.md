@@ -390,6 +390,13 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 
 `tsmlt-export-media-csv` is free. The library export, its status tool and the two import tools need **Media Library Tools Pro** with an active licence. All are offered only on the dedicated endpoint. The selected-media export and the import tools pass CSV as text inside the tool call and its result; the library export writes files and returns download links.
 
+**Free and Pro exports.**
+- **Free** (`tsmlt-export-media-csv`): needs the media (attachment) IDs, 1–100 distinct IDs per export, given by the user.
+- **Pro** (`tsmlt-export-media-csv-bulk`): exports the entire Media Library, or everything matching the filters, without any IDs. The user chooses 1–20 files; rows are balanced between them (sizes differ by at most one row) and every matching media item is exported exactly once.
+- **Whole-library request without IDs:** the client uses the Pro tool when it is available. Otherwise it says briefly that this is a Pro feature and asks for the media IDs to export with the Free tool.
+- The client never imitates a whole-library export by collecting IDs itself (for example with `tsmlt-search-media`) and calling the Free tool batch after batch, and never says the Free version can export the whole library. IDs the user gave are split into several exports only when the user asks.
+- The tool descriptions carry this guidance.
+
 ### CSV import and export guidelines
 
 If an import fails, try importing smaller batches. Processing performance depends on your server's available resources.

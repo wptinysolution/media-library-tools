@@ -80,7 +80,7 @@ class ExportMediaCsv extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Export up to 100 media attachments, by ID, as one CSV text, rows in the order of the IDs given. Columns: ID, slug, url, title, alt_text, caption, description, post_parent (0 when there is none or you cannot read it), menu_order and groups (Group names, comma-separated), or the columns you choose. These are the columns the CSV import reads (remove url to re-import); import-only columns such as rename_to are never exported, and neither are custom fields, file paths or metadata. Text cells that a spreadsheet would run as a formula start with an extra apostrophe. IDs that are missing, not media, trashed, private or not readable by you are listed in skipped. To export a whole library or many files, use the Pro tool tsmlt/export-media-csv-bulk. Read-only.', 'media-library-tools' );
+		return __( 'Export specific media attachments, given by their WordPress attachment (media) IDs, as one CSV text: 1 to 100 distinct IDs per export, rows in the order of the IDs given. Columns: ID, slug, url, title, alt_text, caption, description, post_parent (0 when there is none or you cannot read it), menu_order and groups (Group names, comma-separated), or the columns you choose. These are the columns the CSV import reads (remove url to re-import); import-only columns such as rename_to are never exported, and neither are custom fields, file paths or metadata. Text cells that a spreadsheet would run as a formula start with an extra apostrophe. IDs that are missing, not media, trashed, private or not readable by you are listed in skipped. Read-only. This tool always needs the IDs; when the user gives them, export them. When the user asks to export the whole Media Library, or a bulk export without IDs: use tsmlt/export-media-csv-bulk if it is available (Pro); otherwise say briefly that exporting without media IDs, or the whole library, is a Pro feature, and ask for the media IDs to export with this tool. Never imitate a whole-library export with this tool: do not collect IDs yourself (for example with tsmlt/search-media) to export them batch after batch, and never say the free version can export the whole library. Split IDs the user gave into several exports only when they ask for it.', 'media-library-tools' );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class ExportMediaCsv extends Ability {
 						'type'    => 'integer',
 						'minimum' => 1,
 					],
-					'description' => 'Attachment IDs, 1 to 100, each once. Rows follow this order.',
+					'description' => 'WordPress media (attachment) IDs given by the user, 1 to 100 distinct IDs. Rows follow this order.',
 				],
 				'columns' => self::columns_schema(),
 			],

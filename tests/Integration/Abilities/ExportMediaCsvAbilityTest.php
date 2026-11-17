@@ -165,8 +165,23 @@ class ExportMediaCsvAbilityTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The description says IDs are required (1 to 100), sends whole-library
+	 * requests to the Pro tool or explains it is Pro, and forbids imitating a
+	 * whole-library export with this tool.
+	 */
+	/**
 	 * Only users with manage_options: refused through the permission
 	 * callback and by a direct call, logged out or not.
+	 */
+	public function test_description_guides_free_and_pro_use() {
+		$description = wp_get_ability( 'tsmlt/export-media-csv' )->get_description();
+		foreach ( [ 'WordPress attachment (media) IDs', '1 to 100 distinct IDs per export', 'when the user gives them, export them', 'use tsmlt/export-media-csv-bulk if it is available (Pro)', 'is a Pro feature', 'ask for the media IDs', 'Never imitate a whole-library export', 'never say the free version can export the whole library' ] as $phrase ) {
+			$this->assertStringContainsString( $phrase, $description );
+		}
+	}
+
+	/**
+	 * Only administrators may export.
 	 */
 	public function test_requires_manage_options() {
 		$id = $this->attachment();
