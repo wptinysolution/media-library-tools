@@ -403,15 +403,25 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
   - The user chooses specific images or all of them. If nothing matches, the client says so and offers another search.
   - The client exports exactly the chosen IDs at once. It never exports images the user didn't choose and never guesses IDs.
   - More than 100 chosen images: the client asks the user to narrow the choice and doesn't split the export.
-  - **Content search** covers media:
-    - attached to the post, page or product ("Uploaded to");
-    - its featured image;
-    - its WooCommerce product gallery;
-    - media inserted in its content with WordPress image, gallery, cover or media-and-text blocks, `wp-image-N` classes or `[gallery ids]` shortcodes.
+  - **Content search** (`ContentMedia`, shared with the Pro page and post export) covers media found through what is saved with the content. Nothing is rendered or fetched, and no usage scan or parent change is involved. Each result's `associations` says how it relates to the content (`attached`, `featured`, `gallery`, `content`, `elementor`).
+    - **Attached:** media attached to the post, page or product ("Uploaded to").
+    - **Featured image** and the **WooCommerce product gallery**.
+    - **Gutenberg:** image, gallery (including the image blocks inside it), cover and media-and-text blocks, at any nesting depth (groups, columns and so on), by their attachment ID. Cover, image and media-and-text blocks saved with only an image URL are resolved by that URL.
+    - **Classic editor:** `wp-image-N` classes, `<img>` tags whose `src` is a file of this site's uploads (a sized copy such as `-300x200`, or a `-scaled` file, counts as its original), and `[gallery ids]` shortcodes.
+    - **Elementor:** read from the page's saved `_elementor_data`, only when `_elementor_edit_mode` is `builder`. Elementor needn't be active, nothing is rendered, and no widget code runs.
+      - Every media field (`{id, url}`) and list of media fields in any element's settings is used. That covers the Image widget, the Image Gallery and Basic Gallery widgets, section and container backgrounds, and theme or add-on widgets that store images the same way, in nested sections, columns and containers.
+      - A saved ID is used only when the attachment is the file of the URL saved with it. That way IDs kept from another site (for example a demo import) are never taken for unrelated local images.
+      - Otherwise a URL of this site's uploads is resolved to its attachment, and other URLs are ignored.
+      - Data over 5 MB or nested too deeply is skipped.
+    - **Limits on URL resolution:** URLs are resolved only on this site's uploads host, port and path, with at most 200 distinct URLs per content.
+  - **Not found:**
+    - images output by the theme, widgets, shortcodes, or page builders other than Elementor;
+    - CSS backgrounds set outside Elementor's media fields;
+    - Elementor widgets that store images only as text or HTML, dynamic tags, global widgets and templates (only the page's own data is read);
+    - images hosted on other sites, or not in this Media Library.
 
-    Media used only by URL, in page builders, widgets, theme settings or from other sites isn't found this way. Each result's `associations` says how it relates to the content.
+    For example, the development site's About Us page (2784) is built with Elementor from a demo import. Its saved image IDs and URLs belong to the demo site, so it correctly finds no media there.
   - **Content URLs** (`content_url`): only http(s) URLs on this site's own host and port, under its home path and without credentials, are resolved, locally with WordPress's `url_to_postid()`; the home page resolves to a static front page. A URL is never fetched (no outgoing request, no SSRF). External, unresolvable, trashed, attachment and unreadable URLs are all reported as `tsmlt_content_not_found`.
-  - **Not every image visible on a page can be found:** images used only by URL, CSS background images, images output by page builders, widgets or the theme, and images hosted on other sites are not discovered.
   - **Content titles:** an exact title is used first, then titles containing it. When several posts, pages or products match, no media is returned and `content_candidates` lists up to 10 for the user to choose from.
   - **Access:** content that is missing, of another type, trashed or not readable is reported alike as `tsmlt_content_not_found`. Media must be readable and not trashed, as in every search, and the export checks every ID again.
   - **Whole-library request:** the client explains that full Media Library CSV export is available in Media Library Tools Pro (the plugin's own Pro link), and that the Free version can search and choose images instead.
