@@ -178,8 +178,8 @@ class ExportMediaCsvAbilityTest extends WP_UnitTestCase {
 			[
 				'1 to 100 distinct IDs per export',
 				'If tsmlt/export-media-csv-bulk (Pro) is available, use it for any CSV export of the Media Library, at once and without asking which images',
-				'ask which images to include: they can give image names, file names, keywords, media IDs, or a post, page or WooCommerce product by title or ID',
-				'Find them with tsmlt/search-media (search, filename, ids, content_id or content_title',
+				'ask which images to include: they can give image names, file names, keywords, media IDs, or a post, page or WooCommerce product by title, ID or URL',
+				'Find them with tsmlt/search-media (search, filename, ids, content_id, content_title or content_url',
 				'show the matches with their title, file name, date and ID so similar images can be told apart',
 				'let the user choose specific images or all of them; if nothing matches, say so and offer another search',
 				'export exactly the IDs of the images the user chose from those results, at once and without asking about columns',

@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\AbilityGuard;
+use TinySolutions\mlt\Abilities\ContentMedia;
 use TinySolutions\mlt\Abilities\MediaPresenter;
 use TinySolutions\mlt\Controllers\Admin\Api;
-use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 use WP_Post;
@@ -99,27 +99,6 @@ class SearchMedia extends Ability {
 	 */
 	const MAX_IDS = 100;
 
-	/**
-	 * Content types whose associated media can be searched (product only when
-	 * WooCommerce registers it).
-	 *
-	 * @var string[]
-	 */
-	const CONTENT_TYPES = [ 'post', 'page', 'product' ];
-
-	/**
-	 * Most content items listed when a title matches several.
-	 *
-	 * @var int
-	 */
-	const MAX_CONTENT_CANDIDATES = 10;
-
-	/**
-	 * WooCommerce's product gallery meta key (comma-separated attachment IDs).
-	 *
-	 * @var string
-	 */
-	const PRODUCT_GALLERY_META_KEY = '_product_image_gallery';
 
 	/**
 	 * Class Constructor
@@ -144,7 +123,7 @@ class SearchMedia extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase (title, caption, description), filename (part of the file name, case-insensitive, without folders), MIME type, missing alt text (combine missing_alt with mime_type "image" to find images that need alt text), group_id (media assigned directly to that group; find IDs with tsmlt/list-media-groups), or attached (true: attached to a post, i.e. uploaded to or set as attached to one; false: unattached). Attached does not mean the media is used in content: a file can be used without being attached, and attached without being used. Also by ids (1 to 100 media IDs the user gave; IDs not returned are listed in missing_ids), or by a post, page or WooCommerce product, given by content_id or content_title: media attached to it, its featured image, its product gallery, and media inserted in its content with WordPress image, gallery, cover or media-and-text blocks, wp-image classes or [gallery] shortcodes. Media used only by URL, in page builders, widgets, theme settings or from other sites is not found this way. When content_title matches several items, no media is returned and content_candidates lists them: ask the user which one. Each result has its file name, to tell similar images apart. Read-only.', 'media-library-tools' );
+		return __( 'Search the media library and return one page of attachments with their ID, title, alt text, caption, MIME type, URL and upload date. Filter by search phrase (title, caption, description), filename (part of the file name, case-insensitive, without folders), MIME type, missing alt text (combine missing_alt with mime_type "image" to find images that need alt text), group_id (media assigned directly to that group; find IDs with tsmlt/list-media-groups), or attached (true: attached to a post, i.e. uploaded to or set as attached to one; false: unattached). Attached does not mean the media is used in content: a file can be used without being attached, and attached without being used. Also by ids (1 to 100 media IDs the user gave; IDs not returned are listed in missing_ids), or by a post, page or WooCommerce product, given by content_id, content_title or content_url (a page, post or product URL of this site, as the user copied it from the browser; never fetched): media attached to it, its featured image, its product gallery, and media inserted in its content with WordPress image, gallery, cover or media-and-text blocks (classic editor images included), wp-image classes or [gallery] shortcodes. Not every image visible on a page can be found: images used only by URL, as CSS backgrounds, by page builders, widgets or the theme, or hosted on other sites are not. When content_title matches several items, no media is returned and content_candidates lists them: ask the user which one. Each result has its file name, to tell similar images apart. Read-only.', 'media-library-tools' );
 	}
 
 	/**
@@ -219,6 +198,12 @@ class SearchMedia extends Ability {
 					'maxLength'   => self::MAX_SEARCH_LENGTH,
 					'description' => 'Like content_id, by the title of a post, page or WooCommerce product. An exact title is used first, then titles containing it.',
 				],
+				'content_url'   => [
+					'type'        => 'string',
+					'minLength'   => 1,
+					'maxLength'   => ContentMedia::MAX_URL_LENGTH,
+					'description' => 'Like content_id, by the URL of a post, page or WooCommerce product on this site (its address in the browser). URLs of other sites are refused; nothing is fetched.',
+				],
 				'page'          => [
 					'type'        => 'integer',
 					'minimum'     => 1,
@@ -269,11 +254,11 @@ class SearchMedia extends Ability {
 				'content'            => [
 					'type'        => [ 'object', 'null' ],
 					'description' => 'With content_id or content_title: the post, page or product searched.',
-					'properties'  => self::content_schema()['properties'],
+					'properties'  => ContentMedia::schema()['properties'],
 				],
 				'content_candidates' => [
 					'type'        => 'array',
-					'items'       => self::content_schema(),
+					'items'       => ContentMedia::schema(),
 					'description' => 'When content_title matches several items: up to 10 of them; no media is returned. Ask the user which one, then search with its content_id.',
 				],
 				'total'              => [
@@ -326,7 +311,7 @@ class SearchMedia extends Ability {
 		// user to choose from, with no media.
 		$content = null;
 		if ( '' !== $criteria['content_title'] ) {
-			$matches = $this->contents_by_title( $criteria['content_title'] );
+			$matches = ContentMedia::by_title( $criteria['content_title'] );
 			if ( ! $matches ) {
 				return self::content_not_found();
 			}
@@ -337,17 +322,17 @@ class SearchMedia extends Ability {
 					'page'               => $criteria['page'],
 					'total_pages'        => 0,
 					'content'            => null,
-					'content_candidates' => array_map( [ self::class, 'present_content' ], array_slice( $matches, 0, self::MAX_CONTENT_CANDIDATES ) ),
+					'content_candidates' => array_map( [ ContentMedia::class, 'present' ], array_slice( $matches, 0, ContentMedia::MAX_CANDIDATES ) ),
 				];
 			}
 			$content = $matches[0];
-		} elseif ( $criteria['content_id'] ) {
-			$content = $this->readable_content( $criteria['content_id'] );
+		} elseif ( $criteria['content_id'] || '' !== $criteria['content_url'] ) {
+			$content = $criteria['content_id'] ? ContentMedia::readable( $criteria['content_id'] ) : ContentMedia::from_url( $criteria['content_url'] );
 			if ( null === $content ) {
 				return self::content_not_found();
 			}
 		}
-		$associations = null === $content ? null : $this->associated_media( $content );
+		$associations = null === $content ? null : ContentMedia::associated( $content );
 
 		// Count and page only what the user may read. read_post can be changed
 		// by any plugin through map_meta_cap, so it cannot be expressed in SQL:
@@ -380,7 +365,7 @@ class SearchMedia extends Ability {
 			$result['missing_ids'] = array_values( array_diff( $criteria['ids'], $readable ) );
 		}
 		if ( null !== $content ) {
-			$result['content'] = self::present_content( $content );
+			$result['content'] = ContentMedia::present( $content );
 		}
 		return $result;
 	}
@@ -410,51 +395,13 @@ class SearchMedia extends Ability {
 	}
 
 	/**
-	 * Schema of a post, page or product in the output.
-	 *
-	 * @return array
-	 */
-	private static function content_schema(): array {
-		return [
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => [ 'id', 'title', 'type', 'date' ],
-			'properties'           => [
-				'id'    => [ 'type' => 'integer' ],
-				'title' => [ 'type' => 'string' ],
-				'type'  => [
-					'type' => 'string',
-					'enum' => self::CONTENT_TYPES,
-				],
-				'date'  => [ 'type' => 'string' ],
-			],
-		];
-	}
-
-	/**
-	 * A post, page or product as the output shows it.
-	 *
-	 * @param WP_Post $post Content.
-	 *
-	 * @return array
-	 */
-	private static function present_content( WP_Post $post ): array {
-		return [
-			'id'    => (int) $post->ID,
-			'title' => Fns::prepare_text_for_json( get_the_title( $post ) ),
-			'type'  => (string) $post->post_type,
-			'date'  => (string) get_post_time( 'c', true, $post ),
-		];
-	}
-
-	/**
 	 * The error for content that does not exist or that the user may not read
 	 * (reported alike).
 	 *
 	 * @return WP_Error
 	 */
 	private static function content_not_found(): WP_Error {
-		return AbilityGuard::error( 'tsmlt_content_not_found', __( 'No post, page or product with that ID or title was found that you can read. Check the title or ID, or search media by name instead.', 'media-library-tools' ), 404 );
+		return AbilityGuard::error( 'tsmlt_content_not_found', __( 'No post, page or product with that ID, title or URL was found that you can read. A URL must be a page, post or product URL of this site. Check it, or search media by name instead.', 'media-library-tools' ), 404 );
 	}
 
 	/**
@@ -467,182 +414,6 @@ class SearchMedia extends Ability {
 	private static function file_name( int $attachment_id ): string {
 		$file = get_post_meta( $attachment_id, self::ATTACHED_FILE_META_KEY, true );
 		return is_string( $file ) && '' !== $file ? wp_basename( $file ) : '';
-	}
-
-	/**
-	 * Content types that can be searched on this site.
-	 *
-	 * @return string[]
-	 */
-	private static function content_types(): array {
-		return array_values( array_filter( self::CONTENT_TYPES, 'post_type_exists' ) );
-	}
-
-	/**
-	 * A post, page or product the user may read, or null (missing, another
-	 * type, trashed, an auto-draft or not readable, alike).
-	 *
-	 * @param int $content_id Content ID.
-	 *
-	 * @return WP_Post|null
-	 */
-	private function readable_content( int $content_id ): ?WP_Post {
-		$post = get_post( $content_id );
-		if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, self::content_types(), true ) || in_array( $post->post_status, [ 'trash', 'auto-draft' ], true ) || ! current_user_can( 'read_post', $post->ID ) ) {
-			return null;
-		}
-		return $post;
-	}
-
-	/**
-	 * Readable posts, pages and products with this title: exact titles when
-	 * there are any, otherwise titles containing it; at most
-	 * MAX_CONTENT_CANDIDATES + 1, so several are known to be several.
-	 *
-	 * @param string $title Title.
-	 *
-	 * @return WP_Post[]
-	 */
-	private function contents_by_title( string $title ): array {
-		$types = self::content_types();
-		$base  = [
-			'post_type'              => $types,
-			'post_status'            => 'any',
-			'posts_per_page'         => self::MAX_CONTENT_CANDIDATES + 1,
-			'orderby'                => 'date',
-			'order'                  => 'DESC',
-			'no_found_rows'          => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-		];
-		foreach ( [
-			[ 'title' => $title ],
-			[
-				's'              => $title,
-				'search_columns' => [ 'post_title' ],
-			],
-		] as $match ) {
-			$posts = array_values(
-				array_filter(
-					( new WP_Query( $base + $match ) )->posts,
-					[ $this, 'is_readable_content' ]
-				)
-			);
-			if ( $posts ) {
-				return $posts;
-			}
-		}
-		return [];
-	}
-
-	/**
-	 * Whether a found post is readable content (see readable_content()).
-	 *
-	 * @param mixed $post Post.
-	 *
-	 * @return bool
-	 */
-	public function is_readable_content( $post ): bool {
-		return $post instanceof WP_Post && null !== $this->readable_content( (int) $post->ID );
-	}
-
-	/**
-	 * Media associated with a post, page or product, by how: attached
-	 * ("Uploaded to"), featured image, WooCommerce product gallery, and
-	 * media inserted in the content with WordPress image, gallery, cover or
-	 * media-and-text blocks, wp-image-N classes or [gallery ids] shortcodes.
-	 * IDs only; whether they are readable media is checked by the search.
-	 *
-	 * @param WP_Post $post Content.
-	 *
-	 * @return array<int, string[]> Attachment ID => associations.
-	 */
-	private function associated_media( WP_Post $post ): array {
-		$found = [];
-
-		$attached = new WP_Query(
-			[
-				'post_type'              => 'attachment',
-				'post_status'            => 'inherit',
-				'post_parent'            => $post->ID,
-				'fields'                 => 'ids',
-				'posts_per_page'         => -1,
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			]
-		);
-		self::add_found( $found, $attached->posts, 'attached' );
-		self::add_found( $found, get_post_thumbnail_id( $post ), 'featured' );
-		if ( 'product' === $post->post_type ) {
-			self::add_found( $found, explode( ',', (string) get_post_meta( $post->ID, self::PRODUCT_GALLERY_META_KEY, true ) ), 'gallery' );
-		}
-
-		$content = (string) $post->post_content;
-		self::add_found( $found, self::block_media_ids( parse_blocks( $content ) ), 'content' );
-		if ( preg_match_all( '/\bwp-image-(\d+)\b/', $content, $classes ) ) {
-			self::add_found( $found, $classes[1], 'content' );
-		}
-		if ( preg_match_all( '/\[gallery\b[^\]]*\bids\s*=\s*["\']?([\d,\s]+)/i', $content, $galleries ) ) {
-			foreach ( $galleries[1] as $list ) {
-				self::add_found( $found, explode( ',', $list ), 'content' );
-			}
-		}
-
-		return $found;
-	}
-
-	/**
-	 * Record attachment IDs as associated in one way (each way once per ID).
-	 *
-	 * @param array  $found Attachment ID => associations, updated.
-	 * @param mixed  $ids   An ID or IDs.
-	 * @param string $how   Association.
-	 *
-	 * @return void
-	 */
-	private static function add_found( array &$found, $ids, string $how ): void {
-		foreach ( (array) $ids as $id ) {
-			$id = absint( $id );
-			if ( $id && ! in_array( $how, $found[ $id ] ?? [], true ) ) {
-				$found[ $id ][] = $how;
-			}
-		}
-	}
-
-	/**
-	 * Media IDs in core image, gallery, cover and media-and-text blocks,
-	 * nested blocks included.
-	 *
-	 * @param array $blocks Parsed blocks.
-	 * @param int   $depth  Nesting depth.
-	 *
-	 * @return int[]
-	 */
-	private static function block_media_ids( array $blocks, int $depth = 0 ): array {
-		$ids = [];
-		if ( $depth > 20 ) {
-			return $ids;
-		}
-		foreach ( $blocks as $block ) {
-			$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : [];
-			switch ( $block['blockName'] ?? '' ) {
-				case 'core/image':
-				case 'core/cover':
-					$ids[] = $attrs['id'] ?? 0;
-					break;
-				case 'core/media-text':
-					$ids[] = $attrs['mediaId'] ?? 0;
-					break;
-				case 'core/gallery':
-					$ids = array_merge( $ids, isset( $attrs['ids'] ) && is_array( $attrs['ids'] ) ? $attrs['ids'] : [] );
-					break;
-			}
-			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
-				$ids = array_merge( $ids, self::block_media_ids( $block['innerBlocks'], $depth + 1 ) );
-			}
-		}
-		return array_values( array_filter( array_map( 'absint', $ids ) ) );
 	}
 
 	/**
@@ -774,10 +545,18 @@ class SearchMedia extends Ability {
 			$ids = array_map( 'intval', $ids );
 		}
 
-		if ( isset( $input['content_id'] ) && isset( $input['content_title'] ) ) {
+		if ( count( array_intersect( [ 'content_id', 'content_title', 'content_url' ], array_keys( $input ) ) ) > 1 ) {
 			return AbilityGuard::error(
 				AbilityGuard::ERROR_INVALID_INPUT,
-				__( 'Give content_id or content_title, not both.', 'media-library-tools' ),
+				__( 'Give one of content_id, content_title or content_url.', 'media-library-tools' ),
+				400
+			);
+		}
+		$content_url = is_string( $input['content_url'] ?? null ) ? trim( $input['content_url'] ) : '';
+		if ( array_key_exists( 'content_url', $input ) && ( '' === $content_url || strlen( $content_url ) > ContentMedia::MAX_URL_LENGTH ) ) {
+			return AbilityGuard::error(
+				AbilityGuard::ERROR_INVALID_INPUT,
+				__( 'content_url must be the URL of a page, post or product of this site.', 'media-library-tools' ),
 				400
 			);
 		}
@@ -803,6 +582,7 @@ class SearchMedia extends Ability {
 			'ids'           => $ids,
 			'content_id'    => absint( $input['content_id'] ?? 0 ),
 			'content_title' => mb_substr( $content_title, 0, self::MAX_SEARCH_LENGTH ),
+			'content_url'   => $content_url,
 			// Given IDs keep the user's order unless an order is asked for.
 			'keep_id_order' => $ids && ! array_key_exists( 'orderby', $input ),
 			'page'          => max( 1, absint( $input['page'] ?? 1 ) ),

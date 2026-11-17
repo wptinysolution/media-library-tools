@@ -399,6 +399,130 @@ class SearchMediaSelectionTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A page, post or product URL of this site, plain or pretty, resolves to
+	 * its media; the home page resolves to the static front page.
+	 */
+	public function test_media_of_a_url() {
+		$image      = $this->image( 'url/about.jpg' );
+		$page       = self::factory()->post->create(
+			[
+				'post_type'    => 'page',
+				'post_title'   => 'About Us',
+				'post_name'    => 'about-us',
+				'post_content' => '<p><img class="wp-image-' . $image . '" src="about.jpg"></p>',
+			]
+		);
+		$post_image = $this->image( 'url/post.jpg' );
+		$post       = self::factory()->post->create(
+			[
+				'post_title' => 'Launch',
+				'post_name'  => 'launch',
+			]
+		);
+		set_post_thumbnail( $post, $post_image );
+		$product_image = $this->image( 'url/product.jpg' );
+		$product       = self::factory()->post->create(
+			[
+				'post_type'  => 'product',
+				'post_title' => 'Mug',
+				'post_name'  => 'mug',
+			]
+		);
+		update_post_meta( $product, '_product_image_gallery', (string) $product_image );
+
+		// Plain permalinks.
+		$this->assertSame( [ $image ], $this->ids_of( [ 'content_url' => get_permalink( $page ) ] ) );
+		$this->assertSame( [ $post_image ], $this->ids_of( [ 'content_url' => get_permalink( $post ) ] ) );
+
+		// Pretty permalinks, with the product type rewritten too.
+		$this->set_permalink_structure( '/%postname%/' );
+		register_post_type(
+			'product',
+			[
+				'public'  => true,
+				'rewrite' => [ 'slug' => 'product' ],
+			]
+		);
+		flush_rewrite_rules();
+		$result = self::search( [ 'content_url' => home_url( '/about-us/' ) ] );
+		$this->assertSame( $page, $result['content']['id'] );
+		$this->assertSame( [ $image ], wp_list_pluck( $result['items'], 'id' ) );
+		$this->assertSame( [ $post_image ], $this->ids_of( [ 'content_url' => home_url( '/launch/' ) ] ) );
+		$this->assertSame( [ $product_image ], $this->ids_of( [ 'content_url' => home_url( '/product/mug/' ) ] ) );
+		$this->assertSame( [ $image ], $this->ids_of( [ 'content_url' => str_replace( 'http://', 'https://', home_url( '/about-us/?utm_source=x#team' ) ) ] ), 'Other scheme, query and fragment.' );
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page );
+		$this->assertSame( $page, self::search( [ 'content_url' => home_url( '/' ) ] )['content']['id'], 'Home page: the static front page.' );
+		$this->set_permalink_structure( '' );
+	}
+
+	/**
+	 * URLs of other sites, other schemes, ports or paths, with credentials,
+	 * that resolve to nothing, to an attachment, to trashed or unreadable
+	 * content are all not found, alike; a URL is never fetched.
+	 */
+	public function test_unresolvable_urls_are_not_found() {
+		$page    = self::factory()->post->create( [ 'post_type' => 'page' ] );
+		$trashed = self::factory()->post->create();
+		wp_trash_post( $trashed );
+		$hidden       = self::factory()->post->create();
+		$this->denied = [ $hidden ];
+		$image        = $this->image( 'url/attachment.jpg' );
+		$fetched      = 0;
+		$block        = static function () use ( &$fetched ) {
+			++$fetched;
+			return new WP_Error( 'blocked', 'No HTTP in this test.' );
+		};
+		add_filter( 'pre_http_request', $block );
+
+		$local = get_permalink( $page );
+		$host  = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+		foreach (
+			[
+				'external domain'  => str_replace( $host, 'example.com', $local ),
+				'lookalike domain' => str_replace( $host, $host . '.attacker.test', $local ),
+				'other port'       => str_replace( $host, $host . ':8080', $local ),
+				'ftp scheme'       => str_replace( 'http://', 'ftp://', $local ),
+				'credentials'      => str_replace( 'http://', 'http://user:pass@', $local ),
+				'no scheme'        => '//' . $host . '/?page_id=' . $page,
+				'relative'         => '/?page_id=' . $page,
+				'not found'        => home_url( '/?p=999999' ),
+				'trashed'          => get_permalink( $trashed ) ? get_permalink( $trashed ) : home_url( '/?p=' . $trashed ),
+				'unreadable'       => get_permalink( $hidden ),
+				'attachment'       => home_url( '/?attachment_id=' . $image ),
+				'control chars'    => str_replace( '?', "\t?", $local ),
+			] as $label => $url
+		) {
+			$result = self::search( [ 'content_url' => $url ] );
+			$this->assertWPError( $result, $label . ': ' . $url );
+			$this->assertContains( $result->get_error_code(), [ 'tsmlt_content_not_found', 'tsmlt_invalid_input' ], $label );
+		}
+		remove_filter( 'pre_http_request', $block );
+		$this->assertSame( 0, $fetched, 'No URL is fetched.' );
+		$this->assertWPError(
+			self::search(
+				[
+					'content_url' => $local,
+					'content_id'  => $page,
+				]
+			),
+			'One content filter only.'
+		);
+	}
+
+	/**
+	 * A page without images: its media search is empty, with the page named.
+	 */
+	public function test_a_page_without_images() {
+		$page   = self::factory()->post->create( [ 'post_type' => 'page' ] );
+		$result = self::search( [ 'content_url' => get_permalink( $page ) ] );
+		$this->assertSame( [], $result['items'] );
+		$this->assertSame( 0, $result['total'] );
+		$this->assertSame( $page, $result['content']['id'] );
+	}
+
+	/**
 	 * Search, then export only the images chosen: the CSV has exactly those
 	 * rows, with all ten standard columns in order; choosing all results
 	 * exports all of them; more than 100 IDs are refused.
@@ -436,7 +560,7 @@ class SearchMediaSelectionTest extends WP_UnitTestCase {
 	 */
 	public function test_search_description() {
 		$description = wp_get_ability( 'tsmlt/search-media' )->get_description();
-		foreach ( [ 'by ids (1 to 100 media IDs the user gave', 'by a post, page or WooCommerce product, given by content_id or content_title', 'featured image', 'product gallery', 'is not found this way', 'content_candidates lists them: ask the user which one', 'its file name, to tell similar images apart' ] as $phrase ) {
+		foreach ( [ 'by ids (1 to 100 media IDs the user gave', 'by a post, page or WooCommerce product, given by content_id, content_title or content_url', 'never fetched', 'Not every image visible on a page can be found', 'featured image', 'product gallery', 'content_candidates lists them: ask the user which one', 'its file name, to tell similar images apart' ] as $phrase ) {
 			$this->assertStringContainsString( $phrase, $description );
 		}
 	}

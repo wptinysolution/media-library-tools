@@ -18,6 +18,7 @@ spl_autoload_register(
 		static $classmap = [
 		'TinySolutions\\mlt\\Abilities\\AbilitiesInit' => __DIR__ . '/app/Abilities/AbilitiesInit.php',
 		'TinySolutions\\mlt\\Abilities\\AbilityGuard' => __DIR__ . '/app/Abilities/AbilityGuard.php',
+		'TinySolutions\\mlt\\Abilities\\ContentMedia' => __DIR__ . '/app/Abilities/ContentMedia.php',
 		'TinySolutions\\mlt\\Abilities\\McpServerRegistration' => __DIR__ . '/app/Abilities/McpServerRegistration.php',
 		'TinySolutions\\mlt\\Abilities\\MediaPresenter' => __DIR__ . '/app/Abilities/MediaPresenter.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\CreateMediaGroup' => __DIR__ . '/app/Abilities/Media/CreateMediaGroup.php',
