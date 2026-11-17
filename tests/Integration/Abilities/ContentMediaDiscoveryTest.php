@@ -446,7 +446,7 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 		$valid = [ self::holder( [ self::widget( 'image', [ 'image' => self::media( $image, self::upload_url( 'el/edge.jpg' ) ) ] ) ] ) ];
 
 		$this->assertSame( [ $image ], array_keys( $this->found( $this->elementor_page( $valid ) ) ) );
-		$this->assertSame( [], $this->found( $this->elementor_page( $valid, '', 'draft' ) ), 'Not built with Elementor.' );
+		$this->assertSame( [ $image ], array_keys( $this->found( $this->elementor_page( $valid, '', '' ) ) ), 'Read whatever the edit mode.' );
 
 		$deep = self::widget( 'image', [ 'image' => self::media( $image, self::upload_url( 'el/edge.jpg' ) ) ] );
 		for ( $i = 0; $i < 200; $i++ ) {
@@ -499,6 +499,179 @@ class ContentMediaDiscoveryTest extends WP_UnitTestCase {
 		$this->assertSame( [ 'featured', 'content' ], $found[ $nested ], 'Used three ways, listed once.' );
 		$this->assertSame( [ 'featured', 'content' ], $this->found( $page )[ $featured ] );
 		$this->assertSame( 0, $this->requests );
+	}
+
+	/**
+	 * Block markup as the block editor saves it: image blocks in a group and
+	 * columns, a gallery of image blocks and an older gallery with an ids
+	 * list, a cover and media & text; images used twice; image blocks
+	 * without an ID whose URL is a sized copy or the original of a large
+	 * image WordPress scaled down (stored as "-scaled"); invalid, trashed and
+	 * unreadable IDs; an external image. Through tsmlt/search-media the
+	 * valid local images are listed once each, the rest left out, the
+	 * output matches the schema, mime_type "image" keeps them, and nothing
+	 * is fetched.
+	 */
+	public function test_realistic_gutenberg_page() {
+		$u       = wp_get_upload_dir()['baseurl'] . '/';
+		$hero    = $this->image( '2026/05/hero.jpg' );
+		$g1      = $this->image( '2026/05/g1.jpg' );
+		$g2      = $this->image( '2026/05/g2.jpg' );
+		$cover   = $this->image( '2026/05/cover.jpg' );
+		$mt      = $this->image( '2026/05/mt.jpg' );
+		$old     = $this->image( '2026/05/old-gallery.jpg' );
+		$big     = $this->image( '2026/05/big-photo-scaled.jpg' );
+		$second  = $this->image( '2026/05/second-scaled.jpg' );
+		$trashed = $this->image( '2026/05/trashed.jpg' );
+		$hidden  = $this->image( '2026/05/hidden.jpg' );
+		$a_post  = (int) self::factory()->post->create();
+		$image   = static function ( $id, string $src, string $css = '' ) {
+			$attrs = $id ? '{"id":' . $id . ',"sizeSlug":"large","linkDestination":"none"} ' : '';
+			return '<!-- wp:image ' . $attrs . '--><figure class="wp-block-image size-large"><img src="' . $src . '" alt=""' . ( $css ? ' class="' . $css . '"' : '' ) . '/></figure><!-- /wp:image -->';
+		};
+		$content = '<!-- wp:group {"layout":{"type":"constrained"}} --><div class="wp-block-group"><!-- wp:columns --><div class="wp-block-columns"><!-- wp:column --><div class="wp-block-column">'
+			. $image( $hero, $u . '2026/05/hero-1024x683.jpg', 'wp-image-' . $hero )
+			. '</div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column">'
+			. $image( $hero, $u . '2026/05/hero.jpg', 'wp-image-' . $hero )
+			. '</div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->'
+			. '<!-- wp:gallery {"linkTo":"none"} --><figure class="wp-block-gallery has-nested-images columns-default is-cropped">'
+			. $image( $g1, $u . '2026/05/g1.jpg', 'wp-image-' . $g1 ) . $image( $g2, $u . '2026/05/g2-300x300.jpg', 'wp-image-' . $g2 )
+			. $image( $trashed, $u . '2026/05/trashed.jpg', 'wp-image-' . $trashed ) . $image( $hidden, $u . '2026/05/hidden.jpg', 'wp-image-' . $hidden )
+			. '</figure><!-- /wp:gallery -->'
+			. '<!-- wp:gallery {"ids":[' . $old . ',' . $g1 . ',999999],"linkTo":"none"} --><figure class="wp-block-gallery columns-2"><ul class="blocks-gallery-grid"><li class="blocks-gallery-item"><figure><img src="' . $u . '2026/05/old-gallery.jpg" data-id="' . $old . '" class="wp-image-' . $old . '"/></figure></li></ul></figure><!-- /wp:gallery -->'
+			. '<!-- wp:cover {"url":"' . $u . '2026/05/cover.jpg","id":' . $cover . ',"dimRatio":50,"isDark":false} --><div class="wp-block-cover is-light"><span aria-hidden="true" class="wp-block-cover__background has-background-dim"></span><img class="wp-block-cover__image-background wp-image-' . $cover . '" alt="" src="' . $u . '2026/05/cover.jpg" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph --></div></div><!-- /wp:cover -->'
+			. '<!-- wp:media-text {"mediaId":' . $mt . ',"mediaLink":"' . home_url( '/?attachment_id=' . $mt ) . '","mediaType":"image"} --><div class="wp-block-media-text is-stacked-on-mobile"><figure class="wp-block-media-text__media"><img src="' . $u . '2026/05/mt-1024x768.jpg" alt="" class="wp-image-' . $mt . ' size-full"/></figure><div class="wp-block-media-text__content"></div></div><!-- /wp:media-text -->'
+			. $image( 0, $u . '2026/05/big-photo-1024x683.jpg' )
+			. $image( 0, $u . '2026/05/second.jpg' )
+			. $image( $a_post, $u . '2026/05/not-media.jpg' )
+			. $image( 0, 'https://cdn.example.net/2026/05/hero.jpg' );
+		$page    = (int) self::factory()->post->create(
+			[
+				'post_type'    => 'page',
+				'post_content' => $content,
+			]
+		);
+		wp_trash_post( $trashed );
+		$this->denied = [ $hidden ];
+
+		$ability = wp_get_ability( 'tsmlt/search-media' );
+		$result  = $ability->execute(
+			[
+				'content_url' => get_permalink( $page ),
+				'per_page'    => 50,
+			]
+		);
+		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
+		$this->assertSame( $page, $result['content']['id'] );
+		$ids = wp_list_pluck( $result['items'], 'id' );
+		$this->assertEqualsCanonicalizing( [ $hero, $g1, $g2, $old, $cover, $mt, $big, $second ], $ids );
+		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'Images used twice are listed once.' );
+		foreach ( $result['items'] as $item ) {
+			$this->assertSame( [ 'content' ], $item['associations'] );
+		}
+		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
+
+		$images = $ability->execute(
+			[
+				'content_url' => get_permalink( $page ),
+				'mime_type'   => 'image',
+				'per_page'    => 50,
+			]
+		);
+		$this->assertEqualsCanonicalizing( $ids, wp_list_pluck( $images['items'], 'id' ) );
+		$this->assertSame( 0, $this->requests, 'The external image is not fetched.' );
+	}
+
+	/**
+	 * No editor is named or marked: one product with no Elementor edit mode
+	 * and mixed content gets every source read: attached, featured, product
+	 * gallery, nested Gutenberg blocks, classic HTML (wp-image class and a
+	 * sized local URL), [gallery ids] and [gallery include], and saved
+	 * Elementor data (image, gallery, background). An image found several
+	 * ways is listed once with every way; an unsupported builder's shortcode
+	 * and an external image give nothing and no error; the output matches
+	 * the schema.
+	 */
+	public function test_every_source_is_read_without_an_editor_mode() {
+		$registered = false;
+		if ( ! post_type_exists( 'product' ) ) {
+			register_post_type( 'product', [ 'public' => true ] );
+			$registered = true;
+		}
+		$main     = $this->image( 'auto/main.jpg' );
+		$gallery  = $this->image( 'auto/gallery.jpg' );
+		$block    = $this->image( 'auto/block.jpg' );
+		$classic  = $this->image( 'auto/classic.jpg' );
+		$sized    = $this->image( 'auto/sized.jpg' );
+		$sc_ids   = $this->image( 'auto/shortcode-ids.jpg' );
+		$sc_inc   = $this->image( 'auto/shortcode-include.jpg' );
+		$el_image = $this->image( 'auto/el-image.jpg' );
+		$el_gal   = $this->image( 'auto/el-gallery.jpg' );
+		$el_bg    = $this->image( 'auto/el-background.jpg' );
+		$builder  = $this->image( 'auto/other-builder.jpg' );
+		$content  = '<!-- wp:group --><div class="wp-block-group"><!-- wp:image {"id":' . $block . '} --><figure class="wp-block-image"><img src="x.jpg" class="wp-image-' . $block . '"/></figure><!-- /wp:image -->'
+			. '<!-- wp:image {"id":' . $main . '} --><figure class="wp-block-image"><img src="m.jpg" class="wp-image-' . $main . '"/></figure><!-- /wp:image --></div><!-- /wp:group -->'
+			. '<p><img class="alignleft wp-image-' . $classic . '" src="c.jpg"> <img src="' . self::upload_url( 'auto/sized-300x200.jpg' ) . '"></p>'
+			. '[gallery ids="' . $sc_ids . '"] [gallery include="' . $sc_inc . '" columns="2"]'
+			. '[vc_single_image image="' . $builder . '"]<img src="https://cdn.example.net/auto/main.jpg">';
+		$product  = (int) self::factory()->post->create(
+			[
+				'post_type'    => 'product',
+				'post_content' => $content,
+			]
+		);
+		wp_update_post(
+			[
+				'ID'          => $main,
+				'post_parent' => $product,
+			]
+		);
+		set_post_thumbnail( $product, $main );
+		update_post_meta( $product, '_product_image_gallery', $gallery . ',' . $main );
+		update_post_meta(
+			$product,
+			'_elementor_data',
+			wp_slash(
+				wp_json_encode(
+					[
+						self::holder(
+							[
+								self::widget( 'image', [ 'image' => self::media( $el_image, self::upload_url( 'auto/el-image.jpg' ) ) ] ),
+								self::widget( 'image-gallery', [ 'wp_gallery' => [ self::media( $el_gal, self::upload_url( 'auto/el-gallery.jpg' ) ), self::media( $main, self::upload_url( 'auto/main.jpg' ) ) ] ] ),
+							],
+							[ 'background_image' => self::media( $el_bg, self::upload_url( 'auto/el-background.jpg' ) ) ]
+						),
+					]
+				)
+			)
+		);
+		$this->assertSame( '', get_post_meta( $product, '_elementor_edit_mode', true ), 'No editor mode is set.' );
+
+		$ability = wp_get_ability( 'tsmlt/search-media' );
+		$result  = $ability->execute(
+			[
+				'content_id' => $product,
+				'per_page'   => 50,
+			]
+		);
+		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
+		$how = wp_list_pluck( $result['items'], 'associations', 'id' );
+		$this->assertEqualsCanonicalizing( [ $main, $gallery, $block, $classic, $sized, $sc_ids, $sc_inc, $el_image, $el_gal, $el_bg ], array_keys( $how ) );
+		$this->assertSame( ContentMedia::ASSOCIATIONS, $how[ $main ], 'Found five ways, listed once with all of them.' );
+		$this->assertSame( [ 'gallery' ], $how[ $gallery ] );
+		foreach ( [ $block, $classic, $sized, $sc_ids, $sc_inc ] as $id ) {
+			$this->assertSame( [ 'content' ], $how[ $id ] );
+		}
+		foreach ( [ $el_image, $el_gal, $el_bg ] as $id ) {
+			$this->assertSame( [ 'elementor' ], $how[ $id ] );
+		}
+		$this->assertArrayNotHasKey( $builder, $how, 'Other builders are not read; no error.' );
+		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ) );
+		$this->assertSame( 0, $this->requests );
+
+		if ( $registered ) {
+			unregister_post_type( 'product' );
+		}
 	}
 
 	/**

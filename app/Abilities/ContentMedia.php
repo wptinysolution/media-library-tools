@@ -26,10 +26,12 @@ use WP_Query;
  * with the content: attached ("Uploaded to"), featured image, WooCommerce
  * product gallery; in the post content, core image, gallery, cover and
  * media-and-text blocks (nested ones too), wp-image-N classes, [gallery ids]
- * shortcodes and images whose src is a file in this site's uploads; and,
- * for pages built with Elementor, the media fields of its saved data
- * (`_elementor_data`, read as data: Elementor need not be active and
- * nothing is rendered). An ID saved with a URL is used only when it is that
+ * and [gallery include] shortcodes and images whose src is a file in this
+ * site's uploads; and the media fields of saved Elementor data
+ * (`_elementor_data`, read as data whenever the content has it, whatever
+ * its edit mode: Elementor need not be active and nothing is rendered).
+ * Every source is read for every content, so no editor needs to be named;
+ * an image found several ways is listed once with every way. An ID saved with a URL is used only when it is that
  * file; otherwise a URL of this site's uploads is resolved to its
  * attachment, and other URLs are ignored. Not found: images output by the
  * theme, widgets, shortcodes or other page builders, CSS set outside
@@ -83,13 +85,6 @@ class ContentMedia {
 	 * @var string
 	 */
 	const ELEMENTOR_DATA_META_KEY = '_elementor_data';
-
-	/**
-	 * Elementor's edit mode; "builder" when the page is built with it.
-	 *
-	 * @var string
-	 */
-	const ELEMENTOR_MODE_META_KEY = '_elementor_edit_mode';
 
 	/**
 	 * Largest Elementor data read, in bytes.
@@ -259,7 +254,7 @@ class ContentMedia {
 		if ( preg_match_all( '/\bwp-image-(\d+)\b/', $content, $classes ) ) {
 			self::add_found( $found, $classes[1], 'content' );
 		}
-		if ( preg_match_all( '/\[gallery\b[^\]]*\bids\s*=\s*["\']?([\d,\s]+)/i', $content, $galleries ) ) {
+		if ( preg_match_all( '/\[gallery\b[^\]]*\b(?:ids|include)\s*=\s*["\']?([\d,\s]+)/i', $content, $galleries ) ) {
 			foreach ( $galleries[1] as $list ) {
 				self::add_found( $found, explode( ',', $list ), 'content' );
 			}
@@ -270,9 +265,8 @@ class ContentMedia {
 			}
 		}
 
-		if ( 'builder' === get_post_meta( $post->ID, self::ELEMENTOR_MODE_META_KEY, true ) ) {
-			self::add_found( $found, self::elementor_media_ids( $post->ID, $lookups ), 'elementor' );
-		}
+		// Saved Elementor data is read whatever the edit mode says.
+		self::add_found( $found, self::elementor_media_ids( $post->ID, $lookups ), 'elementor' );
 
 		ksort( $found );
 		return $found;
@@ -385,7 +379,8 @@ class ContentMedia {
 
 	/**
 	 * The attachment whose file a URL of this site's uploads names (a sized
-	 * copy counts as its original), or 0. Other URLs are not looked up and
+	 * copy counts as its original, and the original or a size of a large
+	 * image WordPress scaled down counts as its "-scaled" file), or 0. Other URLs are not looked up and
 	 * nothing is fetched; at most MAX_URL_LOOKUPS distinct URLs per content.
 	 *
 	 * @param string $url     URL.
@@ -414,8 +409,13 @@ class ContentMedia {
 			&& 0 === strpos( (string) ( $parts['path'] ?? '' ), trailingslashit( (string) ( $base['path'] ?? '' ) ) ) ) {
 			$id = attachment_url_to_postid( $url );
 			if ( ! $id ) {
-				$original = preg_replace( '/(-\d+x\d+|-scaled)(?=\.[a-z0-9]+$)/i', '', $url );
-				$id       = $original !== $url ? attachment_url_to_postid( (string) $original ) : 0;
+				$original = (string) preg_replace( '/(-\d+x\d+|-scaled)(?=\.[a-z0-9]+$)/i', '', $url );
+				$id       = $original !== $url ? attachment_url_to_postid( $original ) : 0;
+				if ( ! $id ) {
+					// A large image WordPress scaled down on upload is stored as
+					// "name-scaled.ext", while its sizes and original keep "name".
+					$id = attachment_url_to_postid( (string) preg_replace( '/(?=\.[a-z0-9]+$)/i', '-scaled', $original, 1 ) );
+				}
 			}
 		}
 		$lookups[ $url ] = (int) $id;
