@@ -31,7 +31,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 | Tool | What it does | Changes data |
 |---|---|---|
-| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post | No |
+| `tsmlt-search-media` | Lists matching attachments, one page at a time (up to 50 per page), each with its file name (no folders). Optional `filename` matches part of the file name; `group_id` limits results to one Group; `attached` to media attached, or not attached, to a post; `ids` to 1–100 given media IDs (`missing_ids` lists the rest); `content_id` or `content_title` to the media of a post, page or WooCommerce product | No |
 | `tsmlt-get-media-details` | Returns one attachment's title, alt text, caption, description, URL, MIME type, file name, dimensions, file size, image sizes, attached post, and upload date | No |
 | `tsmlt-get-exif-fields` | Returns one image's camera make and model, lens make and model, software, date taken and date digitized, ISO, aperture, shutter speed, focal length (mm), the exposure program, exposure mode, metering mode, white balance and flash codes defined by the EXIF standard, and the image description — read from the JPEG file, or from values saved in the EXIF editor for any image type. A field without a value is `null`. Dedicated endpoint only | No |
 | `tsmlt-get-media-usage` | Reports where up to 50 attachments are used — featured images, content and excerpts, page builders, galleries and custom fields, and site-wide (logo, site icon, header or background image, menus, widgets, term and site options) — from the records of the Used Where scan. Says whether each one is used, not used, or unknown. Dedicated endpoint only | No |
@@ -393,17 +393,27 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 **Free and Pro exports.** The tool descriptions carry this guidance, so a user can simply ask to "export my media library to CSV".
 - **Columns:** both exports always include every standard field (`ID`, `slug`, `url`, `title`, `alt_text`, `caption`, `description`, `post_parent`, `menu_order`, `groups`), in the same order. The client never asks which columns to include, and narrows them only when the user names specific columns.
 - **With Pro** (`tsmlt-export-media-csv-bulk`):
-  - The client starts a whole-library export at once, without asking for IDs, names, columns, a file count or confirmation. It passes filters only when the user asks for a subset.
+  - The client starts a whole-library export at once, without searching for images or asking for IDs, names, keywords, content, columns, a file count or confirmation. It passes filters only when the user asks for a subset.
   - It follows the export with the status tool (and the continue tool when stalled) without asking the user.
   - The finished files appear in the export view where the client can show it, and as links.
-  - The Free tool is used only for specific IDs the user gave.
-- **Free only** (`tsmlt-export-media-csv`, 1–100 distinct IDs per export):
-  - The client asks which images to include; the user can give media IDs, image names or file names.
-  - Given IDs, it exports them at once.
-  - Given only names, it says briefly that the export needs the WordPress media (attachment) IDs and asks for them.
-  - It never looks IDs up (for example with `tsmlt-search-media`) and never guesses them.
-  - A whole-library request gets a short note that this is a Pro feature, and the client asks which images to include instead.
-- **Never:** the client never imitates a whole-library export with repeated Free exports and never says the Free version can export the whole library. IDs the user gave are split into several exports only when the user asks.
+  - The Free tool is used only for specific media the user named.
+- **Free only: search and select** (`tsmlt-search-media`, then `tsmlt-export-media-csv` with 1–100 distinct IDs):
+  - The client asks which images to include. The user can give image names, file names, keywords, media IDs, or a post, page or WooCommerce product by title or ID.
+  - The client finds them with `tsmlt-search-media` (`search`, `filename`, `ids`, `content_id`, `content_title`) and shows the matches with title, file name, date and ID, so images with the same file name can be told apart.
+  - The user chooses specific images or all of them. If nothing matches, the client says so and offers another search.
+  - The client exports exactly the chosen IDs at once. It never exports images the user didn't choose and never guesses IDs.
+  - More than 100 chosen images: the client asks the user to narrow the choice and doesn't split the export.
+  - **Content search** covers media:
+    - attached to the post, page or product ("Uploaded to");
+    - its featured image;
+    - its WooCommerce product gallery;
+    - media inserted in its content with WordPress image, gallery, cover or media-and-text blocks, `wp-image-N` classes or `[gallery ids]` shortcodes.
+
+    Media used only by URL, in page builders, widgets, theme settings or from other sites isn't found this way. Each result's `associations` says how it relates to the content.
+  - **Content titles:** an exact title is used first, then titles containing it. When several posts, pages or products match, no media is returned and `content_candidates` lists up to 10 for the user to choose from.
+  - **Access:** content that is missing, of another type, trashed or not readable is reported alike as `tsmlt_content_not_found`. Media must be readable and not trashed, as in every search, and the export checks every ID again.
+  - **Whole-library request:** the client explains that full Media Library CSV export is available in Media Library Tools Pro (the plugin's own Pro link), and that the Free version can search and choose images instead.
+- **Never:** the client never imitates a whole-library export with repeated Free exports and never says the Free version can export the whole library.
 
 ### CSV import and export guidelines
 

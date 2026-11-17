@@ -28,7 +28,7 @@ class SearchMediaAbilityTest extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	const ITEM_KEYS = [ 'id', 'title', 'alt_text', 'caption', 'mime_type', 'url', 'date' ];
+	const ITEM_KEYS = [ 'id', 'title', 'alt_text', 'caption', 'mime_type', 'url', 'date', 'filename' ];
 
 	/**
 	 * Administrator user ID.

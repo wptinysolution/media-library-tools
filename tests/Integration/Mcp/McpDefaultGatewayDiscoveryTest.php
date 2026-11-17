@@ -52,7 +52,7 @@ class McpDefaultGatewayDiscoveryTest extends WP_UnitTestCase {
 	 * @var array<string, string[]>
 	 */
 	const INPUT_PROPERTIES = [
-		'tsmlt/search-media'          => [ 'search', 'filename', 'mime_type', 'missing_alt', 'group_id', 'attached', 'page', 'per_page', 'orderby', 'order' ],
+		'tsmlt/search-media'          => [ 'search', 'filename', 'mime_type', 'missing_alt', 'group_id', 'attached', 'ids', 'content_id', 'content_title', 'page', 'per_page', 'orderby', 'order' ],
 		'tsmlt/get-media-details'     => [ 'id' ],
 	];
 

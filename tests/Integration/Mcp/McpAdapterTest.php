@@ -236,7 +236,7 @@ class McpAdapterTest extends WP_UnitTestCase {
 		$data = $result['structuredContent']['data'];
 		$this->assertSame( 1, $data['total'] );
 		$this->assertSame( $id, $data['items'][0]['id'] );
-		$this->assertSame( [ 'id', 'title', 'alt_text', 'caption', 'mime_type', 'url', 'date' ], array_keys( $data['items'][0] ) );
+		$this->assertSame( [ 'id', 'title', 'alt_text', 'caption', 'mime_type', 'url', 'date', 'filename' ], array_keys( $data['items'][0] ) );
 		$this->assertStringNotContainsString( 'SECRET-META-MARKER', $json );
 		$this->assertStringNotContainsString( wp_json_encode( wp_upload_dir()['basedir'] ), $json );
 	}

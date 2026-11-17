@@ -166,26 +166,30 @@ class ExportMediaCsvAbilityTest extends WP_UnitTestCase {
 
 	/**
 	 * Without Pro, the description has the client ask which images to
-	 * export (IDs or names), export given IDs at once, ask for the IDs when
-	 * only names are given, never look IDs up or guess them, never ask about
-	 * columns, and never imitate a whole-library export; with Pro, it sends
-	 * every library export to the Pro tool.
+	 * include (names, file names, keywords, IDs or a post, page or product),
+	 * find them with tsmlt/search-media, let the user choose, export exactly
+	 * the chosen IDs with every column, ask to narrow more than 100 without
+	 * splitting, and explain Pro (with the plugin's own Pro link) for a
+	 * whole-library request; with Pro, it sends library exports to Pro.
 	 */
 	public function test_description_guides_the_selection() {
 		$description = wp_get_ability( self::NAME )->get_description();
 		foreach (
 			[
 				'1 to 100 distinct IDs per export',
-				'If tsmlt/export-media-csv-bulk (Pro) is available, use it for any CSV export of the Media Library, at once and without asking for IDs',
-				'use this tool there only for specific IDs the user gave',
-				'ask which images to include, saying they can give their media IDs or their image names or file names',
-				'When the user gives IDs, export them at once, without asking for confirmation',
-				'When the user gives only names, say briefly that this export needs the WordPress media (attachment) IDs and ask for the IDs of those images',
-				'Never look up IDs yourself (no tsmlt/search-media or other tools to find them) and never guess them',
-				'always all of them unless the user names specific columns: leave columns out, and never ask which columns to include',
-				'exporting the whole library is a Pro feature',
+				'If tsmlt/export-media-csv-bulk (Pro) is available, use it for any CSV export of the Media Library, at once and without asking which images',
+				'ask which images to include: they can give image names, file names, keywords, media IDs, or a post, page or WooCommerce product by title or ID',
+				'Find them with tsmlt/search-media (search, filename, ids, content_id or content_title',
+				'show the matches with their title, file name, date and ID so similar images can be told apart',
+				'let the user choose specific images or all of them; if nothing matches, say so and offer another search',
+				'export exactly the IDs of the images the user chose from those results, at once and without asking about columns',
+				'never export images the user did not choose, and never guess IDs',
+				'when more are chosen, say so and ask the user to narrow the choice, without splitting it into several exports',
+				'full Media Library CSV export is available in Media Library Tools Pro',
+				'Media Library Tools Pro: ' . tsmlt()->pro_version_link(),
 				'Never imitate a whole-library export with this tool',
 				'never say the free version can export the whole library',
+				'always all of them unless the user names specific columns: leave columns out, and never ask which columns to include',
 			] as $phrase
 		) {
 			$this->assertStringContainsString( $phrase, $description );
@@ -202,7 +206,7 @@ class ExportMediaCsvAbilityTest extends WP_UnitTestCase {
 	public function test_schema_defaults_to_every_column() {
 		$schema = wp_get_ability( self::NAME )->get_input_schema();
 		$this->assertStringContainsString( 'Leave out to export all standard columns (the default; do not ask the user)', $schema['properties']['columns']['description'] );
-		$this->assertStringContainsString( 'given by the user', $schema['properties']['ids']['description'] );
+		$this->assertStringContainsString( 'IDs of the media the user chose', $schema['properties']['ids']['description'] );
 		$this->assertArrayNotHasKey( 'columns', array_flip( $schema['required'] ?? [] ) );
 	}
 
