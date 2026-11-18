@@ -245,7 +245,7 @@ class McpScopedServerTest extends WP_UnitTestCase {
 		$names = wp_list_pluck( $tools, 'name' );
 		sort( $names );
 
-		$this->assertSame( [ 'tsmlt-create-media-group', 'tsmlt-export-media-csv', 'tsmlt-find-duplicate-media', 'tsmlt-get-duplicate-scan-status', 'tsmlt-get-exif-fields', 'tsmlt-get-media-details', 'tsmlt-get-media-usage', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-groups', 'tsmlt-list-media-usage', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-restore-media', 'tsmlt-search-media', 'tsmlt-set-media-groups', 'tsmlt-start-duplicate-scan', 'tsmlt-start-usage-scan', 'tsmlt-trash-media', 'tsmlt-update-media-group', 'tsmlt-update-media-metadata' ], $names );
+		$this->assertSame( [ 'tsmlt-create-media-group', 'tsmlt-export-media-csv', 'tsmlt-find-duplicate-media', 'tsmlt-get-duplicate-scan-status', 'tsmlt-get-exif-fields', 'tsmlt-get-exif-privacy-scan-status', 'tsmlt-get-media-details', 'tsmlt-get-media-usage', 'tsmlt-get-usage-scan-status', 'tsmlt-list-exif-privacy-results', 'tsmlt-list-media-groups', 'tsmlt-list-media-usage', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-restore-media', 'tsmlt-search-media', 'tsmlt-set-media-groups', 'tsmlt-start-duplicate-scan', 'tsmlt-start-exif-privacy-scan', 'tsmlt-start-usage-scan', 'tsmlt-trash-media', 'tsmlt-update-media-group', 'tsmlt-update-media-metadata' ], $names );
 
 		$by_name = array_column( $tools, null, 'name' );
 		$this->assertTrue( $by_name['tsmlt-search-media']['annotations']['readOnlyHint'] );

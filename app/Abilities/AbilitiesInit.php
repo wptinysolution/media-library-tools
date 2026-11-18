@@ -23,6 +23,9 @@ use TinySolutions\mlt\Abilities\Media\GetDuplicateScanStatus;
 use TinySolutions\mlt\Abilities\Media\StartDuplicateScan;
 use TinySolutions\mlt\Abilities\Media\GetUsageScanStatus;
 use TinySolutions\mlt\Abilities\Media\ListMediaUsage;
+use TinySolutions\mlt\Abilities\Media\StartExifPrivacyScan;
+use TinySolutions\mlt\Abilities\Media\GetExifPrivacyScanStatus;
+use TinySolutions\mlt\Abilities\Media\ListExifPrivacyResults;
 use TinySolutions\mlt\Abilities\Media\ListMediaGroups;
 use TinySolutions\mlt\Abilities\Media\ListTrashedMedia;
 use TinySolutions\mlt\Abilities\Media\PreviewTrashMedia;
@@ -143,6 +146,9 @@ class AbilitiesInit {
 			StartUsageScan::instance(),
 			GetUsageScanStatus::instance(),
 			ListMediaUsage::instance(),
+			StartExifPrivacyScan::instance(),
+			GetExifPrivacyScanStatus::instance(),
+			ListExifPrivacyResults::instance(),
 			FindDuplicateMedia::instance(),
 			StartDuplicateScan::instance(),
 			GetDuplicateScanStatus::instance(),

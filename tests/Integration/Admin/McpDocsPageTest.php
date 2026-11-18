@@ -288,7 +288,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<h1>MCP Docs</h1>', $html );
 		$this->assertStringContainsString( esc_html( rest_url( 'media-library-tools/mcp' ) ), $html );
-		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-usage', 'tsmlt-find-duplicate-media', 'tsmlt-start-duplicate-scan', 'tsmlt-get-duplicate-scan-status', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-export-media-csv', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
+		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-usage', 'tsmlt-start-exif-privacy-scan', 'tsmlt-get-exif-privacy-scan-status', 'tsmlt-list-exif-privacy-results', 'tsmlt-find-duplicate-media', 'tsmlt-start-duplicate-scan', 'tsmlt-get-duplicate-scan-status', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-export-media-csv', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
 			$this->assertStringContainsString( $tool, $html );
 		}
 		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
@@ -346,7 +346,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The tools table lists every tool once, in order; only the seven Pro
+	 * The tools table lists every tool once, in order; only the fourteen Pro
 	 * tools say "Pro.", and every CSV tool is marked dedicated-endpoint only.
 	 * The page says which CSV tools are free and which Pro, and that none is
 	 * on the default server.
@@ -359,12 +359,12 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$tools = array_combine( $rows[1], $rows[2] );
 
 		$this->assertSame(
-			[ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-get-exif-fields', 'tsmlt-update-media-metadata', 'tsmlt-list-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-usage', 'tsmlt-set-media-groups', 'tsmlt-find-duplicate-media', 'tsmlt-start-duplicate-scan', 'tsmlt-get-duplicate-scan-status', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-export-media-csv', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ],
+			[ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-get-exif-fields', 'tsmlt-update-media-metadata', 'tsmlt-list-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-usage', 'tsmlt-start-exif-privacy-scan', 'tsmlt-get-exif-privacy-scan-status', 'tsmlt-list-exif-privacy-results', 'tsmlt-set-media-groups', 'tsmlt-find-duplicate-media', 'tsmlt-start-duplicate-scan', 'tsmlt-get-duplicate-scan-status', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-export-media-csv', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import', 'tsmlt-preview-gps-removal', 'tsmlt-remove-gps-metadata', 'tsmlt-preview-bulk-exif-edit', 'tsmlt-apply-bulk-exif-edit', 'tsmlt-list-exif-change-logs', 'tsmlt-preview-exif-undo', 'tsmlt-undo-exif-change' ],
 			$rows[1],
 			'Every tool once, in order.'
 		);
 
-		$pro = [ 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ];
+		$pro = [ 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import', 'tsmlt-preview-gps-removal', 'tsmlt-remove-gps-metadata', 'tsmlt-preview-bulk-exif-edit', 'tsmlt-apply-bulk-exif-edit', 'tsmlt-list-exif-change-logs', 'tsmlt-preview-exif-undo', 'tsmlt-undo-exif-change' ];
 		foreach ( $tools as $tool => $description ) {
 			$this->assertSame( in_array( $tool, $pro, true ), 0 === strpos( $description, 'Pro.' ), $tool . ' is marked Pro exactly when it is a Pro tool.' );
 		}

@@ -327,6 +327,21 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-start-exif-privacy-scan</code></td>
+							<td><?php esc_html_e( 'Starts the EXIF scan in the background (the same scan as the EXIF Data page), which records per image whether its EXIF holds location (GPS), camera, date taken, author or copyright data, or reports the scan already running (a stalled one is resumed). Never changes media files or EXIF. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (EXIF scan results)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-exif-privacy-scan-status</code></td>
+							<td><?php esc_html_e( 'Returns the EXIF scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-list-exif-privacy-results</code></td>
+							<td><?php esc_html_e( 'Lists media by EXIF privacy result, one page at a time, after a completed EXIF scan: media with sensitive EXIF and which categories it holds (never the values or GPS coordinates), or media without EXIF, unsupported, missing, unreadable or not scanned. Never starts a scan or reads files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-set-media-groups</code></td>
 							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
@@ -406,10 +421,45 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Pro. Applies a plan from tsmlt-preview-media-csv-import once, after you confirm it. Rows changed by someone else since the preview are skipped, never overwritten. Never creates, renames or downloads files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
+						<tr>
+							<td><code>tsmlt-preview-gps-removal</code></td>
+							<td><?php esc_html_e( 'Pro. Checks up to 50 images and shows, per image, whether GPS location data was found (never the coordinates) or why it cannot be cleaned. Changes nothing; returns a plan for tsmlt-remove-gps-metadata. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-remove-gps-metadata</code></td>
+							<td><?php esc_html_e( 'Pro. Removes GPS location data from the images of a plan from tsmlt-preview-gps-removal once, after you confirm it. Only location tags are removed; other EXIF is kept; files are replaced only after a verified write. Cannot be undone. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (JPEG files)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-preview-bulk-exif-edit</code></td>
+							<td><?php esc_html_e( 'Pro. Checks setting or clearing EXIF fields on up to 50 images and shows, per image and field, whether a value would be added, overwrite an existing one (only when you allow it), stay unchanged or be cleared, never the values. Changes nothing; returns a plan for tsmlt-apply-bulk-exif-edit. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-apply-bulk-exif-edit</code></td>
+							<td><?php esc_html_e( 'Pro. Saves a plan from tsmlt-preview-bulk-exif-edit once, after you confirm it; images changed since the preview are skipped. Each change is logged and can be undone. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (EXIF)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-list-exif-change-logs</code></td>
+							<td><?php esc_html_e( 'Pro. Lists one image\'s EXIF change log, newest first: action, time, user and the names of the changed fields, never the values. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-preview-exif-undo</code></td>
+							<td><?php esc_html_e( 'Pro. Shows whether one image\'s newest EXIF change can be undone and which fields it would restore or clear. Changes nothing; returns a plan for tsmlt-undo-exif-change. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-undo-exif-change</code></td>
+							<td><?php esc_html_e( 'Pro. Undoes the change of a plan from tsmlt-preview-exif-undo once, after you confirm it, only while it is still the newest change. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (EXIF)', 'media-library-tools' ); ?></td>
+						</tr>
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS location, copyright, artist, camera serial numbers, or custom fields. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro tool tsmlt-update-exif-fields changes EXIF data, inside JPEG files; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features. Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS coordinates, copyright or artist text, camera serial numbers, or custom fields; the EXIF privacy and GPS tools report only whether such data is present. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro EXIF tools change EXIF data, inside JPEG files: tsmlt-update-exif-fields, and, after a preview and your confirmation, tsmlt-apply-bulk-exif-edit, tsmlt-remove-gps-metadata and tsmlt-undo-exif-change; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features. Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
 				</p>
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>

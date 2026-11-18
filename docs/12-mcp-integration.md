@@ -12,22 +12,23 @@ The integration lets an AI assistant:
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
 - List the media in the WordPress trash, move media a verified Used Where scan found unused to the trash after a preview and confirmation, and restore trashed media (see [Media trash](#media-trash--list-preview-trash-restore))
-- **Pro:** build a caption from an image's EXIF data, and set or clear EXIF fields of a JPEG image (see [Pro: EXIF tools](#pro-exif-tools))
+- Scan the library's EXIF for privacy-sensitive data — location (GPS), camera, date taken, author, copyright — and list the images that hold it, presence only (see [EXIF privacy scan](#exif-privacy-scan-free))
+- **Pro:** build a caption from an image's EXIF data, set or clear EXIF fields of one image or many at once, remove GPS location data, and review and undo EXIF changes — every change after a preview and confirmation (see [Pro: EXIF tools](#pro-exif-tools))
 - Export selected media (up to 100 IDs) as CSV text with the columns the CSV import reads (see [CSV export and import](#csv-export-and-import))
 - **Pro:** export the whole library, or everything matching the search filters, to one or more CSV files with download links, and check and then apply a CSV that updates existing media (see [CSV export and import](#csv-export-and-import))
 
-The Free tools never change EXIF data or image files. Only the Pro tool `tsmlt-update-exif-fields` changes EXIF data, inside JPEG files. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro EXIF tools change EXIF data, inside JPEG files: `tsmlt-update-exif-fields`, and, after a preview and confirmation, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
-- The official **MCP Adapter** plugin from [wordpress.org/plugins/mcp-adapter](https://wordpress.org/plugins/mcp-adapter/) — tested with **0.7.0**. The dedicated endpoint uses the adapter's documented `create_server()` API, whose signature is unchanged since 0.3.0, but versions before 0.7.0 have not been tested
+- The official **MCP Adapter** plugin from [wordpress.org/plugins/mcp-adapter](https://wordpress.org/plugins/mcp-adapter/) — tested with **0.7.0**. The dedicated endpoint uses the adapter's documented `create_server()` API, whose signature is unchanged since 0.3.0, but versions before 0.7.0 have not been tested.
 - A WordPress **administrator** account (the `manage_options` capability)
 
 Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered and the plugin behaves exactly as before.
 
 ## Available Tools
 
-### Free (17)
+### Free (23)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -38,6 +39,9 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-start-usage-scan` | Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Dedicated endpoint only | Yes (usage scan results only) |
 | `tsmlt-get-usage-scan-status` | Returns the Used Where scan state, progress, and whether it is stalled or failed. Never starts or resumes a scan. Dedicated endpoint only | No |
 | `tsmlt-list-media-usage` | Lists media by usage (`used`, `unused` or `unknown`), one page at a time (up to 100), after a completed Used Where scan: ID, title, file name, MIME type, usage status, usage types for used media, reason codes for unknown media. Never lists unknown media as unused. Dedicated endpoint only | No |
+| `tsmlt-start-exif-privacy-scan` | Starts the EXIF scan (the same scan as the EXIF Data page) in the background, which records per image whether its EXIF holds location (GPS), camera, date taken, author or copyright data; reports the scan already running, and resumes a stalled one. Never changes files or EXIF. Dedicated endpoint only | No media (writes scan results) |
+| `tsmlt-get-exif-privacy-scan-status` | Returns the EXIF scan's state (idle, running, complete, cancelled), progress and whether it is stalled. Never starts or resumes a scan. Dedicated endpoint only | No |
+| `tsmlt-list-exif-privacy-results` | Lists media by EXIF privacy result, one page at a time (up to 100), after a completed EXIF scan: media with sensitive EXIF and which categories it holds (never values or coordinates), optionally one category such as `gps`; or media without EXIF, unsupported, missing, unreadable or not scanned. Dedicated endpoint only | No |
 | `tsmlt-update-media-metadata` | Changes only the fields you send: title, alt text, caption, description. An empty string clears a field. Dedicated endpoint only | Yes |
 | `tsmlt-list-media-groups` | Lists media Groups with their ID, name, parent Group, and number of media items; filter by name or ID. Dedicated endpoint only | No |
 | `tsmlt-set-media-groups` | Adds, removes, or replaces the Groups of one attachment. Dedicated endpoint only | Yes (Group assignments only) |
@@ -52,7 +56,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-restore-media` | Restores up to 20 attachments from the WordPress trash and reports each item. Dedicated endpoint only | Yes (restores media) |
 | `tsmlt-export-media-csv` | Exports up to 100 attachments, chosen by ID, as one CSV text in the order given, with the columns the CSV import reads; missing or unreadable IDs are listed as skipped. Never exports custom fields, file paths or metadata. Dedicated endpoint only | No |
 
-### Pro (7)
+### Pro (14)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -63,12 +67,19 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 | `tsmlt-continue-media-csv-export` | **Pro.** Advances an export by one batch, for sites where WP-Cron does not run it. Safe to repeat. Dedicated endpoint only | No media (writes export files) |
 | `tsmlt-preview-media-csv-import` | **Pro.** Checks CSV text (up to 256 KB and 50 rows) and shows, row by row, what it would change on existing media; returns a plan to apply. Dedicated endpoint only | No (stores a short-lived plan) |
 | `tsmlt-apply-media-csv-import` | **Pro.** Applies a previewed plan once, with `confirm: true`; rows changed since the preview are skipped. Dedicated endpoint only | Yes (title, alt text, caption, description, attached post, menu order, Groups) |
+| `tsmlt-preview-gps-removal` | **Pro.** Checks up to 50 images and reports per image whether GPS location data was found (never the coordinates) or why it cannot be cleaned; returns a plan. Read-only. Dedicated endpoint only | No (stores a short-lived plan) |
+| `tsmlt-remove-gps-metadata` | **Pro.** Removes GPS location data from the images of a previewed plan, once, with `confirm: true`; other EXIF is kept. Cannot be undone. Dedicated endpoint only | Yes (JPEG files) |
+| `tsmlt-preview-bulk-exif-edit` | **Pro.** Checks setting or clearing EXIF fields on up to 50 images and shows per image and field whether the value would be added, overwrite an existing one (only with `overwrite: true`), stay unchanged or be cleared — never the values; returns a plan. Read-only. Dedicated endpoint only | No (stores a short-lived plan) |
+| `tsmlt-apply-bulk-exif-edit` | **Pro.** Saves a previewed bulk EXIF edit once, with `confirm: true`; images changed since the preview are skipped as conflicts. Dedicated endpoint only | Yes (EXIF in JPEG files, or the plugin database for other images) |
+| `tsmlt-list-exif-change-logs` | **Pro.** Lists one image's EXIF change log, newest first: action, time, user and changed field names, never the values. Read-only. Dedicated endpoint only | No |
+| `tsmlt-preview-exif-undo` | **Pro.** Shows whether one image's newest EXIF change can be undone and which fields it would restore or clear; returns a plan. Read-only. Dedicated endpoint only | No (stores a short-lived plan) |
+| `tsmlt-undo-exif-change` | **Pro.** Undoes the previewed change once, with `confirm: true`, only while it is still the newest change. Dedicated endpoint only | Yes (EXIF) |
 
-The seven Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools are not offered and administrators see a notice.
+The fourteen Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools are not offered and administrators see a notice.
 
-**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS location (or whether an image has one), copyright, artist, camera serial numbers, or custom fields. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
+**What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS coordinates or other location values, copyright, artist, camera serial numbers, or custom fields. Only whether an image's EXIF holds location, camera, date, author or copyright data is reported, by `tsmlt-list-exif-privacy-results` and `tsmlt-preview-gps-removal`; the Pro bulk edit, change log and undo tools report field names, never values. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
-**What is never changed**: the file's name or URL, or any attachment other than the one a tool is given. A usage scan (`tsmlt-start-usage-scan`) never changes an existing attached post ("Uploaded to") and sets one only for an image that has none; the only tool that changes an attached post on request is the Pro CSV import, through its `post_parent` column, after a preview and an explicit confirmation. `tsmlt-set-media-groups` changes only the attachment's Group assignments. `tsmlt-trash-media` and `tsmlt-restore-media` change only an attachment's status (to and from the trash) through WordPress's own functions; files stay on disk. The image file itself is changed only by the Pro tool `tsmlt-update-exif-fields`, which edits EXIF data inside JPEG files.
+**What is never changed**: the file's name or URL, or any attachment other than the one a tool is given. A usage scan (`tsmlt-start-usage-scan`) never changes an existing attached post ("Uploaded to") and sets one only for an image that has none; the only tool that changes an attached post on request is the Pro CSV import, through its `post_parent` column, after a preview and an explicit confirmation. `tsmlt-set-media-groups` changes only the attachment's Group assignments. `tsmlt-trash-media` and `tsmlt-restore-media` change only an attachment's status (to and from the trash) through WordPress's own functions; files stay on disk. The image file itself is changed only by the Pro EXIF tools `tsmlt-update-exif-fields`, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`, which edit EXIF data inside JPEG files.
 
 ## Search by file name
 
@@ -398,9 +409,69 @@ Every ID must be an existing Group. If any ID is unknown or belongs to another t
 
 Output: `id`, `mode`, `groups_before` and `groups_after` (each Group with `id`, `name`, `parent`, `count`), and `changed`. The result is read back from the database after saving; if it does not match the request, the attachment's previous Groups are restored and an error is returned.
 
+## EXIF privacy scan (Free)
+
+Finds images whose EXIF data could reveal private information. The scan is the EXIF Data page's scan (`ExifScanner`, WP-Cron batches of 100); besides the page's counts it now records a small result per image. All three tools are on the dedicated endpoint only.
+
+**Workflow**:
+1. Start the scan with `tsmlt-start-exif-privacy-scan`. A running scan is not restarted (`already_running`); a stalled one (no progress for 3 minutes) is resumed (`resumed`). Starting from MCP and from the EXIF Data page share one start lock.
+2. Poll `tsmlt-get-exif-privacy-scan-status` until `complete` is true. It never starts or resumes anything.
+3. List the findings with `tsmlt-list-exif-privacy-results`.
+
+| Input (list) | Type | Default | Meaning |
+|---|---|---|---|
+| `result` | see below | `sensitive` | Which result to list |
+| `category` | `gps`, `camera`, `date_taken`, `author`, `copyright` | (none) | Only images with this category; `result` must be `sensitive` |
+| `page` | integer 1–10000 | 1 | Page, in attachment ID order |
+| `per_page` | integer 1–100 | 20 | Items per page |
+
+**Results**:
+- `sensitive`: the EXIF holds at least one category, listed in `categories`.
+- `exif_no_sensitive`: EXIF without any of the categories.
+- `no_exif`: a supported file with no EXIF.
+- `unsupported`: a format whose EXIF is not read (everything except JPEG and TIFF, WebP included).
+- `missing_file`: the attached file is missing.
+- `unreadable`: the file cannot be read.
+- `no_extension`: the server's PHP has no EXIF extension, so nothing could be checked.
+- `not_scanned`: the last scan did not reach the image, for example because it was uploaded after the scan started.
+
+Every result except `sensitive` means "not found sensitive", not "safe": unsupported, missing, unreadable, unchecked and unscanned images are reported as such, never as clean.
+
+**Categories (presence only)**:
+
+| Category | EXIF tags checked |
+|---|---|
+| `gps` | GPSLatitude or GPSLongitude |
+| `camera` | Make or Model |
+| `date_taken` | DateTimeOriginal, DateTimeDigitized or DateTime |
+| `author` | Artist or XPAuthor |
+| `copyright` | Copyright |
+
+**Output**:
+- `items`, each with `id`, `title`, `filename` (no folders), `mime_type`, `result` and `categories`.
+- `page`, `per_page`, `total`, `total_pages`.
+- `hidden`: images on the page you cannot read; left out.
+- `excluded`: images whose result changed while the page was read.
+- `scan`: the status, as the status tool returns it.
+
+**Rules**:
+- Without a completed scan run with privacy results (none, running, cancelled, or a scan from before this feature), listing is refused with `tsmlt_exif_scan_required`; if a scan starts while a page is read, with `tsmlt_exif_scan_changed`.
+- Each scan run has an ID. Results of earlier runs are never listed as current; their images are `not_scanned`.
+- Filtering and paging are done in SQL on the stored results; listing never reads image files.
+- No coordinates, names, dates, camera models, copyright text or paths are stored or returned, only which categories are present.
+
+**Supported formats and limitations**:
+- EXIF is read with PHP's `exif_read_data()`, which reads JPEG and TIFF. Tested on PHP 8.3, 8.4 and 8.5: it does not read EXIF from WebP files, so WebP images are `unsupported`. PNG, GIF, AVIF, HEIC and other formats are `unsupported` as well.
+- The image's stored MIME type decides the format, as for the EXIF Data page.
+- Only the attached file is read, not generated sizes or the original WordPress keeps for scaled uploads. XMP and IPTC metadata are not checked.
+- Results describe the files when the scan read them. After GPS removal, an EXIF edit or a new upload, run the scan again.
+- Clear on the EXIF Data page removes the results along with the page's counts.
+
 ## Pro: EXIF tools
 
-These tools need **Media Library Tools Pro** with an active licence. Without one they are not listed, and a call is refused. Both are offered only on the dedicated endpoint.
+These tools need **Media Library Tools Pro** with an active licence. Without one they are not listed, and a call is refused. All are offered only on the dedicated endpoint.
+
+**Preview, then execute**: every Pro tool that changes several images, removes GPS data or undoes a change works in two steps. The preview tool changes nothing and returns a `plan_id`. Show its result to the user; only after they approve, call the apply tool with the `plan_id` and `confirm: true`. A plan belongs to the user who made it and to one tool, expires after about 15 minutes, and can be applied once. Access to every image is checked again when the plan is applied.
 
 ### Build a caption — `tsmlt-get-exif-caption`
 
@@ -443,6 +514,102 @@ Over MCP, a failure is reported as a tool error whose text starts with the statu
 - XMP metadata is not updated, so applications that prefer XMP may still show earlier values.
 - ShutterSpeedValue and ApertureValue, which some cameras store alongside the exposure time and f-number, are not recalculated.
 - Each request changes one image.
+
+### Remove GPS location data — `tsmlt-preview-gps-removal`, then `tsmlt-remove-gps-metadata`
+
+1. Call `tsmlt-preview-gps-removal` with `ids` (1–50 attachment IDs). Each image gets one status:
+   - `gps_found` or `no_gps_found`: the attached file and the original WordPress keeps for scaled uploads were checked.
+   - `unsupported_format`: only JPEG images can be cleaned.
+   - `file_not_found`, `unreadable`.
+   - `not_found` (missing, or not readable for you), `forbidden` (you may not edit it).
+
+   Every JPEG image in the first two groups goes into the plan (`in_plan`), so its generated sizes are cleaned too. Coordinates are never returned.
+2. After the user approves, call `tsmlt-remove-gps-metadata` with `plan_id` and `confirm: true`. Each image is cleaned by the EXIF Data page's GPS removal (`ExifStripperModule::strip_gps_from_attachment()`):
+   - every JPEG file of the image is processed (attached file, original, generated sizes and pre-edit backups);
+   - only the GPS tags (and XMP location) are removed; other EXIF is kept;
+   - each file is written to a temporary file, verified and only then swapped in;
+   - a file without GPS is not rewritten.
+
+   Per image the result is one of:
+   - `removed`;
+   - `no_gps`;
+   - `partial`: the JPEG files were cleaned, but a file in another format, such as a HEIC original, may still hold location data;
+   - `failed`;
+   - `not_found` or `forbidden`.
+
+   `files_changed` tells whether any file was rewritten.
+
+GPS removal cannot be undone and is not in the change log.
+
+### Edit EXIF fields on many images — `tsmlt-preview-bulk-exif-edit`, then `tsmlt-apply-bulk-exif-edit`
+
+| Input (preview) | Type | Meaning |
+|---|---|---|
+| `ids` | 1–50 attachment IDs | Images to change |
+| `fields` | object | Values to set; the fields and rules of `tsmlt-update-exif-fields` (no location, time zone offsets, orientation, MakerNote or serial numbers) |
+| `clear` | list of field names | Fields to remove; not also in `fields` |
+| `overwrite` | boolean, default false | false: only fill fields that are empty; true: also replace existing values |
+
+**Preview**:
+- Values are validated once with the EXIF editor's rules; invalid input is refused before any image is read.
+- Each image's `status` is `will_change`, `no_changes`, `unsupported_format`, `file_not_found`, `unreadable`, `not_found` or `forbidden`.
+- `storage` is `file` (JPEG) or `database` (other images, values kept by the plugin only).
+- Each field gets an action:
+  - `add`: the field is empty;
+  - `overwrite`: an existing value is replaced, only with `overwrite: true`;
+  - `skip_existing`: the field has a value and `overwrite` is false; that image keeps its value;
+  - `unchanged`;
+  - `clear`;
+  - `already_empty`.
+- No values are returned.
+
+**Apply** (`plan_id`, `confirm: true`):
+- Each image is saved with the EXIF editor (`ExifEditorModule::save_exif()`), as the Bulk Edit EXIF action does: only the changed tags are written, and the JPEG file is replaced only after a verified write.
+- An image whose affected fields changed after the preview is reported as `conflict` and left alone.
+- The other statuses are `updated` (with `updated`, `cleared` and `file_updated`), `unchanged`, `validation_failed`, `file_not_found`, `write_failed`, `not_found` and `forbidden`.
+- Each save is logged and can be undone.
+
+### Review EXIF changes — `tsmlt-list-exif-change-logs`
+
+Input: `id`, `page` (1–50), `per_page` (1–50, default 20). Output: the image's log entries, newest first. The plugin keeps the last 50 per image.
+
+Each entry has:
+- `operation_id`;
+- `action`: `edit`, `import`, `auto-process`, or `strip` (all EXIF was removed);
+- `timestamp` in site time, and `user_id`;
+- `fields`: the names of the changed fields;
+- `undoable`: only the newest entry, and only when no full strip came after it.
+
+The old and new values are not returned. Location changes and GPS removal are never logged.
+
+### Undo the last EXIF change — `tsmlt-preview-exif-undo`, then `tsmlt-undo-exif-change`
+
+1. `tsmlt-preview-exif-undo` with `id` returns:
+   - `status`:
+     - `undoable`;
+     - `nothing_to_undo`;
+     - `strip`: all EXIF was removed after the change, so it cannot be put back;
+     - `no_field_data`.
+   - `entry`: the newest log entry.
+   - `fields`: each field with `restore` or `clear`, never the values.
+   - A `plan_id` when undoable.
+2. `tsmlt-undo-exif-change` with `plan_id` and `confirm: true` runs the EXIF editor's Undo (`ExifLogger::undo_last_change()`). It returns:
+   - `restored`: the logger reported success and the entry left the log;
+   - `stale`: the change is no longer the newest, for example already undone or followed by another change; nothing is done;
+   - `failed`: nothing was changed.
+
+Only the newest change of an image can be undone, one at a time. Location is never restored.
+
+### EXIF features not available through MCP
+
+These Pro features exist in WordPress Admin but are not offered as MCP tools, because they cannot yet be offered safely:
+
+| Feature | Why not |
+|---|---|
+| EXIF export (Bulk EXIF export, CSV/JSON) | The export always includes GPS latitude and longitude, which MCP responses must not carry. It needs an option to leave location out. |
+| EXIF import | It applies a file directly, with no preview or dry run, and it writes GPS coordinates. Its CSV reader also expects lowercase column names (`make`, `model`), while the export writes `Make`, `Model`, so an exported file is not read back completely. It needs a validation-only mode first. |
+| EXIF ↔ WordPress metadata sync | Neither direction has a preview. WordPress → EXIF splits the attachment title into camera Make (first word) and Model (the rest) and overwrites them; EXIF → WordPress fills only an empty caption and title. It needs a preview that names the affected fields first. |
+| Remove all EXIF | Bulk "remove all" re-saves the image without any EXIF (orientation, copyright and colour data included). It is irreversible and blocks undo of earlier changes; not offered until it is specifically approved. |
 
 ## CSV export and import
 
@@ -814,7 +981,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv` (17). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import` (7). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results` (23). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 
@@ -951,7 +1118,7 @@ The Pro tools below and the Free `tsmlt/export-media-csv` are offered only on th
 | 4 | AI-assisted metadata generation | Planned | The client's own AI writes titles, alt text, captions and descriptions, saved through existing tools; no WordPress AI provider setup required. Decide what, if anything, needs a new tool. |
 | 5 | Duplicate media management | Implemented (detection and scan control) | Scan control (2026-11-18): `tsmlt/start-duplicate-scan` and `tsmlt/get-duplicate-scan-status` (Free, dedicated endpoint only) start, resume and monitor the existing duplicate scan under a start lock shared with the Duplicates page; see [Scan, status, results](#scan-status-results). Merging duplicates (Pro) is not offered over MCP. `tsmlt/find-duplicate-media` (Free, dedicated endpoint only) lists duplicate groups from the duplicate scan's results without its stale-row cleanup on read: groups count distinct attachments still in the library, pages are ordered deterministically, and usage follows `tsmlt/get-media-usage`; see [Duplicate media](#duplicate-media--tsmlt-find-duplicate-media). Covered by integration tests. Any merge or removal through MCP needs its own safety design and is not planned. Not tested on an existing site. |
 | 6 | Media library audit | Planned | Diagnostics such as missing alt text, missing files or metadata, and other library checks, read-only. |
-| 7 | EXIF tools expansion | Planned | Assess which further EXIF operations are needed beyond the current read and Pro edit tools. |
+| 7 | EXIF tools expansion | Implemented (partly) | 2026-11-18. Free: `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results` (the EXIF Data page's scan now records per-image privacy results). Pro: GPS removal (`tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`), bulk EXIF edit (`tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`), change logs (`tsmlt/list-exif-change-logs`) and undo (`tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change`), each change after a preview and a one-time confirmed plan. Planned, pending changes to the Pro services: EXIF export and import, EXIF ↔ WordPress sync, full EXIF removal — see [EXIF features not available through MCP](#exif-features-not-available-through-mcp). |
 | 8 | CSV import/export | Implemented | Free `tsmlt/export-media-csv` (selected IDs); Pro `tsmlt/export-media-csv-bulk` (library export to files, 2026-11-16; production hardening the same day: random storage names, watchdog and retries, `tsmlt/continue-media-csv-export` for sites without WP-Cron, 15-minute links, admin-request cleanup, Free 2.5.0 required), `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import`; all on the dedicated endpoint. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Round trips fixed in Pro (2026-11-13; remaining exceptions under Known limitations). Open: neutralising formulas in the admin CSV export. Not tested on an existing site. Page and post exports (2026-11-17): Free `tsmlt/search-media` `content_url` (a URL of this site, resolved locally, never fetched) for the search-and-select export; Pro `tsmlt/export-media-csv-bulk` `contents` with `organize` (separate files per page or post, or one combined file without duplicate rows). Image discovery covers attached, featured, product gallery and core block, `wp-image` and `[gallery]` references only. |
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
 | 10 | Media trash management | Implemented | `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media` and `tsmlt/restore-media` (Free, dedicated endpoint only), under the conditions recorded in [Implemented abilities](#implemented-abilities); see [Media trash](#media-trash--list-preview-trash-restore). Covered by integration tests (see Verification evidence). Permanent deletion, Empty Trash, Trash All and bulk rename are out of scope. Not tested on a disposable or existing site. |

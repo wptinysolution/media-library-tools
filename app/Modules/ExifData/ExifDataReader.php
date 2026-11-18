@@ -39,9 +39,55 @@ class ExifDataReader {
 	private static $exif_cache = [];
 
 	/**
+	 * Privacy-relevant EXIF categories privacy_categories() detects.
+	 *
+	 * @var string[]
+	 */
+	const PRIVACY_CATEGORIES = [ 'gps', 'camera', 'date_taken', 'author', 'copyright' ];
+
+	/**
 	 * Construct
 	 */
 	private function __construct() {}
+
+	/**
+	 * Privacy-relevant categories present in raw EXIF data (as
+	 * exif_read_data() returns it with sections): gps (latitude or
+	 * longitude), camera (make or model), date_taken (original, digitized
+	 * or modified date), author (Artist or XPAuthor), copyright. Presence
+	 * only: no value is returned.
+	 *
+	 * @param array $exif Raw EXIF data, by section.
+	 *
+	 * @return string[] Categories, in PRIVACY_CATEGORIES order.
+	 */
+	public static function privacy_categories( array $exif ): array {
+		$found = [
+			'gps'        => self::has_value( $exif, 'GPS', 'GPSLatitude' ) || self::has_value( $exif, 'GPS', 'GPSLongitude' ),
+			'camera'     => self::has_value( $exif, 'IFD0', 'Make' ) || self::has_value( $exif, 'IFD0', 'Model' ),
+			'date_taken' => self::has_value( $exif, 'EXIF', 'DateTimeOriginal' ) || self::has_value( $exif, 'EXIF', 'DateTimeDigitized' ) || self::has_value( $exif, 'IFD0', 'DateTime' ),
+			'author'     => self::has_value( $exif, 'IFD0', 'Artist' ) || self::has_value( $exif, 'IFD0', 'XPAuthor' ),
+			'copyright'  => self::has_value( $exif, 'IFD0', 'Copyright' ) || self::has_value( $exif, 'COMPUTED', 'Copyright' ),
+		];
+		return array_keys( array_filter( $found ) );
+	}
+
+	/**
+	 * Whether an EXIF section holds a non-empty value under a tag.
+	 *
+	 * @param array  $exif    Raw EXIF data, by section.
+	 * @param string $section Section (IFD0, EXIF, GPS, COMPUTED).
+	 * @param string $tag     Tag.
+	 *
+	 * @return bool
+	 */
+	private static function has_value( array $exif, string $section, string $tag ): bool {
+		$value = $exif[ $section ][ $tag ] ?? null;
+		if ( is_array( $value ) ) {
+			return [] !== array_filter( $value, 'strlen' );
+		}
+		return is_scalar( $value ) && '' !== trim( str_replace( "\0", '', (string) $value ) );
+	}
 
 	/**
 	 * Clear the static EXIF cache (used when scan is reset).
