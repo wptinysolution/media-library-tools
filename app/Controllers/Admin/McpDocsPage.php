@@ -338,184 +338,184 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-exif-fields</code></td>
-							<td><?php esc_html_e( 'Returns one image\'s camera and lens make and model, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure program and mode, metering mode, white balance, flash and description, from the JPEG file or values saved in the EXIF editor. Never location, time zone offsets, copyright or artist. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Returns one image\'s camera and lens make and model, software, dates taken and digitized, ISO, aperture, shutter speed, focal length, exposure program and mode, metering mode, white balance, flash and description, from the JPEG file or values saved in the EXIF editor. Never location, time zone offsets, copyright or artist.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-update-media-metadata</code></td>
-							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Changes only the fields you send: title, alt text, caption, description. An empty string clears a field.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-list-media-groups</code></td>
-							<td><?php esc_html_e( 'Lists media Groups with their ID, name, parent Group and number of media items; filter by name or ID. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists media Groups with their ID, name, parent Group and number of media items; filter by name or ID.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-create-media-group</code></td>
-							<td><?php esc_html_e( 'Creates one media Group, at the top level or under an existing Group. A name already used under the same parent is refused. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Creates one media Group, at the top level or under an existing Group. A name already used under the same parent is refused.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-update-media-group</code></td>
-							<td><?php esc_html_e( 'Renames one media Group; its ID, slug, parent and media stay the same. A name another Group already has under the same parent is refused. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Renames one media Group; its ID, slug, parent and media stay the same. A name another Group already has under the same parent is refused.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-media-usage</code></td>
-							<td><?php esc_html_e( 'Reports where up to 50 attachments are used: as featured images, in content, page builders and custom fields, and site-wide (logo, site icon, menus, widgets, site options), from the records of the Used Where scan. Says whether each item is used, not used, or unknown when no scan has completed. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Reports where up to 50 attachments are used: as featured images, in content, page builders and custom fields, and site-wide (logo, site icon, menus, widgets, site options), from the records of the Used Where scan. Says whether each item is used, not used, or unknown when no scan has completed.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-start-usage-scan</code></td>
-							<td><?php esc_html_e( 'Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Never changes media files; keeps each image\'s existing attached post and sets one only for an image that has none, from a post that uses it. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Starts the Used Where scan in the background, or reports the scan already running (a stalled one is resumed). A new scan replaces the previous usage results while it runs. Never changes media files; keeps each image\'s existing attached post and sets one only for an image that has none, from a post that uses it.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (usage scan results)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-usage-scan-status</code></td>
-							<td><?php esc_html_e( 'Returns the Used Where scan state (never started, queued, running, complete, cancelled, error), progress, and whether it is stalled or failed. Never starts or resumes a scan. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Returns the Used Where scan state (never started, queued, running, complete, cancelled, error), progress, and whether it is stalled or failed. Never starts or resumes a scan.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-list-media-usage</code></td>
-							<td><?php esc_html_e( 'Lists media by usage (used, unused or unknown), one page at a time, after a completed Used Where scan, with each item\'s title, file name, type and, for used media, the usage types; unknown media is never shown as unused. Never starts a scan or changes results. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists media by usage (used, unused or unknown), one page at a time, after a completed Used Where scan, with each item\'s title, file name, type and, for used media, the usage types; unknown media is never shown as unused. Never starts a scan or changes results.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-start-exif-privacy-scan</code></td>
-							<td><?php esc_html_e( 'Starts the EXIF scan in the background (the same scan as the EXIF Data page), which records per image whether its EXIF holds location (GPS), camera, date taken, author or copyright data, or reports the scan already running (a stalled one is resumed). Never changes media files or EXIF. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Starts the EXIF scan in the background (the same scan as the EXIF Data page), which records per image whether its EXIF holds location (GPS), camera, date taken, author or copyright data, or reports the scan already running (a stalled one is resumed). Never changes media files or EXIF.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (EXIF scan results)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-exif-privacy-scan-status</code></td>
-							<td><?php esc_html_e( 'Returns the EXIF scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Returns the EXIF scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-list-exif-privacy-results</code></td>
-							<td><?php esc_html_e( 'Lists media by EXIF privacy result, one page at a time, after a completed EXIF scan: media with sensitive EXIF and which categories it holds (never the values or GPS coordinates), or media without EXIF, unsupported, missing, unreadable or not scanned. Never starts a scan or reads files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists media by EXIF privacy result, one page at a time, after a completed EXIF scan: media with sensitive EXIF and which categories it holds (never the values or GPS coordinates), or media without EXIF, unsupported, missing, unreadable or not scanned. Never starts a scan or reads files.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-set-media-groups</code></td>
-							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Adds, removes or replaces the Groups of one attachment, using existing Group IDs.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-find-duplicate-media</code></td>
-							<td><?php esc_html_e( 'Lists groups of identical media files, largest first, from the last duplicate scan (Duplicates page), with each file\'s size and, per attachment, its details, parent post and usage from the Used Where scan. Never starts a scan, merges or deletes. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists groups of identical media files, largest first, from the last duplicate scan (Duplicates page), with each file\'s size and, per attachment, its details, parent post and usage from the Used Where scan. Never starts a scan, merges or deletes.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-start-duplicate-scan</code></td>
-							<td><?php esc_html_e( 'Starts the duplicate scan in the background, or reports the scan already running (a stalled one is resumed). Shares its start lock with the Duplicates page. Never changes or deletes media files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Starts the duplicate scan in the background, or reports the scan already running (a stalled one is resumed). Shares its start lock with the Duplicates page. Never changes or deletes media files.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (duplicate scan results)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-duplicate-scan-status</code></td>
-							<td><?php esc_html_e( 'Returns the duplicate scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Returns the duplicate scan state (never started, running, complete, cancelled), progress, and whether it is stalled. Never starts or resumes a scan.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-list-trashed-media</code></td>
-							<td><?php esc_html_e( 'Lists media in the WordPress trash, one page at a time, with when each item was trashed and the earliest date WordPress may delete it permanently. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Lists media in the WordPress trash, one page at a time, with when each item was trashed and the earliest date WordPress may delete it permanently.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-trash-media</code></td>
-							<td><?php esc_html_e( 'Checks whether up to 20 attachments can be moved to the trash and returns a one-time confirmation token. Only media a complete, verified Used Where scan found unused qualifies, and not while a saved post\'s usage rescan is pending or running; used or unknown media, the site icon and the site logo are refused. Changes no media. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Checks whether up to 20 attachments can be moved to the trash and returns a one-time confirmation token. Only media a complete, verified Used Where scan found unused qualifies, and not while a saved post\'s usage rescan is pending or running; used or unknown media, the site icon and the site logo are refused. Changes no media.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No media (stores a short-lived confirmation token)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-trash-media</code></td>
-							<td><?php esc_html_e( 'Moves the previewed attachments to the WordPress trash, after you confirm, using the token from tsmlt-preview-trash-media. Checks every rule again and reports each item. Refuses everything when the site\'s trash is turned off (EMPTY_TRASH_DAYS is 0), and never deletes media permanently. Trashed media stops showing on the site. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Moves the previewed attachments to the WordPress trash, after you confirm, using the token from tsmlt-preview-trash-media. Checks every rule again and reports each item. Refuses everything when the site\'s trash is turned off (EMPTY_TRASH_DAYS is 0), and never deletes media permanently. Trashed media stops showing on the site.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (moves media to the trash)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-restore-media</code></td>
-							<td><?php esc_html_e( 'Restores up to 20 attachments from the WordPress trash and reports each item. A restore that fails leaves the item in the trash with its trash date. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Restores up to 20 attachments from the WordPress trash and reports each item. A restore that fails leaves the item in the trash with its trash date.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-export-media-csv</code></td>
-							<td><?php esc_html_e( 'Exports up to 100 attachments, chosen by ID, as one CSV text in the order given: ID, slug, URL, title, alt text, caption, description, attached post, menu order and Groups — the columns the CSV import reads. IDs that are missing or not readable are listed as skipped. Never exports custom fields, file paths or metadata. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Exports up to 100 attachments, chosen by ID, as one CSV text in the order given: ID, slug, URL, title, alt text, caption, description, attached post, menu order and Groups — the columns the CSV import reads. IDs that are missing or not readable are listed as skipped. Never exports custom fields, file paths or metadata.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
-							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-update-exif-fields</code></td>
-							<td><?php esc_html_e( 'Pro. Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin\'s database only. Location, orientation and serial numbers cannot be changed. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Sets or clears EXIF fields of one image: camera, lens, exposure, dates, artist, copyright, description. Edits JPEG files; other image types keep the values in the plugin\'s database only. Location, orientation and serial numbers cannot be changed.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-export-media-csv-bulk</code></td>
-							<td><?php esc_html_e( 'Pro. Exports the whole media library, or everything matching the tsmlt-search-media filters, as CSV files in the background: one file, or split evenly into up to 20 files with the same header and columns as tsmlt-export-media-csv. Returns an export job to follow with tsmlt-get-media-csv-export. Runs through WP-Cron (a system cron is recommended); without it, tsmlt-continue-media-csv-export moves it on. Custom fields, file paths and attachment metadata are never exported. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Exports the whole media library, or everything matching the tsmlt-search-media filters, as CSV files in the background: one file, or split evenly into up to 20 files with the same header and columns as tsmlt-export-media-csv. Returns an export job to follow with tsmlt-get-media-csv-export. Runs through WP-Cron (a system cron is recommended); without it, tsmlt-continue-media-csv-export moves it on. Custom fields, file paths and attachment metadata are never exported.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No media (writes export files kept for 24 hours)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-media-csv-export</code></td>
-							<td><?php esc_html_e( 'Pro. Shows an export job\'s progress and, for each finished file, a download link valid for 15 minutes (only for the user who started the export; ask again for a new link). Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Shows an export job\'s progress and, for each finished file, a download link valid for 15 minutes (only for the user who started the export; ask again for a new link).', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-continue-media-csv-export</code></td>
-							<td><?php esc_html_e( 'Pro. Advances an export by one batch, for sites where WP-Cron does not run it in the background. Safe to repeat; only the user who started the export can continue it. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Advances an export by one batch, for sites where WP-Cron does not run it in the background. Safe to repeat; only the user who started the export can continue it.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No media (writes export files)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-media-csv-import</code></td>
-							<td><?php esc_html_e( 'Pro. Checks CSV text (up to 256 KB and 50 rows) that updates existing media, and shows row by row what would change: title, alt text, caption, description, attached post, menu order and Groups. Changes nothing; when some rows would change, returns a plan you can apply within about 15 minutes. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Checks CSV text (up to 256 KB and 50 rows) that updates existing media, and shows row by row what would change: title, alt text, caption, description, attached post, menu order and Groups. Changes nothing; when some rows would change, returns a plan you can apply within about 15 minutes.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-apply-media-csv-import</code></td>
-							<td><?php esc_html_e( 'Pro. Applies a plan from tsmlt-preview-media-csv-import once, after you confirm it. Rows changed by someone else since the preview are skipped, never overwritten. Never creates, renames or downloads files. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Applies a plan from tsmlt-preview-media-csv-import once, after you confirm it. Rows changed by someone else since the preview are skipped, never overwritten. Never creates, renames or downloads files.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-gps-removal</code></td>
-							<td><?php esc_html_e( 'Pro. Checks up to 50 images and shows, per image, whether GPS location data was found (never the coordinates) or why it cannot be cleaned. Changes nothing; returns a plan for tsmlt-remove-gps-metadata. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Checks up to 50 images and shows, per image, whether GPS location data was found (never the coordinates) or why it cannot be cleaned. Changes nothing; returns a plan for tsmlt-remove-gps-metadata.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-remove-gps-metadata</code></td>
-							<td><?php esc_html_e( 'Pro. Removes GPS location data from the images of a plan from tsmlt-preview-gps-removal once, after you confirm it. Only location tags are removed; other EXIF is kept; files are replaced only after a verified write. Cannot be undone. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Removes GPS location data from the images of a plan from tsmlt-preview-gps-removal once, after you confirm it. Only location tags are removed; other EXIF is kept; files are replaced only after a verified write. Cannot be undone.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (JPEG files)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-bulk-exif-edit</code></td>
-							<td><?php esc_html_e( 'Pro. Checks setting or clearing EXIF fields on up to 50 images and shows, per image and field, whether a value would be added, overwrite an existing one (only when you allow it), stay unchanged or be cleared, never the values. Changes nothing; returns a plan for tsmlt-apply-bulk-exif-edit. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Checks setting or clearing EXIF fields on up to 50 images and shows, per image and field, whether a value would be added, overwrite an existing one (only when you allow it), stay unchanged or be cleared, never the values. Changes nothing; returns a plan for tsmlt-apply-bulk-exif-edit.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-apply-bulk-exif-edit</code></td>
-							<td><?php esc_html_e( 'Pro. Saves a plan from tsmlt-preview-bulk-exif-edit once, after you confirm it; images changed since the preview are skipped. Each change is logged and can be undone. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Saves a plan from tsmlt-preview-bulk-exif-edit once, after you confirm it; images changed since the preview are skipped. Each change is logged and can be undone.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (EXIF)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-list-exif-change-logs</code></td>
-							<td><?php esc_html_e( 'Pro. Lists one image\'s EXIF change log, newest first: action, time, user and the names of the changed fields, never the values. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Lists one image\'s EXIF change log, newest first: action, time, user and the names of the changed fields, never the values.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-exif-undo</code></td>
-							<td><?php esc_html_e( 'Pro. Shows whether one image\'s newest EXIF change can be undone and which fields it would restore or clear. Changes nothing; returns a plan for tsmlt-undo-exif-change. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Shows whether one image\'s newest EXIF change can be undone and which fields it would restore or clear. Changes nothing; returns a plan for tsmlt-undo-exif-change.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-undo-exif-change</code></td>
-							<td><?php esc_html_e( 'Pro. Undoes the change of a plan from tsmlt-preview-exif-undo once, after you confirm it, only while it is still the newest change. Dedicated endpoint only.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Pro. Undoes the change of a plan from tsmlt-preview-exif-undo once, after you confirm it, only while it is still the newest change.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (EXIF)', 'media-library-tools' ); ?></td>
 						</tr>
 					</tbody>
 				</table>
 				<p>
 					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS coordinates, copyright or artist text, camera serial numbers, or custom fields; the EXIF privacy and GPS tools report only whether such data is present. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro EXIF tools change EXIF data, inside JPEG files: tsmlt-update-exif-fields, and, after a preview and your confirmation, tsmlt-apply-bulk-exif-edit, tsmlt-remove-gps-metadata and tsmlt-undo-exif-change; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features.', 'media-library-tools' ); ?>
-					<?php esc_html_e( 'Every tool above is listed on both the MCP Adapter\'s default server and the dedicated Media Library Tools endpoint, with the same name and the same permission checks. "Dedicated endpoint only" means the tool cannot be run through the default server\'s execute-ability gateway.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'Every tool above is always listed on the MCP Adapter\'s default server, with no setting to turn on, and on the dedicated Media Library Tools endpoint, with the same name and the same permission checks. The Pro tools are listed while Media Library Tools Pro is active with a valid licence.', 'media-library-tools' ); ?>
 				</p>
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>

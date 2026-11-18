@@ -382,13 +382,13 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			$this->assertSame( in_array( $tool, $pro, true ), 0 === strpos( $description, 'Pro.' ), $tool . ' is marked Pro exactly when it is a Pro tool.' );
 		}
 		foreach ( [ 'tsmlt-export-media-csv', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
-			$this->assertStringContainsString( 'Dedicated endpoint only.', $tools[ $tool ], $tool );
+			$this->assertStringNotContainsString( 'Dedicated endpoint only', $tools[ $tool ], $tool . ' is also on the default server.' );
 		}
 		$this->assertStringContainsString( 'Edits JPEG files', $tools['tsmlt-update-exif-fields'], 'EXIF description kept.' );
 
 		$this->assertStringContainsString( 'Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features.', $html );
 		// Every tool, CSV ones included, is on both servers; only the gateway is restricted.
-		$this->assertStringContainsString( 'Every tool above is listed on both the MCP Adapter&#039;s default server and the dedicated Media Library Tools endpoint', $html );
+		$this->assertStringContainsString( 'Every tool above is always listed on the MCP Adapter&#039;s default server, with no setting to turn on, and on the dedicated Media Library Tools endpoint', $html );
 		$this->assertStringNotContainsString( 'Every CSV tool is offered only on the dedicated Media Library Tools endpoint', $html );
 		$this->assertStringNotContainsString( 'the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint', $html );
 		$this->assertStringNotContainsString( 'MCP Default Server', $html, 'No setting to turn on.' );
