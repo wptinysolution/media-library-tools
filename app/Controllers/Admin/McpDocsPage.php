@@ -264,11 +264,9 @@ class McpDocsPage {
 			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'media-library-tools' ), 403 );
 		}
 
-		$endpoint   = rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
-		$gateway    = rest_url( 'mcp/mcp-adapter-default-server' );
-		$username   = wp_get_current_user()->user_login;
-		$on_default = McpServerRegistration::instance()->is_default_server_enabled();
-		$settings   = admin_url( 'upload.php?page=media-library-tools' );
+		$endpoint = rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
+		$gateway  = rest_url( 'mcp/mcp-adapter-default-server' );
+		$username = wp_get_current_user()->user_login;
 
 		// Suggested client keys: the site address plus the endpoint.
 		$client_key             = $this->get_client_server_key( self::CLIENT_KEY_DEDICATED );
@@ -517,13 +515,7 @@ class McpDocsPage {
 				</table>
 				<p>
 					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS coordinates, copyright or artist text, camera serial numbers, or custom fields; the EXIF privacy and GPS tools report only whether such data is present. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro EXIF tools change EXIF data, inside JPEG files: tsmlt-update-exif-fields, and, after a preview and your confirmation, tsmlt-apply-bulk-exif-edit, tsmlt-remove-gps-metadata and tsmlt-undo-exif-change; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features.', 'media-library-tools' ); ?>
-					<?php
-					if ( $on_default ) {
-						esc_html_e( 'The MCP Default Server setting is on, so every tool marked "Dedicated endpoint only" is also listed on the MCP Adapter\'s default server, with the same name and the same permission checks.', 'media-library-tools' );
-					} else {
-						esc_html_e( 'Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' );
-					}
-					?>
+					<?php esc_html_e( 'Every tool above is listed on both the MCP Adapter\'s default server and the dedicated Media Library Tools endpoint, with the same name and the same permission checks. "Dedicated endpoint only" means the tool cannot be run through the default server\'s execute-ability gateway.', 'media-library-tools' ); ?>
 				</p>
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>
@@ -534,39 +526,30 @@ class McpDocsPage {
 
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Endpoint', 'media-library-tools' ); ?></h2>
-				<p><?php esc_html_e( 'Connect your assistant to the dedicated Media Library Tools endpoint:', 'media-library-tools' ); ?></p>
-				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $endpoint ); ?></code></p>
-				<p>
-					<?php esc_html_e( 'It offers only the tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
-				</p>
-				<p>
-					<?php
-					echo wp_kses_post(
-						sprintf(
-							/* translators: %s: URL of the MCP Adapter default server. */
-							esc_html__( 'The MCP Adapter also provides a default server at %s. It reaches every public ability from every plugin on the site, including abilities that change or delete data, so the dedicated endpoint above is the safer choice.', 'media-library-tools' ),
-							'<code>' . esc_html( $gateway ) . '</code>'
-						)
-					);
-					?>
-				</p>
+				<p><?php esc_html_e( 'Connect your assistant to one of these endpoints. Both offer every Media Library Tools tool above — the Free tools, and the Pro tools while the Pro licence is active — with the same names and the same permission checks.', 'media-library-tools' ); ?></p>
+				<ul>
+					<li>
+						<strong><?php esc_html_e( 'MCP Adapter default server (recommended):', 'media-library-tools' ); ?></strong>
+						<code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code>
+						<?php esc_html_e( 'It always lists the Media Library Tools tools, together with the MCP Adapter\'s gateway tools, which can reach every public ability from every plugin on the site, including abilities that change or delete data.', 'media-library-tools' ); ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'Dedicated Media Library Tools endpoint (alternative):', 'media-library-tools' ); ?></strong>
+						<code class="tsmlt-mcp-docs__url"><?php echo esc_html( $endpoint ); ?></code>
+						<?php esc_html_e( 'It offers only the tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
+					</li>
+				</ul>
 
 				<h3><?php esc_html_e( 'Which endpoint should I use?', 'media-library-tools' ); ?></h3>
 				<p><?php esc_html_e( 'Pick one:', 'media-library-tools' ); ?></p>
 				<ul>
 					<li>
-						<strong><?php esc_html_e( 'Only Media Library Tools:', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'use the dedicated endpoint above. It is simpler and narrower.', 'media-library-tools' ); ?>
+						<strong><?php esc_html_e( 'One connection for everything (recommended):', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'use the MCP Adapter default server by itself. It includes every Media Library Tools tool, plus other plugins\' and WordPress core abilities.', 'media-library-tools' ); ?>
 					</li>
 					<li>
-						<strong><?php esc_html_e( 'One connection for everything', 'media-library-tools' ); ?></strong>
-						<?php
-						if ( $on_default ) {
-							esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. With the MCP Default Server setting on, it lists every Media Library Tools tool.', 'media-library-tools' );
-						} else {
-							esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. Turn on the MCP Default Server setting first; until then it reaches only the read-only search and details abilities.', 'media-library-tools' );
-						}
-						?>
+						<strong><?php esc_html_e( 'Only Media Library Tools:', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'use the dedicated endpoint. It is narrower and also works when the default server is turned off.', 'media-library-tools' ); ?>
 					</li>
 				</ul>
 				<p>
@@ -608,22 +591,11 @@ class McpDocsPage {
 				<ul>
 					<li>
 						<strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended.', 'media-library-tools' ); ?></strong>
-						<?php
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: link to the Media Tools Settings page. */
-								esc_html__( 'Provides the Media Library Tools Free and Pro abilities through one connection when the MCP Default Server setting is on (%s), including CSV export and the Pro CSV Export MCP App. It may also expose other plugins\' public abilities.', 'media-library-tools' ),
-								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
-							)
-						);
-						?>
-						<?php if ( ! $on_default ) : ?>
-							<em><?php esc_html_e( 'The setting is off on this site.', 'media-library-tools' ); ?></em>
-						<?php endif; ?>
+						<?php esc_html_e( 'Always provides the Media Library Tools Free abilities, and the Pro abilities while the Pro licence is active, through one connection, including CSV export and the Pro CSV Export MCP App. It may also expose other plugins\' public abilities.', 'media-library-tools' ); ?>
 					</li>
 					<li>
 						<strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative.', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'Provides isolated Media Library Tools access and remains available as a fallback. It does not need the MCP Default Server setting.', 'media-library-tools' ); ?>
+						<?php esc_html_e( 'Provides isolated Media Library Tools access and remains available as a fallback.', 'media-library-tools' ); ?>
 					</li>
 				</ul>
 				<p>
@@ -677,30 +649,9 @@ class McpDocsPage {
 			</div>
 
 			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
+				<h2><?php esc_html_e( 'Using the MCP Adapter default server', 'media-library-tools' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
-				</p>
-				<p class="tsmlt-mcp-docs__default-server-status">
-					<?php
-					if ( $on_default ) {
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: link to the Media Tools Settings page. */
-								esc_html__( 'The MCP Default Server setting is on: the default server also lists every Media Library Tools tool directly, with the same names as the dedicated endpoint (tsmlt-search-media, tsmlt-export-media-csv, …), including the Pro tools while the licence is active. Each tool still checks its own permissions, and users who cannot run them do not see them listed. You can turn it off in %s.', 'media-library-tools' ),
-								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
-							)
-						);
-					} else {
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: link to the Media Tools Settings page. */
-								esc_html__( 'To use only this server for every Media Library Tools tool, turn on MCP Default Server in %s. The tools are then listed on the default server directly, with the same names and permission checks as on the dedicated endpoint, which keeps working. Requires MCP Adapter 0.5.0 or newer.', 'media-library-tools' ),
-								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
-							)
-						);
-					}
-					?>
+					<?php esc_html_e( 'The MCP Adapter\'s default server always lists every Media Library Tools tool directly, with the same names as the dedicated endpoint (tsmlt-search-media, tsmlt-export-media-csv, …), including the Pro tools and the CSV Export MCP App view while the Pro licence is active. Each tool still checks its own permissions, and users who cannot run them do not see them listed. It requires MCP Adapter 0.5.0 or newer; with an older adapter, use the dedicated endpoint.', 'media-library-tools' ); ?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 
@@ -718,19 +669,13 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Tools the client sees', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'The Media Library Tools tools', 'media-library-tools' ); ?></td>
 							<td>
-								<?php
-								if ( $on_default ) {
-									esc_html_e( 'The Media Library Tools tools, plus three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' );
-								} else {
-									esc_html_e( 'Three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' );
-								}
-								?>
+								<?php esc_html_e( 'The Media Library Tools tools, plus three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' ); ?>
 							</td>
 						</tr>
 						<tr>
 							<td><?php esc_html_e( 'Who can connect', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Administrators only', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'Any logged-in user can list abilities; running a Media Library Tools ability still needs an administrator', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Any logged-in user; only administrators see and can run the Media Library Tools tools', 'media-library-tools' ); ?></td>
 						</tr>
 					</tbody>
 				</table>
@@ -758,7 +703,7 @@ class McpDocsPage {
 						</tr>
 					</tbody>
 				</table>
-				<p><?php esc_html_e( 'On the default server, the Media Library Tools abilities are named with a slash:', 'media-library-tools' ); ?> <code>tsmlt/search-media</code>, <code>tsmlt/get-media-details</code>.</p>
+				<p><?php esc_html_e( 'Through the gateway\'s execute-ability tool, only the read-only search and details abilities can be run, named with a slash:', 'media-library-tools' ); ?> <code>tsmlt/search-media</code>, <code>tsmlt/get-media-details</code>.</p>
 				<p><?php esc_html_e( 'An execute-ability call looks like this:', 'media-library-tools' ); ?></p>
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_example ); ?></code></pre>
 
@@ -772,13 +717,7 @@ class McpDocsPage {
 					<li><?php esc_html_e( '"Run tsmlt/get-media-details for attachment 1234."', 'media-library-tools' ); ?></li>
 				</ul>
 				<p class="description">
-					<?php
-					if ( $on_default ) {
-						esc_html_e( 'With the MCP Default Server setting on, call the tools directly by their names with dashes (tsmlt-search-media). Through execute-ability, only the read-only search and details abilities are available, by their names with a slash (tsmlt/search-media).', 'media-library-tools' );
-					} else {
-						esc_html_e( 'Use the ability name with a slash (tsmlt/search-media). The tool name with dashes (tsmlt-search-media) only exists on the dedicated endpoint, and the default server reports it as not found.', 'media-library-tools' );
-					}
-					?>
+					<?php esc_html_e( 'Call the Media Library Tools tools directly by their names with dashes (tsmlt-search-media). Through execute-ability, only the read-only search and details abilities are available, by their names with a slash (tsmlt/search-media).', 'media-library-tools' ); ?>
 				</p>
 			</div>
 

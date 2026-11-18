@@ -111,19 +111,21 @@ class AbilitiesOptionalDependenciesTest extends TestCase {
 	}
 
 	/**
-	 * The server registration only waits on the adapter's own init hook, so
-	 * nothing happens unless the adapter is loaded and fires it.
+	 * The server registration only waits on the adapter's own hooks (its init
+	 * action, its default server configuration and its list filters), so
+	 * nothing happens unless the adapter is loaded and fires them.
 	 */
-	public function test_mcp_registration_only_hooks_adapter_init() {
+	public function test_mcp_registration_only_hooks_adapter_hooks() {
 		$this->assertFalse( class_exists( '\WP\MCP\Core\McpAdapter' ), 'Precondition: the unit suite has no MCP Adapter.' );
 
 		$this->construct_again( McpServerRegistration::instance() );
 
-		$this->assertSame( [ 'mcp_adapter_init' ], $this->registered_hooks() );
-		$this->assertSame(
-			[ [ McpServerRegistration::instance(), 'register_server' ] ],
-			$GLOBALS['tsmlt_test_filters']['mcp_adapter_init']
-		);
+		$this->assertSame( [ 'mcp_adapter_init', 'mcp_adapter_default_server_config', 'mcp_adapter_tools_list', 'mcp_adapter_resources_list' ], $this->registered_hooks() );
+		$server = McpServerRegistration::instance();
+		$this->assertSame( [ [ $server, 'register_server' ] ], $GLOBALS['tsmlt_test_filters']['mcp_adapter_init'] );
+		$this->assertSame( [ [ $server, 'add_to_default_server' ] ], $GLOBALS['tsmlt_test_filters']['mcp_adapter_default_server_config'] );
+		$this->assertSame( [ [ $server, 'hide_tools_from_unauthorized' ] ], $GLOBALS['tsmlt_test_filters']['mcp_adapter_tools_list'] );
+		$this->assertSame( [ [ $server, 'hide_resources_from_unauthorized' ] ], $GLOBALS['tsmlt_test_filters']['mcp_adapter_resources_list'] );
 	}
 
 	/**

@@ -28,10 +28,8 @@ use WP_REST_Request;
  * Uses the MCP Adapter's documented `mcp_adapter_init` / create_server() API
  * and does nothing when the adapter is not active.
  *
- * The default server is left untouched unless an administrator opts in (the
- * `mcp_default_server_enabled` setting, or the `tsmlt_mcp_default_server_enabled`
- * filter). Then the same tools and MCP App resources are also listed directly
- * on the default server, through the adapter's `mcp_adapter_default_server_config`
+ * The same tools and MCP App resources are always listed directly on the
+ * adapter's default server too, through its `mcp_adapter_default_server_config`
  * filter, so one client configuration reaches them. This server stays as it
  * is, as the narrower endpoint and the fallback when the default server is
  * turned off. No ability is made `meta.mcp.public`, so the default server's
@@ -103,21 +101,6 @@ class McpServerRegistration {
 	const ABILITY_NAME_PATTERN = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
 
 	/**
-	 * `tsmlt_settings` key that lists this server's tools and resources on the
-	 * MCP Adapter's default server too. Off unless an administrator turns it on.
-	 *
-	 * @var string
-	 */
-	const DEFAULT_SERVER_SETTING = 'mcp_default_server_enabled';
-
-	/**
-	 * Filter that overrides DEFAULT_SERVER_SETTING. See is_default_server_enabled().
-	 *
-	 * @var string
-	 */
-	const DEFAULT_SERVER_FILTER = 'tsmlt_mcp_default_server_enabled';
-
-	/**
 	 * Oldest MCP Adapter that can list the tools on its default server: it
 	 * needs the tools/resources list filters (which hide the tools from users
 	 * who cannot run them) and reads resource URIs from `meta.mcp.uri`, both
@@ -177,29 +160,6 @@ class McpServerRegistration {
 	}
 
 	/**
-	 * Whether this server's tools and resources are also listed on the MCP
-	 * Adapter's default server.
-	 *
-	 * Off by default. On when an administrator enables the
-	 * DEFAULT_SERVER_SETTING setting, or when the `tsmlt_mcp_default_server_enabled`
-	 * filter returns true (only a strict true enables it).
-	 *
-	 * @return bool
-	 */
-	public function is_default_server_enabled(): bool {
-		$settings = get_option( 'tsmlt_settings', [] );
-		$enabled  = is_array( $settings ) && ! empty( $settings[ self::DEFAULT_SERVER_SETTING ] );
-
-		/**
-		 * Filter whether the Media Library Tools tools are also listed on the
-		 * MCP Adapter's default server.
-		 *
-		 * @param bool $enabled Whether the setting is on.
-		 */
-		return true === apply_filters( self::DEFAULT_SERVER_FILTER, $enabled );
-	}
-
-	/**
 	 * Whether the loaded MCP Adapter can list the tools on its default server
 	 * safely (see DEFAULT_SERVER_MIN_ADAPTER_VERSION). An adapter that does not
 	 * report its version is treated as too old.
@@ -218,7 +178,8 @@ class McpServerRegistration {
 
 	/**
 	 * Add this server's tools and resources to the MCP Adapter's default
-	 * server, when enabled. Runs on `mcp_adapter_default_server_config`.
+	 * server. Runs on `mcp_adapter_default_server_config`, always; skipped only
+	 * for an adapter older than DEFAULT_SERVER_MIN_ADAPTER_VERSION.
 	 *
 	 * The names are the ones this server lists — get_tool_names() and
 	 * get_resource_names(), validated the same way — so the Pro abilities
@@ -233,7 +194,7 @@ class McpServerRegistration {
 	 * @return mixed
 	 */
 	public function add_to_default_server( $config ) {
-		if ( ! is_array( $config ) || ! $this->is_default_server_enabled() || ! self::adapter_supports_default_server() ) {
+		if ( ! is_array( $config ) || ! self::adapter_supports_default_server() ) {
 			return $config;
 		}
 
@@ -422,9 +383,9 @@ class McpServerRegistration {
 	 *   callback.
 	 * - The MCP Adapter lists explicitly named abilities whatever their
 	 *   `meta.mcp.public` setting; leave it false to keep an ability off the
-	 *   adapter's default gateway (execute-ability). When the default-server
-	 *   option is on, the same names are also listed as direct tools on the
-	 *   default server (see add_to_default_server()).
+	 *   adapter's default gateway (execute-ability). The same names are also
+	 *   listed as direct tools on the default server (see
+	 *   add_to_default_server()).
 	 *
 	 * @return string[]
 	 */

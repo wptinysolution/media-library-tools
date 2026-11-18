@@ -387,7 +387,10 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Edits JPEG files', $tools['tsmlt-update-exif-fields'], 'EXIF description kept.' );
 
 		$this->assertStringContainsString( 'Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features.', $html );
-		$this->assertStringContainsString( 'Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter&#039;s default server.', $html );
-		$this->assertStringContainsString( 'the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint', $html );
+		// Every tool, CSV ones included, is on both servers; only the gateway is restricted.
+		$this->assertStringContainsString( 'Every tool above is listed on both the MCP Adapter&#039;s default server and the dedicated Media Library Tools endpoint', $html );
+		$this->assertStringNotContainsString( 'Every CSV tool is offered only on the dedicated Media Library Tools endpoint', $html );
+		$this->assertStringNotContainsString( 'the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint', $html );
+		$this->assertStringNotContainsString( 'MCP Default Server', $html, 'No setting to turn on.' );
 	}
 }
