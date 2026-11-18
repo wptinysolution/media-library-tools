@@ -442,6 +442,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-preview-media-rename</code></td>
+							<td><?php esc_html_e( 'Previews renaming the files of up to 20 attachments to names you type: the current and resulting file name (the extension is kept), whether the name was cleaned up or would get a -1 style suffix because it is taken, and how many image sizes a rename would make again. Renames nothing. Renaming by post title, SKU, alt text or AI is not available here.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

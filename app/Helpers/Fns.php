@@ -419,6 +419,22 @@ class Fns {
 		return $name;
 	}
 	/**
+	 * The file name (without extension) a rename to $new_file_name uses: the
+	 * part before the last dot, sanitized with sanitize_file_name(), with
+	 * "-scaled" and "-rotated" removed. Shared by wp_rename_attachment() and
+	 * the MCP rename preview.
+	 *
+	 * @param string $new_file_name Requested name.
+	 *
+	 * @return string
+	 */
+	public static function rename_target_name( $new_file_name ): string {
+		$name = pathinfo( (string) $new_file_name, PATHINFO_FILENAME );
+		$name = sanitize_file_name( $name );
+		return (string) preg_replace( '/-(scaled|rotated)/', '', $name );
+	}
+
+	/**
 	 * Image attachment details
 	 *
 	 * @param int $attachment_id image id.
@@ -428,9 +444,7 @@ class Fns {
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
 		$orig_image_url = wp_get_attachment_url( $attachment_id );
 		$updated        = false;
-		$new_file_name  = pathinfo( $new_file_name, PATHINFO_FILENAME );
-		$new_file_name  = sanitize_file_name( $new_file_name );
-		$new_file_name  = preg_replace( '/-(scaled|rotated)/', '', $new_file_name );
+		$new_file_name  = self::rename_target_name( $new_file_name );
 		if ( empty( $new_file_name ) || ! $attachment_id ) {
 			return $updated;
 		}
