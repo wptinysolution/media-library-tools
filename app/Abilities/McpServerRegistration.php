@@ -26,8 +26,16 @@ use WP_REST_Request;
  * permission checks apply unchanged.
  *
  * Uses the MCP Adapter's documented `mcp_adapter_init` / create_server() API
- * and does nothing when the adapter is not active. The default server is left
- * untouched.
+ * and does nothing when the adapter is not active.
+ *
+ * The default server is left untouched unless an administrator opts in (the
+ * `mcp_default_server_enabled` setting, or the `tsmlt_mcp_default_server_enabled`
+ * filter). Then the same tools and MCP App resources are also listed directly
+ * on the default server, through the adapter's `mcp_adapter_default_server_config`
+ * filter, so one client configuration reaches them. This server stays as it
+ * is, as the narrower endpoint and the fallback when the default server is
+ * turned off. No ability is made `meta.mcp.public`, so the default server's
+ * execute-ability gateway still cannot reach them.
  */
 class McpServerRegistration {
 
@@ -95,10 +103,47 @@ class McpServerRegistration {
 	const ABILITY_NAME_PATTERN = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
 
 	/**
+	 * `tsmlt_settings` key that lists this server's tools and resources on the
+	 * MCP Adapter's default server too. Off unless an administrator turns it on.
+	 *
+	 * @var string
+	 */
+	const DEFAULT_SERVER_SETTING = 'mcp_default_server_enabled';
+
+	/**
+	 * Filter that overrides DEFAULT_SERVER_SETTING. See is_default_server_enabled().
+	 *
+	 * @var string
+	 */
+	const DEFAULT_SERVER_FILTER = 'tsmlt_mcp_default_server_enabled';
+
+	/**
+	 * Oldest MCP Adapter that can list the tools on its default server: it
+	 * needs the tools/resources list filters (which hide the tools from users
+	 * who cannot run them) and reads resource URIs from `meta.mcp.uri`, both
+	 * added in 0.5.0.
+	 *
+	 * @var string
+	 */
+	const DEFAULT_SERVER_MIN_ADAPTER_VERSION = '0.5.0';
+
+	/**
+	 * Priority of the `mcp_adapter_default_server_config` callback: after
+	 * plugins that use the default priority, so their changes to the tool and
+	 * resource lists are kept.
+	 *
+	 * @var int
+	 */
+	const DEFAULT_SERVER_CONFIG_PRIORITY = 20;
+
+	/**
 	 * Class Constructor
 	 */
 	private function __construct() {
 		add_action( 'mcp_adapter_init', [ $this, 'register_server' ] );
+		add_filter( 'mcp_adapter_default_server_config', [ $this, 'add_to_default_server' ], self::DEFAULT_SERVER_CONFIG_PRIORITY );
+		add_filter( 'mcp_adapter_tools_list', [ $this, 'hide_tools_from_unauthorized' ] );
+		add_filter( 'mcp_adapter_resources_list', [ $this, 'hide_resources_from_unauthorized' ] );
 	}
 
 	/**
@@ -132,6 +177,225 @@ class McpServerRegistration {
 	}
 
 	/**
+	 * Whether this server's tools and resources are also listed on the MCP
+	 * Adapter's default server.
+	 *
+	 * Off by default. On when an administrator enables the
+	 * DEFAULT_SERVER_SETTING setting, or when the `tsmlt_mcp_default_server_enabled`
+	 * filter returns true (only a strict true enables it).
+	 *
+	 * @return bool
+	 */
+	public function is_default_server_enabled(): bool {
+		$settings = get_option( 'tsmlt_settings', [] );
+		$enabled  = is_array( $settings ) && ! empty( $settings[ self::DEFAULT_SERVER_SETTING ] );
+
+		/**
+		 * Filter whether the Media Library Tools tools are also listed on the
+		 * MCP Adapter's default server.
+		 *
+		 * @param bool $enabled Whether the setting is on.
+		 */
+		return true === apply_filters( self::DEFAULT_SERVER_FILTER, $enabled );
+	}
+
+	/**
+	 * Whether the loaded MCP Adapter can list the tools on its default server
+	 * safely (see DEFAULT_SERVER_MIN_ADAPTER_VERSION). An adapter that does not
+	 * report its version is treated as too old.
+	 *
+	 * @param string|null $version Adapter version; the loaded adapter's by default.
+	 *
+	 * @return bool
+	 */
+	public static function adapter_supports_default_server( ?string $version = null ): bool {
+		if ( null === $version ) {
+			$constant = '\WP\MCP\Core\McpAdapter::VERSION';
+			$version  = defined( $constant ) ? (string) constant( $constant ) : '0';
+		}
+		return version_compare( $version, self::DEFAULT_SERVER_MIN_ADAPTER_VERSION, '>=' );
+	}
+
+	/**
+	 * Add this server's tools and resources to the MCP Adapter's default
+	 * server, when enabled. Runs on `mcp_adapter_default_server_config`.
+	 *
+	 * The names are the ones this server lists — get_tool_names() and
+	 * get_resource_names(), validated the same way — so the Pro abilities
+	 * appear only while Pro adds them (with an active licence). They become
+	 * direct tools, with their own annotations and `_meta`, not entries behind
+	 * the execute-ability gateway; their `meta.mcp.public` is not changed.
+	 * Every call still runs the ability's own permission checks, and
+	 * hide_tools_from_unauthorized() keeps them out of other users' lists.
+	 *
+	 * @param mixed $config Default server configuration.
+	 *
+	 * @return mixed
+	 */
+	public function add_to_default_server( $config ) {
+		if ( ! is_array( $config ) || ! $this->is_default_server_enabled() || ! self::adapter_supports_default_server() ) {
+			return $config;
+		}
+
+		$config['tools']     = $this->merge_names( $config['tools'] ?? [], $this->get_tool_names() );
+		$config['resources'] = $this->merge_names( $config['resources'] ?? [], $this->get_resource_names() );
+
+		return $config;
+	}
+
+	/**
+	 * Hide this plugin's tools from tools/list for users who cannot run them.
+	 * Runs on `mcp_adapter_tools_list` for every server.
+	 *
+	 * Every ability in the plugin's category requires the base capability, so
+	 * a user without it could only be refused. The dedicated server already
+	 * refuses such users at the transport; this matters for the default
+	 * server, whose transport admits any logged-in user. Calls are refused by
+	 * the abilities themselves either way.
+	 *
+	 * @param mixed $tools Tool records.
+	 *
+	 * @return mixed
+	 */
+	public function hide_tools_from_unauthorized( $tools ) {
+		if ( ! is_array( $tools ) || true === AbilityGuard::check_base_capability() ) {
+			return $tools;
+		}
+
+		$hidden = $this->get_category_tool_names();
+
+		return array_values(
+			array_filter(
+				$tools,
+				static function ( $tool ) use ( $hidden ) {
+					return ! in_array( self::get_record_value( $tool, 'name' ), $hidden, true );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Hide this plugin's resources (MCP App views) from resources/list for
+	 * users who cannot read them. Runs on `mcp_adapter_resources_list`. See
+	 * hide_tools_from_unauthorized().
+	 *
+	 * @param mixed $resources Resource records.
+	 *
+	 * @return mixed
+	 */
+	public function hide_resources_from_unauthorized( $resources ) {
+		if ( ! is_array( $resources ) || true === AbilityGuard::check_base_capability() ) {
+			return $resources;
+		}
+
+		$hidden = $this->get_category_resource_uris();
+
+		return array_values(
+			array_filter(
+				$resources,
+				static function ( $item ) use ( $hidden ) {
+					return ! in_array( self::get_record_value( $item, 'uri' ), $hidden, true );
+				}
+			)
+		);
+	}
+
+	/**
+	 * MCP tool names of every ability registered in the plugin's category,
+	 * as the adapter names them: the ability name with "/" replaced by "-",
+	 * passed through the adapter's `mcp_adapter_tool_name` filter.
+	 *
+	 * @return string[]
+	 */
+	private function get_category_tool_names(): array {
+		$names = [];
+		foreach ( $this->get_category_abilities() as $ability ) {
+			$name    = str_replace( '/', '-', $ability->get_name() );
+			$names[] = $name;
+			// Mirrors the adapter's naming so a renamed tool is still hidden.
+			$filtered = apply_filters( 'mcp_adapter_tool_name', $name, $ability ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- The MCP Adapter's hook.
+			if ( is_string( $filtered ) && $filtered !== $name ) {
+				$names[] = $filtered;
+			}
+		}
+		return $names;
+	}
+
+	/**
+	 * Resource URIs (`meta.mcp.uri`) of every ability registered in the
+	 * plugin's category.
+	 *
+	 * @return string[]
+	 */
+	private function get_category_resource_uris(): array {
+		$uris = [];
+		foreach ( $this->get_category_abilities() as $ability ) {
+			$meta = $ability->get_meta();
+			$uri  = is_array( $meta['mcp'] ?? null ) ? ( $meta['mcp']['uri'] ?? null ) : null;
+			if ( is_string( $uri ) && '' !== $uri ) {
+				$uris[] = $uri;
+			}
+		}
+		return $uris;
+	}
+
+	/**
+	 * Registered abilities in the plugin's category, Free and Pro.
+	 *
+	 * @return \WP_Ability[]
+	 */
+	private function get_category_abilities(): array {
+		if ( ! function_exists( 'wp_get_abilities' ) ) {
+			return [];
+		}
+		return array_filter(
+			wp_get_abilities(),
+			static function ( $ability ) {
+				return $ability instanceof \WP_Ability && AbilitiesInit::CATEGORY === $ability->get_category();
+			}
+		);
+	}
+
+	/**
+	 * A tool's name or a resource's URI from a list record: a protocol record
+	 * object (getName() / getUri()) or an array. '' when it cannot be read.
+	 *
+	 * @param mixed  $record Tool or resource record.
+	 * @param string $key    'name' or 'uri'.
+	 *
+	 * @return string
+	 */
+	private static function get_record_value( $record, string $key ): string {
+		$getter = 'name' === $key ? 'getName' : 'getUri';
+		if ( is_object( $record ) && method_exists( $record, $getter ) ) {
+			$value = $record->$getter();
+		} elseif ( is_array( $record ) ) {
+			$value = $record[ $key ] ?? '';
+		} else {
+			$value = '';
+		}
+		return is_string( $value ) ? $value : '';
+	}
+
+	/**
+	 * Append names not already in a server configuration list.
+	 *
+	 * @param mixed    $existing The configuration's list (names or component objects).
+	 * @param string[] $names    Names to add.
+	 *
+	 * @return array
+	 */
+	private function merge_names( $existing, array $names ): array {
+		$merged = is_array( $existing ) ? array_values( $existing ) : [];
+		foreach ( $names as $name ) {
+			if ( ! in_array( $name, $merged, true ) ) {
+				$merged[] = $name;
+			}
+		}
+		return $merged;
+	}
+
+	/**
 	 * Ability names offered as tools on this server.
 	 *
 	 * Always the Free abilities first, then any abilities added through the
@@ -158,7 +422,9 @@ class McpServerRegistration {
 	 *   callback.
 	 * - The MCP Adapter lists explicitly named abilities whatever their
 	 *   `meta.mcp.public` setting; leave it false to keep an ability off the
-	 *   adapter's default gateway server.
+	 *   adapter's default gateway (execute-ability). When the default-server
+	 *   option is on, the same names are also listed as direct tools on the
+	 *   default server (see add_to_default_server()).
 	 *
 	 * @return string[]
 	 */

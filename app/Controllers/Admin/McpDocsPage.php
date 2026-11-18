@@ -82,6 +82,58 @@ class McpDocsPage {
 	const ADAPTER_MISSING = 'missing';
 
 	/**
+	 * Filter that overrides the suggested MCP client configuration key. See
+	 * get_client_server_key().
+	 *
+	 * @var string
+	 */
+	const CLIENT_KEY_FILTER = 'tsmlt_mcp_client_server_key';
+
+	/**
+	 * Prefix of the suggested MCP client configuration key.
+	 *
+	 * @var string
+	 */
+	const CLIENT_KEY_PREFIX = 'mlt-';
+
+	/**
+	 * Endpoint identifier appended to the key for the MCP Adapter default server.
+	 *
+	 * @var string
+	 */
+	const CLIENT_KEY_DEFAULT_SERVER = 'mcp-adapter-default-server';
+
+	/**
+	 * Endpoint identifier appended to the key for the dedicated endpoint.
+	 *
+	 * @var string
+	 */
+	const CLIENT_KEY_DEDICATED = 'media-library-tools';
+
+	/**
+	 * Longest suggested key, endpoint identifier included; for longer ones
+	 * the site part is cut and gets a hash suffix.
+	 *
+	 * @var int
+	 */
+	const CLIENT_KEY_MAX_LENGTH = 64;
+
+	/**
+	 * Length of the hash suffix of a cut or lossy key.
+	 *
+	 * @var int
+	 */
+	const CLIENT_KEY_HASH_LENGTH = 8;
+
+	/**
+	 * Characters a key returned by CLIENT_KEY_FILTER may use. The key is
+	 * printed into a shell command, so nothing that needs quoting.
+	 *
+	 * @var string
+	 */
+	const CLIENT_KEY_PATTERN = '/^[A-Za-z0-9_-]{1,64}$/';
+
+	/**
 	 * Class Constructor
 	 */
 	private function __construct() {}
@@ -212,14 +264,19 @@ class McpDocsPage {
 			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'media-library-tools' ), 403 );
 		}
 
-		$endpoint = rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
-		$gateway  = rest_url( 'mcp/mcp-adapter-default-server' );
-		$username = wp_get_current_user()->user_login;
+		$endpoint   = rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
+		$gateway    = rest_url( 'mcp/mcp-adapter-default-server' );
+		$username   = wp_get_current_user()->user_login;
+		$on_default = McpServerRegistration::instance()->is_default_server_enabled();
+		$settings   = admin_url( 'upload.php?page=media-library-tools' );
 
-		$claude_command         = $this->claude_code_command( 'media-library-tools', $endpoint, $username );
-		$json_config            = $this->json_config( 'media-library-tools', $endpoint, $username );
-		$gateway_claude_command = $this->claude_code_command( 'mcp-adapter-default', $gateway, $username );
-		$gateway_json_config    = $this->json_config( 'mcp-adapter-default', $gateway, $username );
+		// Suggested client keys: the site address plus the endpoint.
+		$client_key             = $this->get_client_server_key( self::CLIENT_KEY_DEDICATED );
+		$gateway_client_key     = $this->get_client_server_key( self::CLIENT_KEY_DEFAULT_SERVER );
+		$claude_command         = $this->claude_code_command( $client_key, $endpoint, $username );
+		$json_config            = $this->json_config( $client_key, $endpoint, $username );
+		$gateway_claude_command = $this->claude_code_command( $gateway_client_key, $gateway, $username );
+		$gateway_json_config    = $this->json_config( $gateway_client_key, $gateway, $username );
 		$gateway_example        = (string) wp_json_encode(
 			[
 				'ability_name' => 'tsmlt/search-media',
@@ -459,7 +516,14 @@ class McpDocsPage {
 					</tbody>
 				</table>
 				<p>
-					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS coordinates, copyright or artist text, camera serial numbers, or custom fields; the EXIF privacy and GPS tools report only whether such data is present. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro EXIF tools change EXIF data, inside JPEG files: tsmlt-update-exif-fields, and, after a preview and your confirmation, tsmlt-apply-bulk-exif-edit, tsmlt-remove-gps-metadata and tsmlt-undo-exif-change; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features. Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'The tools never return server file paths, raw attachment metadata, raw EXIF data, GPS coordinates, copyright or artist text, camera serial numbers, or custom fields; the EXIF privacy and GPS tools report only whether such data is present. They never rename, move, upload, or delete files, never delete media permanently, and never delete or move Groups; tsmlt-create-media-group adds Groups and tsmlt-update-media-group renames them. Only tsmlt-trash-media moves media to the WordPress trash, after a preview and your confirmation, and tsmlt-restore-media brings it back. Only the Pro EXIF tools change EXIF data, inside JPEG files: tsmlt-update-exif-fields, and, after a preview and your confirmation, tsmlt-apply-bulk-exif-edit, tsmlt-remove-gps-metadata and tsmlt-undo-exif-change; the Pro tools are offered only with an active Media Library Tools Pro licence. Exporting selected media as CSV is free (tsmlt-export-media-csv); exporting the whole library to CSV files and CSV import through MCP are Pro features.', 'media-library-tools' ); ?>
+					<?php
+					if ( $on_default ) {
+						esc_html_e( 'The MCP Default Server setting is on, so every tool marked "Dedicated endpoint only" is also listed on the MCP Adapter\'s default server, with the same name and the same permission checks.', 'media-library-tools' );
+					} else {
+						esc_html_e( 'Every CSV tool is offered only on the dedicated Media Library Tools endpoint, never on the MCP Adapter\'s default server.', 'media-library-tools' );
+					}
+					?>
 				</p>
 				<p>
 					<?php esc_html_e( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', 'media-library-tools' ); ?>
@@ -496,7 +560,13 @@ class McpDocsPage {
 					</li>
 					<li>
 						<strong><?php esc_html_e( 'One connection for everything', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. It already includes the Media Library Tools abilities.', 'media-library-tools' ); ?>
+						<?php
+						if ( $on_default ) {
+							esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. With the MCP Default Server setting on, it lists every Media Library Tools tool.', 'media-library-tools' );
+						} else {
+							esc_html_e( '(media plus other plugins\' and WordPress core abilities): use the MCP Adapter default server by itself. Turn on the MCP Default Server setting first; until then it reaches only the read-only search and details abilities.', 'media-library-tools' );
+						}
+						?>
 					</li>
 				</ul>
 				<p>
@@ -532,10 +602,42 @@ class McpDocsPage {
 				</p>
 
 				<h3><?php esc_html_e( '3. Connect your MCP client', 'media-library-tools' ); ?></h3>
-				<h4><?php esc_html_e( 'Claude Code', 'media-library-tools' ); ?></h4>
-				<p><?php esc_html_e( 'Run this in your own terminal (not inside a chat). It asks for the Application Password without showing it:', 'media-library-tools' ); ?></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $claude_command ); ?></code></pre>
-				<p><?php esc_html_e( 'Restart Claude Code, then run "claude mcp list" — the server should show Connected.', 'media-library-tools' ); ?></p>
+				<p class="tsmlt-mcp-docs__one-config">
+					<strong><?php esc_html_e( 'You only need ONE of these configurations. Choose either the recommended Default MCP Adapter or the Dedicated Media Library Tools endpoint. Do not add both unless you intentionally want separate connections.', 'media-library-tools' ); ?></strong>
+				</p>
+				<ul>
+					<li>
+						<strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended.', 'media-library-tools' ); ?></strong>
+						<?php
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %s: link to the Media Tools Settings page. */
+								esc_html__( 'Provides the Media Library Tools Free and Pro abilities through one connection when the MCP Default Server setting is on (%s), including CSV export and the Pro CSV Export MCP App. It may also expose other plugins\' public abilities.', 'media-library-tools' ),
+								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
+							)
+						);
+						?>
+						<?php if ( ! $on_default ) : ?>
+							<em><?php esc_html_e( 'The setting is off on this site.', 'media-library-tools' ); ?></em>
+						<?php endif; ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative.', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'Provides isolated Media Library Tools access and remains available as a fallback. It does not need the MCP Default Server setting.', 'media-library-tools' ); ?>
+					</li>
+				</ul>
+				<p>
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: 1: suggested client key for the default server, 2: suggested client key for the dedicated endpoint. */
+							esc_html__( 'The server names (%1$s and %2$s) are suggested from this site\'s address and the endpoint, so you can tell several sites apart; you can rename them.', 'media-library-tools' ),
+							'<code>' . esc_html( $gateway_client_key ) . '</code>',
+							'<code>' . esc_html( $client_key ) . '</code>'
+						)
+					);
+					?>
+				</p>
 
 				<h4><?php esc_html_e( 'Claude Desktop and other clients with a JSON configuration file', 'media-library-tools' ); ?></h4>
 				<p><?php esc_html_e( 'These clients connect through the @automattic/mcp-wordpress-remote helper, documented by the MCP Adapter. It needs Node.js installed on your computer.', 'media-library-tools' ); ?></p>
@@ -547,13 +649,24 @@ class McpDocsPage {
 							<li><?php esc_html_e( 'Windows:', 'media-library-tools' ); ?> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
 						</ul>
 					</li>
-					<li><?php esc_html_e( 'Add this server. If the file already has an "mcpServers" section, add only the "media-library-tools" entry inside it:', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'Add one server. If the file already has an "mcpServers" section, add only that server\'s entry inside it.', 'media-library-tools' ); ?></li>
 				</ol>
+				<p><strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended', 'media-library-tools' ); ?></strong></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_json_config ); ?></code></pre>
+				<p><strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative', 'media-library-tools' ); ?></strong></p>
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $json_config ); ?></code></pre>
 				<ol start="3">
 					<li><?php esc_html_e( 'Replace "your application password" with the Application Password from step 2, save the file, and fully quit and reopen Claude Desktop.', 'media-library-tools' ); ?></li>
 					<li><?php esc_html_e( 'In a new chat, open the tools menu: the Media Library Tools tools should be listed.', 'media-library-tools' ); ?></li>
 				</ol>
+
+				<h4><?php esc_html_e( 'Claude Code', 'media-library-tools' ); ?></h4>
+				<p><?php esc_html_e( 'Run one of these in your own terminal (not inside a chat). It asks for the Application Password without showing it.', 'media-library-tools' ); ?></p>
+				<p><strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended', 'media-library-tools' ); ?></strong></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_claude_command ); ?></code></pre>
+				<p><strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative', 'media-library-tools' ); ?></strong></p>
+				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $claude_command ); ?></code></pre>
+				<p><?php esc_html_e( 'Restart Claude Code, then run "claude mcp list" — the server should show Connected.', 'media-library-tools' ); ?></p>
 
 				<h3><?php esc_html_e( '4. Try it', 'media-library-tools' ); ?></h3>
 				<ul>
@@ -567,6 +680,27 @@ class McpDocsPage {
 				<h2><?php esc_html_e( 'Using the MCP Adapter default server (optional)', 'media-library-tools' ); ?></h2>
 				<p>
 					<?php esc_html_e( 'You can also reach the read-only search and details tools through the MCP Adapter\'s default server (the update, EXIF, EXIF caption, Group, usage and CSV tools are offered only on the dedicated endpoint). It is a gateway for every plugin\'s public abilities, so prefer the dedicated endpoint above unless a client needs this one.', 'media-library-tools' ); ?>
+				</p>
+				<p class="tsmlt-mcp-docs__default-server-status">
+					<?php
+					if ( $on_default ) {
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %s: link to the Media Tools Settings page. */
+								esc_html__( 'The MCP Default Server setting is on: the default server also lists every Media Library Tools tool directly, with the same names as the dedicated endpoint (tsmlt-search-media, tsmlt-export-media-csv, …), including the Pro tools while the licence is active. Each tool still checks its own permissions, and users who cannot run them do not see them listed. You can turn it off in %s.', 'media-library-tools' ),
+								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
+							)
+						);
+					} else {
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %s: link to the Media Tools Settings page. */
+								esc_html__( 'To use only this server for every Media Library Tools tool, turn on MCP Default Server in %s. The tools are then listed on the default server directly, with the same names and permission checks as on the dedicated endpoint, which keeps working. Requires MCP Adapter 0.5.0 or newer.', 'media-library-tools' ),
+								'<a href="' . esc_url( $settings ) . '">' . esc_html__( 'Media Tools Settings', 'media-library-tools' ) . '</a>'
+							)
+						);
+					}
+					?>
 				</p>
 				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
 
@@ -583,7 +717,15 @@ class McpDocsPage {
 						<tr>
 							<td><?php esc_html_e( 'Tools the client sees', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'The Media Library Tools tools', 'media-library-tools' ); ?></td>
-							<td><?php esc_html_e( 'Three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' ); ?></td>
+							<td>
+								<?php
+								if ( $on_default ) {
+									esc_html_e( 'The Media Library Tools tools, plus three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' );
+								} else {
+									esc_html_e( 'Three gateway tools that can run any public ability on the site, from every plugin', 'media-library-tools' );
+								}
+								?>
+							</td>
 						</tr>
 						<tr>
 							<td><?php esc_html_e( 'Who can connect', 'media-library-tools' ); ?></td>
@@ -621,10 +763,7 @@ class McpDocsPage {
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_example ); ?></code></pre>
 
 				<h3><?php esc_html_e( 'Connect', 'media-library-tools' ); ?></h3>
-				<p><?php esc_html_e( 'Use the same Application Password as above. Claude Code:', 'media-library-tools' ); ?></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_claude_command ); ?></code></pre>
-				<p><?php esc_html_e( 'Claude Desktop and other JSON clients (add the "mcp-adapter-default" entry to the same configuration file):', 'media-library-tools' ); ?></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_json_config ); ?></code></pre>
+				<p><?php esc_html_e( 'Use Option 1 under "3. Connect your MCP client" above, with the same Application Password.', 'media-library-tools' ); ?></p>
 
 				<h3><?php esc_html_e( 'Try it', 'media-library-tools' ); ?></h3>
 				<p><?php esc_html_e( 'The assistant usually discovers the ability first, then runs it. You can also name it directly:', 'media-library-tools' ); ?></p>
@@ -633,7 +772,13 @@ class McpDocsPage {
 					<li><?php esc_html_e( '"Run tsmlt/get-media-details for attachment 1234."', 'media-library-tools' ); ?></li>
 				</ul>
 				<p class="description">
-					<?php esc_html_e( 'Use the ability name with a slash (tsmlt/search-media). The tool name with dashes (tsmlt-search-media) only exists on the dedicated endpoint, and the default server reports it as not found.', 'media-library-tools' ); ?>
+					<?php
+					if ( $on_default ) {
+						esc_html_e( 'With the MCP Default Server setting on, call the tools directly by their names with dashes (tsmlt-search-media). Through execute-ability, only the read-only search and details abilities are available, by their names with a slash (tsmlt/search-media).', 'media-library-tools' );
+					} else {
+						esc_html_e( 'Use the ability name with a slash (tsmlt/search-media). The tool name with dashes (tsmlt-search-media) only exists on the dedicated endpoint, and the default server reports it as not found.', 'media-library-tools' );
+					}
+					?>
 				</p>
 			</div>
 
@@ -705,6 +850,112 @@ class McpDocsPage {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Suggested key for one of this site's endpoints in an MCP client's
+	 * configuration (the `mcpServers` entry name, or the name given to
+	 * `claude mcp add`), so people who connect several sites can tell them
+	 * apart.
+	 *
+	 * "mlt-", the site part, then the endpoint identifier
+	 * (CLIENT_KEY_DEFAULT_SERVER or CLIENT_KEY_DEDICATED):
+	 * http://plugindev.local gives mlt-plugindev-local-mcp-adapter-default-server
+	 * and mlt-plugindev-local-media-library-tools. The site part is built from
+	 * the site address: the host in lower case (international domain names in
+	 * their ASCII "xn--" form; "www." kept), a port other than the scheme's
+	 * default, and the path of a subdirectory install, with every run of other
+	 * characters turned into one "-". When the key would be longer than
+	 * CLIENT_KEY_MAX_LENGTH, or the site part lost characters (a domain name
+	 * that cannot be converted to ASCII without the intl extension, or a path
+	 * with other characters), the site part is cut and ends in a short hash of
+	 * the address, so two sites do not share a key; the endpoint identifier
+	 * is always kept.
+	 *
+	 * Only the suggestion in the client snippets changes; server IDs, routes
+	 * and tool names do not. The key holds nothing beyond the public site
+	 * address.
+	 *
+	 * @param string $endpoint Endpoint identifier.
+	 * @param string $url      Site address; home_url() by default.
+	 *
+	 * @return string
+	 */
+	public function get_client_server_key( string $endpoint, string $url = '' ): string {
+		$url      = '' === $url ? home_url() : $url;
+		$endpoint = trim( (string) preg_replace( '/[^a-z0-9]+/', '-', strtolower( $endpoint ) ), '-' );
+
+		// parse_url() turns some bytes of non-ASCII characters (such as the
+		// second byte of "Ü") into "_", so they are encoded first.
+		$encoded = (string) preg_replace_callback(
+			'/[^\x00-\x7F]+/',
+			static function ( $matches ) {
+				return rawurlencode( $matches[0] );
+			},
+			$url
+		);
+		$parts   = wp_parse_url( $encoded );
+		$parts   = is_array( $parts ) ? $parts : [];
+
+		$host = rawurldecode( (string) ( $parts['host'] ?? '' ) );
+		$host = function_exists( 'mb_strtolower' ) ? mb_strtolower( $host, 'UTF-8' ) : strtolower( $host );
+		if ( 1 === preg_match( '/[^\x20-\x7E]/', $host ) && function_exists( 'idn_to_ascii' ) ) {
+			$ascii = defined( 'INTL_IDNA_VARIANT_UTS46' ) ? idn_to_ascii( $host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 ) : false;
+			if ( is_string( $ascii ) && '' !== $ascii ) {
+				$host = strtolower( $ascii );
+			}
+		}
+
+		$scheme  = strtolower( (string) ( $parts['scheme'] ?? '' ) );
+		$port    = isset( $parts['port'] ) ? (int) $parts['port'] : 0;
+		$default = [
+			'http'  => 80,
+			'https' => 443,
+		];
+		if ( isset( $default[ $scheme ] ) && $default[ $scheme ] === $port ) {
+			$port = 0;
+		}
+
+		$path = trim( rawurldecode( (string) ( $parts['path'] ?? '' ) ), '/' );
+
+		$identity = $host . ( $port ? ':' . $port : '' ) . ( '' !== $path ? '/' . $path : '' );
+		$lossy    = '' === $host || 1 === preg_match( '/[^\x20-\x7E]/', $identity );
+
+		$site = strtolower( remove_accents( $identity ) );
+		$site = trim( (string) preg_replace( '/[^a-z0-9]+/', '-', $site ), '-' );
+
+		$suffix = '' !== $endpoint ? '-' . $endpoint : '';
+		$room   = self::CLIENT_KEY_MAX_LENGTH - strlen( self::CLIENT_KEY_PREFIX ) - strlen( $suffix );
+		if ( $lossy || '' === $site || strlen( $site ) > $room ) {
+			$hash = substr( hash( 'sha256', $identity ), 0, self::CLIENT_KEY_HASH_LENGTH );
+			$cut  = rtrim( substr( $site, 0, max( 0, $room - self::CLIENT_KEY_HASH_LENGTH - 1 ) ), '-' );
+			$site = '' !== $cut ? $cut . '-' . $hash : $hash;
+		}
+		$key = self::CLIENT_KEY_PREFIX . $site . $suffix;
+
+		/**
+		 * Filter the suggested MCP client configuration key for one of this
+		 * site's endpoints.
+		 *
+		 * Changes only the key shown in the client snippets on the MCP Docs
+		 * page. It must be 1–64 letters, digits, "-" or "_"; anything else is
+		 * ignored with a _doing_it_wrong() notice.
+		 *
+		 * @param string $key      The suggested key.
+		 * @param string $endpoint Endpoint identifier: "mcp-adapter-default-server" or "media-library-tools".
+		 * @param string $url      The site address it was built from.
+		 */
+		$filtered = apply_filters( self::CLIENT_KEY_FILTER, $key, $endpoint, $url );
+		if ( is_string( $filtered ) && 1 === preg_match( self::CLIENT_KEY_PATTERN, $filtered ) ) {
+			return $filtered;
+		}
+
+		_doing_it_wrong(
+			esc_html( self::CLIENT_KEY_FILTER ),
+			esc_html__( 'The filter must return 1 to 64 letters, digits, hyphens or underscores; the suggested key was used instead.', 'media-library-tools' ),
+			esc_html( defined( 'TSMLT_VERSION' ) ? TSMLT_VERSION : '' )
+		);
+		return $key;
 	}
 
 	/**

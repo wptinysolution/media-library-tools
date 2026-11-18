@@ -17,16 +17,18 @@ The integration lets an AI assistant:
 - Export selected media (up to 100 IDs) as CSV text with the columns the CSV import reads (see [CSV export and import](#csv-export-and-import))
 - **Pro:** export the whole library, or everything matching the search filters, to one or more CSV files with download links, and check and then apply a CSV that updates existing media (see [CSV export and import](#csv-export-and-import))
 
-The Free tools never change EXIF data or image files. Only the Pro EXIF tools change EXIF data, inside JPEG files: `tsmlt-update-exif-fields`, and, after a preview and confirmation, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. Connected to the recommended dedicated endpoint, an assistant cannot reach anything outside these tools.
+The Free tools never change EXIF data or image files. Only the Pro EXIF tools change EXIF data, inside JPEG files: `tsmlt-update-exif-fields`, and, after a preview and confirmation, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. The recommended setup is one connection to the MCP Adapter default server with the Media Library Tools default-server option turned on; connected to the dedicated Media Library Tools endpoint instead, an assistant cannot reach anything outside these tools (see [Choosing an endpoint](#choosing-an-endpoint)).
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
-- The official **MCP Adapter** plugin from [wordpress.org/plugins/mcp-adapter](https://wordpress.org/plugins/mcp-adapter/) — tested with **0.7.0**. The dedicated endpoint uses the adapter's documented `create_server()` API, whose signature is unchanged since 0.3.0, but versions before 0.7.0 have not been tested.
+- The official **MCP Adapter** plugin from [wordpress.org/plugins/mcp-adapter](https://wordpress.org/plugins/mcp-adapter/) — tested with **0.7.0**. The dedicated endpoint uses the adapter's documented `create_server()` API, whose signature is unchanged since 0.3.0, but versions before 0.7.0 have not been tested. Listing the tools on the default server (the opt-in under [Choosing an endpoint](#choosing-an-endpoint)) requires 0.5.0 or newer
 - A WordPress **administrator** account (the `manage_options` capability)
 
 Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered and the plugin behaves exactly as before.
 
 ## Available Tools
+
+"Dedicated endpoint only" below means the tool is not reachable through the MCP Adapter default server's gateway (`mcp-adapter-execute-ability`). When the default-server option is on, every tool listed here — Free, and Pro while the licence is active — is also listed directly on the default server, with the same name and the same checks (see [Choosing an endpoint](#choosing-an-endpoint)).
 
 ### Free (23)
 
@@ -760,37 +762,64 @@ Each row is checked again just before it is written: the attachment must still e
 
 **Round trips**: an export, with the `url` column removed, previews as unchanged. The preview removes exactly the one apostrophe the export added before formula-like text (a genuine leading apostrophe, as in `'=x` or `'Twas`, is kept), and captions keep their line breaks, blank lines, quotes, commas and Unicode; CRLF and lone CR line endings become LF. Titles, alt text and the other fields stay single-line. Exceptions are listed under [Known limitations](#known-limitations).
 
-## Two Endpoints — Use the Dedicated One
+## Choosing an endpoint
 
-**Recommended setup: connect your assistant to the dedicated Media Library Tools endpoint.**
+**Recommended setup: one connection to the MCP Adapter default server, with the Media Library Tools default-server option turned on.** You normally need **only one** of the two configurations below — never both.
 
 Once the MCP Adapter is active, your site has two MCP endpoints:
 
 | Endpoint | URL | Exposes |
 |---|---|---|
-| **Media Library Tools (recommended)** | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the Media Library Tools tools above. Administrators only (`manage_options`) |
-| MCP Adapter default server | `https://your-site.com/wp-json/mcp/mcp-adapter-default-server` | Every public ability from **every** plugin on the site, including abilities that change or delete data |
+| **MCP Adapter default server (recommended)** | `https://your-site.com/wp-json/mcp/mcp-adapter-default-server` | With the option turned on: every Media Library Tools tool listed directly (Free, and Pro while the licence is active), plus the MCP Adapter's gateway tools, which reach the public abilities of other plugins and WordPress core |
+| Media Library Tools (alternative) | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the Media Library Tools tools. Administrators only (`manage_options`) |
 
-### Which endpoint should I use?
+### Turn on the default-server option
 
-Pick one:
-- **Only Media Library Tools:** use `media-library-tools/mcp`. It's simpler and narrower.
-- **One connection for everything** (media plus other plugins' and WordPress core abilities, such as WooCommerce): use `mcp-adapter-default-server` by itself. It already includes the Media Library Tools abilities.
+The option is **off by default**. Until it is on, the default server reaches only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` abilities, through its gateway tools.
 
-**Avoid configuring both:** the media tools would appear twice, and the assistant may switch between them unpredictably.
+1. Go to **Media → Media Tools Settings** (`wp-admin/upload.php?page=media-library-tools`).
+2. Under **Misc Settings**, check **MCP Default Server** ("Also list the Media Library Tools MCP tools on the MCP Adapter default server").
+3. Save the settings, then reconnect your assistant (or restart it) so it loads the new tool list.
+
+The option is saved as `mcp_default_server_enabled` in the `tsmlt_settings` option. A developer can also set it in code with the `tsmlt_mcp_default_server_enabled` filter, which overrides the setting both ways; only a strict `true` turns it on:
+
+```php
+add_filter( 'tsmlt_mcp_default_server_enabled', '__return_true' );
+```
+
+It requires **MCP Adapter 0.5.0 or newer**; with an older adapter the option does nothing. The **Media → MCP Docs** page shows whether it is on.
+
+### What the single connection offers
+
+With the option on, the default server lists the same tools as the dedicated endpoint, with the same dashed names (`tsmlt-search-media`, `tsmlt-export-media-csv`, …), their own descriptions and read-only/destructive hints, and the same permission checks:
+
+- **Free:** all the Free tools in [Available Tools](#available-tools), including `tsmlt-export-media-csv`.
+- **Pro (active licence):** all the Pro tools, including the library CSV export (`tsmlt-export-media-csv-bulk`, `tsmlt-get-media-csv-export`, `tsmlt-continue-media-csv-export`) and CSV import.
+- **CSV Export MCP App (Pro, active licence):** the export view (`ui://media-library-tools/media-csv-export.html`) is listed as a resource, so clients that support MCP Apps can show it for `tsmlt-get-media-csv-export` results; the view reads the finished files through the view-only tool `tsmlt-read-media-csv-export-file`. Clients without MCP Apps support use the download links from `tsmlt-get-media-csv-export` instead.
+
+Without an active Pro licence, the Pro tools and the export view are not listed, and the Pro abilities refuse every call anyway.
+
+**Other plugins' abilities:** the default server is shared. Depending on the site, its gateway tools (`mcp-adapter-discover-abilities`, `mcp-adapter-get-ability-info`, `mcp-adapter-execute-ability`) can also reach the public abilities of other plugins and WordPress core — on a WooCommerce site, for example, abilities that create, update or delete products. Each of those abilities checks its own permissions, but an assistant connected with an administrator password can use the ones an administrator may run. The option does not make any Media Library Tools ability public: the gateway's execute-ability still reaches only `tsmlt/search-media` and `tsmlt/get-media-details`.
 
 The default server exposes **abilities** registered through the WordPress Abilities API, not every REST API route.
 
-### Why the dedicated endpoint is safer
+### When to use the dedicated endpoint instead
 
-The MCP Adapter's default server is a gateway: its *discover* and *execute* tools reach every ability any plugin registers as public — not only Media Library Tools. Other plugins' abilities can be write-capable: on a WooCommerce site, for example, they include abilities that create, update, or delete products and change order status. An assistant connected to the default server with an administrator password can use all of them. Any logged-in user can also list those abilities and their input schemas there, although each ability still checks its own permissions before it runs.
+The dedicated endpoint (`media-library-tools/mcp`) stays fully supported, and works whether or not the option is on. Choose it instead of the default server when:
+
+- you want the assistant to reach **only** Media Library Tools, and nothing from other plugins;
+- the default server is turned off on your site, or another plugin removes tools from it;
+- your MCP Adapter is older than 0.5.0;
+- you do not want to turn the option on.
 
 The dedicated endpoint limits exposure to the Media Library Tools abilities:
 - It lists only those tools. Calls to any other tool — including the MCP Adapter's own discover/execute gateway tools — are refused with "Tool not found".
 - It requires an administrator account (`manage_options`) before a session can even start, so other roles cannot list the tools.
 - Each tool still runs every check described under [Access Control](#access-control).
 
-**Important**: The dedicated endpoint does not change or disable the default server. Media Library Tools' read-only search and details tools also remain available there, alongside other plugins' abilities. If nothing on your site needs the default server, a developer can disable it with the MCP Adapter's `mcp_adapter_create_default_server` filter — check with any other integration you use first.
+**Configure one, not both.** With the option on, connecting both servers would show every media tool twice, and the assistant may switch between them unpredictably.
+
+**Important**: Neither choice changes or disables the default server for other plugins. If nothing on your site needs the default server, a developer can disable it with the MCP Adapter's `mcp_adapter_create_default_server` filter — check with any other integration you use first; the dedicated endpoint keeps working.
 
 ## Step-by-Step Setup
 
@@ -812,21 +841,13 @@ The dedicated endpoint limits exposure to the Media Library Tools abilities:
 - Never paste the password into an AI chat; enter it only into the client's configuration
 - WordPress only offers Application Passwords over HTTPS, or on sites marked as a local development environment
 
-### 3. Connect your MCP client
+### 3. Turn on the default-server option
 
-#### Claude Code
+In **Media → Media Tools Settings → Misc Settings**, check **MCP Default Server** and save (see [Turn on the default-server option](#turn-on-the-default-server-option)). Skip this step if you use the dedicated endpoint.
 
-Run this in your own terminal (not inside a chat):
+### 4. Connect your MCP client
 
-```bash
-read -rs WP_APP_PW   # paste the Application Password; nothing is shown
-claude mcp add --transport http media-library-tools \
-  https://your-site.com/wp-json/media-library-tools/mcp \
-  --header "Authorization: Basic $(printf '%s:%s' 'YOUR_USERNAME' "$WP_APP_PW" | base64 | tr -d '\n')"
-unset WP_APP_PW
-```
-
-Restart Claude Code, then run `claude mcp list` — the server should show **Connected**.
+Add **one** server: the recommended default server, or the dedicated endpoint as the alternative. You do not need both.
 
 #### Claude Desktop and other clients with a JSON configuration file
 
@@ -835,17 +856,39 @@ These clients connect through the `@automattic/mcp-wordpress-remote` helper, doc
 1. Open the client's configuration file. In Claude Desktop: **Settings → Developer → Edit Config**, which opens:
    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-2. Add the server. If the file already has an `mcpServers` section, add only the `media-library-tools` entry inside it:
+2. Add the server. If the file already has an `mcpServers` section, add only the server entry inside it.
+
+   **The server name is a site-specific key** — the name your client shows for this connection and uses to keep the tools of several sites apart. The **Media → MCP Docs** page fills in the keys for your site: `mlt-`, then the site part built from the site address (`home_url()`), then the endpoint — `-mcp-adapter-default-server` for the default server or `-media-library-tools` for the dedicated endpoint. The examples below use `mlt-your-site-com-…` for a site at `your-site.com`.
+
+   | Site address | Default server key | Dedicated endpoint key |
+   |---|---|---|
+   | `http://plugindev.local` | `mlt-plugindev-local-mcp-adapter-default-server` | `mlt-plugindev-local-media-library-tools` |
+   | `https://example.com` | `mlt-example-com-mcp-adapter-default-server` | `mlt-example-com-media-library-tools` |
+   | `https://www.example.com` | `mlt-www-example-com-mcp-adapter-default-server` | `mlt-www-example-com-media-library-tools` |
+   | `https://staging.example.com:8443/blog` | `mlt-staging-example-com-8443-blog-mcp-adapter-default-server` | `mlt-staging-example-com-8443-blog-media-library-tools` |
+
+   The site part is the host in lower-case ASCII (international domain names in their `xn--` form; `www` kept), plus a non-default port and a subdirectory install's path, with dots and other separators turned into `-`. Keys are at most 64 characters: when a key would be longer, the site part is cut and ends in an 8-character hash of the address, so two sites do not share a key; the endpoint part is always kept. You can rename a key in your client; developers can change the suggestion with the `tsmlt_mcp_client_server_key` filter (arguments: the key, the endpoint identifier, the site address). The keys only name the connection in your client — the endpoint URLs, credentials, WordPress server IDs and tool names stay the same. Add **one** of the two entries below for each site; the default server is recommended.
+
+> **You only need ONE of these configurations. Choose either the recommended Default MCP Adapter or the Dedicated Media Library Tools endpoint. Do not add both unless you intentionally want separate connections.**
+
+**Option 1: Default WordPress MCP Adapter — Recommended**
+
+- Provides the Media Library Tools Free and Pro abilities through one connection when the opt-in setting is enabled (**MCP Default Server**, step 3; Pro tools with an active licence).
+- Supports CSV export (`tsmlt-export-media-csv`, and with Pro `tsmlt-export-media-csv-bulk`) and the Pro CSV Export MCP App.
+- May also expose other plugins' public abilities, through the MCP Adapter's gateway tools, depending on the site (see [What the single connection offers](#what-the-single-connection-offers)).
 
 ```json
 {
   "mcpServers": {
-    "media-library-tools": {
+    "mlt-your-site-com-mcp-adapter-default-server": {
       "command": "npx",
-      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
+      "args": [
+        "-y",
+        "@automattic/mcp-wordpress-remote@latest"
+      ],
       "env": {
-        "WP_API_URL": "https://your-site.com/wp-json/media-library-tools/mcp",
-        "WP_API_USERNAME": "YOUR_USERNAME",
+        "WP_API_URL": "http://your-site.com/wp-json/mcp/mcp-adapter-default-server",
+        "WP_API_USERNAME": "admin",
         "WP_API_PASSWORD": "your application password"
       }
     }
@@ -853,12 +896,63 @@ These clients connect through the `@automattic/mcp-wordpress-remote` helper, doc
 }
 ```
 
-3. Put in your Application Password, save the file, then fully quit and reopen Claude Desktop.
+**Option 2: Dedicated Media Library Tools MCP Server — Alternative**
+
+- Provides isolated Media Library Tools access: only the Media Library Tools tools, administrators only.
+- Remains available as a fallback, for example when the default server is turned off or the MCP Adapter is older than 0.5.0 (see [When to use the dedicated endpoint instead](#when-to-use-the-dedicated-endpoint-instead)).
+- Does not require enabling the default-server opt-in (skip step 3).
+
+```json
+{
+  "mcpServers": {
+    "mlt-your-site-com-media-library-tools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@automattic/mcp-wordpress-remote@latest"
+      ],
+      "env": {
+        "WP_API_URL": "http://your-site.com/wp-json/media-library-tools/mcp",
+        "WP_API_USERNAME": "admin",
+        "WP_API_PASSWORD": "your application password"
+      }
+    }
+  }
+}
+```
+
+3. Replace `your-site.com` with your site's address (use `https://` on a live site), `admin` with your administrator username, and `your application password` with the Application Password from step 2. Save the file, then fully quit and reopen Claude Desktop.
 4. In a new chat, open the tools menu: the Media Library Tools tools should be listed.
 
-The **Media → MCP Docs** page shows this configuration with your site URL and username already filled in.
+The **Media → MCP Docs** page shows both configurations, one after the other, with your site's keys, URL and username already filled in.
 
-### 4. Try it
+#### Claude Code
+
+Run **one** of these in your own terminal (not inside a chat).
+
+Option 1: Default WordPress MCP Adapter — Recommended:
+
+```bash
+read -rs WP_APP_PW   # paste the Application Password; nothing is shown
+claude mcp add --transport http mlt-your-site-com-mcp-adapter-default-server \
+  https://your-site.com/wp-json/mcp/mcp-adapter-default-server \
+  --header "Authorization: Basic $(printf '%s:%s' 'YOUR_USERNAME' "$WP_APP_PW" | base64 | tr -d '\n')"
+unset WP_APP_PW
+```
+
+Option 2: Dedicated Media Library Tools MCP Server — Alternative:
+
+```bash
+read -rs WP_APP_PW   # paste the Application Password; nothing is shown
+claude mcp add --transport http mlt-your-site-com-media-library-tools \
+  https://your-site.com/wp-json/media-library-tools/mcp \
+  --header "Authorization: Basic $(printf '%s:%s' 'YOUR_USERNAME' "$WP_APP_PW" | base64 | tr -d '\n')"
+unset WP_APP_PW
+```
+
+Restart Claude Code, then run `claude mcp list` — the server should show **Connected**.
+
+### 5. Try it
 
 Ask your assistant something like:
 - "Find images in the media library that have no alt text."
@@ -866,19 +960,9 @@ Ask your assistant something like:
 - "Which camera and settings were used for attachment 1234?"
 - "Write alt text for attachment 1234 and save it."
 
-## Using the MCP Adapter Default Server (optional)
+## The default server's gateway tools
 
-The read-only search and details tools can also be reached through the MCP Adapter's default server (`tsmlt-update-media-metadata`, `tsmlt-get-exif-fields`, `tsmlt-get-media-usage`, `tsmlt-start-usage-scan`, `tsmlt-get-usage-scan-status`, `tsmlt-list-media-groups`, `tsmlt-set-media-groups`, `tsmlt-create-media-group`, `tsmlt-update-media-group` and the Pro tools `tsmlt-get-exif-caption` and `tsmlt-update-exif-fields` are offered only on the dedicated endpoint):
-
-```
-https://your-site.com/wp-json/mcp/mcp-adapter-default-server
-```
-
-Prefer the dedicated endpoint — see [Two Endpoints](#two-endpoints--use-the-dedicated-one). Use the default server only if a client needs it.
-
-### How it works
-
-The default server does not list the Media Library Tools tools directly. It offers three **gateway tools**:
+Besides the Media Library Tools tools it lists when the option is on, the default server always offers three **gateway tools** from the MCP Adapter:
 
 | Gateway tool | What it does |
 |---|---|
@@ -886,7 +970,7 @@ The default server does not list the Media Library Tools tools directly. It offe
 | `mcp-adapter-get-ability-info` | Shows one ability's description and input fields |
 | `mcp-adapter-execute-ability` | Runs an ability by name with the given parameters |
 
-On the default server the abilities are named with a slash — `tsmlt/search-media`, `tsmlt/get-media-details` — and are run through `mcp-adapter-execute-ability`:
+Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` are public, so only they can be run through the gateway, by their names with a slash — with or without the option:
 
 ```json
 {
@@ -895,52 +979,15 @@ On the default server the abilities are named with a slash — `tsmlt/search-med
 }
 ```
 
-The dashed tool names (`tsmlt-search-media`) only exist on the dedicated endpoint; the default server reports them as not found.
-
-### Connect
-
-Use the same Application Password as above.
-
-Claude Code:
-
-```bash
-read -rs WP_APP_PW   # paste the Application Password; nothing is shown
-claude mcp add --transport http mcp-adapter-default \
-  https://your-site.com/wp-json/mcp/mcp-adapter-default-server \
-  --header "Authorization: Basic $(printf '%s:%s' 'YOUR_USERNAME' "$WP_APP_PW" | base64 | tr -d '\n')"
-unset WP_APP_PW
-```
-
-Claude Desktop and other JSON clients — add this entry to the same configuration file:
-
-```json
-{
-  "mcpServers": {
-    "mcp-adapter-default": {
-      "command": "npx",
-      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
-      "env": {
-        "WP_API_URL": "https://your-site.com/wp-json/mcp/mcp-adapter-default-server",
-        "WP_API_USERNAME": "YOUR_USERNAME",
-        "WP_API_PASSWORD": "your application password"
-      }
-    }
-  }
-}
-```
-
-### Try it
-
-The assistant usually discovers the ability first, then runs it. You can also name it directly:
-- "Use execute-ability to run tsmlt/search-media for images with no alt text."
-- "Run tsmlt/get-media-details for attachment 1234."
+With the option **off**, these two are the only Media Library Tools abilities the default server reaches, and the dashed tool names (`tsmlt-search-media`) are reported as not found there. With the option **on**, call the tools directly by their dashed names; every other Media Library Tools ability (writes, trash, EXIF, Groups, usage, CSV and the Pro tools) is offered only as a direct tool, never through execute-ability, so clients keep each tool's own read-only/destructive hints and approval prompts.
 
 ### Differences to keep in mind
 
-| | Dedicated endpoint | Default server |
-|---|---|---|
-| Tools the client sees | The Media Library Tools tools | Three gateway tools that can run any public ability, from every plugin |
-| Who can connect | Administrators only | Any logged-in user can list abilities; running a Media Library Tools ability still requires an administrator |
+| | Default server, option on (recommended) | Default server, option off | Dedicated endpoint (alternative) |
+|---|---|---|---|
+| Media Library Tools tools | All, listed directly (Pro while licensed) | `tsmlt/search-media` and `tsmlt/get-media-details` through the gateway only | All, listed directly (Pro while licensed) |
+| Other plugins' abilities | Reachable through the gateway tools | Reachable through the gateway tools | None |
+| Who can connect | Any logged-in user; only administrators see the Media Library Tools tools listed, and only administrators can run them | Any logged-in user can list abilities; running a Media Library Tools ability still requires an administrator | Administrators only |
 
 ## Access Control
 
@@ -951,6 +998,8 @@ On the dedicated endpoint:
 | Administrators | Can use all the tools |
 | Editors, authors, and other roles | Refused before any tool is listed (HTTP 403) |
 | Unauthenticated requests (no or invalid Application Password) | Refused (HTTP 401) |
+
+On the MCP Adapter default server, with the default-server option on: any logged-in user can open a session (the adapter's own rule), but the Media Library Tools tools and the CSV Export MCP App are left out of the tool and resource lists for users without `manage_options`, and calling one is refused by the tool itself. Anonymous requests are refused (HTTP 401).
 
 Every tool call also re-checks `manage_options` — inside the tool itself, so code that calls a tool's callback directly is refused too — and the permission to read (or, for updates, edit; for trash and restore, delete) the specific attachment, on either endpoint. `tsmlt-set-media-groups` also requires permission to assign Groups, `tsmlt-create-media-group` permission to create them, and `tsmlt-update-media-group` permission to edit that Group (by default, administrators and editors have all of these; the tools still require an administrator). `tsmlt-get-media-usage` lists a post only if you can read it. `tsmlt-start-usage-scan` and `tsmlt-get-usage-scan-status` need only `manage_options`. The Pro tools also check the Pro licence on every call. Tools only work with attachments in WordPress's normal `inherit` status; trashed and private attachments are reported as not found — except the trash tools, which work with trashed attachments as described in [Media trash](#media-trash--list-preview-trash-restore).
 
@@ -973,6 +1022,9 @@ Each site in a network has its own endpoints, and access requires `manage_option
 | `401 Unauthorized` | Missing or wrong Application Password, or wrong username | Recreate the password and update the client configuration |
 | `403 Forbidden` | The account is not an administrator | Use an administrator account |
 | "Tool not found" | The tool belongs to another plugin, or is an MCP Adapter gateway tool | Expected — the dedicated endpoint only offers the tools above |
+| Default server lists no `tsmlt-` tools | The default-server option is off, the account is not an administrator, the MCP Adapter is older than 0.5.0, or the client still has the old tool list | Turn on **MCP Default Server** in **Media → Media Tools Settings**, use an administrator account, update the MCP Adapter, then reconnect the client |
+| Default server lists no Pro tools or CSV Export view | The Pro licence is not active, or Pro is not installed | Activate the Pro licence; the Free tools stay available |
+| `404` from `/wp-json/mcp/mcp-adapter-default-server` | The MCP Adapter's default server is turned off on this site (`mcp_adapter_create_default_server`) | Use the dedicated endpoint `/wp-json/media-library-tools/mcp`, which keeps working |
 | Schema warnings in MCP Inspector about `get-media-details` | Some output fields can be `null`, written as a type list (valid JSON Schema 2020-12, which MCP uses by default) | Informational; no action needed |
 
 ## Project status, decisions and roadmap
@@ -999,6 +1051,14 @@ Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (movi
   - The validated names are passed to the MCP Adapter's `create_server()` as the server's resources. Tests: `tests/Integration/Mcp/McpServerResourcesTest.php`.
 - Every tool requires `manage_options`, checked by the permission callback and again at the start of the tool's own `execute()` (direct calls are refused too), plus the per-attachment or per-Group capability it needs; input schemas are closed; output is allowlisted. Tools never return secrets, absolute server paths or raw internal metadata.
 - The MCP Adapter's default gateway is opt-in: `Ability::is_mcp_public()` defaults to false. Only the read-only `tsmlt/search-media` and `tsmlt/get-media-details` opt in; write tools, including `tsmlt/update-media-metadata`, are on the dedicated endpoint only.
+- Single connection through the default server (2026-11-18): an administrator can opt in to listing the dedicated server's tools and resources on the MCP Adapter default server as well, so one client configuration reaches every Media Library Tools tool. It is now the recommended setup; the dedicated endpoint stays supported as the isolated alternative and as the fallback.
+  - Off by default. On through the `mcp_default_server_enabled` key of `tsmlt_settings` (the **MCP Default Server** checkbox under **Media → Media Tools Settings → Misc Settings**, saved through the existing settings AJAX handler, `manage_options` and nonce) or the `tsmlt_mcp_default_server_enabled` filter, which overrides the setting; only a strict `true` enables it.
+  - `McpServerRegistration::add_to_default_server()` runs on the adapter's `mcp_adapter_default_server_config` filter (priority 20) and appends the names from `get_tool_names()` and `get_resource_names()` — the same validated lists as the dedicated server, so Pro's tools and the CSV Export view appear only while Pro adds them (active licence). They are **direct tools**, with their own annotations and `_meta` (which the CSV Export MCP App needs), not entries behind execute-ability. No ability's `meta.mcp.public` changes: the gateway still reaches only search and details.
+  - Requires MCP Adapter 0.5.0 or newer (`McpAdapter::VERSION`; an adapter without it counts as older), for the tools/resources list filters and `meta.mcp.uri` resources; older adapters are left untouched.
+  - The default server's transport admits any logged-in user (`read`), so `hide_tools_from_unauthorized()` and `hide_resources_from_unauthorized()` (on `mcp_adapter_tools_list` / `mcp_adapter_resources_list`, every server) drop every tool and resource of an ability in the `media-library-tools` category for users without `manage_options`, matching tool names as the adapter derives them (including its `mcp_adapter_tool_name` filter). Calls are refused by each ability's own checks either way; the dedicated server's `manage_options` transport check is unchanged.
+  - Pro needs no change: it keeps adding its names through `tsmlt_mcp_server_abilities` and `tsmlt_mcp_server_resources`.
+  - Limits: the default server is shared with other plugins' public abilities; a filter that runs after priority 20 can still change its lists; a site can disable the default server (`mcp_adapter_create_default_server`), in which case only the dedicated endpoint works. Configuring both servers lists every tool twice.
+- Site-specific client keys (2026-11-18): the client snippets on the MCP Docs page suggest one `mcpServers` key per site and endpoint (`McpDocsPage::get_client_server_key( $endpoint )`): `mlt-` + a site part from `home_url()` (lower-case host, IDN in its ASCII form when the intl extension is available, `www` kept, a non-default port, a subdirectory path; other characters collapsed to `-`) + `-mcp-adapter-default-server` or `-media-library-tools`. Keys are at most 64 characters; when longer, or when the site part lost characters, the site part is cut and ends in an 8-character SHA-256 prefix of the normalized address, and the endpoint part is kept. The `tsmlt_mcp_client_server_key` filter (key, endpoint identifier, address) overrides it; values other than 1–64 letters, digits, `-` or `_` are ignored with a `_doing_it_wrong()` notice, because the key is printed into a shell command. The client chooses the key; WordPress only suggests it. Server IDs, routes, ability and tool names are unchanged. Tests: `tests/Integration/Admin/McpClientServerKeyTest.php`.
 - A failed write never leaves a silent partial change: `tsmlt/update-media-metadata` restores the fields it saved when the alt text cannot be saved, or reports the fields that remain changed (`tsmlt_partial_update`).
 - Usage scans never clear or replace an attachment's existing parent ("Uploaded to").
 - Media trash through MCP (`Modules\Trash\MediaTrash`) follows the conditions under [Implemented abilities](#implemented-abilities). Tokens are options named by the token's hash and never rewritten; the request whose `delete_option()` removed the row (core reports success only when its `DELETE` affected it) is the one that used the token, and the payload is read from the database, not a cache. The site filter `tsmlt_mcp_trash_days` can lower the trash days the tools see (0 or less, or a value that is not a whole number, turns MCP trash off) but never raise them. While `wp_trash_post()` runs, `pre_delete_attachment` and `pre_delete_post` refuse to delete that attachment. A source-level test (`tests/Unit/McpTrashNoPermanentDeleteTest.php`) fails if the trash service or any trash ability calls `wp_delete_post()`, `wp_delete_attachment()`, other file or post deletion, raw deletes or SQL, or the trash cleanup. Nothing is transactional across attachments: each is trashed or restored on its own and reported as it ends up. Each trash or restore runs under a per-attachment claim (`Modules\Trash\TrashClaim`, an options row taken with a plain `INSERT`, as `ScanStartLock` does) holding a one-hour lease that its owner renews right before the native call; another request takes it over only after the lease ran out, by an `UPDATE` that must still find the old value, so concurrent MCP requests cannot both change and report one attachment. A liveness check of the owner's database connection (`GET_LOCK`) would need raw SQL, which the project rules do not allow, so a claim left by a request that died blocks that one attachment for up to an hour. Unrecorded usage is unknown while a `tsmlt_scan_post_usage` event is in the `cron` option (read straight from the database, caches untouched), while a rescan is running (`Modules\UsedWhere\PostRescanMarker`: one options row per run, random name, removed by its owner in `finally`, ignored after 30 minutes and pruned by the next run; when it cannot be stored the rescan is not run but scheduled again a minute later), and whenever either cannot be verified or another plugin hooks WordPress's event-storage filters.
@@ -1035,6 +1095,7 @@ The Unknown tab explains each image with these reasons, the evidence found in th
 - **CSV export hardening, phase 2** (Pro, 2026-11-16): `CsvExportPhase2Test` (12 tests, 102 assertions: a fourth export removing the user's oldest finished one with its folder, other users' exports untouched; running exports never removed, and a start refused when no room can be made; five exports in a row leaving three; a held start lock refusing a start and changing nothing, a stale one taken over and released; expired cleanup still removing expired jobs, and a record stored under another job's name ignored; `Referrer-Policy: no-referrer` with the other headers, each once, on served and refused downloads; output buffers cleared, and a buffer that cannot be removed left without a warning (in a separate PHP process); a 6 MB file streamed byte for byte with under 1 MB of peak memory and closed; a batch that "takes" six minutes keeping its lock while another worker, WP-Cron, the watchdog and the continue tool all find it busy, and writing every row once; a run whose lock was taken over appending nothing, saving no progress, scheduling nothing and leaving the new lock alone, the new owner finishing without duplicate rows; the watchdog moving itself later while a run works). Slow batches are simulated by ageing the stored lock time, and competing workers are interleaved in one process, not run in parallel. Twelve mutations (no renewal at all, no renewal between rows, no retention, retention removing running exports, no Referrer-Policy, no start lock, watchdog not moved, the whole file read into memory in either of two ways, buffers removed without the removable check, records not checked against their name, a lost lock handled as an error) each make a test fail. Response headers are checked as `respond()` returns them; the headers PHP actually sends were not checked (the CLI sends none). Not verified on a real site or web server.
 - **Plan claim fix** (Pro implementation and tests, 2026-11-13): `ImportPlanStoreTest`, 12 tests, 49 assertions — first claim succeeds and a second fails; a competing claim written just before this request's `INSERT` wins and this request is refused; `add_option()` shown reporting success in that same window; a leftover claim blocks replay; database errors fail closed; expired-claim cleanup; other users' and unknown plans refused alike. Two of them fail against the previous `add_option()` code. PHPUnit runs one request at a time, so the race is reproduced at its critical point rather than with truly parallel requests. Full Pro suite: 482 tests, 6,479 assertions, no skips or failures, on PHP 8.3, 8.4 and 8.5.
 - **Media trash tests** (Free, 2026-11-15; WordPress test suite with the MCP Adapter 0.7.0, PHP 8.3): `ListTrashedAndRestoreMediaAbilityTest` (15 tests, 104 assertions), `TrashMediaAbilityTest` (29 tests, 299 assertions), `McpTrashToolsExposureTest` (4 tests, 71 assertions), `PostRescanMarkerTest` (7 tests, 22 assertions) and the source-level `McpTrashNoPermanentDeleteTest` (unit, 3 tests, 31 assertions). They cover permissions at both levels; per-item `read_post` / `delete_post`; closed input; the strict usage rule (used, unused, unknown, no, running, stalled, gapped, legacy and ID-less scans); site icon and logo; trash days of 0, −1 and unusable values (no trash or delete hook runs, the token is kept); the permanent-deletion guard; token checks including a second consumer interleaved at the critical point (simulated in one process, not parallel); scan changes after the preview and during a batch; a mixed batch with all five outcomes; a post edited to show an unused image with its usage rescan still pending (unknown, no token, a token issued before the edit refused; used once the rescan has run) and a rescan scheduled during a batch; a failed WordPress update reported as `update_failed`, not blocked; the per-attachment claim (a lease held long after 60 seconds, an expired lease taken over, renewal, a claim lost before the trash call, restore taking the same claim); pruning more than one batch of expired tokens; a running rescan (marked while it runs, unmarked afterwards and after an exception, not run when it cannot be marked, expired markers ignored and pruned) refusing preview and trash; an unreadable schedule or markers and another cron backend failing closed; saving a post keeping its pending rescan; an admin trashing or restoring during the call reported as `already_trashed` / `not_trashed` / `changed_during_call`; a failed restore keeping its trash records; native trash records, restore and the cache flush; purge dates; the guidance text in every tool description and the server instructions; no delete-related tool or input; dedicated listing, an end-to-end MCP run and default-gateway refusal. Removing the deletion guard, ignoring the token's `delete_option()` result, bypassing the trash-days gate, treating an unusable filter value as usable, adding a `wp_delete_attachment()` call, dropping either pending-rescan check, skipping the claim, reporting every unchanged item as blocked, pruning one batch or newest first, running the rescan unmarked or without removing its marker on an exception, clearing and rescheduling on save, ignoring the running markers, treating an unreadable schedule as nothing pending, ignoring another cron backend, reporting another actor's change as this call's success, not putting back a failed restore's trash records, taking a claim over after 60 seconds, or trashing after a lost claim each makes a test fail. Full Free integration suite: 988 tests, 6,421 assertions, 5 skipped (adapter-detection tests that need a stand-in for the real MCP Adapter); unit suite: 135 tests, 404 assertions. The Pro test `GetExifCaptionMcpExposureTest` still expects the earlier list of dedicated-endpoint tools and fails against this branch (since `tsmlt/find-duplicate-media`); updating it is a Pro change, not made yet. Not run on a disposable or existing site.
+- **Default-server opt-in** (Free, 2026-11-18; WordPress test suite with WordPress 7.1.3, MCP Adapter 0.7.1, PHP 8.5): `McpDefaultServerOptInTest` (14 tests, 105 assertions: off by default and the configuration unchanged; the hooks and priority; the setting, the filter overriding it both ways and only a strict `true` enabling it; a malformed settings option; saving through `Api::update_option()`; the 0.5.0 version gate; the merged lists keeping the gateway tools first, listing nothing twice, adding a stand-in Pro tool and view and refusing another category's ability; no change to any `meta.mcp.public`; list hiding for editor, author, subscriber and anonymous users, with array and object records, unreadable records kept and a tool renamed through `mcp_adapter_tool_name`; end to end through a copy of the default server built by the adapter's own `DefaultServerFactory`: an administrator sees and runs the Free tools directly with their hints, an editor connects but sees no `tsmlt-` tool and is refused a call, and execute-ability still refuses `tsmlt/update-media-metadata`). Full Free integration suite: 1,103 tests, 28 failures, 5 skipped; the same 28 fail without the new tests (MCP gateway tests that expect MCP Adapter 0.7.0's "not exposed via MCP" wording, which 0.7.1 changed, and `UsedWhereBatchTransactionTest` / `UsedWhereCleanupTest`). Not re-run against MCP Adapter 0.7.0, not run with the Pro suite, and not verified in a real client or on a site; the settings checkbox has not been built and tried in the browser.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
 ### CSV import and export through MCP (Pro)
@@ -1123,4 +1184,4 @@ The Pro tools below and the Free `tsmlt/export-media-csv` are offered only on th
 | 9 | Release readiness | Planned | Documentation, compatibility (WordPress, MCP Adapter, Pro licence states), packaging, permissions and test coverage checked before release. |
 | 10 | Media trash management | Implemented | `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media` and `tsmlt/restore-media` (Free, dedicated endpoint only), under the conditions recorded in [Implemented abilities](#implemented-abilities); see [Media trash](#media-trash--list-preview-trash-restore). Covered by integration tests (see Verification evidence). Permanent deletion, Empty Trash, Trash All and bulk rename are out of scope. Not tested on a disposable or existing site. |
 | 11 | Media usage results listing | Implemented | `tsmlt/list-media-usage` (Free, 2026-11-18, dedicated endpoint only): pages of used, unused or unknown media after a completed Used Where scan, with the Used Where page's lists and `tsmlt/get-media-usage`'s per-item rule; read-only; see [List media by usage](#list-media-by-usage--tsmlt-list-media-usage). |
-
+| 12 | Single connection through the default server | Implemented (opt-in, off by default) | 2026-11-18. An administrator setting (**MCP Default Server**, `mcp_default_server_enabled`) or the `tsmlt_mcp_default_server_enabled` filter lists every Media Library Tools tool and the CSV Export MCP App directly on the MCP Adapter default server, through `mcp_adapter_default_server_config`; Pro unchanged; no ability made public; tools hidden from users without `manage_options`; dedicated endpoint kept as the alternative and fallback. Covered by `McpDefaultServerOptInTest` (see Verification evidence). Remaining: verify in Claude Desktop / Claude Code against a real site, with Pro licensed, including the CSV Export MCP App; re-run against MCP Adapter 0.7.0. |

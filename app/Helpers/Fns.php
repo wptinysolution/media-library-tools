@@ -675,6 +675,9 @@ class Fns {
 			'auto_fill_metadata_from_exif'   => 0,
 			'auto_set_date_from_exif'        => 0,
 			'auto_remove_gps_on_upload'      => 0,
+			// MCP: also list the plugin's tools on the MCP Adapter's default
+			// server. Off until an administrator opts in.
+			'mcp_default_server_enabled'     => 0,
 
 		];
 		$options                   = get_option( 'tsmlt_settings', [] );

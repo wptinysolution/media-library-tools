@@ -37,6 +37,22 @@ export default function MiscSettings() {
                         </p>
                     </div>
                 </SettingRow>
+
+                <SettingRow label="MCP Default Server:" bordered>
+                    <CheckboxField
+                        name="mcp_default_server_enabled"
+                        value="mcp_default_server_enabled"
+                        checked={!!options.mcp_default_server_enabled}
+                        onChange={(e) => setOptions({ mcp_default_server_enabled: e.target.checked ? 1 : 0 })}
+                        label="Also list the Media Library Tools MCP tools on the MCP Adapter default server"
+                        isPro={false}
+                    />
+                    <div className="bg-amber-50 border border-amber-200 rounded p-3 mt-3">
+                        <p className="text-sm text-amber-900 m-0!">
+                            Lets an AI assistant reach these tools with one connection to <code>/wp-json/mcp/mcp-adapter-default-server</code>. That server also offers every other plugin's public abilities, so the dedicated endpoint <code>/wp-json/media-library-tools/mcp</code> stays the narrower choice and keeps working either way. Every tool still requires an administrator, and Pro tools still require an active licence. Requires MCP Adapter 0.5.0 or newer; reconnect your assistant after changing this.
+                        </p>
+                    </div>
+                </SettingRow>
             </div>
         </div>
     );

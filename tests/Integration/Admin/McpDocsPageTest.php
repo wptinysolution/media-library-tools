@@ -308,9 +308,11 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Using the MCP Adapter default server', $html );
 		$this->assertStringContainsString( 'Which endpoint should I use?', $html );
 		$this->assertStringContainsString( 'Avoid configuring both:', $html );
+		$this->assertStringContainsString( 'You only need ONE of these configurations. Choose either the recommended Default MCP Adapter or the Dedicated Media Library Tools endpoint. Do not add both unless you intentionally want separate connections.', $html );
+		$this->assertLessThan( strpos( $html, 'Option 2: Dedicated Media Library Tools MCP Server' ), strpos( $html, 'Option 1: Default WordPress MCP Adapter' ) );
 		$this->assertStringContainsString( 'mcp-adapter-execute-ability', $html );
 		$this->assertStringContainsString( 'tsmlt/search-media', $html );
-		$this->assertStringContainsString( 'claude mcp add --transport http mcp-adapter-default', $html );
+		$this->assertStringContainsString( 'claude mcp add --transport http ' . McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ) . ' ', $html );
 		$this->assertStringContainsString( esc_html( $gateway ), $html );
 
 		// Every JSON configuration on the page is valid JSON pointing at a real endpoint.
@@ -329,12 +331,23 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			)
 		);
 		$urls = [];
+		$keys = [];
 		foreach ( $configs as $config ) {
-			foreach ( $config['mcpServers'] as $server ) {
+			foreach ( $config['mcpServers'] as $key => $server ) {
 				$urls[] = $server['env']['WP_API_URL'];
+				$keys[] = $key;
 			}
 		}
-		$this->assertSame( [ rest_url( 'media-library-tools/mcp' ), $gateway ], $urls );
+		// Option 1 (default server, recommended), then Option 2 (dedicated).
+		$this->assertSame( [ $gateway, rest_url( 'media-library-tools/mcp' ) ], $urls );
+		$this->assertSame(
+			[
+				McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ),
+				McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEDICATED ),
+			],
+			$keys,
+			'Each configuration uses its endpoint\'s site-specific key.'
+		);
 
 		// Match the notice markup, not the class name, which the page's styles also contain.
 		$ready  = class_exists( '\WP\MCP\Core\McpAdapter' );

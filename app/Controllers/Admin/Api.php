@@ -135,6 +135,9 @@ class Api {
 			$tsmlt_media[ $exif_key ] = ! empty( $parameters[ $exif_key ] ) ? 1 : 0;
 		}
 
+		// Opt-in: also list the MCP tools on the MCP Adapter's default server.
+		$tsmlt_media['mcp_default_server_enabled'] = ! empty( $parameters['mcp_default_server_enabled'] ) ? 1 : 0;
+
 		$tsmlt_media['ai_provider']      = in_array( $parameters['ai_provider'] ?? '', [ 'chatgpt', 'gemini', 'claude' ], true ) ? $parameters['ai_provider'] : 'gemini';
 		$ai_max                          = max( 1, (int) apply_filters( 'tsmlt_ai_max_suggestion_count', 1 ) );
 		$tsmlt_media['ai_send_image']    = $ai_max > 1 && ! empty( $parameters['ai_send_image'] );
