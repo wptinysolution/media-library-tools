@@ -457,6 +457,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-thumbnail-status</code></td>
+							<td><?php esc_html_e( 'Returns the thumbnail status of up to 50 images: whether every image size WordPress should have is generated and its file is on disk, with each size\'s dimensions and file size, the sizes that are missing, sizes no longer registered, and the original\'s dimensions for scaled uploads. Sizes disabled in Media Library Tools are not counted as missing. Never regenerates or deletes anything.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
