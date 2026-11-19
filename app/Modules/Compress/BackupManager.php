@@ -229,6 +229,37 @@ class BackupManager {
 	}
 
 	/**
+	 * Whether a backup exists for an attachment's current file, without
+	 * creating or protecting the backup directory (has_backup() goes through
+	 * get_backup_root(), which does). For read-only callers such as the MCP
+	 * compression status.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 *
+	 * @return bool
+	 */
+	public function has_backup_read_only( int $attachment_id ): bool {
+		$file    = get_attached_file( $attachment_id );
+		$uploads = wp_get_upload_dir();
+		if ( ! $file || ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
+			return false;
+		}
+		$root = trailingslashit( $uploads['basedir'] ) . self::BACKUP_DIRNAME;
+		if ( ! is_dir( $root ) ) {
+			return false;
+		}
+		$relative_path = $this->to_relative_path( $file );
+		if ( is_wp_error( $relative_path ) ) {
+			return false;
+		}
+		$relative_path = ltrim( wp_normalize_path( $relative_path ), '/' );
+		if ( '' === $relative_path || false !== strpos( $relative_path, '../' ) ) {
+			return false;
+		}
+		return file_exists( trailingslashit( $root ) . $relative_path );
+	}
+
+	/**
 	 * Whether the full-size original of an attachment has a backup on disk.
 	 *
 	 * @param int $attachment_id Attachment post ID.

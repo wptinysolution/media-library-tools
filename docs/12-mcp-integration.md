@@ -12,6 +12,7 @@ The integration lets an AI assistant:
 - Update an attachment's title, alt text, caption, and description
 - List, create, and rename media Groups, and change which Groups an attachment belongs to
 - List the media in the WordPress trash, move media a verified Used Where scan found unused to the trash after a preview and confirmation, and restore trashed media (see [Media trash](#media-trash--list-preview-trash-restore))
+- Check the image compression status of media: compressed, skipped, failed, not yet processed or unsupported, with sizes and savings (see [Compression status](#compression-status--tsmlt-get-compression-status))
 - Preview renaming media files to names you type, one or up to 20 at a time, without renaming anything (see [Rename preview](#rename-preview--tsmlt-preview-media-rename))
 - Scan the library's EXIF for privacy-sensitive data — location (GPS), camera, date taken, author, copyright — and list the images that hold it, presence only (see [EXIF privacy scan](#exif-privacy-scan-free))
 - **Pro:** build a caption from an image's EXIF data, set or clear EXIF fields of one image or many at once, remove GPS location data, and review and undo EXIF changes — every change after a preview and confirmation (see [Pro: EXIF tools](#pro-exif-tools))
@@ -31,7 +32,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 Every tool listed here — Free, and Pro while the licence is active — is listed directly on both the MCP Adapter default server and the dedicated Media Library Tools endpoint, with the same name and the same checks (see [Choosing an endpoint](#choosing-an-endpoint)). The default server lists them always; there is no setting to turn on. Only `tsmlt-search-media` and `tsmlt-get-media-details` can also be run through the default server's generic gateway tool (`mcp-adapter-execute-ability`); call the others by name.
 
-### Free (24)
+### Free (25)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -59,6 +60,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-restore-media` | Restores up to 20 attachments from the WordPress trash and reports each item | Yes (restores media) |
 | `tsmlt-export-media-csv` | Exports up to 100 attachments, chosen by ID, as one CSV text in the order given, with the columns the CSV import reads; missing or unreadable IDs are listed as skipped. Never exports custom fields, file paths or metadata | No |
 | `tsmlt-preview-media-rename` | Previews renaming the files of 1–20 attachments to names you type: per item the current and resulting file name (extension kept), whether sanitizing changed the name, whether a `-1`-style suffix would be added, and what a rename would affect. Renames nothing. Pro rename strategies are refused | No |
+| `tsmlt-get-compression-status` | Returns the compression status of 1–50 attachments as Compress Images recorded it: `completed`, `skipped`, `failed`, `not_processed` or `unsupported`, sizes and savings, mode, quality, engine, time, whether a backup exists, and per-size results with reason codes. Never returns error messages or paths | No |
 
 ### Pro (14)
 
@@ -269,6 +271,43 @@ What to keep in mind:
 - Usage comes from the Used Where scan, not from the duplicate scan.
 - Attachments deleted or moved to the trash since the scan are left out, and so are repeated rows of one attachment; the tool does not clean up those stale rows (the Duplicates page does when it loads its results).
 - The tool is read-only: no file paths, file hashes or raw metadata are returned, and nothing is merged, deleted or changed (merging duplicates is a Pro feature of the Duplicates page, not an MCP tool).
+
+## Compression status — `tsmlt-get-compression-status`
+
+Reports what the Compress Images feature recorded for each image. It never compresses, retries, restores or changes anything. Compression itself, library-wide figures, the job's progress and WebP/AVIF conversion status are not available through MCP.
+
+Input: `ids`, a list of 1–50 distinct attachment IDs. Anything else, including more than 50 IDs or a non-integer ID, refuses the whole request.
+
+**Per item**:
+- `id`.
+- `status`:
+  - `completed`: at least one size got smaller;
+  - `skipped`: processed, but nothing got smaller;
+  - `failed`;
+  - `not_processed`: nothing recorded, and the image is JPEG, PNG or WebP;
+  - `unsupported`: nothing recorded, and another type (for example SVG, GIF or AVIF);
+  - `not_found`: missing, not media, trashed, or not readable for you;
+  - `forbidden`: readable, but you may not edit it.
+- `original_size` and `current_size`: bytes across the compressed sizes, before the first compression and after the last one; 0 when nothing is recorded.
+- `bytes_saved`, `percent_saved`.
+- `mode`, `quality` and `engine`: from the last run.
+- `compressed_at`: UTC, `Y-m-d H:i:s`.
+- `backup_exists`: a backup of the original is on disk (backups are a Pro option).
+- `generated_sizes`: one entry per size, `full` included, with `name`, `before` and `after` in bytes, `status` (`compressed`, `skipped` or `failed`) and `reason`, a code such as `no_improvement` or `missing_file`.
+
+`summary` counts the items per status.
+
+**How the status is worked out**:
+- The stored data (`_tsmlt_compression_data`, read with `CompressionMetadata::get()`) is the only source.
+- Without stored data, the MIME type decides between `not_processed` and `unsupported`, using the feature's own list (`CompressionManager::SUPPORTED_MIME_TYPES`).
+- A stored status other than completed, skipped or failed is reported as `failed`, never as a success.
+- When an image that was compressed earlier fails on a later run, the feature keeps the earlier result, so the item still shows `completed`.
+- Library-wide counters are never used.
+
+**Safety**:
+- The tool requires `manage_options`, and for each item that you can read (`read_post`) and edit (`edit_post`) the attachment.
+- It is read-only. It never calls the job's progress or library-status reads, which can update the job's stored state. The backup check (`BackupManager::has_backup_read_only()`) never creates the backup folder or its protection files.
+- Stored error messages (`last_error`, recent errors) and file paths are never returned. Mode, engine, size names and reasons are returned only when they are plain codes; anything else becomes an empty string.
 
 ## Rename preview — `tsmlt-preview-media-rename`
 
@@ -1059,7 +1098,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename` (24). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename`, `tsmlt/get-compression-status` (25). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 

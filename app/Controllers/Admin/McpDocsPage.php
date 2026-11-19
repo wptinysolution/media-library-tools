@@ -447,6 +447,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-compression-status</code></td>
+							<td><?php esc_html_e( 'Returns the image compression status of up to 50 attachments, as Compress Images recorded it: completed, skipped, failed, not processed or unsupported, the original and current size, the space saved, the mode, quality and engine used, when, whether a backup of the original exists, and the result per image size. Error messages are not returned. Never compresses or changes anything.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

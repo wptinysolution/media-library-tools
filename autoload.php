@@ -24,6 +24,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\Media\\CreateMediaGroup' => __DIR__ . '/app/Abilities/Media/CreateMediaGroup.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ExportMediaCsv' => __DIR__ . '/app/Abilities/Media/ExportMediaCsv.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\FindDuplicateMedia' => __DIR__ . '/app/Abilities/Media/FindDuplicateMedia.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\GetCompressionStatus' => __DIR__ . '/app/Abilities/Media/GetCompressionStatus.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetDuplicateScanStatus' => __DIR__ . '/app/Abilities/Media/GetDuplicateScanStatus.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifFields' => __DIR__ . '/app/Abilities/Media/GetExifFields.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifPrivacyScanStatus' => __DIR__ . '/app/Abilities/Media/GetExifPrivacyScanStatus.php',

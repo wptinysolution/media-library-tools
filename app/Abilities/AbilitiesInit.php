@@ -16,6 +16,7 @@ use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\Media\CreateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\ExportMediaCsv;
 use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
+use TinySolutions\mlt\Abilities\Media\GetCompressionStatus;
 use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
 use TinySolutions\mlt\Abilities\Media\GetMediaUsage;
@@ -159,6 +160,7 @@ class AbilitiesInit {
 			RestoreMedia::instance(),
 			ExportMediaCsv::instance(),
 			PreviewMediaRename::instance(),
+			GetCompressionStatus::instance(),
 		];
 	}
 }
