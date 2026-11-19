@@ -19,6 +19,7 @@ use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
 use TinySolutions\mlt\Abilities\Media\GetCompressionStatus;
 use TinySolutions\mlt\Abilities\Media\GetConversionStatus;
 use TinySolutions\mlt\Abilities\Media\GetThumbnailStatus;
+use TinySolutions\mlt\Abilities\Media\GetMediaHealth;
 use TinySolutions\mlt\Abilities\Media\GetExifFields;
 use TinySolutions\mlt\Abilities\Media\GetMediaDetails;
 use TinySolutions\mlt\Abilities\Media\GetMediaUsage;
@@ -165,6 +166,7 @@ class AbilitiesInit {
 			GetCompressionStatus::instance(),
 			GetConversionStatus::instance(),
 			GetThumbnailStatus::instance(),
+			GetMediaHealth::instance(),
 		];
 	}
 }

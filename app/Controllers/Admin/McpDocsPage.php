@@ -462,6 +462,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-media-health</code></td>
+							<td><?php esc_html_e( 'Checks the file and record integrity of up to 50 attachments: no file recorded, file missing or unreadable, a file type that differs from the stored one, images without WordPress image data or whose recorded file size or dimensions differ from the file, and attachments linked to a post that no longer exists. Also says whether alt text is set. Never repairs or changes anything.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

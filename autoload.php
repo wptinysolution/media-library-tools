@@ -30,6 +30,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifFields' => __DIR__ . '/app/Abilities/Media/GetExifFields.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetExifPrivacyScanStatus' => __DIR__ . '/app/Abilities/Media/GetExifPrivacyScanStatus.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaDetails' => __DIR__ . '/app/Abilities/Media/GetMediaDetails.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaHealth' => __DIR__ . '/app/Abilities/Media/GetMediaHealth.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetMediaUsage' => __DIR__ . '/app/Abilities/Media/GetMediaUsage.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetThumbnailStatus' => __DIR__ . '/app/Abilities/Media/GetThumbnailStatus.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\GetUsageScanStatus' => __DIR__ . '/app/Abilities/Media/GetUsageScanStatus.php',
