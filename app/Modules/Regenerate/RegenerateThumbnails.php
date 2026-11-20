@@ -317,6 +317,45 @@ class RegenerateThumbnails {
 	}
 
 	/**
+	 * Rebuild an attachment's sizes while the caller already holds its
+	 * regeneration lock (a media rename, which renames the files first and
+	 * holds the lock for the whole operation). Same pipeline as
+	 * regenerate_attachment(): from the full-size original, into temporary
+	 * files, the on-upload automation off, old files kept until replaced.
+	 * Permissions and the other operations' locks are the caller's job.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return array{code: string, deleted_sizes: string[]} code '' on success.
+	 */
+	public function rebuild_held( int $attachment_id ): array {
+		if ( ! RegenerateLock::is_held( $attachment_id ) ) {
+			return [
+				'code'          => 'locked',
+				'deleted_sizes' => [],
+			];
+		}
+		$file = (string) get_attached_file( $attachment_id );
+		if ( '' === $file || false !== strpos( $file, '://' ) || wp_is_stream( $file ) ) {
+			return [
+				'code'          => 'file_missing',
+				'deleted_sizes' => [],
+			];
+		}
+		self::$current = $attachment_id;
+		try {
+			return $this->rebuild( $attachment_id, $file );
+		} catch ( \Throwable $e ) {
+			return [
+				'code'          => 'generation_failed',
+				'deleted_sizes' => [],
+			];
+		} finally {
+			self::$current = 0;
+		}
+	}
+
+	/**
 	 * Whether an attachment could be regenerated now for a user, by the same
 	 * rules regenerate_attachment() applies, without changing anything: no
 	 * lock is taken, no file written. Also checks that the attached file is

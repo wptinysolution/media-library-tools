@@ -155,6 +155,48 @@ A feature is marked Implemented only with test evidence, never because code exis
 - **Missing operations:** renaming files (**Deferred**, D4).
 - **Tests:** `PreviewMediaRenameAbilityTest`.
 
+#### Engine hardening (implemented 2026-11-21, approved; Free only; no MCP tools)
+
+- **Engine:** `Fns::wp_rename_attachment()` is now a wrapper (same signature, returns whether the file was renamed) around `Modules/Rename/MediaRenamer::rename( $id, $name, $user_id )`, which returns a structured result: `status` renamed, unchanged, refused or failed; `code`; `sizes` regenerated, kept or none; `content` with changed post IDs and update errors; `copies`; `backups`. The Free Rename page, Pro bulk AI apply and Pro CSV import all go through it.
+- **Checks:** library (`inherit`) attachment, `edit_post` for the user, a local file.
+  - **Locks:** the whole rename holds `RegenerateLock` (so compression, conversion and EXIF removal stay out) and refuses images held by compression, conversion or EXIF removal (`locked`).
+- **Files:**
+  - **What is renamed:** the attached file and, for scaled and rotated uploads, the full-size original. The attached copy keeps its `-scaled` / `-rotated` suffix, and `_wp_attached_file`, metadata `file` and `original_image` are updated.
+  - **No overwriting:** files are moved with no-overwrite moves (hard link, then the old name is removed; a checked rename where links are unsupported). A taken name gets a number (`name-1`): never on disk, never refused by `wp_unique_filename()` for the plain name, never used or claimed by any attachment. If the attached file cannot be moved, the original is moved back and nothing changes (`rename_failed`).
+  - **Missing original:** a recorded original that is missing refuses the rename (`original_missing`).
+- **Sizes:**
+  - **How:** rebuilt from the renamed original by `RegenerateThumbnails::rebuild_held()`, the hardened engine run under the caller's lock: temporary files, the on-upload automation off, no core `create` metadata pass.
+  - **Old files:** old size files are removed only once replaced and unreferenced; disabled and unregistered size files are kept.
+  - **On failure:** the files keep their new names, while the old sizes and their records stay and point at existing files (`sizes: kept`, with a code).
+- **Compression:**
+  - **Backups:** the attached file's and original's backups move to the new relative paths; backups of replaced sizes are removed.
+  - **Record:** the compression record keeps only the full-size entry (rebuilt sizes count as not compressed and can be compressed again), with totals recomputed and `original.file` updated.
+- **Conversion:**
+  - **Which copies:** only copies that are positively the image's own (`ConversionOwnership`, worked out before renaming) are touched. The full-size copy is renamed; a size copy is renamed when its size was rebuilt with the same dimensions, otherwise removed.
+  - **Untouched:** anything else, including a record naming another attachment's file, is left alone.
+  - **Record:** the conversion record and its source path are updated.
+- **Content:**
+  - **Replacement:** old URLs (main, original, each size) are replaced with the existing replacement (post content and excerpts, Elementor data) through `Fns::replace_image_url_tracked()`, which reports changed posts and database errors separately from the file rename.
+  - **Elementor:** data is replaced in both escaped and plain forms, and Elementor's CSS and element caches are cleared only for the posts that changed. The site-wide cache deletion was removed.
+- **Strategy keywords:** `RenameModule::handle_rename()` never uses an unresolved strategy keyword (`bulkRenameByPostTitle`, `bulkRenameBySKU`, `bulkRenameByAltText`) as a file name; without Pro, or without a title, SKU or alt text, nothing is renamed.
+- **Bulk:**
+  - **Job:** `Modules/Rename/RenameJob` takes 1–20 items (ID and name), one job at a time with a job ID, in WP-Cron batches of 5 (`tsmlt_rename_tick`).
+  - **Checks:** each item is checked when processed for the user who started it.
+  - **Progress and cancel:** per-item results as codes, progress, and cancel by job ID.
+  - **UI:** not wired to the admin page yet; the page still renames item by item synchronously.
+- **Tests:**
+  - `MediaRenamerTest` (12) and `RenameElementorTest` (1, separate process), all passing.
+  - Mutation checks: removing the content-error count, the keyword refusal or the backup move makes the matching test fail.
+  - Full suites (2026-11-21): Free integration 1341 (5 skipped), Free unit 135, Pro 558, all passing.
+- **Limitations:**
+  - **Preview names:** the preview's `proposed_filename` does not show the kept `-scaled` / `-rotated` suffix (to align when MCP rename is built).
+  - **Non-image files:** content URLs are still not updated (unchanged).
+  - **Content coverage:** content replacement covers absolute URLs in post content, excerpts and Elementor only (not other URL forms, custom fields or other page builders), and only the database error is detected, not missed references.
+  - **Rebuilt sizes:** they are re-encoded and lose earlier compression.
+  - **Disabled-size files:** they keep their old names, unreferenced.
+  - **Lock races:** locks are post meta and not atomic across operations.
+  - **Pro writers:** Pro's GPS removal and EXIF editor do not check the lock.
+
 ### F12 Compression
 
 - **Owner:** Free engine, job, access checks and the four MCP tools. Pro unlocks custom quality, backups, generated sizes, no job limit, restore and compress-on-upload through Free's `CompressionAccess`; no Pro code is involved in the MCP tools.
@@ -597,6 +639,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D14 | 2026-11-20 | Conversion engine, before any MCP tool: never overwrite or delete a file that is not positively the attachment's own copy (refuse with `name_conflict`, keep the existing naming); conversion refuses compression, EXIF-strip and regeneration locks; library (`inherit`) attachments only; regenerate copies all or nothing; no raw SQL in library selection. Whole-library conversion, deleting and regenerating copies stay out of MCP. | F13 |
 | D15 | 2026-11-20 | MCP conversion: Free `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`; 1–20 images; Pro options refused without a licence, never silently downgraded; progress through the existing `tsmlt/get-compression-job-status`; no whole-library conversion, delete or regenerate copies through MCP; no Pro changes. | F13 |
 | D16 | 2026-11-21 | Server-side AI generation is not offered through MCP (cost, data leaving the site, raw provider errors, duplicates the client's model). AI-written metadata is supported client-side: `tsmlt/search-media`, `tsmlt/get-media-details`, the new read-only `tsmlt/get-media-image-preview` (one downscaled, metadata-free image per call) and `tsmlt/update-media-metadata`. | F15 |
+| D17 | 2026-11-21 | Rename engine (before any MCP rename): rename the attached file and its full-size original with no-overwrite moves, rebuild sizes with the hardened regeneration engine, move compression backups and the image's own converted copies, report content-update failures separately, clear Elementor caches only for changed posts, never use a strategy keyword as a file name; bulk renames as a background job of up to 20. MCP rename tools are still not implemented. | F11 |
 
 ## Workflow
 

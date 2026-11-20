@@ -31,6 +31,14 @@ class RenameModule {
 	private function __construct() {}
 
 	/**
+	 * Rename strategy keywords the Rename page sends in place of a name; the
+	 * `tsmlt_attachment_rename_to` filter (Pro) turns them into a name.
+	 *
+	 * @var string[]
+	 */
+	const STRATEGY_KEYWORDS = [ 'bulkRenameByPostTitle', 'bulkRenameBySKU', 'bulkRenameByAltText' ];
+
+	/**
 	 * Dispatch a single-media update request to the appropriate handler.
 	 *
 	 * @param array $parameters Sanitised request parameters.
@@ -105,6 +113,13 @@ class RenameModule {
 		 * @param \WP_Post $attachment Attachment object.
 		 */
 		$rename_to = apply_filters( 'tsmlt_attachment_rename_to', $rename_to, $new_name, $post_id, $attachment );
+
+		// A rename strategy keyword that nothing resolved (no licence, or no
+		// post title, SKU or alt text to use) is never used as a file name.
+		if ( in_array( $rename_to, self::STRATEGY_KEYWORDS, true ) ) {
+			$result['message'] = esc_html__( 'This rename option is not available for this file (it needs Media Library Tools Pro and a post title, SKU or alt text to use). Nothing was renamed.', 'media-library-tools' );
+			return $result;
+		}
 
 		if ( ! empty( $rename_to ) && Fns::wp_rename_attachment( $attachment->ID, $rename_to ) ) {
 			$result['updated'] = true;

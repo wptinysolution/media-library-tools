@@ -124,6 +124,8 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\Regenerate\\McpRegenerate' => __DIR__ . '/app/Modules/Regenerate/McpRegenerate.php',
 		'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateLock' => __DIR__ . '/app/Modules/Regenerate/RegenerateLock.php',
 		'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => __DIR__ . '/app/Modules/Regenerate/RegenerateThumbnails.php',
+		'TinySolutions\\mlt\\Modules\\Rename\\MediaRenamer' => __DIR__ . '/app/Modules/Rename/MediaRenamer.php',
+		'TinySolutions\\mlt\\Modules\\Rename\\RenameJob' => __DIR__ . '/app/Modules/Rename/RenameJob.php',
 		'TinySolutions\\mlt\\Modules\\Rename\\RenameModule' => __DIR__ . '/app/Modules/Rename/RenameModule.php',
 		'TinySolutions\\mlt\\Modules\\Rubbish\\RubbishScanner' => __DIR__ . '/app/Modules/Rubbish/RubbishScanner.php',
 		'TinySolutions\\mlt\\Modules\\Trash\\AdminTrash' => __DIR__ . '/app/Modules/Trash/AdminTrash.php',

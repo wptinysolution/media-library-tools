@@ -8,6 +8,7 @@
 namespace TinySolutions\mlt\Helpers;
 
 use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
+use TinySolutions\mlt\Modules\Rename\MediaRenamer;
 use TinySolutions\mlt\Vendor\CodesVault\Howdyqb\DB;
 use WP_Filesystem;
 use WP_Filesystem_Direct;
@@ -128,7 +129,7 @@ class Fns {
 	 *
 	 * @return void
 	 */
-	private static function wpml_update_translations( $attachment_id ) {
+	public static function wpml_update_translations( $attachment_id ) {
 		if ( ! function_exists( 'icl_object_id' ) ) {
 			return;
 		}
@@ -374,31 +375,96 @@ class Fns {
 	}
 
 	/**
-	 * Update Elementor post meta data by replacing image URLs
-	 * and force Elementor to regenerate CSS and cache.
+	 * Replace an image URL in Elementor data (`_elementor_data`, stored as
+	 * JSON with escaped or plain slashes) and clear Elementor's CSS and
+	 * element caches only for the posts that changed.
 	 *
 	 * @param string $orig_image_url Original image URL.
 	 * @param string $new_image_url  New image URL.
 	 *
-	 * @return void
+	 * @return array{posts: int[], errors: int} Changed post IDs and failed updates.
 	 */
-	private static function update_elementor_metadata( $orig_image_url, $new_image_url ) {
+	private static function update_elementor_metadata( $orig_image_url, $new_image_url ): array {
+		$result = [
+			'posts'  => [],
+			'errors' => 0,
+		];
 		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
-			return;
+			return $result;
 		}
+		$escaped_old = str_replace( '/', '\/', $orig_image_url );
+		$escaped_new = str_replace( '/', '\/', $new_image_url );
+		$post_ids    = array_unique( array_merge( self::search_elementor_metadata( $orig_image_url ), self::search_elementor_plain( $orig_image_url ) ) );
+		foreach ( $post_ids as $post_id ) {
+			$post_id = (int) $post_id;
+			$data    = get_post_meta( $post_id, '_elementor_data', true );
+			if ( ! is_string( $data ) || '' === $data ) {
+				continue;
+			}
+			$updated = str_replace( [ $escaped_old, $orig_image_url ], [ $escaped_new, $new_image_url ], $data );
+			if ( $updated === $data ) {
+				continue;
+			}
+			if ( ! update_post_meta( $post_id, '_elementor_data', wp_slash( $updated ) ) ) {
+				++$result['errors'];
+				continue;
+			}
+			// Only the changed post's caches; Elementor rebuilds them on demand.
+			delete_post_meta( $post_id, '_elementor_css' );
+			delete_post_meta( $post_id, '_elementor_element_cache' );
+			$result['posts'][] = $post_id;
+		}
+		return $result;
+	}
+
+	/**
+	 * Posts whose Elementor data holds an image URL with plain slashes.
+	 *
+	 * @param string $orig_image_url Image URL.
+	 *
+	 * @return array List of post IDs.
+	 */
+	private static function search_elementor_plain( $orig_image_url ) {
 		global $wpdb;
-		/**
-		 * Trusted core table name.
-		 * Provided by $wpdb, contains no user input.
-		 */
-		$table_meta   = $wpdb->postmeta;
-		$search_value = '%' . $wpdb->esc_like( $orig_image_url ) . '%';
-		$sql          = "UPDATE {$table_meta} SET meta_value = REPLACE( meta_value, %s, %s ) WHERE meta_key = '_elementor_data' AND meta_value LIKE %s";
-		$query        = $wpdb->prepare( $sql, $orig_image_url, $new_image_url, $search_value ); // phpcs:ignore WordPress.DB.PreparedSQL -- Prepared below.
-		$wpdb->query( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
-		// Force Elementor to regenerate CSS and cache.
-		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_css' )->execute();
-		self::DB()->delete( 'postmeta' )->where( 'meta_key', '=', '_elementor_element_cache' )->execute();
+		$useless_types_conditions = self::$useless_types_conditions;
+		$result                   = self::DB()->select( 'm.post_id' )
+			->from( 'postmeta m' )
+			->join( 'posts p', 'p.ID', 'm.post_id' )
+			->where( 'm.meta_key', '=', '_elementor_data' )
+			->andWhere( 'm.meta_value', 'LIKE', '%' . $wpdb->esc_like( $orig_image_url ) . '%' )
+			->raw( "AND {$useless_types_conditions}" )
+			->get();
+		return array_column( is_array( $result ) ? $result : [], 'post_id' );
+	}
+
+	/**
+	 * Replace an image URL in post content, excerpts and Elementor data
+	 * with the existing replacement, reporting which posts changed and how
+	 * many updates failed (a database error is counted, not hidden).
+	 *
+	 * @param string $old_url Original image URL.
+	 * @param string $new_url New image URL.
+	 *
+	 * @return array{posts: int[], errors: int}
+	 */
+	public static function replace_image_url_tracked( string $old_url, string $new_url ): array {
+		global $wpdb;
+		$posts  = array_map( 'intval', self::search_image_at_content( $old_url ) );
+		$errors = 0;
+		foreach ( [ 'post_content', 'post_excerpt' ] as $field ) {
+			self::replace_image_at_content( $field, $old_url, $new_url );
+			if ( '' !== (string) $wpdb->last_error ) {
+				++$errors;
+			}
+		}
+		foreach ( $posts as $post_id ) {
+			clean_post_cache( $post_id );
+		}
+		$elementor = self::update_elementor_metadata( $old_url, $new_url );
+		return [
+			'posts'  => array_values( array_unique( array_merge( $posts, $elementor['posts'] ) ) ),
+			'errors' => $errors + $elementor['errors'],
+		];
 	}
 
 	/**
@@ -436,113 +502,20 @@ class Fns {
 	}
 
 	/**
-	 * Image attachment details
+	 * Rename an attachment's file for the current user, through the media
+	 * rename engine (MediaRenamer): no-overwrite moves of the attached file
+	 * and its full-size original, sizes rebuilt under the new name, backups
+	 * and the attachment's own converted copies moved, and image URLs in
+	 * content updated.
 	 *
-	 * @param int $attachment_id image id.
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $new_file_name Requested name (extension ignored).
 	 *
-	 * @return bool
+	 * @return bool Whether the file was renamed.
 	 */
 	public static function wp_rename_attachment( $attachment_id, $new_file_name = '' ) {
-		$orig_image_url = wp_get_attachment_url( $attachment_id );
-		$updated        = false;
-		$new_file_name  = self::rename_target_name( $new_file_name );
-		if ( empty( $new_file_name ) || ! $attachment_id ) {
-			return $updated;
-		}
-		// Get the file path.
-		$file_path = get_attached_file( $attachment_id );
-		if ( ! file_exists( $file_path ) ) {
-			return $updated;
-		}
-		$metadata_file = basename( $file_path );
-		$fileextension = pathinfo( $metadata_file, PATHINFO_EXTENSION );
-		$filebasename  = basename( $metadata_file, '.' . $fileextension );
-		$new_file_name = $new_file_name . '.' . $fileextension;
-		// Check if the new name is different from the current one.
-		if ( basename( $new_file_name, '.' . $fileextension ) === $filebasename ) {
-			return $updated;
-		}
-
-		// Check file type to see if it's an image or other media (like video).
-		$filetype         = wp_check_filetype( $file_path );
-		$is_image         = strpos( $filetype['type'], 'image' ) !== false;
-		$is_not_svg_image = $is_image && 'image/svg+xml' !== $filetype['type'];
-		// Get the current metadata for the media file (images only).
-		$old_sizes = [];
-		if ( $is_image && $is_not_svg_image ) {
-			$metadata = wp_get_attachment_metadata( $attachment_id );
-			if ( ! empty( $metadata['sizes'] ) ) {
-				foreach ( $metadata['sizes'] as $size => $fileinfo ) {
-					$old_sizes[ $size ] = wp_get_attachment_image_url( $attachment_id, $size );
-					$old_file_path      = dirname( $file_path ) . '/' . $fileinfo['file'];
-					if ( file_exists( $old_file_path ) ) {
-						 wp_delete_file( $old_file_path );
-					}
-				}
-			}
-		}
-		// Renaming the file.
-		$path_being_saved_to = dirname( $file_path );
-		$unique_filename     = $path_being_saved_to . '/' . wp_unique_filename( $path_being_saved_to, $new_file_name );
-
-		$renamed          = rename( $file_path, $unique_filename ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Using rename function to rename the file.
-		$new_file_name    = basename( $unique_filename );
-		$new_filebasename = basename( $new_file_name, '.' . $fileextension );
-
-		// If successfully renamed, update metadata.
-		if ( $renamed ) {
-			wp_update_post(
-				[
-					'ID'        => $attachment_id,
-					'post_name' => $new_filebasename,
-				]
-			);
-
-			// Only regenerate metadata for images.
-			if ( $is_image ) {
-				if ( ! function_exists( 'wp_crop_image' ) ) {
-					include ABSPATH . 'wp-admin/includes/image.php';
-				}
-				update_attached_file( $attachment_id, $unique_filename );
-				$new_image_url = wp_get_attachment_url( $attachment_id );
-				// $searchValue
-				self::replace_image_at_content( 'post_content', $orig_image_url, $new_image_url );
-				self::replace_image_at_content( 'post_excerpt', $orig_image_url, $new_image_url );
-				self::update_elementor_metadata( $orig_image_url, $new_image_url );
-				if ( empty( get_post_meta( $attachment_id, '_original_file_url', true ) ) ) {
-					update_post_meta( $attachment_id, '_original_file_url', $orig_image_url );
-				}
-				try {
-					$generate_meta = wp_generate_attachment_metadata( $attachment_id, $unique_filename );
-					wp_update_attachment_metadata( $attachment_id, $generate_meta );
-					if ( ! empty( $generate_meta['sizes'] ) ) {
-						foreach ( $generate_meta['sizes'] as $size => $fileinfo ) {
-							$new_size_url = wp_get_attachment_image_url( $attachment_id, $size );
-							if ( ! empty( $old_sizes[ $size ] ) ) {
-								self::replace_image_at_content( 'post_content', $old_sizes[ $size ], $new_size_url );
-								self::replace_image_at_content( 'post_excerpt', $old_sizes[ $size ], $new_size_url );
-								self::update_elementor_metadata( $old_sizes[ $size ], $new_size_url );
-							}
-						}
-					}
-				} catch ( \Exception $e ) {
-					wp_trigger_error(
-						__METHOD__,
-						'Error reading data: ' . $e->getMessage(),
-						E_USER_WARNING
-					);
-				}
-			} else {
-				// For non-image files, just update the attached file path.
-				update_attached_file( $attachment_id, $unique_filename );
-			}
-			// WPML.
-			self::wpml_update_translations( $attachment_id );
-			// Update permalink.
-			self::permalink_to_post_guid( $attachment_id );
-		}
-
-		return $renamed;
+		$result = MediaRenamer::rename( absint( $attachment_id ), (string) $new_file_name, get_current_user_id() );
+		return 'renamed' === $result['status'];
 	}
 
 	/**

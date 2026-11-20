@@ -17,6 +17,7 @@ use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Modules\ExifData\ExifScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Compress\CompressionJob;
+use TinySolutions\mlt\Modules\Rename\RenameJob;
 
 defined( 'ABSPATH' ) || exit();
 
@@ -46,6 +47,8 @@ class CronJobHooks {
 		add_action( DuplicateScanner::TICK_HOOK, [ DuplicateScanner::class, 'run_tick' ] );
 		// Handler for user-initiated, self-chaining image compression ticks.
 		add_action( CompressionJob::TICK_HOOK, [ CompressionJob::class, 'run_tick' ] );
+		// Bulk media rename: one batch per tick.
+		add_action( RenameJob::TICK_HOOK, [ RenameJob::class, 'run_tick' ] );
 		// Unschedule legacy recurring crons on existing installs — replaced by on-demand scans.
 		add_action( 'init', [ $this, 'unschedule_legacy_crons' ] );
 	}

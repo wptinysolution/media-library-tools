@@ -195,11 +195,11 @@ class PreviewMediaRename extends Ability {
 								'properties'           => [
 									'generated_sizes'     => [
 										'type'        => 'integer',
-										'description' => 'Generated image sizes a rename deletes and makes again under the new name.',
+										'description' => 'Generated image sizes a rename makes again under the new name (old size files are removed only once replaced).',
 									],
 									'original_image_kept' => [
 										'type'        => 'boolean',
-										'description' => 'A full-size original of a scaled or rotated upload exists; a rename leaves it with its old name.',
+										'description' => 'A full-size original of a scaled or rotated upload exists; a rename renames it too and keeps the link (the field name is kept for compatibility).',
 									],
 									'backup_sizes'        => [
 										'type'        => 'integer',
