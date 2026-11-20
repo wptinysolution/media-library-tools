@@ -28,6 +28,7 @@ use TinySolutions\mlt\Abilities\Media\CancelThumbnailRegeneration;
 use TinySolutions\mlt\Abilities\Media\PreviewMediaConversion;
 use TinySolutions\mlt\Abilities\Media\ConvertMedia;
 use TinySolutions\mlt\Abilities\Media\CancelConversionJob;
+use TinySolutions\mlt\Abilities\Media\GetMediaImagePreview;
 use TinySolutions\mlt\Abilities\Media\GetConversionStatus;
 use TinySolutions\mlt\Abilities\Media\GetThumbnailStatus;
 use TinySolutions\mlt\Abilities\Media\GetMediaHealth;
@@ -191,6 +192,7 @@ class AbilitiesInit {
 			PreviewMediaConversion::instance(),
 			ConvertMedia::instance(),
 			CancelConversionJob::instance(),
+			GetMediaImagePreview::instance(),
 		];
 	}
 }

@@ -507,6 +507,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-media-image-preview</code></td>
+							<td><?php esc_html_e( 'Returns one JPEG, PNG or WebP image as an image the assistant can look at: at most 1024 pixels on its longest side and about 1 MB, turned upright, re-encoded and stripped of all metadata (no EXIF, GPS, IPTC, XMP or comments). Use it before writing alt text or captions with tsmlt-update-media-metadata. No URL, path or file name is returned. Never changes the image.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

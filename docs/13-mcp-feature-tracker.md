@@ -40,14 +40,14 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F11 | Rename | Free / Pro | Partially Implemented | Investigated | None (renaming deferred) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
 | F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
-| F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None (Pro tool-list test update awaits approval) |
-| F15 | AI metadata generation | Free / Pro | Planned | Not Investigated | Decide whether any tool is needed |
+| F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None |
+| F15 | AI metadata generation | Free / Pro | Excluded (server-side); client-side workflow supported | Investigated | None |
 | F16 | Rubbish files and empty folders | Free / Pro | Deferred | Investigated | Decide on exposing file paths |
 | F17 | Image sizes, settings and automatic behaviour | Free / Pro | Not Investigated | Not Investigated | Probably not applicable; confirm |
 
 ## Next feature
 
-**Not chosen yet.** F13 Conversion execution was implemented and verified on 2026-11-20. Open items: C5 (copies left by deleted attachments block new conversions with that name) and the Pro tool-list test update. Remaining candidates: F15 AI metadata generation (Planned; Not Investigated), F16 Rubbish files (Deferred), F17 (Not Investigated).
+**Not chosen yet.** F15 was closed on 2026-11-21: server-side AI is excluded and the client-side workflow is supported, completed by `tsmlt/get-media-image-preview`. Open items: the Pro tool-list test update for the new tool, and C5 (F13: copies left by deleted attachments block new conversions with that name). Remaining candidates: F16 Rubbish files (Deferred), F17 (Not Investigated).
 
 ## Features
 
@@ -212,7 +212,7 @@ A feature is marked Implemented only with test evidence, never because code exis
   - engine: `ConversionEngineHardeningTest` (12).
   - Mutation checks: removing the AVIF licence refusal, the running-job check before the token is used, or the name-conflict check makes the matching tests fail.
   - Full suites (2026-11-20): Free integration 1308 (5 skipped), Free unit 135, all passing.
-  - Pro was not run for this change (no Pro code touched); its pinned tool-list test still needs the new Free tool names (approval pending).
+  - Pro's pinned tool-list test was updated for these tools on 2026-11-21 (`41d5ccb`); Pro 558, all passing then.
   - Not tested on a real site.
 - **Investigation:** Investigated 2026-11-20 (read-only audit; nothing changed in the repositories).
 
@@ -386,7 +386,7 @@ Not recommended through MCP, consistent with D12 for thumbnails. It queues at mo
   - Mutation checks: removing the sizes check, the running-job check before the token is used, or the read filter on status results makes the matching test fail.
   - With licensed Pro: a throwaway test run under Pro's test setup (not committed; no Pro change) used the four tools; a Pro custom image size was generated and Pro's compress on upload stayed out.
   - Full suites (2026-11-20): Free integration 1282 (5 skipped), Free unit 135, all passing.
-  - Pro 558 with 1 failure: `GetExifCaptionMcpExposureTest::test_listed_and_callable_on_dedicated_server` pins the dedicated server's tool list and does not yet include the four new Free tools. Updating that Pro test needs the project owner's approval.
+  - Pro's pinned tool-list test was updated for these tools on 2026-11-21 (`41d5ccb`).
   - Not tested on a real site.
 - **Investigation:** Investigated 2026-11-20 (read-only audit; nothing changed).
 
@@ -519,14 +519,50 @@ All Free; no Pro-only behaviour. Every tool requires `manage_options` in the per
 1. ~~P1–P6~~: decided and implemented 2026-11-20 (D12).
 2. ~~Library scope through MCP~~: not offered (D12).
 3. ~~MCP tool scope~~: approved and implemented 2026-11-20 (D13).
-4. Approve updating the Pro test `GetExifCaptionMcpExposureTest` to include the four new Free tools?
+4. ~~Pro tool-list test~~: updated 2026-11-21 (`41d5ccb`).
 
 ### F15 AI metadata generation
 
-- **Owner:** single image Free (`Controllers/AI/AiApi.php`, AJAX `tsmlt_ai_generate`); bulk Pro (`Modules/BulkAi/*`, AJAX `tsmlt_bulk_ai_*`).
-- **MCP status:** Planned (roadmap row 4): decide whether any tool is needed, since the client's own AI can write text through `tsmlt/update-media-metadata`.
-- **Tools:** none.
-- **Investigation:** Not Investigated.
+- **Owner:**
+  - **Plugin feature:** single image Free (`Controllers/AI/AiApi.php`, AJAX `tsmlt_ai_generate`); bulk Pro (`Modules/BulkAi/*`, AJAX `tsmlt_bulk_ai_*`).
+  - **MCP image preview:** Free.
+- **MCP status:**
+  - **Excluded:** server-side AI generation (D16).
+  - **Supported instead:** a client-side workflow.
+- **Investigation:** Investigated 2026-11-21 (read-only audit of `AiApi`, Pro `BulkAiJob`/`BulkAiApply` and Pro `FilterHooks::ai_prepare_image()`).
+- **Why server-side AI is excluded from MCP:**
+  - **Cost:** every call spends the site's provider budget.
+  - **Data leaving the site:** site name and tagline, file names, current text, parent post content (any status) and, with Pro image sending, the full original image go to a third party.
+  - **Errors:** raw provider error texts can include parts of credentials.
+  - **Design:** it duplicates what an MCP client's own model does, and goes against the guide's architecture decision ("prefer client-side AI").
+- **Supported workflow:**
+  1. `tsmlt/search-media` (`missing_alt: true`, `mime_type: "image"`);
+  2. `tsmlt/get-media-details` (current text, attached post title);
+  3. `tsmlt/get-media-image-preview` (the image, for the client's vision model);
+  4. `tsmlt/update-media-metadata` (save, one image per call).
+
+  Documented in the guide: "AI-written alt text and captions — client-side".
+- **Tools:** `tsmlt/get-media-image-preview` (Free, read-only, implemented 2026-11-21).
+  - **Code:** `app/Abilities/ImagePreview.php` (service) and `app/Abilities/Media/GetMediaImagePreview.php`.
+  - **Contract:** input `id` (one attachment). It returns the MCP Adapter's image result shape (`type: image`, raw bytes, `mimeType`), which the adapter 0.7.0 turns into an `image` content block (`ToolsHandler`, image branch; `ContentBlockHelper::image()`). The output schema is empty, so no `outputSchema` is listed; WordPress skips output validation for an empty schema (`WP_Ability::validate_output()`), confirmed by the tests.
+  - **Rules:**
+    - `manage_options`, `read_post`, library (`inherit`) JPEG/PNG/WebP only;
+    - a local file inside uploads (realpath check; no streams or offloaded files);
+    - the smallest sufficient source file;
+    - a source of at most 50 MB and 50 megapixels before decoding;
+    - turned upright and downscaled to at most 1024 px.
+  - **Metadata removal:** after re-encoding, all metadata is removed and the result checked for each format. JPEG uses `JpegMetadataStripper::strip_bytes()` and keeps only colour headers; PNG keeps only image and colour chunks; WebP drops the EXIF/XMP chunks and their flags. WordPress's Imagick editor strips metadata only when it resizes, so this step is required.
+  - **Size:** at most 1,000,000 bytes, trying 768 then 512 px. The `tsmlt_mcp_image_preview_max_bytes` filter can only lower it. Over the limit, or on any failure, nothing is returned, never the original.
+  - **Temporary files:** in the system temp folder, always removed.
+- **Tests:**
+  - `GetMediaImagePreviewAbilityTest`: 11 tests, including over the real MCP endpoint.
+  - With the stripping removed, the JPEG tests fail: the GD encoder leaves a comment segment.
+  - Full suites: Free integration 1328 (5 skipped) and unit 135, all passing.
+  - Pro 558 with 1 failure: its pinned tool-list test needs `tsmlt-get-media-image-preview` added (Pro tests not changed; approval needed).
+- **Limitations:**
+  - **Engine coverage:** verified with GD only. The ImageMagick path uses the same removal and checks, and the removal is tested directly on metadata-laden bytes, but it was not run with ImageMagick.
+  - **Clients:** display depends on the MCP client; not tested with a real client.
+  - **One image per call:** no bulk preview (by scope).
 
 ### F16 Rubbish files and empty folders
 
@@ -560,6 +596,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D13 | 2026-11-20 | MCP thumbnail regeneration: four Free tools; 1–20 images only, never the whole library; preview with a one-time, user-bound token; the hardened engine's fixed-ID background job only; refused while a regeneration job runs, keeping the token; no Pro code changes (Pro GPS removal and EXIF editor lock checks out of scope). | F14 |
 | D14 | 2026-11-20 | Conversion engine, before any MCP tool: never overwrite or delete a file that is not positively the attachment's own copy (refuse with `name_conflict`, keep the existing naming); conversion refuses compression, EXIF-strip and regeneration locks; library (`inherit`) attachments only; regenerate copies all or nothing; no raw SQL in library selection. Whole-library conversion, deleting and regenerating copies stay out of MCP. | F13 |
 | D15 | 2026-11-20 | MCP conversion: Free `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`; 1–20 images; Pro options refused without a licence, never silently downgraded; progress through the existing `tsmlt/get-compression-job-status`; no whole-library conversion, delete or regenerate copies through MCP; no Pro changes. | F13 |
+| D16 | 2026-11-21 | Server-side AI generation is not offered through MCP (cost, data leaving the site, raw provider errors, duplicates the client's model). AI-written metadata is supported client-side: `tsmlt/search-media`, `tsmlt/get-media-details`, the new read-only `tsmlt/get-media-image-preview` (one downscaled, metadata-free image per call) and `tsmlt/update-media-metadata`. | F15 |
 
 ## Workflow
 
