@@ -467,6 +467,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-audit-media-health</code></td>
+							<td><?php esc_html_e( 'Audits the whole media library with the same checks as tsmlt-get-media-health, up to 100 attachments per call: lists only the attachments with problems, counts the healthy ones, and gives the position to continue from. Stores nothing between calls. Never repairs or changes anything.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-exif-caption</code></td>
 							<td><?php esc_html_e( 'Pro. Builds a caption from one image\'s camera make and model and exposure (aperture, shutter speed, ISO) and returns it without saving.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

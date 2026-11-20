@@ -135,17 +135,6 @@ class GetMediaHealth extends Ability {
 	 * @return array
 	 */
 	protected function get_output_schema(): array {
-		$pair = static function ( string $first, string $second ): array {
-			return [
-				'type'                 => 'object',
-				'additionalProperties' => false,
-				'required'             => [ $first, $second ],
-				'properties'           => [
-					$first  => [ 'type' => [ 'integer', 'string' ] ],
-					$second => [ 'type' => [ 'integer', 'string' ] ],
-				],
-			];
-		};
 		return [
 			'type'                 => 'object',
 			'additionalProperties' => false,
@@ -153,53 +142,7 @@ class GetMediaHealth extends Ability {
 			'properties'           => [
 				'items'   => [
 					'type'  => 'array',
-					'items' => [
-						'type'                 => 'object',
-						'additionalProperties' => false,
-						'required'             => [ 'id', 'status', 'issues', 'details', 'has_alt_text' ],
-						'properties'           => [
-							'id'           => [ 'type' => 'integer' ],
-							'status'       => [
-								'type' => 'string',
-								'enum' => self::STATUSES,
-							],
-							'issues'       => [
-								'type'  => 'array',
-								'items' => [
-									'type' => 'string',
-									'enum' => self::ISSUES,
-								],
-							],
-							'details'      => [
-								'type'                 => 'object',
-								'additionalProperties' => false,
-								'properties'           => [
-									'mime_mismatch'       => $pair( 'stored', 'detected' ),
-									'filesize_mismatch'   => $pair( 'recorded', 'actual' ),
-									'dimensions_mismatch' => [
-										'type'       => 'object',
-										'additionalProperties' => false,
-										'required'   => [ 'recorded_width', 'recorded_height', 'actual_width', 'actual_height' ],
-										'properties' => [
-											'recorded_width' => [ 'type' => 'integer' ],
-											'recorded_height' => [ 'type' => 'integer' ],
-											'actual_width' => [ 'type' => 'integer' ],
-											'actual_height' => [ 'type' => 'integer' ],
-										],
-									],
-									'invalid_parent'      => [
-										'type'       => 'object',
-										'additionalProperties' => false,
-										'required'   => [ 'parent_id' ],
-										'properties' => [
-											'parent_id' => [ 'type' => 'integer' ],
-										],
-									],
-								],
-							],
-							'has_alt_text' => [ 'type' => 'boolean' ],
-						],
-					],
+					'items' => self::item_schema(),
 				],
 				'summary' => [
 					'type'                 => 'object',
@@ -216,6 +159,73 @@ class GetMediaHealth extends Ability {
 						],
 					],
 				],
+			],
+		];
+	}
+
+	/**
+	 * Output schema of one inspect() result. Shared with
+	 * tsmlt/audit-media-health.
+	 *
+	 * @return array
+	 */
+	public static function item_schema(): array {
+		$pair = static function ( string $first, string $second ): array {
+			return [
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'required'             => [ $first, $second ],
+				'properties'           => [
+					$first  => [ 'type' => [ 'integer', 'string' ] ],
+					$second => [ 'type' => [ 'integer', 'string' ] ],
+				],
+			];
+		};
+		return [
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => [ 'id', 'status', 'issues', 'details', 'has_alt_text' ],
+			'properties'           => [
+				'id'           => [ 'type' => 'integer' ],
+				'status'       => [
+					'type' => 'string',
+					'enum' => self::STATUSES,
+				],
+				'issues'       => [
+					'type'  => 'array',
+					'items' => [
+						'type' => 'string',
+						'enum' => self::ISSUES,
+					],
+				],
+				'details'      => [
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => [
+						'mime_mismatch'       => $pair( 'stored', 'detected' ),
+						'filesize_mismatch'   => $pair( 'recorded', 'actual' ),
+						'dimensions_mismatch' => [
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'required'             => [ 'recorded_width', 'recorded_height', 'actual_width', 'actual_height' ],
+							'properties'           => [
+								'recorded_width'  => [ 'type' => 'integer' ],
+								'recorded_height' => [ 'type' => 'integer' ],
+								'actual_width'    => [ 'type' => 'integer' ],
+								'actual_height'   => [ 'type' => 'integer' ],
+							],
+						],
+						'invalid_parent'      => [
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'required'             => [ 'parent_id' ],
+							'properties'           => [
+								'parent_id' => [ 'type' => 'integer' ],
+							],
+						],
+					],
+				],
+				'has_alt_text' => [ 'type' => 'boolean' ],
 			],
 		];
 	}
@@ -254,7 +264,7 @@ class GetMediaHealth extends Ability {
 		$statuses = array_fill_keys( self::STATUSES, 0 );
 		$issues   = array_fill_keys( self::ISSUES, 0 );
 		foreach ( $ids as $id ) {
-			$item = self::item( $id );
+			$item = self::inspect( $id );
 			++$statuses[ $item['status'] ];
 			foreach ( $item['issues'] as $issue ) {
 				++$issues[ $issue ];
@@ -291,13 +301,15 @@ class GetMediaHealth extends Ability {
 	}
 
 	/**
-	 * Health of one attachment.
+	 * Health of one attachment: status (healthy, issues, not_found or
+	 * forbidden), issue codes, compared values and whether alt text is set.
+	 * Read-only. Also used by tsmlt/audit-media-health.
 	 *
 	 * @param int $id Attachment ID.
 	 *
-	 * @return array
+	 * @return array{id: int, status: string, issues: string[], details: object, has_alt_text: bool}
 	 */
-	private static function item( int $id ): array {
+	public static function inspect( int $id ): array {
 		$item = [
 			'id'           => $id,
 			'status'       => 'not_found',

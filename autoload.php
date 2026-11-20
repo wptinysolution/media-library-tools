@@ -21,6 +21,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Abilities\\ContentMedia' => __DIR__ . '/app/Abilities/ContentMedia.php',
 		'TinySolutions\\mlt\\Abilities\\McpServerRegistration' => __DIR__ . '/app/Abilities/McpServerRegistration.php',
 		'TinySolutions\\mlt\\Abilities\\MediaPresenter' => __DIR__ . '/app/Abilities/MediaPresenter.php',
+		'TinySolutions\\mlt\\Abilities\\Media\\AuditMediaHealth' => __DIR__ . '/app/Abilities/Media/AuditMediaHealth.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\CreateMediaGroup' => __DIR__ . '/app/Abilities/Media/CreateMediaGroup.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\ExportMediaCsv' => __DIR__ . '/app/Abilities/Media/ExportMediaCsv.php',
 		'TinySolutions\\mlt\\Abilities\\Media\\FindDuplicateMedia' => __DIR__ . '/app/Abilities/Media/FindDuplicateMedia.php',
