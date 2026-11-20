@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Modules\Compress\CompressionAccess;
+use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -98,8 +99,10 @@ class ConversionSettings {
 			'use_custom_quality' => $use_custom,
 			'generated_sizes'    => ! empty( $stored['conversion_generated_sizes'] )
 				&& $access->can_convert_generated_sizes(),
+			// Off while thumbnails are regenerated: that is not an upload.
 			'auto_on_upload'     => ! empty( $stored['conversion_auto_on_upload'] )
-				&& $access->can_auto_convert_on_upload(),
+				&& $access->can_auto_convert_on_upload()
+				&& ! RegenerateThumbnails::is_regenerating(),
 		];
 	}
 

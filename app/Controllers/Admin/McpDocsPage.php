@@ -472,6 +472,26 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-preview-thumbnail-regeneration</code></td>
+							<td><?php esc_html_e( 'Checks whether the thumbnails (image sizes) of up to 20 images can be regenerated: ready, not found, forbidden, not an image, file missing, stored off the server, full-size original missing, or locked by another operation; for scaled and rotated uploads, whether the full-size original is available. Lists the sizes that would be made and the disabled sizes, which are kept. Issues a one-time confirmation token. Regenerates nothing.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-regenerate-thumbnails</code></td>
+							<td><?php esc_html_e( 'Starts regenerating the previewed images, with the confirmation token and confirm: true, after checking everything again. Runs in the background, never in the request; never the whole library. Refused while a regeneration is running. Not reversible: existing size files are replaced.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (replaces image size files)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-thumbnail-regeneration-status</code></td>
+							<td><?php esc_html_e( 'Returns the regeneration job\'s status, counts, percentage, whether the next background step is scheduled, and recent per-image results as codes. No file names or error messages. Never changes the job.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-cancel-thumbnail-regeneration</code></td>
+							<td><?php esc_html_e( 'Stops the running regeneration job with the given job ID, like Stop on the Regenerate page. Images already regenerated stay regenerated.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

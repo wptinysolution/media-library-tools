@@ -7,6 +7,7 @@
 
 namespace TinySolutions\mlt\Helpers;
 
+use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Vendor\CodesVault\Howdyqb\DB;
 use WP_Filesystem;
 use WP_Filesystem_Direct;
@@ -706,7 +707,12 @@ class Fns {
 		// general options; AiApi reads keys through Credentials only.
 		unset( $options['ai_chatgpt_key'], $options['ai_gemini_key'], $options['ai_claude_key'] );
 
-		return wp_parse_args( $options, $defaults );
+		$options = wp_parse_args( $options, $defaults );
+		// Regenerating thumbnails is not an upload: GPS removal on upload is off.
+		if ( RegenerateThumbnails::is_regenerating() ) {
+			$options['auto_remove_gps_on_upload'] = 0;
+		}
+		return $options;
 	}
 
 	/**

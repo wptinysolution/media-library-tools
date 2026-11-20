@@ -34,16 +34,17 @@ WordPress and your active theme define multiple image sizes:
 | **Full** | Original uploaded size |
 | **Custom Sizes** | Theme-specific sizes |
 
-When you regenerate, the tool creates these versions from the original file.
+When you regenerate, the tool creates these versions from the original file. For large or rotated uploads, where WordPress keeps the full-size original next to a scaled or rotated copy, the sizes are made from that full-size original, as WordPress does on upload, and the link to it is kept. If that original is missing or unreadable, the image is skipped and nothing about it changes.
 
-### 2. Batch Processing
+### 2. Background Processing
 
-Regenerating all images at once could hang the browser. The tool processes in batches:
+Regeneration runs in the background (WP-Cron), so you can close the page:
 
-- **Batch Size**: Configurable number of images per request
-- **Progress Bar**: Visual indication of completion
-- **Real-time Updates**: Shows processed count and total
-- **Resume Capable**: Can stop and resume later
+- **Fixed list**: when you start, the list of images is fixed. Media added or deleted during the run does not shift it; deleted images are reported as not found.
+- **Batches**: 50 images per background step.
+- **One run at a time**: starting again while a run is in progress shows that run instead of restarting it. A run that has made no progress for 15 minutes, with no next step scheduled, counts as stalled and a new start replaces it.
+- **Stop**: stops the run; images already done stay done.
+- **Progress**: processed count, total, and the images that were done or could not be done, with the reason.
 
 ### 3. Storage Impact
 
@@ -110,11 +111,8 @@ During regeneration:
 
 Typical setting not exposed in UI, but affects performance:
 
-- **Larger batches** (50+): Faster total time, higher server load
-- **Smaller batches** (5-10): Slower total time, lighter server load
-- **Default**: 20 images per request
-
-*Usually automatic—adjust only if experiencing timeout errors*
+- **Default**: 50 images per background step
+- Developers can change it with the `tsmlt_regenerate_tick_batch_size` filter (1–200); lower it if steps time out on very large images.
 
 ### Image Size Categories
 
@@ -136,18 +134,22 @@ When you regenerate, **all registered sizes** are rebuilt for **all images**.
 
 ### What Gets Regenerated
 
-✓ All existing images get new versions for all registered sizes
-✓ Original files are not modified
-✓ Metadata (alt text, captions) preserved
+✓ Every image in the library gets new versions of every registered size
+✓ The uploaded file, the scaled or rotated copy and the full-size original are not modified
+✓ Alt text, captions and other attachment data are preserved
+✓ Sizes disabled in Media Library Tools are not regenerated, and their existing files are kept (they are no longer listed in the image's data)
+✓ Sizes that are no longer registered keep their files and records
 ✗ Does NOT rename files
-✗ Does NOT delete old versions (safe)
+✗ When a registered size's dimensions changed, the old file of that size is deleted after the new one is in place (unless anything else still uses that file)
 
 ### Safety Considerations
 
-- **Non-destructive**: Original files always safe
-- **Resumable**: Can pause/resume without issues
-- **Reversible**: Old thumbnails kept (safe to run multiple times)
-- **Backups**: Consider backup before regenerating very large libraries (500+ images)
+- **New files first**: every size of an image is made into temporary files and checked before any existing file is replaced; if a size cannot be made, that image is left exactly as it was
+- **Skipped while busy**: an image being compressed, converted or having its EXIF removed is skipped, and those features wait while an image is being regenerated
+- **Permissions**: each image is checked when it is processed, for the administrator who started the run; trashed images are skipped
+- **Not an upload**: compress, convert and GPS removal "on upload" do not run during regeneration
+- **Not reversible**: replaced thumbnails are not kept. Compressed thumbnails are replaced by uncompressed ones, and WebP/AVIF copies of sizes may become outdated
+- **Backups**: consider a backup before regenerating very large libraries
 
 ### Storage & Performance
 
@@ -210,7 +212,7 @@ If you added new image sizes via code/plugin:
 - A: Large images take time. Leave page open and wait. Or close/refresh to check actual progress.
 
 **Q: Gets timeout error partway through**
-- A: Server timeout on large libraries. Process resumes where it stopped—just click Regenerate again.
+- A: The run continues in the background. If it shows no progress for 15 minutes (for example because WP-Cron does not run on your site), it counts as stalled; clicking Regenerate then starts a new run from the beginning.
 
 **Q: New image size not appearing after regenerate**
 - A: Verify size is properly registered. Check with theme developer that size registration is correct. Regenerate again.

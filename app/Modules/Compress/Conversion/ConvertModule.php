@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Compress\CompressionAccess;
 use TinySolutions\mlt\Modules\Compress\CompressionJob;
 use TinySolutions\mlt\Traits\SingletonTrait;
@@ -138,28 +139,22 @@ class ConvertModule {
 	 * @return array{total: int, converted: int, remaining: int}
 	 */
 	public function get_library_stats(): array {
-		global $wpdb;
+		$total_rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->andIn( 'post_mime_type', ...ConversionCapabilities::SUPPORTED_SOURCES )
+			->get();
 
-		$mime_types   = ConversionCapabilities::SUPPORTED_SOURCES;
-		$placeholders = implode( ', ', array_fill( 0, count( $mime_types ), '%s' ) );
+		$converted_rows = Fns::DB()->select()
+			->count( '*', 'total' )
+			->from( 'postmeta' )
+			->where( 'meta_key', '=', ConversionMetadata::META_KEY )
+			->get();
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery -- Aggregate count over a fixed MIME whitelist; every value is bound, and WP_Query cannot express this without loading rows.
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_status = 'inherit' AND post_mime_type IN ( {$placeholders} )",
-				...$mime_types
-			)
-		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery
-
-		$converted = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Aggregate count; no caching layer applies to a live progress figure.
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = %s",
-				ConversionMetadata::META_KEY
-			)
-		);
-
-		$converted = min( $total, $converted );
+		$total     = (int) ( $total_rows[0]['total'] ?? 0 );
+		$converted = min( $total, (int) ( $converted_rows[0]['total'] ?? 0 ) );
 
 		return [
 			'total'     => $total,
@@ -179,29 +174,34 @@ class ConvertModule {
 		global $wpdb;
 
 		$limit        = CompressionAccess::instance()->get_conversion_limit();
-		$mime_types   = ConversionCapabilities::SUPPORTED_SOURCES;
-		$placeholders = implode( ', ', array_fill( 0, count( $mime_types ), '%s' ) );
-
 		$include_done = ! empty( $params['include_converted'] );
 
-		$sql    = "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_status = 'inherit' AND post_mime_type IN ( {$placeholders} )";
-		$values = $mime_types;
+		$query = Fns::DB()->select( 'ID' )
+			->from( 'posts' )
+			->where( 'post_type', '=', 'attachment' )
+			->andWhere( 'post_status', '=', 'inherit' )
+			->andIn( 'post_mime_type', ...ConversionCapabilities::SUPPORTED_SOURCES );
 
 		if ( ! $include_done ) {
-			$sql     .= " AND ID NOT IN ( SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s )";
-			$values[] = ConversionMetadata::META_KEY;
+			// The query builder has no LEFT JOIN, so the exclusion is a prepared
+			// subquery through raw(), as CompressionJob::start_library() does; the
+			// meta key is a class constant and no request data reaches the SQL.
+			$query->raw(
+				$wpdb->prepare(
+					"AND ID NOT IN ( SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s )",
+					ConversionMetadata::META_KEY
+				)
+			);
 		}
 
-		$sql .= ' ORDER BY ID DESC';
+		$query->orderBy( 'ID', 'DESC' );
 
 		if ( $limit > 0 ) {
-			$sql     .= ' LIMIT %d';
-			$values[] = $limit;
+			$query->limit( $limit );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery -- Prepared immediately above with every value bound; an ID sweep WP_Query cannot express without loading full post rows.
-		$ids = $wpdb->get_col( $wpdb->prepare( $sql, ...$values ) );
-		$ids = array_map( 'absint', (array) $ids );
+		$rows = $query->get();
+		$ids  = array_map( 'absint', array_column( is_array( $rows ) ? $rows : [], 'ID' ) );
 
 		if ( empty( $ids ) ) {
 			return new WP_Error(

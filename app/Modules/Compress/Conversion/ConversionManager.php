@@ -18,9 +18,12 @@ use WP_Error;
 /**
  * Deletes and regenerates the converted files belonging to an attachment.
  *
- * Only ever touches files this plugin recorded in conversion metadata, and only
- * those resolving inside the uploads directory — so a tampered meta row cannot
- * be used to delete arbitrary files.
+ * Only ever deletes files that are positively this attachment's own converted
+ * copies (ConversionOwnership::is_owned_copy()): recorded in its conversion
+ * data, named after its own attached or size file, inside uploads, used by
+ * no attachment as a media file and recorded by no other attachment. A
+ * stored record alone is never enough, so a wrong or tampered record cannot
+ * delete another attachment's file.
  */
 class ConversionManager {
 
@@ -70,6 +73,8 @@ class ConversionManager {
 		}
 
 		$deleted = 0;
+		$kept    = 0;
+		$basedir = trailingslashit( (string) wp_get_upload_dir()['basedir'] );
 		$formats = $data['formats'];
 
 		foreach ( $formats as $format_key => $info ) {
@@ -89,8 +94,14 @@ class ConversionManager {
 			}
 
 			foreach ( $relative_paths as $relative ) {
-				if ( $this->delete_upload_file( $relative ) ) {
+				if ( ! is_file( $basedir . $relative ) ) {
+					continue;
+				}
+				if ( ConversionOwnership::is_owned_copy( $attachment_id, $basedir . $relative, (string) $format_key ) && $this->delete_upload_file( $relative ) ) {
 					++$deleted;
+				} else {
+					// Not provably this attachment's copy: kept, no longer recorded.
+					++$kept;
 				}
 			}
 
@@ -107,6 +118,7 @@ class ConversionManager {
 		return [
 			'attachment_id' => $attachment_id,
 			'deleted'       => $deleted,
+			'kept'          => $kept,
 			'conversion'    => $metadata->get_for_display( $attachment_id ),
 			'message'       => sprintf(
 				/* translators: %d: number of deleted files */
@@ -117,14 +129,14 @@ class ConversionManager {
 	}
 
 	/**
-	 * Delete existing conversions and produce them again.
-	 *
-	 * Used when the source image has changed — a regenerated thumbnail set or a
-	 * re-upload leaves the previous output describing an image that no longer
-	 * exists.
+	 * Make an attachment's converted copies again (for example after its
+	 * image changed), all or nothing: the new copies are made and checked
+	 * first, old copies are replaced only when every one was made, and a
+	 * failure keeps the old copies and records
+	 * (AttachmentConverter::regenerate_copies()).
 	 *
 	 * @param int   $attachment_id Attachment post ID.
-	 * @param array $params        Raw request parameters for run settings.
+	 * @param array $params        Request parameters.
 	 *
 	 * @return array|WP_Error
 	 */
@@ -136,8 +148,7 @@ class ConversionManager {
 			return $valid;
 		}
 
-		$metadata = ConversionMetadata::instance();
-		$existing = $metadata->get( $attachment_id );
+		$existing = ConversionMetadata::instance()->get( $attachment_id );
 
 		// Reuse the formats already generated unless the caller names others, so
 		// "regenerate" reproduces what was there rather than silently changing it.
@@ -145,15 +156,9 @@ class ConversionManager {
 			$params['formats'] = array_keys( $existing['formats'] );
 		}
 
-		// Remove the old output first so a failed run cannot leave a mix of old
-		// and new files behind.
-		if ( ! empty( $existing['formats'] ) ) {
-			$this->delete_conversions( $attachment_id );
-		}
-
 		$run_settings = ConversionSettings::instance()->resolve_run_settings( $params );
 
-		return $converter->convert( $attachment_id, $run_settings );
+		return $converter->regenerate_copies( $attachment_id, $run_settings );
 	}
 
 	/**

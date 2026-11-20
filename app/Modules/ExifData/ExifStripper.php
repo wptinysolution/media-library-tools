@@ -18,6 +18,7 @@ use TinySolutions\mlt\Modules\Compress\BackupManager;
 use TinySolutions\mlt\Modules\Compress\Conversion\AttachmentConverter;
 use TinySolutions\mlt\Modules\Compress\Conversion\ConversionCapabilities;
 use TinySolutions\mlt\Modules\Compress\Conversion\ConversionMetadata;
+use TinySolutions\mlt\Modules\Regenerate\RegenerateLock;
 use TinySolutions\mlt\Modules\UsedWhere\ScanStartLock;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -114,10 +115,10 @@ class ExifStripper {
 			];
 		}
 
-		if ( AttachmentProcessor::instance()->is_locked( $attachment_id ) || AttachmentConverter::instance()->is_locked( $attachment_id ) ) {
+		if ( AttachmentProcessor::instance()->is_locked( $attachment_id ) || AttachmentConverter::instance()->is_locked( $attachment_id ) || RegenerateLock::is_held( $attachment_id ) ) {
 			return [
 				'success' => false,
-				'message' => esc_html__( 'This image is being compressed or converted. Try again when that has finished.', 'media-library-tools' ),
+				'message' => esc_html__( 'This image is being compressed, converted or having its thumbnails regenerated. Try again when that has finished.', 'media-library-tools' ),
 			];
 		}
 

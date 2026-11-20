@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use TinySolutions\mlt\Abilities\AbilityGuard;
-use TinySolutions\mlt\Helpers\Fns;
+use TinySolutions\mlt\Abilities\ConfirmationToken;
 use WP_Error;
 use WP_Post;
 
@@ -52,20 +52,6 @@ class McpCompression {
 	 * @var string
 	 */
 	const TOKEN_OPTION_PREFIX = 'tsmlt_compression_token_';
-
-	/**
-	 * Expired tokens read per pruning query.
-	 *
-	 * @var int
-	 */
-	const TOKEN_PRUNE_LIMIT = 100;
-
-	/**
-	 * Most pruning queries per issued token.
-	 *
-	 * @var int
-	 */
-	const TOKEN_PRUNE_BATCHES = 10;
 
 	/**
 	 * Scopes of a run.
@@ -368,69 +354,39 @@ class McpCompression {
 	}
 
 	/**
-	 * Issue a confirmation token for this run, for the current user. Expired
-	 * tokens are pruned first.
+	 * Issue a confirmation token for this run, for the current user
+	 * (ConfirmationToken).
 	 *
 	 * @param array $run Scope, ids, request, include_compressed and settings.
 	 *
 	 * @return array{token: string, expires: int}|null Null when it could not be stored.
 	 */
 	public static function issue_token( array $run ): ?array {
-		self::prune_tokens();
-		$token   = bin2hex( random_bytes( 32 ) );
-		$expires = time() + self::TOKEN_TTL;
-		$ids     = array_map( 'intval', (array) ( $run['ids'] ?? [] ) );
+		$ids = array_map( 'intval', (array) ( $run['ids'] ?? [] ) );
 		sort( $ids );
-		$stored = add_option(
-			self::token_option( $token ),
+		return ConfirmationToken::issue(
+			self::TOKEN_OPTION_PREFIX,
 			[
-				'user_id'            => get_current_user_id(),
 				'scope'              => (string) $run['scope'],
 				'ids'                => $ids,
 				'request'            => (array) $run['request'],
 				'include_compressed' => (bool) $run['include_compressed'],
 				'settings'           => (array) $run['settings'],
-				'expires'            => $expires,
 			],
-			'',
-			false
+			self::TOKEN_TTL
 		);
-		return $stored ? [
-			'token'   => $token,
-			'expires' => $expires,
-		] : null;
 	}
 
 	/**
-	 * Check a confirmation token and, if it is valid, use it up. Only the
-	 * request whose delete_option() removed the row may use it, so a token
-	 * works once; its payload is read from the database, not a cache.
+	 * Check a confirmation token and, if it is valid, use it up; a token
+	 * works once (ConfirmationToken).
 	 *
 	 * @param mixed $token Token from the client.
 	 *
 	 * @return array|WP_Error The stored run.
 	 */
 	public static function consume_token( $token ) {
-		$again = __( 'Run tsmlt/preview-compression again.', 'media-library-tools' );
-		if ( ! is_string( $token ) || 1 !== preg_match( '/^[a-f0-9]{64}$/', $token ) ) {
-			return self::token_error( __( 'A confirmation_token from tsmlt/preview-compression is required.', 'media-library-tools' ) );
-		}
-		$option  = self::token_option( $token );
-		$payload = self::read_token( $option );
-		if ( ! is_array( $payload ) ) {
-			return self::token_error( __( 'The confirmation token is unknown or was already used.', 'media-library-tools' ) . ' ' . $again );
-		}
-		if ( (int) ( $payload['expires'] ?? 0 ) < time() ) {
-			delete_option( $option );
-			return self::token_error( __( 'The confirmation token expired.', 'media-library-tools' ) . ' ' . $again );
-		}
-		if ( (int) ( $payload['user_id'] ?? 0 ) !== get_current_user_id() ) {
-			return self::token_error( __( 'The confirmation token was issued to another user.', 'media-library-tools' ) );
-		}
-		if ( ! delete_option( $option ) ) {
-			return self::token_error( __( 'The confirmation token is unknown or was already used.', 'media-library-tools' ) . ' ' . $again );
-		}
-		return $payload;
+		return ConfirmationToken::consume( self::TOKEN_OPTION_PREFIX, $token, 'tsmlt/preview-compression', self::ERROR_TOKEN );
 	}
 
 	/**
@@ -527,79 +483,5 @@ class McpCompression {
 	 */
 	private static function invalid( string $message ): WP_Error {
 		return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, $message, 400 );
-	}
-
-	/**
-	 * Invalid-token error.
-	 *
-	 * @param string $message Message.
-	 *
-	 * @return WP_Error
-	 */
-	private static function token_error( string $message ): WP_Error {
-		return AbilityGuard::error( self::ERROR_TOKEN, $message, 400 );
-	}
-
-	/**
-	 * Option name of a token.
-	 *
-	 * @param string $token Token.
-	 *
-	 * @return string
-	 */
-	private static function token_option( string $token ): string {
-		return self::TOKEN_OPTION_PREFIX . hash( 'sha256', $token );
-	}
-
-	/**
-	 * A token's payload, read from the database.
-	 *
-	 * @param string $option Option name.
-	 *
-	 * @return array|null
-	 */
-	private static function read_token( string $option ): ?array {
-		try {
-			$rows = Fns::DB()->select( 'option_value' )->from( 'options' )->where( 'option_name', '=', $option )->limit( 1 )->get();
-		} catch ( \Throwable $e ) {
-			return null;
-		}
-		if ( ! is_array( $rows ) || ! isset( $rows[0]['option_value'] ) ) {
-			return null;
-		}
-		$payload = maybe_unserialize( $rows[0]['option_value'] );
-		return is_array( $payload ) ? $payload : null;
-	}
-
-	/**
-	 * Delete expired tokens, oldest first, stopping at the first live one.
-	 *
-	 * @return void
-	 */
-	private static function prune_tokens(): void {
-		global $wpdb;
-		for ( $batch = 0; $batch < self::TOKEN_PRUNE_BATCHES; $batch++ ) {
-			try {
-				$rows = Fns::DB()->select( 'option_name', 'option_value' )->from( 'options' )
-					->where( 'option_name', 'LIKE', $wpdb->esc_like( self::TOKEN_OPTION_PREFIX ) . '%' )
-					->orderBy( 'option_id', 'ASC' )
-					->limit( self::TOKEN_PRUNE_LIMIT )->get();
-			} catch ( \Throwable $e ) {
-				return;
-			}
-			if ( ! is_array( $rows ) || ! $rows ) {
-				return;
-			}
-			foreach ( $rows as $row ) {
-				$payload = maybe_unserialize( $row['option_value'] ?? '' );
-				if ( is_array( $payload ) && (int) ( $payload['expires'] ?? 0 ) >= time() ) {
-					return;
-				}
-				delete_option( (string) $row['option_name'] );
-			}
-			if ( count( $rows ) < self::TOKEN_PRUNE_LIMIT ) {
-				return;
-			}
-		}
 	}
 }

@@ -21,6 +21,10 @@ use TinySolutions\mlt\Abilities\Media\CompressMedia;
 use TinySolutions\mlt\Abilities\Media\GetCompressionJobStatus;
 use TinySolutions\mlt\Abilities\Media\GetCompressionStatus;
 use TinySolutions\mlt\Abilities\Media\PreviewCompression;
+use TinySolutions\mlt\Abilities\Media\PreviewThumbnailRegeneration;
+use TinySolutions\mlt\Abilities\Media\RegenerateThumbnailsAbility;
+use TinySolutions\mlt\Abilities\Media\GetThumbnailRegenerationStatus;
+use TinySolutions\mlt\Abilities\Media\CancelThumbnailRegeneration;
 use TinySolutions\mlt\Abilities\Media\GetConversionStatus;
 use TinySolutions\mlt\Abilities\Media\GetThumbnailStatus;
 use TinySolutions\mlt\Abilities\Media\GetMediaHealth;
@@ -177,6 +181,10 @@ class AbilitiesInit {
 			CompressMedia::instance(),
 			GetCompressionJobStatus::instance(),
 			CancelCompressionJob::instance(),
+			PreviewThumbnailRegeneration::instance(),
+			RegenerateThumbnailsAbility::instance(),
+			GetThumbnailRegenerationStatus::instance(),
+			CancelThumbnailRegeneration::instance(),
 		];
 	}
 }

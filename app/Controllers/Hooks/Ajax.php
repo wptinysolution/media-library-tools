@@ -897,7 +897,9 @@ class Ajax {
 	/** @return void */
 	public function regenerate_start(): void {
 		$this->verify_and_get_params();
-		$this->send( RegenerateThumbnails::instance()->start() );
+		$started = RegenerateThumbnails::instance()->start();
+		// A running job is never restarted; the page re-attaches to it.
+		$this->send( is_wp_error( $started ) ? RegenerateThumbnails::instance()->get_progress() : $started );
 	}
 
 	/** @return void */

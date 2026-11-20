@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Modules\Regenerate\RegenerateThumbnails;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
 /**
@@ -139,7 +140,8 @@ class CompressionSettings {
 			'use_custom_quality'       => $use_custom,
 			'backup_originals'         => ! empty( $stored['compression_backup_originals'] ) && $access->can_backup_originals(),
 			'compress_generated_sizes' => ! empty( $stored['compression_generated_sizes'] ) && $access->can_compress_generated_sizes(),
-			'auto_compress_on_upload'  => ! empty( $stored['compression_auto_on_upload'] ) && $access->can_auto_compress_on_upload(),
+			// Off while thumbnails are regenerated: that is not an upload.
+			'auto_compress_on_upload'  => ! empty( $stored['compression_auto_on_upload'] ) && $access->can_auto_compress_on_upload() && ! RegenerateThumbnails::is_regenerating(),
 		];
 	}
 
