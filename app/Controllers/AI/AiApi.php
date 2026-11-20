@@ -296,7 +296,7 @@ class AiApi {
 
 		// Existing attachment metadata.
 		$current_title   = $attachment_post ? $attachment_post->post_title : '';
-		$current_alt     = get_post_meta( $attachment_id, '_wp_attachment_alt', true );
+		$current_alt     = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 		$current_caption = $attachment_post ? $attachment_post->post_excerpt : '';
 
 		// Parent post context.
