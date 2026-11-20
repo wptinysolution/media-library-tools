@@ -10,6 +10,7 @@
  */
 
 use TinySolutions\mlt\Abilities\McpServerRegistration;
+use TinySolutions\mlt\Modules\Rename\McpRename;
 use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
 use TinySolutions\mlt\Helpers\Fns;
 
@@ -429,7 +430,15 @@ class PreviewMediaRenameAbilityTest extends WP_UnitTestCase {
 		);
 
 		remove_filter( 'query', [ $this, 'record_query' ] );
-		$this->assertSame( [], $this->writes );
+		// The only write is the confirmation token (and pruning expired ones).
+		$writes = array_filter(
+			$this->writes,
+			static function ( $query ) {
+				return false === strpos( $query, "'" . McpRename::TOKEN_OPTION_PREFIX );
+			}
+		);
+		$this->assertSame( [], array_values( $writes ) );
+		$this->assertNotEmpty( $this->writes, 'A token was stored.' );
 		clearstatcache();
 		$this->assertSame( $listing, scandir( dirname( $file ) ) );
 		$this->assertSame( $metadata, wp_get_attachment_metadata( $id ) );
@@ -437,9 +446,9 @@ class PreviewMediaRenameAbilityTest extends WP_UnitTestCase {
 		$this->assertSame( $parent, wp_get_post_parent_id( $id ) );
 		$this->assertSame( $file, get_attached_file( $id ) );
 
-		$json = wp_json_encode( $result );
-		$this->assertStringNotContainsString( wp_upload_dir()['basedir'], $json );
-		$this->assertStringNotContainsString( '\/', $json, 'No folders.' );
+		$this->assertStringNotContainsString( wp_upload_dir()['basedir'], wp_json_encode( $result ) );
+		// The message names tools (tsmlt/...); the items carry no folders.
+		$this->assertStringNotContainsString( '\/', wp_json_encode( $result['items'] ), 'No folders.' );
 	}
 
 	/**
@@ -448,7 +457,9 @@ class PreviewMediaRenameAbilityTest extends WP_UnitTestCase {
 	 */
 	public function test_listed_on_both_servers() {
 		$this->assertFalse( wp_get_ability( self::NAME )->get_meta()['mcp']['public'] );
-		$this->assertTrue( wp_get_ability( self::NAME )->get_meta()['annotations']['readonly'] );
+		// Not read-only: a ready preview stores a confirmation token.
+		$this->assertFalse( wp_get_ability( self::NAME )->get_meta()['annotations']['readonly'] );
+		$this->assertFalse( wp_get_ability( self::NAME )->get_meta()['annotations']['destructive'] );
 		$this->assertContains( self::NAME, McpServerRegistration::instance()->get_tool_names() );
 
 		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) || ! McpServerRegistration::adapter_supports_default_server() ) {

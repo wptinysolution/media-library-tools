@@ -20,7 +20,7 @@ The integration lets an AI assistant:
 - See one image as a downscaled, metadata-free preview, so the assistant's own vision model can describe it before writing alt text or captions (see [AI-written alt text and captions](#ai-written-alt-text-and-captions--client-side))
 - Check the image compression status of media: compressed, skipped, failed, not yet processed or unsupported, with sizes and savings (see [Compression status](#compression-status--tsmlt-get-compression-status))
 - Compress up to 20 chosen images or the whole library through the Compress Images job, after a preview and confirmation, follow the job's progress and stop it (see [Compress images](#compress-images--preview-compress-job-status-cancel))
-- Preview renaming media files to names you type, one or up to 20 at a time, without renaming anything (see [Rename preview](#rename-preview--tsmlt-preview-media-rename))
+- Rename media files to names you type, one or up to 20 at a time, after a preview and confirmation; several run in the background with progress and cancel (see [Rename media](#rename-media--preview-rename-job-status-cancel))
 - Scan the library's EXIF for privacy-sensitive data — location (GPS), camera, date taken, author, copyright — and list the images that hold it, presence only (see [EXIF privacy scan](#exif-privacy-scan-free))
 - **Pro:** build a caption from an image's EXIF data, set or clear EXIF fields of one image or many at once, remove GPS location data, and review and undo EXIF changes — every change after a preview and confirmation (see [Pro: EXIF tools](#pro-exif-tools))
 - Export selected media (up to 100 IDs) as CSV text with the columns the CSV import reads (see [CSV export and import](#csv-export-and-import))
@@ -39,7 +39,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 Every tool listed here — Free, and Pro while the licence is active — is listed directly on both the MCP Adapter default server and the dedicated Media Library Tools endpoint, with the same name and the same checks (see [Choosing an endpoint](#choosing-an-endpoint)). The default server lists them always; there is no setting to turn on. Only `tsmlt-search-media` and `tsmlt-get-media-details` can also be run through the default server's generic gateway tool (`mcp-adapter-execute-ability`); call the others by name.
 
-### Free (41)
+### Free (44)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -66,7 +66,10 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-trash-media` | Moves the previewed attachments to the WordPress trash with the token, re-checking every rule, and reports each item. Never deletes permanently; refused when the site's trash is off | Yes (moves media to the trash) |
 | `tsmlt-restore-media` | Restores up to 20 attachments from the WordPress trash and reports each item | Yes (restores media) |
 | `tsmlt-export-media-csv` | Exports up to 100 attachments, chosen by ID, as one CSV text in the order given, with the columns the CSV import reads; missing or unreadable IDs are listed as skipped. Never exports custom fields, file paths or metadata | No |
-| `tsmlt-preview-media-rename` | Previews renaming the files of 1–20 attachments to names you type: per item the current and resulting file name (extension kept), whether sanitizing changed the name, whether a `-1`-style suffix would be added, and what a rename would affect. Renames nothing. Pro rename strategies are refused | No |
+| `tsmlt-preview-media-rename` | Previews renaming the files of 1–20 attachments to names you type: per item a status, the current file name and the exact new one (extension and any `-scaled`/`-rotated` ending kept, a `-1`-style number when taken), the new name of the full-size original, and what a rename would affect. Pro rename strategies are refused. Issues a one-time confirmation token. Renames nothing | No (stores the token) |
+| `tsmlt-rename-media` | Renames the previewed files with the token and `confirm: true`, after checking every item again: one in the request, several as a background job (returns `job_id`). Also renames the full-size original, makes the sizes again and updates links in post content, excerpts and Elementor data | Yes (renames files, updates links) |
+| `tsmlt-get-media-rename-status` | Returns the bulk rename's status, counts, percentage and per-file results (result, code, new file name, posts updated). Never changes the job | No |
+| `tsmlt-cancel-media-rename` | Stops the running bulk rename with the given job ID. Never stops other jobs | Yes (stops the job) |
 | `tsmlt-get-compression-status` | Returns the compression status of 1–50 attachments as Compress Images recorded it: `completed`, `skipped`, `failed`, `not_processed` or `unsupported`, sizes and savings, mode, quality, engine, time, whether a backup exists, and per-size results with reason codes. Never returns error messages or paths | No |
 | `tsmlt-preview-compression` | Checks a compression run before it starts — 1–20 chosen images (`scope` `selected`) or the whole library (`library`) — with each image's status, the effective settings, whether the result can be undone (only when a backup is kept, Pro) and a one-time `confirmation_token`. Custom quality, backups and generated sizes need Pro. Compresses nothing; it only stores the short-lived token. | No |
 | `tsmlt-compress-media` | Starts the previewed run with the `confirmation_token` and `confirm: true`, after checking everything again, as the Compress Images background job (WP-Cron); never compresses in the request. Up to 20 images per job on Free. Refused while a compression or conversion job runs. Without a backup (Pro) each image file is replaced permanently. | Yes (compresses image files) |
@@ -766,48 +769,95 @@ Input: `job_id`. Cancels only the current job, only when it is a compression job
 - A job's edit permission is checked when it starts, not again during the background run (which has no user), as on the Compress Images page.
 - Restoring originals from Pro backups is not available through MCP.
 
-## Rename preview — `tsmlt-preview-media-rename`
+## Rename media — preview, rename, job status, cancel
 
-Shows what renaming media files to names you type would do, without renaming anything. It covers the Free renames of the Rename page: a single rename and Bulk Rename with your own names. There is no MCP tool that renames files yet.
+Renames media files to names you type, after a preview and the user's confirmation. It covers the Free renames of the Rename page: a single rename and Bulk Rename with your own names. Every rename goes through the rename engine (`MediaRenamer`, see F11 in the [MCP Feature Tracker](13-mcp-feature-tracker.md)); the preview uses the engine's own checks and name choice (`MediaRenamer::plan()`), so it shows the exact names a rename gives.
 
 **Workflow**:
 1. Find the media with `tsmlt-search-media`. Its `filename` input matches part of a file name, case-insensitively, and each result has the attachment's `id` and `filename`. When several match, pick by `id`.
-2. Call `tsmlt-preview-media-rename` with `items`: 1–20 objects `{ "id": 123, "filename": "new-name" }`.
+2. Call `tsmlt-preview-media-rename` with `items`: 1–20 objects `{ "id": 123, "filename": "new-name" }`. Show the user each item's `current_filename` and `proposed_filename`.
+3. After the user confirms, call `tsmlt-rename-media` with the `confirmation_token` and `confirm: true`.
+4. One item: renamed in the request (`mode: single`, with the result). Several: a background job (`mode: bulk`, with `job_id`). Follow it with `tsmlt-get-media-rename-status`; stop it with `tsmlt-cancel-media-rename`.
 
-**How the resulting name is worked out** (the same rules as the rename on the Rename page, `Fns::wp_rename_attachment()`, through the shared `Fns::rename_target_name()`):
-- The typed name passes `sanitize_text_field()`. Then the part before the last dot is kept, it is sanitized with `sanitize_file_name()`, and `-scaled` and `-rotated` are removed.
+### Check — `tsmlt-preview-media-rename`
+
+**How the new name is worked out**:
+- The typed name passes `sanitize_text_field()`. Then `Fns::rename_target_name()` keeps the part before the last dot, sanitizes it with `sanitize_file_name()`, and removes `-scaled` and `-rotated`.
 - The current extension is always kept. A typed extension, or any other `.text` ending, is dropped (`extension_ignored`).
-- If the name is already used in the file's folder, WordPress's `wp_unique_filename()` adds a `-1`-style suffix (`needs_unique_suffix`).
+- For a scaled or rotated upload, the attached copy keeps its `-scaled` / `-rotated` ending (`new-name-scaled.jpg`), and the full-size original is renamed too (`proposed_original_filename`, `new-name.jpg`).
+- If the name is taken (on disk, by WordPress's size-file rules, or by any attachment), a number is added: `new-name-1`, `new-name-2`, … (`needs_unique_suffix`).
 
 **Per item**:
 - `status`:
   - `ready`: the file can be renamed to `proposed_filename`;
-  - `unchanged` (the resulting name is the current one);
-  - `invalid_filename` (empty after sanitizing, or it contains `/`, `\` or control characters);
-  - `pro_strategy_not_supported`;
+  - `unchanged`: the new name is the current one;
+  - `invalid_filename`: empty after sanitizing, or it contains `/`, `\` or control characters;
+  - `pro_strategy_not_supported`: a Pro rename strategy keyword (refused, never used as a name);
   - `invalid_id`;
-  - `not_found` (missing, not readable for you, trashed, or not media);
-  - `forbidden` (you may not edit it);
-  - `file_missing`.
-- `requested_filename`, `current_filename` and `proposed_filename`: file names only, never folders.
+  - `duplicate_id`: the same ID earlier in the request;
+  - `not_found`: missing, not readable for you, trashed, or not media;
+  - `forbidden`: you may not edit it;
+  - `file_missing`;
+  - `remote_storage`: the file is not stored on this server;
+  - `original_missing`: the recorded full-size original is missing;
+  - `locked`: compression, conversion, thumbnail regeneration, EXIF removal or another rename is working on it;
+  - `name_unavailable`: no free name within 99 numbered tries.
+- `requested_filename`, `current_filename`, `proposed_filename` and `proposed_original_filename`: file names only, never folders.
 - `sanitized`, `extension_ignored`, `unchanged`, `needs_unique_suffix`.
-- `same_name_in_request`: two items of the request would get the same name in the same folder; the second rename would get a suffix.
+- `same_name_in_request`: two items of the request would get the same name in the same folder; the second rename gets a number.
 - `affects`:
-  - `generated_sizes`: sizes a rename makes again under the new name (since 2026-11-21 the old size files are removed only once the new ones are in place);
-  - `original_image_kept`: the full-size original WordPress keeps for scaled or rotated uploads exists. Since 2026-11-21 a rename renames it too and keeps its link; the attached copy keeps its `-scaled` / `-rotated` suffix, which `proposed_filename` does not show yet (field name kept for compatibility);
+  - `generated_sizes`: sizes made again under the new name (the old size files are removed only once the new ones are in place);
+  - `original_image_kept`: a full-size original of a scaled or rotated upload exists and is renamed too (field name kept for compatibility);
   - `backup_sizes`: pre-edit backups, left with their old names;
-  - `content_links_updated`: a rename replaces links to the image in post content and excerpts (images only).
+  - `content_links_updated`: a rename replaces links to the image in post content, excerpts and Elementor data (images only).
 
-`summary` counts the items per status.
+**Response**: `summary` (items per status), `ready_count`, `job_running` (a bulk rename is running), `confirmation_token` (only when at least one item is ready; otherwise `null`), `expires_at` (UTC) and `message`.
 
 **Rules**:
-- The tool requires `manage_options`, and for each item that you can read (`read_post`) and edit (`edit_post`) the attachment.
-- It is read-only: no file, metadata, post, attached post ("Uploaded to"), GUID or content is changed. It never calls the Rename page's handler.
-- Renaming by attached post title, product SKU or alt text, AI names, the prefix and suffix settings and automatic rename on upload are Pro features of the Rename page and are not available here. Their keywords (`bulkRenameByPostTitle`, `bulkRenameBySKU`, `bulkRenameByAltText`, `bulkAiFilename`) are refused, never used as a name.
+- It changes nothing in the media library: no file, metadata, post, attached post ("Uploaded to"), GUID or content. Its only write is the confirmation token (an option, not autoloaded). Its annotations are therefore not read-only.
+- The token is bound to you, works once, expires after 10 minutes and holds only the ready items with their typed names.
 
-**Limitations**:
-- The preview is a snapshot: a file uploaded or renamed afterwards can change the suffix.
-- Links in other places a rename does not update (block attributes, custom fields, other page builders, menus, options) are not reported.
+### Rename — `tsmlt-rename-media`
+
+**Input**: `confirmation_token` and `confirm: true`. Nothing else is accepted: the items and names come from the token.
+
+**What happens**:
+- **Running bulk rename:** while a bulk rename is running, the call is refused (`tsmlt_rename_job_running`) and the token is not used, so it can be retried.
+- **Token checks:** the token must be valid, yours and unused (`tsmlt_rename_token_invalid`).
+- **Each item checked again:** permissions (`read_post`, `edit_post`), status, local file, locks and name. Items no longer ready are returned with their status and `queued: false`. They are never skipped silently.
+- **One item:** with a one-item token, the rename is done in the request (`mode: single`). The item carries `result` (renamed, unchanged, refused or failed), `code`, `filename` (the new name), `sizes` (`regenerated`, `kept` when the sizes could not be made again and the old ones were kept, or `none`), `content_posts` (posts whose links were updated, that you may read), `content_posts_hidden` and `content_errors` (failed content updates; the file was still renamed).
+- **Several items:** the ready items are queued as a background job (`mode: bulk`, `job_id`, `status: running`). The job renames them in batches of 5 through WP-Cron and checks each item once more, for you, when it renames it.
+- **Nothing ready:** `mode: none`. Nothing is renamed and the token is used.
+
+The rename itself renames the full-size original of a scaled or rotated upload, makes the sizes again under the new name, moves compression backups and the image's own WebP/AVIF copies, and replaces links in post content, excerpts and Elementor data. It is not undone automatically.
+
+### Follow — `tsmlt-get-media-rename-status`
+
+No input. Returns:
+- `job_id`, `status` (idle, running, done or cancelled) and `stale` (running, no progress for 15 minutes and no background step scheduled);
+- counts: `total`, `processed`, `renamed`, `unchanged`, `refused`, `failed`, `remaining` and `percent`;
+- `tick_scheduled`, `started_at` and `updated_at` (UTC);
+- `results.items`: per item the same fields as a single rename, for attachments you may read. Others are counted in `results.hidden`.
+
+Read-only: it never saves, restarts or advances the job.
+
+### Stop — `tsmlt-cancel-media-rename`
+
+Takes the `job_id`.
+- **Which job:** it must be the current rename job (`tsmlt_rename_job_mismatch`, including any compression, conversion or regeneration job ID) and running (`tsmlt_rename_job_not_running`).
+- **What happens:** the job stops before the next item. Files already renamed keep their new names.
+- **Other jobs:** compression, conversion and regeneration jobs are never touched.
+
+### Rules and limitations
+
+- **Permissions:** every tool requires `manage_options`, in its permission callback and again when it runs. Each item also needs `read_post` and `edit_post`.
+- **Exposure:** the four tools are listed on the dedicated endpoint and the default server, and are never run through the default gateway (`meta.mcp.public` false).
+- **Output:** no folders, paths or raw error texts. Results carry codes and file names only.
+- **Pro features:** renaming by attached post title, product SKU or alt text, AI names, the prefix and suffix settings and automatic rename on upload are Pro features of the Rename page and are not available here. Their keywords (`bulkRenameByPostTitle`, `bulkRenameBySKU`, `bulkRenameByAltText`, `bulkAiFilename`) are refused.
+- **Snapshot:** the preview is a snapshot. A file uploaded or renamed afterwards can change the number a name gets; the rename checks again and reports the name it used.
+- **Content links:** links are updated only as absolute URLs in post content, excerpts and Elementor data. Block attributes in other forms, custom fields, other page builders, menus and options are not updated or reported.
+- **Re-encoded sizes:** sizes made again are re-encoded and count as not compressed.
+- **Admin page:** the Rename page still renames one item at a time; it does not use the bulk job.
 
 ## Media trash — list, preview, trash, restore
 
@@ -1587,7 +1637,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename`, `tsmlt/get-compression-status`, `tsmlt/get-conversion-status`, `tsmlt/get-thumbnail-status`, `tsmlt/get-media-health`, `tsmlt/audit-media-health`, `tsmlt/preview-compression`, `tsmlt/compress-media`, `tsmlt/get-compression-job-status`, `tsmlt/cancel-compression-job`, `tsmlt/preview-thumbnail-regeneration`, `tsmlt/regenerate-thumbnails`, `tsmlt/get-thumbnail-regeneration-status`, `tsmlt/cancel-thumbnail-regeneration`, `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`, `tsmlt/get-media-image-preview` (41). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename`, `tsmlt/rename-media`, `tsmlt/get-media-rename-status`, `tsmlt/cancel-media-rename`, `tsmlt/get-compression-status`, `tsmlt/get-conversion-status`, `tsmlt/get-thumbnail-status`, `tsmlt/get-media-health`, `tsmlt/audit-media-health`, `tsmlt/preview-compression`, `tsmlt/compress-media`, `tsmlt/get-compression-job-status`, `tsmlt/cancel-compression-job`, `tsmlt/preview-thumbnail-regeneration`, `tsmlt/regenerate-thumbnails`, `tsmlt/get-thumbnail-regeneration-status`, `tsmlt/cancel-thumbnail-regeneration`, `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`, `tsmlt/get-media-image-preview` (41). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 
@@ -1734,7 +1784,7 @@ This roadmap records the history of the MCP work. Which plugin features are cove
 |---|---|---|---|
 | 1 | Fresh scan and end-to-end verification | In Progress | Verified on a disposable local site (see above); the diagnostics fix found there is committed. Remaining: a fresh scan on a development site, with permission. |
 | 2 | Security and permission audit | Implemented | Audit (2026-10-28) found no critical or high issues. Fixed, covered by tests and verified on a disposable local site: scans no longer clear or replace attachments' parents (M1); `manage_options` re-checked inside every Free tool's `execute()` (L1); partial metadata updates restored or reported (L2); default gateway exposure is opt-in and `update-media-metadata` moved to the not runnable through the default gateway (L3). The M1 follow-up found on the disposable site (an attached post set from a rendered-page match during the rescan after a save) is fixed and covered by automated tests (2026-10-31), not re-run on a site. Not tested on an existing site. |
-| 3 | Bulk media rename | In Progress (preview) | Preview implemented 2026-11-18: `tsmlt/preview-media-rename` (Free, read-only; typed names, 1–20 items; the Rename page's rules through `Fns::rename_target_name()`). Renaming itself is not available through MCP. Before adding it, decide how to handle the existing rename's gaps: size files deleted before the rename, the scaled-upload original and backup sizes left with old names, links updated only in post content, excerpts and Elementor data. Pro strategies stay Pro. Update 2026-11-21: the Free rename engine was hardened (see F11 in the [MCP Feature Tracker](13-mcp-feature-tracker.md)); renaming through MCP is still not available. |
+| 3 | Bulk media rename | Implemented (Free typed names) | Preview 2026-11-18; engine hardened and rename tools added 2026-11-21: `tsmlt/preview-media-rename` (exact names from `MediaRenamer::plan()`, confirmation token), `tsmlt/rename-media` (one in the request, 2–20 as `RenameJob`), `tsmlt/get-media-rename-status`, `tsmlt/cancel-media-rename`. Pro strategies (post title, SKU, alt text, AI) stay Pro and are not exposed through MCP. |
 | 4 | AI-assisted metadata generation | Implemented (client-side) | 2026-11-21. Server-side AI generation through MCP is excluded (F15, D16): the client's own AI writes the text. Workflow: `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/get-media-image-preview` (Free, new: a downscaled, metadata-free image content block so the client's model can see the image), `tsmlt/update-media-metadata`. See [AI-written alt text and captions](#ai-written-alt-text-and-captions--client-side). |
 | 5 | Duplicate media management | Implemented (detection and scan control) | Scan control (2026-11-18): `tsmlt/start-duplicate-scan` and `tsmlt/get-duplicate-scan-status` (Free, not runnable through the default gateway) start, resume and monitor the existing duplicate scan under a start lock shared with the Duplicates page; see [Scan, status, results](#scan-status-results). Merging duplicates (Pro) is not offered over MCP. `tsmlt/find-duplicate-media` (Free, not runnable through the default gateway) lists duplicate groups from the duplicate scan's results without its stale-row cleanup on read: groups count distinct attachments still in the library, pages are ordered deterministically, and usage follows `tsmlt/get-media-usage`; see [Duplicate media](#duplicate-media--tsmlt-find-duplicate-media). Covered by integration tests. Any merge or removal through MCP needs its own safety design and is not planned. Not tested on an existing site. |
 | 6 | Media library audit | In Progress | Implemented: `tsmlt/get-media-health` (2026-11-19, per attachment) and `tsmlt/audit-media-health` (2026-11-20, the whole library in windows of up to 100 by attachment ID, keyset paging, nothing stored). Both are Free and read-only. Missing alt text is covered by `tsmlt/search-media` (`missing_alt`), generated sizes by `tsmlt/get-thumbnail-status`, unused media and duplicates by their tools. Remaining: files on disk that are not in the library (the Rubbish scan), which needs a decision on exposing file paths. |

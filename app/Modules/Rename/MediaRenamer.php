@@ -85,33 +85,19 @@ class MediaRenamer {
 			],
 		];
 
-		$post = get_post( $attachment_id );
-		if ( ! $post instanceof WP_Post || 'attachment' !== $post->post_type || 'inherit' !== $post->post_status ) {
-			return self::code( $result, 'not_found' );
+		$check = self::precheck( $attachment_id, $requested, $user_id );
+		if ( '' !== $check['code'] ) {
+			return self::code( $result, $check['code'] );
 		}
-		if ( ! user_can( $user_id, 'edit_post', $attachment_id ) ) {
-			return self::code( $result, 'forbidden' );
-		}
-		$stem = Fns::rename_target_name( $requested );
-		if ( '' === $stem ) {
-			return self::code( $result, 'invalid_name' );
-		}
-		$file = (string) get_attached_file( $attachment_id );
-		if ( '' === $file || false !== strpos( $file, '://' ) || wp_is_stream( $file ) ) {
-			return self::code( $result, '' === $file ? 'file_missing' : 'remote_storage' );
-		}
-		if ( ! is_file( $file ) ) {
-			return self::code( $result, 'file_missing' );
-		}
+		$stem = $check['stem'];
+		$file = $check['file'];
 
 		$lock = RegenerateLock::acquire( $attachment_id );
 		if ( null === $lock ) {
 			return self::code( $result, 'locked' );
 		}
 		try {
-			if ( AttachmentProcessor::instance()->is_locked( $attachment_id )
-				|| AttachmentConverter::instance()->is_locked( $attachment_id )
-				|| ScanStartLock::instance()->is_held( ExifStripper::LOCK_PREFIX . $attachment_id ) ) {
+			if ( self::held_by_other_operation( $attachment_id ) ) {
 				return self::code( $result, 'locked' );
 			}
 			return self::rename_locked( $result, $attachment_id, $stem, $file );
@@ -131,37 +117,21 @@ class MediaRenamer {
 	 * @return array
 	 */
 	private static function rename_locked( array $result, int $attachment_id, string $stem, string $file ): array {
-		$dir       = dirname( $file );
-		$meta      = wp_get_attachment_metadata( $attachment_id );
-		$meta      = is_array( $meta ) ? $meta : [];
-		$mime      = (string) get_post_mime_type( $attachment_id );
-		$raster    = 0 === strpos( $mime, 'image/' ) && 'image/svg+xml' !== $mime;
-		$is_image  = 0 === strpos( $mime, 'image/' );
-		$original  = '';
-		$suffix    = '';
-		$extension = pathinfo( $file, PATHINFO_EXTENSION );
-
-		if ( $raster && ! empty( $meta['original_image'] ) ) {
-			$original = $dir . '/' . wp_basename( (string) $meta['original_image'] );
-			if ( ! is_file( $original ) ) {
-				return self::code( $result, 'original_missing' );
-			}
-			if ( preg_match( '/-(scaled|rotated)$/', pathinfo( $file, PATHINFO_FILENAME ), $match ) ) {
-				$suffix = '-' . $match[1];
-			}
+		$plan = self::name_plan( $attachment_id, $stem, $file );
+		if ( '' !== $plan['code'] ) {
+			return self::code( $result, $plan['code'] );
 		}
-
-		$current_stem = (string) preg_replace( '/-(scaled|rotated)$/', '', pathinfo( '' !== $original ? $original : $file, PATHINFO_FILENAME ) );
-		if ( $current_stem === $stem ) {
+		if ( $plan['unchanged'] ) {
 			$result['status'] = 'unchanged';
 			$result['file']   = wp_basename( $file );
 			return $result;
 		}
-
-		$targets = self::targets( $dir, $stem, $suffix, $extension, $original );
-		if ( null === $targets ) {
-			return self::code( $result, 'name_unavailable' );
-		}
+		$dir      = dirname( $file );
+		$meta     = $plan['meta'];
+		$raster   = $plan['raster'];
+		$is_image = $plan['is_image'];
+		$original = $plan['original'];
+		$targets  = $plan['targets'];
 
 		// Snapshot before anything moves: URLs, owned copies, backups.
 		$old_urls = self::urls( $attachment_id, $meta );
@@ -226,6 +196,161 @@ class MediaRenamer {
 		Fns::wpml_update_translations( $attachment_id );
 		Fns::permalink_to_post_guid( $attachment_id );
 		return $result;
+	}
+
+	/**
+	 * What a rename would do, without changing anything: the same checks and
+	 * name choice as rename(), with the operation locks read instead of
+	 * taken. A snapshot: rename() checks everything again.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $requested     Requested file name (extension ignored).
+	 * @param int    $user_id       User the rename would be done for.
+	 *
+	 * @return array{status: string, code: string, current: string, file: string, original: string, numbered: bool}
+	 *               status: ready, unchanged or refused; file and original are
+	 *               the new file names (no folders), '' when not ready.
+	 */
+	public static function plan( int $attachment_id, string $requested, int $user_id ): array {
+		$plan  = [
+			'status'   => 'refused',
+			'code'     => '',
+			'current'  => '',
+			'file'     => '',
+			'original' => '',
+			'numbered' => false,
+		];
+		$check = self::precheck( $attachment_id, $requested, $user_id );
+		if ( '' !== $check['file'] ) {
+			$plan['current'] = wp_basename( $check['file'] );
+		}
+		if ( '' !== $check['code'] ) {
+			$plan['code'] = $check['code'];
+			return $plan;
+		}
+		if ( RegenerateLock::is_held( $attachment_id ) || self::held_by_other_operation( $attachment_id ) ) {
+			$plan['code'] = 'locked';
+			return $plan;
+		}
+		$names = self::name_plan( $attachment_id, $check['stem'], $check['file'] );
+		if ( '' !== $names['code'] ) {
+			$plan['code'] = $names['code'];
+			return $plan;
+		}
+		if ( $names['unchanged'] ) {
+			$plan['status'] = 'unchanged';
+			$plan['file']   = $plan['current'];
+			return $plan;
+		}
+		$plan['status']   = 'ready';
+		$plan['file']     = wp_basename( $names['targets']['attached'] );
+		$plan['original'] = '' !== $names['targets']['original'] ? wp_basename( $names['targets']['original'] ) : '';
+		$plan['numbered'] = $names['targets']['stem'] !== $check['stem'];
+		return $plan;
+	}
+
+	/**
+	 * Checks before any lock: a library attachment the user may edit, a
+	 * usable name and a local file.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $requested     Requested file name.
+	 * @param int    $user_id       User.
+	 *
+	 * @return array{code: string, stem: string, file: string} code '' when it passes.
+	 */
+	private static function precheck( int $attachment_id, string $requested, int $user_id ): array {
+		$check = [
+			'code' => '',
+			'stem' => '',
+			'file' => '',
+		];
+		$post  = get_post( $attachment_id );
+		if ( ! $post instanceof WP_Post || 'attachment' !== $post->post_type || 'inherit' !== $post->post_status ) {
+			$check['code'] = 'not_found';
+			return $check;
+		}
+		if ( ! user_can( $user_id, 'edit_post', $attachment_id ) ) {
+			$check['code'] = 'forbidden';
+			return $check;
+		}
+		$file          = (string) get_attached_file( $attachment_id );
+		$check['file'] = '' !== $file && false === strpos( $file, '://' ) && ! wp_is_stream( $file ) ? $file : '';
+		$check['stem'] = Fns::rename_target_name( $requested );
+		if ( '' === $check['stem'] ) {
+			$check['code'] = 'invalid_name';
+			return $check;
+		}
+		if ( '' === $file || false !== strpos( $file, '://' ) || wp_is_stream( $file ) ) {
+			$check['code'] = '' === $file ? 'file_missing' : 'remote_storage';
+			return $check;
+		}
+		if ( ! is_file( $file ) ) {
+			$check['code'] = 'file_missing';
+		}
+		return $check;
+	}
+
+	/**
+	 * Whether compression, conversion or EXIF removal holds the image.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return bool
+	 */
+	private static function held_by_other_operation( int $attachment_id ): bool {
+		return AttachmentProcessor::instance()->is_locked( $attachment_id )
+			|| AttachmentConverter::instance()->is_locked( $attachment_id )
+			|| ScanStartLock::instance()->is_held( ExifStripper::LOCK_PREFIX . $attachment_id );
+	}
+
+	/**
+	 * The new names: the kept -scaled / -rotated suffix, whether the name is
+	 * unchanged, and free targets for the attached file and the original.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $stem          Sanitized new name without extension.
+	 * @param string $file          Attached file.
+	 *
+	 * @return array{code: string, unchanged: bool, meta: array, raster: bool, is_image: bool, original: string, targets: ?array}
+	 */
+	private static function name_plan( int $attachment_id, string $stem, string $file ): array {
+		$dir       = dirname( $file );
+		$meta      = wp_get_attachment_metadata( $attachment_id );
+		$mime      = (string) get_post_mime_type( $attachment_id );
+		$plan      = [
+			'code'      => '',
+			'unchanged' => false,
+			'meta'      => is_array( $meta ) ? $meta : [],
+			'raster'    => 0 === strpos( $mime, 'image/' ) && 'image/svg+xml' !== $mime,
+			'is_image'  => 0 === strpos( $mime, 'image/' ),
+			'original'  => '',
+			'targets'   => null,
+		];
+		$suffix    = '';
+		$extension = pathinfo( $file, PATHINFO_EXTENSION );
+
+		if ( $plan['raster'] && ! empty( $plan['meta']['original_image'] ) ) {
+			$plan['original'] = $dir . '/' . wp_basename( (string) $plan['meta']['original_image'] );
+			if ( ! is_file( $plan['original'] ) ) {
+				$plan['code'] = 'original_missing';
+				return $plan;
+			}
+			if ( preg_match( '/-(scaled|rotated)$/', pathinfo( $file, PATHINFO_FILENAME ), $match ) ) {
+				$suffix = '-' . $match[1];
+			}
+		}
+
+		$current_stem = (string) preg_replace( '/-(scaled|rotated)$/', '', pathinfo( '' !== $plan['original'] ? $plan['original'] : $file, PATHINFO_FILENAME ) );
+		if ( $current_stem === $stem ) {
+			$plan['unchanged'] = true;
+			return $plan;
+		}
+		$plan['targets'] = self::targets( $dir, $stem, $suffix, $extension, $plan['original'] );
+		if ( null === $plan['targets'] ) {
+			$plan['code'] = 'name_unavailable';
+		}
+		return $plan;
 	}
 
 	/**

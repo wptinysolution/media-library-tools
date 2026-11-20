@@ -37,7 +37,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F8 | EXIF (Free: fields, privacy scan) | Free | Implemented | Investigated | None |
 | F9 | EXIF (Pro editing tools) | Pro | Partially Implemented | Investigated | None until a deferred item's blocker is resolved |
 | F10 | Duplicate media | Free / Pro | Partially Implemented | Investigated | None (merge deferred) |
-| F11 | Rename | Free / Pro | Partially Implemented | Investigated | None (renaming deferred) |
+| F11 | Rename | Free / Pro | Partially Implemented | Investigated | Pro tool-list test update (Pro strategies not exposed) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
 | F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
 | F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None |
@@ -47,7 +47,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 
 ## Next feature
 
-**Not chosen yet.** F15 was closed on 2026-11-21: server-side AI is excluded and the client-side workflow is supported, completed by `tsmlt/get-media-image-preview`. Open items: the Pro tool-list test update for the new tool, and C5 (F13: copies left by deleted attachments block new conversions with that name). Remaining candidates: F16 Rubbish files (Deferred), F17 (Not Investigated).
+**Not chosen yet.** F15 was closed on 2026-11-21: server-side AI is excluded and the client-side workflow is supported, completed by `tsmlt/get-media-image-preview`. Open items: the Pro tool-list test update for the new tools (`tsmlt/get-media-image-preview` and the F11 rename tools), and C5 (F13: copies left by deleted attachments block new conversions with that name). Remaining candidates: F16 Rubbish files (Deferred), F17 (Not Investigated).
 
 ## Features
 
@@ -150,10 +150,10 @@ A feature is marked Implemented only with test evidence, never because code exis
 ### F11 Rename
 
 - **Owner:** typed rename Free; rename strategies (post title, SKU, alt text), prefix/suffix and auto-rename on upload Pro.
-- **MCP status:** Partially Implemented.
-- **Tools:** `tsmlt/preview-media-rename`.
-- **Missing operations:** renaming files (**Deferred**, D4).
-- **Tests:** `PreviewMediaRenameAbilityTest`.
+- **MCP status:** Partially Implemented: typed renames (Free) implemented 2026-11-21; Pro rename strategies are not exposed.
+- **Tools:** `tsmlt/preview-media-rename`, `tsmlt/rename-media`, `tsmlt/get-media-rename-status`, `tsmlt/cancel-media-rename`.
+- **Missing operations:** Pro rename strategies (post title, SKU, alt text, AI names) and server-side AI rename (**Not planned** for MCP; D18).
+- **Tests:** `PreviewMediaRenameAbilityTest`, `RenameMcpAbilitiesTest`, `McpRenameToolsExposureTest`, `MediaRenamerTest`, `RenameElementorTest`.
 
 #### Engine hardening (implemented 2026-11-21, approved; Free only; no MCP tools)
 
@@ -196,6 +196,31 @@ A feature is marked Implemented only with test evidence, never because code exis
   - **Disabled-size files:** they keep their old names, unreferenced.
   - **Lock races:** locks are post meta and not atomic across operations.
   - **Pro writers:** Pro's GPS removal and EXIF editor do not check the lock.
+
+#### MCP rename tools (implemented 2026-11-21; Free only)
+
+- **Preview** (`tsmlt/preview-media-rename`): input unchanged.
+  - **Names:** they come from `MediaRenamer::plan()`, a read-only public method added to the engine. It runs the same checks and name choice as `rename()`, which now share private helpers (`precheck()`, `held_by_other_operation()`, `name_plan()`); the behaviour of `rename()` is unchanged, as `MediaRenamerTest` confirms. So `proposed_filename` shows the kept `-scaled` / `-rotated` ending and the number a taken name gets, and `proposed_original_filename` shows the original's new name.
+  - **New statuses:** `duplicate_id`, `remote_storage`, `original_missing`, `locked`, `name_unavailable`.
+  - **New response fields:** `ready_count`, `job_running`, `confirmation_token` (only with a ready item), `expires_at`, `message`.
+  - **Annotations:** no longer read-only, because it stores the token.
+- **Rename** (`tsmlt/rename-media`): takes `confirmation_token` and `confirm: true`.
+  - **Refused while running:** while a bulk rename runs, the call is refused before the token is used.
+  - **Checks again:** every item (permissions, status, file, locks, name); items no longer ready are reported with `queued: false`.
+  - **One or several:** a one-item token renames in the request through `MediaRenamer::rename()`. Several start `RenameJob` and return its `job_id`.
+  - **Results:** codes, new file name, sizes outcome, and changed posts the user may read.
+- **Status and cancel:** `tsmlt/get-media-rename-status` is read-only. `tsmlt/cancel-media-rename` cancels only the current running rename job, by ID. Both report through `Modules/Rename/McpRename::job()`, which shows results only for attachments the user may read and counts the rest.
+- **Tokens:** `ConfirmationToken`, prefix `tsmlt_rename_token_`; single use, bound to the user, 10 minutes.
+- **Exposure:** all four are `meta.mcp.public` false: listed on the dedicated endpoint and the default server, refused by the default gateway.
+- **Tests (2026-11-21):**
+  - `RenameMcpAbilitiesTest` (15) and `McpRenameToolsExposureTest` (3); `PreviewMediaRenameAbilityTest` was updated for the token.
+  - Mutation checks: removing the running-job check, the check at execution, or the status read filter makes the matching test fail.
+  - Full suites: Free integration 1359 (5 skipped) and Free unit 135, all passing.
+  - Pro: 557 of 558 pass. `GetExifCaptionMcpExposureTest::test_listed_and_callable_on_dedicated_server` lists the exact tool set and needs the three new tools added; that is a Pro test change, not made in this task.
+- **Limitations:**
+  - **Admin page:** it does not use the bulk job yet.
+  - **Snapshot:** a name taken after the preview gets a number at execution, and the result reports it.
+  - **Lock races:** locks are post meta and not atomic across operations; the rename holds the regeneration lock while it runs.
 
 ### F12 Compression
 
@@ -626,7 +651,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D1 | 2026-10-28 | Every ability requires `manage_options`, checked in the permission callback and again in `execute()`, plus per-item `read_post` / `edit_post`; inaccessible items are reported as not found. No file paths, raw metadata or custom fields in output. | All |
 | D2 | 2026-11-18 | Every eligible tool is always listed directly on the MCP Adapter default server (the opt-in setting was removed); the dedicated endpoint stays as the alternative. Only read-only `search-media` and `get-media-details` are runnable through the generic gateway. | All |
 | D3 | 2026-11-15, confirmed 2026-11-20 | MCP supports Trash and Restore only (the first unused-media trash tools were removed on 2026-10-28 as too risky and replaced by these safeguarded tools). Permanent deletion and Empty Trash are excluded: irreversible, and they can break content that still references the media. Trashing needs a preview, a one-time token and a verified usage scan. | F4 |
-| D4 | 2026-11-18 | Renaming files through MCP is deferred until the existing rename's gaps are handled (size files deleted first, scaled original and backups keep old names, links updated only in some places). Pro rename strategies stay Pro. | F11 |
+| D4 | 2026-11-18 | Renaming files through MCP is deferred until the existing rename's gaps are handled (size files deleted first, scaled original and backups keep old names, links updated only in some places). Pro rename strategies stay Pro. Superseded by D17 and D18 (2026-11-21). | F11 |
 | D5 | 2026-11-18 | EXIF export, import, sync and full removal are not offered through MCP: export includes GPS; import and sync have no preview; full removal is irreversible and blocks undo. | F8, F9 |
 | D6 | 2026-11-12 | MCP CSV import updates existing media only: no create-from-URL (server-side download), no file renaming, no custom fields. Preview, then a one-time, user-bound plan with conflict detection. | F6 |
 | D7 | 2026-11-18 | Merging or removing duplicates through MCP is not planned; it needs its own safety design. | F10 |
@@ -640,6 +665,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D15 | 2026-11-20 | MCP conversion: Free `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`; 1–20 images; Pro options refused without a licence, never silently downgraded; progress through the existing `tsmlt/get-compression-job-status`; no whole-library conversion, delete or regenerate copies through MCP; no Pro changes. | F13 |
 | D16 | 2026-11-21 | Server-side AI generation is not offered through MCP (cost, data leaving the site, raw provider errors, duplicates the client's model). AI-written metadata is supported client-side: `tsmlt/search-media`, `tsmlt/get-media-details`, the new read-only `tsmlt/get-media-image-preview` (one downscaled, metadata-free image per call) and `tsmlt/update-media-metadata`. | F15 |
 | D17 | 2026-11-21 | Rename engine (before any MCP rename): rename the attached file and its full-size original with no-overwrite moves, rebuild sizes with the hardened regeneration engine, move compression backups and the image's own converted copies, report content-update failures separately, clear Elementor caches only for changed posts, never use a strategy keyword as a file name; bulk renames as a background job of up to 20. MCP rename tools are still not implemented. | F11 |
+| D18 | 2026-11-21 | MCP rename: four Free tools (preview with a one-time token, rename with confirmation, status, cancel); one item renamed in the request, 2–20 as the background `RenameJob`; preview names from the engine (`MediaRenamer::plan()`). Pro rename strategies and server-side AI rename are not exposed through MCP. | F11 |
 
 ## Workflow
 

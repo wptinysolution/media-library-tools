@@ -16,6 +16,9 @@ use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\Media\CreateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\ExportMediaCsv;
 use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
+use TinySolutions\mlt\Abilities\Media\RenameMedia;
+use TinySolutions\mlt\Abilities\Media\GetMediaRenameStatus;
+use TinySolutions\mlt\Abilities\Media\CancelMediaRename;
 use TinySolutions\mlt\Abilities\Media\CancelCompressionJob;
 use TinySolutions\mlt\Abilities\Media\CompressMedia;
 use TinySolutions\mlt\Abilities\Media\GetCompressionJobStatus;
@@ -176,6 +179,9 @@ class AbilitiesInit {
 			RestoreMedia::instance(),
 			ExportMediaCsv::instance(),
 			PreviewMediaRename::instance(),
+			RenameMedia::instance(),
+			GetMediaRenameStatus::instance(),
+			CancelMediaRename::instance(),
 			GetCompressionStatus::instance(),
 			GetConversionStatus::instance(),
 			GetThumbnailStatus::instance(),

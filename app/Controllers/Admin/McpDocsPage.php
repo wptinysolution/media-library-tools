@@ -443,8 +443,23 @@ class McpDocsPage {
 						</tr>
 						<tr>
 							<td><code>tsmlt-preview-media-rename</code></td>
-							<td><?php esc_html_e( 'Previews renaming the files of up to 20 attachments to names you type: the current and resulting file name (the extension is kept), whether the name was cleaned up or would get a -1 style suffix because it is taken, and how many image sizes a rename would make again. Renames nothing. Renaming by post title, SKU, alt text or AI is not available here.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Previews renaming the files of up to 20 attachments to names you type: each item\'s status (ready, unchanged, name refused, not found, forbidden, file missing, stored off the server, full-size original missing, locked by another operation or name unavailable), the current file name and the exact new one (the extension and a -scaled or -rotated ending are kept, and a -1 style number is added when the name is taken), the new name of the full-size original, and how many image sizes a rename would make again. Issues a one-time confirmation token. Renames nothing. Renaming by post title, SKU, alt text or AI is not available here and is refused.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-rename-media</code></td>
+							<td><?php esc_html_e( 'Renames the previewed files, with the confirmation token and confirm: true, after checking everything again; items no longer ready are reported, not renamed. One file is renamed at once; several run in the background. Also renames the full-size original, makes the sizes again under the new name and updates links in post content, excerpts and Elementor data. Refused while a bulk rename is running.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (renames files and updates links)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-media-rename-status</code></td>
+							<td><?php esc_html_e( 'Returns the bulk rename\'s status, counts, percentage, whether the next background step is scheduled, and per-file results: the result, a code, the new file name and the posts whose links were updated. Never changes the job.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-cancel-media-rename</code></td>
+							<td><?php esc_html_e( 'Stops the running bulk rename with the given job ID. Files already renamed keep their new names. Never stops compression, conversion or regeneration jobs.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
 							<td><code>tsmlt-get-compression-status</code></td>
