@@ -358,6 +358,13 @@ class AiApi {
 			throw new \Exception( esc_html__( 'Invalid parameters.', 'media-library-tools' ) );
 		}
 
+		// Before anything about the item is read or handed to the image hook or
+		// a provider: a library attachment the current user may edit.
+		self::assert_library_attachment( $attachment_id );
+		if ( ! current_user_can( 'edit_post', $attachment_id ) ) {
+			throw new \Exception( esc_html__( 'You are not allowed to edit this media item.', 'media-library-tools' ) );
+		}
+
 		// Reset per-request state: this class is a singleton, so a value left over
 		// from an earlier generation would otherwise leak into the next one.
 		$this->request_instruction = trim( sanitize_textarea_field( (string) ( $params['instruction'] ?? '' ) ) );
@@ -454,6 +461,24 @@ class AiApi {
 		}
 
 		return [ 'suggestions' => $suggestions ];
+	}
+
+	/**
+	 * Refuse anything that is not an attachment in the media library: missing
+	 * and deleted IDs, other post types, and attachments that are trashed or
+	 * otherwise not `inherit`.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 *
+	 * @return void
+	 * @throws \Exception When the ID is not a library attachment.
+	 */
+	private static function assert_library_attachment( int $attachment_id ): void {
+		$post = get_post( $attachment_id );
+
+		if ( ! $post || 'attachment' !== $post->post_type || 'inherit' !== $post->post_status ) {
+			throw new \Exception( esc_html__( 'Media item not found.', 'media-library-tools' ) );
+		}
 	}
 
 	/**
@@ -584,6 +609,11 @@ class AiApi {
 		if ( ! $attachment_id || empty( $fields ) ) {
 			throw new \Exception( esc_html__( 'Invalid parameters.', 'media-library-tools' ) );
 		}
+
+		// Checked for every item when its batch runs, before anything about it
+		// is read or sent. Bulk runs in the background without a user, so edit
+		// permission stays with the job that queued the item.
+		self::assert_library_attachment( $attachment_id );
 
 		// Bulk generation never carries a one-off instruction; reset so a value
 		// left by an earlier single-image call cannot leak into the job.
