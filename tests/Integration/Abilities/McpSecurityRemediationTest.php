@@ -399,9 +399,9 @@ class McpSecurityRemediationTest extends WP_UnitTestCase {
 		sort( $opted_in );
 		$this->assertSame( [ 'tsmlt/get-media-details', 'tsmlt/search-media' ], $opted_in );
 		$this->assertFalse( $public['tsmlt/update-media-metadata'] );
-		foreach ( [ 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media', 'tsmlt/export-media-csv', 'tsmlt/preview-media-rename', 'tsmlt/get-compression-status', 'tsmlt/get-conversion-status', 'tsmlt/get-thumbnail-status', 'tsmlt/get-media-health', 'tsmlt/audit-media-health', 'tsmlt/start-duplicate-scan', 'tsmlt/get-duplicate-scan-status', 'tsmlt/list-media-usage', 'tsmlt/start-exif-privacy-scan', 'tsmlt/get-exif-privacy-scan-status', 'tsmlt/list-exif-privacy-results', 'tsmlt/preview-compression', 'tsmlt/compress-media', 'tsmlt/get-compression-job-status', 'tsmlt/cancel-compression-job', 'tsmlt/preview-thumbnail-regeneration', 'tsmlt/regenerate-thumbnails', 'tsmlt/get-thumbnail-regeneration-status', 'tsmlt/cancel-thumbnail-regeneration' ] as $name ) {
+		foreach ( [ 'tsmlt/list-trashed-media', 'tsmlt/preview-trash-media', 'tsmlt/trash-media', 'tsmlt/restore-media', 'tsmlt/export-media-csv', 'tsmlt/preview-media-rename', 'tsmlt/get-compression-status', 'tsmlt/get-conversion-status', 'tsmlt/get-thumbnail-status', 'tsmlt/get-media-health', 'tsmlt/audit-media-health', 'tsmlt/start-duplicate-scan', 'tsmlt/get-duplicate-scan-status', 'tsmlt/list-media-usage', 'tsmlt/start-exif-privacy-scan', 'tsmlt/get-exif-privacy-scan-status', 'tsmlt/list-exif-privacy-results', 'tsmlt/preview-compression', 'tsmlt/compress-media', 'tsmlt/get-compression-job-status', 'tsmlt/cancel-compression-job', 'tsmlt/preview-thumbnail-regeneration', 'tsmlt/regenerate-thumbnails', 'tsmlt/get-thumbnail-regeneration-status', 'tsmlt/cancel-thumbnail-regeneration', 'tsmlt/preview-media-conversion', 'tsmlt/convert-media', 'tsmlt/cancel-conversion-job' ] as $name ) {
 			$this->assertFalse( $public[ $name ], $name );
 		}
-		$this->assertCount( 37, $public );
+		$this->assertCount( 40, $public );
 	}
 }

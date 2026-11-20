@@ -492,6 +492,21 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-preview-media-conversion</code></td>
+							<td><?php esc_html_e( 'Checks converting up to 20 images to WebP and/or AVIF copies: ready, already converted, same format, unsupported, file missing, name conflict (a file with the copy\'s name that is not this image\'s copy is never replaced), locked, not found or forbidden. AVIF, custom quality and generated sizes need Pro and are refused without it. Issues a one-time confirmation token. Converts nothing.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-convert-media</code></td>
+							<td><?php esc_html_e( 'Starts converting the previewed images, with the confirmation token and confirm: true, after checking everything again. Runs in the background, never in the request; never the whole library; up to 20 images per job on Free. Refused while a compression or conversion job runs. Copies are extra files; the images are not changed.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (creates converted copies)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-cancel-conversion-job</code></td>
+							<td><?php esc_html_e( 'Stops the running conversion job with the given job ID, like Stop on the Convert page. Never cancels compression or thumbnail regeneration. Copies already made stay. Progress: tsmlt-get-compression-job-status.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

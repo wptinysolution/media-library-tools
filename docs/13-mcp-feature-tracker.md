@@ -39,7 +39,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F10 | Duplicate media | Free / Pro | Partially Implemented | Investigated | None (merge deferred) |
 | F11 | Rename | Free / Pro | Partially Implemented | Investigated | None (renaming deferred) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
-| F13 | Conversion (WebP/AVIF) | Free (Pro options) | Partially Implemented | Investigated | **MCP scope approval needed** (engine hardened 2026-11-20) |
+| F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
 | F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None (Pro tool-list test update awaits approval) |
 | F15 | AI metadata generation | Free / Pro | Planned | Not Investigated | Decide whether any tool is needed |
 | F16 | Rubbish files and empty folders | Free / Pro | Deferred | Investigated | Decide on exposing file paths |
@@ -47,7 +47,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 
 ## Next feature
 
-**F13 Conversion execution** (chosen 2026-11-20). The engine prerequisites (P1–P3, C6, C7) were implemented and verified on 2026-11-20 (Free only). Next: agree the MCP tool scope (see "Proposed MCP design" under F13; whole-library conversion, deleting and regenerating copies stay out of MCP) before any implementation. Recommended first: decide on C5 (copies left by deleted attachments now block new conversions with that name).
+**Not chosen yet.** F13 Conversion execution was implemented and verified on 2026-11-20. Open items: C5 (copies left by deleted attachments block new conversions with that name) and the Pro tool-list test update. Remaining candidates: F15 AI metadata generation (Planned; Not Investigated), F16 Rubbish files (Deferred), F17 (Not Investigated).
 
 ## Features
 
@@ -194,10 +194,26 @@ A feature is marked Implemented only with test evidence, never because code exis
 
 - **Owner:** Free engine, job and access checks. Pro adds AVIF, custom quality, generated sizes, no job limit and convert-on-upload, all through Free's `CompressionAccess` (Pro's only conversion code is `CompressApi::convert_on_upload()`).
 - **Plugin:** `Modules/Compress/Conversion/*`, `ConvertModule`; AJAX `tsmlt_conversion_*` (`convert_single`, `start`, `start_library`, `get_library_status`, `get_attachment`, `get_bulk`, `delete`, `regenerate`, `get_capabilities`, `save_settings`); the shared `CompressionJob` (WP-Cron `tsmlt_compression_tick`).
-- **MCP status:** Partially Implemented.
-- **Tools:** `tsmlt/get-conversion-status` (read-only).
-- **Missing operations:** converting, job progress, cancelling, deleting converted copies, regenerating copies.
-- **Tests:** `GetConversionStatusAbilityTest`; engine (2026-11-20): `ConversionEngineHardeningTest` (12).
+- **MCP status:** Implemented (2026-11-20).
+- **Tools:**
+  - `tsmlt/get-conversion-status` (read-only, unchanged);
+  - `tsmlt/preview-media-conversion` (1–20 IDs; `formats` webp/avif, `quality`, `generated_sizes`, `include_converted`; per-image `ready`, `already_converted`, `same_format`, `unsupported`, `file_missing`, `name_conflict`, `locked`, `not_found`, `forbidden`; effective settings; one-time token);
+  - `tsmlt/convert-media` (token + `confirm: true`; refused while a compression or conversion job runs, keeping the token; rechecks licence, formats, settings and every image; starts `CompressionJob::start_conversion()`);
+  - `tsmlt/cancel-conversion-job` (matching running conversion job only).
+  - Progress: the existing `tsmlt/get-compression-job-status` (`job_type: conversion`); no second status tool.
+  - Code: `app/Modules/Compress/Conversion/McpConversion.php` and the three classes in `app/Abilities/Media/`; tokens through the shared `ConfirmationToken`.
+- **Pro options without a licence:** AVIF, custom quality and `generated_sizes: true` are refused (`tsmlt_pro_required`), never replaced by WebP or the preset quality; unsupported formats are refused (`tsmlt_conversion_format_unavailable`). No Pro code was changed.
+- **Missing operations:**
+  - whole-library conversion, deleting copies, regenerating copies (**Excluded** from MCP, D14/D15; admin page only).
+- **Tests:**
+  - `GetConversionStatusAbilityTest`;
+  - `ConversionMcpAbilitiesTest` (12);
+  - `ConversionMcpProOptionsTest` (2, separate process with a Pro licence stand-in);
+  - engine: `ConversionEngineHardeningTest` (12).
+  - Mutation checks: removing the AVIF licence refusal, the running-job check before the token is used, or the name-conflict check makes the matching tests fail.
+  - Full suites (2026-11-20): Free integration 1308 (5 skipped), Free unit 135, all passing.
+  - Pro was not run for this change (no Pro code touched); its pinned tool-list test still needs the new Free tool names (approval pending).
+  - Not tested on a real site.
 - **Investigation:** Investigated 2026-11-20 (read-only audit; nothing changed in the repositories).
 
 #### Verified existing behaviour (from the code)
@@ -321,7 +337,7 @@ C5–C7 are not needed for the minimum MCP scope below.
   - Pro 558 with 1 failure: the pinned tool-list test (F14), unrelated to this change.
   - Not tested on a real site.
 
-#### Proposed MCP design (not approved)
+#### MCP design as implemented (approved 2026-11-20, D15)
 
 Free; Pro options only through `CompressionAccess`, as for compression. Every tool requires `manage_options` in the permission check and in `execute()`, is not runnable through the default gateway, and returns no paths, file names or error texts.
 
@@ -543,6 +559,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D12 | 2026-11-20 | Thumbnail regeneration engine, before any MCP tool: ID queue with job IDs and no restart of a running job; locks both ways with compression, conversion and EXIF removal; sizes from the full-size original for scaled and rotated uploads (refuse when it is missing); disabled-size files kept; regeneration is not an upload (on-upload automation off, without Pro changes); per-image `edit_post` at processing time; new files made and checked before replacing. Whole-library regeneration stays admin-only, never through MCP. | F14 |
 | D13 | 2026-11-20 | MCP thumbnail regeneration: four Free tools; 1–20 images only, never the whole library; preview with a one-time, user-bound token; the hardened engine's fixed-ID background job only; refused while a regeneration job runs, keeping the token; no Pro code changes (Pro GPS removal and EXIF editor lock checks out of scope). | F14 |
 | D14 | 2026-11-20 | Conversion engine, before any MCP tool: never overwrite or delete a file that is not positively the attachment's own copy (refuse with `name_conflict`, keep the existing naming); conversion refuses compression, EXIF-strip and regeneration locks; library (`inherit`) attachments only; regenerate copies all or nothing; no raw SQL in library selection. Whole-library conversion, deleting and regenerating copies stay out of MCP. | F13 |
+| D15 | 2026-11-20 | MCP conversion: Free `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job`; 1–20 images; Pro options refused without a licence, never silently downgraded; progress through the existing `tsmlt/get-compression-job-status`; no whole-library conversion, delete or regenerate copies through MCP; no Pro changes. | F13 |
 
 ## Workflow
 

@@ -16,6 +16,7 @@ The integration lets an AI assistant:
 - Check whether images have every thumbnail size WordPress should have, and whether those files are on disk (see [Thumbnail status](#thumbnail-status--tsmlt-get-thumbnail-status))
 - Regenerate the thumbnails of up to 20 chosen images in the background, after a preview and confirmation, follow the job and stop it (see [Regenerate thumbnails](#regenerate-thumbnails--preview-start-job-status-cancel)); the whole library cannot be regenerated through MCP
 - Check the WebP/AVIF conversion status of media: converted, partly converted, skipped, failed, not converted or unsupported, and whether the copies are out of date (see [Conversion status](#conversion-status--tsmlt-get-conversion-status))
+- Convert up to 20 chosen images to WebP (and, with Pro, AVIF) copies in the background, after a preview and confirmation, and stop the job (see [Convert images](#convert-images--preview-convert-cancel)); the whole library cannot be converted through MCP
 - Check the image compression status of media: compressed, skipped, failed, not yet processed or unsupported, with sizes and savings (see [Compression status](#compression-status--tsmlt-get-compression-status))
 - Compress up to 20 chosen images or the whole library through the Compress Images job, after a preview and confirmation, follow the job's progress and stop it (see [Compress images](#compress-images--preview-compress-job-status-cancel))
 - Preview renaming media files to names you type, one or up to 20 at a time, without renaming anything (see [Rename preview](#rename-preview--tsmlt-preview-media-rename))
@@ -24,7 +25,7 @@ The integration lets an AI assistant:
 - Export selected media (up to 100 IDs) as CSV text with the columns the CSV import reads (see [CSV export and import](#csv-export-and-import))
 - **Pro:** export the whole library, or everything matching the search filters, to one or more CSV files with download links, and check and then apply a CSV that updates existing media (see [CSV export and import](#csv-export-and-import))
 
-The Free tools never change EXIF data. Only two tools change image files, each after a preview and confirmation, through a background job: `tsmlt-compress-media` replaces image files with smaller versions of the same image, and `tsmlt-regenerate-thumbnails` replaces the generated size files (thumbnails) of up to 20 images. Only the Pro EXIF tools change EXIF data, inside JPEG files: `tsmlt-update-exif-fields`, and, after a preview and confirmation, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. The MCP Adapter default server always lists these tools, and one connection to it is the recommended setup; connected to the dedicated Media Library Tools endpoint instead, an assistant cannot reach anything outside these tools (see [Choosing an endpoint](#choosing-an-endpoint)).
+The Free tools never change EXIF data. Only two tools change image files, each after a preview and confirmation, through a background job: `tsmlt-compress-media` replaces image files with smaller versions of the same image, and `tsmlt-regenerate-thumbnails` replaces the generated size files (thumbnails) of up to 20 images. `tsmlt-convert-media` adds WebP/AVIF copies next to up to 20 images without changing them, and never replaces a file that is not the image's own copy. Only the Pro EXIF tools change EXIF data, inside JPEG files: `tsmlt-update-exif-fields`, and, after a preview and confirmation, `tsmlt-apply-bulk-exif-edit`, `tsmlt-remove-gps-metadata` and `tsmlt-undo-exif-change`. No tool can rename, move, upload, or delete files, delete media permanently, or delete or move Groups; `tsmlt-create-media-group` adds Groups and `tsmlt-update-media-group` renames them. Only `tsmlt-trash-media` moves media to the WordPress trash — unused media only, after a preview and confirmation — and `tsmlt-restore-media` brings it back. The MCP Adapter default server always lists these tools, and one connection to it is the recommended setup; connected to the dedicated Media Library Tools endpoint instead, an assistant cannot reach anything outside these tools (see [Choosing an endpoint](#choosing-an-endpoint)).
 
 **Requirements**:
 - WordPress **6.9 or newer** (the Abilities API is part of WordPress core from 6.9)
@@ -37,7 +38,7 @@ Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered a
 
 Every tool listed here — Free, and Pro while the licence is active — is listed directly on both the MCP Adapter default server and the dedicated Media Library Tools endpoint, with the same name and the same checks (see [Choosing an endpoint](#choosing-an-endpoint)). The default server lists them always; there is no setting to turn on. Only `tsmlt-search-media` and `tsmlt-get-media-details` can also be run through the default server's generic gateway tool (`mcp-adapter-execute-ability`); call the others by name.
 
-### Free (37)
+### Free (40)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -74,6 +75,9 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-regenerate-thumbnails` | Starts regenerating the previewed images with the `confirmation_token` and `confirm: true`, after checking everything again, as the background regeneration job; never in the request. Refused while a regeneration job runs. Not reversible: existing size files are replaced. | Yes (replaces image size files) |
 | `tsmlt-get-thumbnail-regeneration-status` | Returns the regeneration job's status, counts, percentage, whether the next background step is scheduled, and recent per-image results as codes. Read-only; no file names or error messages. | No |
 | `tsmlt-cancel-thumbnail-regeneration` | Stops the running regeneration job (by `job_id`), like Stop on the Regenerate page. Images already regenerated stay regenerated. | Yes (stops the job) |
+| `tsmlt-preview-media-conversion` | Checks converting 1–20 images to WebP and/or AVIF copies: each image's status (ready, already converted, same format, unsupported, file missing, name conflict, locked, not found or forbidden), the effective settings and the job limit; issues a one-time `confirmation_token`. AVIF, custom quality and generated sizes need Pro and are refused without it, never replaced by WebP or the preset quality. Converts nothing; it only stores the short-lived token. | No |
+| `tsmlt-convert-media` | Starts the previewed conversion with the `confirmation_token` and `confirm: true`, after checking everything again, as the background conversion job; never in the request, never the whole library. Up to 20 images per job on Free. Refused while a compression or conversion job runs. Copies are extra files; the images are not changed. Progress: `tsmlt-get-compression-job-status`. | Yes (creates converted copies) |
+| `tsmlt-cancel-conversion-job` | Stops the running conversion job (by `job_id`). Never cancels compression or thumbnail regeneration jobs; copies already made stay. | Yes (stops the job) |
 | `tsmlt-get-conversion-status` | Returns the WebP/AVIF conversion status of 1–50 attachments as the Convert feature recorded it: `completed`, `partial`, `skipped`, `failed`, `not_converted` or `unsupported`, whether the image changed since (`stale`), whether a conversion is running, and per format size, savings, quality, time and reason code. Never returns error messages or paths | No |
 | `tsmlt-get-thumbnail-status` | Returns the thumbnail status of 1–50 images: `complete`, `missing_sizes`, `missing_files`, `no_metadata`, `not_applicable` or `file_missing`, with each recorded size (dimensions, MIME type, file size, file on disk, still registered), the missing sizes and the original's dimensions for scaled uploads. Sizes disabled in Media Library Tools are not counted as missing. Never returns paths, file names or EXIF | No |
 | `tsmlt-get-media-health` | Checks the file and record integrity of 1–50 attachments: `healthy` or `issues`, with fixed codes (`no_attached_file`, `file_missing`, `file_unreadable`, `mime_mismatch`, `metadata_missing`, `filesize_mismatch`, `dimensions_mismatch`, `invalid_parent`), the compared values, and whether alt text is set. Never repairs anything or returns paths | No |
@@ -417,9 +421,86 @@ Input: `ids`, a list of 1–50 distinct attachment IDs. Anything else refuses th
 - Why a size is missing (failed, never generated, deleted) is not recorded by WordPress and is not reported.
 - Recorded dimensions are not checked against the files on disk.
 
+## Convert images — preview, convert, cancel
+
+Three tools convert chosen images to WebP and AVIF copies through the Convert feature: the same engine, settings, limits, locks, file-ownership rules and background job as the Convert page. There is no separate conversion code for MCP. **The whole library cannot be converted through MCP**, and deleting or regenerating copies is not offered; use the Convert page for those.
+
+**Workflow**:
+1. `tsmlt-preview-media-conversion` checks 1–20 images and issues a `confirmation_token`.
+2. Ask the user to confirm.
+3. `tsmlt-convert-media` with the token and `confirm: true` starts the job.
+4. Follow it with `tsmlt-get-compression-job-status` (`job_type: conversion`); conversion and compression share one job, so there is no separate conversion status tool. See each image's copies with `tsmlt-get-conversion-status`. Stop it with `tsmlt-cancel-conversion-job`.
+
+The job runs in the background (WP-Cron, `tsmlt_compression_tick`); nothing is converted during the tool call.
+
+### Check — `tsmlt-preview-media-conversion`
+
+Input:
+- `ids`: 1–20 distinct attachment IDs.
+- `formats` (optional): `webp` (default) and/or `avif`.
+- `quality` (optional): per requested format, 1–100, for example `{"webp": 75}`.
+- `generated_sizes` (optional): also convert the generated sizes.
+- `include_converted` (optional): convert images that already have copies again.
+- Nothing else is accepted (no library or scope option).
+
+**Free and Pro**:
+- **Free:** WebP with the preset quality.
+- **Pro:** `avif`, `quality` and `generated_sizes: true`. Without an active Pro licence they are refused with `tsmlt_pro_required`; a request is never replaced by WebP or the preset quality. Asking for `generated_sizes: false` is allowed.
+- **Server support:** a format the server cannot produce is refused (`tsmlt_conversion_format_unavailable`).
+- **Effective settings:** `settings` shows the formats, quality per format and `generated_sizes` the run will use. Options left out follow the Convert settings.
+- **Licence status:** `pro_active` and `pro_only_options` say what needs Pro.
+
+Per image `status`:
+- `ready`;
+- `already_converted`: copies exist for every requested format; left out unless `include_converted` is true;
+- `same_format`: the image is already in every requested format;
+- `unsupported`: not JPEG, PNG or WebP;
+- `file_missing`;
+- `name_conflict`: a file with the copy's name exists, or another image claims it, and it is not this image's own copy. It is never replaced.
+- `locked`: being converted, compressed, having its thumbnails regenerated or its EXIF removed;
+- `not_found`: missing, deleted, trashed, not media, or not readable for you;
+- `forbidden`: readable, but you may not edit it.
+
+Also returned: `summary`, `job_limit` (20 on Free, 0 = no limit with Pro), `job_running`, `ready_count`, `confirmation_token` (null when nothing is ready), `expires_at` (UTC), `message`. The preview changes nothing but the token.
+
+### Start — `tsmlt-convert-media`
+
+Input: `confirmation_token` and `confirm: true`.
+
+- **Token:** works once, only for the user it was issued to, within 10 minutes.
+- **Running job:** refused while any compression or conversion job is running (`tsmlt_conversion_job_running`); the token is then kept.
+- **Checked again after the token is used:**
+  - **Licence:** the Pro licence for Pro options (`tsmlt_pro_required`).
+  - **Formats:** the server's formats.
+  - **Settings:** the effective settings against the preview (`tsmlt_conversion_settings_changed`).
+  - **Each image:** access, status, file, locks and copy names.
+- **Queueing:** only images still `ready` are queued; `items` reports each with `queued`. With none left, nothing starts (`tsmlt_conversion_nothing_to_do`).
+- **Output:** `job_id`, `job_type` (`conversion`), `status`, `total`, `job_limit`, `limit_applied`, `settings`, `items`, `message`.
+
+When each image is processed, the engine checks again that it is in the library, that no other operation holds it, and that each copy's name is free or holds this image's own copy. A size whose copy name is taken fails alone; see the image's `tsmlt-get-conversion-status`.
+
+### Stop — `tsmlt-cancel-conversion-job`
+
+Input: `job_id`. Cancels only the current job, only when it is a conversion job, and only while it is running:
+- `tsmlt_conversion_job_mismatch` for another or no job, which also covers thumbnail regeneration job IDs;
+- `tsmlt_conversion_not_conversion_job` for a compression job;
+- `tsmlt_conversion_job_not_running` for a job that is finished or cancelled.
+
+Copies already made stay. Returns the job as `tsmlt-get-compression-job-status` reports it.
+
+### Safety and limits
+
+- Every tool requires `manage_options` in its permission check and again when it runs; preview and start also require, per image, that you can read and edit it.
+- None is runnable through the default server's generic gateway tools; they are listed by name on the default server and on the dedicated endpoint.
+- No file paths, file names or error messages are returned.
+- **Copies only**: the images are never changed. A copy replaces only this image's own earlier copy; another image's file, an unrelated file or a name another image claims is never overwritten (`name_conflict`).
+- **Leftover copies**: copies left on disk by deleted images are not recognised as anyone's copy, so an image whose copy would get that name is reported `name_conflict`.
+- Jobs are site-wide: any administrator can follow or stop a job, from MCP or the Convert page.
+- Locks are post meta and are not checked in one atomic step, so operations starting in the same instant are not excluded.
+
 ## Conversion status — `tsmlt-get-conversion-status`
 
-Reports what the Convert feature recorded for each image's WebP and AVIF copies. It never converts, regenerates or deletes anything. Converting, library-wide figures, the job's progress and which format visitors are served are not available through MCP. WebP conversion is Free; AVIF and converting generated sizes are Pro options, and their results appear here when Pro made them.
+Reports what the Convert feature recorded for each image's WebP and AVIF copies. It never converts, regenerates or deletes anything. To convert, use the [Convert images](#convert-images--preview-convert-cancel) tools; library-wide figures and which format visitors are served are not available through MCP. WebP conversion is Free; AVIF and converting generated sizes are Pro options, and their results appear here when Pro made them.
 
 Input: `ids`, a list of 1–50 distinct attachment IDs. Anything else refuses the whole request.
 
@@ -1472,7 +1553,7 @@ This section is the maintained record of what the MCP integration does, the deci
 
 ### Implemented abilities
 
-Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename`, `tsmlt/get-compression-status`, `tsmlt/get-conversion-status`, `tsmlt/get-thumbnail-status`, `tsmlt/get-media-health`, `tsmlt/audit-media-health`, `tsmlt/preview-compression`, `tsmlt/compress-media`, `tsmlt/get-compression-job-status`, `tsmlt/cancel-compression-job`, `tsmlt/preview-thumbnail-regeneration`, `tsmlt/regenerate-thumbnails`, `tsmlt/get-thumbnail-regeneration-status`, `tsmlt/cancel-thumbnail-regeneration` (37). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
+Free (registered in `AbilitiesInit::get_abilities()`): `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/update-media-metadata`, `tsmlt/get-exif-fields`, `tsmlt/list-media-groups`, `tsmlt/set-media-groups`, `tsmlt/create-media-group`, `tsmlt/update-media-group`, `tsmlt/get-media-usage`, `tsmlt/start-usage-scan`, `tsmlt/get-usage-scan-status`, `tsmlt/list-media-usage`, `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`, `tsmlt/list-trashed-media`, `tsmlt/preview-trash-media`, `tsmlt/trash-media`, `tsmlt/restore-media`, `tsmlt/export-media-csv`, `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results`, `tsmlt/preview-media-rename`, `tsmlt/get-compression-status`, `tsmlt/get-conversion-status`, `tsmlt/get-thumbnail-status`, `tsmlt/get-media-health`, `tsmlt/audit-media-health`, `tsmlt/preview-compression`, `tsmlt/compress-media`, `tsmlt/get-compression-job-status`, `tsmlt/cancel-compression-job`, `tsmlt/preview-thumbnail-regeneration`, `tsmlt/regenerate-thumbnails`, `tsmlt/get-thumbnail-regeneration-status`, `tsmlt/cancel-thumbnail-regeneration`, `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job` (40). Pro (registered by `ProAbilitiesInit` in the Pro plugin, offered only with an active licence): `tsmlt/get-exif-caption`, `tsmlt/update-exif-fields`, `tsmlt/export-media-csv-bulk`, `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import`, `tsmlt/apply-media-csv-import`, `tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`, `tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`, `tsmlt/list-exif-change-logs`, `tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change` (14). Descriptions: [Available Tools](#available-tools).
 
 Removed: `tsmlt/preview-trash-unused-media` and `tsmlt/trash-unused-media` (moving unused media to the trash through MCP was judged too risky, 2026-10-28). That rule — no MCP tool trashes media — was reversed by the project owner on 2026-11-15, on conditions, for the four trash tools above; the removed tools stay removed. The conditions: strict usage (only `unused` under a complete, verified scan; used, unknown, unscanned and unverifiable media refused); the site icon and logo refused; dedicated endpoint only (`meta.mcp.public` false); every trash write blocked when `EMPTY_TRASH_DAYS` is 0 or less; a single-use, user-, ID- and scan-bound confirmation token that expires after 10 minutes; restore without a token; WordPress's own `wp_trash_post()` and `wp_untrash_post()` only. Permanent deletion, emptying the trash, trashing everything unused and bulk rename stay out of scope; no MCP tool deletes media permanently.
 
@@ -1536,6 +1617,7 @@ The Unknown tab explains each image with these reasons, the evidence found in th
 - **Default server always lists the tools** (Free, 2026-11-18; WordPress test suite with WordPress 7.1.3, MCP Adapter 0.7.1, PHP 8.5): `McpDefaultServerToolsTest` (13 tests, 130 assertions: no setting, constant, method or filter of the removed opt-in remains, and a value it left in `tsmlt_settings` does not turn the tools off; the hooks and priority; the 0.5.0 version gate; every Free tool, including `tsmlt/export-media-csv`, merged with the gateway tools kept first and nothing listed twice; a stand-in Pro tool and MCP App view added only while the stand-in reports a licence, and another category's ability refused; no change to any `meta.mcp.public`; list hiding for editor, author, subscriber and anonymous users, with array and object records and a tool renamed through `mcp_adapter_tool_name`; end to end on the real default server: an administrator sees every Free tool with its hints and no Pro tool, and runs `tsmlt-export-media-csv`; the dedicated endpoint lists the same `tsmlt-` tools and still runs them; editors, authors and subscribers connect but see no `tsmlt-` tool and are refused export, metadata update and trash calls, with nothing changed; execute-ability still refuses `tsmlt/update-media-metadata`, `tsmlt/export-media-csv` and `tsmlt/trash-media`). `McpDocsPageTest`, `McpClientServerKeyTest` and the unit test of the registration hooks were updated. Full Free integration suite: 1,139 tests, 28 failures, 5 skipped — the same 28 as without these changes (MCP gateway tests that expect MCP Adapter 0.7.0's "not exposed via MCP" wording, which 0.7.1 changed, and `UsedWhereBatchTransactionTest` / `UsedWhereCleanupTest`). Free unit suite: 135 tests, 407 assertions. The real Pro licence path is covered only by the stand-in here; the Pro suite was not run. Not re-run against MCP Adapter 0.7.0, and not verified in a real client or on a site.
 - **Compression through MCP** (Free, 2026-11-20; WordPress test suite with the MCP Adapter, PHP 8.5): `CompressionMcpAbilitiesTest` (18 tests: every preview status, read-only preview, invalid input, permissions, Pro options refused on Free, single, selected and library runs started as the background job, Free limit, token single use, expiry and ownership, running compression or conversion job, settings changed since the preview, conversion and EXIF locks at execution, read-only job status, cancel only compression jobs, no paths or error texts, not runnable through the gateway), `CompressionMcpProOptionsTest` (2 tests, separate process: Pro options with a licence; a licence that lapses after the preview refuses the run), `CompressionCrossLockTest` (6 tests). Full suites: Free integration 1248 tests (5 skipped), Free unit 135, Pro 558, all passing. Not tested on a real site.
 - **Thumbnail regeneration through MCP** (Free, 2026-11-20; WordPress test suite with the MCP Adapter, PHP 8.5): `RegenerationMcpAbilitiesTest` (15 tests: every preview status including scaled, rotated and missing originals, offloaded and unreadable files; read-only preview; 1–20 IDs only, no library input; permissions; all four locks; fixed-ID background job, nothing regenerated in the request; images and originals rechecked at start; sizes changed since the preview; token ownership, expiry and replay; running job keeps the token; read-only status without file names or error texts and with unreadable results hidden; cancel of matching, other, completed and cancelled jobs; not runnable through the gateway). Engine: `RegenerateThumbnailsEngineTest` (17), `RegenerateUploadContextTest` (1), `RegenerateAjaxTest` (1). With licensed Pro (Pro's test setup, throwaway test, no Pro change): the tools work, a Pro custom image size is generated, and Pro's compress on upload stays out. Full suites: Free integration 1282 (5 skipped), Free unit 135; Pro 558 with one expected failure in its tool-list test (see the tracker). Not tested on a real site.
+- **Conversion through MCP** (Free, 2026-11-20; WordPress test suite with the MCP Adapter, PHP 8.5): `ConversionMcpAbilitiesTest` (12 tests: every preview status including name conflicts and all four locks; read-only preview; 1–20 IDs only, no library input; Pro options refused on Free without downgrade; permissions; background job with the ready IDs, nothing converted in the request; images rechecked at start (lock, name conflict, trash, permission); settings changed since the preview; token ownership, expiry and replay; running compression or conversion job keeps the token; cancel only the matching running conversion job, never compression or regeneration jobs, and not finished or cancelled ones; no paths or file names; not runnable through the gateway). `ConversionMcpProOptionsTest` (2, separate process: AVIF, custom quality and generated sizes with a licence; a licence that lapses after the preview refuses the start). Full suites: Free integration 1308 (5 skipped), Free unit 135. Not tested on a real site.
 - **Development site** (read-only, 2026-10-28): usage results for real product, gallery, variation and category images were checked against WooCommerce data. No fresh scan has been run there, so its last scan still has no coverage record.
 
 ### CSV import and export through MCP (Pro)
@@ -1629,3 +1711,4 @@ This roadmap records the history of the MCP work. Which plugin features are cove
 | 12 | Single connection through the default server | Implemented | 2026-11-18. Every eligible Media Library Tools tool and the CSV Export MCP App are always listed directly on the MCP Adapter default server, through `mcp_adapter_default_server_config` (no setting; the same-day opt-in was removed); Pro unchanged; no ability made public; tools hidden from users without `manage_options`; dedicated endpoint kept as the alternative and fallback. Covered by `McpDefaultServerToolsTest` (see Verification evidence). Remaining: verify in Claude Desktop / Claude Code against a real site, with Pro licensed, including the CSV Export MCP App; re-run against MCP Adapter 0.7.0. |
 | 13 | Compression execution | Implemented | 2026-11-20. Free `tsmlt/preview-compression`, `tsmlt/compress-media`, `tsmlt/get-compression-job-status`, `tsmlt/cancel-compression-job` (not runnable through the default gateway): preview with a one-time token, then the existing asynchronous Compress Images job for one image, chosen images or the library; Free limits and Pro options through `CompressionAccess`; refused while a compression or conversion job runs; prerequisite: compression refuses images being converted or having their EXIF removed. See [Compress images](#compress-images--preview-compress-job-status-cancel). Restoring Pro backups through MCP is not included (deferred). Covered by integration tests; not tested on a real site. |
 | 14 | Thumbnail regeneration | Implemented | 2026-11-20. Free `tsmlt/preview-thumbnail-regeneration`, `tsmlt/regenerate-thumbnails`, `tsmlt/get-thumbnail-regeneration-status`, `tsmlt/cancel-thumbnail-regeneration` (not runnable through the default gateway): 1–20 images, preview with a one-time token, then the hardened regeneration engine's background job with a fixed ID queue. Whole-library regeneration is not offered through MCP. See [Regenerate thumbnails](#regenerate-thumbnails--preview-start-job-status-cancel). Covered by integration tests; not tested on a real site. |
+| 15 | Conversion execution | Implemented | 2026-11-20. Free `tsmlt/preview-media-conversion`, `tsmlt/convert-media`, `tsmlt/cancel-conversion-job` (not runnable through the default gateway): 1–20 images, preview with a one-time token, then the hardened engine's background conversion job; Pro options refused without a licence (no silent fallback); progress through `tsmlt/get-compression-job-status`. Whole-library conversion, deleting and regenerating copies are not offered through MCP. See [Convert images](#convert-images--preview-convert-cancel). Covered by integration tests; not tested on a real site. |
