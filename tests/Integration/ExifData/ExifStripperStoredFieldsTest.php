@@ -166,7 +166,7 @@ class ExifStripperStoredFieldsTest extends WP_UnitTestCase {
 		$result = ExifStripper::instance()->strip_exif_from_attachment( $id );
 		remove_action( 'tsmlt_exif_stripped', $listener, 10 );
 
-		$this->assertSame( [ 'success', 'message' ], array_keys( $result ) );
+		$this->assertSame( [ 'success', 'message' ], array_slice( array_keys( $result ), 0, 2 ), 'The original keys come first; per-file details may follow.' );
 		$this->assertTrue( $result['success'], $result['message'] );
 		$this->assertSame( [ [ $id, 'all' ] ], $stripped, 'tsmlt_exif_stripped fires once after the strip.' );
 		foreach ( array_merge( [ '_tsmlt_exif_meta' ], array_keys( self::INDEX ) ) as $key ) {

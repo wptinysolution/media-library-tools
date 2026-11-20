@@ -876,7 +876,39 @@ These Pro features exist in WordPress Admin but are not offered as MCP tools, be
 | EXIF export (Bulk EXIF export, CSV/JSON) | The export always includes GPS latitude and longitude, which MCP responses must not carry. It needs an option to leave location out. |
 | EXIF import | It applies a file directly, with no preview or dry run, and it writes GPS coordinates. Its CSV reader also expects lowercase column names (`make`, `model`), while the export writes `Make`, `Model`, so an exported file is not read back completely. It needs a validation-only mode first. |
 | EXIF ↔ WordPress metadata sync | Neither direction has a preview. WordPress → EXIF splits the attachment title into camera Make (first word) and Model (the rest) and overwrites them; EXIF → WordPress fills only an empty caption and title. It needs a preview that names the affected fields first. |
-| Remove all EXIF | Bulk "remove all" re-saves the image without any EXIF (orientation, copyright and colour data included). It is irreversible and blocks undo of earlier changes; not offered until it is specifically approved. |
+| Remove all EXIF | Available in WordPress Admin (see [Full EXIF removal in WordPress Admin](#full-exif-removal-in-wordpress-admin)) but not as an MCP tool: it is irreversible, blocks undo of earlier changes, and has not been approved for MCP. |
+
+#### Full EXIF removal in WordPress Admin
+
+Removing all EXIF from an image is done on the EXIF Data page (one image: Free; bulk and the library-wide batch: Pro). It works without re-encoding the image.
+
+- **Lossless:**
+  - only the metadata segments of the JPEG are removed;
+  - the compressed image data stays byte for byte, so there is no quality loss and the dimensions are unchanged;
+  - the colour profile (ICC), the Adobe segment and the JFIF header are kept;
+  - when the image had an Orientation other than normal, a minimal EXIF segment holding only that Orientation is written, so the image is still shown the right way up.
+- **What is removed:** EXIF (camera, dates, author, copyright, GPS location), XMP including extended XMP, IPTC, comments and other application segments.
+- **Which files:**
+  - the attached image;
+  - the full-size original WordPress keeps for large or rotated uploads;
+  - every generated size;
+  - WordPress's pre-edit backups.
+
+  Each file is checked; one with nothing to remove is not rewritten.
+- **WordPress's stored data:** the image's stored data (`image_meta`: camera, credit, copyright, caption, title, dates, keywords) is cleared, keeping only the orientation, and the recorded file sizes are updated. The plugin's stored EXIF values, filter index and EXIF privacy-scan result are removed; scan again to refresh the privacy results.
+- **Safety:**
+  - each file is written to a temporary file next to it, verified (same image data, dimensions and kept segments; no other metadata), read back, verified again and only then renamed over the original;
+  - a failure leaves the original untouched and no temporary file behind;
+  - the image is refused while it is being compressed or converted, or while another removal of it is running;
+  - offloaded (remote) storage is not supported.
+- **Irreversible:** no copy of the original metadata is kept, and earlier EXIF changes can no longer be undone.
+- **Formats:** JPEG only; PNG, WebP and HEIC are not supported. An image that carries metadata of an embedded second image after its image data (some multi-picture files) is refused rather than half-cleaned.
+- **Copies that are not changed:**
+  - the compression backup (the original kept before compression);
+  - WebP/AVIF copies made by the Convert feature.
+
+  These may still hold the original metadata. The result of a removal says whether they exist.
+
 
 ## CSV export and import
 

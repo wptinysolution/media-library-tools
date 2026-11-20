@@ -100,6 +100,8 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifDataReader' => __DIR__ . '/app/Modules/ExifData/ExifDataReader.php',
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifScanner' => __DIR__ . '/app/Modules/ExifData/ExifScanner.php',
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifStripper' => __DIR__ . '/app/Modules/ExifData/ExifStripper.php',
+		'TinySolutions\\mlt\\Modules\\ExifData\\JpegMetadataStripper' => __DIR__ . '/app/Modules/ExifData/JpegMetadataStripper.php',
+		'TinySolutions\\mlt\\Modules\\ExifData\\JpegSegments' => __DIR__ . '/app/Modules/ExifData/JpegSegments.php',
 		'TinySolutions\\mlt\\Modules\\ImageSize\\ImageSizeModule' => __DIR__ . '/app/Modules/ImageSize/ImageSizeModule.php',
 		'TinySolutions\\mlt\\Modules\\ModuleInit' => __DIR__ . '/app/Modules/ModuleInit.php',
 		'TinySolutions\\mlt\\Modules\\Regenerate\\RegenerateThumbnails' => __DIR__ . '/app/Modules/Regenerate/RegenerateThumbnails.php',

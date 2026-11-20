@@ -3,7 +3,7 @@ Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 2.5.0
+Stable tag: 2.4.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -543,6 +543,10 @@ Visit the [WordPress.org support forum](https://wordpress.org/support/plugin/med
 
 == Changelog ==
 = 2.5.0 (Oct XX, 2026)=
+* Improvement: Removing all EXIF from an image is now lossless. Only the metadata (EXIF and GPS, XMP, IPTC, comments) is removed; the image itself is not re-encoded, so quality, dimensions, the colour profile and the orientation are kept.
+* Improvement: Removing all EXIF now also cleans the full-size original WordPress keeps for large uploads, the generated image sizes and WordPress's pre-edit backups, and clears the camera, credit, copyright and other private fields WordPress stored for the image.
+* Improvement: Each file is replaced only after the cleaned copy is verified; a failure leaves the original untouched.
+* Note: Media Library Tools Pro 1.7.0 needs Media Library Tools 2.5.0 or later for its EXIF removal features.
 * Feature: MCP integration — AI assistants such as Claude Code can search your media library, read media details, and update the title, alt text, caption and description. Requires WordPress 6.9+ and the official MCP Adapter plugin.
 * Feature: Dedicated MCP endpoint at /wp-json/media-library-tools/mcp that exposes only the Media Library Tools tools and is limited to administrators. Recommended over the MCP Adapter's default endpoint, which also exposes public abilities from other plugins.
 * Security: AI API keys (OpenAI, Gemini, Claude) are now encrypted before they are saved, using your site's WordPress security keys. No setup is needed.
