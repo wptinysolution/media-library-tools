@@ -29,6 +29,7 @@ Media Library Tools provides powerful features to help you manage, organize, and
 
 ### Integrations
 - [MCP Integration](12-mcp-integration.md) - Let AI assistants search, read and update media text through a dedicated MCP endpoint
+- [MCP Feature Tracker](13-mcp-feature-tracker.md) - Which features are available through MCP, decisions, and what comes next
 
 ## Quick Start
 

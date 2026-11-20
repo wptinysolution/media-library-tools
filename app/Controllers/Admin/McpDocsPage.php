@@ -452,6 +452,26 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-preview-compression</code></td>
+							<td><?php esc_html_e( 'Checks a compression run before it starts — up to 20 chosen images or the whole library — and returns each image\'s status (ready, already compressed, unsupported, file missing, locked, not found or forbidden), the settings that would be used, whether the result can be undone (only when a backup is kept, a Pro feature) and a one-time confirmation token. Custom quality, backups and generated sizes need Pro. Compresses nothing.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-compress-media</code></td>
+							<td><?php esc_html_e( 'Starts the run a preview checked, with its confirmation token and confirm: true, after checking everything again. Compression runs in the background through the Compress Images job, never in the request; up to 20 images per job on Free. Refused while a compression or conversion job is running. Without a backup (Pro) each image file is replaced permanently.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (compresses image files)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-compression-job-status</code></td>
+							<td><?php esc_html_e( 'Returns the progress of the Compress Images job: its type (compression, or a conversion run, which shares the job), status, how many images are done, succeeded, skipped and failed, the percentage and whether the next background step is scheduled. Error messages are not returned. Never changes the job.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-cancel-compression-job</code></td>
+							<td><?php esc_html_e( 'Stops the running compression job, like Stop on the Compress Images page. Never cancels a conversion job; images already compressed stay compressed.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (stops the job)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>

@@ -124,6 +124,28 @@ class ScanStartLock {
 	}
 
 	/**
+	 * Whether another request holds the lock, by the same rule acquire()
+	 * uses: a value taken within SECONDS. Read-only: the lock is never taken,
+	 * replaced or released here. A database error counts as held, so a
+	 * caller that must not run alongside the lock holder stays out.
+	 *
+	 * @param string $option Lock option; the usage scan's by default.
+	 *
+	 * @return bool
+	 */
+	public function is_held( string $option = self::OPTION ): bool {
+		$current = $this->read_lock( $option );
+		if ( false === $current ) {
+			return true;
+		}
+		if ( null === $current ) {
+			return false;
+		}
+		$taken = (int) strtok( $current, ':' );
+		return $taken > 0 && ( time() - $taken ) <= self::SECONDS;
+	}
+
+	/**
 	 * Insert the lock row.
 	 *
 	 * @param string $value  Lock value.

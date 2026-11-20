@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
+use TinySolutions\mlt\Modules\Compress\Conversion\AttachmentConverter;
+use TinySolutions\mlt\Modules\ExifData\ExifStripper;
+use TinySolutions\mlt\Modules\UsedWhere\ScanStartLock;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Error;
 
@@ -152,6 +155,16 @@ class AttachmentProcessor {
 		$this->lock( $attachment_id );
 
 		try {
+			// Checked with the compression lock already held, so an EXIF
+			// removal starting now sees it and stays out too. Nothing has
+			// been read or written yet.
+			if ( $this->is_busy_elsewhere( $attachment_id ) ) {
+				return new WP_Error(
+					'tsmlt_compression_operation_locked',
+					esc_html__( 'This image is being converted or its EXIF data is being removed. Try again when that has finished.', 'media-library-tools' )
+				);
+			}
+
 			return $this->process_unlocked( $attachment_id, $run_settings );
 		} finally {
 			$this->unlock( $attachment_id );
@@ -553,6 +566,21 @@ class AttachmentProcessor {
 				'last_error'    => $error->get_error_message(),
 			]
 		);
+	}
+
+	/**
+	 * Whether another operation that rewrites or reads the image file is
+	 * running on the attachment: a conversion (its post-meta lock) or an EXIF
+	 * removal (its ScanStartLock row). Each lock's own expiry applies, and
+	 * neither lock is changed here.
+	 *
+	 * @param int $attachment_id Attachment post ID.
+	 *
+	 * @return bool
+	 */
+	public function is_busy_elsewhere( int $attachment_id ): bool {
+		return AttachmentConverter::instance()->is_locked( $attachment_id )
+			|| ScanStartLock::instance()->is_held( ExifStripper::LOCK_PREFIX . $attachment_id );
 	}
 
 	/**

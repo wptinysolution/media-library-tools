@@ -16,7 +16,11 @@ use TinySolutions\mlt\Abs\Ability;
 use TinySolutions\mlt\Abilities\Media\CreateMediaGroup;
 use TinySolutions\mlt\Abilities\Media\ExportMediaCsv;
 use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
+use TinySolutions\mlt\Abilities\Media\CancelCompressionJob;
+use TinySolutions\mlt\Abilities\Media\CompressMedia;
+use TinySolutions\mlt\Abilities\Media\GetCompressionJobStatus;
 use TinySolutions\mlt\Abilities\Media\GetCompressionStatus;
+use TinySolutions\mlt\Abilities\Media\PreviewCompression;
 use TinySolutions\mlt\Abilities\Media\GetConversionStatus;
 use TinySolutions\mlt\Abilities\Media\GetThumbnailStatus;
 use TinySolutions\mlt\Abilities\Media\GetMediaHealth;
@@ -169,6 +173,10 @@ class AbilitiesInit {
 			GetThumbnailStatus::instance(),
 			GetMediaHealth::instance(),
 			AuditMediaHealth::instance(),
+			PreviewCompression::instance(),
+			CompressMedia::instance(),
+			GetCompressionJobStatus::instance(),
+			CancelCompressionJob::instance(),
 		];
 	}
 }
