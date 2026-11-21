@@ -19,6 +19,8 @@ use TinySolutions\mlt\Abilities\Media\PreviewMediaRename;
 use TinySolutions\mlt\Abilities\Media\RenameMedia;
 use TinySolutions\mlt\Abilities\Media\GetMediaRenameStatus;
 use TinySolutions\mlt\Abilities\Media\CancelMediaRename;
+use TinySolutions\mlt\Abilities\Media\ListImageSizes;
+use TinySolutions\mlt\Abilities\Media\GetImageSizeDetails;
 use TinySolutions\mlt\Abilities\Media\CancelCompressionJob;
 use TinySolutions\mlt\Abilities\Media\CompressMedia;
 use TinySolutions\mlt\Abilities\Media\GetCompressionJobStatus;
@@ -199,6 +201,8 @@ class AbilitiesInit {
 			ConvertMedia::instance(),
 			CancelConversionJob::instance(),
 			GetMediaImagePreview::instance(),
+			ListImageSizes::instance(),
+			GetImageSizeDetails::instance(),
 		];
 	}
 }

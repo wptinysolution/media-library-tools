@@ -527,6 +527,16 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-list-image-sizes</code></td>
+							<td><?php esc_html_e( 'Lists every registered image size: name, width and height, crop, where it comes from (WordPress, a Media Library Tools custom size, or the theme or another plugin) and whether it is disabled on the Image Sizes page.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-get-image-size-details</code></td>
+							<td><?php esc_html_e( 'Returns one registered image size by name: width and height, crop, where it comes from and whether it is disabled. An unknown name is refused.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
@@ -615,6 +625,21 @@ class McpDocsPage {
 							<td><code>tsmlt-undo-exif-change</code></td>
 							<td><?php esc_html_e( 'Pro. Undoes the change of a plan from tsmlt-preview-exif-undo once, after you confirm it, only while it is still the newest change.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'Yes (EXIF)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-register-image-size</code></td>
+							<td><?php esc_html_e( 'Pro. Adds a custom image size (tsmlt_ plus a key, width, height, crop), like the Image Sizes page. The first call previews it and returns a plan; a second call with the plan and confirm: true saves it. Existing thumbnails are not regenerated.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (image size settings)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-update-image-size</code></td>
+							<td><?php esc_html_e( 'Pro. Changes the width, height or crop of a Media Library Tools custom size, after a preview and confirmation. Sizes of WordPress, the theme or other plugins are refused. Existing thumbnails are not regenerated.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (image size settings)', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
+							<td><code>tsmlt-unregister-image-size</code></td>
+							<td><?php esc_html_e( 'Pro. Removes a Media Library Tools custom size, after a preview and confirmation. Other sizes are refused. Files already made are not deleted and thumbnails are not regenerated.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'Yes (image size settings)', 'media-library-tools' ); ?></td>
 						</tr>
 					</tbody>
 				</table>

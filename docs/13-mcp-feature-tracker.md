@@ -43,7 +43,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None |
 | F15 | AI metadata generation | Free / Pro | Excluded (server-side); client-side workflow supported | Investigated | None |
 | F16 | Rubbish files and empty folders | Free / Pro | Deferred | Investigated | Decide on exposing file paths |
-| F17 | Image sizes, settings and automatic behaviour | Free / Pro | Not Investigated | Not Investigated | Probably not applicable; confirm |
+| F17 | Image sizes, settings and automatic behaviour | Free / Pro | Implemented (image sizes); other settings Not Investigated | Investigated (image sizes) | None for image sizes; other settings: confirm whether MCP applies |
 
 ## Next feature
 
@@ -717,7 +717,38 @@ All Free; no Pro-only behaviour. Every tool requires `manage_options` in the per
 ### F17 Image sizes, settings and automatic behaviour
 
 - **Owner:** Free (image sizes, settings, SVG upload, download shortcode); Pro (custom sizes, auto-rename on upload, front-end alt injection, AI image vision).
-- **MCP status:** Not Investigated. These are configuration or automatic behaviour rather than media operations, so MCP is probably not applicable. That is not a recorded decision; confirm before marking Excluded.
+- **MCP status:** image sizes **Implemented** (2026-11-21, D22). The other settings and automatic behaviour (SVG upload, download shortcode, auto-rename on upload, front-end alt injection, AI image vision, general settings) are **Not Investigated**; they are configuration rather than media operations, so MCP is probably not applicable. That is not a recorded decision.
+
+#### Image sizes (implemented 2026-11-21)
+
+- **Tools:**
+  - Free: `tsmlt/list-image-sizes`, `tsmlt/get-image-size-details` (read-only);
+  - Pro: `tsmlt/register-image-size`, `tsmlt/update-image-size`, `tsmlt/unregister-image-size`.
+- **Free:**
+  - **Description:** `Modules/ImageSize/ImageSizeModule.php` gained `describe_all()` and `describe()`. They report name, width, height, crop, crop position, source and disabled from `wp_get_registered_image_subsizes()` and the `deregistered_image_sizes` setting, plus `managed_sizes()`, `disabled_sizes()` and the filter `tsmlt_managed_image_sizes` (`ImageSizeModule::MANAGED_FILTER`).
+  - **Source:** core for WordPress's own size names, `media_library_tools` for names from the filter, `other` for anything else. Theme and plugin sizes cannot be told apart.
+- **Pro:**
+  - **Custom sizes:** `Modules/ImageSize/CustomImageSizes.php` reads and writes only the existing `custom_image_sizes` setting, in the Image Sizes page's shape (`{ sizeKey, width, height, hardCrop }`).
+    - It registers changes for the current request through the existing `ActionHooks::register_image_size()` and `remove_image_size()`.
+    - It reports its names to Free's filter, hooked by name in `ProAbilitiesInit`.
+  - **Change rules:** `Abilities/ImageSizeChange.php` holds them.
+    - **Two calls on each tool:** the change's inputs return a preview and an `ImportPlanStore` plan through `ExifAbilitySupport` (single use, user-bound, about 15 minutes, per tool); `{ plan_id, confirm: true }` applies.
+    - **Fingerprint:** the custom-size list and the registered size names; a mismatch is `tsmlt_image_size_changed`.
+    - **Only owned sizes change:** ownership is decided by `CustomImageSizes::ownership()` from the plugin's own setting, not from names or the registry.
+      - **owned:** exactly one valid stored entry, registered now with exactly that width, height and boolean crop;
+      - **unverified** (`tsmlt_image_size_not_verified`): stored but not registered, stored twice, or registered with other values (a positional crop included), for example the same name re-registered by the theme, another plugin or custom code;
+      - **not owned** (`tsmlt_image_size_not_managed`): core, theme and other plugins' sizes, including `tsmlt_` names that are not stored;
+      - **not found:** neither stored nor registered.
+    - **When it is checked:** ownership is checked in the preview and again when the plan is applied. The `managed` flag in the read tools uses the same check (`owned_names()`).
+  - **Access:** licence and `manage_options` in the permission callback and in `execute()`. Dedicated-only (`meta.mcp.public` false), listed while licensed.
+- **Why not the admin settings save:** it writes the whole settings array from the full form payload, and Pro stores `custom_image_sizes` unvalidated. The MCP tools validate keys (`^[a-z0-9][a-z0-9_-]{0,39}$`), dimensions (1–10000) and crop (boolean), and write only that one key.
+- **Not regenerated:** no tool regenerates thumbnails or deletes files; the results say so and point to the thumbnail regeneration tools. Changing sizes makes earlier regeneration previews stale (their sizes fingerprint changes), as intended.
+- **Tests (2026-11-21):**
+  - Free `ImageSizeAbilitiesTest` (5) and Pro `ImageSizeMcpAbilitiesTest` (9, including strict ownership: core, theme, other-plugin, unknown, re-registered, positional-crop, duplicate and unregistered sizes refused with nothing changed, and ownership checked again when a plan is applied). They cover sources, crop and disabled flags, details and unknown names, register, update and unregister with the preview changing nothing, invalid keys, dimensions and crop, conflicts, core and theme sizes refused, plan single use, user, tool and expiry, stale plans after size or setting changes, licence and editor refusal, other settings kept, no regeneration started, dedicated endpoint use and gateway refusal, and that the regeneration tools are still listed.
+  - Mutation checks: removing the stale check, the not-managed refusal, the name-conflict check, the registration match or the duplicate check, taking ownership from the name alone, or saving in the preview, makes tests fail.
+  - Exact tool-list tests were updated.
+  - Full suites: Free integration 1371 (5 skipped), Free unit 135, Pro 595, all passing. PHPCS clean for the new files.
+- **Deferred (image sizes):** disabling or enabling sizes; positional crops for custom sizes; changing WordPress's own sizes. All stay in WordPress Admin.
 
 ## Decision log
 
@@ -746,6 +777,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D19 | 2026-11-21 | Pro EXIF writes (editor, GPS removal, bulk edit, undo) respect the free plugin's shared operation locks (compression, conversion, `RegenerateLock` for rename and regeneration, the EXIF removal lock) and hold the EXIF lock while writing; no new lock mechanism. MCP tool status definitions stay unchanged (a refused image is `write_failed` or `failed`). | F9, F11, F13, F14 |
 | D20 | 2026-11-21 | Duplicate merge is an existing Pro feature; its MCP integration is planned in the Pro repository, never moved or copied to Free. Detection and scan stay implemented. Duplicate removal is not planned. Before design: inspect the Pro merge, then verify preview, explicit confirmation, reference preservation, metadata handling and safe failure/rollback. | F10 |
 | D21 | 2026-11-21 | Pro duplicate merge over MCP implemented as `tsmlt/preview-duplicate-merge` and `tsmlt/apply-duplicate-merge` (1–10 copies, synchronous) on `DuplicateApi`'s operations: identical files only, verified usage, ID-based and other unsupported references refused (never rewritten), links moved before the copy is trashed, never deleted; copies' files, WebP/AVIF copies and backups kept. The admin merge is unchanged. | F10 |
+| D22 | 2026-11-21 | Image sizes over MCP: Free read-only `tsmlt/list-image-sizes` and `tsmlt/get-image-size-details`; Pro `tsmlt/register-image-size`, `tsmlt/update-image-size` and `tsmlt/unregister-image-size`, each a preview then a plan applied with `confirm: true` on the same tool, Media Library Tools custom sizes only (ownership from the plugin's own setting, matched against the live registration, checked again when applying), writing only `custom_image_sizes`. No thumbnail regeneration. Disabling sizes and positional crops stay in WordPress Admin. | F17 |
 
 ## Workflow
 
