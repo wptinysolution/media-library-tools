@@ -16,6 +16,8 @@ use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateTrash;
+use TinySolutions\mlt\Abilities\McpAccess;
+use TinySolutions\mlt\Modules\Mcp\McpConnection;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\Trash\AdminTrash;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
@@ -87,6 +89,8 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_duplicate_get_status', [ $this, 'duplicate_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_clear', [ $this, 'duplicate_clear' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_trash', [ $this, 'duplicate_trash' ] );
+		add_action( 'wp_ajax_tsmlt_mcp_save_access', [ $this, 'mcp_save_access' ] );
+		add_action( 'wp_ajax_tsmlt_mcp_create_credentials', [ $this, 'mcp_create_credentials' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_start', [ $this, 'duplicate_scan_start' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_cancel', [ $this, 'duplicate_scan_cancel' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_get_progress', [ $this, 'duplicate_scan_get_progress' ] );
@@ -501,6 +505,41 @@ class Ajax {
 	public function duplicate_trash(): void {
 		$params = $this->verify_and_get_params();
 		$this->send( DuplicateTrash::instance()->trash( absint( $params['attachment_id'] ?? 0 ) ) );
+	}
+
+	/**
+	 * Turn MCP access off or on (MCP page).
+	 *
+	 * @return void
+	 */
+	public function mcp_save_access(): void {
+		$params = $this->verify_and_get_params();
+		if ( ! isset( $params['disabled'] ) || ! is_bool( $params['disabled'] ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Invalid setting.', 'media-library-tools' ) ], 400 );
+		}
+		if ( ! McpAccess::set_disabled( $params['disabled'] ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'The setting could not be saved.', 'media-library-tools' ) ], 500 );
+		}
+		$this->send( McpConnection::instance()->settings() );
+	}
+
+	/**
+	 * Create an Application Password for an MCP client (MCP page), after
+	 * the user confirmed that one will be created.
+	 *
+	 * @return void
+	 */
+	public function mcp_create_credentials(): void {
+		$params = $this->verify_and_get_params();
+		nocache_headers();
+		if ( true !== ( $params['consent'] ?? null ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Confirm that an Application Password will be created.', 'media-library-tools' ) ], 400 );
+		}
+		$result = McpConnection::instance()->create_credentials( is_string( $params['client'] ?? null ) ? $params['client'] : '' );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( [ 'message' => $result->get_error_message() ], 403 );
+		}
+		$this->send( $result );
 	}
 
 	/** @return void */

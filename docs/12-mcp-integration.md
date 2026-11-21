@@ -35,6 +35,30 @@ The Free tools never change EXIF data. Only two tools change image files, each a
 
 Without the MCP Adapter, or on WordPress older than 6.9, nothing is registered and the plugin behaves exactly as before.
 
+## Connect from the MCP page (recommended)
+
+Connect assistants from **Media › MCP** (`upload.php?page=media-library-tools-mcp`, administrators only). It sits directly above MCP Docs in the Media menu.
+
+- **Connection URL:** the page shows the WordPress default MCP server for this site, built from the site address (`https://your-site.com/wp-json/mcp/mcp-adapter-default-server`), with a copy button. This is the recommended and normal connection. The dedicated endpoint is mentioned only under *Advanced*, for existing connections.
+- **Clients:** Claude Code, Claude Desktop, Codex, Cursor and Other. For the chosen client the page:
+  1. creates a WordPress Application Password for you, named `Media Library Tools MCP – <client> (<date>)`, after you tick "I understand that clicking Generate Prompt will create an application password for this site";
+  2. shows a **setup prompt** to paste into that client, which then adds the connection itself, or, under *Prefer manual configuration?*, the configuration to add yourself:
+     - Claude Code: `claude mcp add --transport http <name> <url> --header "Authorization: Basic …"`;
+     - Claude Desktop: `npx -y mcp-remote <url> --header "Authorization:${AUTH_HEADER}"` with the value in `env`, which needs Node.js 18 or newer;
+     - Codex: `~/.codex/config.toml`, `[mcp_servers."<name>"]` with `url` and `http_headers`;
+     - Cursor: `~/.cursor/mcp.json` with `url` and `headers`;
+     - Other: JSON `{ type: "http", url, headers }`.
+
+  Each client gets its own password, which can be revoked in your profile.
+- **Password in the prompt:** the setup prompt contains the password, so it is sent to your AI tool. To keep it out of chats, use the manual configuration or the steps in [Step-by-Step Setup](#step-by-step-setup).
+- **Test the connection:** a test prompt asks the client to list the `tsmlt-` tools and run a search. The page cannot see your client, so it does not report a connection status.
+- **Turn off MCP access:** off by default. When checked:
+  - every Media Library Tools tool and resource (Free and Pro) is refused, on the default server and the dedicated endpoint;
+  - the dedicated endpoint refuses at its transport (HTTP 403);
+  - the plugin's tools are left off and hidden from the default server, and its gateway cannot run them (`tsmlt_mcp_disabled`).
+
+  Nothing is unregistered and connected clients keep their settings, so unchecking it restores access without reconnecting. Other plugins' MCP tools and WordPress abilities are not affected. The setting is the `tsmlt_mcp_access_disabled` option, checked in `AbilityGuard::check_base_capability()`, which every Free and Pro ability uses.
+
 ## Available Tools
 
 Every tool listed here — Free, and Pro while the licence is active — is listed directly on both the MCP Adapter default server and the dedicated Media Library Tools endpoint, with the same name and the same checks (see [Choosing an endpoint](#choosing-an-endpoint)). The default server lists them always; there is no setting to turn on. Only `tsmlt-search-media` and `tsmlt-get-media-details` can also be run through the default server's generic gateway tool (`mcp-adapter-execute-ability`); call the others by name.
@@ -1496,7 +1520,7 @@ Once the MCP Adapter is active, your site has two MCP endpoints:
 | Endpoint | URL | Exposes |
 |---|---|---|
 | **MCP Adapter default server (recommended)** | `https://your-site.com/wp-json/mcp/mcp-adapter-default-server` | Always: every eligible Media Library Tools tool listed directly (Free, and Pro while the licence is active), plus the MCP Adapter's gateway tools, which reach the public abilities of other plugins and WordPress core |
-| Media Library Tools (alternative) | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the Media Library Tools tools. Administrators only (`manage_options`) |
+| Media Library Tools (kept for existing connections) | `https://your-site.com/wp-json/media-library-tools/mcp` | Only the Media Library Tools tools. Administrators only (`manage_options`) |
 
 There is nothing to turn on: as soon as the MCP Adapter (0.5.0 or newer) is active, the default server lists the Media Library Tools tools. Reconnect your assistant after installing or updating Media Library Tools or activating the Pro licence, so it loads the current tool list.
 
@@ -1548,7 +1572,7 @@ The dedicated endpoint limits exposure to the Media Library Tools abilities:
 
 **Tips**:
 - Create one password per assistant and per device, so you can revoke one without affecting the others
-- Never paste the password into an AI chat; enter it only into the client's configuration
+- Entering the password only into the client's configuration keeps it out of AI chats. The MCP page's setup prompt includes the password by design; use its manual configuration if you prefer not to
 - WordPress only offers Application Passwords over HTTPS, or on sites marked as a local development environment
 
 ### 3. Connect your MCP client
@@ -1696,6 +1720,8 @@ Call the Media Library Tools tools directly by their dashed names (`tsmlt-search
 | Who can connect | Any logged-in user; only administrators see the Media Library Tools tools listed, and only administrators can run them | Administrators only |
 
 ## Access Control
+
+When **Turn off MCP access** is checked on the MCP page, everyone is refused on both endpoints (`tsmlt_mcp_disabled`), and the tools are hidden from the default server. Otherwise:
 
 On the dedicated endpoint:
 

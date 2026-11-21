@@ -49,6 +49,13 @@ class AbilityGuard {
 	const ERROR_FORBIDDEN = 'tsmlt_forbidden';
 
 	/**
+	 * Error code: MCP access is turned off on the MCP page (McpAccess).
+	 *
+	 * @var string
+	 */
+	const ERROR_MCP_DISABLED = 'tsmlt_mcp_disabled';
+
+	/**
 	 * Error code: input failed validation.
 	 *
 	 * @var string
@@ -82,6 +89,16 @@ class AbilityGuard {
 	 * @return true|WP_Error
 	 */
 	public static function check_base_capability() {
+		// The MCP page's "Turn off MCP access": every Free and Pro ability,
+		// the dedicated transport and the tool listings go through here.
+		if ( ! McpAccess::is_enabled() ) {
+			return self::error(
+				self::ERROR_MCP_DISABLED,
+				__( 'MCP access to Media Library Tools is turned off on this site.', 'media-library-tools' ),
+				403
+			);
+		}
+
 		if ( ! is_user_logged_in() ) {
 			return self::error(
 				self::ERROR_UNAUTHENTICATED,

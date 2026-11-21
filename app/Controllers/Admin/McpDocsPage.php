@@ -296,6 +296,14 @@ class McpDocsPage {
 				<?php esc_html_e( 'Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) — such as Claude Code — search your media library, read media details, and update media text fields on your behalf.', 'media-library-tools' ); ?>
 			</p>
 
+			<div class="notice notice-info inline tsmlt-mcp-docs__connect">
+				<p>
+					<strong><?php esc_html_e( 'Connect an assistant from the MCP page.', 'media-library-tools' ); ?></strong>
+					<?php esc_html_e( 'Media › MCP sets up Claude Code, Claude Desktop, Codex, Cursor and other clients with the WordPress default MCP server, and has the switch to turn MCP access off. This page is the reference.', 'media-library-tools' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'upload.php?page=' . McpPage::PAGE_SLUG ) ); ?>"><?php esc_html_e( 'Open the MCP page', 'media-library-tools' ); ?></a>
+				</p>
+			</div>
+
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Requirements', 'media-library-tools' ); ?></h2>
 				<ul>
@@ -656,7 +664,7 @@ class McpDocsPage {
 
 			<div class="tsmlt-mcp-docs__section">
 				<h2><?php esc_html_e( 'Endpoint', 'media-library-tools' ); ?></h2>
-				<p><?php esc_html_e( 'Connect your assistant to one of these endpoints. Both offer every Media Library Tools tool above — the Free tools, and the Pro tools while the Pro licence is active — with the same names and the same permission checks.', 'media-library-tools' ); ?></p>
+				<p><?php esc_html_e( 'Connect your assistant to the MCP Adapter default server; the MCP page sets this up for you. The dedicated endpoint is kept for existing connections. Both offer every Media Library Tools tool above — the Free tools, and the Pro tools while the Pro licence is active — with the same names and the same permission checks.', 'media-library-tools' ); ?></p>
 				<ul>
 					<li>
 						<strong><?php esc_html_e( 'MCP Adapter default server (recommended):', 'media-library-tools' ); ?></strong>
@@ -664,7 +672,7 @@ class McpDocsPage {
 						<?php esc_html_e( 'It always lists the Media Library Tools tools, together with the MCP Adapter\'s gateway tools, which can reach every public ability from every plugin on the site, including abilities that change or delete data.', 'media-library-tools' ); ?>
 					</li>
 					<li>
-						<strong><?php esc_html_e( 'Dedicated Media Library Tools endpoint (alternative):', 'media-library-tools' ); ?></strong>
+						<strong><?php esc_html_e( 'Dedicated Media Library Tools endpoint (kept for existing connections):', 'media-library-tools' ); ?></strong>
 						<code class="tsmlt-mcp-docs__url"><?php echo esc_html( $endpoint ); ?></code>
 						<?php esc_html_e( 'It offers only the tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
 					</li>
@@ -711,7 +719,7 @@ class McpDocsPage {
 					<li><?php esc_html_e( 'Copy the password shown — it is displayed only once.', 'media-library-tools' ); ?></li>
 				</ol>
 				<p class="description">
-					<?php esc_html_e( 'Create one password per assistant and device so you can revoke one without affecting the others. Never paste the password into an AI chat; enter it only into the client\'s configuration. WordPress only offers Application Passwords over HTTPS, or on sites marked as a local development environment.', 'media-library-tools' ); ?>
+					<?php esc_html_e( 'Create one password per assistant and device so you can revoke one without affecting the others. The MCP page\'s setup prompt contains the password, so it reaches your AI tool; to keep it out of chats, use that page\'s manual configuration or these steps and enter it only into the client\'s configuration. WordPress only offers Application Passwords over HTTPS, or on sites marked as a local development environment.', 'media-library-tools' ); ?>
 				</p>
 
 				<h3><?php esc_html_e( '3. Connect your MCP client', 'media-library-tools' ); ?></h3>
@@ -885,6 +893,7 @@ class McpDocsPage {
 				<ul>
 					<li><?php esc_html_e( 'Review before saving: tsmlt-update-media-metadata overwrites the current value and cannot be undone. Keep your client\'s tool-approval prompts turned on.', 'media-library-tools' ); ?></li>
 					<li><?php esc_html_e( 'Revoking access: delete the Application Password in your profile. The assistant loses access immediately.', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'Turning off all MCP access: check "Turn off MCP access" on the MCP page. Every Media Library Tools tool and resource is then refused on both endpoints, until you uncheck it; other plugins\' MCP tools are not affected.', 'media-library-tools' ); ?></li>
 				</ul>
 			</div>
 

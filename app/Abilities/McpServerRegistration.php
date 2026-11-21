@@ -194,7 +194,8 @@ class McpServerRegistration {
 	 * @return mixed
 	 */
 	public function add_to_default_server( $config ) {
-		if ( ! is_array( $config ) || ! self::adapter_supports_default_server() ) {
+		// MCP access turned off (McpAccess): the plugin's tools are not added.
+		if ( ! is_array( $config ) || ! self::adapter_supports_default_server() || ! McpAccess::is_enabled() ) {
 			return $config;
 		}
 

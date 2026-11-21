@@ -3,6 +3,7 @@ import type { AxiosResponse } from 'axios';
 import { createElement } from 'react';
 import toast from 'react-hot-toast';
 import { interpretTrashResponse, type DuplicateTrashOutcome } from "@/js/Utils/duplicateDelete";
+import type { McpCredentials } from "@/js/Utils/mcpConnect";
 
 /**
  * Detect a stale-nonce failure: WordPress returns "-1" (or "0") with HTTP 200
@@ -74,6 +75,37 @@ export const ajaxPost = async (action: string, params: unknown = {}): Promise<Ax
         return { ...response, data: response.data.data };
     }
     return response;
+};
+
+/**
+ * MCP page: turn Media Library Tools' MCP access off (true) or on (false).
+ * Resolves with the page's settings, or null when saving failed.
+ */
+export const saveMcpAccess = async (disabled: boolean): Promise<McpPageSettings | null> => {
+    try {
+        const response = await ajaxPost('tsmlt_mcp_save_access', { disabled });
+        const data = response.data as McpPageSettings | { message?: string } | null;
+        return data && typeof data === 'object' && 'enabled' in data ? data : null;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * MCP page: create an Application Password for a client. Resolves with the
+ * credentials, or an error message.
+ */
+export const createMcpCredentials = async (client: string): Promise<{ credentials?: McpCredentials; error?: string }> => {
+    try {
+        const response = await ajaxPost('tsmlt_mcp_create_credentials', { client, consent: true });
+        const data = response.data as McpCredentials | { message?: string } | null;
+        if (data && typeof data === 'object' && 'encodedCredentials' in data) {
+            return { credentials: data };
+        }
+        return { error: (data && typeof data === 'object' && 'message' in data && data.message) || 'The Application Password could not be created.' };
+    } catch {
+        return { error: 'The Application Password could not be created.' };
+    }
 };
 
 export const notifications = (isTrue: boolean, text?: string): void => {

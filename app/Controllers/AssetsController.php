@@ -3,6 +3,8 @@
 namespace TinySolutions\mlt\Controllers;
 
 use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
+use TinySolutions\mlt\Controllers\Admin\McpPage;
+use TinySolutions\mlt\Modules\Mcp\McpConnection;
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -77,13 +79,13 @@ class AssetsController {
 		global $pagenow;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No nonce needed for page check.
 		$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
-		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro', 'tsmlt-pricing-pro' ];
+		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro', 'tsmlt-pricing-pro', McpPage::PAGE_SLUG ];
 
 		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) ) {
 			wp_enqueue_style( 'tsmlt-settings-style' );
 		}
 
-		if ( 'upload.php' === $pagenow && 'media-library-tools' === $current_page ) {
+		if ( 'upload.php' === $pagenow && in_array( $current_page, [ 'media-library-tools', McpPage::PAGE_SLUG ], true ) ) {
 			// Enqueue ThickBox scripts and styles.
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
@@ -112,6 +114,8 @@ class AssetsController {
 					'iconUrl'       => esc_url( tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ) ),
 					// Only for users who may open the MCP Docs page; the header hides the link otherwise.
 					'mcpDocsUrl'    => current_user_can( McpDocsPage::CAPABILITY ) ? esc_url_raw( admin_url( 'upload.php?page=' . McpDocsPage::PAGE_SLUG ) ) : '',
+					// The MCP page's data; only on that page and only for those who may open it.
+					'mcp'           => McpPage::PAGE_SLUG === $current_page && current_user_can( McpPage::CAPABILITY ) ? McpConnection::instance()->settings() : null,
 					Fns::NONCE_ID   => wp_create_nonce( Fns::NONCE_ID ),
 				]
 			);

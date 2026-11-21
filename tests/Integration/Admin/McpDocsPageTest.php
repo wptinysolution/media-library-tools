@@ -6,6 +6,7 @@
  */
 
 use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
+use TinySolutions\mlt\Controllers\Admin\McpPage;
 use TinySolutions\mlt\Controllers\Admin\SubMenu;
 
 /**
@@ -71,8 +72,8 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Administrators get "MCP Docs" under Media, directly after
-	 * "Media Tools Settings".
+	 * Administrators get "MCP" and then "MCP Docs" under Media, directly
+	 * after "Media Tools Settings".
 	 */
 	public function test_menu_is_registered_after_media_tools_settings() {
 		$this->login_as( 'administrator' );
@@ -87,9 +88,13 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<span class="dashicons-icons"', $entries[ McpDocsPage::PAGE_SLUG ][0] );
 		$this->assertSame( 'manage_options', $entries[ McpDocsPage::PAGE_SLUG ][1] );
 		$this->assertSame(
-			array_search( 'media-library-tools', $slugs, true ) + 1,
+			array_search( 'media-library-tools', $slugs, true ) + 2,
 			array_search( McpDocsPage::PAGE_SLUG, $slugs, true )
 		);
+		$this->assertSame( array_search( McpDocsPage::PAGE_SLUG, $slugs, true ) - 1, array_search( McpPage::PAGE_SLUG, $slugs, true ), 'The MCP page is directly above MCP Docs.' );
+		$this->assertSame( 'MCP', trim( wp_strip_all_tags( $entries[ McpPage::PAGE_SLUG ][0] ) ) );
+		$this->assertStringContainsString( '<span class="tsmlt-submenu"', $entries[ McpPage::PAGE_SLUG ][0] );
+		$this->assertSame( 'manage_options', $entries[ McpPage::PAGE_SLUG ][1] );
 	}
 
 	/**

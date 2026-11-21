@@ -79,6 +79,15 @@ class SubMenu {
 			'media-library-tools',
 			[ $this, 'wp_media_page_callback' ]
 		);
+		// MCP connection page, directly above the MCP documentation.
+		add_submenu_page(
+			self::MENU_PAGE_SLUG,
+			esc_html__( 'MCP', 'media-library-tools' ),
+			'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'MCP', 'media-library-tools' ) . '</span>',
+			McpPage::CAPABILITY,
+			McpPage::PAGE_SLUG,
+			[ McpPage::instance(), 'render' ]
+		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
 			esc_html__( 'MCP Docs', 'media-library-tools' ),
