@@ -36,7 +36,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F7 | Media health audit | Free | Implemented | Investigated | None |
 | F8 | EXIF (Free: fields, privacy scan) | Free | Implemented | Investigated | None |
 | F9 | EXIF (Pro editing tools) | Pro | Partially Implemented | Investigated | None until a deferred item's blocker is resolved |
-| F10 | Duplicate media | Free / Pro | Partially Implemented | Investigated | None (merge deferred) |
+| F10 | Duplicate media | Free / Pro | Partially Implemented | Investigated | Pro duplicate merge MCP (Planned, Pro repository): inspect the existing Pro merge first |
 | F11 | Rename | Free / Pro | Partially Implemented | Investigated | Pro tool-list test update (Pro strategies not exposed) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
 | F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
@@ -161,11 +161,29 @@ A feature is marked Implemented only with test evidence, never because code exis
 
 ### F10 Duplicate media
 
-- **Owner:** detection Free, merge Pro.
-- **MCP status:** Partially Implemented.
-- **Tools:** `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`.
-- **Missing operations:** merging duplicates (Pro, **Deferred**, D7).
+- **Owner:** detection and scan Free; merge Pro.
+- **MCP status:** Partially Implemented. Detection and scan are implemented; merge is planned for Pro.
+- **Tools (implemented):** `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`.
+- **Missing operations:**
+  - merging duplicates (Pro, **Planned**, D20);
+  - removing duplicates (**Not planned**, D20).
 - **Tests:** `FindDuplicateMediaAbilityTest`, `DuplicateScanAbilitiesTest`.
+
+#### Planned: Pro duplicate merge over MCP (D20)
+
+- **Edition:** duplicate merge stays a Pro feature (the Duplicates page's merge, Pro `Modules/Duplicate/DuplicateApi.php`, AJAX `tsmlt_duplicate_merge`). Its MCP integration belongs in the Pro repository. The Pro merge is not moved, copied or reimplemented in Free; Free keeps detection and scan.
+- **Not planned:** removing duplicates (deleting duplicate files or attachments without a merge) is not part of the MCP roadmap.
+- **Before design:**
+  - inspect the existing Pro merge implementation (what it changes, in which order, and how it fails);
+  - agree the scope;
+  - get explicit approval.
+- **To verify before implementation:**
+  - **preview:** a read-only preview of what the merge would change, per group;
+  - **confirmation:** an explicit confirmation step (the preview-then-confirm pattern of the other changing tools);
+  - **references:** media references are preserved (content, featured images, galleries, page builders, custom fields), so nothing that used a merged item breaks;
+  - **metadata:** metadata is handled correctly (title, alt text, caption, description, Groups, attached post);
+  - **failure:** safe failure and rollback behaviour, so a merge that stops part-way leaves no broken references or lost files.
+- **Status:** not designed, not implemented.
 
 ### F11 Rename
 
@@ -674,7 +692,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D4 | 2026-11-18 | Renaming files through MCP is deferred until the existing rename's gaps are handled (size files deleted first, scaled original and backups keep old names, links updated only in some places). Pro rename strategies stay Pro. Superseded by D17 and D18 (2026-11-21). | F11 |
 | D5 | 2026-11-18 | EXIF export, import, sync and full removal are not offered through MCP: export includes GPS; import and sync have no preview; full removal is irreversible and blocks undo. | F8, F9 |
 | D6 | 2026-11-12 | MCP CSV import updates existing media only: no create-from-URL (server-side download), no file renaming, no custom fields. Preview, then a one-time, user-bound plan with conflict detection. | F6 |
-| D7 | 2026-11-18 | Merging or removing duplicates through MCP is not planned; it needs its own safety design. | F10 |
+| D7 | 2026-11-18 | Merging or removing duplicates through MCP is not planned; it needs its own safety design. Merge part superseded by D20 (2026-11-21); removal stays not planned. | F10 |
 | D8 | 2026-11-20 | Pro 1.7.0 requires Free 2.5.0 (RC: `2.5.0-rc.1`) for full EXIF removal; Pro checks helper classes per feature and falls back or refuses with a notice. | F8, F9 |
 | D9 | 2026-11-20 | This tracker is the single source of truth for MCP feature selection. One feature at a time; investigate, agree scope, get explicit approval, implement, verify, update the tracker, then move on. | All |
 | D10 | 2026-11-20 | Before MCP compression execution, compression must refuse an image while a conversion or an EXIF removal is running on it (prerequisite fix, done). | F12 |
@@ -687,6 +705,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D17 | 2026-11-21 | Rename engine (before any MCP rename): rename the attached file and its full-size original with no-overwrite moves, rebuild sizes with the hardened regeneration engine, move compression backups and the image's own converted copies, report content-update failures separately, clear Elementor caches only for changed posts, never use a strategy keyword as a file name; bulk renames as a background job of up to 20. MCP rename tools are still not implemented. | F11 |
 | D18 | 2026-11-21 | MCP rename: four Free tools (preview with a one-time token, rename with confirmation, status, cancel); one item renamed in the request, 2–20 as the background `RenameJob`; preview names from the engine (`MediaRenamer::plan()`). Pro rename strategies and server-side AI rename are not exposed through MCP. | F11 |
 | D19 | 2026-11-21 | Pro EXIF writes (editor, GPS removal, bulk edit, undo) respect the free plugin's shared operation locks (compression, conversion, `RegenerateLock` for rename and regeneration, the EXIF removal lock) and hold the EXIF lock while writing; no new lock mechanism. MCP tool status definitions stay unchanged (a refused image is `write_failed` or `failed`). | F9, F11, F13, F14 |
+| D20 | 2026-11-21 | Duplicate merge is an existing Pro feature; its MCP integration is planned in the Pro repository, never moved or copied to Free. Detection and scan stay implemented. Duplicate removal is not planned. Before design: inspect the Pro merge, then verify preview, explicit confirmation, reference preservation, metadata handling and safe failure/rollback. | F10 |
 
 ## Workflow
 
