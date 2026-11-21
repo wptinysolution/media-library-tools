@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Helpers\Fns;
 use TinySolutions\mlt\Modules\Rubbish\RubbishScanner;
 use TinySolutions\mlt\Modules\Duplicate\DuplicateScanner;
+use TinySolutions\mlt\Modules\Duplicate\DuplicateTrash;
 use TinySolutions\mlt\Modules\Rename\RenameModule;
 use TinySolutions\mlt\Modules\Trash\AdminTrash;
 use TinySolutions\mlt\Modules\ImageSize\ImageSizeModule;
@@ -85,6 +86,7 @@ class Ajax {
 		add_action( 'wp_ajax_tsmlt_duplicate_get_results', [ $this, 'duplicate_get_results' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_get_status', [ $this, 'duplicate_get_status' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_clear', [ $this, 'duplicate_clear' ] );
+		add_action( 'wp_ajax_tsmlt_duplicate_trash', [ $this, 'duplicate_trash' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_start', [ $this, 'duplicate_scan_start' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_cancel', [ $this, 'duplicate_scan_cancel' ] );
 		add_action( 'wp_ajax_tsmlt_duplicate_scan_get_progress', [ $this, 'duplicate_scan_get_progress' ] );
@@ -489,6 +491,16 @@ class Ajax {
 	public function duplicate_clear(): void {
 		$this->verify_and_get_params();
 		$this->send( DuplicateScanner::instance()->clear_scan() );
+	}
+
+	/**
+	 * Move one duplicate image to the trash (never a permanent delete).
+	 *
+	 * @return void
+	 */
+	public function duplicate_trash(): void {
+		$params = $this->verify_and_get_params();
+		$this->send( DuplicateTrash::instance()->trash( absint( $params['attachment_id'] ?? 0 ) ) );
 	}
 
 	/** @return void */

@@ -2,6 +2,7 @@ import Axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import { createElement } from 'react';
 import toast from 'react-hot-toast';
+import { interpretTrashResponse, type DuplicateTrashOutcome } from "@/js/Utils/duplicateDelete";
 
 /**
  * Detect a stale-nonce failure: WordPress returns "-1" (or "0") with HTTP 200
@@ -340,6 +341,17 @@ export const mergeDuplicates = async (prams: object = {}): Promise<AxiosResponse
     const response = await ajaxPost('tsmlt_duplicate_merge', prams);
     notifications(200 === response.status && (response.data as { updated: boolean }).updated, (response.data as { message: string }).message);
     return response;
+};
+
+// Move one duplicate image to the trash (never a permanent delete). The
+// server checks everything; a failed request is a refusal.
+export const trashDuplicate = async (params: { attachment_id: number }): Promise<DuplicateTrashOutcome> => {
+    try {
+        const response = await ajaxPost('tsmlt_duplicate_trash', params);
+        return interpretTrashResponse(response.data);
+    } catch {
+        return interpretTrashResponse(null);
+    }
 };
 
 // Used-Where image usage tracker.

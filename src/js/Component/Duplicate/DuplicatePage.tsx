@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "@/js/Utils/store";
-import type { DuplicateGroup } from "@/js/Utils/store";
+import type { DuplicateGroup, DuplicateItem } from "@/js/Utils/store";
 import {
     clearDuplicateScan,
     duplicateScanCancel,
@@ -10,7 +10,10 @@ import {
     getDuplicateResults,
     getDuplicateStatus,
     mergeDuplicates,
+    notifications,
+    trashDuplicate,
 } from "@/js/Utils/Data";
+import { TRASH_DIALOG } from "@/js/Utils/duplicateDelete";
 import DuplicateHeader from "./DuplicateHeader";
 import ProgressBar from "@/js/Component/Common/ProgressBar";
 import Pagination from "@/js/Component/Common/Pagination";
@@ -36,6 +39,10 @@ export default function DuplicatePage() {
     const [keepId, setKeepId] = useState<number>(0);
     const [merging, setMerging] = useState(false);
     const [actionPending, setActionPending] = useState(false);
+    // Move to Trash: the image chosen and the request in flight.
+    const [deleteItem, setDeleteItem] = useState<DuplicateItem | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const deletingRef = useRef(false);
     const isMounted = useRef(false);
     const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -190,6 +197,36 @@ export default function DuplicatePage() {
         document.addEventListener('keydown', handleEnter);
         return () => document.removeEventListener('keydown', handleEnter);
     }, [mergeGroup, merging, keepId]);
+
+    // Every move shows the same confirmation dialog first (Free and Pro).
+    const openDeleteModal = (item: DuplicateItem) => {
+        setDeleteItem(item);
+    };
+
+    const closeDeleteModal = () => {
+        if (deletingRef.current) return;
+        setDeleteItem(null);
+    };
+
+    // One request at a time; results reload only after a successful move.
+    const handleDelete = async () => {
+        if (!deleteItem || deletingRef.current) return;
+        deletingRef.current = true;
+        setDeleting(true);
+        try {
+            const outcome = await trashDuplicate({ attachment_id: deleteItem.attachment_id });
+            notifications(outcome.kind === 'trashed', outcome.message);
+            setDeleteItem(null);
+            if (outcome.kind === 'trashed') {
+                await loadStatus();
+                const { paged } = useStore.getState().duplicateData;
+                await loadResults(paged, true, true);
+            }
+        } finally {
+            deletingRef.current = false;
+            setDeleting(false);
+        }
+    };
 
     const openMergeModal = (group: DuplicateGroup) => {
         if (!tsmltParams.hasExtended) {
@@ -370,7 +407,18 @@ export default function DuplicatePage() {
                                                 <p className="text-xs text-gray-500 truncate mt-0.5 mb-0!">{item.file_path}</p>
                                             </div>
                                             <div className="shrink-0 text-right">
-                                                <span className="text-xs text-gray-500">{formatBytes(item.file_size)}</span>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className="text-xs text-gray-500">{formatBytes(item.file_size)}</span>
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-white border border-red-200 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
+                                                        onClick={() => openDeleteModal(item)}
+                                                        disabled={deleting}
+                                                        aria-label={`Move #${item.attachment_id} to Trash`}
+                                                    >
+                                                        Move to Trash
+                                                    </button>
+                                                </div>
                                                 {item.used_in && item.used_in.length > 0 && (
                                                     <div className="mt-0.5">
                                                         <span className="text-[10px] text-gray-400 uppercase">Used in:</span>
@@ -400,6 +448,82 @@ export default function DuplicatePage() {
                     </div>
                 )}
             </div>
+
+            {/* Move to Trash Modal (Free and Pro) */}
+            <Modal
+                isOpen={!!deleteItem}
+                onClose={closeDeleteModal}
+                title={TRASH_DIALOG.title}
+                maxWidth="max-w-[550px]"
+                closeOnBackdrop={!deleting}
+                footer={
+                    <div className="px-6 py-4 border-t border-gray-200">
+                        <div className="flex flex-wrap items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
+                                onClick={closeDeleteModal}
+                                disabled={deleting}
+                            >
+                                {TRASH_DIALOG.cancel}
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 cursor-pointer transition-colors disabled:opacity-50"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting && (
+                                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                )}
+                                {deleting ? 'Moving...' : TRASH_DIALOG.confirm}
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 text-right mt-3! mb-0">{TRASH_DIALOG.footer}</p>
+                    </div>
+                }
+            >
+                {deleteItem && (
+                    <div className="px-6 py-5">
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+                            <div className="shrink-0 w-10 h-10 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <MediaThumbnail
+                                    url={deleteItem.thumbnail || deleteItem.url}
+                                    mimeType={deleteItem.mime_type}
+                                    fileName={deleteItem.file_path}
+                                    alt={deleteItem.title}
+                                    className="w-full h-full object-cover"
+                                    iconClassName="w-5 h-5 text-gray-400"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">
+                                    #{deleteItem.attachment_id} &middot; {deleteItem.title || '(untitled)'}
+                                </div>
+                                <div className="text-xs text-gray-500 truncate">{deleteItem.file_path}</div>
+                            </div>
+                        </div>
+                        <div className="mt-4 p-3 rounded-lg border border-amber-200 bg-amber-50">
+                            <p className="text-sm text-amber-800 m-0!">{TRASH_DIALOG.warning}</p>
+                        </div>
+                        <div className="mt-4 p-4 rounded-lg border border-blue-200 bg-blue-50">
+                            <p className="text-sm font-semibold text-gray-900 mt-0! mb-1">{TRASH_DIALOG.promoTitle}</p>
+                            <p className="text-sm text-gray-700 mt-0! mb-3">{TRASH_DIALOG.promoText}</p>
+                            <a
+                                href={tsmltParams.proLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white! bg-blue-600 rounded-md hover:bg-blue-700 no-underline transition-colors"
+                            >
+                                {TRASH_DIALOG.promoAction}
+                            </a>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Merge Modal */}
             <Modal

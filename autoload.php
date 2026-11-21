@@ -116,6 +116,7 @@ spl_autoload_register(
 		'TinySolutions\\mlt\\Modules\\Csv\\MediaCsv' => __DIR__ . '/app/Modules/Csv/MediaCsv.php',
 		'TinySolutions\\mlt\\Modules\\DownloadMedia' => __DIR__ . '/app/Modules/DownloadMedia.php',
 		'TinySolutions\\mlt\\Modules\\Duplicate\\DuplicateScanner' => __DIR__ . '/app/Modules/Duplicate/DuplicateScanner.php',
+		'TinySolutions\\mlt\\Modules\\Duplicate\\DuplicateTrash' => __DIR__ . '/app/Modules/Duplicate/DuplicateTrash.php',
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifAutoProcessor' => __DIR__ . '/app/Modules/ExifData/ExifAutoProcessor.php',
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifDataReader' => __DIR__ . '/app/Modules/ExifData/ExifDataReader.php',
 		'TinySolutions\\mlt\\Modules\\ExifData\\ExifScanner' => __DIR__ . '/app/Modules/ExifData/ExifScanner.php',
