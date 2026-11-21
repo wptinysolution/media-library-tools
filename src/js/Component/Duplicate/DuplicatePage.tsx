@@ -509,18 +509,21 @@ export default function DuplicatePage() {
                         <div className="mt-4 p-3 rounded-lg border border-amber-200 bg-amber-50">
                             <p className="text-sm text-amber-800 m-0!">{TRASH_DIALOG.warning}</p>
                         </div>
-                        <div className="mt-4 p-4 rounded-lg border border-blue-200 bg-blue-50">
-                            <p className="text-sm font-semibold text-gray-900 mt-0! mb-1">{TRASH_DIALOG.promoTitle}</p>
-                            <p className="text-sm text-gray-700 mt-0! mb-3">{TRASH_DIALOG.promoText}</p>
-                            <a
-                                href={tsmltParams.proLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white! bg-blue-600 rounded-md hover:bg-blue-700 no-underline transition-colors"
-                            >
-                                {TRASH_DIALOG.promoAction}
-                            </a>
-                        </div>
+                        {/* Pro promotion: Free users only. */}
+                        {!tsmltParams.hasExtended && (
+                            <div className="mt-4 p-4 rounded-lg border border-blue-200 bg-blue-50">
+                                <p className="text-sm font-semibold text-gray-900 mt-0! mb-1">{TRASH_DIALOG.promoTitle}</p>
+                                <p className="text-sm text-gray-700 mt-0! mb-3">{TRASH_DIALOG.promoText}</p>
+                                <a
+                                    href={tsmltParams.proLink}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white! bg-blue-600 rounded-md hover:bg-blue-700 no-underline transition-colors"
+                                >
+                                    {TRASH_DIALOG.promoAction}
+                                </a>
+                            </div>
+                        )}
                     </div>
                 )}
             </Modal>

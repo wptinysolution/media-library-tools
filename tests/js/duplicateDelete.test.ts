@@ -52,3 +52,19 @@ test('the page shows the dialog before every move, for Free and Pro alike', () =
     const button = page.slice(page.indexOf('onClick={() => openDeleteModal(item)}') - 400, page.indexOf('onClick={() => openDeleteModal(item)}') + 300);
     assert.doesNotMatch(button, /ProLabel/, 'No Pro badge on Move to Trash.');
 });
+
+test('the Pro promotion is shown to Free users only; Cancel and Move to Trash Anyway to everyone', () => {
+    const page = readFileSync(new URL('../../src/js/Component/Duplicate/DuplicatePage.tsx', import.meta.url), 'utf8');
+    const modal = page.slice(page.indexOf('{/* Move to Trash Modal (Free and Pro) */}'), page.indexOf('{/* Merge Modal */}'));
+    const gate = modal.indexOf('{!tsmltParams.hasExtended && (');
+    assert.ok(gate > 0, 'The promotion is behind the Pro check.');
+    const promo = modal.slice(gate, modal.indexOf(')}', modal.indexOf('TRASH_DIALOG.promoAction')) + 2);
+    for (const part of ['TRASH_DIALOG.promoTitle', 'TRASH_DIALOG.promoText', 'TRASH_DIALOG.promoAction', 'tsmltParams.proLink']) {
+        assert.ok(promo.includes(part), `${part} is inside the Free-only block.`);
+        assert.equal(modal.split(part).length - 1, 1, `${part} appears nowhere else in the dialog.`);
+    }
+    const outside = modal.replace(promo, '');
+    for (const part of ['TRASH_DIALOG.warning', 'TRASH_DIALOG.cancel', 'TRASH_DIALOG.confirm', 'TRASH_DIALOG.footer']) {
+        assert.ok(outside.includes(part), `${part} is shown to everyone.`);
+    }
+});
