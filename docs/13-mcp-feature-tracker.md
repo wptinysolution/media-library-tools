@@ -36,7 +36,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F7 | Media health audit | Free | Implemented | Investigated | None |
 | F8 | EXIF (Free: fields, privacy scan) | Free | Implemented | Investigated | None |
 | F9 | EXIF (Pro editing tools) | Pro | Partially Implemented | Investigated | None until a deferred item's blocker is resolved |
-| F10 | Duplicate media | Free / Pro | Partially Implemented | Investigated | Pro duplicate merge MCP (Planned, Pro repository): inspect the existing Pro merge first |
+| F10 | Duplicate media | Free / Pro | Implemented | Investigated | None (duplicate removal not planned) |
 | F11 | Rename | Free / Pro | Partially Implemented | Investigated | Pro tool-list test update (Pro strategies not exposed) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
 | F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
@@ -162,14 +162,12 @@ A feature is marked Implemented only with test evidence, never because code exis
 ### F10 Duplicate media
 
 - **Owner:** detection and scan Free; merge Pro.
-- **MCP status:** Partially Implemented. Detection and scan are implemented; merge is planned for Pro.
-- **Tools (implemented):** `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`.
-- **Missing operations:**
-  - merging duplicates (Pro, **Planned**, D20);
-  - removing duplicates (**Not planned**, D20).
-- **Tests:** `FindDuplicateMediaAbilityTest`, `DuplicateScanAbilitiesTest`.
+- **MCP status:** Implemented. Detection and scan (Free); merge (Pro, 2026-11-21, D21).
+- **Tools (implemented):** Free `tsmlt/find-duplicate-media`, `tsmlt/start-duplicate-scan`, `tsmlt/get-duplicate-scan-status`; Pro `tsmlt/preview-duplicate-merge`, `tsmlt/apply-duplicate-merge`.
+- **Missing operations:** removing duplicates (**Not planned**, D20).
+- **Tests:** Free `FindDuplicateMediaAbilityTest`, `DuplicateScanAbilitiesTest`; Pro `DuplicateMergeAbilitiesTest`, `DuplicateMergeElementorTest`.
 
-#### Planned: Pro duplicate merge over MCP (D20)
+#### Pro duplicate merge over MCP (planned under D20; implemented 2026-11-21, D21)
 
 - **Edition:** duplicate merge stays a Pro feature (the Duplicates page's merge, Pro `Modules/Duplicate/DuplicateApi.php`, AJAX `tsmlt_duplicate_merge`). Its MCP integration belongs in the Pro repository. The Pro merge is not moved, copied or reimplemented in Free; Free keeps detection and scan.
 - **Not planned:** removing duplicates (deleting duplicate files or attachments without a merge) is not part of the MCP roadmap.
@@ -183,7 +181,48 @@ A feature is marked Implemented only with test evidence, never because code exis
   - **references:** media references are preserved (content, featured images, galleries, page builders, custom fields), so nothing that used a merged item breaks;
   - **metadata:** metadata is handled correctly (title, alt text, caption, description, Groups, attached post);
   - **failure:** safe failure and rollback behaviour, so a merge that stops part-way leaves no broken references or lost files.
-- **Status:** not designed, not implemented.
+- **Status:** implemented 2026-11-21 (D21; see below). The checks above were verified before implementation.
+
+#### Implementation (2026-11-21; Pro only)
+
+- **Reused merge logic:** `Modules/Duplicate/DuplicateApi.php` stays the source of the merge operations.
+  - **Extracted:** `copy_groups()` (Groups and other attachment taxonomies) and `forget_duplicate()` (duplicate-results row, now through `Fns::DB()`). The admin `merge_duplicates()` uses them, with unchanged behaviour: it still deletes permanently.
+  - **Added:** `merge_into_trash( $keep, $duplicate, $url_pairs )`, which runs, in order:
+    1. Free `Fns::replace_image_url_tracked()` for each URL pair; any error stops here (`reference_update_failed`);
+    2. `Fns::reassign_featured_image()`;
+    3. `copy_groups()`;
+    4. Free `MediaTrash::trash()`, which never deletes permanently and refuses while trash is off;
+    5. `forget_duplicate()`.
+  - **Hooks:** it fires the existing `tsmlt_before_duplicate_merge` / `tsmlt_after_duplicate_merge` hooks.
+- **Checks:** `Modules/Duplicate/DuplicateMergePlan.php` handles the MCP checks.
+  - **Kept image:** readable, editable, `inherit`, a local file, not locked.
+  - **Per duplicate:**
+    - access: `read_post`, `edit_post`, `delete_post` and `inherit`;
+    - a local file whose size and MD5, computed now, equal the kept file's;
+    - no compression, conversion, EXIF or `RegenerateLock`, and trash on;
+    - verified usage (`MediaTrash::usage()`), with only `featured`, `content` and `excerpt` records;
+    - no ID patterns in those posts;
+    - not the site logo or icon;
+    - no linked size or original the kept image lacks.
+  - **URL pairs:** each of the duplicate's URLs (full size, original, each size) maps to the kept image's file of the same size; unmapped URLs are never replaced.
+  - **Fingerprint:** the file hashes and sizes, both attachments' metadata and modified times, the usage records, the scan ID and the URL pairs.
+- **Abilities:** `app/Abilities/PreviewDuplicateMerge.php` and `ApplyDuplicateMerge.php` use the `ExifAbilitySupport` conventions.
+  - **Access:** licence and `manage_options` in the permission callback and in `execute()`. They are dedicated-only (`meta.mcp.public` false) and listed while licensed (`ProAbilitiesInit`).
+  - **Plans:** `ImportPlanStore`, kind `duplicate_merge`; single use, user-bound, about 15 minutes, refused for another tool.
+  - **Apply:** it takes `RegenerateLock` on the kept image for the whole request and on each duplicate while it is merged (released in `finally`), checks everything again with those locks, requires the preview's fingerprint, and handles each duplicate on its own (`merged`, `skipped`, `failed`).
+  - **Output:** no paths or file hashes.
+- **Tests (2026-11-21, Pro):**
+  - `DuplicateMergeAbilitiesTest` (13) and `DuplicateMergeElementorTest` (1, separate process). They cover registration and dedicated-endpoint use; gateway refusal; licence and role checks; per-attachment access; identical files; preview read-only; plan single use, user, tool and expiry; confirm; revalidation (file, usage, metadata); the four locks; full-size and size URLs; Elementor escaped and plain; featured images; Groups; unsupported references (ID, usage type, site logo, unmapped size, unverified scan); trash and restore; trash off; a failed link update keeping the copy and not stopping the others; lock release; no paths or hashes; and the admin merge unchanged.
+  - Mutation checks: removing the identical-file, ID-reference, usage-verification, fingerprint, reference-error or lock check makes the matching test fail.
+  - The exact tool-list tests (`GetExifCaptionAbilityTest`, `GetExifCaptionMcpExposureTest`) were updated.
+  - Full Pro suite: 586 tests, all passing. PHPCS clean for the new files.
+- **Limitations:**
+  - **ID-based use refused:** copies used by ID (block editor images, galleries, WooCommerce galleries, custom fields, Elementor by ID) are refused, not rewritten, so many block-editor uses are refused.
+  - **Restore:** restoring a merged copy does not move links back.
+  - **Kept image's usage:** its usage records are not updated until the next Used Where scan.
+  - **Admin merge:** still deletes permanently, and its AJAX access checks (`upload_files` only, no per-attachment check) are a separate, open security task.
+  - **Lock races:** locks are not atomic across operations.
+  - **No live-site test.**
 
 ### F11 Rename
 
@@ -706,6 +745,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D18 | 2026-11-21 | MCP rename: four Free tools (preview with a one-time token, rename with confirmation, status, cancel); one item renamed in the request, 2–20 as the background `RenameJob`; preview names from the engine (`MediaRenamer::plan()`). Pro rename strategies and server-side AI rename are not exposed through MCP. | F11 |
 | D19 | 2026-11-21 | Pro EXIF writes (editor, GPS removal, bulk edit, undo) respect the free plugin's shared operation locks (compression, conversion, `RegenerateLock` for rename and regeneration, the EXIF removal lock) and hold the EXIF lock while writing; no new lock mechanism. MCP tool status definitions stay unchanged (a refused image is `write_failed` or `failed`). | F9, F11, F13, F14 |
 | D20 | 2026-11-21 | Duplicate merge is an existing Pro feature; its MCP integration is planned in the Pro repository, never moved or copied to Free. Detection and scan stay implemented. Duplicate removal is not planned. Before design: inspect the Pro merge, then verify preview, explicit confirmation, reference preservation, metadata handling and safe failure/rollback. | F10 |
+| D21 | 2026-11-21 | Pro duplicate merge over MCP implemented as `tsmlt/preview-duplicate-merge` and `tsmlt/apply-duplicate-merge` (1–10 copies, synchronous) on `DuplicateApi`'s operations: identical files only, verified usage, ID-based and other unsupported references refused (never rewritten), links moved before the copy is trashed, never deleted; copies' files, WebP/AVIF copies and backups kept. The admin merge is unchanged. | F10 |
 
 ## Workflow
 

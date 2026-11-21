@@ -88,7 +88,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-get-media-health` | Checks the file and record integrity of 1–50 attachments: `healthy` or `issues`, with fixed codes (`no_attached_file`, `file_missing`, `file_unreadable`, `mime_mismatch`, `metadata_missing`, `filesize_mismatch`, `dimensions_mismatch`, `invalid_parent`), the compared values, and whether alt text is set. Never repairs anything or returns paths | No |
 | `tsmlt-audit-media-health` | Audits the whole library with the `tsmlt-get-media-health` checks, 1–100 attachments per call in ID order (`after_id`, `limit`, optional `issue`): lists only attachments with issues, counts healthy and inaccessible ones, returns `next_after_id` and `done`. Stores nothing | No |
 
-### Pro (15)
+### Pro (17)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -107,8 +107,10 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-list-exif-change-logs` | **Pro.** Lists one image's EXIF change log, newest first: action, time, user and changed field names, never the values. Read-only | No |
 | `tsmlt-preview-exif-undo` | **Pro.** Shows whether one image's newest EXIF change can be undone and which fields it would restore or clear; returns a plan. Read-only | No (stores a short-lived plan) |
 | `tsmlt-undo-exif-change` | **Pro.** Undoes the previewed change once, with `confirm: true`, only while it is still the newest change | Yes (EXIF) |
+| `tsmlt-preview-duplicate-merge` | **Pro.** Checks merging 1–10 identical copies into one image to keep: per copy, whether it is ready or why not (not identical, locked, usage unknown, references the merge cannot carry over, trash off…), how many posts link it or use it as featured image, its sizes, the Groups the kept image would gain and which descriptive fields differ; returns a plan. Read-only | No (stores a short-lived plan) |
+| `tsmlt-apply-duplicate-merge` | **Pro.** Merges a previewed plan once, with `confirm: true`: links in post content, excerpts and Elementor data and featured images move to the kept image, Groups are added, and each copy is moved to the trash (restorable; never deleted). Anything changed since the preview is skipped | Yes (links, featured images, Groups; trashes copies) |
 
-The fifteen Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools and the view-only file tool are not offered and administrators see a notice. The CSV export view (`ui://media-library-tools/media-csv-export.html`) is an MCP App resource, not a tool, and is not counted here.
+The seventeen Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools and the view-only file tool are not offered and administrators see a notice. The CSV export view (`ui://media-library-tools/media-csv-export.html`) is an MCP App resource, not a tool, and is not counted here.
 
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS coordinates or other location values, copyright, artist, camera serial numbers, or custom fields. Only whether an image's EXIF holds location, camera, date, author or copyright data is reported, by `tsmlt-list-exif-privacy-results` and `tsmlt-preview-gps-removal`; the Pro bulk edit, change log and undo tools report field names, never values. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
@@ -297,7 +299,60 @@ What to keep in mind:
 - Two files are duplicates when their bytes are identical: for a large image, the scaled file WordPress keeps. Re-encoded, resized or converted copies are not detected.
 - Usage comes from the Used Where scan, not from the duplicate scan.
 - Attachments deleted or moved to the trash since the scan are left out, and so are repeated rows of one attachment; the tool does not clean up those stale rows (the Duplicates page does when it loads its results).
-- The tool is read-only: no file paths, file hashes or raw metadata are returned, and nothing is merged, deleted or changed (merging duplicates is a Pro feature of the Duplicates page and not an MCP tool yet; its MCP integration is planned for Pro, and removing duplicates is not planned).
+- The tool is read-only: no file paths, file hashes or raw metadata are returned, and nothing is merged, deleted or changed (merging duplicates is a Pro feature: see [Pro: merge duplicates](#pro-merge-duplicates--tsmlt-preview-duplicate-merge-then-tsmlt-apply-duplicate-merge); removing duplicates is not offered).
+
+## Pro: merge duplicates — `tsmlt-preview-duplicate-merge`, then `tsmlt-apply-duplicate-merge`
+
+These tools need **Media Library Tools Pro** with an active licence, `manage_options`, and a completed Used Where scan. They are listed on the dedicated endpoint and the default server, and never run through the default gateway.
+
+**Workflow**:
+1. Find identical copies with `tsmlt-find-duplicate-media` (after a duplicate scan).
+2. Call `tsmlt-preview-duplicate-merge` with `keep_id` (the image to keep) and `duplicate_ids` (1–10 distinct copies). Show the result to the user.
+3. After they approve, call `tsmlt-apply-duplicate-merge` with the `plan_id` and `confirm: true`.
+
+**Preview, per copy**:
+- **`status`:**
+  - `ready`;
+  - `not_found`: missing, not readable for you, trashed, or not media;
+  - `forbidden`: you may not edit or delete it;
+  - `not_duplicate`: its file's size and content, checked now, differ from the kept file's;
+  - `file_missing`: the file is missing or not stored on this server;
+  - `locked`: compression, conversion, a rename, a thumbnail regeneration or EXIF work is running on it;
+  - `usage_unknown`: no verified Used Where scan covers it; run `tsmlt-start-usage-scan`;
+  - `unsupported_references`: used in a way the merge cannot carry over (see `reasons` below);
+  - `trash_disabled`: the trash is off (`EMPTY_TRASH_DAYS` is 0), so nothing is merged;
+  - `invalid_id`.
+- **`reasons`** (for `unsupported_references`):
+  - `id_reference`: used by ID in an image block, gallery, image class or caption;
+  - `usage_type`: used in a gallery, WooCommerce gallery, custom field, widget, menu, page-builder data by ID or other place the merge does not update;
+  - `unmapped_size`: a size the kept image lacks is linked somewhere;
+  - `site_media`: it is the site logo or icon.
+- **Counts and differences:**
+  - `references` (posts linking it in content or excerpts, posts using it as featured image);
+  - `sizes` (total, mapped to a size of the kept image, unmapped);
+  - `groups_to_add`;
+  - `metadata_differs` (title, alt text, caption, description).
+- **Plan:** `plan_id` and `expires_at` when at least one copy is ready. Nothing is changed.
+- **Kept image unusable:** if the image to keep is not found, not editable, has no local file or is locked, the call is refused (`tsmlt_duplicate_keep_unavailable`).
+
+**Apply**:
+- **The plan:** it is used once, by the user who made it, for this tool only, within about 15 minutes.
+- **Locks and checks again:** the kept image and each copy are locked while the merge runs. Every check is made again; a copy whose file, metadata, usage records or URLs changed since the preview is skipped (`changed`, or its new status).
+- **For each other copy, in order:**
+  1. Links in post content, excerpts and Elementor data (escaped and plain) to its full-size file, its original and each size are moved to the kept image's matching file.
+  2. Posts using it as featured image switch to the kept image.
+  3. Its Groups are added to the kept image.
+  4. It is moved to the trash.
+- **Failed link update:** if any link update fails, the copy is not trashed (`failed`, `reference_update_failed`); links already moved point at the identical kept file.
+- **Results per copy:** `merged`, `skipped` or `failed`, with a code, the posts whose links changed (that you may read), failed link updates, featured images reassigned and Groups added.
+
+**Rules and limitations**:
+- **Never deleted:** copies are trashed, never deleted. Their files, WebP/AVIF copies and compression backups stay, so a copy can be restored (`tsmlt-restore-media` or WordPress Admin). Links and featured images are not moved back on restore.
+- **Duplicate results:** a merged copy is removed from the duplicate results; a later duplicate scan adds it again if it is restored.
+- **Metadata kept:** the kept image keeps its own title, alt text, caption and description; the preview shows where they differ.
+- **ID-based use is refused:** use by ID (image blocks, galleries, WooCommerce galleries, custom fields, Elementor by ID) is refused, never rewritten. Copies placed with the block editor usually carry their ID, so they are refused.
+- **At most 10 per call:** up to 10 copies per call, merged in the request (no background job).
+- **Admin page unchanged:** the Duplicates page's own merge is unchanged; it deletes copies permanently.
 
 ## Media health — `tsmlt-get-media-health`
 
@@ -1793,7 +1848,7 @@ This roadmap records the history of the MCP work. Which plugin features are cove
 | 2 | Security and permission audit | Implemented | Audit (2026-10-28) found no critical or high issues. Fixed, covered by tests and verified on a disposable local site: scans no longer clear or replace attachments' parents (M1); `manage_options` re-checked inside every Free tool's `execute()` (L1); partial metadata updates restored or reported (L2); default gateway exposure is opt-in and `update-media-metadata` moved to the not runnable through the default gateway (L3). The M1 follow-up found on the disposable site (an attached post set from a rendered-page match during the rescan after a save) is fixed and covered by automated tests (2026-10-31), not re-run on a site. Not tested on an existing site. |
 | 3 | Bulk media rename | Implemented (Free typed names) | Preview 2026-11-18; engine hardened and rename tools added 2026-11-21: `tsmlt/preview-media-rename` (exact names from `MediaRenamer::plan()`, confirmation token), `tsmlt/rename-media` (one in the request, 2–20 as `RenameJob`), `tsmlt/get-media-rename-status`, `tsmlt/cancel-media-rename`. Pro strategies (post title, SKU, alt text, AI) stay Pro and are not exposed through MCP. |
 | 4 | AI-assisted metadata generation | Implemented (client-side) | 2026-11-21. Server-side AI generation through MCP is excluded (F15, D16): the client's own AI writes the text. Workflow: `tsmlt/search-media`, `tsmlt/get-media-details`, `tsmlt/get-media-image-preview` (Free, new: a downscaled, metadata-free image content block so the client's model can see the image), `tsmlt/update-media-metadata`. See [AI-written alt text and captions](#ai-written-alt-text-and-captions--client-side). |
-| 5 | Duplicate media management | Implemented (detection and scan control) | Scan control (2026-11-18): `tsmlt/start-duplicate-scan` and `tsmlt/get-duplicate-scan-status` (Free, not runnable through the default gateway) start, resume and monitor the existing duplicate scan under a start lock shared with the Duplicates page; see [Scan, status, results](#scan-status-results). Merging duplicates (Pro) is not offered over MCP yet; its MCP integration is planned in the Pro repository (see F10 and D20 in the [MCP Feature Tracker](13-mcp-feature-tracker.md)). `tsmlt/find-duplicate-media` (Free, not runnable through the default gateway) lists duplicate groups from the duplicate scan's results without its stale-row cleanup on read: groups count distinct attachments still in the library, pages are ordered deterministically, and usage follows `tsmlt/get-media-usage`; see [Duplicate media](#duplicate-media--tsmlt-find-duplicate-media). Covered by integration tests. The Pro merge needs its own safety design first (preview, explicit confirmation, reference preservation, metadata handling, safe failure and rollback). Removing duplicates is not planned. Not tested on an existing site. |
+| 5 | Duplicate media management | Implemented (detection, scan control and Pro merge) | Scan control (2026-11-18): `tsmlt/start-duplicate-scan` and `tsmlt/get-duplicate-scan-status` (Free, not runnable through the default gateway) start, resume and monitor the existing duplicate scan under a start lock shared with the Duplicates page; see [Scan, status, results](#scan-status-results). Merging duplicates (Pro) is offered by `tsmlt/preview-duplicate-merge` and `tsmlt/apply-duplicate-merge` (2026-11-21; see [Pro: merge duplicates](#pro-merge-duplicates--tsmlt-preview-duplicate-merge-then-tsmlt-apply-duplicate-merge), and F10 and D21 in the [MCP Feature Tracker](13-mcp-feature-tracker.md)). `tsmlt/find-duplicate-media` (Free, not runnable through the default gateway) lists duplicate groups from the duplicate scan's results without its stale-row cleanup on read: groups count distinct attachments still in the library, pages are ordered deterministically, and usage follows `tsmlt/get-media-usage`; see [Duplicate media](#duplicate-media--tsmlt-find-duplicate-media). Covered by integration tests. The merge previews, needs explicit confirmation, carries over only references it can preserve, keeps the kept image's metadata and trashes copies only after their links moved. Removing duplicates is not planned. Not tested on an existing site. |
 | 6 | Media library audit | In Progress | Implemented: `tsmlt/get-media-health` (2026-11-19, per attachment) and `tsmlt/audit-media-health` (2026-11-20, the whole library in windows of up to 100 by attachment ID, keyset paging, nothing stored). Both are Free and read-only. Missing alt text is covered by `tsmlt/search-media` (`missing_alt`), generated sizes by `tsmlt/get-thumbnail-status`, unused media and duplicates by their tools. Remaining: files on disk that are not in the library (the Rubbish scan), which needs a decision on exposing file paths. |
 | 7 | EXIF tools expansion | Implemented (partly) | 2026-11-18. Free: `tsmlt/start-exif-privacy-scan`, `tsmlt/get-exif-privacy-scan-status`, `tsmlt/list-exif-privacy-results` (the EXIF Data page's scan now records per-image privacy results). Pro: GPS removal (`tsmlt/preview-gps-removal`, `tsmlt/remove-gps-metadata`), bulk EXIF edit (`tsmlt/preview-bulk-exif-edit`, `tsmlt/apply-bulk-exif-edit`), change logs (`tsmlt/list-exif-change-logs`) and undo (`tsmlt/preview-exif-undo`, `tsmlt/undo-exif-change`), each change after a preview and a one-time confirmed plan. Planned, pending changes to the Pro services: EXIF export and import, EXIF ↔ WordPress sync, full EXIF removal — see [EXIF features not available through MCP](#exif-features-not-available-through-mcp). |
 | 8 | CSV import/export | Implemented | Free `tsmlt/export-media-csv` (selected IDs); Pro `tsmlt/export-media-csv-bulk` (library export to files, 2026-11-16; production hardening the same day: random storage names, watchdog and retries, `tsmlt/continue-media-csv-export` for sites without WP-Cron, 15-minute links, admin-request cleanup, Free 2.5.0 required), `tsmlt/get-media-csv-export`, `tsmlt/continue-media-csv-export`, `tsmlt/preview-media-csv-import` and `tsmlt/apply-media-csv-import`; all on the dedicated endpoint. All seven steps done; covered by the Pro suite and verified on a disposable site (2026-11-13); see [CSV import and export through MCP (Pro)](#csv-import-and-export-through-mcp-pro). Round trips fixed in Pro (2026-11-13; remaining exceptions under Known limitations). Open: neutralising formulas in the admin CSV export. Not tested on an existing site. Page and post exports (2026-11-17): Free `tsmlt/search-media` `content_url` (a URL of this site, resolved locally, never fetched) for the search-and-select export; Pro `tsmlt/export-media-csv-bulk` `contents` with `organize` (separate files per page or post, or one combined file without duplicate rows). Image discovery covers attached, featured, product gallery and core block, `wp-image` and `[gallery]` references only. |
