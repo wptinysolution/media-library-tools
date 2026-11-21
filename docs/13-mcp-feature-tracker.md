@@ -138,6 +138,26 @@ A feature is marked Implemented only with test evidence, never because code exis
 - **Missing operations (all Deferred, D5):** EXIF export, EXIF import, EXIF ↔ WordPress sync, full EXIF removal.
 - **Tests:** `GetExifCaption*Test` (3 files), `UpdateExifFieldsAbilityTest`, `UpdateExifFieldsEdgeCasesTest`, `ExifOperationsAbilitiesTest`.
 - **Note:** full EXIF removal in WordPress Admin became lossless (Free `JpegMetadataStripper`, 2026-11-20). That does not by itself reopen the MCP decision.
+- **Operation locks (resolved 2026-11-21; Pro only, no MCP tool definitions changed):**
+  - **Gap closed:** Pro's EXIF writes previously checked none of the shared operation locks (recorded as a limitation in F11, F13 and F14).
+  - **What is guarded:** `ExifEditorModule::save_exif()`, `ExifStripperModule::strip_gps_from_attachment()` and `ExifLogger::undo_last_change()`. Every caller goes through these: the EXIF editor, bulk EXIF edit (Admin and MCP), sync, import, GPS removal (MCP, bulk, batch and on upload) and undo.
+  - **How:** these methods now take Pro's `Modules/ExifData/ExifWriteLock`, which uses only the free plugin's existing locks, the same way Free's `ExifStripper` does.
+    - **Refused while held:** a write is refused while the image is held by compression (`AttachmentProcessor::is_locked()`), conversion (`AttachmentConverter::is_locked()`), a rename or a thumbnail regeneration (`RegenerateLock::is_held()`).
+    - **Held while writing:** the write holds the EXIF removal lock (`ScanStartLock`, `ExifStripper::LOCK_PREFIX`), which those operations and another EXIF write check. So the protection works both ways.
+    - **Re-entry:** allowed within one request, so an undo, which saves through `save_exif()`, takes the lock once.
+  - **Refused result:**
+    - **Returned:** `success: false` with `code: 'locked'`, and nothing written.
+    - **Bulk runs:** they report a refused image on its own and continue with the others.
+    - **Undo:** a refused undo keeps its log entry.
+  - **Through MCP:** status definitions were intentionally left unchanged, so a refused image shows as `write_failed` (`tsmlt/update-exif-fields`, `tsmlt/apply-bulk-exif-edit`) or `failed` (`tsmlt/remove-gps-metadata`, `tsmlt/undo-exif-change`).
+  - **Tests (2026-11-21):**
+    - Pro `ExifWriteLockTest` (14): editor, GPS removal and undo each blocked by each of the four locks, with the file and EXIF metadata unchanged and the write working after release; bulk edit continuing past a blocked image; the EXIF lock held during a write, with Free's rename engine reporting the image `locked` meanwhile.
+    - Mutation checks: removing each gate, or the re-entry handling, makes the matching tests fail.
+    - Full Pro suite: 572 tests, all passing.
+  - **Limitations:**
+    - **Lock races:** locks are post meta and are not atomic across operations.
+    - **Older free plugin:** where it lacks one of these locks, that check is skipped (rename and regeneration are then not detected).
+    - **MCP statuses:** there is no distinct `locked` status in the MCP tools (that would need a tool definition change).
 
 ### F10 Duplicate media
 
@@ -195,7 +215,7 @@ A feature is marked Implemented only with test evidence, never because code exis
   - **Rebuilt sizes:** they are re-encoded and lose earlier compression.
   - **Disabled-size files:** they keep their old names, unreferenced.
   - **Lock races:** locks are post meta and not atomic across operations.
-  - **Pro writers:** Pro's GPS removal and EXIF editor do not check the lock.
+  - **Pro writers (resolved 2026-11-21):** Pro's EXIF editor, GPS removal, bulk EXIF edit and undo now respect the shared operation locks, including `RegenerateLock`, which the rename holds (see F9, "Operation locks"; D19).
 
 #### MCP rename tools (implemented 2026-11-21; Free only)
 
@@ -395,7 +415,7 @@ C5–C7 are not needed for the minimum MCP scope below.
   - **Fallback race:** where hard links are unsupported, a name created between the last check and the rename can still be replaced (narrow race; documented).
   - **Lock races:** locks are post meta; operations starting in the same instant are not excluded.
   - **Lookup cost:** the ownership lookups use `LIKE` on post meta, a few queries per output file; acceptable for background jobs, slower on very large sites.
-  - **Pro's own JPEG writers:** Pro's GPS removal and EXIF editor do not check the conversion lock (unchanged).
+  - **Pro's own JPEG writers (resolved 2026-11-21):** Pro's EXIF editor, GPS removal, bulk EXIF edit and undo now respect the conversion lock and the other shared operation locks (see F9, "Operation locks"; D19).
 - **Tests (2026-11-20, local WordPress test suite, PHP 8.5):**
   - `ConversionEngineHardeningTest`: 12 tests, all passing.
   - Mutation checks: removing the collision check, the ownership check on delete, all-or-nothing regeneration, the trash check or the lock check makes the matching tests fail.
@@ -553,7 +573,7 @@ Not recommended through MCP, consistent with D12 for thumbnails. It queues at mo
   - **Not one atomic step:** replacing several size files is not atomic as a whole. If a rename fails part-way, the sizes already moved keep their new files, the others keep their old files and records, the metadata matches the disk, and the image reports `replace_failed`.
   - **Lock races:** locks are post meta, and the checks are not atomic across operations (the same as the compression and conversion locks), so operations starting in the same instant are not excluded.
   - **Two drivers:** two drivers reading the job at the same moment can take the same batch; the per-image lock prevents double processing, but counts can be off.
-  - **Pro's own JPEG code:** Pro's GPS removal and EXIF editor do not check the regeneration lock (Pro unchanged).
+  - **Pro's own JPEG code (resolved 2026-11-21):** Pro's EXIF editor, GPS removal, bulk EXIF edit and undo now respect the regeneration lock and the other shared operation locks (see F9, "Operation locks"; D19).
   - **Dropped records:** sizes now too large for the image, and disabled sizes, are dropped from the records but their files stay.
   - **Not reversible:** replaced thumbnails are not kept, compressed sizes are replaced by uncompressed ones, and WebP/AVIF copies of sizes may become outdated.
   - **Page-driven batch:** still position-based.
@@ -666,6 +686,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D16 | 2026-11-21 | Server-side AI generation is not offered through MCP (cost, data leaving the site, raw provider errors, duplicates the client's model). AI-written metadata is supported client-side: `tsmlt/search-media`, `tsmlt/get-media-details`, the new read-only `tsmlt/get-media-image-preview` (one downscaled, metadata-free image per call) and `tsmlt/update-media-metadata`. | F15 |
 | D17 | 2026-11-21 | Rename engine (before any MCP rename): rename the attached file and its full-size original with no-overwrite moves, rebuild sizes with the hardened regeneration engine, move compression backups and the image's own converted copies, report content-update failures separately, clear Elementor caches only for changed posts, never use a strategy keyword as a file name; bulk renames as a background job of up to 20. MCP rename tools are still not implemented. | F11 |
 | D18 | 2026-11-21 | MCP rename: four Free tools (preview with a one-time token, rename with confirmation, status, cancel); one item renamed in the request, 2–20 as the background `RenameJob`; preview names from the engine (`MediaRenamer::plan()`). Pro rename strategies and server-side AI rename are not exposed through MCP. | F11 |
+| D19 | 2026-11-21 | Pro EXIF writes (editor, GPS removal, bulk edit, undo) respect the free plugin's shared operation locks (compression, conversion, `RegenerateLock` for rename and regeneration, the EXIF removal lock) and hold the EXIF lock while writing; no new lock mechanism. MCP tool status definitions stay unchanged (a refused image is `write_failed` or `failed`). | F9, F11, F13, F14 |
 
 ## Workflow
 

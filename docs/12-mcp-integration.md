@@ -88,7 +88,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-get-media-health` | Checks the file and record integrity of 1–50 attachments: `healthy` or `issues`, with fixed codes (`no_attached_file`, `file_missing`, `file_unreadable`, `mime_mismatch`, `metadata_missing`, `filesize_mismatch`, `dimensions_mismatch`, `invalid_parent`), the compared values, and whether alt text is set. Never repairs anything or returns paths | No |
 | `tsmlt-audit-media-health` | Audits the whole library with the `tsmlt-get-media-health` checks, 1–100 attachments per call in ID order (`after_id`, `limit`, optional `issue`): lists only attachments with issues, counts healthy and inaccessible ones, returns `next_after_id` and `done`. Stores nothing | No |
 
-### Pro (14)
+### Pro (15)
 
 | Tool | What it does | Changes data |
 |---|---|---|
@@ -97,6 +97,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-export-media-csv-bulk` | **Pro.** Exports the whole library, or everything matching the `tsmlt-search-media` filters, as CSV files in the background: one file, or split evenly into up to 20. Returns an export job | No media (writes export files, kept 24 hours) |
 | `tsmlt-get-media-csv-export` | **Pro.** An export job's progress and, for each finished file, a download link valid for 15 minutes. Read-only | No |
 | `tsmlt-continue-media-csv-export` | **Pro.** Advances an export by one batch, for sites where WP-Cron does not run it. Safe to repeat | No media (writes export files) |
+| `tsmlt-read-media-csv-export-file` | **Pro.** Used only by the CSV export MCP App view to save a finished export file, one part at a time; offered to the view, not to the model, and listed only when the server supports MCP App resources. To give the user a file, use `tsmlt-get-media-csv-export` and its download links. Read-only | No |
 | `tsmlt-preview-media-csv-import` | **Pro.** Checks CSV text (up to 256 KB and 50 rows) and shows, row by row, what it would change on existing media; returns a plan to apply | No (stores a short-lived plan) |
 | `tsmlt-apply-media-csv-import` | **Pro.** Applies a previewed plan once, with `confirm: true`; rows changed since the preview are skipped | Yes (title, alt text, caption, description, attached post, menu order, Groups) |
 | `tsmlt-preview-gps-removal` | **Pro.** Checks up to 50 images and reports per image whether GPS location data was found (never the coordinates) or why it cannot be cleaned; returns a plan. Read-only | No (stores a short-lived plan) |
@@ -107,7 +108,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-preview-exif-undo` | **Pro.** Shows whether one image's newest EXIF change can be undone and which fields it would restore or clear; returns a plan. Read-only | No (stores a short-lived plan) |
 | `tsmlt-undo-exif-change` | **Pro.** Undoes the previewed change once, with `confirm: true`, only while it is still the newest change | Yes (EXIF) |
 
-The fourteen Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools are not offered and administrators see a notice.
+The fifteen Pro tools are offered only when Media Library Tools Pro is active with a valid licence. Pro needs Media Library Tools 2.5.0 or later (the first release with the CSV helper the Pro export uses); with an older free plugin Pro shows a notice on the Plugins screen and does not load, and if the free plugin lacks the helper anyway the three Pro export tools and the view-only file tool are not offered and administrators see a notice. The CSV export view (`ui://media-library-tools/media-csv-export.html`) is an MCP App resource, not a tool, and is not counted here.
 
 **What is never returned**: server file paths, raw attachment metadata, raw EXIF data, GPS coordinates or other location values, copyright, artist, camera serial numbers, or custom fields. Only whether an image's EXIF holds location, camera, date, author or copyright data is reported, by `tsmlt-list-exif-privacy-results` and `tsmlt-preview-gps-removal`; the Pro bulk edit, change log and undo tools report field names, never values. `tsmlt-get-exif-fields` returns only the fields listed above — never time zone offsets, altitude, location, copyright or artist — and `tsmlt-get-exif-caption` returns only the caption text.
 
@@ -659,7 +660,7 @@ The image being processed finishes, and the job stops before the next one. Image
 - Jobs are site-wide: any administrator can follow or stop a job, from MCP or the Regenerate page. One regeneration job runs at a time.
 - **Partial replacement**: replacing an image's size files is not one atomic step. If a file cannot be moved into place, the image reports `replace_failed`; files already moved are new, the rest keep their old files, and the image's records match the disk.
 - **Lock races**: locks are post meta and are not checked in one atomic step, so operations starting in the same instant are not excluded.
-- **Pro's own JPEG writers**: Media Library Tools Pro's GPS removal and EXIF editor do not check the regeneration lock.
+- **Pro's own JPEG writers** (resolved 2026-11-21): Media Library Tools Pro's EXIF editor, GPS removal, bulk EXIF edit and EXIF undo now respect the regeneration lock and the other shared operation locks (see [Pro: EXIF tools](#pro-exif-tools), "Busy images").
 
 ## Compression status — `tsmlt-get-compression-status`
 
@@ -1063,6 +1064,12 @@ Every result except `sensitive` means "not found sensitive", not "safe": unsuppo
 ## Pro: EXIF tools
 
 These tools need **Media Library Tools Pro** with an active licence. Without one they are not listed, and a call is refused. While it is active they are listed on the default server and the dedicated endpoint alike.
+
+**Busy images** (since 2026-11-21): no Pro EXIF write changes an image that another operation is working on. The EXIF editor (`tsmlt-update-exif-fields`), GPS removal (`tsmlt-remove-gps-metadata`), bulk EXIF edit (`tsmlt-apply-bulk-exif-edit`) and EXIF undo (`tsmlt-undo-exif-change`), and the same actions in WordPress Admin, are refused for an image while it is being compressed, converted, renamed, having its thumbnails regenerated, or having its EXIF removed or changed elsewhere. Nothing is written for that image. While a Pro EXIF write runs, it holds the free plugin's EXIF lock, so those operations wait for it in turn. Pro uses the free plugin's existing locks (`ExifWriteLock` in Pro); it has no lock of its own.
+- **How a refused image is reported through MCP:** the tools' status lists were left unchanged, so a refused image shows as `write_failed` (`tsmlt-update-exif-fields`, `tsmlt-apply-bulk-exif-edit`) or `failed` (`tsmlt-remove-gps-metadata`, `tsmlt-undo-exif-change`). `tsmlt-update-exif-fields` also returns the reason in its `message`. In a bulk edit or GPS removal, a refused image is reported on its own and the other images are still processed. A refused undo keeps its log entry, so it can be tried again.
+- **Try again** when the other operation has finished, with a new preview where the tool needs one (a plan is used once).
+- **Lock races:** the locks are post meta and are not checked in one atomic step, so two operations starting in the same instant are not excluded.
+- **Older free plugin:** with a version of the free plugin that lacks one of these locks (for example before the regeneration lock existed), that check is skipped; a rename or regeneration is then not detected.
 
 **Preview, then execute**: every Pro tool that changes several images, removes GPS data or undoes a change works in two steps. The preview tool changes nothing and returns a `plan_id`. Show its result to the user; only after they approve, call the apply tool with the `plan_id` and `confirm: true`. A plan belongs to the user who made it and to one tool, expires after about 15 minutes, and can be applied once. Access to every image is checked again when the plan is applied.
 
