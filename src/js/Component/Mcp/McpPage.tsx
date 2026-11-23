@@ -170,7 +170,7 @@ function Spinner() {
 export default function McpPage() {
     const [settings, setSettings] = useState<McpPageSettings | null>(tsmltParams.mcp ?? null);
     const [saving, setSaving] = useState(false);
-    const [client, setClient] = useState<McpClientId>('claude-code');
+    const [client, setClient] = useState<McpClientId>('claude-desktop');
     const [dedicated, setDedicated] = useState(false);
     const [consent, setConsent] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -507,7 +507,7 @@ export default function McpPage() {
                                     <li>Only Media Library Tools' MCP tools, not other WordPress or plugin MCP abilities.</li>
                                     <li>Uses the same sign-in: replace the URL in the manual configuration above with this one.</li>
                                     <li>Also served by an MCP Adapter, so it answers whenever one is running on the site (the MCP Adapter plugin, or a plugin that bundles it).</li>
-                                    <li>Use one of the two connections, not both. Details are on the <a href={settings.docsUrl} className="text-blue-700 underline">Documentation tab</a>.</li>
+                                    <li>Use one of the two connections, not both. Details are on the <a href={settings.docsUrl} className="text-blue-700 underline">MCP Documentation tab</a>.</li>
                                 </ul>
                             </Disclosure>
                         </div>

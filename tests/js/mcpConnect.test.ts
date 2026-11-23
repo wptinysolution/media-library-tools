@@ -335,3 +335,7 @@ test('every client\'s manual configuration is complete: URL, server name, Author
     assert.match(source, /current\.configPath\.windows/);
     assert.match(source, /most clients accept this format/);
 });
+
+test('Claude Desktop is the client selected when the page opens', () => {
+    assert.match(page(), /useState<McpClientId>\('claude-desktop'\)/);
+});

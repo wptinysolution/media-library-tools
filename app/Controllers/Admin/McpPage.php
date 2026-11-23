@@ -104,7 +104,7 @@ class McpPage {
 		$current = self::current_tab();
 		$tabs    = [
 			self::TAB_CONNECTION    => __( 'Connection', 'media-library-tools' ),
-			self::TAB_DOCUMENTATION => __( 'Documentation', 'media-library-tools' ),
+			self::TAB_DOCUMENTATION => __( 'MCP Documentation', 'media-library-tools' ),
 		];
 		?>
 		<div class="wrap tsmlt-mcp-connection">

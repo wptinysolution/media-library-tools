@@ -134,7 +134,7 @@ class McpPageTest extends WP_Ajax_UnitTestCase {
 		$this->assertStringContainsString( 'Connect AI assistants such as Claude, Codex and Cursor to your media library', $connection, 'A short description under the title.' );
 		$this->assertSame( substr_count( $connection, '<div' ), substr_count( $connection, '</div>' ) );
 		$this->assertStringContainsString( '>Connection</a>', $connection );
-		$this->assertStringContainsString( '>Documentation</a>', $connection );
+		$this->assertStringContainsString( '>MCP Documentation</a>', $connection );
 		$this->assertStringContainsString( 'nav-tab nav-tab-active" aria-current="page">Connection', $connection );
 		$this->assertStringContainsString( 'id="tsmlt_mcp_root"', $connection );
 		$this->assertStringNotContainsString( 'tsmlt-mcp-docs__section', $connection );
@@ -142,7 +142,7 @@ class McpPageTest extends WP_Ajax_UnitTestCase {
 
 		$docs = $this->render_tab( McpPage::TAB_DOCUMENTATION );
 		$this->assertSame( 1, substr_count( $docs, '<h1>' ) );
-		$this->assertStringContainsString( 'nav-tab nav-tab-active" aria-current="page">Documentation', $docs );
+		$this->assertStringContainsString( 'nav-tab nav-tab-active" aria-current="page">MCP Documentation', $docs );
 		$this->assertStringNotContainsString( 'id="tsmlt_mcp_root"', $docs );
 		foreach ( [ 'Available tools', 'tsmlt-search-media', 'Access control', 'Troubleshooting', 'Endpoints', 'Usage examples' ] as $part ) {
 			$this->assertStringContainsString( esc_html( $part ), $docs, $part );
