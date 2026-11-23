@@ -2,7 +2,6 @@
 
 namespace TinySolutions\mlt\Controllers;
 
-use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
 use TinySolutions\mlt\Controllers\Admin\McpPage;
 use TinySolutions\mlt\Modules\Mcp\McpConnection;
 use TinySolutions\mlt\Helpers\Fns;
@@ -81,11 +80,15 @@ class AssetsController {
 		$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
 		$plugin_pages = [ 'media-library-tools', 'tsmlt-get-pro', 'tsmlt-pricing-pro', McpPage::PAGE_SLUG ];
 
-		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) ) {
+		// The MCP page's Documentation tab is plain WordPress markup with its own
+		// styles; only its Connection tab runs the React app.
+		$react_page = 'media-library-tools' === $current_page || ( McpPage::PAGE_SLUG === $current_page && McpPage::TAB_CONNECTION === McpPage::current_tab() );
+
+		if ( 'upload.php' === $pagenow && in_array( $current_page, $plugin_pages, true ) && ( McpPage::PAGE_SLUG !== $current_page || $react_page ) ) {
 			wp_enqueue_style( 'tsmlt-settings-style' );
 		}
 
-		if ( 'upload.php' === $pagenow && in_array( $current_page, [ 'media-library-tools', McpPage::PAGE_SLUG ], true ) ) {
+		if ( 'upload.php' === $pagenow && $react_page ) {
 			// Enqueue ThickBox scripts and styles.
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
@@ -113,7 +116,8 @@ class AssetsController {
 					'rest_nonce'    => wp_create_nonce( 'wp_rest' ),
 					'iconUrl'       => esc_url( tsmlt()->get_assets_uri( 'images/media-library-tools-icon-128x128.png' ) ),
 					// Only for users who may open the MCP Docs page; the header hides the link otherwise.
-					'mcpDocsUrl'    => current_user_can( McpDocsPage::CAPABILITY ) ? esc_url_raw( admin_url( 'upload.php?page=' . McpDocsPage::PAGE_SLUG ) ) : '',
+					// The MCP Connection page; empty for users who cannot open it.
+					'mcpDocsUrl'    => current_user_can( McpPage::CAPABILITY ) ? esc_url_raw( McpPage::tab_url() ) : '',
 					// The MCP page's data; only on that page and only for those who may open it.
 					'mcp'           => McpPage::PAGE_SLUG === $current_page && current_user_can( McpPage::CAPABILITY ) ? McpConnection::instance()->settings() : null,
 					Fns::NONCE_ID   => wp_create_nonce( Fns::NONCE_ID ),

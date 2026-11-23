@@ -4,9 +4,11 @@ interface CopyToClipboardProps {
     text: string;
     resetDelay?: number;
     className?: string;
+    /** Accessible name and tooltip. */
+    label?: string;
 }
 
-export function CopyToClipboard({ text, resetDelay = 2000, className = '' }: CopyToClipboardProps) {
+export function CopyToClipboard({ text, resetDelay = 2000, className = '', label = 'Copy to clipboard' }: CopyToClipboardProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async (event: React.MouseEvent) => {
@@ -39,7 +41,8 @@ export function CopyToClipboard({ text, resetDelay = 2000, className = '' }: Cop
             type="button"
             onClick={handleCopy}
             className={`p-1.5 cursor-pointer hover:bg-gray-300 rounded transition-colors flex-shrink-0 ${className}`}
-            title="Copy to clipboard"
+            title={copied ? 'Copied' : label}
+            aria-label={copied ? 'Copied' : label}
         >
             {copied ? (
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

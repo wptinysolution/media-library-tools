@@ -1,6 +1,7 @@
 <?php
 /**
- * "MCP Docs" admin page: how to connect an AI assistant over MCP.
+ * The Documentation tab of the MCP Connection page: how to connect an AI
+ * assistant over MCP, the tools and the rules.
  *
  * @package TinySolutions\mlt
  */
@@ -12,8 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'This script cannot be accessed directly.' );
 }
 
-use TinySolutions\mlt\Abilities\AbilitiesInit;
-use TinySolutions\mlt\Abilities\McpServerRegistration;
 use TinySolutions\mlt\Modules\Trash\MediaTrash;
 use TinySolutions\mlt\Traits\SingletonTrait;
 
@@ -255,6 +254,23 @@ class McpDocsPage {
 	}
 
 	/**
+	 * The tab's sections, for its "On this page" navigation: anchor => title.
+	 *
+	 * @return array<string, string>
+	 */
+	private function sections(): array {
+		return [
+			'requirements'    => __( 'Requirements', 'media-library-tools' ),
+			'tools'           => __( 'Available tools', 'media-library-tools' ),
+			'endpoints'       => __( 'Endpoints', 'media-library-tools' ),
+			'examples'        => __( 'Usage examples', 'media-library-tools' ),
+			'access'          => __( 'Access control', 'media-library-tools' ),
+			'notes'           => __( 'Important notes', 'media-library-tools' ),
+			'troubleshooting' => __( 'Troubleshooting', 'media-library-tools' ),
+		];
+	}
+
+	/**
 	 * Render the page.
 	 *
 	 * @return void
@@ -264,18 +280,7 @@ class McpDocsPage {
 			wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'media-library-tools' ), 403 );
 		}
 
-		$endpoint = rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
-		$gateway  = rest_url( 'mcp/mcp-adapter-default-server' );
-		$username = wp_get_current_user()->user_login;
-
-		// Suggested client keys: the site address plus the endpoint.
-		$client_key             = $this->get_client_server_key( self::CLIENT_KEY_DEDICATED );
-		$gateway_client_key     = $this->get_client_server_key( self::CLIENT_KEY_DEFAULT_SERVER );
-		$claude_command         = $this->claude_code_command( $client_key, $endpoint, $username );
-		$json_config            = $this->json_config( $client_key, $endpoint, $username );
-		$gateway_claude_command = $this->claude_code_command( $gateway_client_key, $gateway, $username );
-		$gateway_json_config    = $this->json_config( $gateway_client_key, $gateway, $username );
-		$gateway_example        = (string) wp_json_encode(
+		$gateway_example = (string) wp_json_encode(
 			[
 				'ability_name' => 'tsmlt/search-media',
 				'parameters'   => [
@@ -286,26 +291,31 @@ class McpDocsPage {
 			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
 		);
 		?>
-		<div class="wrap tsmlt-mcp-docs">
+		<div class="tsmlt-mcp-docs">
 			<?php $this->render_styles(); ?>
-			<h1><?php esc_html_e( 'MCP Docs', 'media-library-tools' ); ?></h1>
 
-			<?php $this->render_status_notice( $this->get_adapter_status(), AbilitiesInit::is_supported() ); ?>
-
-			<p class="tsmlt-mcp-docs__lead">
-				<?php esc_html_e( 'Media Library Tools lets AI assistants that speak the Model Context Protocol (MCP) — such as Claude Code — search your media library, read media details, and update media text fields on your behalf.', 'media-library-tools' ); ?>
-			</p>
-
-			<div class="notice notice-info inline tsmlt-mcp-docs__connect">
-				<p>
-					<strong><?php esc_html_e( 'Connect an assistant from the MCP page.', 'media-library-tools' ); ?></strong>
-					<?php esc_html_e( 'Media › MCP sets up Claude Code, Claude Desktop, Codex, Cursor and other clients with the WordPress default MCP server, and has the switch to turn MCP access off. This page is the reference.', 'media-library-tools' ); ?>
-					<a href="<?php echo esc_url( admin_url( 'upload.php?page=' . McpPage::PAGE_SLUG ) ); ?>"><?php esc_html_e( 'Open the MCP page', 'media-library-tools' ); ?></a>
+			<div class="tsmlt-mcp-docs__intro">
+				<p class="tsmlt-mcp-docs__lead">
+					<?php esc_html_e( 'Reference for the Media Library Tools MCP integration: the tools AI assistants can use, what they may change, who can use them, and how to fix common problems.', 'media-library-tools' ); ?>
+				</p>
+				<p class="tsmlt-mcp-docs__callout">
+					<?php esc_html_e( 'Setting up a client? Connection URLs, prompts and configurations are on the Connection tab.', 'media-library-tools' ); ?>
+					<a href="<?php echo esc_url( McpPage::tab_url() ); ?>"><?php esc_html_e( 'Open the Connection tab', 'media-library-tools' ); ?></a>
 				</p>
 			</div>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Requirements', 'media-library-tools' ); ?></h2>
+			<div class="tsmlt-mcp-docs__layout">
+				<nav class="tsmlt-mcp-docs__toc" aria-label="<?php esc_attr_e( 'On this page', 'media-library-tools' ); ?>">
+					<p class="tsmlt-mcp-docs__toc-title"><?php esc_html_e( 'On this page', 'media-library-tools' ); ?></p>
+					<ul>
+						<?php foreach ( $this->sections() as $section_id => $section_label ) : ?>
+							<li><a href="#tsmlt-mcp-docs-<?php echo esc_attr( $section_id ); ?>"><?php echo esc_html( $section_label ); ?></a></li>
+						<?php endforeach; ?>
+					</ul>
+				</nav>
+				<div class="tsmlt-mcp-docs__body">
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-requirements" aria-labelledby="tsmlt-mcp-docs-requirements-title">
+				<h2 id="tsmlt-mcp-docs-requirements-title"><?php esc_html_e( 'Requirements', 'media-library-tools' ); ?></h2>
 				<ul>
 					<li><?php esc_html_e( 'WordPress 6.9 or newer (the Abilities API is part of WordPress core from 6.9).', 'media-library-tools' ); ?></li>
 					<li>
@@ -321,10 +331,10 @@ class McpDocsPage {
 					</li>
 					<li><?php esc_html_e( 'A WordPress administrator account (the manage_options capability).', 'media-library-tools' ); ?></li>
 				</ul>
-			</div>
+			</section>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Available tools', 'media-library-tools' ); ?></h2>
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-tools" aria-labelledby="tsmlt-mcp-docs-tools-title">
+				<h2 id="tsmlt-mcp-docs-tools-title"><?php esc_html_e( 'Available tools', 'media-library-tools' ); ?></h2>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -660,140 +670,27 @@ class McpDocsPage {
 					<?php echo esc_html( MediaTrash::permanent_delete_guidance() ); ?>
 					<?php esc_html_e( 'WordPress\'s scheduled trash cleanup permanently deletes trashed media EMPTY_TRASH_DAYS days (30 by default) after it was trashed, and if EMPTY_TRASH_DAYS is later set to 0 or a negative number, its next cleanup can permanently delete everything already in the trash. Restore anything you want to keep first.', 'media-library-tools' ); ?>
 				</p>
-			</div>
+			</section>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Endpoint', 'media-library-tools' ); ?></h2>
-				<p><?php esc_html_e( 'Connect your assistant to the MCP Adapter default server; the MCP page sets this up for you. The dedicated endpoint is kept for existing connections. Both offer every Media Library Tools tool above — the Free tools, and the Pro tools while the Pro licence is active — with the same names and the same permission checks.', 'media-library-tools' ); ?></p>
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-endpoints" aria-labelledby="tsmlt-mcp-docs-endpoints-title">
+				<h2 id="tsmlt-mcp-docs-endpoints-title"><?php esc_html_e( 'Endpoints', 'media-library-tools' ); ?></h2>
+				<p><?php esc_html_e( 'Media Library Tools is available on two MCP servers. Both offer every Media Library Tools tool — the Free tools, and the Pro tools while the Pro licence is active — with the same names and the same permission checks. Both are served by the MCP Adapter, which needs MCP Adapter 0.5.0 or newer for the default server.', 'media-library-tools' ); ?></p>
 				<ul>
 					<li>
-						<strong><?php esc_html_e( 'MCP Adapter default server (recommended):', 'media-library-tools' ); ?></strong>
-						<code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code>
-						<?php esc_html_e( 'It always lists the Media Library Tools tools, together with the MCP Adapter\'s gateway tools, which can reach every public ability from every plugin on the site, including abilities that change or delete data.', 'media-library-tools' ); ?>
+						<strong><?php esc_html_e( 'WordPress default MCP server (recommended):', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'one connection for Media Library Tools and every other public WordPress and plugin ability, reachable through the MCP Adapter\'s gateway tools — including abilities that change or delete data.', 'media-library-tools' ); ?>
 					</li>
 					<li>
-						<strong><?php esc_html_e( 'Dedicated Media Library Tools endpoint (kept for existing connections):', 'media-library-tools' ); ?></strong>
-						<code class="tsmlt-mcp-docs__url"><?php echo esc_html( $endpoint ); ?></code>
-						<?php esc_html_e( 'It offers only the tools above and requires an administrator account before a session can start.', 'media-library-tools' ); ?>
-					</li>
-				</ul>
-
-				<h3><?php esc_html_e( 'Which endpoint should I use?', 'media-library-tools' ); ?></h3>
-				<p><?php esc_html_e( 'Pick one:', 'media-library-tools' ); ?></p>
-				<ul>
-					<li>
-						<strong><?php esc_html_e( 'One connection for everything (recommended):', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'use the MCP Adapter default server by itself. It includes every Media Library Tools tool, plus other plugins\' and WordPress core abilities.', 'media-library-tools' ); ?>
-					</li>
-					<li>
-						<strong><?php esc_html_e( 'Only Media Library Tools:', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'use the dedicated endpoint. It is narrower and also works when the default server is turned off.', 'media-library-tools' ); ?>
+						<strong><?php esc_html_e( 'Dedicated Media Library Tools server (alternative):', 'media-library-tools' ); ?></strong>
+						<?php esc_html_e( 'only the Media Library Tools tools, for a narrower connection. It requires an administrator account before a session can start, and also works when the default server is turned off.', 'media-library-tools' ); ?>
 					</li>
 				</ul>
 				<p>
-					<strong><?php esc_html_e( 'Avoid configuring both:', 'media-library-tools' ); ?></strong>
-					<?php esc_html_e( 'the media tools would appear twice, and the assistant may switch between them unpredictably.', 'media-library-tools' ); ?>
-				</p>
-			</div>
-
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Setup', 'media-library-tools' ); ?></h2>
-
-				<h3><?php esc_html_e( '1. Install the MCP Adapter', 'media-library-tools' ); ?></h3>
-				<p><?php esc_html_e( 'Go to Plugins → Add New, search for "MCP Adapter", then install and activate it.', 'media-library-tools' ); ?></p>
-
-				<h3><?php esc_html_e( '2. Create an Application Password', 'media-library-tools' ); ?></h3>
-				<ol>
-					<li>
-						<?php
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: link to the current user's profile. */
-								esc_html__( 'Open your %s and scroll to Application Passwords.', 'media-library-tools' ),
-								'<a href="' . esc_url( admin_url( 'profile.php#application-passwords-section' ) ) . '">' . esc_html__( 'profile', 'media-library-tools' ) . '</a>'
-							)
-						);
-						?>
-					</li>
-					<li><?php esc_html_e( 'Enter a name such as "Claude Code – laptop" and click Add New Application Password.', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( 'Copy the password shown — it is displayed only once.', 'media-library-tools' ); ?></li>
-				</ol>
-				<p class="description">
-					<?php esc_html_e( 'Create one password per assistant and device so you can revoke one without affecting the others. The MCP page\'s setup prompt contains the password, so it reaches your AI tool; to keep it out of chats, use that page\'s manual configuration or these steps and enter it only into the client\'s configuration. WordPress only offers Application Passwords over HTTPS, or on sites marked as a local development environment.', 'media-library-tools' ); ?>
+					<strong><?php esc_html_e( 'Use one, not both:', 'media-library-tools' ); ?></strong>
+					<?php esc_html_e( 'with both configured, the media tools appear twice and the assistant may switch between them unpredictably.', 'media-library-tools' ); ?>
 				</p>
 
-				<h3><?php esc_html_e( '3. Connect your MCP client', 'media-library-tools' ); ?></h3>
-				<p class="tsmlt-mcp-docs__one-config">
-					<strong><?php esc_html_e( 'You only need ONE of these configurations. Choose either the recommended Default MCP Adapter or the Dedicated Media Library Tools endpoint. Do not add both unless you intentionally want separate connections.', 'media-library-tools' ); ?></strong>
-				</p>
-				<ul>
-					<li>
-						<strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended.', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'Always provides the Media Library Tools Free abilities, and the Pro abilities while the Pro licence is active, through one connection, including CSV export and the Pro CSV Export MCP App. It may also expose other plugins\' public abilities.', 'media-library-tools' ); ?>
-					</li>
-					<li>
-						<strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative.', 'media-library-tools' ); ?></strong>
-						<?php esc_html_e( 'Provides isolated Media Library Tools access and remains available as a fallback.', 'media-library-tools' ); ?>
-					</li>
-				</ul>
-				<p>
-					<?php
-					echo wp_kses_post(
-						sprintf(
-							/* translators: 1: suggested client key for the default server, 2: suggested client key for the dedicated endpoint. */
-							esc_html__( 'The server names (%1$s and %2$s) are suggested from this site\'s address and the endpoint, so you can tell several sites apart; you can rename them.', 'media-library-tools' ),
-							'<code>' . esc_html( $gateway_client_key ) . '</code>',
-							'<code>' . esc_html( $client_key ) . '</code>'
-						)
-					);
-					?>
-				</p>
-
-				<h4><?php esc_html_e( 'Claude Desktop and other clients with a JSON configuration file', 'media-library-tools' ); ?></h4>
-				<p><?php esc_html_e( 'These clients connect through the @automattic/mcp-wordpress-remote helper, documented by the MCP Adapter. It needs Node.js installed on your computer.', 'media-library-tools' ); ?></p>
-				<ol>
-					<li>
-						<?php esc_html_e( 'Open the client\'s configuration file. For Claude Desktop: Settings → Developer → Edit Config, which opens:', 'media-library-tools' ); ?>
-						<ul>
-							<li><?php esc_html_e( 'macOS:', 'media-library-tools' ); ?> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
-							<li><?php esc_html_e( 'Windows:', 'media-library-tools' ); ?> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
-						</ul>
-					</li>
-					<li><?php esc_html_e( 'Add one server. If the file already has an "mcpServers" section, add only that server\'s entry inside it.', 'media-library-tools' ); ?></li>
-				</ol>
-				<p><strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended', 'media-library-tools' ); ?></strong></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_json_config ); ?></code></pre>
-				<p><strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative', 'media-library-tools' ); ?></strong></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $json_config ); ?></code></pre>
-				<ol start="3">
-					<li><?php esc_html_e( 'Replace "your application password" with the Application Password from step 2, save the file, and fully quit and reopen Claude Desktop.', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( 'In a new chat, open the tools menu: the Media Library Tools tools should be listed.', 'media-library-tools' ); ?></li>
-				</ol>
-
-				<h4><?php esc_html_e( 'Claude Code', 'media-library-tools' ); ?></h4>
-				<p><?php esc_html_e( 'Run one of these in your own terminal (not inside a chat). It asks for the Application Password without showing it.', 'media-library-tools' ); ?></p>
-				<p><strong><?php esc_html_e( 'Option 1: Default WordPress MCP Adapter — Recommended', 'media-library-tools' ); ?></strong></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_claude_command ); ?></code></pre>
-				<p><strong><?php esc_html_e( 'Option 2: Dedicated Media Library Tools MCP Server — Alternative', 'media-library-tools' ); ?></strong></p>
-				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $claude_command ); ?></code></pre>
-				<p><?php esc_html_e( 'Restart Claude Code, then run "claude mcp list" — the server should show Connected.', 'media-library-tools' ); ?></p>
-
-				<h3><?php esc_html_e( '4. Try it', 'media-library-tools' ); ?></h3>
-				<ul>
-					<li><?php esc_html_e( '"Find images in the media library that have no alt text."', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( '"Show me the details of attachment 1234."', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( '"Write alt text for attachment 1234 and save it."', 'media-library-tools' ); ?></li>
-				</ul>
-			</div>
-
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Using the MCP Adapter default server', 'media-library-tools' ); ?></h2>
-				<p>
-					<?php esc_html_e( 'The MCP Adapter\'s default server always lists every Media Library Tools tool directly, with the same names as the dedicated endpoint (tsmlt-search-media, tsmlt-export-media-csv, …), including the Pro tools and the CSV Export MCP App view while the Pro licence is active. Each tool still checks its own permissions, and users who cannot run them do not see them listed. It requires MCP Adapter 0.5.0 or newer; with an older adapter, use the dedicated endpoint.', 'media-library-tools' ); ?>
-				</p>
-				<p><code class="tsmlt-mcp-docs__url"><?php echo esc_html( $gateway ); ?></code></p>
-
-				<h3><?php esc_html_e( 'How it differs', 'media-library-tools' ); ?></h3>
+				<h3><?php esc_html_e( 'Comparison', 'media-library-tools' ); ?></h3>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -845,10 +742,7 @@ class McpDocsPage {
 				<p><?php esc_html_e( 'An execute-ability call looks like this:', 'media-library-tools' ); ?></p>
 				<pre class="tsmlt-mcp-docs__code"><code><?php echo esc_html( $gateway_example ); ?></code></pre>
 
-				<h3><?php esc_html_e( 'Connect', 'media-library-tools' ); ?></h3>
-				<p><?php esc_html_e( 'Use Option 1 under "3. Connect your MCP client" above, with the same Application Password.', 'media-library-tools' ); ?></p>
-
-				<h3><?php esc_html_e( 'Try it', 'media-library-tools' ); ?></h3>
+				<h3><?php esc_html_e( 'Gateway examples', 'media-library-tools' ); ?></h3>
 				<p><?php esc_html_e( 'The assistant usually discovers the ability first, then runs it. You can also name it directly:', 'media-library-tools' ); ?></p>
 				<ul>
 					<li><?php esc_html_e( '"Use execute-ability to run tsmlt/search-media for images with no alt text."', 'media-library-tools' ); ?></li>
@@ -857,10 +751,19 @@ class McpDocsPage {
 				<p class="description">
 					<?php esc_html_e( 'Call the Media Library Tools tools directly by their names with dashes (tsmlt-search-media). Through execute-ability, only the read-only search and details abilities are available, by their names with a slash (tsmlt/search-media).', 'media-library-tools' ); ?>
 				</p>
-			</div>
+			</section>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Access control', 'media-library-tools' ); ?></h2>
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-examples" aria-labelledby="tsmlt-mcp-docs-examples-title">
+				<h2 id="tsmlt-mcp-docs-examples-title"><?php esc_html_e( 'Usage examples', 'media-library-tools' ); ?></h2>
+				<ul>
+					<li><?php esc_html_e( '"Find images in the media library that have no alt text."', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( '"Show me the details of attachment 1234."', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( '"Write alt text for attachment 1234 and save it."', 'media-library-tools' ); ?></li>
+				</ul>
+			</section>
+
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-access" aria-labelledby="tsmlt-mcp-docs-access-title">
+				<h2 id="tsmlt-mcp-docs-access-title"><?php esc_html_e( 'Access control', 'media-library-tools' ); ?></h2>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -886,19 +789,20 @@ class McpDocsPage {
 				<p>
 					<?php esc_html_e( 'Every tool call also re-checks the administrator capability and the permission to read (or, for updates, edit; for trash and restore, delete) the specific attachment. Except for the trash tools, trashed and private attachments are reported as not found.', 'media-library-tools' ); ?>
 				</p>
-			</div>
+			</section>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Important notes', 'media-library-tools' ); ?></h2>
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-notes" aria-labelledby="tsmlt-mcp-docs-notes-title">
+				<h2 id="tsmlt-mcp-docs-notes-title"><?php esc_html_e( 'Important notes', 'media-library-tools' ); ?></h2>
 				<ul>
 					<li><?php esc_html_e( 'Review before saving: tsmlt-update-media-metadata overwrites the current value and cannot be undone. Keep your client\'s tool-approval prompts turned on.', 'media-library-tools' ); ?></li>
 					<li><?php esc_html_e( 'Revoking access: delete the Application Password in your profile. The assistant loses access immediately.', 'media-library-tools' ); ?></li>
-					<li><?php esc_html_e( 'Turning off all MCP access: check "Turn off MCP access" on the MCP page. Every Media Library Tools tool and resource is then refused on both endpoints, until you uncheck it; other plugins\' MCP tools are not affected.', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'Application Passwords: use one per assistant and device, so you can revoke one without affecting the others. WordPress only offers them over HTTPS, or on sites marked as a local development environment.', 'media-library-tools' ); ?></li>
+					<li><?php esc_html_e( 'Turning off all MCP access: check "Turn off MCP access" on the Connection tab. Every Media Library Tools tool and resource is then refused on both endpoints, until you uncheck it; other plugins\' MCP tools are not affected.', 'media-library-tools' ); ?></li>
 				</ul>
-			</div>
+			</section>
 
-			<div class="tsmlt-mcp-docs__section">
-				<h2><?php esc_html_e( 'Troubleshooting', 'media-library-tools' ); ?></h2>
+			<section class="tsmlt-mcp-docs__section" id="tsmlt-mcp-docs-troubleshooting" aria-labelledby="tsmlt-mcp-docs-troubleshooting-title">
+				<h2 id="tsmlt-mcp-docs-troubleshooting-title"><?php esc_html_e( 'Troubleshooting', 'media-library-tools' ); ?></h2>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -925,6 +829,8 @@ class McpDocsPage {
 						</tr>
 					</tbody>
 				</table>
+			</section>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -1015,7 +921,7 @@ class McpDocsPage {
 		 * Filter the suggested MCP client configuration key for one of this
 		 * site's endpoints.
 		 *
-		 * Changes only the key shown in the client snippets on the MCP Docs
+		 * Changes only the key shown in the client snippets on the MCP Connection
 		 * page. It must be 1–64 letters, digits, "-" or "_"; anything else is
 		 * ignored with a _doing_it_wrong() notice.
 		 *
@@ -1037,59 +943,16 @@ class McpDocsPage {
 	}
 
 	/**
-	 * Claude Code command that adds an MCP server, asking for the Application
-	 * Password without echoing it.
-	 *
-	 * @param string $name     Server name in the client.
-	 * @param string $url      MCP endpoint URL.
-	 * @param string $username WordPress username.
-	 *
-	 * @return string
-	 */
-	private function claude_code_command( string $name, string $url, string $username ): string {
-		return "read -rs WP_APP_PW   # paste the Application Password; nothing is shown\n"
-			. 'claude mcp add --transport http ' . $name . " \\\n"
-			. '  ' . $url . " \\\n"
-			. '  --header "Authorization: Basic $(printf \'%s:%s\' \'' . $username . '\' "$WP_APP_PW" | base64 | tr -d \'\\n\')"' . "\n"
-			. 'unset WP_APP_PW';
-	}
-
-	/**
-	 * JSON configuration for clients such as Claude Desktop, which connect
-	 * through the mcp-wordpress-remote helper from Automattic.
-	 *
-	 * @param string $name     Server name in the client.
-	 * @param string $url      MCP endpoint URL.
-	 * @param string $username WordPress username.
-	 *
-	 * @return string
-	 */
-	private function json_config( string $name, string $url, string $username ): string {
-		return (string) wp_json_encode(
-			[
-				'mcpServers' => [
-					$name => [
-						'command' => 'npx',
-						'args'    => [ '-y', '@automattic/mcp-wordpress-remote@latest' ],
-						'env'     => [
-							'WP_API_URL'      => $url,
-							'WP_API_USERNAME' => $username,
-							'WP_API_PASSWORD' => 'your application password',
-						],
-					],
-				],
-			],
-			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-		);
-	}
-
-	/**
-	 * Status box at the top of the page.
-	 *
-	 * Always shown: green when the MCP Adapter is active on a WordPress
-	 * version with the Abilities API, otherwise a warning with an Install or
-	 * Activate button. Uses the `inline` notice class so WordPress does not
-	 * move the box out of the page.
+	 * MCP Adapter notice of the MCP Connection page, shown under its heading
+	 * and above the tabs, so on both tabs. Nothing when the adapter is
+	 * running (from the MCP Adapter plugin or a plugin that bundles it).
+	 * Otherwise a warning with an Install or Activate action for users who
+	 * may do that (WordPress core's own nonce-protected install and activate
+	 * actions, see render_adapter_button()), and an error when WordPress has
+	 * no Abilities API. No `inline` class: the Tailwind build on the
+	 * Connection tab has an `.inline` utility (display: inline, in a layer, so
+	 * it cannot be overridden) that breaks the box. The page prints
+	 * `wp-header-end` just before it, so WordPress leaves it there.
 	 *
 	 * @param string $adapter_status    One of the ADAPTER_* constants.
 	 * @param bool   $abilities_support Whether WordPress provides the Abilities API.
@@ -1099,7 +962,7 @@ class McpDocsPage {
 	public function render_status_notice( string $adapter_status, bool $abilities_support ) {
 		if ( ! $abilities_support ) {
 			?>
-			<div class="notice notice-error inline tsmlt-mcp-docs__notice">
+			<div class="notice notice-error tsmlt-mcp-notice">
 				<p>
 					<strong><?php esc_html_e( 'MCP is not available on this WordPress version.', 'media-library-tools' ); ?></strong>
 					<?php esc_html_e( 'The MCP integration needs the Abilities API, which is part of WordPress 6.9 and newer. Update WordPress to use it.', 'media-library-tools' ); ?>
@@ -1110,50 +973,30 @@ class McpDocsPage {
 
 		if ( self::ADAPTER_MISSING === $adapter_status ) {
 			?>
-			<div class="notice notice-warning inline tsmlt-mcp-docs__notice">
-				<p>
-					<strong><?php esc_html_e( 'The MCP Adapter plugin is not installed.', 'media-library-tools' ); ?></strong>
-					<?php esc_html_e( 'AI assistants cannot connect until it is installed and activated.', 'media-library-tools' ); ?>
-				</p>
+			<div class="notice notice-warning tsmlt-mcp-notice">
+				<p><strong><?php esc_html_e( 'MCP Adapter is not installed.', 'media-library-tools' ); ?></strong></p>
+				<p><?php esc_html_e( 'The WordPress Default MCP Adapter connection requires the MCP Adapter plugin. Install and activate it to use the recommended WordPress MCP connection.', 'media-library-tools' ); ?></p>
 				<?php
 				if ( current_user_can( 'install_plugins' ) ) {
-					$this->render_adapter_button( 'install', __( 'Install MCP Adapter plugin', 'media-library-tools' ), $this->get_install_url() );
+					$this->render_adapter_button( 'install', __( 'Install Now', 'media-library-tools' ), $this->get_install_url() );
+				} else {
+					echo '<p>' . esc_html__( 'Ask a site administrator who can install plugins to install it.', 'media-library-tools' ) . '</p>';
 				}
 				?>
 			</div>
 			<?php
 		} elseif ( self::ADAPTER_INACTIVE === $adapter_status ) {
 			?>
-			<div class="notice notice-warning inline tsmlt-mcp-docs__notice">
-				<p>
-					<strong><?php esc_html_e( 'The MCP Adapter plugin is installed but not active.', 'media-library-tools' ); ?></strong>
-					<?php esc_html_e( 'AI assistants cannot connect until it is activated.', 'media-library-tools' ); ?>
-				</p>
+			<div class="notice notice-warning tsmlt-mcp-notice">
+				<p><strong><?php esc_html_e( 'MCP Adapter is inactive.', 'media-library-tools' ); ?></strong></p>
+				<p><?php esc_html_e( 'Activate the MCP Adapter plugin to enable the recommended WordPress Default MCP connection.', 'media-library-tools' ); ?></p>
 				<?php
 				if ( current_user_can( 'activate_plugin', self::ADAPTER_PLUGIN_FILE ) ) {
-					$this->render_adapter_button( 'activate', __( 'Activate MCP Adapter plugin', 'media-library-tools' ), $this->get_activate_url() );
+					$this->render_adapter_button( 'activate', __( 'Activate Now', 'media-library-tools' ), $this->get_activate_url() );
+				} else {
+					echo '<p>' . esc_html__( 'Ask a site administrator who can activate plugins to activate it.', 'media-library-tools' ) . '</p>';
 				}
 				?>
-			</div>
-			<?php
-		} elseif ( self::ADAPTER_ACTIVE === $adapter_status && $abilities_support ) {
-			$version  = $this->get_adapter_version();
-			$provider = $this->get_adapter_provider();
-			if ( '' !== $provider ) {
-				/* translators: 1: plugin name, e.g. WooCommerce. */
-				$status = sprintf( __( 'The MCP Adapter is running, provided by %1$s.', 'media-library-tools' ), $provider );
-			} elseif ( '' !== $version ) {
-				/* translators: %s: MCP Adapter version, e.g. 0.7.0. */
-				$status = sprintf( __( 'The MCP Adapter plugin is active (version %s).', 'media-library-tools' ), $version );
-			} else {
-				$status = __( 'The MCP Adapter plugin is active.', 'media-library-tools' );
-			}
-			?>
-			<div class="notice notice-success inline tsmlt-mcp-docs__notice">
-				<p>
-					<strong><?php echo esc_html( $status ); ?></strong>
-					<?php esc_html_e( 'AI assistants can connect to the endpoint below.', 'media-library-tools' ); ?>
-				</p>
 			</div>
 			<?php
 		}
@@ -1306,14 +1149,45 @@ class McpDocsPage {
 	private function render_styles() {
 		?>
 		<style>
-			.tsmlt-mcp-docs { max-width: 960px; }
-			.tsmlt-mcp-docs__lead { font-size: 14px; }
-			.tsmlt-mcp-docs__notice { margin: 12px 0 20px; }
-			.tsmlt-mcp-docs__section { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; padding: 4px 20px 16px; margin: 0 0 20px; }
-			.tsmlt-mcp-docs__section table { margin: 12px 0; }
-			.tsmlt-mcp-docs__url { font-size: 13px; padding: 6px 8px; display: inline-block; word-break: break-all; }
-			.tsmlt-mcp-docs__code { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; overflow-x: auto; }
-			.tsmlt-mcp-docs__code code { background: none; padding: 0; white-space: pre; }
+			.tsmlt-mcp-docs { padding: 24px 0 48px; color: #334155; font-size: 13px; line-height: 1.6; }
+			.tsmlt-mcp-docs__intro { margin: 0 0 24px; }
+			.tsmlt-mcp-docs__lead { margin: 0 0 12px; font-size: 14px; color: #475569; max-width: 760px; }
+			.tsmlt-mcp-docs__callout { margin: 0; padding: 10px 14px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+			.tsmlt-mcp-docs__callout a { font-weight: 600; color: #1d4ed8; margin-left: 4px; }
+			.tsmlt-mcp-docs__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+			.tsmlt-mcp-docs__toc { padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+			.tsmlt-mcp-docs__toc-title { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
+			.tsmlt-mcp-docs__toc ul { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 16px; }
+			.tsmlt-mcp-docs__toc li { margin: 0; }
+			.tsmlt-mcp-docs__toc a { display: block; padding: 3px 0; color: #475569; text-decoration: none; }
+			.tsmlt-mcp-docs__toc a:hover { color: #1d4ed8; }
+			.tsmlt-mcp-docs__toc a:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; border-radius: 4px; box-shadow: none; }
+			.tsmlt-mcp-docs__body { min-width: 0; display: grid; gap: 20px; }
+			.tsmlt-mcp-docs__section { min-width: 0; overflow-x: auto; padding: 20px 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); scroll-margin-top: 48px; }
+			.tsmlt-mcp-docs__section h2 { margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #0f172a; }
+			.tsmlt-mcp-docs__section h3 { margin: 20px 0 8px; font-size: 14px; font-weight: 600; color: #0f172a; }
+			.tsmlt-mcp-docs__section p, .tsmlt-mcp-docs__section li { font-size: 13px; line-height: 1.6; }
+			.tsmlt-mcp-docs__section p { margin: 0 0 10px; }
+			.tsmlt-mcp-docs__section ul { margin: 0 0 10px; padding-left: 20px; list-style: disc; }
+			.tsmlt-mcp-docs__section li { margin: 0 0 4px; }
+			.tsmlt-mcp-docs__section code { padding: 1px 5px; border-radius: 4px; background: #f1f5f9; color: #0f172a; font-size: 12px; }
+			.tsmlt-mcp-docs__section table.widefat { margin: 12px 0; border: 1px solid #e2e8f0; border-radius: 8px; border-collapse: separate; border-spacing: 0; overflow: hidden; box-shadow: none; }
+			.tsmlt-mcp-docs__section table.widefat th { padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 12px; font-weight: 600; color: #475569; }
+			.tsmlt-mcp-docs__section table.widefat td { padding: 10px 12px; border-top: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
+			.tsmlt-mcp-docs__section table.widefat tbody tr:first-child td { border-top: 0; }
+			.tsmlt-mcp-docs__section table.striped > tbody > :nth-child(odd) { background: #fcfcfd; }
+			.tsmlt-mcp-docs__section td code { white-space: nowrap; }
+			.tsmlt-mcp-docs__code { margin: 8px 0 12px; padding: 14px 16px; border-radius: 8px; background: #0f172a; overflow-x: auto; }
+			.tsmlt-mcp-docs__code code { padding: 0; background: none; color: #e2e8f0; white-space: pre; font-size: 12px; }
+			.tsmlt-mcp-docs .description { color: #64748b; }
+			@media (min-width: 1100px) {
+				.tsmlt-mcp-docs__layout { grid-template-columns: 200px minmax(0, 1fr); }
+				.tsmlt-mcp-docs__toc { position: sticky; top: 48px; }
+				.tsmlt-mcp-docs__toc ul { display: block; }
+			}
+			@media (max-width: 600px) {
+				.tsmlt-mcp-docs__section { padding: 16px; }
+			}
 		</style>
 		<?php
 	}

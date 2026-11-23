@@ -1,6 +1,7 @@
 <?php
 /**
- * Tests for the "MCP Docs" admin page.
+ * Tests for the Documentation tab of the MCP Connection page (McpDocsPage)
+ * and its menu entry.
  *
  * @package TinySolutions\mlt
  */
@@ -72,8 +73,9 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Administrators get "MCP" and then "MCP Docs" under Media, directly
-	 * after "Media Tools Settings".
+	 * Administrators get one MCP item under Media, "MCP Connection",
+	 * directly after "Media Tools Settings"; the MCP Docs page is no longer a
+	 * menu item of its own (it is the Documentation tab).
 	 */
 	public function test_menu_is_registered_after_media_tools_settings() {
 		$this->login_as( 'administrator' );
@@ -81,20 +83,25 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		$entries = $this->media_submenus();
 		$slugs   = array_keys( $entries );
 
-		$this->assertArrayHasKey( McpDocsPage::PAGE_SLUG, $entries );
-		$this->assertSame( 'MCP Docs', trim( wp_strip_all_tags( $entries[ McpDocsPage::PAGE_SLUG ][0] ) ) );
+		$this->assertArrayNotHasKey( McpDocsPage::PAGE_SLUG, $entries, 'MCP Docs is no longer a separate menu item.' );
+		$this->assertArrayHasKey( McpPage::PAGE_SLUG, $entries );
+		$this->assertSame( 'MCP Connection', trim( wp_strip_all_tags( $entries[ McpPage::PAGE_SLUG ][0] ) ) );
+		$this->assertSame( 'MCP Connection', $entries[ McpPage::PAGE_SLUG ][3] );
 		// Same sub-item markup (green, with the "↳" arrow span) as the plugin's other submenus.
-		$this->assertStringContainsString( '<span class="tsmlt-submenu"', $entries[ McpDocsPage::PAGE_SLUG ][0] );
-		$this->assertStringContainsString( '<span class="dashicons-icons"', $entries[ McpDocsPage::PAGE_SLUG ][0] );
-		$this->assertSame( 'manage_options', $entries[ McpDocsPage::PAGE_SLUG ][1] );
-		$this->assertSame(
-			array_search( 'media-library-tools', $slugs, true ) + 2,
-			array_search( McpDocsPage::PAGE_SLUG, $slugs, true )
-		);
-		$this->assertSame( array_search( McpDocsPage::PAGE_SLUG, $slugs, true ) - 1, array_search( McpPage::PAGE_SLUG, $slugs, true ), 'The MCP page is directly above MCP Docs.' );
-		$this->assertSame( 'MCP', trim( wp_strip_all_tags( $entries[ McpPage::PAGE_SLUG ][0] ) ) );
 		$this->assertStringContainsString( '<span class="tsmlt-submenu"', $entries[ McpPage::PAGE_SLUG ][0] );
+		$this->assertStringContainsString( '<span class="dashicons-icons"', $entries[ McpPage::PAGE_SLUG ][0] );
 		$this->assertSame( 'manage_options', $entries[ McpPage::PAGE_SLUG ][1] );
+		$this->assertSame(
+			array_search( 'media-library-tools', $slugs, true ) + 1,
+			array_search( McpPage::PAGE_SLUG, $slugs, true )
+		);
+		$mcp_items = array_filter(
+			$entries,
+			static function ( $entry ) {
+				return false !== stripos( wp_strip_all_tags( $entry[0] ), 'MCP' );
+			}
+		);
+		$this->assertSame( [ McpPage::PAGE_SLUG ], array_keys( $mcp_items ), 'Only one MCP menu item.' );
 	}
 
 	/**
@@ -126,6 +133,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'media-library-tools', $entries, 'Precondition: editors still see the plugin page.' );
 		$this->assertArrayNotHasKey( McpDocsPage::PAGE_SLUG, $entries );
+		$this->assertArrayNotHasKey( McpPage::PAGE_SLUG, $entries );
 	}
 
 	/**
@@ -175,9 +183,10 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'notice-warning inline', $html );
-		$this->assertStringContainsString( 'The MCP Adapter plugin is not installed.', $html );
-		$this->assertStringContainsString( '>Install MCP Adapter plugin</a>', $html );
+		$this->assertStringContainsString( 'notice-warning tsmlt-mcp-notice', $html );
+		$this->assertStringContainsString( 'MCP Adapter is not installed.', $html );
+		$this->assertStringContainsString( 'The WordPress Default MCP Adapter connection requires the MCP Adapter plugin. Install and activate it to use the recommended WordPress MCP connection.', $html );
+		$this->assertStringContainsString( '>Install Now</a>', $html );
 		$this->assertStringContainsString( 'data-step="install"', $html );
 		// Without JavaScript the button is WordPress's own nonce-protected installer link.
 		$this->assertStringContainsString( 'href="' . esc_url( McpDocsPage::instance()->get_install_url() ) . '"', $html );
@@ -209,8 +218,9 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'The MCP Adapter plugin is installed but not active.', $html );
-		$this->assertStringContainsString( '>Activate MCP Adapter plugin</a>', $html );
+		$this->assertStringContainsString( 'MCP Adapter is inactive.', $html );
+		$this->assertStringContainsString( 'Activate the MCP Adapter plugin to enable the recommended WordPress Default MCP connection.', $html );
+		$this->assertStringContainsString( '>Activate Now</a>', $html );
 		$this->assertStringContainsString( 'data-step="activate"', $html );
 		$this->assertSame( wp_create_nonce( 'updates' ), $this->button_config( $html )['nonce'] );
 		// Without JavaScript the button is WordPress's own nonce-protected activate link.
@@ -221,8 +231,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Active adapter on a supported WordPress: a success box, so the status
-	 * is always visible, and no button or script.
+	 * Active adapter on a supported WordPress: no notice at all.
 	 */
 	public function test_active_status_when_ready() {
 		$this->login_as( 'administrator' );
@@ -233,11 +242,7 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'notice-success inline', $html );
-		$this->assertStringContainsString( 'The MCP Adapter plugin is active', $html );
-		$this->assertStringNotContainsString( 'notice-warning', $html );
-		$this->assertStringNotContainsString( 'tsmlt-mcp-adapter-action', $html );
-		$this->assertStringNotContainsString( '<script', $html );
+		$this->assertSame( '', trim( $html ) );
 	}
 
 	/**
@@ -252,9 +257,9 @@ class McpDocsPageTest extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'notice-error inline', $html );
+		$this->assertStringContainsString( 'notice-error tsmlt-mcp-notice', $html );
 		$this->assertStringContainsString( 'WordPress 6.9', $html );
-		$this->assertStringNotContainsString( 'notice-success', $html, 'MCP cannot work, so the adapter is not reported as ready.' );
+		$this->assertStringNotContainsString( 'notice-warning', $html, 'The adapter itself is fine.' );
 	}
 
 	/**
@@ -276,91 +281,55 @@ class McpDocsPageTest extends WP_UnitTestCase {
 		remove_filter( 'map_meta_cap', $deny, 10 );
 
 		$this->assertStringContainsString( 'not installed', $html );
-		$this->assertStringContainsString( 'not active', $html );
+		$this->assertStringContainsString( 'is inactive', $html );
+		$this->assertStringContainsString( 'Ask a site administrator who can install plugins', $html );
+		$this->assertStringContainsString( 'Ask a site administrator who can activate plugins', $html );
 		$this->assertStringNotContainsString( 'button-primary', $html );
 		$this->assertStringNotContainsString( '<script', $html );
 		$this->assertStringNotContainsString( wp_create_nonce( 'updates' ), $html, 'No updates nonce for users who cannot use it.' );
 	}
 
 	/**
-	 * The page documents this site's endpoint, the three tools and the
-	 * current user, with the status message above the documentation.
+	 * The tab documents this site's endpoint, the tools and the current user.
 	 */
 	public function test_page_renders_documentation() {
 		$this->login_as( 'administrator' );
 
 		$html = $this->capture( [ McpDocsPage::instance(), 'render' ] );
 
-		$this->assertStringContainsString( '<h1>MCP Docs</h1>', $html );
-		$this->assertStringContainsString( esc_html( rest_url( 'media-library-tools/mcp' ) ), $html );
+		$this->assertStringNotContainsString( '<h1>', $html, 'The tab has no heading of its own; the MCP Connection page has it.' );
 		foreach ( [ 'tsmlt-search-media', 'tsmlt-get-media-details', 'tsmlt-update-media-metadata', 'tsmlt-get-exif-fields', 'tsmlt-list-media-groups', 'tsmlt-set-media-groups', 'tsmlt-create-media-group', 'tsmlt-update-media-group', 'tsmlt-get-media-usage', 'tsmlt-start-usage-scan', 'tsmlt-get-usage-scan-status', 'tsmlt-list-media-usage', 'tsmlt-start-exif-privacy-scan', 'tsmlt-get-exif-privacy-scan-status', 'tsmlt-list-exif-privacy-results', 'tsmlt-find-duplicate-media', 'tsmlt-start-duplicate-scan', 'tsmlt-get-duplicate-scan-status', 'tsmlt-list-trashed-media', 'tsmlt-preview-trash-media', 'tsmlt-trash-media', 'tsmlt-restore-media', 'tsmlt-export-media-csv', 'tsmlt-preview-media-rename', 'tsmlt-rename-media', 'tsmlt-get-media-rename-status', 'tsmlt-cancel-media-rename', 'tsmlt-get-compression-status', 'tsmlt-preview-compression', 'tsmlt-compress-media', 'tsmlt-get-compression-job-status', 'tsmlt-cancel-compression-job', 'tsmlt-preview-thumbnail-regeneration', 'tsmlt-regenerate-thumbnails', 'tsmlt-get-thumbnail-regeneration-status', 'tsmlt-cancel-thumbnail-regeneration', 'tsmlt-preview-media-conversion', 'tsmlt-convert-media', 'tsmlt-cancel-conversion-job', 'tsmlt-get-media-image-preview', 'tsmlt-list-image-sizes', 'tsmlt-get-image-size-details', 'tsmlt-get-conversion-status', 'tsmlt-get-thumbnail-status', 'tsmlt-get-media-health', 'tsmlt-audit-media-health', 'tsmlt-get-exif-caption', 'tsmlt-update-exif-fields', 'tsmlt-export-media-csv-bulk', 'tsmlt-get-media-csv-export', 'tsmlt-continue-media-csv-export', 'tsmlt-preview-media-csv-import', 'tsmlt-apply-media-csv-import' ] as $tool ) {
 			$this->assertStringContainsString( $tool, $html );
 		}
-		$this->assertStringContainsString( esc_html( wp_get_current_user()->user_login ), $html );
 
 		// Trash and Restore only, with the permanent-deletion guidance word for word.
 		$this->assertStringContainsString( 'MCP supports Trash and Restore only: there is no tool to delete media permanently or empty the trash.', $html );
 		$this->assertStringContainsString( 'Permanent deletion is not available through MCP. Before permanently deleting media, inspect the entire website for dependencies, create and verify a backup, then log in to WordPress Admin and carefully perform the deletion manually.', $html );
 		$this->assertStringContainsString( 'if EMPTY_TRASH_DAYS is later set to 0', $html );
 
-		// Claude Desktop setup, with where its configuration file lives.
-		$this->assertStringContainsString( 'Claude Desktop', $html );
-		$this->assertStringContainsString( '~/Library/Application Support/Claude/claude_desktop_config.json', $html );
-		$this->assertStringContainsString( '%APPDATA%\\Claude\\claude_desktop_config.json', $html );
-
-		// Default server: its URL, gateway tools, slash-named abilities and its own configs.
-		$gateway = rest_url( 'mcp/mcp-adapter-default-server' );
-		$this->assertStringContainsString( 'Using the MCP Adapter default server', $html );
-		$this->assertStringContainsString( 'Which endpoint should I use?', $html );
-		$this->assertStringContainsString( 'Avoid configuring both:', $html );
-		$this->assertStringContainsString( 'You only need ONE of these configurations. Choose either the recommended Default MCP Adapter or the Dedicated Media Library Tools endpoint. Do not add both unless you intentionally want separate connections.', $html );
-		$this->assertLessThan( strpos( $html, 'Option 2: Dedicated Media Library Tools MCP Server' ), strpos( $html, 'Option 1: Default WordPress MCP Adapter' ) );
-		$this->assertStringContainsString( 'mcp-adapter-execute-ability', $html );
-		$this->assertStringContainsString( 'tsmlt/search-media', $html );
-		$this->assertStringContainsString( 'claude mcp add --transport http ' . McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ) . ' ', $html );
-		$this->assertStringContainsString( esc_html( $gateway ), $html );
-
-		// Every JSON configuration on the page is valid JSON pointing at a real endpoint.
-		preg_match_all( '#<code>(\{.*?\})</code>#s', $html, $blocks );
-		$configs = array_values(
-			array_filter(
-				array_map(
-					static function ( $block ) {
-						return json_decode( html_entity_decode( $block, ENT_QUOTES ), true );
-					},
-					$blocks[1]
-				),
-				static function ( $decoded ) {
-					return isset( $decoded['mcpServers'] );
-				}
-			)
-		);
-		$urls = [];
-		$keys = [];
-		foreach ( $configs as $config ) {
-			foreach ( $config['mcpServers'] as $key => $server ) {
-				$urls[] = $server['env']['WP_API_URL'];
-				$keys[] = $key;
-			}
+		// Technical reference: endpoints compared (no URLs), gateway tools, examples, access, notes.
+		foreach ( [ '>Requirements</h2>', '>Available tools</h2>', '>Endpoints</h2>', 'WordPress default MCP server (recommended):', 'Dedicated Media Library Tools server (alternative):', 'Use one, not both:', '<h3>Comparison</h3>', 'mcp-adapter-execute-ability', 'tsmlt/search-media', '>Usage examples</h2>', '>Access control</h2>', '>Important notes</h2>', 'Revoking access', '>Troubleshooting</h2>' ] as $part ) {
+			$this->assertStringContainsString( $part, $html, $part );
 		}
-		// Option 1 (default server, recommended), then Option 2 (dedicated).
-		$this->assertSame( [ $gateway, rest_url( 'media-library-tools/mcp' ) ], $urls );
-		$this->assertSame(
-			[
-				McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ),
-				McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEDICATED ),
-			],
-			$keys,
-			'Each configuration uses its endpoint\'s site-specific key.'
-		);
+		$this->assertStringContainsString( 'Open the Connection tab', $html, 'Points to the Connection tab for setup.' );
 
-		// Match the notice markup, not the class name, which the page's styles also contain.
-		$ready  = class_exists( '\WP\MCP\Core\McpAdapter' );
-		$notice = $ready
-			? '<div class="notice notice-success inline tsmlt-mcp-docs__notice">'
-			: '<div class="notice notice-warning inline tsmlt-mcp-docs__notice">';
-		$this->assertStringContainsString( $notice, $html, 'A status box is always shown.' );
-		$this->assertLessThan( strpos( $html, '<h2>Requirements</h2>' ), strpos( $html, $notice ), 'The status box is above the documentation.' );
+		// "On this page" links to every section, and each section has its anchor.
+		foreach ( [ 'requirements', 'tools', 'endpoints', 'examples', 'access', 'notes', 'troubleshooting' ] as $anchor ) {
+			$this->assertStringContainsString( 'href="#tsmlt-mcp-docs-' . $anchor . '"', $html, $anchor );
+			$this->assertSame( 1, substr_count( $html, 'id="tsmlt-mcp-docs-' . $anchor . '"' ), $anchor );
+		}
+		// Balanced markup: every opened section and div is closed.
+		$this->assertSame( substr_count( $html, '<section' ), substr_count( $html, '</section>' ) );
+		$this->assertSame( substr_count( $html, '<div' ), substr_count( $html, '</div>' ) );
+
+		// No connection setup: that is on the Connection tab.
+		foreach ( [ esc_html( rest_url( 'mcp/mcp-adapter-default-server' ) ), esc_html( rest_url( 'media-library-tools/mcp' ) ), '>Setup</h2>', 'Create an Application Password', 'Add New Application Password', 'Connect your MCP client', 'claude mcp add', 'mcpServers', 'claude_desktop_config.json', 'mcp-wordpress-remote', 'Option 1:', 'Which endpoint should I use?', 'WP_API_PASSWORD', 'Generate Prompt', 'manual configuration' ] as $setup ) {
+			$this->assertStringNotContainsString( $setup, $html, $setup );
+		}
+		$this->assertStringNotContainsString( esc_html( wp_get_current_user()->user_login ), $html, 'No username for a configuration.' );
+
+		// The MCP Adapter notice is the page's, above the tabs (McpPageTest).
+		$this->assertStringNotContainsString( 'tsmlt-mcp-notice', $html );
 	}
 
 	/**

@@ -90,9 +90,8 @@ export const setupPrompt = (id: McpClientId, credentials: McpCredentials): strin
         '',
         'Connection details:',
         `- Server URL: ${credentials.serverUrl}`,
-        `- Username: ${credentials.username}`,
-        `- Application password: ${credentials.password}`,
         `- Server name to use in the config: ${credentials.serverName}`,
+        '- Authentication: HTTP Basic, already in the Authorization header below. Keep it exactly as it is.',
         '',
     ];
     if (id === 'claude-code') {
@@ -140,3 +139,65 @@ export const setupPrompt = (id: McpClientId, credentials: McpCredentials): strin
 
 /** A prompt that asks the connected client which tools it found. */
 export const TEST_PROMPT = 'List the tools from the Media Library Tools MCP server (their names start with "tsmlt-"). Then call tsmlt-search-media with per_page set to 1 and tell me whether it worked.';
+
+/** The page settings the connection logic needs. */
+export interface McpConnectionSettings {
+    enabled: boolean;
+    adapterStatus: string;
+    abilitiesSupported: boolean;
+    defaultServerSupported: boolean;
+    canCreatePassword: boolean;
+    passwordWarning: string;
+}
+
+/** The Connection tab's state. */
+export interface McpConnectionState {
+    /** Everything but the access switch and the disabled message is shown. */
+    showConnection: boolean;
+    /** The recommended (default MCP server) connection can be used now. */
+    defaultAvailable: boolean;
+    /** Why a password cannot be generated now ('' when it can, apart from consent). */
+    blocker: string;
+    /** Generate is enabled. */
+    canGenerate: boolean;
+}
+
+/** The message shown, alone, while MCP access is turned off. */
+export const MCP_DISABLED_MESSAGE = 'MCP access is currently disabled. Turn off this setting to enable MCP connections.';
+
+/**
+ * The Connection tab's state. While MCP access is turned off only the
+ * switch and MCP_DISABLED_MESSAGE are shown. Otherwise the consent checkbox
+ * is always usable; Generate needs consent, no request in progress and the
+ * site prerequisites, whose blocker is shown next to it.
+ */
+export const connectionState = (settings: McpConnectionSettings, consent: boolean, creating: boolean): McpConnectionState => {
+    const defaultAvailable = settings.abilitiesSupported && settings.adapterStatus === 'active' && settings.defaultServerSupported;
+    if (!settings.enabled) {
+        return { showConnection: false, defaultAvailable, blocker: '', canGenerate: false };
+    }
+    let blocker = '';
+    if (!defaultAvailable) {
+        blocker = 'The recommended connection needs the MCP Adapter plugin (0.5.0 or newer) installed and active, on WordPress 6.9 or newer. See the notice above.';
+    } else if (!settings.canCreatePassword) {
+        blocker = `${settings.passwordWarning || 'Application Passwords are not available for your account.'} The setup needs an Application Password.`;
+    }
+    return { showConnection: true, defaultAvailable, blocker, canGenerate: '' === blocker && consent && !creating };
+};
+
+/** The connection card's adapter status label. */
+export const adapterBadge = (settings: McpConnectionSettings): { tone: 'green' | 'amber' | 'slate'; label: string } => {
+    if (!settings.abilitiesSupported) {
+        return { tone: 'amber', label: 'Needs WordPress 6.9+' };
+    }
+    if (settings.adapterStatus === 'missing') {
+        return { tone: 'amber', label: 'Adapter not installed' };
+    }
+    if (settings.adapterStatus !== 'active') {
+        return { tone: 'amber', label: 'Adapter inactive' };
+    }
+    if (!settings.defaultServerSupported) {
+        return { tone: 'amber', label: 'Adapter update needed' };
+    }
+    return { tone: 'green', label: 'Adapter active' };
+};

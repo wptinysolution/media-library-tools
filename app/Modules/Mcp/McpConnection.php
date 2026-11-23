@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use TinySolutions\mlt\Abilities\McpAccess;
 use TinySolutions\mlt\Abilities\McpServerRegistration;
 use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
+use TinySolutions\mlt\Controllers\Admin\McpPage;
 use TinySolutions\mlt\Traits\SingletonTrait;
 use WP_Application_Passwords;
 use WP_Error;
@@ -63,6 +64,16 @@ class McpConnection {
 	}
 
 	/**
+	 * The dedicated Media Library Tools MCP server's URL for this site (only
+	 * this plugin's tools), kept as the alternative connection.
+	 *
+	 * @return string
+	 */
+	public static function dedicated_server_url(): string {
+		return rest_url( McpServerRegistration::ROUTE_NAMESPACE . '/' . McpServerRegistration::ROUTE );
+	}
+
+	/**
 	 * What the page shows: whether access is on, the connection URL and
 	 * server name, whether the MCP Adapter and the Abilities API are ready,
 	 * and whether an Application Password can be created.
@@ -75,13 +86,14 @@ class McpConnection {
 		return [
 			'enabled'                => McpAccess::is_enabled(),
 			'serverUrl'              => esc_url_raw( self::default_server_url() ),
+			'dedicatedUrl'           => esc_url_raw( self::dedicated_server_url() ),
 			'serverName'             => $docs->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ),
 			'adapterStatus'          => $docs->get_adapter_status(),
 			'abilitiesSupported'     => function_exists( 'wp_register_ability' ),
 			'defaultServerSupported' => McpServerRegistration::adapter_supports_default_server(),
 			'canCreatePassword'      => null === $blocker,
 			'passwordWarning'        => $blocker ? $blocker->get_error_message() : '',
-			'docsUrl'                => esc_url_raw( admin_url( 'upload.php?page=' . McpDocsPage::PAGE_SLUG ) ),
+			'docsUrl'                => esc_url_raw( McpPage::tab_url( McpPage::TAB_DOCUMENTATION ) ),
 			'profileUrl'             => esc_url_raw( admin_url( 'profile.php#application-passwords-section' ) ),
 		];
 	}

@@ -1,6 +1,6 @@
 <?php
 /**
- * The MCP Docs page's "Activate MCP Adapter plugin" button calls WordPress
+ * The MCP Connection page's "Activate MCP Adapter" button calls WordPress
  * core's `activate-plugin` AJAX action. These tests send that action exactly
  * the parameters the button's script sends, and check core accepts them for
  * an administrator and refuses them otherwise.

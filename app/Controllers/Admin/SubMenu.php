@@ -37,6 +37,8 @@ class SubMenu {
 	 */
 	private function __construct() {
 		add_action( 'admin_menu', [ $this, 'register_sub_menu' ] );
+		// The old MCP Docs page now lives on the MCP Connection page.
+		add_action( 'admin_page_access_denied', [ McpPage::instance(), 'redirect_legacy_docs' ] );
 		add_action( 'admin_head', [ $this, 'menu_styles' ] );
 	}
 
@@ -79,22 +81,14 @@ class SubMenu {
 			'media-library-tools',
 			[ $this, 'wp_media_page_callback' ]
 		);
-		// MCP connection page, directly above the MCP documentation.
+		// One MCP page: Connection and Documentation tabs (MCP Docs merged in).
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,
-			esc_html__( 'MCP', 'media-library-tools' ),
-			'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'MCP', 'media-library-tools' ) . '</span>',
+			esc_html__( 'MCP Connection', 'media-library-tools' ),
+			'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'MCP Connection', 'media-library-tools' ) . '</span>',
 			McpPage::CAPABILITY,
 			McpPage::PAGE_SLUG,
 			[ McpPage::instance(), 'render' ]
-		);
-		add_submenu_page(
-			self::MENU_PAGE_SLUG,
-			esc_html__( 'MCP Docs', 'media-library-tools' ),
-			'<span class="tsmlt-submenu" style="color: #6BBE66;"> <span class="dashicons-icons" style="transform: rotateX(180deg) rotate(180deg);font-size: 18px;"></span> ' . esc_html__( 'MCP Docs', 'media-library-tools' ) . '</span>',
-			McpDocsPage::CAPABILITY,
-			McpDocsPage::PAGE_SLUG,
-			[ McpDocsPage::instance(), 'render' ]
 		);
 		add_submenu_page(
 			self::MENU_PAGE_SLUG,

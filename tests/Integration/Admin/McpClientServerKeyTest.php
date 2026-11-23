@@ -9,6 +9,7 @@
  */
 
 use TinySolutions\mlt\Controllers\Admin\McpDocsPage;
+use TinySolutions\mlt\Modules\Mcp\McpConnection;
 
 /**
  * McpClientServerKeyTest
@@ -275,14 +276,15 @@ class McpClientServerKeyTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The page's snippets use each endpoint's key, and the endpoint URLs and
-	 * the rest of the configuration are unchanged.
+	 * The Connection tab's configurations (built in the browser from the
+	 * page settings and the created credentials) use the default server's
+	 * key; the Documentation tab no longer shows configurations.
 	 */
-	public function test_page_snippets_use_the_keys() {
+	public function test_connection_uses_the_default_server_key() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		update_option( 'home', 'http://plugindev.local' );
-		$default   = 'mlt-plugindev-local-mcp-adapter-default-server';
-		$dedicated = 'mlt-plugindev-local-media-library-tools';
+		$this->assertSame( 'mlt-plugindev-local-mcp-adapter-default-server', McpConnection::instance()->settings()['serverName'] );
+		$this->assertSame( 'mlt-plugindev-local-media-library-tools', McpDocsPage::instance()->get_client_server_key( McpDocsPage::CLIENT_KEY_DEDICATED ) );
 
 		ob_start();
 		try {
@@ -290,31 +292,6 @@ class McpClientServerKeyTest extends WP_UnitTestCase {
 		} finally {
 			$html = (string) ob_get_clean();
 		}
-
-		$this->assertSame( 1, substr_count( $html, esc_html( '"' . $default . '": {' ) ) );
-		$this->assertSame( 1, substr_count( $html, esc_html( '"' . $dedicated . '": {' ) ) );
-		$this->assertSame( 1, substr_count( $html, 'claude mcp add --transport http ' . $default . ' ' ) );
-		$this->assertSame( 1, substr_count( $html, 'claude mcp add --transport http ' . $dedicated . ' ' ) );
-		$this->assertStringNotContainsString( esc_html( '"media-library-tools": {' ), $html );
-		$this->assertStringNotContainsString( esc_html( '"mcp-adapter-default": {' ), $html );
-		$this->assertStringNotContainsString( 'http mcp-adapter-default ', $html );
-		$this->assertStringNotContainsString( 'http media-library-tools ', $html );
-
-		preg_match_all( '#<code>(\{.*?\})</code>#s', $html, $blocks );
-		$servers = [];
-		foreach ( $blocks[1] as $block ) {
-			$decoded = json_decode( html_entity_decode( $block, ENT_QUOTES ), true );
-			if ( isset( $decoded['mcpServers'] ) ) {
-				$servers += $decoded['mcpServers'];
-			}
-		}
-		$this->assertSame( [ $default, $dedicated ], array_keys( $servers ), 'Option 1 (default server) first.' );
-		$this->assertSame( rest_url( 'media-library-tools/mcp' ), $servers[ $dedicated ]['env']['WP_API_URL'] );
-		$this->assertSame( rest_url( 'mcp/mcp-adapter-default-server' ), $servers[ $default ]['env']['WP_API_URL'] );
-		foreach ( $servers as $server ) {
-			$this->assertSame( 'npx', $server['command'] );
-			$this->assertSame( [ '-y', '@automattic/mcp-wordpress-remote@latest' ], $server['args'] );
-			$this->assertSame( 'your application password', $server['env']['WP_API_PASSWORD'] );
-		}
+		$this->assertStringNotContainsString( 'mlt-plugindev-local-', $html );
 	}
 }

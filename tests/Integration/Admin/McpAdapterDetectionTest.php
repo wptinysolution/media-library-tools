@@ -1,6 +1,6 @@
 <?php
 /**
- * How the MCP Docs page decides the MCP Adapter is active.
+ * How the MCP Connection page decides the MCP Adapter is active.
  *
  * Another plugin can bundle the adapter library: its class is then loadable
  * although the MCP Adapter plugin is not installed and the adapter may never
@@ -116,16 +116,13 @@ class McpAdapterDetectionTest extends WP_UnitTestCase {
 		$this->assertSame( McpDocsPage::ADAPTER_MISSING, $page->get_adapter_status() );
 
 		$html = $this->status_box();
-		$this->assertStringContainsString( 'The MCP Adapter plugin is not installed.', $html );
-		$this->assertStringContainsString( '>Install MCP Adapter plugin</a>', $html );
-		$this->assertStringNotContainsString( 'notice-success', $html );
-		$this->assertStringNotContainsString( 'AI assistants can connect', $html );
+		$this->assertStringContainsString( 'MCP Adapter is not installed.', $html );
+		$this->assertStringContainsString( '>Install Now</a>', $html );
 	}
 
 	/**
-	 * Once a plugin starts the bundled adapter, it is active, and the page
-	 * names the plugin that provides it instead of claiming the MCP Adapter
-	 * plugin is installed.
+	 * Once a plugin starts the bundled adapter, it is active (no notice), and
+	 * the plugin that provides it is known.
 	 */
 	public function test_started_bundled_adapter_names_its_provider() {
 		$this->bundle_adapter_class();
@@ -138,11 +135,7 @@ class McpAdapterDetectionTest extends WP_UnitTestCase {
 		$this->assertSame( McpDocsPage::ADAPTER_ACTIVE, $page->get_adapter_status() );
 		$this->assertSame( 'Test MCP Bundler', $page->get_adapter_provider() );
 
-		$html = $this->status_box();
-		$this->assertStringContainsString( 'notice-success', $html );
-		$this->assertStringContainsString( 'The MCP Adapter is running, provided by Test MCP Bundler.', $html );
-		$this->assertStringNotContainsString( 'The MCP Adapter plugin is active', $html );
-		$this->assertStringNotContainsString( 'tsmlt-mcp-adapter-action', $html );
+		$this->assertSame( '', trim( $this->status_box() ), 'A running adapter needs no notice.' );
 	}
 
 	/**
