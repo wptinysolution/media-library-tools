@@ -339,3 +339,11 @@ test('every client\'s manual configuration is complete: URL, server name, Author
 test('Claude Desktop is the client selected when the page opens', () => {
     assert.match(page(), /useState<McpClientId>\('claude-desktop'\)/);
 });
+
+test('the created Authorization value is shown with its own copy button', () => {
+    const source = page();
+    const at = source.indexOf('Done: the Authorization value');
+    const done = source.slice(at, at + 900);
+    assert.match(done, /Basic \{encoded\}<\/code>/);
+    assert.match(done, /<CopyToClipboard text=\{`Basic \$\{encoded\}`\} label="Copy Authorization value" \/>/);
+});
