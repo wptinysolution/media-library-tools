@@ -95,7 +95,7 @@ test('no fixed site address in the page code', () => {
     const page = readFileSync(new URL('../../src/js/Component/Mcp/McpPage.tsx', import.meta.url), 'utf8');
     assert.doesNotMatch(page, /https?:\/\/[a-z]/i, 'No URL in the page code; URLs come from the server.');
     assert.match(page, /Turn off MCP access/);
-    assert.match(page, /title="Manual configuration"/);
+    assert.match(page, />Manual configuration<\/h3>/);
     assert.match(page, /I understand that clicking/);
 });
 
@@ -154,7 +154,7 @@ test('while access is off nothing but the switch and the message is rendered', (
     const connection = source.indexOf(') : (', branch);
     assert.ok(branch > 0 && connection > branch);
     assert.ok(source.indexOf('{MCP_DISABLED_MESSAGE}') > branch && source.indexOf('{MCP_DISABLED_MESSAGE}') < connection);
-    for (const part of ['settings.dedicatedUrl', 'MCP_CLIENTS.map', 'TEST_PROMPT}', 'title="Manual configuration"', 'tsmlt-mcp-consent', 'id="tsmlt-mcp-advanced-title"', 'Choose your client', 'CopyToClipboard text={TEST_PROMPT}']) {
+    for (const part of ['settings.dedicatedUrl', 'MCP_CLIENTS.map', 'TEST_PROMPT}', 'id="tsmlt-mcp-manual-title"', 'tsmlt-mcp-consent', 'id="tsmlt-mcp-advanced-title"', 'Choose your client', 'CopyToClipboard text={TEST_PROMPT}']) {
         assert.ok(source.indexOf(part) > connection, `${part} only when access is on`);
     }
     assert.ok(source.indexOf('Turn off MCP access') < branch, 'The switch is always there.');
@@ -180,7 +180,7 @@ test('while the default server is unavailable Generate is blocked with the reaso
     }
 });
 
-test('manual configuration expands and collapses, and shows the chosen client\'s whole configuration', () => {
+test('manual configuration is always shown, with the chosen client\'s whole configuration', () => {
     const source = page();
     // The shared disclosure: a button that says whether it is open and which region it controls.
     const disclosure = source.slice(source.indexOf('function Disclosure'), source.indexOf('function Spinner'));
@@ -188,9 +188,10 @@ test('manual configuration expands and collapses, and shows the chosen client\'s
     assert.match(disclosure, /aria-controls=\{id\}/);
     assert.match(disclosure, /onClick=\{onToggle\}/);
     assert.match(disclosure, /\{open && \(\s*<div id=\{id\} role="region"/);
-    const manual = source.slice(source.indexOf('id="tsmlt-mcp-manual"'), source.indexOf('</Disclosure>', source.indexOf('id="tsmlt-mcp-manual"')));
-    assert.match(manual, /open=\{manual\}/);
-    assert.match(manual, /onToggle=\{\(\) => setManual\(!manual\)\}/);
+    const manual = source.slice(source.indexOf('id="tsmlt-mcp-manual"'), source.indexOf('title="Test the connection"'));
+    assert.doesNotMatch(manual, /<Disclosure|aria-expanded|setManual|\{manual &&/, 'Always visible: no toggle.');
+    assert.match(manual, /<h3 id="tsmlt-mcp-manual-title"[^>]*>Manual configuration<\/h3>/);
+    assert.match(manual, /\{manualHelp\}/, 'Where the configuration goes.');
     assert.match(manual, /text=\{manualText\}/, 'The selected client\'s full configuration.');
     assert.match(source, /const manualText = creds \? clientConfig\(client, creds\) : manualConfig\(client, settings\.serverUrl, settings\.serverName, encoded\);/);
     assert.match(manual, /copyLabel="Copy configuration"/);

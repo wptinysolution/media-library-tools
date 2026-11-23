@@ -171,7 +171,6 @@ export default function McpPage() {
     const [settings, setSettings] = useState<McpPageSettings | null>(tsmltParams.mcp ?? null);
     const [saving, setSaving] = useState(false);
     const [client, setClient] = useState<McpClientId>('claude-code');
-    const [manual, setManual] = useState(false);
     const [dedicated, setDedicated] = useState(false);
     const [consent, setConsent] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -389,14 +388,11 @@ export default function McpPage() {
                                 </Step>
 
                                 {/* Manual configuration, directly under the prompt */}
-                                <div className="overflow-hidden rounded-lg border border-slate-200 sm:ml-10">
-                                <Disclosure
-                                    id="tsmlt-mcp-manual"
-                                    title="Manual configuration"
-                                    description={`The ${current.label} configuration, to add yourself instead of using the prompt — no Application Password is created for you.`}
-                                    open={manual}
-                                    onToggle={() => setManual(!manual)}
-                                >
+                                <div id="tsmlt-mcp-manual" role="region" aria-labelledby="tsmlt-mcp-manual-title" className="rounded-lg border border-slate-200 p-5 sm:ml-10">
+                                    <h3 id="tsmlt-mcp-manual-title" className="m-0 text-sm font-semibold text-slate-900">Manual configuration</h3>
+                                    <p className="mt-0.5 mb-3 text-[13px] text-slate-600">
+                                        Prefer to set it up yourself? Use the {current.label} configuration below instead of the prompt; no Application Password is created for you.
+                                    </p>
                                     <p className="mt-0 mb-1 text-[13px] leading-relaxed text-slate-700">
                                         {manualHelp}{current.requiresNode && ' It needs Node.js 18 or newer.'}
                                     </p>
@@ -482,7 +478,6 @@ export default function McpPage() {
                                             </div>
                                         </div>
                                     )}
-                                </Disclosure>
                                 </div>
 
                                 <Step number={3} title="Test the connection" description={`After setup, paste this into ${clientName}. If it lists the Media Library Tools tools and the search works, the connection is ready. This page cannot see your client, so it does not report the connection itself.`}>
