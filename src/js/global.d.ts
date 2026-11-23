@@ -22,6 +22,8 @@ interface McpPageSettings {
     serverUrl: string;
     dedicatedUrl: string;
     serverName: string;
+    /** Current user's login, for the manual Authorization value. */
+    username: string;
     adapterStatus: 'active' | 'inactive' | 'missing' | string;
     abilitiesSupported: boolean;
     defaultServerSupported: boolean;

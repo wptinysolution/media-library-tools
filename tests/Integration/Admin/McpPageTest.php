@@ -196,6 +196,10 @@ class McpPageTest extends WP_Ajax_UnitTestCase {
 		$this->assertStringStartsWith( 'https://media.example.org/wp/', $settings['serverUrl'] );
 		$this->assertStringStartsWith( 'https://media.example.org/wp/', $settings['dedicatedUrl'] );
 		$this->assertSame( McpPage::tab_url( McpPage::TAB_DOCUMENTATION ), $settings['docsUrl'] );
+		$this->assertSame( wp_get_current_user()->user_login, $settings['username'], 'For the manual Authorization value.' );
+		foreach ( [ 'password', 'encodedCredentials' ] as $secret ) {
+			$this->assertArrayNotHasKey( $secret, $settings, 'No credentials in the page settings.' );
+		}
 
 		$this->set_permalink_structure( '/%postname%/' );
 		add_filter( 'rest_url_prefix', [ $this, 'custom_prefix' ] );

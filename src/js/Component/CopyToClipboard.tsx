@@ -6,9 +6,11 @@ interface CopyToClipboardProps {
     className?: string;
     /** Accessible name and tooltip. */
     label?: string;
+    /** Also show the label as text next to the icon. */
+    showLabel?: boolean;
 }
 
-export function CopyToClipboard({ text, resetDelay = 2000, className = '', label = 'Copy to clipboard' }: CopyToClipboardProps) {
+export function CopyToClipboard({ text, resetDelay = 2000, className = '', label = 'Copy to clipboard', showLabel = false }: CopyToClipboardProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async (event: React.MouseEvent) => {
@@ -40,7 +42,7 @@ export function CopyToClipboard({ text, resetDelay = 2000, className = '', label
         <button
             type="button"
             onClick={handleCopy}
-            className={`p-1.5 cursor-pointer hover:bg-gray-300 rounded transition-colors flex-shrink-0 ${className}`}
+            className={`${showLabel ? 'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium' : 'p-1.5'} cursor-pointer hover:bg-gray-300 rounded transition-colors flex-shrink-0 ${className}`}
             title={copied ? 'Copied' : label}
             aria-label={copied ? 'Copied' : label}
         >
@@ -53,6 +55,7 @@ export function CopyToClipboard({ text, resetDelay = 2000, className = '', label
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
             )}
+            {showLabel && <span>{copied ? 'Copied' : label}</span>}
         </button>
     );
 }

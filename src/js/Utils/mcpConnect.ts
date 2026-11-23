@@ -201,3 +201,41 @@ export const adapterBadge = (settings: McpConnectionSettings): { tone: 'green' |
     }
     return { tone: 'green', label: 'Adapter active' };
 };
+
+/** Placeholder for the Base64 credentials in a manual configuration. */
+export const AUTH_PLACEHOLDER = 'BASE64_OF_USERNAME_COLON_APPLICATION_PASSWORD';
+
+/** Placeholder for the Application Password in the encoding commands. */
+export const PASSWORD_PLACEHOLDER = 'APPLICATION PASSWORD';
+
+export type McpOs = 'unix' | 'windows';
+
+/** The visitor's operating system, for marking "Your computer". */
+export const detectOs = (platform: string): McpOs => (/win/i.test(platform) ? 'windows' : 'unix');
+
+/**
+ * The command that prints base64( username:APPLICATION PASSWORD ): printf
+ * (not echo, which adds a newline) in a POSIX shell, .NET in PowerShell.
+ * The username is quoted for each shell.
+ */
+export const encodeCommand = (os: McpOs, username: string): string => {
+    const pair = `${username}:${PASSWORD_PLACEHOLDER}`;
+    return os === 'windows'
+        ? `[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('${pair.replace(/'/g, "''")}'))`
+        : `printf '%s' ${shellArg(pair)} | base64 | tr -d '\\n'`;
+};
+
+/** base64( username:password ) of the UTF-8 bytes, as the Authorization header needs. Runs in the browser only. */
+export const basicCredentials = (username: string, password: string): string => {
+    let binary = '';
+    new TextEncoder().encode(`${username}:${password}`).forEach((byte) => { binary += String.fromCharCode(byte); });
+    return btoa(binary);
+};
+
+/**
+ * A client's configuration for manual setup, in the same format as the
+ * generated one, with the given Base64 credentials (AUTH_PLACEHOLDER until
+ * the user has them).
+ */
+export const manualConfig = (id: McpClientId, serverUrl: string, serverName: string, encoded: string = AUTH_PLACEHOLDER): string =>
+    clientConfig(id, { username: '', password: '', encodedCredentials: encoded || AUTH_PLACEHOLDER, serverUrl, serverName });

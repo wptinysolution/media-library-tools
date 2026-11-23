@@ -88,6 +88,7 @@ class McpConnection {
 			'serverUrl'              => esc_url_raw( self::default_server_url() ),
 			'dedicatedUrl'           => esc_url_raw( self::dedicated_server_url() ),
 			'serverName'             => $docs->get_client_server_key( McpDocsPage::CLIENT_KEY_DEFAULT_SERVER ),
+			'username'               => wp_get_current_user()->user_login,
 			'adapterStatus'          => $docs->get_adapter_status(),
 			'abilitiesSupported'     => function_exists( 'wp_register_ability' ),
 			'defaultServerSupported' => McpServerRegistration::adapter_supports_default_server(),

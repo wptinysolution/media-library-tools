@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MCP_CLIENTS, MCP_DISABLED_MESSAGE, TEST_PROMPT, adapterBadge, clientConfig, connectionState, mcpClient, setupPrompt, type McpConnectionSettings, type McpCredentials } from '../../src/js/Utils/mcpConnect.ts';
+import { AUTH_PLACEHOLDER, PASSWORD_PLACEHOLDER, basicCredentials, detectOs, encodeCommand, manualConfig, MCP_CLIENTS, MCP_DISABLED_MESSAGE, TEST_PROMPT, adapterBadge, clientConfig, connectionState, mcpClient, setupPrompt, type McpConnectionSettings, type McpCredentials } from '../../src/js/Utils/mcpConnect.ts';
 
 const creds: McpCredentials = {
     username: "o'brien",
@@ -191,7 +191,8 @@ test('manual configuration expands and collapses, and shows the chosen client\'s
     const manual = source.slice(source.indexOf('id="tsmlt-mcp-manual"'), source.indexOf('</Disclosure>', source.indexOf('id="tsmlt-mcp-manual"')));
     assert.match(manual, /open=\{manual\}/);
     assert.match(manual, /onToggle=\{\(\) => setManual\(!manual\)\}/);
-    assert.match(manual, /text=\{creds \? clientConfig\(client, creds\) : ''\}/, 'The selected client\'s full configuration.');
+    assert.match(manual, /text=\{manualText\}/, 'The selected client\'s full configuration.');
+    assert.match(source, /const manualText = creds \? clientConfig\(client, creds\) : manualConfig\(client, settings\.serverUrl, settings\.serverName, encoded\);/);
     assert.match(manual, /copyLabel="Copy configuration"/);
     assert.match(manual, /\bscroll\b/, 'Long lines scroll instead of breaking the layout.');
     const box = source.slice(source.indexOf('function CodeBox'), source.indexOf('function UrlBox'));
@@ -243,4 +244,93 @@ test('the dedicated endpoint is always listed under Advanced, whatever the adapt
     const advanced = source.indexOf('Advanced: dedicated Media Library Tools MCP server');
     assert.ok(source.indexOf('<UrlBox url={settings.dedicatedUrl} />') > advanced);
     assert.doesNotMatch(source.slice(advanced, advanced + 1500), /defaultAvailable/, 'Not tied to the default server.');
+});
+
+test('manual configuration template: same format, with the placeholder until a value exists', () => {
+    for (const client of MCP_CLIENTS) {
+        const template = manualConfig(client.id, creds.serverUrl, creds.serverName);
+        assert.equal(template, clientConfig(client.id, { ...creds, encodedCredentials: AUTH_PLACEHOLDER }), client.id);
+        assert.ok(template.includes(`Basic ${AUTH_PLACEHOLDER}`), client.id);
+        assert.ok(!template.includes(creds.password) && !template.includes(creds.username), client.id);
+        assert.equal(manualConfig(client.id, creds.serverUrl, creds.serverName, creds.encodedCredentials), clientConfig(client.id, creds), client.id);
+        assert.ok(manualConfig(client.id, creds.serverUrl, creds.serverName, '').includes(AUTH_PLACEHOLDER), 'Empty value: placeholder.');
+    }
+});
+
+test('encoding commands: printf in a POSIX shell, .NET in PowerShell, usernames quoted', () => {
+    assert.equal(encodeCommand('unix', 'admin'), "printf '%s' 'admin:APPLICATION PASSWORD' | base64 | tr -d '\\n'");
+    assert.equal(encodeCommand('windows', 'admin'), "[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('admin:APPLICATION PASSWORD'))");
+    assert.equal(encodeCommand('unix', "o'brien"), "printf '%s' 'o'\\''brien:APPLICATION PASSWORD' | base64 | tr -d '\\n'");
+    assert.equal(encodeCommand('windows', "o'brien"), "[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('o''brien:APPLICATION PASSWORD'))");
+    assert.ok(!encodeCommand('unix', 'admin').includes('echo'));
+    assert.equal(PASSWORD_PLACEHOLDER, 'APPLICATION PASSWORD');
+});
+
+test('the value made in the browser is base64 of the UTF-8 username:password', () => {
+    assert.equal(basicCredentials("o'brien", 'abcd efgh ijkl mnop qrst uvwx'), Buffer.from("o'brien:abcd efgh ijkl mnop qrst uvwx", 'utf8').toString('base64'));
+    assert.equal(basicCredentials('zoë', 'pässword'), Buffer.from('zoë:pässword', 'utf8').toString('base64'), 'Non-ASCII as UTF-8.');
+});
+
+test('"Your computer" is the visitor\'s operating system', () => {
+    assert.equal(detectOs('Win32 Mozilla/5.0 (Windows NT 10.0; Win64; x64)'), 'windows');
+    assert.equal(detectOs('MacIntel Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)'), 'unix');
+    assert.equal(detectOs('Linux x86_64'), 'unix');
+});
+
+test('"Or create it here": labelled fields, nothing sent, password not kept', () => {
+    const source = page();
+    assert.match(source, /<label htmlFor="tsmlt-mcp-auth-user"/);
+    assert.match(source, /<label htmlFor="tsmlt-mcp-auth-password"/);
+    assert.match(source, /id="tsmlt-mcp-auth-password" type="password" autoComplete="new-password"/);
+    const create = source.slice(source.indexOf('const createAuth'), source.indexOf('const manualHelp'));
+    assert.match(create, /setEncoded\(basicCredentials\(/);
+    assert.match(create, /setAuthPassword\(''\)/, 'The typed password is cleared.');
+    assert.doesNotMatch(create, /ajax|fetch|createMcpCredentials|localStorage/i, 'Nothing is sent or stored.');
+    assert.match(source, /How to create the Authorization value/);
+    assert.match(source, /Base64 is not encryption/);
+    assert.match(source, /Use printf, not echo/);
+});
+
+test('Connection tab order: access, connection, client, prompt, manual configuration, then Advanced (dedicated endpoint)', () => {
+    const source = page();
+    const at = (marker: string): number => {
+        const index = source.indexOf(marker);
+        assert.ok(index > 0, marker);
+        return index;
+    };
+    const order = [
+        at('id="tsmlt-mcp-access-title"'),
+        at('id="tsmlt-mcp-connect-title"'),
+        at('title="Choose your client"'),
+        at('title="Generate the setup prompt"'),
+        at('id="tsmlt-mcp-manual"'),
+        at('title="Test the connection"'),
+        at('id="tsmlt-mcp-advanced-title"'),
+        at('id="tsmlt-mcp-dedicated"'),
+    ];
+    assert.deepEqual([...order].sort((a, b) => a - b), order);
+    // Manual configuration is part of the client panel, not of Advanced configuration.
+    assert.ok(at('id="tsmlt-mcp-manual"') > at('role="tabpanel"') && at('id="tsmlt-mcp-manual"') < at('id="tsmlt-mcp-advanced-title"'));
+});
+
+test('every client\'s manual configuration is complete: URL, server name, Authorization header, where it goes', () => {
+    const url = 'https://example.test/sub/wp-json/mcp/mcp-adapter-default-server';
+    const name = 'mlt-example-test-sub-mcp-adapter-default-server';
+    for (const client of MCP_CLIENTS) {
+        for (const value of [AUTH_PLACEHOLDER, creds.encodedCredentials]) {
+            const config = manualConfig(client.id, url, name, value);
+            for (const part of [url, name, `Authorization`, `Basic ${value}`]) {
+                assert.ok(config.includes(part), `${client.id}: ${part}`);
+            }
+            if (client.format === 'json') {
+                assert.doesNotThrow(() => JSON.parse(config), client.id);
+            }
+        }
+    }
+    // Where it goes: each client's file, or the command to run.
+    const source = page();
+    assert.match(source, /Run this command in your own terminal/);
+    assert.match(source, /current\.configPath\.unix/);
+    assert.match(source, /current\.configPath\.windows/);
+    assert.match(source, /most clients accept this format/);
 });
