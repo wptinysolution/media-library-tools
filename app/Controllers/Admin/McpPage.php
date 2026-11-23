@@ -153,11 +153,11 @@ class McpPage {
 			.tsmlt-mcp-connection .tsmlt-mcp-notice p:last-child { margin-bottom: 0; }
 			.tsmlt-mcp-connection .tsmlt-mcp-notice .button { margin-top: 4px; }
 			.tsmlt-mcp-connection .tsmlt-mcp-adapter-feedback:empty { display: none; }
-			.tsmlt-mcp-connection .nav-tab-wrapper { display: flex; gap: 24px; margin: 0; padding: 0; border-bottom: 1px solid #e2e8f0; }
-			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab { float: none; margin: 0 0 -1px; padding: 10px 2px; border: 0; border-bottom: 2px solid transparent; background: none; font-size: 14px; font-weight: 500; line-height: 1.4; color: #64748b; }
-			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab:hover { color: #0f172a; }
-			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab-active, .tsmlt-mcp-connection .nav-tab-wrapper .nav-tab-active:hover { border-bottom-color: #2563eb; background: none; color: #0f172a; }
-			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; border-radius: 4px; box-shadow: none; }
+			.tsmlt-mcp-connection .nav-tab-wrapper { display: flex; gap: 4px; margin: 0; padding: 0; border-bottom: 1px solid #e2e8f0; }
+			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab { float: none; margin: 0 0 -1px !important; padding: 10px 18px !important; border: 0 !important; border-bottom: 3px solid transparent !important; border-radius: 8px 8px 0 0; background: transparent !important; font-size: 14px; font-weight: 500 !important; line-height: 1.4; color: #64748b !important; transition: color .15s, background-color .15s; }
+			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab-active, .tsmlt-mcp-connection .nav-tab-wrapper .nav-tab-active:hover { border-bottom-color: #2563eb !important; background: #eff6ff !important; font-weight: 600 !important; color: #1d4ed8 !important; }
+			.tsmlt-mcp-connection .nav-tab-wrapper .nav-tab:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; box-shadow: none; }
 		</style>
 		<?php
 	}
