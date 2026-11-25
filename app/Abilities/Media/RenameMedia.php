@@ -189,11 +189,13 @@ class RenameMedia extends Ability {
 		if ( is_wp_error( $run ) ) {
 			return $run;
 		}
-		$stored = [];
+		$stored     = [];
+		$strategies = [];
 		foreach ( (array) ( $run['items'] ?? [] ) as $entry ) {
 			$id = (int) ( $entry['id'] ?? 0 );
 			if ( $id > 0 && is_string( $entry['name'] ?? null ) && ! isset( $stored[ $id ] ) ) {
-				$stored[ $id ] = $entry['name'];
+				$stored[ $id ]     = $entry['name'];
+				$strategies[ $id ] = is_string( $entry['strategy'] ?? null ) ? $entry['strategy'] : '';
 			}
 		}
 		_prime_post_caches( array_keys( $stored ), false, true );
@@ -201,7 +203,9 @@ class RenameMedia extends Ability {
 		$items = [];
 		$ready = [];
 		foreach ( $stored as $id => $name ) {
-			$status  = self::status( $id, $name );
+			// The confirmed name is used as it is, never made again; a name a
+			// Pro strategy made needs Pro now too.
+			$status  = '' !== $strategies[ $id ] && ! tsmlt()->has_pro() ? 'pro_required' : self::status( $id, $name );
 			$items[] = array_merge(
 				[
 					'id'     => $id,

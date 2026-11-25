@@ -100,7 +100,7 @@ Every tool listed here — Free, and Pro while the licence is active — is list
 | `tsmlt-trash-media` | Moves the previewed attachments to the WordPress trash with the token, re-checking every rule, and reports each item. Never deletes permanently; refused when the site's trash is off | Yes (moves media to the trash) |
 | `tsmlt-restore-media` | Restores up to 20 attachments from the WordPress trash and reports each item | Yes (restores media) |
 | `tsmlt-export-media-csv` | Exports up to 100 attachments, chosen by ID, as one CSV text in the order given, with the columns the CSV import reads; missing or unreadable IDs are listed as skipped. Never exports custom fields, file paths or metadata | No |
-| `tsmlt-preview-media-rename` | Previews renaming the files of 1–20 attachments to names you type: per item a status, the current file name and the exact new one (extension and any `-scaled`/`-rotated` ending kept, a `-1`-style number when taken), the new name of the full-size original, and what a rename would affect. Pro rename strategies are refused. Issues a one-time confirmation token. Renames nothing | No (stores the token) |
+| `tsmlt-preview-media-rename` | Previews renaming the files of 1–20 attachments to names you type, or (Media Library Tools Pro) to names from a strategy — the attached post's title, the WooCommerce product SKU or the alt text: per item a status, the current file name and the exact new one (extension and any `-scaled`/`-rotated` ending kept, a `-1`-style number when taken), the new name of the full-size original, and what a rename would affect. Pro rename strategies are refused. Issues a one-time confirmation token. Renames nothing | No (stores the token) |
 | `tsmlt-rename-media` | Renames the previewed files with the token and `confirm: true`, after checking every item again: one in the request, several as a background job (returns `job_id`). Also renames the full-size original, makes the sizes again and updates links in post content, excerpts and Elementor data | Yes (renames files, updates links) |
 | `tsmlt-get-media-rename-status` | Returns the bulk rename's status, counts, percentage and per-file results (result, code, new file name, posts updated). Never changes the job | No |
 | `tsmlt-cancel-media-rename` | Stops the running bulk rename with the given job ID. Never stops other jobs | Yes (stops the job) |
@@ -920,7 +920,7 @@ Renames media files to names you type, after a preview and the user's confirmati
 
 **Workflow**:
 1. Find the media with `tsmlt-search-media`. Its `filename` input matches part of a file name, case-insensitively, and each result has the attachment's `id` and `filename`. When several match, pick by `id`.
-2. Call `tsmlt-preview-media-rename` with `items`: 1–20 objects `{ "id": 123, "filename": "new-name" }`. Show the user each item's `current_filename` and `proposed_filename`.
+2. Call `tsmlt-preview-media-rename` with `items`: 1–20 objects, each either `{ "id": 123, "filename": "new-name" }` or, with Media Library Tools Pro, `{ "id": 123, "strategy": "post_title" }` (see "Pro rename strategies" below). Show the user each item's `current_filename` and `proposed_filename`.
 3. After the user confirms, call `tsmlt-rename-media` with the `confirmation_token` and `confirm: true`.
 4. One item: renamed in the request (`mode: single`, with the result). Several: a background job (`mode: bulk`, with `job_id`). Follow it with `tsmlt-get-media-rename-status`; stop it with `tsmlt-cancel-media-rename`.
 
@@ -946,8 +946,10 @@ Renames media files to names you type, after a preview and the user's confirmati
   - `remote_storage`: the file is not stored on this server;
   - `original_missing`: the recorded full-size original is missing;
   - `locked`: compression, conversion, thumbnail regeneration, EXIF removal or another rename is working on it;
-  - `name_unavailable`: no free name within 99 numbered tries.
-- `requested_filename`, `current_filename`, `proposed_filename` and `proposed_original_filename`: file names only, never folders.
+  - `name_unavailable`: no free name within 99 numbered tries;
+  - for a strategy item: `pro_required` (Pro is not active with a licence), `no_parent_post` (`post_title` and `sku` need an attached post you may read), `woocommerce_inactive` (`sku` only), `no_sku`, `no_alt_text`, `empty_name` (the strategy made no usable name, for example an empty post title).
+- `strategy`: the item's strategy, or empty for a typed name.
+- `requested_filename` (the typed name, or the name the strategy made), `current_filename`, `proposed_filename` and `proposed_original_filename`: file names only, never folders.
 - `sanitized`, `extension_ignored`, `unchanged`, `needs_unique_suffix`.
 - `same_name_in_request`: two items of the request would get the same name in the same folder; the second rename gets a number.
 - `affects`:
@@ -960,7 +962,20 @@ Renames media files to names you type, after a preview and the user's confirmati
 
 **Rules**:
 - It changes nothing in the media library: no file, metadata, post, attached post ("Uploaded to"), GUID or content. Its only write is the confirmation token (an option, not autoloaded). Its annotations are therefore not read-only.
-- The token is bound to you, works once, expires after 10 minutes and holds only the ready items with their typed names.
+- The token is bound to you, works once, expires after 10 minutes and holds only the ready items with their names (typed, or made by a strategy) and strategy.
+
+#### Pro rename strategies
+
+With Media Library Tools Pro active and licensed, an item can give `strategy` instead of `filename` (one of the two, never both; anything else is refused as invalid input):
+- **`post_title`:** the title of the attached post ("Uploaded to");
+- **`sku`:** the SKU (`_sku`) of the attached post, a WooCommerce product; needs WooCommerce active;
+- **`alt_text`:** the image's own alt text; no attached post needed.
+
+**How the name is made:** by the Pro plugin's existing rename strategies — the same ones as the Rename page's "Rename Based on…" bulk actions — through the `tsmlt_attachment_rename_to` filter, with the Pro rename prefix and suffix settings (`prefix-name-suffix`). The free plugin has no naming logic of its own. The name then goes through the same steps as a typed name (sanitizing, extension kept, a number when taken; a name with `/` or `\` is refused as `invalid_filename`).
+
+**Read-only attached post:** the preview uses the stored attached post only when it is a real post you may read. Unlike the Rename page, it never looks for a post that uses the image and never changes the attachment's "Uploaded to" post; an image without one gets `no_parent_post` for `post_title` and `sku`.
+
+**Confirmed name, rechecked licence:** `tsmlt-rename-media` renames to the name shown in the preview, from the token; it never works the name out again (a post title changed after the preview does not change the rename). Strategy items are refused (`pro_required`, nothing renamed) when Pro is no longer licensed at that point.
 
 ### Rename — `tsmlt-rename-media`
 
@@ -998,7 +1013,7 @@ Takes the `job_id`.
 - **Permissions:** every tool requires `manage_options`, in its permission callback and again when it runs. Each item also needs `read_post` and `edit_post`.
 - **Exposure:** the four tools are listed on the dedicated endpoint and the default server, and are never run through the default gateway (`meta.mcp.public` false).
 - **Output:** no folders, paths or raw error texts. Results carry codes and file names only.
-- **Pro features:** renaming by attached post title, product SKU or alt text, AI names, the prefix and suffix settings and automatic rename on upload are Pro features of the Rename page and are not available here. Their keywords (`bulkRenameByPostTitle`, `bulkRenameBySKU`, `bulkRenameByAltText`, `bulkAiFilename`) are refused.
+- **Pro features:** renaming by attached post title, product SKU or alt text is available with `strategy` (above), including the prefix and suffix. AI names, CSV renames, custom naming patterns and automatic rename on upload are not available here (for AI names, write the name and pass it as `filename`). The Rename page's keywords typed as a `filename` (`bulkRenameByPostTitle`, `bulkRenameBySKU`, `bulkRenameByAltText`, `bulkAiFilename`) are refused (`pro_strategy_not_supported`); use `strategy`.
 - **Snapshot:** the preview is a snapshot. A file uploaded or renamed afterwards can change the number a name gets; the rename checks again and reports the name it used.
 - **Content links:** links are updated only as absolute URLs in post content, excerpts and Elementor data. Block attributes in other forms, custom fields, other page builders, menus and options are not updated or reported.
 - **Re-encoded sizes:** sizes made again are re-encoded and count as not compressed.

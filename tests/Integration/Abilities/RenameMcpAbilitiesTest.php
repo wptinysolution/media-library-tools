@@ -370,8 +370,9 @@ class RenameMcpAbilitiesTest extends WP_UnitTestCase {
 		$this->assertSame(
 			[
 				[
-					'id'   => $ready,
-					'name' => 'mcpren-ok-new',
+					'id'       => $ready,
+					'name'     => 'mcpren-ok-new',
+					'strategy' => '',
 				],
 			],
 			$payload['items']

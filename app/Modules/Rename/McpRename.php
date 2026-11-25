@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use TinySolutions\mlt\Abilities\AbilityGuard;
 use TinySolutions\mlt\Abilities\ConfirmationToken;
+use TinySolutions\mlt\Helpers\Fns;
 use WP_Post;
 
 /**
@@ -48,7 +49,31 @@ class McpRename {
 	 *
 	 * @var string[]
 	 */
-	const STATUSES = [ 'ready', 'unchanged', 'invalid_filename', 'pro_strategy_not_supported', 'invalid_id', 'duplicate_id', 'not_found', 'forbidden', 'file_missing', 'remote_storage', 'original_missing', 'locked', 'name_unavailable' ];
+	const STATUSES = [ 'ready', 'unchanged', 'invalid_filename', 'pro_strategy_not_supported', 'invalid_id', 'duplicate_id', 'not_found', 'forbidden', 'file_missing', 'remote_storage', 'original_missing', 'locked', 'name_unavailable', 'pro_required', 'no_parent_post', 'woocommerce_inactive', 'no_sku', 'no_alt_text', 'empty_name' ];
+
+	/**
+	 * Rename strategies MCP accepts, with the keyword the Rename page sends
+	 * for each: Media Library Tools Pro resolves the keyword to a name on the
+	 * `tsmlt_attachment_rename_to` filter.
+	 *
+	 * @var array<string, string>
+	 */
+	const STRATEGIES = [
+		'post_title' => 'bulkRenameByPostTitle',
+		'sku'        => 'bulkRenameBySKU',
+		'alt_text'   => 'bulkRenameByAltText',
+	];
+
+	/**
+	 * Why an unresolved strategy gave no name.
+	 *
+	 * @var array<string, string>
+	 */
+	const STRATEGY_MISSING = [
+		'post_title' => 'empty_name',
+		'sku'        => 'no_sku',
+		'alt_text'   => 'no_alt_text',
+	];
 
 	/**
 	 * Rename results the engine records.
@@ -160,18 +185,74 @@ class McpRename {
 	}
 
 	/**
+	 * The name a Pro rename strategy gives an attachment, read-only: the
+	 * attached post is used only when Fns::is_valid_attachment_parent()
+	 * accepts it and the user may read it (the parent is never looked up or
+	 * changed, unlike the Rename page), and the name comes from the existing
+	 * `tsmlt_attachment_rename_to` filter, which Media Library Tools Pro
+	 * answers. Free has no naming logic of its own.
+	 *
+	 * @param WP_Post $attachment Attachment.
+	 * @param string  $strategy   Key of STRATEGIES.
+	 *
+	 * @return array{status: string, name: string} status '' when a name was made.
+	 */
+	public static function resolve_strategy( WP_Post $attachment, string $strategy ): array {
+		$refused = static function ( string $status ): array {
+			return [
+				'status' => $status,
+				'name'   => '',
+			];
+		};
+		if ( ! isset( self::STRATEGIES[ $strategy ] ) ) {
+			return $refused( 'pro_strategy_not_supported' );
+		}
+		if ( ! tsmlt()->has_pro() ) {
+			return $refused( 'pro_required' );
+		}
+		if ( 'sku' === $strategy && ! function_exists( 'WC' ) ) {
+			return $refused( 'woocommerce_inactive' );
+		}
+
+		$parent  = (int) $attachment->post_parent;
+		$post_id = $parent > 0 && Fns::is_valid_attachment_parent( $parent ) && current_user_can( 'read_post', $parent ) ? $parent : 0;
+		if ( 0 === $post_id && 'alt_text' !== $strategy ) {
+			return $refused( 'no_parent_post' );
+		}
+
+		$keyword = self::STRATEGIES[ $strategy ];
+		/** This filter is documented in app/Modules/Rename/RenameModule.php */
+		$name = apply_filters( 'tsmlt_attachment_rename_to', $keyword, $keyword, $post_id, $attachment );
+		if ( ! is_string( $name ) || in_array( $name, self::STRATEGIES, true ) ) {
+			return $refused( self::STRATEGY_MISSING[ $strategy ] );
+		}
+		$name = sanitize_text_field( $name );
+		if ( '' === trim( $name ) ) {
+			return $refused( 'empty_name' );
+		}
+
+		return [
+			'status' => '',
+			'name'   => $name,
+		];
+	}
+
+	/**
 	 * Issue a confirmation token for these items, for the current user.
 	 *
-	 * @param array<int, string> $items Attachment ID => typed name, ready items only.
+	 * @param array<int, string|array{name: string, strategy: string}> $items Attachment ID => typed name, or
+	 *                                                                        name and the strategy that produced it;
+	 *                                                                        ready items only.
 	 *
 	 * @return array{token: string, expires: int}|null
 	 */
 	public static function issue_token( array $items ): ?array {
 		$stored = [];
-		foreach ( $items as $id => $name ) {
+		foreach ( $items as $id => $item ) {
 			$stored[] = [
-				'id'   => (int) $id,
-				'name' => (string) $name,
+				'id'       => (int) $id,
+				'name'     => (string) ( is_array( $item ) ? ( $item['name'] ?? '' ) : $item ),
+				'strategy' => is_array( $item ) && isset( self::STRATEGIES[ $item['strategy'] ?? '' ] ) ? (string) $item['strategy'] : '',
 			];
 		}
 		return ConfirmationToken::issue( self::TOKEN_OPTION_PREFIX, [ 'items' => $stored ], self::TOKEN_TTL );

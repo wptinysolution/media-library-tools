@@ -37,7 +37,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F8 | EXIF (Free: fields, privacy scan) | Free | Implemented | Investigated | None |
 | F9 | EXIF (Pro editing tools) | Pro | Partially Implemented | Investigated | None until a deferred item's blocker is resolved |
 | F10 | Duplicate media | Free / Pro | Implemented | Investigated | None (duplicate removal not planned) |
-| F11 | Rename | Free / Pro | Partially Implemented | Investigated | Pro tool-list test update (Pro strategies not exposed) |
+| F11 | Rename | Free / Pro | Implemented (typed names; Pro strategies post title, SKU, alt text) | Investigated | AI, CSV, auto-rename and custom patterns not in MCP (see F11) |
 | F12 | Compression | Free (Pro options) | Implemented | Investigated | None (Pro backup restore deferred) |
 | F13 | Conversion (WebP/AVIF) | Free (Pro options) | Implemented | Investigated | None (C5 leftover copies: decision open) |
 | F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None |
@@ -227,10 +227,10 @@ A feature is marked Implemented only with test evidence, never because code exis
 ### F11 Rename
 
 - **Owner:** typed rename Free; rename strategies (post title, SKU, alt text), prefix/suffix and auto-rename on upload Pro.
-- **MCP status:** Partially Implemented: typed renames (Free) implemented 2026-11-21; Pro rename strategies are not exposed.
+- **MCP status:** Implemented: typed renames (Free) 2026-11-21; Pro strategies post title, SKU and alt text 2026-11-25 (D31). Not in MCP: AI names server-side (D18; client-side typed names work), CSV rename (D6), automatic rename on upload, custom naming patterns (none exist).
 - **Tools:** `tsmlt/preview-media-rename`, `tsmlt/rename-media`, `tsmlt/get-media-rename-status`, `tsmlt/cancel-media-rename`.
-- **Missing operations:** Pro rename strategies (post title, SKU, alt text, AI names) and server-side AI rename (**Not planned** for MCP; D18).
-- **Tests:** `PreviewMediaRenameAbilityTest`, `RenameMcpAbilitiesTest`, `McpRenameToolsExposureTest`, `MediaRenamerTest`, `RenameElementorTest`.
+- **Missing operations:** server-side AI rename (**Not planned**; D18), CSV rename (**Excluded**; D6), automatic rename on upload and rename settings (read-only through `tsmlt/get-settings`; D30), custom naming patterns (not implemented in the plugin).
+- **Tests:** `PreviewMediaRenameAbilityTest`, `RenameMcpAbilitiesTest`, `McpRenameToolsExposureTest`, `MediaRenamerTest`, `RenameElementorTest`, `RenameStrategyMcpTest`; Pro `RenameStrategyMcpProTest`.
 
 #### Engine hardening (implemented 2026-11-21, approved; Free only; no MCP tools)
 
@@ -298,6 +298,18 @@ A feature is marked Implemented only with test evidence, never because code exis
   - **Admin page:** it does not use the bulk job yet.
   - **Snapshot:** a name taken after the preview gets a number at execution, and the result reports it.
   - **Lock races:** locks are post meta and not atomic across operations; the rename holds the regeneration lock while it runs.
+
+#### Pro rename strategies over MCP (implemented 2026-11-25)
+
+- **Input:** a `tsmlt/preview-media-rename` item takes `filename` or `strategy` (`post_title`, `sku`, `alt_text`), exactly one; anything else is invalid input. No new tools; `tsmlt/rename-media`, status and cancel are unchanged apart from the licence check below.
+- **Resolution:** `McpRename::resolve_strategy()` (Free) maps the strategy to the Rename page's keyword and applies the existing `tsmlt_attachment_rename_to` filter, answered by Pro's `RenameApi::filter_rename_to()` (prefix/suffix through `Fns::add_filename_prefix_suffix()`). Free has no naming logic; no Pro code changed.
+  - **Gates, in order:** `has_pro()` (`pro_required`); for `sku`, WooCommerce active (`function_exists( 'WC' )`, as the admin page's `hasWoo`; `woocommerce_inactive`); for `post_title` and `sku`, a stored parent that `Fns::is_valid_attachment_parent()` accepts and the user may read (`no_parent_post`).
+  - **Read-only parent:** never `Fns::set_thumbnail_parent_id()`, which the Rename page's `RenameModule::handle_rename()` calls and which rewrites `post_parent`; the preview never changes the attached post.
+  - **Unresolved:** a keyword left by the filter is `no_sku` / `no_alt_text` / `empty_name`; an empty result is `empty_name`. The made name then follows the typed-name path (`name_status()`, `sanitize_text_field()`, the engine's plan), so a name with `/` or `\` is `invalid_filename`.
+- **Token:** items carry `{ id, name, strategy }` (`strategy` empty for typed names). `tsmlt/rename-media` renames to the stored name (never made again) and refuses strategy items as `pro_required` when `has_pro()` is false at execution; the rename itself is `MediaRenamer` as before (locks, no overwrite, rollback, sizes, content).
+- **Output:** preview items gain `strategy`; `requested_filename` is the made name for strategy items; six statuses added to `McpRename::STATUSES`.
+- **Tests (2026-11-25):** Free `RenameStrategyMcpTest` (6: input rules, Pro required, typed names and their token unchanged, parent untouched, execution refused without Pro, permissions and the access switch); Pro `RenameStrategyMcpProTest` (9: post title, alt text, prefix/suffix matching the filter, refusals with the parent untouched, SKU without WooCommerce, SKU with a WooCommerce stand-in in a separate process, confirmed name used after the title changed, licence lost before execution, bulk job). `RenameMcpAbilitiesTest` updated for the token's `strategy` key. Mutation checks: removing the execution licence check, the WooCommerce gate, or using the writing parent lookup makes a Pro test fail.
+- **Limitations:** SKU reads only the attached post's `_sku` (no variation lookup); titles containing `/` or `\` are refused rather than cut as the Rename page would; the made name is shown before confirmation, so a title or alt text changed later is not picked up (a new preview is needed).
 
 ### F12 Compression
 
@@ -795,6 +807,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D28 | 2026-11-23 | Manual configuration works without Generate: template config with `BASE64_OF_USERNAME_COLON_APPLICATION_PASSWORD`, a "How to create the Authorization value" guide (printf/base64 and PowerShell commands with the current username quoted per shell, "Your computer" from the browser's platform), and "Or create it here" (in-browser UTF-8 Base64, not sent or stored). Page settings add the current username only, never credentials. | Free |
 | D29 | 2026-11-23 | Connection tab order: MCP access, connection card (default server URL and status, 1 choose client, 2 generate prompt, Manual configuration directly below it, 3 test — always shown, not collapsible), then Advanced configuration with only the dedicated endpoint. | Free |
 | D30 | 2026-11-25 | Settings over MCP are read-only: Free `tsmlt/get-settings` reports an allowlist of non-sensitive Free settings, and Pro's while licensed (through `tsmlt_mcp_settings_definitions`), normalised, with AI key statuses but never keys or credentials. No settings update tool. | Free / Pro |
+| D31 | 2026-11-25 | Pro rename strategies (post title, SKU, alt text) are available through the existing `tsmlt/preview-media-rename` (`strategy` instead of `filename`), resolved by Pro's existing `tsmlt_attachment_rename_to` filter with a read-only parent; the confirmed name is stored in the token, and the licence is checked again at execution. No new tools. | Free / Pro |
 
 ## Workflow
 

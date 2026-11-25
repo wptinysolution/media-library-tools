@@ -102,7 +102,7 @@ class PreviewMediaRename extends Ability {
 	 * @return string
 	 */
 	protected function get_description(): string {
-		return __( 'Preview renaming the files of 1 to 20 attachments to names you type (the Rename page\'s single rename and Bulk Rename with your own names), without renaming anything. Find attachments first with tsmlt-search-media (its filename input matches part of a file name and returns each attachment\'s id and filename). items: a list of { id, filename }. Per item: status (ready, unchanged, invalid_filename, pro_strategy_not_supported, invalid_id, duplicate_id, not_found, forbidden, file_missing, remote_storage, original_missing, locked, name_unavailable), the current file name and the exact file name a rename would give it (the current extension is always kept, a typed extension is ignored, the -scaled or -rotated ending of a scaled or rotated upload is kept, and a "-1"-style number is added when the name is taken), the new name of the full-size original of a scaled or rotated upload (renamed too), whether sanitizing changed the typed name, and what a rename would affect: generated sizes (made again under the new name), the full-size original, pre-edit backup sizes (left with their old names) and whether links in post content would be updated. Renaming by attached post title, product SKU, alt text or AI is not available here and is refused. When at least one item is ready, returns a confirmation_token for tsmlt/rename-media (works once, for you, within 10 minutes). Changes nothing in the media library.', 'media-library-tools' );
+		return __( 'Preview renaming the files of 1 to 20 attachments to names you type (the Rename page\'s single rename and Bulk Rename with your own names), without renaming anything. Find attachments first with tsmlt-search-media (its filename input matches part of a file name and returns each attachment\'s id and filename). items: a list of { id, filename } or, with Media Library Tools Pro, { id, strategy } where strategy is post_title (the attached post\'s title), sku (the attached WooCommerce product\'s SKU) or alt_text (the image\'s alt text), with the Pro rename prefix and suffix; give filename or strategy, not both. Per item: status (ready, unchanged, invalid_filename, pro_strategy_not_supported, invalid_id, duplicate_id, not_found, forbidden, file_missing, remote_storage, original_missing, locked, name_unavailable; for a strategy also pro_required, no_parent_post, woocommerce_inactive, no_sku, no_alt_text, empty_name), the strategy and the name it made, the current file name and the exact file name a rename would give it (the current extension is always kept, a typed extension is ignored, the -scaled or -rotated ending of a scaled or rotated upload is kept, and a "-1"-style number is added when the name is taken), the new name of the full-size original of a scaled or rotated upload (renamed too), whether sanitizing changed the typed name, and what a rename would affect: generated sizes (made again under the new name), the full-size original, pre-edit backup sizes (left with their old names) and whether links in post content would be updated. The strategy keywords of the Rename page typed as a filename are refused (use strategy instead), and AI names are not made here (write the name yourself and pass it as filename). When at least one item is ready, returns a confirmation_token for tsmlt/rename-media (works once, for you, within 10 minutes). Changes nothing in the media library.', 'media-library-tools' );
 	}
 
 	/**
@@ -130,7 +130,7 @@ class PreviewMediaRename extends Ability {
 					'items'    => [
 						'type'                 => 'object',
 						'additionalProperties' => false,
-						'required'             => [ 'id', 'filename' ],
+						'required'             => [ 'id' ],
 						'properties'           => [
 							'id'       => [
 								'type'    => 'integer',
@@ -140,7 +140,12 @@ class PreviewMediaRename extends Ability {
 								'type'        => 'string',
 								'minLength'   => 1,
 								'maxLength'   => self::MAX_NAME_LENGTH,
-								'description' => 'New file name, without folders; the current extension is kept.',
+								'description' => 'New file name, without folders; the current extension is kept. Give filename or strategy, not both.',
+							],
+							'strategy' => [
+								'type'        => 'string',
+								'enum'        => array_keys( McpRename::STRATEGIES ),
+								'description' => 'Media Library Tools Pro: name the file after the attached post\'s title (post_title), its WooCommerce product SKU (sku) or the image\'s alt text (alt_text), with the Pro rename prefix and suffix. Give filename or strategy, not both.',
 							],
 						],
 					],
@@ -164,14 +169,21 @@ class PreviewMediaRename extends Ability {
 					'items' => [
 						'type'                 => 'object',
 						'additionalProperties' => false,
-						'required'             => [ 'id', 'status', 'requested_filename', 'current_filename', 'proposed_filename', 'proposed_original_filename', 'sanitized', 'extension_ignored', 'unchanged', 'needs_unique_suffix', 'same_name_in_request', 'affects' ],
+						'required'             => [ 'id', 'status', 'strategy', 'requested_filename', 'current_filename', 'proposed_filename', 'proposed_original_filename', 'sanitized', 'extension_ignored', 'unchanged', 'needs_unique_suffix', 'same_name_in_request', 'affects' ],
 						'properties'           => [
 							'id'                         => [ 'type' => 'integer' ],
 							'status'                     => [
 								'type' => 'string',
 								'enum' => self::STATUSES,
 							],
-							'requested_filename'         => $name,
+							'strategy'                   => [
+								'type'        => 'string',
+								'description' => 'The rename strategy of this item; empty for a typed name.',
+							],
+							'requested_filename'         => [
+								'type'        => 'string',
+								'description' => 'The typed name, or the name the strategy made.',
+							],
 							'current_filename'           => $name,
 							'proposed_filename'          => [
 								'type'        => 'string',
@@ -273,7 +285,7 @@ class PreviewMediaRename extends Ability {
 		$results = [];
 		$seen    = [];
 		foreach ( $items as $item ) {
-			$result = self::preview( $item['id'], $item['filename'] );
+			$result = self::preview( $item['id'], $item['filename'], $item['strategy'] );
 			// A repeated ID is refused unless it is refused for its own reason.
 			if ( is_int( $item['id'] ) && isset( $seen[ $item['id'] ] ) && in_array( $result['status'], [ 'ready', 'unchanged' ], true ) ) {
 				$result = self::refused( $result, 'duplicate_id' );
@@ -290,7 +302,11 @@ class PreviewMediaRename extends Ability {
 		foreach ( $results as $index => $result ) {
 			++$summary[ $result['status'] ];
 			if ( 'ready' === $result['status'] ) {
-				$ready[ $result['id'] ] = $result['typed'];
+				// The name the token carries is the one shown here; rename-media uses it as is.
+				$ready[ $result['id'] ] = [
+					'name'     => $result['typed'],
+					'strategy' => $result['strategy'],
+				];
 			}
 			unset( $results[ $index ]['folder'], $results[ $index ]['typed'] );
 		}
@@ -358,34 +374,56 @@ class PreviewMediaRename extends Ability {
 	 *
 	 * @param mixed $input Raw input.
 	 *
-	 * @return array<int, array{id: mixed, filename: string}>|WP_Error
+	 * @return array<int, array{id: mixed, filename: string, strategy: string}>|WP_Error
 	 */
 	private static function sanitize_input( $input ) {
 		$items = is_array( $input ) && [] === array_diff( array_keys( $input ), [ 'items' ] ) ? ( $input['items'] ?? null ) : null;
 		if ( ! is_array( $items ) || [] === $items || count( $items ) > self::MAX_ITEMS || array_keys( $items ) !== range( 0, count( $items ) - 1 ) ) {
-			return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, __( 'items must be a list of 1 to 20 objects with id and filename.', 'media-library-tools' ), 400 );
+			return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, __( 'items must be a list of 1 to 20 objects with id and filename (or strategy).', 'media-library-tools' ), 400 );
 		}
+		$clean = [];
 		foreach ( $items as $item ) {
-			if ( ! is_array( $item ) || array_diff( array_keys( $item ), [ 'id', 'filename' ] ) || ! array_key_exists( 'id', $item )
-				|| ! is_string( $item['filename'] ?? null ) || '' === $item['filename'] || mb_strlen( $item['filename'] ) > self::MAX_NAME_LENGTH ) {
+			if ( ! is_array( $item ) || array_diff( array_keys( $item ), [ 'id', 'filename', 'strategy' ] ) || ! array_key_exists( 'id', $item )
+				|| array_key_exists( 'filename', $item ) === array_key_exists( 'strategy', $item ) ) {
+				return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, __( 'Each item needs an id and either a filename or a strategy (not both), and nothing else.', 'media-library-tools' ), 400 );
+			}
+			if ( array_key_exists( 'strategy', $item ) ) {
+				if ( ! is_string( $item['strategy'] ) || ! isset( McpRename::STRATEGIES[ $item['strategy'] ] ) ) {
+					return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, __( 'strategy must be post_title, sku or alt_text.', 'media-library-tools' ), 400 );
+				}
+				$clean[] = [
+					'id'       => $item['id'],
+					'filename' => '',
+					'strategy' => $item['strategy'],
+				];
+				continue;
+			}
+			if ( ! is_string( $item['filename'] ) || '' === $item['filename'] || mb_strlen( $item['filename'] ) > self::MAX_NAME_LENGTH ) {
 				return AbilityGuard::error( AbilityGuard::ERROR_INVALID_INPUT, __( 'Each item needs an id and a filename of 1 to 200 characters, and nothing else.', 'media-library-tools' ), 400 );
 			}
+			$clean[] = [
+				'id'       => $item['id'],
+				'filename' => $item['filename'],
+				'strategy' => '',
+			];
 		}
-		return $items;
+		return $clean;
 	}
 
 	/**
 	 * Preview one item.
 	 *
 	 * @param mixed  $id        Attachment ID.
-	 * @param string $requested Typed name.
+	 * @param string $requested Typed name ('' with a strategy).
+	 * @param string $strategy  Rename strategy, or '' for a typed name.
 	 *
 	 * @return array
 	 */
-	private static function preview( $id, string $requested ): array {
+	private static function preview( $id, string $requested, string $strategy = '' ): array {
 		$result = [
 			'id'                         => is_int( $id ) ? $id : 0,
 			'status'                     => '',
+			'strategy'                   => $strategy,
 			'requested_filename'         => $requested,
 			'current_filename'           => '',
 			'proposed_filename'          => '',
@@ -418,6 +456,18 @@ class PreviewMediaRename extends Ability {
 		$file = get_attached_file( $id );
 		if ( is_string( $file ) && '' !== $file ) {
 			$result['current_filename'] = wp_basename( $file );
+		}
+
+		// A strategy's name comes from Pro, read-only; then the same checks
+		// as a typed name.
+		if ( '' !== $strategy ) {
+			$resolved = McpRename::resolve_strategy( $attachment, $strategy );
+			if ( '' !== $resolved['status'] ) {
+				$result['status'] = $resolved['status'];
+				return $result;
+			}
+			$requested                    = $resolved['name'];
+			$result['requested_filename'] = $requested;
 		}
 
 		$name_status = self::name_status( $requested );
