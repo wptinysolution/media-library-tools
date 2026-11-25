@@ -1,4 +1,16 @@
-@import "tailwindcss";
+/*
+ * Utilities come only from the React app (src/js). Automatic detection also
+ * scanned PHP templates, docs and vendor_prefixed/, and every word there that
+ * names a utility became a global !important rule on the pages that load this
+ * stylesheet (it is how `.inline` collapsed WordPress's `notice inline` box).
+ */
+@import "tailwindcss" source(none);
+@source "../js";
+/*
+ * Words in the app's text that match WordPress or other admin class names but
+ * are never used as classes here: never generate them.
+ */
+@source not inline("inline table static visible");
 @import "tw-animate-css";
 @config "../../tailwind.config.js";
 
