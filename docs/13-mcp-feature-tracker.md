@@ -43,7 +43,7 @@ A feature is marked Implemented only with test evidence, never because code exis
 | F14 | Thumbnails (regeneration) | Free | Implemented | Investigated | None |
 | F15 | AI metadata generation | Free / Pro | Excluded (server-side); client-side workflow supported | Investigated | None |
 | F16 | Rubbish files and empty folders | Free / Pro | Deferred | Investigated | Decide on exposing file paths |
-| F17 | Image sizes, settings and automatic behaviour | Free / Pro | Implemented (image sizes); other settings Not Investigated | Investigated (image sizes) | None for image sizes; other settings: confirm whether MCP applies |
+| F17 | Image sizes, settings and automatic behaviour | Free / Pro | Implemented (image sizes; settings read-only) | Investigated | Settings updates not implemented (read-only by decision D30); Pro conversion settings have no save path |
 
 ## Next feature
 
@@ -717,7 +717,16 @@ All Free; no Pro-only behaviour. Every tool requires `manage_options` in the per
 ### F17 Image sizes, settings and automatic behaviour
 
 - **Owner:** Free (image sizes, settings, SVG upload, download shortcode); Pro (custom sizes, auto-rename on upload, front-end alt injection, AI image vision).
-- **MCP status:** image sizes **Implemented** (2026-11-21, D22). The other settings and automatic behaviour (SVG upload, download shortcode, auto-rename on upload, front-end alt injection, AI image vision, general settings) are **Not Investigated**; they are configuration rather than media operations, so MCP is probably not applicable. That is not a recorded decision.
+- **MCP status:** image sizes **Implemented** (2026-11-21, D22); settings **Implemented read-only** (2026-11-25, D30). Changing settings through MCP is not implemented.
+
+#### Settings (read-only, implemented 2026-11-25)
+
+- **Tool:** Free `tsmlt/get-settings` (`Abilities/Media/GetSettings.php`), documented in `docs/12-mcp-integration.md` ("Settings").
+- **Catalogue:** `Modules/Settings/SettingsCatalog.php` — an explicit allowlist with group, label, type, default and allowed values or range; values come from `Fns::get_options()` and are normalised the way the plugin reads them (the admin save stores several values unchecked); AI key statuses from `Credentials::statuses()`.
+- **Pro:** `Abilities/ProSettingsDefinitions.php` adds Pro definitions on `tsmlt_mcp_settings_definitions` (`SettingsCatalog::DEFINITIONS_FILTER`), hooked by name in `ProAbilitiesInit`. Free applies the filter only while `has_pro()` (checked on every call) and drops definitions for excluded keys, secret-looking names (`key`, `secret`, `token`, `password`, `credential`, …), Free's own keys and malformed shapes.
+- **Excluded:** API keys and credential storage, `tsmlt_mcp_access_disabled`, `delete_data_on_uninstall`, `others_file_support`, `custom_image_sizes` (image-size tools), `media_table_column`, internal state; Pro conversion settings (AVIF, conversion quality, generated sizes, convert on upload) until their save path is fixed — the Settings page shows those toggles but no code in either plugin saves them (found 2026-11-25, not fixed).
+- **Why read-only:** the admin save (`Api::update_option`) rebuilds the whole array from the full form and Pro's `tsmlt/settings/before/save` callbacks reset every Pro key missing from the payload, so a partial update cannot reuse them; a safe update would need its own allowlisted writer, preview and confirmation.
+- **Tests (2026-11-25):** Free `GetSettingsAbilityTest` (8: registration and exposure, administrators only, anonymous refused, MCP access off, Free values, no Pro settings without Pro, no secrets, one error for unknown and excluded keys, groups, keys and limits, normalisation, no option writes) and Pro `GetSettingsProTest` (4: Pro settings while licensed, hidden and refused without a licence, unsafe definitions dropped, editors refused). Mutation checks: removing the licence gate, the secret-name check or the exclusion list makes tests fail. Exact tool-list tests updated.
 
 #### Image sizes (implemented 2026-11-21)
 
@@ -785,6 +794,7 @@ Only decisions made by the project owner are recorded. Proposals awaiting approv
 | D27 | 2026-11-23 | MCP Connection page redesign (UI only): header with description; adapter notice restyled, buttons Install Now / Activate Now; underline tabs. Connection tab: MCP access card (status badge, switch), one "Connect an AI client" card (default server URL + copy, adapter status badge, steps: choose client (ARIA tabs, arrow keys), generate prompt (consent, loading/success/error), test), Advanced configuration (Manual configuration and Dedicated server disclosures). Documentation tab: "On this page" navigation and section cards in the same style. No change to endpoints, abilities, AJAX actions, credentials or client formats. | Free |
 | D28 | 2026-11-23 | Manual configuration works without Generate: template config with `BASE64_OF_USERNAME_COLON_APPLICATION_PASSWORD`, a "How to create the Authorization value" guide (printf/base64 and PowerShell commands with the current username quoted per shell, "Your computer" from the browser's platform), and "Or create it here" (in-browser UTF-8 Base64, not sent or stored). Page settings add the current username only, never credentials. | Free |
 | D29 | 2026-11-23 | Connection tab order: MCP access, connection card (default server URL and status, 1 choose client, 2 generate prompt, Manual configuration directly below it, 3 test — always shown, not collapsible), then Advanced configuration with only the dedicated endpoint. | Free |
+| D30 | 2026-11-25 | Settings over MCP are read-only: Free `tsmlt/get-settings` reports an allowlist of non-sensitive Free settings, and Pro's while licensed (through `tsmlt_mcp_settings_definitions`), normalised, with AI key statuses but never keys or credentials. No settings update tool. | Free / Pro |
 
 ## Workflow
 

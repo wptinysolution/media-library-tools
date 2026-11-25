@@ -555,6 +555,11 @@ class McpDocsPage {
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
 						</tr>
 						<tr>
+							<td><code>tsmlt-get-settings</code></td>
+							<td><?php esc_html_e( 'Returns the plugin\'s non-sensitive settings (all, one group, or up to 50 keys): value, default, type and allowed values, plus whether each AI provider\'s API key is saved — never the key. With Pro active, also Pro\'s settings. API keys, credentials, uninstall behaviour, allowed file types and internal state are never returned. Settings are changed only in WP Admin.', 'media-library-tools' ); ?></td>
+							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
+						</tr>
+						<tr>
 							<td><code>tsmlt-get-conversion-status</code></td>
 							<td><?php esc_html_e( 'Returns the WebP/AVIF conversion status of up to 50 attachments, as the Convert feature recorded it: completed, partial, skipped, failed, not converted or unsupported, whether the image changed since it was converted, whether a conversion is running, and per format the size, space saved, quality and when it was made. Error messages and file paths are not returned. Never converts or changes anything.', 'media-library-tools' ); ?></td>
 							<td><?php esc_html_e( 'No', 'media-library-tools' ); ?></td>
