@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import type { ExportImportSettings } from "@/js/Utils/store";
 import { loadImportHistory, saveImportHistory } from "./ExportCSV";
 import MediaThumbnail from "@/js/Component/Common/MediaThumbnail";
+import { importCounts } from "@/js/Utils/importCounts";
 
 interface UploadedItem {
     id: string | number;
@@ -116,11 +117,7 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
 
     const reversedFiles = useMemo(() => uploadedFile.slice(-10).reverse(), [uploadedFile]);
 
-    const counts = useMemo(() => {
-        const imported = uploadedFile.filter(f => f.status === 'uploaded').length;
-        const failed = uploadedFile.length - imported;
-        return { imported, failed };
-    }, [uploadedFile]);
+    const counts = useMemo(() => importCounts(uploadedFile), [uploadedFile]);
 
     return (
         <div className="max-w-375 mx-auto w-full">
@@ -166,6 +163,11 @@ function ImportInfo({ onComplete }: { onComplete?: () => void }) {
                             Imported (<span className="text-green-600">{counts.imported}</span>)
                         </span>
                         <div className="flex items-center gap-3">
+                            {counts.warnings > 0 && (
+                                <span className="text-sm font-medium text-amber-600">
+                                    With warnings ({counts.warnings})
+                                </span>
+                            )}
                             {counts.failed > 0 && (
                                 <span className="text-sm font-medium text-red-600">
                                     Failed ({counts.failed})

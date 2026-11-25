@@ -44,6 +44,7 @@ Updates fields on attachments that already exist in the library.
 - **No match → row skipped**. The row is reported as failed; nothing is created.
 - **Empty cells leave the existing field unchanged.** Only columns with a value are written.
 - **Optional rename**: If you also tick "Rename using the value located in the (rename_to) column", the file is renamed to the value of `rename_to` for each matched row.
+  - If the file cannot be renamed (for example it is missing from the server, the name is not usable, or another operation such as compression is working on it), the row's other fields are still saved and the row is shown as **Imported (with warning)** with the reason; the summary counts it under **With warnings**. A name that is already taken gets a number (`name-1`) instead, and a `rename_to` equal to the current name is not a warning.
 
 ### 2. Create new attachments (checkbox OFF)
 
