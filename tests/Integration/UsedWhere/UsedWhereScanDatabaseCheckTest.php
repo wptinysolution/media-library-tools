@@ -1,11 +1,15 @@
 <?php
 /**
- * A usage scan starts only when the tables its batches write to in one
- * transaction (options, postmeta, posts) use InnoDB: otherwise, or when the
- * engines cannot be read, nothing changes and the reason is reported.
+ * A usage scan starts on any storage engine. Its batches are saved in
+ * transactions only when the tables they write to (options, postmeta,
+ * posts) are known to be InnoDB; another engine, a table missing from the
+ * lookup or an unreadable lookup selects the fallback save
+ * (UsedWhereScanner::transactions_supported(); the fallback itself is
+ * covered by UsedWhereScanFallbackTest).
  *
  * The storage-engine lookup is answered by a `query` filter, so no table is
- * really converted. Outgoing HTTP is blocked.
+ * really converted: the engines are simulated, the database here is
+ * InnoDB. Outgoing HTTP is blocked.
  *
  * @package TinySolutions\mlt
  */
@@ -155,72 +159,52 @@ class UsedWhereScanDatabaseCheckTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A MyISAM postmeta table: the scan does not start and says which table
-	 * to convert.
+	 * The scan started: queued, a new scan, the first batch scheduled.
+	 *
+	 * @param mixed $result start_scheduled_scan() result.
 	 */
-	public function test_myisam_postmeta_prevents_the_start() {
-		global $wpdb;
-		$this->engines = self::engines_with( $wpdb->postmeta, 'MyISAM' );
-
-		$result = UsedWhereScanner::instance()->start_scheduled_scan();
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'tsmlt_usage_scan_database_unsupported', $result->get_error_code() );
-		$this->assertStringContainsString( $wpdb->postmeta, $result->get_error_message() );
-		$this->assertStringContainsString( 'InnoDB', $result->get_error_message() );
-		$this->assertStringNotContainsString( $wpdb->options, $result->get_error_message() );
-		$this->assert_nothing_changed();
+	private function assert_started( $result ) {
+		$this->assertIsArray( $result );
+		$this->assertSame( 'queued', get_option( self::STATUS )['state'] );
+		$this->assertNotSame( 'previous-scan', get_option( self::STATUS )['scan_id'] );
+		$this->assertNotFalse( wp_next_scheduled( UsedWhereScanner::SCAN_TICK_HOOK, [ 0 ] ) );
 	}
 
 	/**
-	 * A MyISAM options table: the scan does not start.
+	 * Every non-InnoDB case starts the scan and selects the fallback save:
+	 * a MyISAM postmeta or options table, a MariaDB Aria posts table, a
+	 * table missing from the lookup, and an unreadable lookup.
 	 */
-	public function test_myisam_options_prevents_the_start() {
+	public function test_other_engines_start_with_the_fallback() {
 		global $wpdb;
-		$this->engines = self::engines_with( $wpdb->options, 'MyISAM' );
+		$unlisted = self::engines_with( $wpdb->posts, 'InnoDB' );
+		unset( $unlisted[ $wpdb->posts ] );
+		$cases = [
+			'MyISAM postmeta' => self::engines_with( $wpdb->postmeta, 'MyISAM' ),
+			'MyISAM options'  => self::engines_with( $wpdb->options, 'MyISAM' ),
+			'Aria posts'      => self::engines_with( $wpdb->posts, 'Aria' ),
+			'unlisted table'  => $unlisted,
+			'unreadable'      => null,
+		];
+		foreach ( $cases as $case => $engines ) {
+			update_option( self::STATUS, $this->before, false );
+			wp_unschedule_hook( UsedWhereScanner::SCAN_TICK_HOOK );
+			$this->engines = $engines;
 
-		$result = UsedWhereScanner::instance()->start_scheduled_scan();
+			$suppressed = $wpdb->suppress_errors( true );
+			$this->assertFalse( UsedWhereScanner::transactions_supported(), $case );
+			$result = UsedWhereScanner::instance()->start_scheduled_scan();
+			$wpdb->suppress_errors( $suppressed );
 
-		$this->assertWPError( $result );
-		$this->assertStringContainsString( $wpdb->options, $result->get_error_message() );
-		$this->assert_nothing_changed();
+			$this->assert_started( $result );
+		}
 	}
 
 	/**
-	 * A table missing from the lookup counts as unsupported.
+	 * The start-usage-scan ability starts a scan on MyISAM, with its usual
+	 * response.
 	 */
-	public function test_unlisted_table_prevents_the_start() {
-		global $wpdb;
-		$this->engines = self::engines_with( $wpdb->posts, 'InnoDB' );
-		unset( $this->engines[ $wpdb->posts ] );
-
-		$result = UsedWhereScanner::instance()->start_scheduled_scan();
-
-		$this->assertWPError( $result );
-		$this->assertStringContainsString( $wpdb->posts, $result->get_error_message() );
-		$this->assert_nothing_changed();
-	}
-
-	/**
-	 * Engines that cannot be read: the scan does not start.
-	 */
-	public function test_unreadable_engines_prevent_the_start() {
-		global $wpdb;
-		$this->engines = null;
-
-		$suppressed = $wpdb->suppress_errors( true );
-		$result     = UsedWhereScanner::instance()->start_scheduled_scan();
-		$wpdb->suppress_errors( $suppressed );
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'tsmlt_usage_scan_database_unchecked', $result->get_error_code() );
-		$this->assert_nothing_changed();
-	}
-
-	/**
-	 * The start-usage-scan ability reports the reason as its start error.
-	 */
-	public function test_ability_reports_the_reason() {
+	public function test_ability_starts_on_myisam() {
 		global $wpdb;
 		if ( ! function_exists( 'wp_get_ability' ) || ! wp_get_ability( 'tsmlt/start-usage-scan' ) ) {
 			$this->markTestSkipped( 'The Abilities API is not available.' );
@@ -229,10 +213,10 @@ class UsedWhereScanDatabaseCheckTest extends WP_UnitTestCase {
 
 		$result = wp_get_ability( 'tsmlt/start-usage-scan' )->execute();
 
-		$this->assertWPError( $result );
-		$this->assertSame( StartUsageScan::ERROR_START_FAILED, $result->get_error_code() );
-		$this->assertStringContainsString( 'InnoDB', $result->get_error_message() );
-		$this->assert_nothing_changed();
+		$this->assertIsArray( $result, is_wp_error( $result ) ? $result->get_error_message() : '' );
+		$this->assertSame( 'started', $result['result'] );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( wp_json_encode( $result ), true ), wp_get_ability( 'tsmlt/start-usage-scan' )->get_output_schema(), 'result' ) );
+		$this->assertSame( 'queued', get_option( self::STATUS )['state'] );
 	}
 
 	/**
@@ -263,13 +247,25 @@ class UsedWhereScanDatabaseCheckTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * InnoDB tables (the real ones): the scan starts.
+	 * InnoDB tables (the real ones): the scan starts and uses transactions.
 	 */
-	public function test_innodb_tables_allow_the_start() {
-		$result = UsedWhereScanner::instance()->start_scheduled_scan();
+	public function test_innodb_tables_use_transactions() {
+		$this->assertTrue( UsedWhereScanner::transactions_supported() );
+		$this->assert_started( UsedWhereScanner::instance()->start_scheduled_scan() );
+	}
 
-		$this->assertIsArray( $result );
-		$this->assertSame( 'queued', get_option( self::STATUS )['state'] );
-		$this->assertNotFalse( wp_next_scheduled( UsedWhereScanner::SCAN_TICK_HOOK, [ 0 ] ) );
+	/**
+	 * The filter can turn transactions off on InnoDB, never on elsewhere.
+	 */
+	public function test_filter_only_turns_transactions_off() {
+		global $wpdb;
+		add_filter( UsedWhereScanner::TRANSACTIONS_FILTER, '__return_false' );
+		$this->assertFalse( UsedWhereScanner::transactions_supported(), 'Off on InnoDB.' );
+		remove_filter( UsedWhereScanner::TRANSACTIONS_FILTER, '__return_false' );
+
+		$this->engines = self::engines_with( $wpdb->postmeta, 'MyISAM' );
+		add_filter( UsedWhereScanner::TRANSACTIONS_FILTER, '__return_true' );
+		$this->assertFalse( UsedWhereScanner::transactions_supported(), 'Never on MyISAM.' );
+		remove_filter( UsedWhereScanner::TRANSACTIONS_FILTER, '__return_true' );
 	}
 }

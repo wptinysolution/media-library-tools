@@ -306,12 +306,11 @@ class UsedWhereScanStartLockAjaxTest extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * On a database that cannot run scans safely, the nonce and capability
-	 * checks still come first (refused requests learn nothing about the
-	 * database); an administrator is told why the scan did not start, and
-	 * nothing is started, wiped or left locked.
+	 * On a non-InnoDB database (simulated MyISAM postmeta) the nonce and
+	 * capability checks still come first, and an administrator's Re-scan
+	 * starts the scan and releases the start lock, as on InnoDB.
 	 */
-	public function test_unsupported_database_is_reported_only_after_the_checks() {
+	public function test_rescan_on_myisam_starts_after_the_checks() {
 		add_filter( 'query', [ $this, 'report_myisam_postmeta' ] );
 
 		$bad_nonce = $this->rescan( false );
@@ -323,14 +322,15 @@ class UsedWhereScanStartLockAjaxTest extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $editor['success'] );
 		$this->assertSame( 'Unauthorized.', $editor['data']['message'] );
 
-		wp_set_current_user( $admin );
-		$refused = $this->rescan()['response'];
-		$this->assertFalse( $refused['success'] );
-		$this->assertStringContainsString( 'InnoDB', $refused['data']['message'] );
+		$this->assertFalse( get_option( UsageScanStatus::OPTION ), 'Refused requests start nothing.' );
 
-		$this->assertNull( self::stored_lock() );
-		$this->assertFalse( get_option( UsageScanStatus::OPTION ) );
-		$this->assertSame( 0, self::ticks() );
+		wp_set_current_user( $admin );
+		$started = $this->rescan()['response'];
+		$this->assertTrue( $started['success'], wp_json_encode( $started ) );
+
+		$this->assertNull( self::stored_lock(), 'The start lock is released.' );
+		$this->assertSame( 'queued', get_option( UsageScanStatus::OPTION )['state'] );
+		$this->assertSame( 1, self::ticks() );
 	}
 
 	/**

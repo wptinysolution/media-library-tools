@@ -565,22 +565,77 @@ class Ajax {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Legacy AJAX-driven batch handler, kept for backwards compatibility.
+	 * Legacy synchronous scan endpoint, kept for external scripts that drive
+	 * a scan request by request: call it with `offset` 0, then with the
+	 * returned `processed` as the next `offset`, until `complete` is true.
 	 *
-	 * It no longer scans posts itself (that bypassed the scan lifecycle:
-	 * records wiped and written without the scan's locks or transactions,
-	 * and the status overwritten). Offset 0 starts a cron-driven scan the
-	 * way the Used Where page's Re-scan does (used_where_scan_start); any
-	 * other offset reports the scan's progress. The response keeps the
-	 * legacy shape. New callers should use used_where_scan_start and
-	 * used_where_get_status.
+	 * Each request runs the scan's next step itself, through the same scan
+	 * lifecycle as the Used Where page, cron and MCP (batch lock, offset
+	 * claim, transactions on InnoDB, the fallback save elsewhere):
+	 * - offset 0 starts a new scan (as Re-scan does: under the start lock,
+	 *   wiping earlier results) and runs its first batch now;
+	 * - another offset runs the batch at that offset when the running scan
+	 *   expects it; otherwise (cron or another client did it first) nothing
+	 *   runs and the real progress is returned, so `processed` stays the
+	 *   offset to send next;
+	 * - once every post is done, the completion cleanup runs in the same
+	 *   request, so `complete` means the scan really is complete.
+	 * `batch_size` (default 20) is limited to 1–100 posts.
+	 *
+	 * Response, as before: `{ processed, total, complete }`. A batch that
+	 * could not be saved, a scan that stopped (cancelled or failed), or an
+	 * offset other than 0 with no scan running is an error with a message,
+	 * never a success.
 	 *
 	 * @return void
 	 */
 	public function used_where_scan_batch(): void {
-		$params = $this->verify_and_get_params();
-		$offset = absint( $params['offset'] ?? 0 );
-		$status = 0 === $offset ? $this->start_used_where_scan() : UsedWhereScanner::instance()->get_scan_status();
+		$params  = $this->verify_and_get_params();
+		$offset  = absint( $params['offset'] ?? 0 );
+		$batch   = max( 1, min( UsedWhereScanner::LEGACY_MAX_BATCH, absint( $params['batch_size'] ?? 20 ) ) );
+		$scanner = UsedWhereScanner::instance();
+
+		if ( 0 === $offset ) {
+			$this->start_used_where_scan( false );
+		} else {
+			$state = (string) ( $scanner->get_scan_status()['state'] ?? 'idle' );
+			if ( 'complete' !== $state && ! in_array( $state, [ 'queued', 'running' ], true ) ) {
+				wp_send_json_error(
+					[
+						'state'   => $state,
+						'message' => esc_html__( 'No usage scan is running (it finished with an error, was cancelled or never started). Start a new scan with offset 0.', 'media-library-tools' ),
+					],
+					409
+				);
+			}
+		}
+
+		$outcome = $this->legacy_scan_step( $offset, $batch );
+		// Every post done: run the completion cleanup now, a few chunks at
+		// most (a client sends the returned offset again for the rest).
+		for ( $i = 0; $i < 5; $i++ ) {
+			$status = $scanner->get_scan_status();
+			$active = in_array( (string) ( $status['state'] ?? '' ), [ 'queued', 'running' ], true );
+			$done   = (int) ( $status['scanned'] ?? 0 ) >= (int) ( $status['total'] ?? 0 );
+			if ( ! $active || ! $done || ! in_array( $outcome, [ 'saved', 'cleanup' ], true ) ) {
+				break;
+			}
+			$outcome = $this->legacy_scan_step( (int) ( $status['scanned'] ?? 0 ), $batch );
+		}
+		$status = $scanner->get_scan_status();
+
+		if ( 'failed' === $outcome || 'error' === $outcome ) {
+			wp_send_json_error(
+				[
+					'state'   => (string) ( $status['state'] ?? '' ),
+					'message' => 'error' === $outcome
+						? esc_html__( 'The scan stopped with an error. Start a new scan with offset 0.', 'media-library-tools' )
+						: esc_html__( 'The scan batch could not be saved. Nothing was counted; send the same offset again.', 'media-library-tools' ),
+				],
+				500
+			);
+		}
+
 		$this->send(
 			[
 				'processed' => (int) ( $status['scanned'] ?? 0 ),
@@ -588,6 +643,27 @@ class Ajax {
 				'complete'  => ! empty( $status['complete'] ),
 			]
 		);
+	}
+
+	/**
+	 * Run one legacy step, waiting up to a few seconds while another worker
+	 * holds the batch lock (a cron batch of the same scan finishing).
+	 *
+	 * @param int $offset Offset.
+	 * @param int $batch  Batch size.
+	 *
+	 * @return string UsedWhereScanner step outcome.
+	 */
+	private function legacy_scan_step( int $offset, int $batch ): string {
+		$scanner = UsedWhereScanner::instance();
+		for ( $attempt = 0; $attempt < 20; $attempt++ ) {
+			$outcome = $scanner->run_legacy_step( $offset, $batch );
+			if ( 'busy' !== $outcome ) {
+				return $outcome;
+			}
+			usleep( 250000 );
+		}
+		return 'busy';
 	}
 
 	/**
@@ -608,9 +684,12 @@ class Ajax {
 	 * Start a cron-driven full scan under the shared start lock, or end the
 	 * request with an error when it cannot start.
 	 *
+	 * @param bool $spawn Poke WP-Cron now (the legacy endpoint runs the first
+	 *                    batch itself, so it does not).
+	 *
 	 * @return array Status snapshot (UsedWhereScanner::get_scan_status()).
 	 */
-	private function start_used_where_scan(): array {
+	private function start_used_where_scan( bool $spawn = true ): array {
 		// The start lock shared with the tsmlt/start-usage-scan ability: no
 		// records are wiped while another request is starting a scan.
 		$lock = ScanStartLock::instance()->acquire();
@@ -627,7 +706,7 @@ class Ajax {
 			// Spawn WP-Cron immediately so the first tick fires now instead of
 			// waiting for the next incoming request. Non-blocking — we don't
 			// care about the response, only that wp-cron.php is poked.
-			if ( ! is_wp_error( $status ) ) {
+			if ( $spawn && ! is_wp_error( $status ) ) {
 				spawn_cron();
 			}
 		} finally {

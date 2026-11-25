@@ -2329,6 +2329,20 @@ class UsedWhereScanner {
 	const SCAN_TICK_BATCH_DEEP = 5;
 
 	/**
+	 * Largest batch the legacy synchronous endpoint may ask for.
+	 *
+	 * @var int
+	 */
+	const LEGACY_MAX_BATCH = 100;
+
+	/**
+	 * Batch size set for one legacy step (run_legacy_step()); 0 otherwise.
+	 *
+	 * @var int
+	 */
+	private $batch_size_override = 0;
+
+	/**
 	 * Delay between ticks. Gives PHP-FPM workers breathing room between scan
 	 * batches so concurrent visitor requests don't queue behind back-to-back
 	 * loopback fetches. 30s spaces out the worker pressure enough that even
@@ -2386,6 +2400,9 @@ class UsedWhereScanner {
 	 * @return int
 	 */
 	private function tick_batch_size(): int {
+		if ( $this->batch_size_override > 0 ) {
+			return $this->batch_size_override;
+		}
 		return self::is_permalink_fetch_enabled() ? self::SCAN_TICK_BATCH_DEEP : self::SCAN_TICK_BATCH_FAST;
 	}
 
@@ -2501,19 +2518,14 @@ class UsedWhereScanner {
 	 * scan completes or is cancelled. Safe to call when a scan is already
 	 * running — it will hard-restart from offset 0.
 	 *
-	 * Refuses to start (changing nothing) unless the options, postmeta and
-	 * posts tables are InnoDB: batches save in transactions that rely on
-	 * InnoDB's transactions and row locks.
+	 * Starts on any storage engine. Batches are saved in transactions when
+	 * the options, postmeta and posts tables are InnoDB, otherwise in the
+	 * fallback order (transactions_supported(), persist_batch_direct()).
+	 * Callers still accept a WP_Error, which it no longer returns.
 	 *
-	 * @return array|\WP_Error Status snapshot for the response, or the reason
-	 *                         the scan cannot start.
+	 * @return array Status snapshot for the response.
 	 */
 	public function start_scheduled_scan() {
-		$unsupported = $this->unsupported_database_error();
-		if ( $unsupported ) {
-			return $unsupported;
-		}
-
 		// Cancel any in-flight scan so we don't race the old tick chain.
 		$this->cancel_scheduled_scan();
 
@@ -2601,31 +2613,33 @@ class UsedWhereScanner {
 	}
 
 	/**
-	 * The error to report when scan batches cannot be saved safely here: a
-	 * table they write to is not InnoDB, or the storage engines cannot be
-	 * read.
+	 * Filter that can turn the transactional save off (never on): return
+	 * false to save batches in the fallback order even on InnoDB.
 	 *
-	 * @return \WP_Error|null
+	 * @var string
 	 */
-	private function unsupported_database_error(): ?\WP_Error {
-		$tables = BatchTransaction::unsupported_tables();
-		if ( null === $tables ) {
-			return new \WP_Error(
-				'tsmlt_usage_scan_database_unchecked',
-				__( 'The usage scan could not check the database tables it needs. Try again; if this keeps happening, ask your host to check the database.', 'media-library-tools' )
-			);
+	const TRANSACTIONS_FILTER = 'tsmlt_used_where_scan_transactions';
+
+	/**
+	 * Whether scan batches and cleanup steps are saved in transactions: only
+	 * when the tables they write to (options, postmeta, posts) are known to
+	 * be InnoDB. Other engines (MyISAM, Aria, …) accept START TRANSACTION
+	 * and ROLLBACK without honouring them, and an unreadable engine list
+	 * proves nothing, so both use the fallback save (persist_batch_direct(),
+	 * commit_cleanup_direct()). Checked for every save.
+	 *
+	 * @return bool
+	 */
+	public static function transactions_supported(): bool {
+		if ( [] !== BatchTransaction::unsupported_tables() ) {
+			return false;
 		}
-		if ( $tables ) {
-			return new \WP_Error(
-				'tsmlt_usage_scan_database_unsupported',
-				sprintf(
-					/* translators: %s: database table names. */
-					__( 'The usage scan needs these database tables to use the InnoDB storage engine: %s. Ask your host to convert them to InnoDB, then start the scan again.', 'media-library-tools' ),
-					implode( ', ', $tables )
-				)
-			);
-		}
-		return null;
+		/**
+		 * Whether to save usage scan batches in database transactions.
+		 *
+		 * @param bool $use True on InnoDB; return false for the fallback save.
+		 */
+		return true === apply_filters( self::TRANSACTIONS_FILTER, true );
 	}
 
 	/**
@@ -2644,13 +2658,49 @@ class UsedWhereScanner {
 	 * @return void
 	 */
 	public function run_tick_batch( $offset = 0 ): void {
-		$offset = absint( $offset );
+		$this->tick( absint( $offset ) );
+	}
+
+	/**
+	 * Run one step of the scan at an offset, for the legacy synchronous AJAX
+	 * endpoint (tsmlt_used_where_scan_batch): the same step as a cron tick
+	 * (tick()), with the legacy batch size.
+	 *
+	 * @param int $offset     Offset.
+	 * @param int $batch_size Posts in a batch (1 to LEGACY_MAX_BATCH).
+	 *
+	 * @return string What happened (see tick()).
+	 */
+	public function run_legacy_step( int $offset, int $batch_size ): string {
+		$this->batch_size_override = max( 1, min( self::LEGACY_MAX_BATCH, $batch_size ) );
+		try {
+			return $this->tick( $offset );
+		} finally {
+			$this->batch_size_override = 0;
+		}
+	}
+
+	/**
+	 * One step of the scan: a batch of posts, or a chunk of the completion
+	 * cleanup, under the batch lock, only while the scan is active and still
+	 * expects this offset.
+	 *
+	 * @param int $offset Offset.
+	 *
+	 * @return string `saved` (a batch saved), `cleanup` (a cleanup chunk ran),
+	 *                `busy` (another worker holds the batch lock), `stopped`
+	 *                (not this scan's step: cancelled, restarted or the offset
+	 *                already done), `inactive` (no active scan), `failed`
+	 *                (the batch could not be saved; nothing moved on) or
+	 *                `error` (the scan stopped with an error).
+	 */
+	private function tick( int $offset ): string {
 
 		// Bail if the user cancelled or cleared mid-scan.
 		$status = get_option( 'tsmlt_used_where_scan_status', [] );
 		$state  = (string) ( $status['state'] ?? 'idle' );
 		if ( ! in_array( $state, [ 'queued', 'running' ], true ) ) {
-			return;
+			return 'inactive';
 		}
 		// The scan this batch belongs to; checked again before anything is
 		// written, so a batch never changes a scan cancelled, cleared or
@@ -2669,7 +2719,7 @@ class UsedWhereScanner {
 			if ( (int) ( $status['next_offset'] ?? 0 ) === $offset ) {
 				wp_schedule_single_event( time() + self::SCAN_TICK_DELAY, self::SCAN_TICK_HOOK, [ $offset ] );
 			}
-			return;
+			return 'busy';
 		}
 
 		try {
@@ -2684,20 +2734,21 @@ class UsedWhereScanner {
 				$offset
 			);
 			if ( ! $marked ) {
-				return;
+				return 'stopped';
 			}
 
 			// Every post processed: run the completion cleanup, in claimed
 			// steps, then schedule the rest if time ran out.
 			$current = self::active_scan_status( $this->read_scan_status_row(), $scan_id );
 			if ( null === $current ) {
-				return;
+				return 'stopped';
 			}
 			if ( in_array( (string) ( $current['cleanup_stage'] ?? '' ), self::CLEANUP_STAGES, true ) ) {
-				if ( 'more' === $this->run_cleanup( $scan_id, $offset ) ) {
+				$step = $this->run_cleanup( $scan_id, $offset );
+				if ( 'more' === $step ) {
 					$this->schedule_tick( $offset );
 				}
-				return;
+				return 'stopped' === $step && $this->is_current_scan( $scan_id ) ? 'failed' : 'cleanup';
 			}
 
 			$this->defer_writes = true;
@@ -2706,7 +2757,7 @@ class UsedWhereScanner {
 			// Cancelled, cleared or restarted meanwhile: save nothing, write
 			// no status and schedule no next batch.
 			if ( ! $this->is_current_scan( $scan_id ) ) {
-				return;
+				return 'stopped';
 			}
 
 			$next_offset = (int) $result['processed'];
@@ -2744,7 +2795,9 @@ class UsedWhereScanner {
 			// a duplicate batch, nor when saving failed.
 			if ( $saved ) {
 				$this->schedule_tick( $next_offset );
+				return 'saved';
 			}
+			return $this->is_current_scan( $scan_id ) ? 'failed' : 'stopped';
 		} catch ( \Throwable $e ) {
 			$this->claim_scan_status(
 				$scan_id,
@@ -2754,6 +2807,7 @@ class UsedWhereScanner {
 				],
 				$offset
 			);
+			return 'error';
 		} finally {
 			if ( BatchTransaction::instance()->is_active() ) {
 				BatchTransaction::instance()->rollback();
@@ -2813,6 +2867,9 @@ class UsedWhereScanner {
 	 * @throws \Throwable An error other than a database error (rolled back).
 	 */
 	private function persist_batch( string $scan_id, int $offset, array $changes ): bool {
+		if ( ! self::transactions_supported() ) {
+			return $this->persist_batch_direct( $scan_id, $offset, $changes );
+		}
 		$transaction = BatchTransaction::instance();
 
 		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
@@ -2860,6 +2917,84 @@ class UsedWhereScanner {
 				throw $e;
 			}
 
+			self::status_written( $current, $next );
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Save a batch without a transaction (tables that are not InnoDB): the
+	 * fallback order. Every write is checked, as in persist_batch(), but
+	 * takes effect at once, so the order is what keeps the scan correct:
+	 *
+	 * 1. the status is read: the batch's scan must still be active and expect
+	 *    this offset, else nothing is written;
+	 * 2. the usage records, parents, fingerprints and option-scan cache are
+	 *    written (a merged record only over the value it was merged with);
+	 * 3. last, the status claim moves the scan on, an UPDATE that must still
+	 *    find the exact status read (one statement, atomic on any engine).
+	 *
+	 * A failure in step 2 or 3 leaves the offset where it was, so the batch
+	 * is not reported as saved and no next batch is scheduled: stall
+	 * recovery runs it again, and running a batch again is harmless (usages
+	 * are merged without duplicates, the first batch's records are
+	 * replaced, a parent is set only while there is none, fingerprints and
+	 * the cache are overwritten). What this order cannot do, unlike the
+	 * transaction, is make a Cancel, Clear Results or Re-scan wait: one that
+	 * lands between steps 1 and 3 may find this batch's records written,
+	 * and the batch then stops at step 3.
+	 *
+	 * @param string $scan_id Scan ID read when the batch started.
+	 * @param int    $offset  This batch's offset.
+	 * @param array  $changes Status fields to write.
+	 *
+	 * @return bool Whether the batch was saved and the status moved on.
+	 *
+	 * @throws \Throwable An error other than a database error.
+	 */
+	private function persist_batch_direct( string $scan_id, int $offset, array $changes ): bool {
+		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+			$stored  = $this->read_scan_status_row();
+			$current = self::active_scan_status( $stored, $scan_id );
+			if ( null === $current || (int) ( $current['next_offset'] ?? 0 ) !== $offset ) {
+				return false;
+			}
+
+			try {
+				$this->persist_usages_buffer( 0 === $offset );
+				foreach ( $this->pending_fingerprints as $post_id => $fingerprint ) {
+					BatchTransaction::instance()->put_meta( (int) $post_id, '_tsmlt_permalink_fp', $fingerprint );
+				}
+				$this->pending_fingerprints = [];
+				if ( null !== $this->pending_option_cache ) {
+					set_transient( self::OPTION_SCAN_CACHE_KEY, $this->pending_option_cache, DAY_IN_SECONDS );
+					BatchTransaction::check();
+					$this->pending_option_cache = null;
+				}
+
+				$next              = array_merge( $current, $changes );
+				$next['timestamp'] = current_time( 'mysql' );
+				$claimed           = $this->claim_status_row( (string) $stored, maybe_serialize( $next ) );
+			} catch ( \Throwable $e ) {
+				self::forget_cached_scan_status();
+				if ( BatchTransaction::is_conflict( $e ) ) {
+					// A usage record changed since it was read: read again.
+					continue;
+				}
+				if ( BatchTransaction::is_database_error( $e ) ) {
+					return false;
+				}
+				throw $e;
+			}
+
+			if ( ! $claimed ) {
+				// The status changed since the read: read it again (what was
+				// written is kept; writing it again changes nothing).
+				self::forget_cached_scan_status();
+				continue;
+			}
 			self::status_written( $current, $next );
 			return true;
 		}
@@ -3489,6 +3624,9 @@ class UsedWhereScanner {
 	 * @throws \Throwable An error other than a database error (rolled back).
 	 */
 	private function commit_cleanup( string $stored, array $current, array $changes, array $rows, array &$conflicts ): string {
+		if ( ! self::transactions_supported() ) {
+			return $this->commit_cleanup_direct( $stored, $current, $changes, $rows, $conflicts );
+		}
 		$transaction       = BatchTransaction::instance();
 		$next              = array_merge( $current, $changes );
 		$next['timestamp'] = current_time( 'mysql' );
@@ -3543,6 +3681,75 @@ class UsedWhereScanner {
 			throw $e;
 		}
 
+		self::status_written( $current, $next );
+		return empty( $next['complete'] ) ? 'more' : 'done';
+	}
+
+	/**
+	 * Commit a cleanup step without a transaction (tables that are not
+	 * InnoDB), in the fallback order of persist_batch_direct(): the status
+	 * read must be unchanged, then each usage record is written only over
+	 * the value read (a changed one is reported back in $conflicts, as in
+	 * commit_cleanup()), and last the status claim moves the stage or cursor
+	 * on. When the claim fails the step is read and planned again: records
+	 * already cleaned need nothing more, so this changes nothing twice.
+	 *
+	 * @param string $stored    Status value read.
+	 * @param array  $current   Status read.
+	 * @param array  $changes   Status fields to write.
+	 * @param array  $rows      Usage records to write (cleanup_row()).
+	 * @param array  $conflicts Set to the records not written.
+	 *
+	 * @return string 'done', 'more', 'busy' or 'stopped', as commit_cleanup().
+	 *
+	 * @throws \Throwable An error other than a database error.
+	 */
+	private function commit_cleanup_direct( string $stored, array $current, array $changes, array $rows, array &$conflicts ): string {
+		$transaction = BatchTransaction::instance();
+		if ( $this->read_scan_status_row() !== $stored ) {
+			return 'busy';
+		}
+		try {
+			foreach ( $rows as $row ) {
+				$written = null === $row['usages']
+					? $transaction->delete_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'] )
+					: $transaction->replace_meta_if( $row['meta_id'], $row['post_id'], self::META_KEY, $row['raw'], $row['usages'] );
+				if ( ! $written ) {
+					$conflicts[] = $row;
+				}
+			}
+
+			$next              = array_merge( $current, $changes );
+			$next['timestamp'] = current_time( 'mysql' );
+			if ( $conflicts && ! empty( $next['complete'] ) ) {
+				// Not complete yet: the records that changed are retried first.
+				$next = array_merge(
+					$next,
+					[
+						'state'         => 'running',
+						'complete'      => false,
+						'cleanup_stage' => 'reconcile',
+					]
+				);
+			}
+			$claimed = $this->claim_status_row( $stored, maybe_serialize( $next ) );
+		} catch ( \Throwable $e ) {
+			self::forget_cached_scan_status();
+			$conflicts = [];
+			if ( BatchTransaction::is_conflict( $e ) ) {
+				return 'busy';
+			}
+			if ( BatchTransaction::is_database_error( $e ) ) {
+				return 'stopped';
+			}
+			throw $e;
+		}
+
+		if ( ! $claimed ) {
+			self::forget_cached_scan_status();
+			$conflicts = [];
+			return 'busy';
+		}
 		self::status_written( $current, $next );
 		return empty( $next['complete'] ) ? 'more' : 'done';
 	}

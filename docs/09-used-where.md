@@ -52,6 +52,8 @@ The scanner:
 - **Full Scan**: Backend detection of all references
 - **Frontend Tracking**: Passive tracking when users visit pages (Pro)
 
+**Database support**: the scan runs on any MySQL or MariaDB storage engine. When the `options`, `postmeta` and `posts` tables are InnoDB, each batch is saved in one transaction, so a Cancel, Clear Results or Re-scan waits for it and a failed batch saves nothing. On other engines (MyISAM, Aria), or when the engines cannot be read, each batch writes its usage records first and moves the scan on last: a failed batch is not counted, the scan resumes it automatically, and running a batch again does not duplicate usages. A Cancel, Clear Results or Re-scan that lands in the middle of such a batch may find that batch's records already written.
+
 ### 2. Four Tabs: Used, Unused, Unknown, Trash
 
 #### Used Tab
