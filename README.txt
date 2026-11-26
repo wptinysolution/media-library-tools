@@ -2,7 +2,7 @@
 Contributors: tinysolution, mehediihasan
 Tags: rename, duplicate, compress images, csv export import, alt text
 Requires at least: 6.5
-Tested up to: 7.1
+Tested up to: 7.2
 Stable tag: 2.4.0
 Requires PHP: 7.4
 License: GPLv3
