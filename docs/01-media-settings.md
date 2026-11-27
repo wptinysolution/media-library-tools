@@ -145,9 +145,17 @@ Reads EXIF data from new JPEG, TIFF and WebP uploads. Every option is **off by d
 - **What it does**: Sets the attachment's date to the EXIF date taken (`DateTimeOriginal`, else `DateTime`). The file stays in its current upload folder.
 - **Changes the file**: No
 
-#### GPS removal on upload (Pro, no setting yet)
+#### Setting: Remove GPS Location on Upload (Pro)
 
-The Pro plugin removes GPS data from new JPEG uploads when the `auto_remove_gps_on_upload` option is enabled, the **Process EXIF on Upload** switch is on and the Pro licence is active. There is no settings field for it yet; the free plugin never saves this option. Removal runs when WordPress adds the attachment, before it creates the scaled, rotated and resized copies, so those copies are made from the GPS-free file.
+- **Label**: "Remove GPS Location on Upload"
+- **What it does**: Automatically removes GPS location metadata from supported images when they are uploaded (details below).
+- **Option**: `auto_remove_gps_on_upload` (0/1, off by default)
+- **Requires**: **Process EXIF on Upload**. While that switch is off, the toggle is shown disabled and nothing is removed; the saved value is kept.
+- **Without an active Pro licence**: the toggle shows the PRO label, is never shown as on, and opens the upgrade dialog instead of changing. Nothing is removed on upload.
+- **Saving**: the free plugin never writes this option. The Pro plugin saves it on `tsmlt/settings/before/save` (`FilterHooks::settings_before_save()`), as `1` or `0`, only while licensed. A save made without a licence leaves the stored value unchanged, so a value chosen while licensed comes back when the licence is renewed.
+- **Changes the file**: Yes (GPS data only)
+
+The Pro plugin removes GPS data from new JPEG uploads when this option is enabled, the **Process EXIF on Upload** switch is on and the Pro licence is active. Removal runs when WordPress adds the attachment, before it creates the scaled, rotated and resized copies, so those copies are made from the GPS-free file.
 
 HEIC uploads are different: WordPress converts them to JPEG only while generating the image sizes, after the attachment is added, and keeps the attachment's MIME type as `image/heic`. The Pro plugin then removes GPS from those JPEG files (the scaled file and the sizes). The HEIC original itself cannot be cleaned (see below).
 

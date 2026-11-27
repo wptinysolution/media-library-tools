@@ -129,6 +129,10 @@ class ExifUploadSettingsTest extends WP_Ajax_UnitTestCase {
 		update_option( 'tsmlt_settings', [ 'auto_remove_gps_on_upload' => 1 ] );
 		$this->save( [ 'auto_remove_gps_on_upload' => 0 ] );
 		$this->assertSame( 1, get_option( 'tsmlt_settings' )['auto_remove_gps_on_upload'] );
+
+		// The settings form always submits the key; omitting it keeps the value too.
+		$this->save( [ 'auto_process_exif' => 0 ] );
+		$this->assertSame( 1, get_option( 'tsmlt_settings' )['auto_remove_gps_on_upload'] );
 	}
 
 	/**

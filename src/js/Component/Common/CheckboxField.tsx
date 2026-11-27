@@ -8,11 +8,12 @@ interface CheckboxFieldProps {
     onChange: React.ChangeEventHandler<HTMLInputElement>;
     label: React.ReactNode;
     isPro?: boolean;
+    disabled?: boolean;
 }
 
-export default function CheckboxField({ name, value, checked, onChange, label, isPro = false }: CheckboxFieldProps) {
+export default function CheckboxField({ name, value, checked, onChange, label, isPro = false, disabled = false }: CheckboxFieldProps) {
     return (
-        <label className={`inline-flex items-center gap-3 group ${isPro ? 'cursor-pointer opacity-75' : 'cursor-pointer'}`}>
+        <label className={`inline-flex items-center gap-3 group ${disabled ? 'cursor-not-allowed opacity-50' : isPro ? 'cursor-pointer opacity-75' : 'cursor-pointer'}`}>
             <span className={`relative shrink-0 w-4.5 h-4.5 rounded! border-2 transition-all duration-150 ${
                 checked
                     ? 'bg-blue-600! border-blue-600! shadow-sm'
@@ -35,8 +36,9 @@ export default function CheckboxField({ name, value, checked, onChange, label, i
                 )}
                 <input
                     type="checkbox"
-                    className="absolute! inset-0! w-full! h-full! opacity-0! m-0! p-0! border-0! cursor-pointer"
+                    className={`absolute! inset-0! w-full! h-full! opacity-0! m-0! p-0! border-0! ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     onChange={onChange}
+                    disabled={disabled}
                     name={name}
                     value={value}
                     checked={checked}

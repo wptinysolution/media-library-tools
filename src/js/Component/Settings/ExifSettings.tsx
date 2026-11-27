@@ -1,20 +1,37 @@
 import { useStore } from '@/js/Utils/store';
 import CheckboxField from '@/js/Component/Common/CheckboxField';
 import SettingRow from '@/js/Component/Common/SettingRow';
+import { GPS_ON_UPLOAD, gpsOnUploadState } from '@/js/Utils/exifUploadSettings';
 
 /**
  * EXIF on Upload settings panel.
  *
  * Every option is off by default and applies only to new uploads. Values are
  * held in the shared `options` store and saved by the existing SaveButton;
- * the server stores them as 0/1.
+ * the server stores them as 0/1. GPS removal is Pro-only: the Pro plugin
+ * saves it while licensed, and without a licence the row opens the upgrade
+ * modal instead of changing state.
  */
 export default function ExifSettings() {
-    const { options, setOptions } = useStore();
+    const { options, setOptions, setGeneralData } = useStore();
 
     const enabled = !!options.auto_process_exif;
 
+    const gps = gpsOnUploadState(options, tsmltParams.hasExtended);
+
     const toggle = (key: string, checked: boolean) => setOptions({ [key]: checked ? 1 : 0 });
+
+    /** Toggle GPS removal, or prompt to upgrade when not entitled. */
+    const toggleGps = (checked: boolean) => {
+        if (gps.disabled) {
+            return;
+        }
+        if (gps.locked) {
+            setGeneralData({ openProModal: true });
+            return;
+        }
+        toggle(GPS_ON_UPLOAD.key, checked);
+    };
 
     return (
         <div className="bg-white rounded-lg border border-gray-200">
@@ -69,6 +86,22 @@ export default function ExifSettings() {
                         </SettingRow>
                     </>
                 )}
+
+                <SettingRow label={GPS_ON_UPLOAD.rowLabel} bordered>
+                    <CheckboxField
+                        name={GPS_ON_UPLOAD.key}
+                        value={GPS_ON_UPLOAD.key}
+                        checked={gps.checked}
+                        onChange={(e) => toggleGps(e.target.checked)}
+                        label={GPS_ON_UPLOAD.label}
+                        isPro={gps.locked}
+                        disabled={gps.disabled}
+                    />
+                    <p className="text-sm text-gray-500 mt-0!">
+                        {GPS_ON_UPLOAD.description} Only GPS data is removed; other EXIF data is kept.
+                        Requires Process EXIF on Upload. Existing images are not affected.
+                    </p>
+                </SettingRow>
             </div>
         </div>
     );
